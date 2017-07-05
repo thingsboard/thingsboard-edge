@@ -25,12 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
@@ -106,6 +105,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
             deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
             deviceCredentialsService.createDeviceCredentials(deviceCredentials);
+            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getId());
         }
         return savedDevice;
     }
@@ -253,6 +253,20 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 return deviceTypes;
             });
         return tenantDeviceTypes;
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<Device>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(entityGroupId, EntityType.DEVICE, pageLink, new Function<EntityId, Device>() {
+            @Nullable
+            @Override
+            public Device apply(@Nullable EntityId input) {
+                return findDeviceById(new DeviceId(input.getId()));
+            }
+        });
     }
 
     private DataValidator<Device> deviceValidator =

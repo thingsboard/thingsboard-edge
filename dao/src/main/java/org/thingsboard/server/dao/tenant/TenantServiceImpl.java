@@ -20,15 +20,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.rule.RuleService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -55,6 +58,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private AssetService assetService;
 
     @Autowired
     private DeviceService deviceService;
@@ -90,7 +96,14 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         tenantValidator.validate(tenant);
-        return tenantDao.save(tenant);
+        Tenant savedTenant = tenantDao.save(tenant);
+        if (tenant.getId() == null) {
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.USER);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.CUSTOMER);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.ASSET);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.DEVICE);
+        }
+        return savedTenant;
     }
 
     @Override
@@ -100,11 +113,13 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
+        assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         ruleService.deleteRulesByTenantId(tenantId);
         pluginService.deletePluginsByTenantId(tenantId);
         tenantDao.removeById(tenantId.getId());
+        deleteEntityGroups(tenantId);
         deleteEntityRelations(tenantId);
     }
 

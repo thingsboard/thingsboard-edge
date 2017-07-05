@@ -20,9 +20,12 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.TenantDeviceType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,5 +65,7 @@ public interface DeviceService {
     ListenableFuture<List<Device>> findDevicesByQuery(DeviceSearchQuery query);
 
     ListenableFuture<List<TenantDeviceType>> findDeviceTypesByTenantId(TenantId tenantId);
+
+    ListenableFuture<TimePageData<Device>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

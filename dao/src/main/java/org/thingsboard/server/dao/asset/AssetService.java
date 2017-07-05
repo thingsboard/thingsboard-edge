@@ -20,9 +20,12 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.TenantAssetType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,4 +65,6 @@ public interface AssetService {
     ListenableFuture<List<Asset>> findAssetsByQuery(AssetSearchQuery query);
 
     ListenableFuture<List<TenantAssetType>> findAssetTypesByTenantId(TenantId tenantId);
+
+    ListenableFuture<TimePageData<Asset>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 }

@@ -29,12 +29,11 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.TenantAssetType;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -51,7 +50,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.dao.DaoUtil.*;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.*;
 
@@ -93,7 +92,11 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     public Asset saveAsset(Asset asset) {
         log.trace("Executing saveAsset [{}]", asset);
         assetValidator.validate(asset);
-        return assetDao.save(asset);
+        Asset savedAsset = assetDao.save(asset);
+        if (asset.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getId());
+        }
+        return savedAsset;
     }
 
     @Override
@@ -233,6 +236,20 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                     return assetTypes;
                 });
         return tenantAssetTypes;
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<Asset>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(entityGroupId, EntityType.ASSET, pageLink, new Function<EntityId, Asset>() {
+            @Nullable
+            @Override
+            public Asset apply(@Nullable EntityId input) {
+                return findAssetById(new AssetId(input.getId()));
+            }
+        });
     }
 
     private DataValidator<Asset> assetValidator =
