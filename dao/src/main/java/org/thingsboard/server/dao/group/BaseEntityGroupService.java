@@ -46,17 +46,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.dao.service.Validator.validateEntityId;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
 @Slf4j
 public class BaseEntityGroupService extends AbstractEntityService implements EntityGroupService {
 
     public static final String ENTITY_GROUP_RELATION_PREFIX = "ENTITY_GROUP_";
-
-    public static final String GROUP_ALL_NAME = "All";
 
     @Autowired
     private EntityGroupDao entityGroupDao;
@@ -100,7 +96,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException("Incorrect groupType " + groupType);
         }
         EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName(GROUP_ALL_NAME);
+        entityGroup.setName(EntityGroup.GROUP_ALL_NAME);
         entityGroup.setType(groupType);
         return saveEntityGroup(parentEntityId, entityGroup);
     }
@@ -135,12 +131,23 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(EntityId parentEntityId, EntityType groupType) {
-        log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType", parentEntityId, groupType);
+        log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
         validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
         if (groupType == null) {
             throw new IncorrectParameterException("Incorrect groupType " + groupType);
         }
         return entityGroupDao.findEntityGroupsByType(parentEntityId, groupType);
+    }
+
+    @Override
+    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(EntityId parentEntityId, EntityType groupType, String name) {
+        log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
+        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException("Incorrect groupType " + groupType);
+        }
+        validateString(name, "Incorrect name " + name);
+        return entityGroupDao.findEntityGroupByTypeAndName(parentEntityId, groupType, name);
     }
 
     @Override
@@ -162,7 +169,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
         try {
-            Optional<EntityGroup> entityGroup = entityGroupDao.findEntityGroupByTypeAndName(parentEntityId, entityId.getEntityType(), GROUP_ALL_NAME).get();
+            Optional<EntityGroup> entityGroup = entityGroupDao.findEntityGroupByTypeAndName(parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
             if (entityGroup.isPresent()) {
                 addEntityToEntityGroup(entityGroup.get().getId(), entityId);
             } else {

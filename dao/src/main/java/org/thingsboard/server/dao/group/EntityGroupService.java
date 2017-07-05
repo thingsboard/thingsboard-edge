@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EntityGroupService {
 
@@ -45,6 +46,8 @@ public interface EntityGroupService {
     void deleteAllEntityGroups(EntityId parentEntityId);
 
     ListenableFuture<List<EntityGroup>> findEntityGroupsByType(EntityId parentEntityId, EntityType groupType);
+
+    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(EntityId parentEntityId, EntityType groupType, String name);
 
     void addEntityToEntityGroup(EntityGroupId entityGroupId, EntityId entityId);
 

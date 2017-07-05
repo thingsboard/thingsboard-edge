@@ -25,6 +25,8 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName {
 
     private static final long serialVersionUID = 2807349040519543363L;
 
+    public static final String GROUP_ALL_NAME = "All";
+
     private EntityType type;
     private String name;
     private JsonNode additionalInfo;
@@ -77,6 +79,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName {
 
     public void setConfiguration(JsonNode configuration) {
         this.configuration = configuration;
+    }
+
+    public boolean isGroupAll() {
+        return GROUP_ALL_NAME.equals(name);
     }
 
     @Override
