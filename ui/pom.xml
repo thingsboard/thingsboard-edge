@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.3.0EE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <groupId>org.thingsboard</groupId>
     <artifactId>ui</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard Server UI</name>
-    <url>http://thingsboard.org</url>
+    <name>ThingsBoard EE Server UI</name>
+    <url>https://thingsboard.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
