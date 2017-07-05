@@ -19,6 +19,8 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -59,8 +61,8 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    <T extends BaseData<? extends UUIDBased>> ListenableFuture<TimePageData<T>> findEntities(EntityGroupId entityGroupId,
-                                                                                             EntityType groupType, TimePageLink pageLink,
-                                                                                             Function<EntityId, T> transformFunction);
+    <T extends BaseData<I> & HasName, I extends UUIDBased & EntityId> ListenableFuture<TimePageData<EntityView<T, I>>> findEntities(EntityGroupId entityGroupId,
+                                                                                                                      EntityType groupType, TimePageLink pageLink,
+                                                                                                                      Function<EntityId, T> transformFunction);
 
 }

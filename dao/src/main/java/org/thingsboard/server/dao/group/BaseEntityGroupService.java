@@ -17,7 +17,6 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -26,19 +25,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -56,6 +60,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private EntityGroupDao entityGroupDao;
+
+    @Autowired
+    private AttributesService attributesService;
+
+    @Autowired
+    private TimeseriesService timeseriesService;
 
     @Override
     public EntityGroup findEntityGroupById(EntityGroupId entityGroupId) {
@@ -203,8 +213,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public <T extends BaseData<? extends UUIDBased>> ListenableFuture<TimePageData<T>> findEntities(EntityGroupId entityGroupId, EntityType groupType,
-                                                                                                    TimePageLink pageLink, Function<EntityId, T> transformFunction) {
+    public <T extends BaseData<I> & HasName, I extends UUIDBased & EntityId> ListenableFuture<TimePageData<EntityView<T, I>>>
+                            findEntities(EntityGroupId entityGroupId, EntityType groupType,
+                                         TimePageLink pageLink, Function<EntityId, T> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], groupType [{}], pageLink [{}]", entityGroupId, groupType, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         if (groupType == null) {
@@ -215,15 +226,46 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
         ListenableFuture<List<EntityId>> entityIds = entityGroupDao.findEntityIds(entityGroupId, groupType, pageLink);
-        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<T>>() {
+        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView<T, I>>>() {
             @Nullable
             @Override
-            public TimePageData<T> apply(@Nullable List<EntityId> entityIds) {
-                List<T> entities = new ArrayList<>();
-                entityIds.forEach(entityId -> entities.add(transformFunction.apply(entityId)));
+            public TimePageData<EntityView<T, I>> apply(@Nullable List<EntityId> entityIds) {
+                List<EntityView<T, I>> entities = new ArrayList<>();
+                entityIds.forEach(entityId -> {
+                    T entity = transformFunction.apply(entityId);
+                    EntityView<T,I> entityView = new EntityView<>(entity);
+                    fetchEntityAttributes(entityView);
+                    entities.add(entityView);
+                });
                 return new TimePageData<>(entities, pageLink);
             }
         });
+    }
+
+    private <I extends UUIDBased & EntityId> void fetchEntityAttributes(EntityView<?,I> entityView) {
+        EntityId entityId = entityView.getId();
+        //TODO:
+        String scope = "";
+        List<String> attributeKeys = new ArrayList<>();
+        try {
+            List<AttributeKvEntry> attributeKvEntries = attributesService.find(entityId, scope, attributeKeys).get();
+            attributeKvEntries.forEach(attributeKvEntry -> {
+                entityView.setAttribute(attributeKvEntry.getKey(), attributeKvEntry.getValueAsString());
+            });
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Unable to fetch entity attributes", e);
+        }
+
+        List<String> timeseriesKeys = new ArrayList<>();
+
+        try {
+            List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(entityId, timeseriesKeys).get();
+            tsKvEntries.forEach(tsKvEntry -> {
+                entityView.setAttribute(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
+            });
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Unable to fetch entity latest timeseries", e);
+        }
     }
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {

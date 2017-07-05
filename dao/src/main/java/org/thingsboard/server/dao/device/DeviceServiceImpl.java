@@ -256,7 +256,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public ListenableFuture<TimePageData<Device>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView<Device, DeviceId>>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
