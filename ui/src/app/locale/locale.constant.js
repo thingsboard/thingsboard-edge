@@ -706,6 +706,27 @@ export default angular.module('thingsboard.locale', [])
                     "no-entities-prompt": "No entities found",
                     "no-data": "No data to display"
                 },
+                "entity-group": {
+                    "details": "Details",
+                    "columns": "Columns",
+                    "actions": "Actions",
+                    "delete": "Delete entity group",
+                    "name": "Name",
+                    "name-required": "Name is required.",
+                    "description": "Description",
+                    "add": "Add entity group",
+                    "add-entity-group-text": "Add new entity group",
+                    "no-entity-groups-text": "No entity groups found",
+                    "entity-group-details": "Entity group details",
+                    "delete-entity-groups": "Delete entity groups",
+                    "delete-entity-group-title": "Are you sure you want to delete the entity group '{{entityGroupName}}'?",
+                    "delete-entity-group-text": "Be careful, after the confirmation the entity group and all related data will become unrecoverable.",
+                    "delete-entity-groups-title": "Are you sure you want to delete { count, select, 1 {1 entity group} other {# entity groups} }?",
+                    "delete-entity-groups-action-title": "Delete { count, select, 1 {1 entity group} other {# entity groups} }",
+                    "delete-entity-groups-text": "Be careful, after the confirmation all selected entity groups will be removed and all related data will become unrecoverable.",
+                    "device-groups": "Device groups",
+                    "asset-groups": "Asset groups"
+                },
                 "event": {
                     "event-type": "Event type",
                     "type-error": "Error",

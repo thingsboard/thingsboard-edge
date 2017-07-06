@@ -23,13 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -151,17 +147,46 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public ListenableFuture<TimePageData<Customer>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, EntityType.CUSTOMER, pageLink, new Function<EntityId, Customer>() {
-            @Nullable
-            @Override
-            public Customer apply(@Nullable EntityId input) {
-                return findCustomerById(new CustomerId(input.getId()));
+        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
+            Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TITLE:
+                        entityView.put(key, customer.getTitle());
+                        break;
+                    case EMAIL:
+                        entityView.put(key, customer.getEmail());
+                        break;
+                    case COUNTRY:
+                        entityView.put(key, customer.getCountry());
+                        break;
+                    case STATE:
+                        entityView.put(key, customer.getState());
+                        break;
+                    case CITY:
+                        entityView.put(key, customer.getCity());
+                        break;
+                    case ADDRESS:
+                        entityView.put(key, customer.getAddress());
+                        break;
+                    case ADDRESS2:
+                        entityView.put(key, customer.getAddress2());
+                        break;
+                    case ZIP:
+                        entityView.put(key, customer.getZip());
+                        break;
+                    case PHONE:
+                        entityView.put(key, customer.getPhone());
+                        break;
+                }
             }
-        });
+            return entityView;
+        }));
     }
 
     private DataValidator<Customer> customerValidator =

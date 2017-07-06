@@ -191,13 +191,15 @@ function Menu(userService, $state, $rootScope) {
                         {
                             name: 'asset.assets',
                             type: 'link',
-                            state: 'home.assets',
+                            //state: 'home.assets',
+                            state: 'home.assetGroups',
                             icon: 'domain'
                         },
                         {
                             name: 'device.devices',
                             type: 'link',
-                            state: 'home.devices',
+                            //state: 'home.devices',
+                            state: 'home.deviceGroups',
                             icon: 'devices_other'
                         },
                         {
@@ -245,7 +247,8 @@ function Menu(userService, $state, $rootScope) {
                                     {
                                         name: 'asset.assets',
                                         icon: 'domain',
-                                        state: 'home.assets'
+                                        //state: 'home.assets'
+                                        state: 'home.assetGroups'
                                     }
                                 ]
                             },
@@ -255,7 +258,8 @@ function Menu(userService, $state, $rootScope) {
                                     {
                                         name: 'device.devices',
                                         icon: 'devices_other',
-                                        state: 'home.devices'
+                                        //state: 'home.devices',
+                                        state: 'home.deviceGroups'
                                     }
                                 ]
                             },

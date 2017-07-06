@@ -22,10 +22,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -213,17 +211,31 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public ListenableFuture<TimePageData<User>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, EntityType.USER, pageLink, new Function<EntityId, User>() {
-            @Nullable
-            @Override
-            public User apply(@Nullable EntityId input) {
-                return findUserById(new UserId(input.getId()));
+        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
+            User user = findUserById(new UserId(entityView.getId().getId()));
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case AUTHORITY:
+                        entityView.put(key, user.getAuthority().name());
+                        break;
+                    case FIRST_NAME:
+                        entityView.put(key, user.getFirstName());
+                        break;
+                    case LAST_NAME:
+                        entityView.put(key, user.getLastName());
+                        break;
+                    case EMAIL:
+                        entityView.put(key, user.getEmail());
+                        break;
+                }
             }
-        });
+            return entityView;
+        }));
     }
 
     private DataValidator<User> userValidator =

@@ -67,6 +67,6 @@ public interface DeviceService {
 
     ListenableFuture<List<TenantDeviceType>> findDeviceTypesByTenantId(TenantId tenantId);
 
-    ListenableFuture<TimePageData<EntityView<Device, DeviceId>>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

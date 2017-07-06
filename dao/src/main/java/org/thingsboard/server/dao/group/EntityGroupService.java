@@ -21,15 +21,19 @@ import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.group.ColumnConfiguration;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasUUID;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 public interface EntityGroupService {
 
@@ -61,8 +65,7 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    <T extends BaseData<I> & HasName, I extends UUIDBased & EntityId> ListenableFuture<TimePageData<EntityView<T, I>>> findEntities(EntityGroupId entityGroupId,
-                                                                                                                      EntityType groupType, TimePageLink pageLink,
-                                                                                                                      Function<EntityId, T> transformFunction);
+    ListenableFuture<TimePageData<EntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
+                                                            BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
 
 }

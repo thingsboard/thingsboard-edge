@@ -154,7 +154,7 @@ public final class EntityGroupEntity implements BaseEntity<EntityGroup> {
         entityGroup.setType(type);
         entityGroup.setName(name);
         entityGroup.setAdditionalInfo(additionalInfo);
-        entityGroup.setConfiguration(additionalInfo);
+        entityGroup.setConfiguration(configuration);
         return entityGroup;
     }
 

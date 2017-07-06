@@ -16,6 +16,10 @@
 
 package org.thingsboard.server.dao.group;
 
+import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -23,14 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.*;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -45,10 +46,9 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 
 import static org.thingsboard.server.dao.service.Validator.*;
 
@@ -86,6 +86,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
         new EntityGroupValidator(parentEntityId).validate(entityGroup);
+        if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
+            EntityGroupConfiguration entityGroupConfiguration =
+                    EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
+            JsonNode jsonConfiguration = new ObjectMapper().valueToTree(entityGroupConfiguration);
+            entityGroup.setConfiguration(jsonConfiguration);
+        }
         EntityGroup savedEntityGroup = entityGroupDao.save(entityGroup);
         if (entityGroup.getId() == null) {
             EntityRelation entityRelation = new EntityRelation();
@@ -213,28 +219,67 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public <T extends BaseData<I> & HasName, I extends UUIDBased & EntityId> ListenableFuture<TimePageData<EntityView<T, I>>>
-                            findEntities(EntityGroupId entityGroupId, EntityType groupType,
-                                         TimePageLink pageLink, Function<EntityId, T> transformFunction) {
-        log.trace("Executing findEntities, entityGroupId [{}], groupType [{}], pageLink [{}]", entityGroupId, groupType, pageLink);
+    public ListenableFuture<TimePageData<EntityView>>
+                            findEntities(EntityGroupId entityGroupId,
+                                         TimePageLink pageLink, BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
+        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        if (groupType == null) {
-            throw new IncorrectParameterException("Incorrect groupType " + groupType);
-        }
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
-        ListenableFuture<List<EntityId>> entityIds = entityGroupDao.findEntityIds(entityGroupId, groupType, pageLink);
-        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView<T, I>>>() {
+        EntityGroup entityGroup = findEntityGroupById(entityGroupId);
+        if (entityGroup == null) {
+            throw new IncorrectParameterException("Unable to find entity group by id " + entityGroupId);
+        }
+        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
+        List<EntityField> commonEntityFields = new ArrayList<>();
+        List<EntityField> entityFields = new ArrayList<>();
+        Map<String, List<String>> attributeScopeToKeysMap = new HashMap<>();
+        List<String> timeseriesKeys = new ArrayList<>();
+        columns.forEach(column -> {
+            if (column.getType() == ColumnType.ENTITY_FIELD) {
+                EntityField entityField = null;
+                try {
+                    entityField = EntityField.valueOf(column.getKey().toUpperCase());
+                } catch (Exception e) {}
+                if (entityField != null) {
+                    if (entityField == EntityField.CREATED_TIME) {
+                        commonEntityFields.add(entityField);
+                    } else {
+                        entityFields.add(entityField);
+                    }
+                }
+            } else if (column.getType().isAttribute()) {
+                String scope = column.getType().getAttributeScope();
+                List<String> keys = attributeScopeToKeysMap.get(scope);
+                if (keys == null) {
+                    keys = new ArrayList<>();
+                    attributeScopeToKeysMap.put(scope, keys);
+                }
+                keys.add(column.getKey());
+            } else if (column.getType() == ColumnType.TIMESERIES) {
+                timeseriesKeys.add(column.getKey());
+            }
+        });
+        ListenableFuture<List<EntityId>> entityIds = entityGroupDao.findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
+        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView>>() {
             @Nullable
             @Override
-            public TimePageData<EntityView<T, I>> apply(@Nullable List<EntityId> entityIds) {
-                List<EntityView<T, I>> entities = new ArrayList<>();
+            public TimePageData<EntityView> apply(@Nullable List<EntityId> entityIds) {
+                List<EntityView> entities = new ArrayList<>();
                 entityIds.forEach(entityId -> {
-                    T entity = transformFunction.apply(entityId);
-                    EntityView<T,I> entityView = new EntityView<>(entity);
-                    fetchEntityAttributes(entityView);
+                    EntityView entityView = new EntityView(entityId);
+                    for (EntityField entityField : commonEntityFields) {
+                        if (entityField == EntityField.CREATED_TIME) {
+                            long timestamp = UUIDs.unixTimestamp(entityId.getId());
+                            entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp+"");
+                        }
+                    }
+                    if (!entityFields.isEmpty()) {
+                        entityView = transformFunction.apply(entityView, entityFields);
+                    }
+                    fetchEntityAttributes(entityView, attributeScopeToKeysMap, timeseriesKeys);
                     entities.add(entityView);
                 });
                 return new TimePageData<>(entities, pageLink);
@@ -242,29 +287,49 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         });
     }
 
-    private <I extends UUIDBased & EntityId> void fetchEntityAttributes(EntityView<?,I> entityView) {
-        EntityId entityId = entityView.getId();
-        //TODO:
-        String scope = "";
-        List<String> attributeKeys = new ArrayList<>();
-        try {
-            List<AttributeKvEntry> attributeKvEntries = attributesService.find(entityId, scope, attributeKeys).get();
-            attributeKvEntries.forEach(attributeKvEntry -> {
-                entityView.setAttribute(attributeKvEntry.getKey(), attributeKvEntry.getValueAsString());
-            });
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to fetch entity attributes", e);
+    private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {
+        JsonNode jsonConfiguration = entityGroup.getConfiguration();
+        if (jsonConfiguration != null) {
+            try {
+                EntityGroupConfiguration entityGroupConfiguration =
+                        new ObjectMapper().treeToValue(jsonConfiguration, EntityGroupConfiguration.class);
+                List<ColumnConfiguration> columns = entityGroupConfiguration.getColumns();
+                if (columns == null) {
+                    return Collections.emptyList();
+                } else {
+                    return columns;
+                }
+            } catch (JsonProcessingException e) {
+                log.error("Unable to read entity group configuration", e);
+                throw new RuntimeException("Unable to read entity group configuration", e);
+            }
         }
+        return Collections.emptyList();
+    }
 
-        List<String> timeseriesKeys = new ArrayList<>();
-
-        try {
-            List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(entityId, timeseriesKeys).get();
-            tsKvEntries.forEach(tsKvEntry -> {
-                entityView.setAttribute(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
-            });
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to fetch entity latest timeseries", e);
+    private void fetchEntityAttributes(EntityView entityView,
+                                       Map<String, List<String>> attributeScopeToKeysMap,
+                                       List<String> timeseriesKeys) {
+        EntityId entityId = entityView.getId();
+        attributeScopeToKeysMap.forEach( (scope, attributeKeys) -> {
+            try {
+                List<AttributeKvEntry> attributeKvEntries = attributesService.find(entityId, scope, attributeKeys).get();
+                attributeKvEntries.forEach(attributeKvEntry -> {
+                    entityView.put(attributeKvEntry.getKey(), attributeKvEntry.getValueAsString());
+                });
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Unable to fetch entity attributes", e);
+            }
+        });
+        if (!timeseriesKeys.isEmpty()) {
+            try {
+                List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(entityId, timeseriesKeys).get();
+                tsKvEntries.forEach(tsKvEntry -> {
+                    entityView.put(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
+                });
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Unable to fetch entity latest timeseries", e);
+            }
         }
     }
 

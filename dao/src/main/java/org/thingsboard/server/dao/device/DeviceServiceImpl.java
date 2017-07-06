@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -256,17 +258,25 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView<Device, DeviceId>>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, EntityType.DEVICE, pageLink, new Function<EntityId, Device>() {
-            @Nullable
-            @Override
-            public Device apply(@Nullable EntityId input) {
-                return findDeviceById(new DeviceId(input.getId()));
+        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
+            Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case NAME:
+                        entityView.put(key, device.getName());
+                        break;
+                    case TYPE:
+                        entityView.put(key, device.getType());
+                        break;
+                }
             }
-        });
+            return entityView;
+        }));
     }
 
     private DataValidator<Device> deviceValidator =

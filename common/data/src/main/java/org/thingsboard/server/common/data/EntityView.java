@@ -16,37 +16,44 @@
 
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.id.HasId;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class EntityView<T extends BaseData<I> & HasName, I extends UUIDBased & EntityId> extends BaseData<I> implements HasName {
+public class EntityView implements HasId<EntityId> {
 
-    private final T entity;
-    private Map<String, String> attributes = new HashMap<>();
+    private final EntityId id;
+    private Map<String, String> properties = new HashMap<>();
 
-    public EntityView(T entity) {
-        super(entity);
-        this.entity = entity;
-    }
-
-    public T getEntity() {
-        return entity;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttribute(String key, String value) {
-        attributes.put(key, value);
+    public EntityView(EntityId id) {
+        super();
+        this.id = id;
     }
 
     @Override
-    public String getName() {
-        return this.entity.getName();
+    public EntityId getId() {
+        return id;
+    }
+
+    @JsonAnyGetter
+    public Map<String, String> properties() {
+        return this.properties;
+    }
+
+    @JsonAnySetter
+    public void put(String name, String value) {
+        this.properties.put(name, value);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -55,16 +62,9 @@ public class EntityView<T extends BaseData<I> & HasName, I extends UUIDBased & E
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        EntityView<?, ?> that = (EntityView<?, ?>) o;
+        EntityView that = (EntityView) o;
 
-        return entity != null ? entity.equals(that.entity) : that.entity == null;
+        return id != null ? id.equals(that.id) : that.id == null;
 
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (entity != null ? entity.hashCode() : 0);
-        return result;
     }
 }

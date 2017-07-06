@@ -24,11 +24,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.TenantAssetType;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -239,17 +238,25 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public ListenableFuture<TimePageData<Asset>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, EntityType.ASSET, pageLink, new Function<EntityId, Asset>() {
-            @Nullable
-            @Override
-            public Asset apply(@Nullable EntityId input) {
-                return findAssetById(new AssetId(input.getId()));
+        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
+            Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case NAME:
+                        entityView.put(key, asset.getName());
+                        break;
+                    case TYPE:
+                        entityView.put(key, asset.getType());
+                        break;
+                }
             }
-        });
+            return entityView;
+        }));
     }
 
     private DataValidator<Asset> assetValidator =
