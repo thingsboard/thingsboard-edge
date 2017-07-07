@@ -13,164 +13,95 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable import/no-unresolved, import/default */
 
-import addEntityGroupTemplate from './add-entity-group.tpl.html';
-import entityGroupCard from './entity-group-card.tpl.html';
-
-/* eslint-enable import/no-unresolved, import/default */
+import './entity-group.scss';
 
 /*@ngInject*/
-export function EntityGroupCardController() {
+export default function EntityGroupController($rootScope, $scope, $mdMedia, utils, entityGroupService, $stateParams,
+                                       $q, $translate, types, entityGroup) {
 
     var vm = this; //eslint-disable-line
 
-}
-
-
-/*@ngInject*/
-export function EntityGroupController($rootScope, utils, entityGroupService, $stateParams,
-                                      $q, $translate, types) {
-
-    var groupType = $stateParams.groupType;
-
-    var entityGroupActionsList = [];
-
-    var entityGroupGroupActionsList = [];
-
-    var vm = this;
-
     vm.types = types;
 
-    vm.entityGroupGridConfig = {
-        deleteItemTitleFunc: deleteEntityGroupTitle,
-        deleteItemContentFunc: deleteEntityGroupText,
-        deleteItemsTitleFunc: deleteEntityGroupsTitle,
-        deleteItemsActionTitleFunc: deleteEntityGroupsActionTitle,
-        deleteItemsContentFunc: deleteEntityGroupsText,
+    vm.entityGroup = entityGroup;
 
-        saveItemFunc: saveEntityGroup,
+    vm.columns = vm.entityGroup.configuration.columns;
 
-        clickItemFunc: openEntityGroup,
+    //TODO:
+    vm.actionCellDescriptors = [];
 
-        getItemTitleFunc: getEntityGroupTitle,
+    vm.showData = true;
+    vm.hasData = false;
 
-        itemCardController: 'EntityGroupCardController',
-        itemCardTemplateUrl: entityGroupCard,
-        parentCtl: vm,
+    vm.entities = [];
+    vm.selectedEntities = [];
+    vm.entitiesCount = 0;
 
-        actionsList: entityGroupActionsList,
-        groupActionsList: entityGroupGroupActionsList,
+    vm.allEntities = null;
 
-        onGridInited: gridInited,
+    vm.currentEntity = null;
 
-        addItemTemplateUrl: addEntityGroupTemplate,
+    vm.displayPagination = true;
+    vm.defaultPageSize = 10;
+    vm.defaultSortOrder = '-' + types.entityGroup.entityField.created_time.value;
 
-        addItemText: function() { return $translate.instant('entity-group.add-entity-group-text') },
-        noItemsText: function() { return $translate.instant('entity-group.no-entity-groups-text') },
-        itemDetailsText: function() { return $translate.instant('entity-group.entity-group-details') },
-        isDetailsReadOnly: function() {
-            return false;
-        },
-        isSelectionEnabled: function(entityGroup) {
-            return !entityGroup.groupAll;
+    for (var i=0;i<vm.columns.length;i++) {
+        var column = vm.columns[i];
+        if (column.sortOrder && column.sortOrder !== types.entityGroup.sortOrder.none.value) {
+            if (column.sortOrder == types.entityGroup.sortOrder.desc.value) {
+                vm.defaultSortOrder = '-' + column.key;
+            } else {
+                vm.defaultSortOrder = column.key;
+            }
+            break;
         }
+    }
+
+    vm.query = {
+        order: vm.defaultSortOrder,
+        limit: vm.defaultPageSize,
+        page: 1,
+        search: null
     };
 
-    if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
-        vm.deviceGridConfig.items = $stateParams.items;
-    }
+    vm.fetchMore = fetchMore;
+    vm.getColumnTitle = getColumnTitle;
+    vm.cellStyle = cellStyle;
+    vm.cellContent = cellContent;
 
-    if (angular.isDefined($stateParams.topIndex) && $stateParams.topIndex > 0) {
-        vm.deviceGridConfig.topIndex = $stateParams.topIndex;
-    }
+    fetchMore();
 
-    initController();
+    $scope.$watch(function() { return $mdMedia('gt-xs'); }, function(isGtXs) {
+        vm.isGtXs = isGtXs;
+    });
 
-    function initController() {
-
-        vm.entityGroupGridConfig.refreshParamsFunc = function() {
-            return {"topIndex": vm.topIndex};
-        };
-        vm.entityGroupGridConfig.deleteItemFunc = function (entityGroupId) {
-            return entityGroupService.deleteEntityGroup(entityGroupId);
-        };
-        vm.entityGroupGridConfig.fetchItemsFunc = function (pageLink) {
-            var deferred = $q.defer();
-            entityGroupService.getTenantEntityGroups(groupType).then(
-                function success(entityGroups) {
-                    utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
-                },
-                function fail() {
-                    deferred.reject();
-                }
-            );
-            return deferred.promise;
-        };
-
-        entityGroupActionsList.push(
-            {
-                onAction: function ($event, item) {
-                    vm.grid.deleteItem($event, item);
-                },
-                name: function() { return $translate.instant('action.delete') },
-                details: function() { return $translate.instant('entity-group.delete') },
-                icon: "delete"
-            }
-        );
-
-        entityGroupGroupActionsList.push(
-            {
-                onAction: function ($event) {
-                    vm.grid.deleteItems($event);
-                },
-                name: function() { return $translate.instant('entity-group.delete-entity-groups') },
-                details: deleteEntityGroupsActionTitle,
-                icon: "delete"
-            }
-        );
-
-    }
-
-    function deleteEntityGroupTitle(entityGroup) {
-        return $translate.instant('entity-group.delete-entity-group-title', {entityGroupName: entityGroup.name});
-    }
-
-    function deleteEntityGroupText() {
-        return $translate.instant('entity-group.delete-entity-group-text');
-    }
-
-    function deleteEntityGroupsTitle(selectedCount) {
-        return $translate.instant('entity-group.delete-entity-groups-title', {count: selectedCount}, 'messageformat');
-    }
-
-    function deleteEntityGroupsActionTitle(selectedCount) {
-        return $translate.instant('entity-group.delete-entity-groups-action-title', {count: selectedCount}, 'messageformat');
-    }
-
-    function deleteEntityGroupsText () {
-        return $translate.instant('entity-group.delete-entity-groups-text');
-    }
-
-    function gridInited(grid) {
-        vm.grid = grid;
-    }
-
-    function getEntityGroupTitle(entityGroup) {
-        return entityGroup ? entityGroup.name : '';
-    }
-
-    function saveEntityGroup(entityGroup) {
-        entityGroup.type = groupType;
-        return entityGroupService.saveEntityGroup(entityGroup);
-    }
-
-    function openEntityGroup($event, entityGroup) {
-        if ($event) {
-            $event.stopPropagation();
+    $scope.$watch(function() { return $mdMedia('gt-md'); }, function(isGtMd) {
+        vm.isGtMd = isGtMd;
+        if (vm.isGtMd) {
+            vm.limitOptions = [vm.defaultPageSize, vm.defaultPageSize*2, vm.defaultPageSize*3];
+        } else {
+            vm.limitOptions = null;
         }
-        console.log('openEntityGroup: ' + entityGroup.id.id); //eslint-disable-line
-        //$state.go('home.dashboards.dashboard', {entityGroupId: entityGroup.id.id});
+    });
+
+    function fetchMore() {
+
+    }
+
+    function getColumnTitle(column) {
+        //TODO:
+        return column.key;
+    }
+
+    function cellStyle(/*entity, column*/) {
+        //TODO:
+        return {};
+    }
+
+    function cellContent(entity, column) {
+        //TODO:
+        return entity[column.key];
     }
 
 }

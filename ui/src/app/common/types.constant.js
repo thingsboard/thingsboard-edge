@@ -233,7 +233,61 @@ export default angular.module('thingsboard.types', [])
                 customer: "CUSTOMER",
                 user: "USER",
                 dashboard: "DASHBOARD",
-                alarm: "ALARM"
+                alarm: "ALARM",
+                entityGroup: "ENTITY_GROUP"
+            },
+            entityGroup: {
+                sortOrder: {
+                    asc: {
+                        name: 'entity-group.sort-order.asc',
+                        value: 'ASC'
+                    },
+                    desc: {
+                        name: 'entity-group.sort-order.desc',
+                        value: 'DESC'
+                    },
+                    none: {
+                        name: 'entity-group.sort-order.none',
+                        value: 'NONE'
+                    }
+                },
+                columnType: {
+                    clientAttribute: {
+                        name: 'entity-group.column-type.client-attribute',
+                        value: 'CLIENT_ATTRIBUTE'
+                    },
+                    sharedAttribute: {
+                        name: 'entity-group.column-type.shared-attribute',
+                        value: 'SHARED_ATTRIBUTE'
+                    },
+                    serverAttribute: {
+                        name: 'entity-group.column-type.server-attribute',
+                        value: 'SERVER_ATTRIBUTE'
+                    },
+                    timeseries: {
+                        name: 'entity-group.column-type.timeseries',
+                        value: 'TIMESERIES'
+                    },
+                    entityField: {
+                        name: 'entity-group.column-type.entity-field',
+                        value: 'ENTITY_FIELD'
+                    }
+                },
+                entityField: {
+                    created_time: {
+                        name: 'entity-group.entity-field.created-time',
+                        value: 'created_time'
+                    },
+                    name: {
+                        name: 'entity-group.entity-field.name',
+                        value: 'name'
+                    },
+                    type: {
+                        name: 'entity-group.entity-field.type',
+                        value: 'type'
+                    }
+
+                }
             },
             entityTypeTranslations: {
                 "DEVICE": {

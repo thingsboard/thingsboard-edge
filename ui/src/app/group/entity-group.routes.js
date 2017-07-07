@@ -16,6 +16,7 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import entityGroupsTemplate from './entity-groups.tpl.html';
+import entityGroupTemplate from './entity-group.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -30,7 +31,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             views: {
                 "content@home": {
                     templateUrl: entityGroupsTemplate,
-                    controller: 'EntityGroupController',
+                    controller: 'EntityGroupsController',
                     controllerAs: 'vm'
                 }
             },
@@ -42,6 +43,33 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "devices_other", "label": "entity-group.device-groups"}'
             }
         })
+        .state('home.deviceGroups.deviceGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup:
+                    /*@ngInject*/
+                    function($stateParams, entityGroupService) {
+                        return entityGroupService.getEntityGroup($stateParams.entityGroupId);
+                    }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.device-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
         .state('home.assetGroups', {
             url: '/assetGroups',
             params: {'groupType': types.entityType.asset, 'topIndex': 0},
@@ -50,7 +78,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             views: {
                 "content@home": {
                     templateUrl: entityGroupsTemplate,
-                    controller: 'EntityGroupController',
+                    controller: 'EntityGroupsController',
                     controllerAs: 'vm'
                 }
             },
@@ -59,7 +87,34 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.asset-groups'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "devices_other", "label": "entity-group.asset-groups"}'
+                label: '{"icon": "domain", "label": "entity-group.asset-groups"}'
+            }
+        })
+        .state('home.assetGroups.assetGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup:
+                /*@ngInject*/
+                    function($stateParams, entityGroupService) {
+                        return entityGroupService.getEntityGroup($stateParams.entityGroupId);
+                    }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.asset-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         });
 }

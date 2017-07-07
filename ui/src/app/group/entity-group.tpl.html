@@ -1,0 +1,146 @@
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="tb-absolute-fill tb-entity-group-table tb-data-table md-padding" layout="column">
+    <div ng-show="vm.showData" flex class="md-whiteframe-z1 tb-entity-group-table-content" layout="column">
+        <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length
+                                                                 && vm.query.search === null">
+            <div class="md-toolbar-tools">
+                <span>{{ vm.types.entityTypeTranslations[vm.entityGroup.type].typePlural | translate }}</span>
+                <span flex></span>
+                <md-button class="md-primary" ng-click="vm.fetchMore($event)">
+                    Fetch more
+                </md-button>
+                <md-button class="md-icon-button" ng-click="vm.addEntity($event)">
+                    <md-icon>add</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.add' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button class="md-icon-button" ng-click="vm.enterFilterMode()">
+                    <md-icon>search</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.search' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button class="md-icon-button" ng-click="vm.reloadRelations()">
+                    <md-icon>refresh</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.refresh' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length &&
+                                                                 vm.query.search != null">
+            <div class="md-toolbar-tools">
+                <md-button class="md-icon-button" aria-label="{{ 'action.search' | translate }}">
+                    <md-icon aria-label="{{ 'action.search' | translate }}" class="material-icons">search</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{'entity.search' | translate}}
+                    </md-tooltip>
+                </md-button>
+                <md-input-container flex>
+                    <label>&nbsp;</label>
+                    <input ng-model="vm.query.search" placeholder="{{'entity.search' | translate}}"/>
+                </md-input-container>
+                <md-button class="md-icon-button" aria-label="Close" ng-click="vm.exitFilterMode()">
+                    <md-icon aria-label="Close" class="material-icons">close</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.close' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-toolbar class="md-table-toolbar alternate" ng-show="vm.selectedEntities.length">
+            <div class="md-toolbar-tools">
+                <span translate="alarm.selected-alarms"
+                      translate-values="{count: vm.selectedEntities.length}"
+                      translate-interpolation="messageformat"></span>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="vm.deleteEntities($event)">
+                    <md-icon>delete</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.delete' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-table-container flex>
+            <table md-table md-row-select multiple="" ng-model="vm.selectedEntities">
+                <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
+                <tr md-row>
+                    <th md-column md-order-by="{{ column.key }}" ng-repeat="column in vm.columns"><span>{{ vm.getColumnTitle(column) }}</span></th>
+                    <th md-column ng-if="vm.actionCellDescriptors.length"><span>&nbsp</span></th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr ng-show="vm.entities.length" md-row md-select="entity"
+                    md-select-id="id.id" md-auto-select="false" ng-repeat="entity in vm.entities"
+                    ng-click="vm.onRowClick($event, entity)" ng-class="{'tb-current': vm.isCurrent(entity)}">
+                    <td md-cell flex ng-repeat="column in vm.columns"
+                        ng-style="vm.cellStyle(entity, column)"
+                        ng-bind-html="vm.cellContent(entity, column)">
+                    </td>
+                    <td md-cell ng-if="vm.actionCellDescriptors.length" class="tb-action-cell"
+                        ng-style="{minWidth: vm.actionCellDescriptors.length*36+'px',
+                                   maxWidth: vm.actionCellDescriptors.length*36+'px',
+                                   width: vm.actionCellDescriptors.length*36+'px'}">
+                        <md-button class="md-icon-button" ng-repeat="actionDescriptor in vm.actionCellDescriptors"
+                                   aria-label="{{ actionDescriptor.displayName }}"
+                                   ng-click="vm.onActionButtonClick($event, entity, actionDescriptor)">
+                            <md-icon aria-label="{{ actionDescriptor.displayName }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
+                            <md-tooltip md-direction="top">
+                                {{ actionDescriptor.displayName }}
+                            </md-tooltip>
+                        </md-button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <md-divider></md-divider>
+            <span ng-show="!vm.entities.length"
+                  layout-align="center center"
+                  class="no-data-found" translate>entity.no-entities-prompt</span>
+        </md-table-container>
+        <md-table-pagination ng-if="vm.displayPagination" md-boundary-links md-limit="vm.query.limit" md-limit-options="vm.limitOptions"
+                             md-page="vm.query.page" md-total="{{vm.entitiesCount}}"
+                             md-on-paginate="vm.onPaginate" md-page-select="vm.isGtMd">
+        </md-table-pagination>
+    </div>
+    <span ng-show="!vm.showData"
+          layout-align="center center"
+          style="text-transform: uppercase; display: flex;"
+          class="tb-absolute-fill" translate>entity.no-data</span>
+</div>

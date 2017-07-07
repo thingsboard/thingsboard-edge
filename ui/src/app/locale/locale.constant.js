@@ -725,7 +725,9 @@ export default angular.module('thingsboard.locale', [])
                     "delete-entity-groups-action-title": "Delete { count, select, 1 {1 entity group} other {# entity groups} }",
                     "delete-entity-groups-text": "Be careful, after the confirmation all selected entity groups will be removed and all related data will become unrecoverable.",
                     "device-groups": "Device groups",
-                    "asset-groups": "Asset groups"
+                    "asset-groups": "Asset groups",
+                    "device-group": "Device group",
+                    "asset-group": "Asset group"
                 },
                 "event": {
                     "event-type": "Event type",

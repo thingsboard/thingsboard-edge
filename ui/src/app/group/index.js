@@ -15,12 +15,14 @@
  */
 
 import EntityGroupRoutes from './entity-group.routes';
-import {EntityGroupController, EntityGroupCardController} from './entity-group.controller';
+import {EntityGroupsController, EntityGroupCardController} from './entity-groups.controller';
+import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
 
 export default angular.module('thingsboard.entityGroup', [])
     .config(EntityGroupRoutes)
-    .controller('EntityGroupController', EntityGroupController)
+    .controller('EntityGroupsController', EntityGroupsController)
     .controller('EntityGroupCardController', EntityGroupCardController)
+    .controller('EntityGroupController', EntityGroupController)
     .directive('tbEntityGroup', EntityGroupDirective)
     .name;
