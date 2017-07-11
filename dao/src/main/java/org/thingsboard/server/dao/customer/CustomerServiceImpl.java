@@ -45,7 +45,9 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
@@ -147,47 +149,60 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
+    public EntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupCustomer, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, customerViewFunction);
+    }
+
+    @Override
     public ListenableFuture<TimePageData<EntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
-            Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case TITLE:
-                        entityView.put(key, customer.getTitle());
-                        break;
-                    case EMAIL:
-                        entityView.put(key, customer.getEmail());
-                        break;
-                    case COUNTRY:
-                        entityView.put(key, customer.getCountry());
-                        break;
-                    case STATE:
-                        entityView.put(key, customer.getState());
-                        break;
-                    case CITY:
-                        entityView.put(key, customer.getCity());
-                        break;
-                    case ADDRESS:
-                        entityView.put(key, customer.getAddress());
-                        break;
-                    case ADDRESS2:
-                        entityView.put(key, customer.getAddress2());
-                        break;
-                    case ZIP:
-                        entityView.put(key, customer.getZip());
-                        break;
-                    case PHONE:
-                        entityView.put(key, customer.getPhone());
-                        break;
-                }
-            }
-            return entityView;
-        }));
+        return entityGroupService.findEntities(entityGroupId, pageLink, customerViewFunction);
     }
+
+    private BiFunction<EntityView, List<EntityField>, EntityView> customerViewFunction = ((entityView, entityFields) -> {
+        Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
+        for (EntityField field : entityFields) {
+            String key = field.name().toLowerCase();
+            switch (field) {
+                case NAME:
+                    entityView.put(key, customer.getName());
+                    break;
+                case TITLE:
+                    entityView.put(key, customer.getTitle());
+                    break;
+                case EMAIL:
+                    entityView.put(key, customer.getEmail());
+                    break;
+                case COUNTRY:
+                    entityView.put(key, customer.getCountry());
+                    break;
+                case STATE:
+                    entityView.put(key, customer.getState());
+                    break;
+                case CITY:
+                    entityView.put(key, customer.getCity());
+                    break;
+                case ADDRESS:
+                    entityView.put(key, customer.getAddress());
+                    break;
+                case ADDRESS2:
+                    entityView.put(key, customer.getAddress2());
+                    break;
+                case ZIP:
+                    entityView.put(key, customer.getZip());
+                    break;
+                case PHONE:
+                    entityView.put(key, customer.getPhone());
+                    break;
+            }
+        }
+        return entityView;
+    });
 
     private DataValidator<Customer> customerValidator =
             new DataValidator<Customer>() {

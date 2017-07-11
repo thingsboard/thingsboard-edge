@@ -1,0 +1,97 @@
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="tb-entity-group-column" flex layout="row" layout-align="start center"
+     style="padding: 0 0 0 10px; margin: 5px;">
+    <md-select flex-xs ng-style="{minWidth: vm.isGtXs ? '130px' : 'initial', maxWidth: vm.isGtXs ? '130px' : '90px'}"
+               ng-disabled="vm.readOnly" required name="columnType"
+               ng-model="vm.column.type" aria-label="{{ 'entity-group.column-type' | translate }}">
+        <md-option ng-repeat="type in vm.columnTypes" ng-value="type.value">
+            {{type.name | translate}}
+        </md-option>
+    </md-select>
+    <div flex-xs style="padding-left: 5px;" ng-style="{minWidth: vm.isGtXs ? '130px' : 'initial', maxWidth: vm.isGtXs ? '130px' : '90px'}" layout="column">
+        <md-select flex ng-disabled="vm.readOnly" ng-if="vm.column.type == vm.columnTypes.entityField.value" required name="columnKey"
+                   ng-model="vm.column.key" aria-label="{{ 'entity-group.column-value' | translate }}">
+            <md-option ng-repeat="field in vm.entityField" ng-value="field.value">
+                {{field.name | translate}}
+            </md-option>
+        </md-select>
+        <md-input-container flex md-no-float ng-if="vm.column.type != vm.columnTypes.entityField.value">
+            <input required name="columnKeyName"
+                   placeholder="{{ 'entity-group.column-value' | translate }}"
+                   ng-disabled="vm.readOnly"
+                   ng-model="vm.column.key"
+                   aria-label="{{ 'entity-group.column-value' | translate }}">
+        </md-input-container>
+    </div>
+    <div hide-xs flex style="padding-left: 5px;" layout="column">
+        <md-input-container flex md-no-float>
+            <input name="columnTitle"
+                   placeholder="{{ 'entity-group.column-title' | translate }}"
+                   ng-disabled="vm.readOnly"
+                   ng-model="vm.column.title"
+                   aria-label="{{ 'entity-group.column-title' | translate }}">
+        </md-input-container>
+    </div>
+    <md-select hide-xs
+               style="padding-left: 5px; min-width: 120px; max-width: 120px;"
+               ng-disabled="vm.readOnly" required name="columnSortOrder" ng-change="vm.onDefaultSortOrderChanged({event: $event})"
+               ng-model="vm.column.sortOrder" aria-label="{{ 'entity-group.default-sort-order' | translate }}">
+        <md-option ng-repeat="type in vm.sortOrder" ng-value="type.value">
+            {{type.name | translate}}
+        </md-option>
+    </md-select>
+    <div hide-xs style="padding-left: 5px; min-width: 40px; max-width: 40px;" layout="column" layout-align="start center">
+        <md-checkbox ng-disabled="vm.readOnly"
+                     aria-label="{{ 'entity-group.hide-in-mobile-view' | translate }}"
+                     ng-model="vm.column.mobileHide">
+        </md-checkbox>
+    </div>
+    <span ng-if="vm.readOnly" style="padding-left: 5px; min-width: 40px; min-height: 40px;">&nbsp</span>
+    <md-button ng-disabled="loading" class="md-icon-button md-primary"
+               style="min-width: 40px;"
+               ng-click="vm.openColumn($event)"
+               aria-label="{{ (vm.readOnly ? 'action.view' : 'action.edit') | translate }}">
+        <md-tooltip ng-if="vm.readOnly" md-direction="top">
+            {{ 'action.view' | translate }}
+        </md-tooltip>
+        <md-tooltip ng-if="!vm.readOnly" md-direction="top">
+            {{ 'action.edit' | translate }}
+        </md-tooltip>
+        <md-icon ng-if="vm.readOnly" aria-label="{{ 'action.view' | translate }}"
+                 class="material-icons">
+            more_vert
+        </md-icon>
+        <md-icon ng-if="!vm.readOnly" aria-label="{{ 'action.edit' | translate }}"
+                 class="material-icons">
+            edit
+        </md-icon>
+    </md-button>
+    <md-button ng-if="!vm.readOnly" ng-disabled="loading" class="md-icon-button md-primary"
+               style="min-width: 40px;"
+               ng-click="vm.onRemoveColumn({event: $event})"
+               aria-label="{{ 'action.remove' | translate }}">
+        <md-tooltip md-direction="top">
+            {{ 'action.remove' | translate }}
+        </md-tooltip>
+        <md-icon aria-label="{{ 'action.delete' | translate }}"
+                 class="material-icons">
+            close
+        </md-icon>
+    </md-button>
+</div>

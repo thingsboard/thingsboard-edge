@@ -29,7 +29,7 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($state, utils, entityGroupService, $stateParams,
+export function EntityGroupsController($rootScope, $state, utils, entityGroupService, $stateParams,
                                       $q, $translate, types) {
 
     var groupType = $stateParams.groupType;
@@ -150,12 +150,32 @@ export function EntityGroupsController($state, utils, entityGroupService, $state
     }
 
     function saveEntityGroup(entityGroup) {
+        var deferred = $q.defer();
         entityGroup.type = groupType;
-        return entityGroupService.saveEntityGroup(entityGroup);
+        entityGroupService.saveEntityGroup(entityGroup).then(
+            function success(entityGroup) {
+                deferred.resolve(entityGroup);
+                $rootScope.$broadcast(groupType+'changed');
+            },
+            function fail() {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
     }
 
     function deleteEntityGroup(entityGroupId) {
-        return entityGroupService.deleteEntityGroup(entityGroupId);
+        var deferred = $q.defer();
+        entityGroupService.deleteEntityGroup(entityGroupId).then(
+            function success() {
+                deferred.resolve();
+                $rootScope.$broadcast(groupType+'changed');
+            },
+            function fail() {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
     }
 
     function openEntityGroup($event, entityGroup) {

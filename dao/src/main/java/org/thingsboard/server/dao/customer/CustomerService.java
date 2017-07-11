@@ -20,6 +20,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -41,6 +42,8 @@ public interface CustomerService {
     TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);
     
     void deleteCustomersByTenantId(TenantId tenantId);
+
+    EntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId);
 
     ListenableFuture<TimePageData<EntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 

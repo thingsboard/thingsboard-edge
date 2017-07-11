@@ -97,34 +97,6 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityType}/{entityId}", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    public void addEntityToEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId,
-                                       @PathVariable("entityType") String strEntityType,
-                                       @PathVariable("entityId") String strEntityId) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
-        checkParameter("entityType", strEntityType);
-        checkParameter("entityId", strEntityId);
-        try {
-            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
-            if (entityGroup.isGroupAll()) {
-                throw new ThingsboardException("Unable to add entity to entity group: " +
-                        "Addition to entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-            checkEntityId(entityId);
-            if (entityGroup.getType() != entityId.getEntityType()) {
-                throw new ThingsboardException("Unable to add entity to entity group: " +
-                        "Entity type can't be different from entity group type!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-            entityGroupService.addEntityToEntityGroup(entityGroupId, entityId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityType}/{entityIds}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void addEntitiesToEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId,
@@ -158,34 +130,6 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityType}/{entityId}", method = RequestMethod.DELETE)
-    @ResponseStatus(value = HttpStatus.OK)
-    public void removeEntityFromEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId,
-                                            @PathVariable("entityType") String strEntityType,
-                                            @PathVariable("entityId") String strEntityId) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
-        checkParameter("entityType", strEntityType);
-        checkParameter("entityId", strEntityId);
-        try {
-            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
-            if (entityGroup.isGroupAll()) {
-                throw new ThingsboardException("Unable to remove entity from entity group: " +
-                        "Removal from entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-            checkEntityId(entityId);
-            if (entityGroup.getType() != entityId.getEntityType()) {
-                throw new ThingsboardException("Unable to remove entity from entity group: " +
-                        "Entity type can't be different from entity group type!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-            entityGroupService.removeEntityFromEntityGroup(entityGroupId, entityId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityType}/{entityIds}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void removeEntitiesFromEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId,
@@ -213,6 +157,46 @@ public class EntityGroupController extends BaseController {
                 entityIds.add(entityId);
             }
             entityGroupService.removeEntitiesFromEntityGroup(entityGroupId, entityIds);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityType}/{entityId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EntityView getGroupEntity(
+            @PathVariable("entityGroupId") String strEntityGroupId,
+            @PathVariable("entityType") String strEntityType,
+            @PathVariable("entityId") String strEntityId) throws ThingsboardException {
+        checkParameter("entityGroupId", strEntityGroupId);
+        checkParameter("entityType", strEntityType);
+        checkParameter("entityId", strEntityId);
+
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
+            EntityType entityType = EntityType.valueOf(strEntityType);
+            if (entityGroup.getType() != entityType) {
+                throw new ThingsboardException("Unable to get entity for entity group: " +
+                        "Entity type can't be different from entity group type!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
+            checkEntityId(entityId);
+            EntityView result = null;
+            if (entityType == EntityType.USER) {
+                result = userService.findGroupUser(entityGroupId, entityId);
+            } else if (entityType == EntityType.CUSTOMER) {
+                result = customerService.findGroupCustomer(entityGroupId, entityId);
+            } else if (entityType == EntityType.ASSET) {
+                result = assetService.findGroupAsset(entityGroupId, entityId);
+            } else if (entityType == EntityType.DEVICE) {
+                result = deviceService.findGroupDevice(entityGroupId, entityId);
+            } else {
+                throw new ThingsboardException("Unable to get entity for entity group: " +
+                        "Unsupported entity type " + entityType + "!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+            return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
         }

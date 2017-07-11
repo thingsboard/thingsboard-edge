@@ -20,27 +20,44 @@ export default angular.module('thingsboard.menu', [thingsboardApiUser])
     .name;
 
 /*@ngInject*/
-function Menu(userService, $state, $rootScope) {
+function Menu(userService, $state, $rootScope, types, entityGroupService) {
 
     var authority = '';
     var sections = [];
     var homeSections = [];
 
-    if (userService.isUserLoaded() === true) {
-        buildMenu();
-    }
+    var assetGroups = {
+        name: 'asset.assets',
+        type: 'toggle',
+        state: 'home.assetGroups',
+        height: '0px',
+        icon: 'domain',
+        pages: []
+    };
 
-    var authenticatedHandle = $rootScope.$on('authenticated', function () {
-        buildMenu();
-    });
+    var deviceGroups = {
+        name: 'device.devices',
+        type: 'toggle',
+        state: 'home.deviceGroups',
+        height: '0px',
+        icon: 'devices_other',
+        pages: []
+    };
 
     var service = {
-        authenticatedHandle: authenticatedHandle,
         getHomeSections: getHomeSections,
         getSections: getSections,
         sectionHeight: sectionHeight,
         sectionActive: sectionActive
     }
+
+    if (userService.isUserLoaded() === true) {
+        buildMenu();
+    }
+
+    service.authenticatedHandle = $rootScope.$on('authenticated', function () {
+        buildMenu();
+    });
 
     return service;
 
@@ -188,20 +205,8 @@ function Menu(userService, $state, $rootScope) {
                             state: 'home.customers',
                             icon: 'supervisor_account'
                         },
-                        {
-                            name: 'asset.assets',
-                            type: 'link',
-                            //state: 'home.assets',
-                            state: 'home.assetGroups',
-                            icon: 'domain'
-                        },
-                        {
-                            name: 'device.devices',
-                            type: 'link',
-                            //state: 'home.devices',
-                            state: 'home.deviceGroups',
-                            icon: 'devices_other'
-                        },
+                        assetGroups,
+                        deviceGroups,
                         {
                             name: 'widget.widget-library',
                             type: 'link',
@@ -279,6 +284,9 @@ function Menu(userService, $state, $rootScope) {
                                 ]
                             }];
 
+                    loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain');
+                    loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other');
+
                 } else if (authority === 'CUSTOMER_USER') {
                     sections = [
                         {
@@ -340,6 +348,32 @@ function Menu(userService, $state, $rootScope) {
                 }
             }
         }
+    }
+
+    function loadGroups(section, groupType, groupState, icon) {
+        entityGroupService.getTenantEntityGroups(groupType).then(
+            function success(entityGroups) {
+                var pages = [];
+                entityGroups.forEach(function(entityGroup) {
+                    var page = {
+                        name: entityGroup.name,
+                        type: 'link',
+                        state: groupState + '({entityGroupId:\''+entityGroup.id.id+'\'})',
+                        ignoreTranslate: true,
+                        icon: icon
+                    };
+                    pages.push(page);
+                });
+                section.height = (40 * pages.length) + 'px';
+                section.pages = pages;
+            }
+        );
+        if (service[groupType + 'changeHandle']) {
+            service[groupType + 'changeHandle']();
+        }
+        service[groupType + 'changeHandle'] = $rootScope.$on(groupType + 'changed', function () {
+            loadGroups(section, groupType, groupState, icon);
+        });
     }
 
     function sectionHeight(section) {

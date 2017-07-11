@@ -29,6 +29,7 @@ function EntityGroupService($http, $q) {
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
         removeEntityFromEntityGroup: removeEntityFromEntityGroup,
         removeEntitiesFromEntityGroup: removeEntitiesFromEntityGroup,
+        getEntityGroupEntity: getEntityGroupEntity,
         getEntityGroupEntities: getEntityGroupEntities
     }
 
@@ -134,17 +135,28 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
+    function getEntityGroupEntity(entityGroupId, entityType, entityId, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '/' + entityId;
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
     function getEntityGroupEntities(entityGroupId, entityType, pageLink, ascOrder, config) {
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '?limit=' + pageLink.limit;
 
-        if (angular.isDefined(pageLink.startTime)) {
+        if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
             url += '&startTime=' + pageLink.startTime;
         }
-        if (angular.isDefined(pageLink.endTime)) {
+        if (angular.isDefined(pageLink.endTime) && pageLink.endTime != null) {
             url += '&endTime=' + pageLink.endTime;
         }
-        if (angular.isDefined(pageLink.idOffset)) {
+        if (angular.isDefined(pageLink.idOffset) && pageLink.idOffset != null) {
             url += '&offset=' + pageLink.idOffset;
         }
         if (angular.isDefined(ascOrder) && ascOrder != null) {

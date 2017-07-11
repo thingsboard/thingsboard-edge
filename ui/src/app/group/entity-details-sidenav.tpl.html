@@ -1,0 +1,80 @@
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<tb-details-sidenav
+        header-title="{{vm.entity.name}}"
+        header-subtitle="{{vm.translations.details | translate }}"
+        is-read-only="vm.isReadOnly"
+        is-open="vm.isOpen"
+        is-edit="vm.isEdit"
+        on-close-details="vm.onCloseDetails()"
+        on-toggle-details-edit-mode="vm.onToggleEditMode()"
+        on-apply-details="vm.saveEntity()"
+        the-form="vm.detailsForm">
+    <details-buttons tb-help="vm.entityHelpLinkId()" help-container-id="help-container">
+        <div id="help-container"></div>
+    </details-buttons>
+    <form name="vm.detailsForm">
+        <md-tabs ng-class="{'tb-headless': vm.isEdit}"
+                 id="tabs" md-border-bottom flex class="tb-absolute-fill">
+            <md-tab label="{{ 'details.details' | translate }}">
+                <tb-entity entity-type="vm.entityType"
+                           entity="vm.editingEntity"
+                           is-edit="vm.isEdit"
+                           the-form="vm.detailsForm">
+                </tb-entity>
+            </md-tab>
+            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
+                <tb-attribute-table flex
+                                    entity-id="vm.entityId"
+                                    entity-type="{{vm.entityType}}"
+                                    entity-name="vm.entity.name"
+                                    default-attribute-scope="{{vm.entityType == vm.types.entityType.device
+                                                              ? vm.types.attributesScope.client.value
+                                                              : vm.types.attributesScope.server.value
+                                                             }}">
+                </tb-attribute-table>
+            </md-tab>
+            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
+                <tb-attribute-table flex
+                                    entity-id="vm.entityId"
+                                    entity-type="{{vm.entityType}}"
+                                    entity-name="vm.entity.name"
+                                    default-attribute-scope="{{vm.types.latestTelemetry.value}}"
+                                    disable-attribute-scope-selection="true">
+                </tb-attribute-table>
+            </md-tab>
+            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
+                <tb-alarm-table flex entity-type="vm.entityType"
+                                     entity-id="vm.entityId">
+                </tb-alarm-table>
+            </md-tab>
+            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'event.events' | translate }}">
+                <tb-event-table flex entity-type="vm.entityType"
+                                entity-id="vm.entityId"
+                                tenant-id="vm.entity.tenantId.id"
+                                default-event-type="{{vm.types.eventType.error.value}}">
+                </tb-event-table>
+            </md-tab>
+            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'relation.relations' | translate }}">
+                <tb-relation-table flex
+                                   entity-id="vm.entityId"
+                                   entity-type="{{vm.entityType}}">
+                </tb-relation-table>
+            </md-tab>
+    </form>
+</tb-details-sidenav>

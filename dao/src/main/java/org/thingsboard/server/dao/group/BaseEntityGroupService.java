@@ -219,6 +219,23 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public EntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
+                                                        BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
+        log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        if (transformFunction == null) {
+            throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
+        }
+        EntityGroup entityGroup = findEntityGroupById(entityGroupId);
+        if (entityGroup == null) {
+            throw new IncorrectParameterException("Unable to find entity group by id " + entityGroupId);
+        }
+        EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
+        return toEntityView(entityId, columnsInfo, transformFunction);
+    }
+
+    @Override
     public ListenableFuture<TimePageData<EntityView>>
                             findEntities(EntityGroupId entityGroupId,
                                          TimePageLink pageLink, BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
@@ -232,11 +249,39 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (entityGroup == null) {
             throw new IncorrectParameterException("Unable to find entity group by id " + entityGroupId);
         }
-        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
-        List<EntityField> commonEntityFields = new ArrayList<>();
-        List<EntityField> entityFields = new ArrayList<>();
-        Map<String, List<String>> attributeScopeToKeysMap = new HashMap<>();
-        List<String> timeseriesKeys = new ArrayList<>();
+        EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
+        ListenableFuture<List<EntityId>> entityIds = entityGroupDao.findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
+        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView>>() {
+            @Nullable
+            @Override
+            public TimePageData<EntityView> apply(@Nullable List<EntityId> entityIds) {
+                List<EntityView> entities = new ArrayList<>();
+                entityIds.forEach(entityId -> {
+                    EntityView entityView = toEntityView(entityId, columnsInfo, transformFunction);
+                    entities.add(entityView);
+                });
+                return new TimePageData<>(entities, pageLink);
+            }
+        });
+    }
+
+    private EntityGroupColumnsInfo getEntityGroupColumnsInfo(EntityGroup entityGroup) {
+        JsonNode jsonConfiguration = entityGroup.getConfiguration();
+        List<ColumnConfiguration> columns = null;
+        if (jsonConfiguration != null) {
+            try {
+                EntityGroupConfiguration entityGroupConfiguration =
+                        new ObjectMapper().treeToValue(jsonConfiguration, EntityGroupConfiguration.class);
+                columns = entityGroupConfiguration.getColumns();
+            } catch (JsonProcessingException e) {
+                log.error("Unable to read entity group configuration", e);
+                throw new RuntimeException("Unable to read entity group configuration", e);
+            }
+        }
+        if (columns == null) {
+            columns = Collections.emptyList();
+        }
+        EntityGroupColumnsInfo columnsInfo = new EntityGroupColumnsInfo();
         columns.forEach(column -> {
             if (column.getType() == ColumnType.ENTITY_FIELD) {
                 EntityField entityField = null;
@@ -245,66 +290,40 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 } catch (Exception e) {}
                 if (entityField != null) {
                     if (entityField == EntityField.CREATED_TIME) {
-                        commonEntityFields.add(entityField);
+                        columnsInfo.commonEntityFields.add(entityField);
                     } else {
-                        entityFields.add(entityField);
+                        columnsInfo.entityFields.add(entityField);
                     }
                 }
             } else if (column.getType().isAttribute()) {
                 String scope = column.getType().getAttributeScope();
-                List<String> keys = attributeScopeToKeysMap.get(scope);
+                List<String> keys = columnsInfo.attributeScopeToKeysMap.get(scope);
                 if (keys == null) {
                     keys = new ArrayList<>();
-                    attributeScopeToKeysMap.put(scope, keys);
+                    columnsInfo.attributeScopeToKeysMap.put(scope, keys);
                 }
                 keys.add(column.getKey());
             } else if (column.getType() == ColumnType.TIMESERIES) {
-                timeseriesKeys.add(column.getKey());
+                columnsInfo.timeseriesKeys.add(column.getKey());
             }
         });
-        ListenableFuture<List<EntityId>> entityIds = entityGroupDao.findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView>>() {
-            @Nullable
-            @Override
-            public TimePageData<EntityView> apply(@Nullable List<EntityId> entityIds) {
-                List<EntityView> entities = new ArrayList<>();
-                entityIds.forEach(entityId -> {
-                    EntityView entityView = new EntityView(entityId);
-                    for (EntityField entityField : commonEntityFields) {
-                        if (entityField == EntityField.CREATED_TIME) {
-                            long timestamp = UUIDs.unixTimestamp(entityId.getId());
-                            entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp+"");
-                        }
-                    }
-                    if (!entityFields.isEmpty()) {
-                        entityView = transformFunction.apply(entityView, entityFields);
-                    }
-                    fetchEntityAttributes(entityView, attributeScopeToKeysMap, timeseriesKeys);
-                    entities.add(entityView);
-                });
-                return new TimePageData<>(entities, pageLink);
-            }
-        });
+        return columnsInfo;
     }
 
-    private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {
-        JsonNode jsonConfiguration = entityGroup.getConfiguration();
-        if (jsonConfiguration != null) {
-            try {
-                EntityGroupConfiguration entityGroupConfiguration =
-                        new ObjectMapper().treeToValue(jsonConfiguration, EntityGroupConfiguration.class);
-                List<ColumnConfiguration> columns = entityGroupConfiguration.getColumns();
-                if (columns == null) {
-                    return Collections.emptyList();
-                } else {
-                    return columns;
-                }
-            } catch (JsonProcessingException e) {
-                log.error("Unable to read entity group configuration", e);
-                throw new RuntimeException("Unable to read entity group configuration", e);
+    private EntityView toEntityView(EntityId entityId, EntityGroupColumnsInfo columnsInfo,
+                                    BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
+        EntityView entityView = new EntityView(entityId);
+        for (EntityField entityField : columnsInfo.commonEntityFields) {
+            if (entityField == EntityField.CREATED_TIME) {
+                long timestamp = UUIDs.unixTimestamp(entityId.getId());
+                entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp+"");
             }
         }
-        return Collections.emptyList();
+        if (!columnsInfo.entityFields.isEmpty()) {
+            entityView = transformFunction.apply(entityView, columnsInfo.entityFields);
+        }
+        fetchEntityAttributes(entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
+        return entityView;
     }
 
     private void fetchEntityAttributes(EntityView entityView,
@@ -331,6 +350,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 log.error("Unable to fetch entity latest timeseries", e);
             }
         }
+    }
+
+    private class EntityGroupColumnsInfo {
+        List<EntityField> commonEntityFields = new ArrayList<>();
+        List<EntityField> entityFields = new ArrayList<>();
+        Map<String, List<String>> attributeScopeToKeysMap = new HashMap<>();
+        List<String> timeseriesKeys = new ArrayList<>();
     }
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {

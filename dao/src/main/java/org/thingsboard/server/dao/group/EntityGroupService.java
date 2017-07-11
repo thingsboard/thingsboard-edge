@@ -65,6 +65,9 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds);
 
+    EntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
+                               BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
+
     ListenableFuture<TimePageData<EntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
                                                             BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
 

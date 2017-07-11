@@ -1,0 +1,81 @@
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div flex layout="column" class="tb-entity-group-columns md-padding">
+    <div class="md-whiteframe-z1" flex layout="column">
+        <div flex layout="row" layout-align="start center" class="tb-header">
+            <span ng-if="vm.isEdit && !vm.isReadOnly" style="min-width: 40px; margin: 0px;">&nbsp</span>
+            <span style="padding-left: 10px; min-width: 20px;">&nbsp</span>
+            <div flex layout="row" layout-align="start center"
+                 style="padding: 0 0 0 10px; margin: 5px;">
+                <span flex-xs ng-style="{minWidth: vm.isGtXs ? '130px' : 'initial', maxWidth: vm.isGtXs ? '130px' : '90px'}" translate>entity-group.column-type</span>
+                <span flex-xs style="padding-left: 5px;" ng-style="{minWidth: vm.isGtXs ? '130px' : 'initial', maxWidth: vm.isGtXs ? '130px' : '90px'}"
+                      translate>entity-group.column-value</span>
+                <span style="padding-left: 5px;" translate hide-xs flex>entity-group.column-title</span>
+                <span hide-xs style="padding-left: 5px; min-width: 120px; max-width: 120px;" translate>entity-group.default-sort-order</span>
+                <span hide-xs style="padding-left: 5px; min-width: 40px; max-width: 40px;" translate>entity-group.hide-in-mobile-view</span>
+                <span style="padding-left: 5px; min-width: 80px;">&nbsp</span>
+            </div>
+        </div>
+        <md-divider></md-divider>
+        <div class="tb-columns" ng-class="{'tb-readonly': !vm.isEdit || vm.isReadOnly}"
+             style="max-height: 500px; overflow: auto; padding-bottom: 15px;">
+            <ul dnd-list="vm.columns" dnd-disable-if="!vm.isEdit || vm.isReadOnly">
+                <li ng-repeat="column in vm.columns"
+                    dnd-draggable="column"
+                    dnd-moved="vm.columns.splice($index, 1)"
+                    dnd-disable-if="!vm.isEdit || vm.isReadOnly"
+                    dnd-effect-allowed="move">
+                    <div flex layout="row" layout-align="start center">
+                        <md-button ng-if="vm.isEdit && !vm.isReadOnly" dnd-handle class="md-icon-button md-primary handle"
+                                   style="min-width: 40px; margin: 0px;"
+                                   aria-label="{{ 'action.drag' | translate }}">
+                            <md-tooltip md-direction="top">
+                                {{ 'action.drag' | translate }}
+                            </md-tooltip>
+                            <md-icon aria-label="{{ 'action.drag' | translate }}"
+                                     class="material-icons">
+                                drag_handle
+                            </md-icon>
+                        </md-button>
+                        <dnd-nodrag flex layout="row" layout-align="start center">
+                            <span style="padding-left: 10px; min-width: 20px;">{{$index + 1}}.</span>
+                            <tb-entity-group-column
+                                          flex
+                                          column="column"
+                                          entity-type="vm.entityType"
+                                          read-only="!vm.isEdit || vm.isReadOnly"
+                                          on-default-sort-order-changed="vm.defaultSortOrderChanged(event, column)"
+                                          on-remove-column="vm.removeColumn(event, column)">
+                            </tb-entity-group-column>
+                        </dnd-nodrag>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div ng-if="vm.isEdit && !vm.isReadOnly" flex layout="row" layout-align="start center">
+        <md-button ng-disabled="loading" class="md-primary md-raised"
+                   ng-click="vm.addColumn($event)" aria-label="{{ 'action.add' | translate }}">
+            <md-tooltip md-direction="top">
+                {{ 'entity-group.add-column' | translate }}
+            </md-tooltip>
+            <md-icon class="material-icons">add</md-icon>
+            <span translate>action.add</span>
+        </md-button>
+    </div>
+</div>

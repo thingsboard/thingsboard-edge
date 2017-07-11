@@ -42,6 +42,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import static org.thingsboard.server.dao.service.Validator.*;
 
@@ -211,32 +212,45 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public EntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupUser, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, userViewFunction);
+    }
+
+    @Override
     public ListenableFuture<TimePageData<EntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
-            User user = findUserById(new UserId(entityView.getId().getId()));
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case AUTHORITY:
-                        entityView.put(key, user.getAuthority().name());
-                        break;
-                    case FIRST_NAME:
-                        entityView.put(key, user.getFirstName());
-                        break;
-                    case LAST_NAME:
-                        entityView.put(key, user.getLastName());
-                        break;
-                    case EMAIL:
-                        entityView.put(key, user.getEmail());
-                        break;
-                }
-            }
-            return entityView;
-        }));
+        return entityGroupService.findEntities(entityGroupId, pageLink, userViewFunction);
     }
+
+    private BiFunction<EntityView, List<EntityField>, EntityView> userViewFunction = ((entityView, entityFields) -> {
+        User user = findUserById(new UserId(entityView.getId().getId()));
+        for (EntityField field : entityFields) {
+            String key = field.name().toLowerCase();
+            switch (field) {
+                case AUTHORITY:
+                    entityView.put(key, user.getAuthority().name());
+                    break;
+                case FIRST_NAME:
+                    entityView.put(key, user.getFirstName());
+                    break;
+                case LAST_NAME:
+                    entityView.put(key, user.getLastName());
+                    break;
+                case EMAIL:
+                    entityView.put(key, user.getEmail());
+                    break;
+                case NAME:
+                    entityView.put(key, user.getName());
+                    break;
+            }
+        }
+        return entityView;
+    });
 
     private DataValidator<User> userValidator =
             new DataValidator<User>() {

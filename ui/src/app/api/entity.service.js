@@ -25,6 +25,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                        ruleService, pluginService, dashboardService, entityRelationService, attributeService, types, utils) {
     var service = {
         getEntity: getEntity,
+        saveEntity: saveEntity,
         getEntities: getEntities,
         getEntitiesByNameFilter: getEntitiesByNameFilter,
         resolveAlias: resolveAlias,
@@ -80,9 +81,65 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return promise;
     }
 
+    function saveEntityPromise(entity, config) {
+        var promise;
+        var entityType = entity.id.entityType;
+        if (!entity.id.id) {
+            delete entity.id;
+        }
+        switch (entityType) {
+            case types.entityType.device:
+                promise = deviceService.saveDevice(entity);
+                break;
+            case types.entityType.asset:
+                promise = assetService.saveAsset(entity, true, config);
+                break;
+            case types.entityType.tenant:
+                promise = tenantService.saveTenant(entity);
+                break;
+            case types.entityType.customer:
+                promise = customerService.saveCustomer(entity);
+                break;
+            case types.entityType.rule:
+                promise = ruleService.saveRule(entity);
+                break;
+            case types.entityType.plugin:
+                promise = pluginService.savePlugin(entity);
+                break;
+            case types.entityType.dashboard:
+                promise = dashboardService.saveDashboard(entity);
+                break;
+            case types.entityType.user:
+                promise = userService.saveUser(entity);
+                break;
+            case types.entityType.alarm:
+                $log.error('Save Alarm Entity is not implemented!');
+                break;
+        }
+        return promise;
+    }
+
     function getEntity(entityType, entityId, config) {
         var deferred = $q.defer();
         var promise = getEntityPromise(entityType, entityId, config);
+        if (promise) {
+            promise.then(
+                function success(result) {
+                    deferred.resolve(result);
+                },
+                function fail() {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.reject();
+        }
+        return deferred.promise;
+    }
+
+    function saveEntity(entity, config) {
+        var deferred = $q.defer();
+        var promise = saveEntityPromise(entity, config);
         if (promise) {
             promise.then(
                 function success(result) {
@@ -1062,18 +1119,6 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             );
         }
         return deferred.promise;
-    }
-
-    function saveEntityPromise(entity) {
-        var entityType = entity.id.entityType;
-        if (!entity.id.id) {
-            delete entity.id;
-        }
-        if (entityType == types.entityType.asset) {
-            return assetService.saveAsset(entity);
-        } else if (entityType == types.entityType.device) {
-            return deviceService.saveDevice(entity);
-        }
     }
 
     function addRelatedEntity(relatedEntity, parentEntityId, keys, deferred, relation, direction) {

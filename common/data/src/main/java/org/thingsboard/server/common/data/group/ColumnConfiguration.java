@@ -16,6 +16,9 @@
 
 package org.thingsboard.server.common.data.group;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ColumnConfiguration {
 
     private ColumnType type;

@@ -516,6 +516,7 @@ export default angular.module('thingsboard.locale', [])
                     "add-datasource-prompt": "Please add datasource"
                 },
                 "details": {
+                    "details": "Details",
                     "edit-mode": "Edit mode",
                     "toggle-edit-mode": "Toggle edit mode"
                 },
@@ -709,6 +710,11 @@ export default angular.module('thingsboard.locale', [])
                 "entity-group": {
                     "details": "Details",
                     "columns": "Columns",
+                    "add-column": "Add column",
+                    "column-value": "Value",
+                    "column-title": "Title",
+                    "default-sort-order": "Default sort order",
+                    "hide-in-mobile-view": "Mobile hidden",
                     "actions": "Actions",
                     "delete": "Delete entity group",
                     "name": "Name",
@@ -727,9 +733,40 @@ export default angular.module('thingsboard.locale', [])
                     "device-groups": "Device groups",
                     "asset-groups": "Asset groups",
                     "device-group": "Device group",
-                    "asset-group": "Asset group"
+                    "asset-group": "Asset group",
+                    "column-type": {
+                        "column-type": "Column type",
+                        "client-attribute": "Client attribute",
+                        "shared-attribute": "Shared attribute",
+                        "server-attribute": "Server attribute",
+                        "timeseries": "Timeseries",
+                        "entity-field": "Entity field"
+                    },
+                    "entity-field": {
+                        "created-time": "Created time",
+                        "name": "Name",
+                        "type": "Type",
+                        "authority": "Authority",
+                        "first_name": "First name",
+                        "last_name": "Last name",
+                        "email": "Email",
+                        "title": "Title",
+                        "country": "Country",
+                        "state": "State",
+                        "city": "City",
+                        "address": "Address",
+                        "address2": "Address 2",
+                        "zip": "Zip",
+                        "phone": "Phone"
+                    },
+                    "sort-order": {
+                        "asc": "Ascending",
+                        "desc": "Descending",
+                        "none": "None"
+                    }
                 },
                 "event": {
+                    "events": "Events",
                     "event-type": "Event type",
                     "type-error": "Error",
                     "type-lc-event": "Lifecycle event",

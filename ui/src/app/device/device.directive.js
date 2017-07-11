@@ -34,7 +34,7 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
 
         scope.$watch('device', function(newVal) {
             if (newVal) {
-                if (scope.device.id) {
+                if (scope.device.id && scope.device.id.id) {
                     deviceService.getDeviceCredentials(scope.device.id.id).then(
                         function success(credentials) {
                             scope.deviceCredentials = credentials;
@@ -58,11 +58,11 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
         });
 
         scope.onDeviceIdCopied = function() {
-            toast.showSuccess($translate.instant('device.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+            toast.showSuccess($translate.instant('device.idCopiedMessage'), 750, angular.element(element).closest("md-tab-content"), 'bottom left');
         };
 
         scope.onAccessTokenCopied = function() {
-            toast.showSuccess($translate.instant('device.accessTokenCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+            toast.showSuccess($translate.instant('device.accessTokenCopiedMessage'), 750, angular.element(element).closest("md-tab-content"), 'bottom left');
         };
 
         $compile(element.contents())(scope);

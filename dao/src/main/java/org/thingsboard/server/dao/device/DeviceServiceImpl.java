@@ -258,26 +258,36 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
+    public EntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, deviceViewFunction);
+    }
+
+    @Override
     public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, ((entityView, entityFields) -> {
-            Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case NAME:
-                        entityView.put(key, device.getName());
-                        break;
-                    case TYPE:
-                        entityView.put(key, device.getType());
-                        break;
-                }
-            }
-            return entityView;
-        }));
+        return entityGroupService.findEntities(entityGroupId, pageLink, deviceViewFunction);
     }
+
+    private BiFunction<EntityView, List<EntityField>, EntityView> deviceViewFunction = ((entityView, entityFields) -> {
+        Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
+        for (EntityField field : entityFields) {
+            String key = field.name().toLowerCase();
+            switch (field) {
+                case NAME:
+                    entityView.put(key, device.getName());
+                    break;
+                case TYPE:
+                    entityView.put(key, device.getType());
+                    break;
+            }
+        }
+        return entityView;
+    });
 
     private DataValidator<Device> deviceValidator =
             new DataValidator<Device>() {

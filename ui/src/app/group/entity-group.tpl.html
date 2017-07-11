@@ -39,7 +39,7 @@
             <div class="md-toolbar-tools">
                 <span>{{ vm.types.entityTypeTranslations[vm.entityGroup.type].typePlural | translate }}</span>
                 <span flex></span>
-                <md-button class="md-primary" ng-click="vm.fetchMore($event)">
+                <md-button ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     Fetch more
                 </md-button>
                 <md-button class="md-icon-button" ng-click="vm.addEntity($event)">
@@ -52,12 +52,6 @@
                     <md-icon>search</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.search' | translate }}
-                    </md-tooltip>
-                </md-button>
-                <md-button class="md-icon-button" ng-click="vm.reloadRelations()">
-                    <md-icon>refresh</md-icon>
-                    <md-tooltip md-direction="top">
-                        {{ 'action.refresh' | translate }}
                     </md-tooltip>
                 </md-button>
             </div>
@@ -144,3 +138,9 @@
           style="text-transform: uppercase; display: flex;"
           class="tb-absolute-fill" translate>entity.no-data</span>
 </div>
+<tb-entity-details-sidenav
+        entity-type="vm.entityGroup.type"
+        entity-id="vm.currentEntity.id.id"
+        is-open="vm.isDetailsOpen"
+        on-entity-updated="vm.onEntityUpdated(entity)">
+</tb-entity-details-sidenav>

@@ -18,6 +18,10 @@ import EntityGroupRoutes from './entity-group.routes';
 import {EntityGroupsController, EntityGroupCardController} from './entity-groups.controller';
 import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
+import EntityGroupColumn from './entity-group-column.directive';
+import EntityGroupColumns from './entity-group-columns.directive';
+import EntityDetailsSidenav from './entity-details-sidenav.directive';
+import Entity from './entity.directive';
 
 export default angular.module('thingsboard.entityGroup', [])
     .config(EntityGroupRoutes)
@@ -25,4 +29,8 @@ export default angular.module('thingsboard.entityGroup', [])
     .controller('EntityGroupCardController', EntityGroupCardController)
     .controller('EntityGroupController', EntityGroupController)
     .directive('tbEntityGroup', EntityGroupDirective)
+    .directive('tbEntityGroupColumn', EntityGroupColumn)
+    .directive('tbEntityGroupColumns', EntityGroupColumns)
+    .directive('tbEntityDetailsSidenav', EntityDetailsSidenav)
+    .directive('tbEntity', Entity)
     .name;
