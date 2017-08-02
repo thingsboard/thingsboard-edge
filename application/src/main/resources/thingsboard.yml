@@ -106,7 +106,7 @@ coap:
   timeout: "${COAP_TIMEOUT:10000}"
 
 database:
-  type: "${DATABASE_TYPE:cassandra}" # cassandra OR sql
+  type: "${DATABASE_TYPE:sql}" # cassandra OR sql
 
 # Cassandra driver configuration parameters
 cassandra:
@@ -176,7 +176,7 @@ actors:
   statistics:
     # Enable/disable actor statistics
     enabled: "${ACTORS_STATISTICS_ENABLED:true}"
-    persist_frequency: "${ACTORS_STATISTICS_PERSIST_FREQUENCY:60000}"
+    persist_frequency: "${ACTORS_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
 # Cache parameters
 cache:
@@ -233,7 +233,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: "validate"
-    database-platform: "org.hibernate.dialect.HSQLDialect"
+    database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.HSQLDialect}"
   datasource:
     driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.hsqldb.jdbc.JDBCDriver}"
     url: "${SPRING_DATASOURCE_URL:jdbc:hsqldb:file:${SQL_DATA_FOLDER:/tmp}/thingsboardDb;sql.enforce_size=false}"
@@ -241,7 +241,7 @@ spring:
     password: "${SPRING_DATASOURCE_PASSWORD:}"
 
 
-# Postgres DAO Configuration
+# PostgreSQL DAO Configuration
 #spring:
 #  data:
 #    jpa:
@@ -250,7 +250,7 @@ spring:
 #  jpa:
 #    hibernate:
 #      ddl-auto: "validate"
-#    database-platform: "org.hibernate.dialect.PostgreSQLDialect"
+#    database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}"
 #  datasource:
 #    driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.postgresql.Driver}"
 #    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thingsboard}"

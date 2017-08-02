@@ -353,16 +353,20 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
 
     function entitiesToEntitiesInfo(entities) {
         var entitiesInfo = [];
-        for (var d = 0; d < entities.length; d++) {
-            entitiesInfo.push(entityToEntityInfo(entities[d]));
+        if (entities) {
+            for (var d = 0; d < entities.length; d++) {
+                entitiesInfo.push(entityToEntityInfo(entities[d]));
+            }
         }
         return entitiesInfo;
     }
 
     function entityRelationInfosToEntitiesInfo(entityRelations, direction) {
         var entitiesInfo = [];
-        for (var d = 0; d < entityRelations.length; d++) {
-            entitiesInfo.push(entityRelationInfoToEntityInfo(entityRelations[d], direction));
+        if (entityRelations) {
+            for (var d = 0; d < entityRelations.length; d++) {
+                entitiesInfo.push(entityRelationInfoToEntityInfo(entityRelations[d], direction));
+            }
         }
         return entitiesInfo;
     }
@@ -371,11 +375,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
     function resolveAlias(entityAlias, stateParams) {
         var deferred = $q.defer();
         var filter = entityAlias.filter;
-        resolveAliasFilter(filter, stateParams, -1).then(
+        resolveAliasFilter(filter, stateParams, -1, false).then(
             function (result) {
                 var aliasInfo = {
                     alias: entityAlias.alias,
                     stateEntity: result.stateEntity,
+                    entityParamName: result.entityParamName,
                     resolveMultiple: filter.resolveMultiple
                 };
                 aliasInfo.resolvedEntities = result.entities;
@@ -392,17 +397,38 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function resolveAliasFilter(filter, stateParams, maxItems) {
+    function getStateEntityId(filter, stateParams) {
+        var entityId = null;
+        if (stateParams) {
+            if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
+                if (stateParams[filter.stateEntityParamName]) {
+                    entityId = stateParams[filter.stateEntityParamName].entityId;
+                }
+            } else {
+                entityId = stateParams.entityId;
+            }
+        }
+        if (!entityId) {
+            entityId = filter.defaultStateEntity;
+        }
+        return entityId;
+    }
+
+    function resolveAliasFilter(filter, stateParams, maxItems, failOnEmpty) {
         var deferred = $q.defer();
         var result = {
             entities: [],
             stateEntity: false
         };
+        if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
+            result.entityParamName = filter.stateEntityParamName;
+        }
+        var stateEntityId = getStateEntityId(filter, stateParams);
         switch (filter.type) {
             case types.aliasFilterType.entityList.value:
                 getEntities(filter.entityType, filter.entityList).then(
                     function success(entities) {
-                        if (entities && entities.length) {
+                        if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
                             deferred.resolve(result);
                         } else {
@@ -417,7 +443,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.entityName.value:
                 getEntitiesByNameFilter(filter.entityType, filter.entityNameFilter, maxItems).then(
                     function success(entities) {
-                        if (entities && entities.length) {
+                        if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
                             deferred.resolve(result);
                         } else {
@@ -431,14 +457,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.aliasFilterType.stateEntity.value:
                 result.stateEntity = true;
-                if (stateParams && stateParams.entityId) {
-                    getEntity(stateParams.entityId.entityType, stateParams.entityId.id).then(
+                if (stateEntityId) {
+                    getEntity(stateEntityId.entityType, stateEntityId.id).then(
                         function success(entity) {
                             result.entities = entitiesToEntitiesInfo([entity]);
                             deferred.resolve(result);
                         },
                         function fail() {
-                            deferred.reject();
+                            deferred.resolve(result);
                         }
                     );
                 } else {
@@ -448,7 +474,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.assetType.value:
                 getEntitiesByNameFilter(types.entityType.asset, filter.assetNameFilter, maxItems, null, filter.assetType).then(
                     function success(entities) {
-                        if (entities && entities.length) {
+                        if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
                             deferred.resolve(result);
                         } else {
@@ -463,7 +489,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.deviceType.value:
                 getEntitiesByNameFilter(types.entityType.device, filter.deviceNameFilter, maxItems, null, filter.deviceType).then(
                     function success(entities) {
-                        if (entities && entities.length) {
+                        if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
                             deferred.resolve(result);
                         } else {
@@ -479,9 +505,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 result.stateEntity = filter.rootStateEntity;
                 var rootEntityType;
                 var rootEntityId;
-                if (result.stateEntity && stateParams && stateParams.entityId) {
-                    rootEntityType = stateParams.entityId.entityType;
-                    rootEntityId = stateParams.entityId.id;
+                if (result.stateEntity && stateEntityId) {
+                    rootEntityType = stateEntityId.entityType;
+                    rootEntityId = stateEntityId.id;
                 } else if (!result.stateEntity) {
                     rootEntityType = filter.rootEntity.entityType;
                     rootEntityId = filter.rootEntity.id;
@@ -498,8 +524,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     searchQuery.parameters.maxLevel = filter.maxLevel && filter.maxLevel > 0 ? filter.maxLevel : -1;
                     entityRelationService.findInfoByQuery(searchQuery).then(
                         function success(allRelations) {
-                            if (allRelations && allRelations.length) {
-                                if (angular.isDefined(maxItems) && maxItems > 0) {
+                            if (allRelations && allRelations.length || !failOnEmpty) {
+                                if (angular.isDefined(maxItems) && maxItems > 0 && allRelations) {
                                     var limit = Math.min(allRelations.length, maxItems);
                                     allRelations.length = limit;
                                 }
@@ -520,9 +546,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.assetSearchQuery.value:
             case types.aliasFilterType.deviceSearchQuery.value:
                 result.stateEntity = filter.rootStateEntity;
-                if (result.stateEntity && stateParams && stateParams.entityId) {
-                    rootEntityType = stateParams.entityId.entityType;
-                    rootEntityId = stateParams.entityId.id;
+                if (result.stateEntity && stateEntityId) {
+                    rootEntityType = stateEntityId.entityType;
+                    rootEntityId = stateEntityId.id;
                 } else if (!result.stateEntity) {
                     rootEntityType = filter.rootEntity.entityType;
                     rootEntityId = filter.rootEntity.id;
@@ -547,8 +573,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                     findByQueryPromise.then(
                         function success(entities) {
-                            if (entities && entities.length) {
-                                if (angular.isDefined(maxItems) && maxItems > 0) {
+                            if (entities && entities.length || !failOnEmpty) {
+                                if (angular.isDefined(maxItems) && maxItems > 0 && entities) {
                                     var limit = Math.min(entities.length, maxItems);
                                     entities.length = limit;
                                 }
@@ -701,7 +727,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
 
     function checkEntityAlias(entityAlias) {
         var deferred = $q.defer();
-        resolveAliasFilter(entityAlias.filter, null, 1).then(
+        resolveAliasFilter(entityAlias.filter, null, 1, true).then(
             function success(result) {
                 if (result.stateEntity) {
                     deferred.resolve(true);

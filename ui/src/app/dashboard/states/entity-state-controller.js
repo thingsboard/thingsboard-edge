@@ -29,6 +29,7 @@ export default function EntityStateController($scope, $location, $state, $stateP
     vm.getStateId = getStateId;
     vm.getStateParams = getStateParams;
     vm.getStateParamsByStateId = getStateParamsByStateId;
+    vm.getEntityId = getEntityId;
 
     vm.getStateName = getStateName;
 
@@ -111,6 +112,16 @@ export default function EntityStateController($scope, $location, $state, $stateP
         }
     }
 
+    function getEntityId(entityParamName) {
+        var stateParams = getStateParams();
+        if (!entityParamName || !entityParamName.length) {
+            return stateParams.entityId;
+        } else if (stateParams[entityParamName]) {
+            return stateParams[entityParamName].entityId;
+        }
+        return null;
+    }
+
     function getStateObjById(id) {
         for (var i=0; i < vm.stateObject.length; i++) {
             if (vm.stateObject[i].id === id) {
@@ -135,26 +146,33 @@ export default function EntityStateController($scope, $location, $state, $stateP
     function resolveEntity(params) {
         var deferred = $q.defer();
         if (params && params.entityId && params.entityId.id && params.entityId.entityType) {
-            entityService.getEntity(params.entityId.entityType, params.entityId.id, {ignoreLoading: true, ignoreErrors: true}).then(
-                function success(entity) {
-                    var entityName = entity.name;
-                    deferred.resolve(entityName);
-                },
-                function fail() {
-                    deferred.reject();
-                }
-            );
+            if (params.entityName && params.entityName.length) {
+                deferred.resolve(params.entityName);
+            } else {
+                entityService.getEntity(params.entityId.entityType, params.entityId.id, {
+                    ignoreLoading: true,
+                    ignoreErrors: true
+                }).then(
+                    function success(entity) {
+                        var entityName = entity.name;
+                        deferred.resolve(entityName);
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+            }
         } else {
             deferred.reject();
         }
         return deferred.promise;
     }
 
-    function parseState(stateJson) {
+    function parseState(stateBase64) {
         var result;
-        if (stateJson) {
+        if (stateBase64) {
             try {
-                result = angular.fromJson(stateJson);
+                result = utils.base64toObj(stateBase64);
             } catch (e) {
                 result = [ { id: null, params: {} } ];
             }
@@ -165,8 +183,12 @@ export default function EntityStateController($scope, $location, $state, $stateP
         if (!result.length) {
             result[0] = { id: null, params: {} }
         }
+        var rootStateId = dashboardUtils.getRootStateId(vm.states);
         if (!result[0].id) {
-            result[0].id = dashboardUtils.getRootStateId(vm.states);
+            result[0].id = rootStateId;
+        }
+        if (result[0].id !== rootStateId) {
+            result = [ { id: rootStateId, params: {} } ];
         }
         return result;
     }
@@ -260,10 +282,30 @@ export default function EntityStateController($scope, $location, $state, $stateP
 
     function updateLocation() {
         if (vm.stateObject[vm.stateObject.length-1].id) {
-            $location.search({state : angular.toJson(vm.stateObject)});
+            if (isDefaultState()) {
+                $location.search({state : null});
+            } else {
+                $location.search({state : utils.objToBase64(vm.stateObject)});
+            }
         }
     }
 
+    function isDefaultState() {
+        if (vm.stateObject.length == 1) {
+            var state = vm.stateObject[0];
+            var rootStateId = dashboardUtils.getRootStateId(vm.states);
+            if (state.id == rootStateId && (!state.params || isEmpty(state.params))) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    function isEmpty(map) {
+        for(var key in map) {
+            return !map.hasOwnProperty(key);
+        }
+        return true;
+    }
 
 }

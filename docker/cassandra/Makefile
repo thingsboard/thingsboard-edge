@@ -1,4 +1,4 @@
-VERSION=1.2.4
+VERSION=1.3.0
 PROJECT=thingsboard
 APP=cassandra
 
@@ -7,4 +7,4 @@ build:
 
 push: build
 	docker push ${PROJECT}/${APP}:${VERSION}
-    docker push ${PROJECT}/${APP}:latest
+	docker push ${PROJECT}/${APP}:latest

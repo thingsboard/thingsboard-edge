@@ -19,26 +19,31 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.Aggregation;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
+import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.dao.model.sql.TsKvEntity;
 import org.thingsboard.server.dao.model.sql.TsKvLatestCompositeKey;
 import org.thingsboard.server.dao.model.sql.TsKvLatestEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.timeseries.TimeseriesDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
+
 
 @Component
 @Slf4j
@@ -76,7 +81,7 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
             return findAllAsyncWithLimit(entityId, query);
         } else {
             long stepTs = query.getStartTs();
-            List<ListenableFuture<TsKvEntry>> futures = new ArrayList<>();
+            List<ListenableFuture<Optional<TsKvEntry>>> futures = new ArrayList<>();
             while (stepTs < query.getEndTs()) {
                 long startTs = stepTs;
                 long endTs = stepTs + query.getInterval();
@@ -84,25 +89,39 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
                 futures.add(findAndAggregateAsync(entityId, query.getKey(), startTs, endTs, ts, query.getAggregation()));
                 stepTs = endTs;
             }
-            return Futures.allAsList(futures);
+            ListenableFuture<List<Optional<TsKvEntry>>> future = Futures.allAsList(futures);
+            return Futures.transform(future, new Function<List<Optional<TsKvEntry>>, List<TsKvEntry>>() {
+                @Nullable
+                @Override
+                public List<TsKvEntry> apply(@Nullable List<Optional<TsKvEntry>> results) {
+                    if (results == null || results.isEmpty()) {
+                        return null;
+                    }
+                    return results.stream()
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toList());
+                }
+            }, service);
         }
     }
 
-    private ListenableFuture<TsKvEntry> findAndAggregateAsync(EntityId entityId, String key, long startTs, long endTs, long ts, Aggregation aggregation) {
-        TsKvEntity entity;
+    private ListenableFuture<Optional<TsKvEntry>> findAndAggregateAsync(EntityId entityId, String key, long startTs, long endTs, long ts, Aggregation aggregation) {
+        CompletableFuture<TsKvEntity> entity;
+        String entityIdStr = fromTimeUUID(entityId.getId());
         switch (aggregation) {
             case AVG:
                 entity = tsKvRepository.findAvg(
-                            entityId.getId(),
-                            entityId.getEntityType(),
-                            key,
-                            startTs,
-                            endTs);
+                        entityIdStr,
+                        entityId.getEntityType(),
+                        key,
+                        startTs,
+                        endTs);
 
                 break;
             case MAX:
                 entity = tsKvRepository.findMax(
-                        entityId.getId(),
+                        entityIdStr,
                         entityId.getEntityType(),
                         key,
                         startTs,
@@ -111,7 +130,7 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
                 break;
             case MIN:
                 entity = tsKvRepository.findMin(
-                        entityId.getId(),
+                        entityIdStr,
                         entityId.getEntityType(),
                         key,
                         startTs,
@@ -120,7 +139,7 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
                 break;
             case SUM:
                 entity = tsKvRepository.findSum(
-                        entityId.getId(),
+                        entityIdStr,
                         entityId.getEntityType(),
                         key,
                         startTs,
@@ -129,7 +148,7 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
                 break;
             case COUNT:
                 entity = tsKvRepository.findCount(
-                        entityId.getId(),
+                        entityIdStr,
                         entityId.getEntityType(),
                         key,
                         startTs,
@@ -137,19 +156,39 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
 
                 break;
             default:
-                entity = null;
+                throw new IllegalArgumentException("Not supported aggregation type: " + aggregation);
         }
-        if (entity != null){
-            entity.setTs(ts);
-        }
-        return service.submit(() -> DaoUtil.getData(entity));
+
+        SettableFuture<TsKvEntity> listenableFuture = SettableFuture.create();
+        entity.whenComplete((tsKvEntity, throwable) -> {
+            if (throwable != null) {
+                listenableFuture.setException(throwable);
+            } else {
+                listenableFuture.set(tsKvEntity);
+            }
+        });
+        return Futures.transform(listenableFuture, new Function<TsKvEntity, Optional<TsKvEntry>>() {
+            @Nullable
+            @Override
+            public Optional<TsKvEntry> apply(@Nullable TsKvEntity entity) {
+                if (entity != null && entity.isNotEmpty()) {
+                    entity.setEntityId(entityIdStr);
+                    entity.setEntityType(entityId.getEntityType());
+                    entity.setKey(key);
+                    entity.setTs(ts);
+                    return Optional.of(DaoUtil.getData(entity));
+                } else {
+                    return Optional.empty();
+                }
+            }
+        });
     }
 
     private ListenableFuture<List<TsKvEntry>> findAllAsyncWithLimit(EntityId entityId, TsKvQuery query) {
-        return service.submit(() ->
+        return Futures.immediateFuture(
                 DaoUtil.convertDataList(
                         tsKvRepository.findAllWithLimit(
-                                entityId.getId(),
+                                fromTimeUUID(entityId.getId()),
                                 entityId.getEntityType(),
                                 query.getKey(),
                                 query.getStartTs(),
@@ -162,26 +201,32 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
         TsKvLatestCompositeKey compositeKey =
                 new TsKvLatestCompositeKey(
                         entityId.getEntityType(),
-                        entityId.getId(),
+                        fromTimeUUID(entityId.getId()),
                         key);
-        return service.submit(() ->
-                DaoUtil.getData(tsKvLatestRepository.findOne(compositeKey)));
+        TsKvLatestEntity entry = tsKvLatestRepository.findOne(compositeKey);
+        TsKvEntry result;
+        if (entry != null) {
+            result = DaoUtil.getData(entry);
+        } else {
+            result = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry(key, null));
+        }
+        return Futures.immediateFuture(result);
     }
 
     @Override
     public ListenableFuture<List<TsKvEntry>> findAllLatest(EntityId entityId) {
-        return service.submit(() ->
+        return Futures.immediateFuture(
                 DaoUtil.convertDataList(Lists.newArrayList(
                         tsKvLatestRepository.findAllByEntityTypeAndEntityId(
                                 entityId.getEntityType(),
-                                entityId.getId()))));
+                                UUIDConverter.fromTimeUUID(entityId.getId())))));
     }
 
     @Override
     public ListenableFuture<Void> save(EntityId entityId, TsKvEntry tsKvEntry, long ttl) {
         TsKvEntity entity = new TsKvEntity();
         entity.setEntityType(entityId.getEntityType());
-        entity.setEntityId(entityId.getId());
+        entity.setEntityId(fromTimeUUID(entityId.getId()));
         entity.setTs(tsKvEntry.getTs());
         entity.setKey(tsKvEntry.getKey());
         entity.setStrValue(tsKvEntry.getStrValue().orElse(null));
@@ -203,7 +248,7 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
     public ListenableFuture<Void> saveLatest(EntityId entityId, TsKvEntry tsKvEntry) {
         TsKvLatestEntity latestEntity = new TsKvLatestEntity();
         latestEntity.setEntityType(entityId.getEntityType());
-        latestEntity.setEntityId(entityId.getId());
+        latestEntity.setEntityId(fromTimeUUID(entityId.getId()));
         latestEntity.setTs(tsKvEntry.getTs());
         latestEntity.setKey(tsKvEntry.getKey());
         latestEntity.setStrValue(tsKvEntry.getStrValue().orElse(null));

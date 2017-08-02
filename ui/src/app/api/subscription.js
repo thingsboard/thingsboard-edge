@@ -277,6 +277,7 @@ export default class Subscription {
             var datasource = this.datasources[i];
             for (var a = 0; a < datasource.dataKeys.length; a++) {
                 var dataKey = datasource.dataKeys[a];
+                dataKey.hidden = false;
                 dataKey.pattern = angular.copy(dataKey.label);
                 var datasourceData = {
                     datasource: datasource,
@@ -290,7 +291,6 @@ export default class Subscription {
                         dataKey: dataKey,
                         dataIndex: dataIndex++
                     };
-                    legendKey.dataKey.hidden = false;
                     this.legendData.keys.push(legendKey);
                     var legendKeyData = {
                         min: null,
@@ -629,7 +629,9 @@ export default class Subscription {
         }
         if (this.type === this.ctx.types.widgetType.latest.value) {
             var prevData = currentData.data;
-            if (prevData && prevData[0] && prevData[0].length > 1 && sourceData.data.length > 0) {
+            if (!sourceData.data.length) {
+                update = false;
+            } else if (prevData && prevData[0] && prevData[0].length > 1 && sourceData.data.length > 0) {
                 var prevValue = prevData[0][1];
                 if (prevValue === sourceData.data[0][1]) {
                     update = false;
@@ -730,12 +732,23 @@ export default class Subscription {
                 index += datasource.dataKeys.length;
 
                 this.datasourceListeners.push(listener);
-                this.ctx.datasourceService.subscribeToDatasource(listener);
-                if (datasource.unresolvedStateEntity) {
+
+                if (datasource.dataKeys.length) {
+                    this.ctx.datasourceService.subscribeToDatasource(listener);
+                }
+
+                var forceUpdate = false;
+                if (datasource.unresolvedStateEntity ||
+                    !datasource.dataKeys.length ||
+                    (datasource.type === this.ctx.types.datasourceType.entity && !datasource.entityId)
+                ) {
+                    forceUpdate = true;
+                }
+
+                if (forceUpdate) {
                     this.notifyDataLoaded();
                     this.onDataUpdated();
                 }
-
             }
         }
     }
@@ -762,7 +775,14 @@ export default class Subscription {
 
         this.ctx.alarmService.subscribeForAlarms(this.alarmSourceListener);
 
-        if (this.alarmSource.unresolvedStateEntity) {
+        var forceUpdate = false;
+        if (this.alarmSource.unresolvedStateEntity ||
+            (this.alarmSource.type === this.ctx.types.datasourceType.entity && !this.alarmSource.entityId)
+        ) {
+            forceUpdate = true;
+        }
+
+        if (forceUpdate) {
             this.notifyDataLoaded();
             this.onDataUpdated();
         }
