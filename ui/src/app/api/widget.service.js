@@ -22,11 +22,17 @@ import thingsboardTimeseriesTableWidget from '../widget/lib/timeseries-table-wid
 import thingsboardAlarmsTableWidget from '../widget/lib/alarms-table-widget';
 import thingsboardEntitiesTableWidget from '../widget/lib/entities-table-widget';
 
+import thingsboardRpcWidgets from '../widget/lib/rpc';
+
 import TbFlot from '../widget/lib/flot-widget';
 import TbAnalogueLinearGauge from '../widget/lib/analogue-linear-gauge';
 import TbAnalogueRadialGauge from '../widget/lib/analogue-radial-gauge';
 import TbCanvasDigitalGauge from '../widget/lib/canvas-digital-gauge';
 import TbMapWidget from '../widget/lib/map-widget';
+import TbMapWidgetV2 from '../widget/lib/map-widget2';
+
+import 'jquery.terminal/js/jquery.terminal.min.js';
+import 'jquery.terminal/css/jquery.terminal.min.css';
 
 import 'oclazyload';
 import cssjs from '../../vendor/css.js/css';
@@ -35,7 +41,7 @@ import thingsboardTypes from '../common/types.constant';
 import thingsboardUtils from '../common/utils.service';
 
 export default angular.module('thingsboard.api.widget', ['oc.lazyLoad', thingsboardLedLight, thingsboardTimeseriesTableWidget,
-    thingsboardAlarmsTableWidget, thingsboardEntitiesTableWidget, thingsboardTypes, thingsboardUtils])
+    thingsboardAlarmsTableWidget, thingsboardEntitiesTableWidget, thingsboardRpcWidgets, thingsboardTypes, thingsboardUtils])
     .factory('widgetService', WidgetService)
     .name;
 
@@ -53,6 +59,8 @@ function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $tr
     $window.TbAnalogueRadialGauge = TbAnalogueRadialGauge;
     $window.TbCanvasDigitalGauge = TbCanvasDigitalGauge;
     $window.TbMapWidget = TbMapWidget;
+    $window.TbMapWidgetV2 = TbMapWidgetV2;
+
     $window.cssjs = cssjs;
 
     var cssParser = new cssjs();
@@ -550,8 +558,9 @@ function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $tr
          '    self.typeParameters = function() {\n\n' +
                     return {
                                 useCustomDatasources: false,
-                                maxDatasources: -1 //unlimited
-                                maxDataKeys: -1 //unlimited
+                                maxDatasources: -1, //unlimited
+                                maxDataKeys: -1, //unlimited
+                                dataKeysOptional: false
                            };
          '    }\n\n' +
 
@@ -618,6 +627,9 @@ function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $tr
             }
             if (angular.isUndefined(result.typeParameters.maxDataKeys)) {
                 result.typeParameters.maxDataKeys = -1;
+            }
+            if (angular.isUndefined(result.typeParameters.dataKeysOptional)) {
+                result.typeParameters.dataKeysOptional = false;
             }
             if (angular.isFunction(widgetTypeInstance.actionSources)) {
                 result.actionSources = widgetTypeInstance.actionSources();

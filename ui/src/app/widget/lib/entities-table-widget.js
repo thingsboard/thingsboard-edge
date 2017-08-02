@@ -100,13 +100,14 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $tra
     vm.cellContent = cellContent;
 
     $scope.$watch('vm.ctx', function() {
-        if (vm.ctx) {
+        if (vm.ctx && vm.ctx.defaultSubscription) {
             vm.settings = vm.ctx.settings;
             vm.widgetConfig = vm.ctx.widgetConfig;
             vm.subscription = vm.ctx.defaultSubscription;
             vm.datasources = vm.subscription.datasources;
             initializeConfig();
             updateDatasources();
+            updateEntities();
         }
     });
 
@@ -276,16 +277,16 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $tra
         }
         if (vm.currentEntity != entity) {
             vm.currentEntity = entity;
-            var descriptors = vm.ctx.actionsApi.getActionDescriptors('rowClick');
-            if (descriptors.length) {
-                var entityId;
-                var entityName;
-                if (vm.currentEntity) {
-                    entityId = vm.currentEntity.id;
-                    entityName = vm.currentEntity.entityName;
-                }
-                vm.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName);
+        }
+        var descriptors = vm.ctx.actionsApi.getActionDescriptors('rowClick');
+        if (descriptors.length) {
+            var entityId;
+            var entityName;
+            if (vm.currentEntity) {
+                entityId = vm.currentEntity.id;
+                entityName = vm.currentEntity.entityName;
             }
+            vm.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName);
         }
     }
 
@@ -479,6 +480,9 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $tra
 
         for (var i=0;i<vm.datasources.length;i++) {
             datasource = vm.datasources[i];
+            if (datasource.type == types.datasourceType.entity && !datasource.entityId) {
+                continue;
+            }
             var entity = {
                 id: {}
             };

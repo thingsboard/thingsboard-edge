@@ -39,8 +39,6 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
-
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.BiFunction;
 

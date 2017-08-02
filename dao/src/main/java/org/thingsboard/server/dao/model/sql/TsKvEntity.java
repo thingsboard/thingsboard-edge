@@ -21,7 +21,6 @@ import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.dao.model.ToData;
 
 import javax.persistence.*;
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
@@ -35,7 +34,9 @@ public final class TsKvEntity implements ToData<TsKvEntry> {
     }
 
     public TsKvEntity(Double avgLongValue, Double avgDoubleValue) {
-        this.longValue = avgLongValue.longValue();
+        if(avgLongValue != null) {
+            this.longValue = avgLongValue.longValue();
+        }
         this.doubleValue = avgDoubleValue;
     }
 
@@ -69,7 +70,7 @@ public final class TsKvEntity implements ToData<TsKvEntry> {
 
     @Id
     @Column(name = ENTITY_ID_COLUMN)
-    private UUID entityId;
+    private String entityId;
 
     @Id
     @Column(name = KEY_COLUMN)
@@ -104,5 +105,9 @@ public final class TsKvEntity implements ToData<TsKvEntry> {
             kvEntry = new BooleanDataEntry(key, booleanValue);
         }
         return new BasicTsKvEntry(ts, kvEntry);
+    }
+
+    public boolean isNotEmpty() {
+        return strValue != null || longValue != null || doubleValue != null || booleanValue != null;
     }
 }

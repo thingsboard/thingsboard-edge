@@ -73,6 +73,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         decimals: angular.isDefined(widget.config.decimals) ? widget.config.decimals : 2,
         subscriptions: {},
         defaultSubscription: null,
+        dashboardTimewindow: dashboardTimewindow,
         timewindowFunctions: {
             onUpdateTimewindow: function(startTimeMs, endTimeMs) {
                 if (widgetContext.defaultSubscription) {
@@ -421,23 +422,41 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         return result;
     }
 
+    function updateEntityParams(params, targetEntityParamName, targetEntityId, entityName) {
+        if (targetEntityId) {
+            var targetEntityParams;
+            if (targetEntityParamName && targetEntityParamName.length) {
+                targetEntityParams = params[targetEntityParamName];
+                if (!targetEntityParams) {
+                    targetEntityParams = {};
+                    params[targetEntityParamName] = targetEntityParams;
+                }
+            } else {
+                targetEntityParams = params;
+            }
+            targetEntityParams.entityId = targetEntityId;
+            if (entityName) {
+                targetEntityParams.entityName = entityName;
+            }
+        }
+    }
+
     function handleWidgetAction($event, descriptor, entityId, entityName) {
         var type = descriptor.type;
+        var targetEntityParamName = descriptor.stateEntityParamName;
+        var targetEntityId;
+        if (descriptor.setEntityId) {
+            targetEntityId = entityId;
+        }
         switch (type) {
             case types.widgetActionTypes.openDashboardState.value:
             case types.widgetActionTypes.updateDashboardState.value:
                 var targetDashboardStateId = descriptor.targetDashboardStateId;
-                var targetEntityId;
-                if (descriptor.setEntityId) {
-                    targetEntityId = entityId;
+                var params = angular.copy(widgetContext.stateController.getStateParams());
+                if (!params) {
+                    params = {};
                 }
-                var params = {};
-                if (targetEntityId) {
-                    params.entityId = targetEntityId;
-                    if (entityName) {
-                        params.entityName = entityName;
-                    }
-                }
+                updateEntityParams(params, targetEntityParamName, targetEntityId, entityName);
                 if (type == types.widgetActionTypes.openDashboardState.value) {
                     widgetContext.stateController.openState(targetDashboardStateId, params, descriptor.openRightLayout);
                 } else {
@@ -447,24 +466,15 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
             case types.widgetActionTypes.openDashboard.value:
                 var targetDashboardId = descriptor.targetDashboardId;
                 targetDashboardStateId = descriptor.targetDashboardStateId;
-                targetEntityId;
-                if (descriptor.setEntityId) {
-                    targetEntityId = entityId;
-                }
                 var stateObject = {};
                 stateObject.params = {};
-                if (targetEntityId) {
-                    stateObject.params.entityId = targetEntityId;
-                    if (entityName) {
-                        stateObject.params.entityName = entityName;
-                    }
-                }
+                updateEntityParams(stateObject.params, targetEntityParamName, targetEntityId, entityName);
                 if (targetDashboardStateId) {
                     stateObject.id = targetDashboardStateId;
                 }
                 var stateParams = {
                     dashboardId: targetDashboardId,
-                    state: angular.toJson([ stateObject ])
+                    state: utils.objToBase64([ stateObject ])
                 }
                 $state.go('home.dashboards.dashboard', stateParams);
                 break;
@@ -637,6 +647,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
 
         $scope.$on('dashboardTimewindowChanged', function (event, newDashboardTimewindow) {
             vm.dashboardTimewindow = newDashboardTimewindow;
+            widgetContext.dashboardTimewindow = newDashboardTimewindow;
         });
 
         $scope.$on("$destroy", function () {
@@ -802,20 +813,23 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         return (val - parseFloat( val ) + 1) >= 0;
     }
 
-    function formatValue(value, dec, units) {
+    function formatValue(value, dec, units, showZeroDecimals) {
         if (angular.isDefined(value) &&
             value !== null && isNumeric(value)) {
-            var formatted = value;
+            var formatted = Number(value);
             if (angular.isDefined(dec)) {
                 formatted = formatted.toFixed(dec);
             }
-            formatted = (formatted * 1).toString();
+            if (!showZeroDecimals) {
+                formatted = (formatted * 1);
+            }
+            formatted = formatted.toString();
             if (angular.isDefined(units) && units.length > 0) {
                 formatted += ' ' + units;
             }
             return formatted;
         } else {
-            return '';
+            return value;
         }
     }
 
