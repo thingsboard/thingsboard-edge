@@ -26,15 +26,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.TenantAssetType;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -93,7 +95,11 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     public Asset saveAsset(Asset asset) {
         log.trace("Executing saveAsset [{}]", asset);
         assetValidator.validate(asset);
-        return assetDao.save(asset);
+        Asset savedAsset = assetDao.save(asset);
+        if (asset.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getId());
+        }
+        return savedAsset;
     }
 
     @Override
@@ -234,6 +240,38 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                 });
         return tenantAssetTypes;
     }
+
+    @Override
+    public EntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupAsset, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, assetViewFunction);
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(entityGroupId, pageLink, assetViewFunction);
+    }
+
+    private BiFunction<EntityView, List<EntityField>, EntityView> assetViewFunction = ((entityView, entityFields) -> {
+        Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
+        for (EntityField field : entityFields) {
+            String key = field.name().toLowerCase();
+            switch (field) {
+                case NAME:
+                    entityView.put(key, asset.getName());
+                    break;
+                case TYPE:
+                    entityView.put(key, asset.getType());
+                    break;
+            }
+        }
+        return entityView;
+    });
 
     private DataValidator<Asset> assetValidator =
             new DataValidator<Asset>() {

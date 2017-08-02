@@ -25,12 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -106,6 +107,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
             deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
             deviceCredentialsService.createDeviceCredentials(deviceCredentials);
+            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getId());
         }
         return savedDevice;
     }
@@ -254,6 +256,38 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             });
         return tenantDeviceTypes;
     }
+
+    @Override
+    public EntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, deviceViewFunction);
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(entityGroupId, pageLink, deviceViewFunction);
+    }
+
+    private BiFunction<EntityView, List<EntityField>, EntityView> deviceViewFunction = ((entityView, entityFields) -> {
+        Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
+        for (EntityField field : entityFields) {
+            String key = field.name().toLowerCase();
+            switch (field) {
+                case NAME:
+                    entityView.put(key, device.getName());
+                    break;
+                case TYPE:
+                    entityView.put(key, device.getType());
+                    break;
+            }
+        }
+        return entityView;
+    });
 
     private DataValidator<Device> deviceValidator =
             new DataValidator<Device>() {

@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.install.DataUpdateService;
 import org.thingsboard.server.service.install.DatabaseSchemaService;
 import org.thingsboard.server.service.install.DatabaseUpgradeService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
@@ -39,7 +40,7 @@ public class ThingsboardInstallService {
     @Value("${install.upgrade:false}")
     private Boolean isUpgrade;
 
-    @Value("${install.upgrade.from_version:1.2.3}")
+    @Value("${install.upgrade.from_version:1.3.0}")
     private String upgradeFromVersion;
 
     @Value("${install.data_dir}")
@@ -63,6 +64,9 @@ public class ThingsboardInstallService {
     @Autowired
     private SystemDataLoaderService systemDataLoaderService;
 
+    @Autowired
+    private DataUpdateService dataUpdateService;
+
     public void performInstall() {
         try {
             if (isUpgrade) {
@@ -70,9 +74,9 @@ public class ThingsboardInstallService {
 
                 switch (upgradeFromVersion) {
                     case "1.2.3":
-                        log.info("Upgrading ThingsBoard from version {} to 1.3.0 ...", upgradeFromVersion);
+                        log.info("Upgrading ThingsBoard from version 1.2.3 to 1.3.0 ...");
 
-                        databaseUpgradeService.upgradeDatabase(upgradeFromVersion);
+                        databaseUpgradeService.upgradeDatabase("1.2.3");
 
                         log.info("Updating system data...");
 
@@ -85,6 +89,12 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("alarm_widgets");
 
                         systemDataLoaderService.loadSystemWidgets();
+                    case "1.3.0": // to 1.3.0EE
+                        log.info("Upgrading ThingsBoard from version 1.3.0 to 1.3.0EE ...");
+
+                        databaseUpgradeService.upgradeDatabase("1.3.0");
+
+                        dataUpdateService.updateData("1.3.0");
 
                         break;
                     default:

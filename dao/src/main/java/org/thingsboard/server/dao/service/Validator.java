@@ -17,7 +17,7 @@ package org.thingsboard.server.dao.service;
 
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UUIDBased;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.BasePageLink;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 
 import java.util.List;
@@ -116,7 +116,7 @@ public class Validator {
      * @param pageLink     the page link
      * @param errorMessage the error message for exception
      */
-    public static void validatePageLink(TextPageLink pageLink, String errorMessage) {
+    public static void validatePageLink(BasePageLink pageLink, String errorMessage) {
         if (pageLink == null) {
             throw new IncorrectParameterException(errorMessage);
         } else if (pageLink.getLimit() < 1) {

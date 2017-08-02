@@ -233,62 +233,211 @@ export default angular.module('thingsboard.types', [])
                 customer: "CUSTOMER",
                 user: "USER",
                 dashboard: "DASHBOARD",
-                alarm: "ALARM"
+                alarm: "ALARM",
+                entityGroup: "ENTITY_GROUP"
+            },
+            entityGroup: {
+                sortOrder: {
+                    asc: {
+                        name: 'entity-group.sort-order.asc',
+                        value: 'ASC'
+                    },
+                    desc: {
+                        name: 'entity-group.sort-order.desc',
+                        value: 'DESC'
+                    },
+                    none: {
+                        name: 'entity-group.sort-order.none',
+                        value: 'NONE'
+                    }
+                },
+                columnType: {
+                    clientAttribute: {
+                        name: 'entity-group.column-type.client-attribute',
+                        value: 'CLIENT_ATTRIBUTE'
+                    },
+                    sharedAttribute: {
+                        name: 'entity-group.column-type.shared-attribute',
+                        value: 'SHARED_ATTRIBUTE'
+                    },
+                    serverAttribute: {
+                        name: 'entity-group.column-type.server-attribute',
+                        value: 'SERVER_ATTRIBUTE'
+                    },
+                    timeseries: {
+                        name: 'entity-group.column-type.timeseries',
+                        value: 'TIMESERIES'
+                    },
+                    entityField: {
+                        name: 'entity-group.column-type.entity-field',
+                        value: 'ENTITY_FIELD'
+                    }
+                },
+                entityField: {
+                    created_time: {
+                        name: 'entity-group.entity-field.created-time',
+                        value: 'created_time',
+                        time: true
+                    },
+                    name: {
+                        name: 'entity-group.entity-field.name',
+                        value: 'name'
+                    },
+                    type: {
+                        name: 'entity-group.entity-field.type',
+                        value: 'type'
+                    },
+                    authority: {
+                        name: 'entity-group.entity-field.authority',
+                        value: 'authority'
+                    },
+                    first_name: {
+                        name: 'entity-group.entity-field.first_name',
+                        value: 'first_name'
+                    },
+                    last_name: {
+                        name: 'entity-group.entity-field.last_name',
+                        value: 'last_name'
+                    },
+                    email: {
+                        name: 'entity-group.entity-field.email',
+                        value: 'email'
+                    },
+                    title: {
+                        name: 'entity-group.entity-field.title',
+                        value: 'title'
+                    },
+                    country: {
+                        name: 'entity-group.entity-field.country',
+                        value: 'country'
+                    },
+                    state: {
+                        name: 'entity-group.entity-field.state',
+                        value: 'state'
+                    },
+                    city: {
+                        name: 'entity-group.entity-field.city',
+                        value: 'city'
+                    },
+                    address: {
+                        name: 'entity-group.entity-field.address',
+                        value: 'address'
+                    },
+                    address2: {
+                        name: 'entity-group.entity-field.address2',
+                        value: 'address2'
+                    },
+                    zip: {
+                        name: 'entity-group.entity-field.zip',
+                        value: 'zip'
+                    },
+                    phone: {
+                        name: 'entity-group.entity-field.phone',
+                        value: 'phone'
+                    }
+                }
+            },
+            entityTypeResources: {
+                "DEVICE": {
+                    helpId: 'devices'
+                },
+                "ASSET": {
+                    helpId: 'assets'
+                },
+                "RULE": {
+                    helpId: 'rules'
+                },
+                "PLUGIN": {
+                    helpId: 'plugins'
+                },
+                "TENANT": {
+                    helpId: 'tenants'
+                },
+                "CUSTOMER": {
+                    helpId: 'customers'
+                },
+                "USER": {
+                    helpId: 'users'
+                },
+                "DASHBOARD": {
+                    helpId: 'dashboards'
+                },
+                "ALARM": {
+                    helpId: 'docs'
+                }
             },
             entityTypeTranslations: {
                 "DEVICE": {
                     type: 'entity.type-device',
                     typePlural: 'entity.type-devices',
                     list: 'entity.list-of-devices',
-                    nameStartsWith: 'entity.device-name-starts-with'
+                    nameStartsWith: 'entity.device-name-starts-with',
+                    details: 'device.device-details',
+                    add: 'device.add'
                 },
                 "ASSET": {
                     type: 'entity.type-asset',
                     typePlural: 'entity.type-assets',
                     list: 'entity.list-of-assets',
-                    nameStartsWith: 'entity.asset-name-starts-with'
+                    nameStartsWith: 'entity.asset-name-starts-with',
+                    details: 'asset.asset-details',
+                    add: 'asset.add'
                 },
                 "RULE": {
                     type: 'entity.type-rule',
                     typePlural: 'entity.type-rules',
                     list: 'entity.list-of-rules',
-                    nameStartsWith: 'entity.rule-name-starts-with'
+                    nameStartsWith: 'entity.rule-name-starts-with',
+                    details: 'rule.rule-details',
+                    add: 'rule.add'
                 },
                 "PLUGIN": {
                     type: 'entity.type-plugin',
                     typePlural: 'entity.type-plugins',
                     list: 'entity.list-of-plugins',
-                    nameStartsWith: 'entity.plugin-name-starts-with'
+                    nameStartsWith: 'entity.plugin-name-starts-with',
+                    details: 'plugin.plugin-details',
+                    add: 'plugin.add'
                 },
                 "TENANT": {
                     type: 'entity.type-tenant',
                     typePlural: 'entity.type-tenants',
                     list: 'entity.list-of-tenants',
-                    nameStartsWith: 'entity.tenant-name-starts-with'
+                    nameStartsWith: 'entity.tenant-name-starts-with',
+                    details: 'tenant.tenant-details',
+                    add: 'tenant.add'
                 },
                 "CUSTOMER": {
                     type: 'entity.type-customer',
                     typePlural: 'entity.type-customers',
                     list: 'entity.list-of-customers',
-                    nameStartsWith: 'entity.customer-name-starts-with'
+                    nameStartsWith: 'entity.customer-name-starts-with',
+                    details: 'customer.customer-details',
+                    add: 'customer.add'
                 },
                 "USER": {
                     type: 'entity.type-user',
                     typePlural: 'entity.type-users',
                     list: 'entity.list-of-users',
-                    nameStartsWith: 'entity.user-name-starts-with'
+                    nameStartsWith: 'entity.user-name-starts-with',
+                    details: 'user.user-details',
+                    add: 'user.add'
                 },
                 "DASHBOARD": {
                     type: 'entity.type-dashboard',
                     typePlural: 'entity.type-dashboards',
                     list: 'entity.list-of-dashboards',
-                    nameStartsWith: 'entity.dashboard-name-starts-with'
+                    nameStartsWith: 'entity.dashboard-name-starts-with',
+                    details: 'dashboard.dashboard-details',
+                    add: 'dashboard.add'
                 },
                 "ALARM": {
                     type: 'entity.type-alarm',
                     typePlural: 'entity.type-alarms',
                     list: 'entity.list-of-alarms',
-                    nameStartsWith: 'entity.alarm-name-starts-with'
+                    nameStartsWith: 'entity.alarm-name-starts-with',
+                    details: 'alarm.alarm-details',
+                    add: 'alarm.alarm'
                 }
             },
             entitySearchDirection: {

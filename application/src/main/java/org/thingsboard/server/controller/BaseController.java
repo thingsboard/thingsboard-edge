@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -45,6 +46,7 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -115,6 +117,8 @@ public abstract class BaseController {
     @Autowired
     protected RelationService relationService;
 
+    @Autowired
+    protected EntityGroupService entityGroupService;
 
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
@@ -292,6 +296,9 @@ public abstract class BaseController {
                     return;
                 case USER:
                     checkUserId(new UserId(entityId.getId()));
+                    return;
+                case ENTITY_GROUP:
+                    checkEntityGroupId(new EntityGroupId(entityId.getId()));
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
@@ -518,6 +525,21 @@ public abstract class BaseController {
             }
         }
         return rule;
+    }
+
+    protected EntityGroup checkEntityGroupId(EntityGroupId entityGroupId) throws ThingsboardException {
+        try {
+            validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+            EntityGroup entityGroup = entityGroupService.findEntityGroupById(entityGroupId);
+            checkEntityGroup(entityGroup);
+            return entityGroup;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkEntityGroup(EntityGroup entityGroup) throws ThingsboardException {
+        checkNotNull(entityGroup);
     }
 
     protected String constructBaseUrl(HttpServletRequest request) {

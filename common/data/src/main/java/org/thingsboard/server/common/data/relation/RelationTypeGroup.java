@@ -18,6 +18,8 @@ package org.thingsboard.server.common.data.relation;
 public enum RelationTypeGroup {
 
     COMMON,
-    ALARM
+    ALARM,
+    TO_ENTITY_GROUP,
+    FROM_ENTITY_GROUP
 
 }

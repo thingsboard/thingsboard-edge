@@ -19,12 +19,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.HasUUID;
 import org.thingsboard.server.common.data.id.UUIDBased;
 
 import java.util.List;
 import java.util.UUID;
 
-public class TimePageData<T extends BaseData<? extends UUIDBased>> {
+public class TimePageData<T extends HasId<? extends HasUUID>> {
 
     private final List<T> data;
     private final TimePageLink nextPageLink;

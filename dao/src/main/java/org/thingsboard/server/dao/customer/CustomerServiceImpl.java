@@ -17,17 +17,19 @@ package org.thingsboard.server.dao.customer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -42,8 +44,11 @@ import org.thingsboard.server.dao.user.UserService;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
@@ -84,7 +89,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public Customer saveCustomer(Customer customer) {
         log.trace("Executing saveCustomer [{}]", customer);
         customerValidator.validate(customer);
-        return customerDao.save(customer);
+        Customer savedCustomer = customerDao.save(customer);
+        if (customer.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId());
+        }
+        return savedCustomer;
     }
 
     @Override
@@ -137,6 +146,62 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         customersByTenantRemover.removeEntities(tenantId);
     }
+
+    @Override
+    public EntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupCustomer, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, customerViewFunction);
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<EntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(entityGroupId, pageLink, customerViewFunction);
+    }
+
+    private BiFunction<EntityView, List<EntityField>, EntityView> customerViewFunction = ((entityView, entityFields) -> {
+        Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
+        for (EntityField field : entityFields) {
+            String key = field.name().toLowerCase();
+            switch (field) {
+                case NAME:
+                    entityView.put(key, customer.getName());
+                    break;
+                case TITLE:
+                    entityView.put(key, customer.getTitle());
+                    break;
+                case EMAIL:
+                    entityView.put(key, customer.getEmail());
+                    break;
+                case COUNTRY:
+                    entityView.put(key, customer.getCountry());
+                    break;
+                case STATE:
+                    entityView.put(key, customer.getState());
+                    break;
+                case CITY:
+                    entityView.put(key, customer.getCity());
+                    break;
+                case ADDRESS:
+                    entityView.put(key, customer.getAddress());
+                    break;
+                case ADDRESS2:
+                    entityView.put(key, customer.getAddress2());
+                    break;
+                case ZIP:
+                    entityView.put(key, customer.getZip());
+                    break;
+                case PHONE:
+                    entityView.put(key, customer.getPhone());
+                    break;
+            }
+        }
+        return entityView;
+    });
 
     private DataValidator<Customer> customerValidator =
             new DataValidator<Customer>() {

@@ -18,7 +18,7 @@ package org.thingsboard.server.common.data.id;
 import java.io.Serializable;
 import java.util.UUID;
 
-public abstract class UUIDBased implements Serializable {
+public abstract class UUIDBased implements HasUUID, Serializable {
 
     public static final UUID EMPTY = new UUID(0L, 0L);
 
@@ -35,6 +35,7 @@ public abstract class UUIDBased implements Serializable {
         this.id = id;
     }
 
+    @Override
     public UUID getId() {
         return id;
     }

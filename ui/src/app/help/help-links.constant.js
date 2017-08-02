@@ -51,6 +51,7 @@ export default angular.module('thingsboard.help', [])
     .constant('helpLinks',
         {
             linksMap: {
+                docs: helpBaseUrl + "/docs",
                 outgoingMailSettings: helpBaseUrl + "/docs/user-guide/ui/mail-settings",
                 plugins: helpBaseUrl + "/docs/user-guide/rule-engine/#plugins",
                 pluginDeviceMessaging: helpBaseUrl + "/docs/reference/plugins/messaging/",

@@ -19,6 +19,7 @@ package org.thingsboard.server.dao.entity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 
 @Slf4j
@@ -27,9 +28,17 @@ public abstract class AbstractEntityService {
     @Autowired
     protected RelationService relationService;
 
+    @Autowired
+    protected EntityGroupService entityGroupService;
+
     protected void deleteEntityRelations(EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
         relationService.deleteEntityRelations(entityId);
+    }
+
+    protected void deleteEntityGroups(EntityId entityId) {
+        log.trace("Executing deleteEntityGroups [{}]", entityId);
+        entityGroupService.deleteAllEntityGroups(entityId);
     }
 
 

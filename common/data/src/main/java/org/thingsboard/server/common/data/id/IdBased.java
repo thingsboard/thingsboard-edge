@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.UUID;
 
-public abstract class IdBased<I extends UUIDBased> {
+public abstract class IdBased<I extends UUIDBased> implements HasId<I> {
 	
 	protected I id;
 	
@@ -36,6 +36,7 @@ public abstract class IdBased<I extends UUIDBased> {
 		this.id = id;
 	}
 
+	@Override
 	public I getId() {
 		return id;
 	}

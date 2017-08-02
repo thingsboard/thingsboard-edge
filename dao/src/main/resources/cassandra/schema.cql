@@ -327,6 +327,15 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.reverse_relation AS
     PRIMARY KEY ((to_id, to_type), relation_type_group, relation_type, from_id, from_type)
     WITH CLUSTERING ORDER BY ( relation_type_group ASC, relation_type ASC, from_id ASC, from_type ASC);
 
+CREATE TABLE IF NOT EXISTS thingsboard.entity_group (
+    id timeuuid,
+    type text,
+    name text,
+    additional_info text,
+    configuration text,
+    PRIMARY KEY (id, type)
+);
+
 CREATE TABLE IF NOT EXISTS thingsboard.widgets_bundle (
     id timeuuid,
     tenant_id timeuuid,

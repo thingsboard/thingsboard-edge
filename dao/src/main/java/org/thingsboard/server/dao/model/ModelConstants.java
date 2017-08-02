@@ -185,6 +185,15 @@ public class ModelConstants {
 
 
     /**
+     * Cassandra entity group constants.
+     */
+    public static final String ENTITY_GROUP_COLUMN_FAMILY_NAME = "entity_group";
+    public static final String ENTITY_GROUP_TYPE_PROPERTY = "type";
+    public static final String ENTITY_GROUP_NAME_PROPERTY = "name";
+    public static final String ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String ENTITY_GROUP_CONFIGURATION_PROPERTY = "configuration";
+
+    /**
      * Cassandra device_credentials constants.
      */
     public static final String DEVICE_CREDENTIALS_COLUMN_FAMILY_NAME = "device_credentials";

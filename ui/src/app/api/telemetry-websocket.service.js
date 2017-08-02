@@ -62,7 +62,10 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
 
     var service = {
         subscribe: subscribe,
-        unsubscribe: unsubscribe
+        batchSubscribe: batchSubscribe,
+        unsubscribe: unsubscribe,
+        batchUnsubscribe: batchUnsubscribe,
+        publishCommands: publishCommands
     }
 
     $rootScope.telemetryWsLogoutHandle = $rootScope.$on('unauthenticated', function (event, doLogout) {
@@ -174,7 +177,7 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
         return lastCmdId;
     }
 
-    function subscribe (subscriber) {
+    function subscribe (subscriber, skipPublish) {
         isActive = true;
         var cmdId = nextCmdId();
         subscribers[cmdId] = subscriber;
@@ -190,10 +193,19 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
             subscriber.historyCommand.cmdId = cmdId;
             cmdsWrapper.historyCmds.push(subscriber.historyCommand);
         }
-        publishCommands();
+        if (!skipPublish) {
+            publishCommands();
+        }
     }
 
-    function unsubscribe (subscriber) {
+    function batchSubscribe(subscribers) {
+        for (var i=0;i<subscribers.length;i++) {
+            var subscriber = subscribers[i];
+            subscribe(subscriber, true);
+        }
+    }
+
+    function unsubscribe (subscriber, skipPublish) {
         if (isActive) {
             var cmdId = null;
             if (subscriber.subscriptionCommand) {
@@ -211,7 +223,16 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
                 delete subscribers[cmdId];
                 subscribersCount--;
             }
-            publishCommands();
+            if (!skipPublish) {
+                publishCommands();
+            }
+        }
+    }
+
+    function batchUnsubscribe(subscribers) {
+        for (var i=0;i<subscribers.length;i++) {
+            var subscriber = subscribers[i];
+            unsubscribe(subscriber, true);
         }
     }
 
