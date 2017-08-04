@@ -25,6 +25,7 @@ import AssignDeviceToCustomerController from './assign-to-customer.controller';
 import AddDevicesToCustomerController from './add-devices-to-customer.controller';
 import ManageDeviceCredentialsController from './device-credentials.controller';
 import DeviceDirective from './device.directive';
+import DeviceGroupConfig from './device-group.config';
 
 export default angular.module('thingsboard.device', [
     uiRouter,
@@ -40,4 +41,5 @@ export default angular.module('thingsboard.device', [
     .controller('AddDevicesToCustomerController', AddDevicesToCustomerController)
     .controller('ManageDeviceCredentialsController', ManageDeviceCredentialsController)
     .directive('tbDevice', DeviceDirective)
+    .factory('deviceGroupConfig', DeviceGroupConfig)
     .name;

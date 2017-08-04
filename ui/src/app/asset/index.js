@@ -24,6 +24,7 @@ import {AssetController, AssetCardController} from './asset.controller';
 import AssignAssetToCustomerController from './assign-to-customer.controller';
 import AddAssetsToCustomerController from './add-assets-to-customer.controller';
 import AssetDirective from './asset.directive';
+import AssetGroupConfig from './asset-group.config';
 
 export default angular.module('thingsboard.asset', [
     uiRouter,
@@ -38,4 +39,5 @@ export default angular.module('thingsboard.asset', [
     .controller('AssignAssetToCustomerController', AssignAssetToCustomerController)
     .controller('AddAssetsToCustomerController', AddAssetsToCustomerController)
     .directive('tbAsset', AssetDirective)
+    .factory('assetGroupConfig', AssetGroupConfig)
     .name;

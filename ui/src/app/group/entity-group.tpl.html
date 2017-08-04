@@ -37,7 +37,7 @@
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
-                <span>{{ vm.types.entityTypeTranslations[vm.entityGroup.type].typePlural | translate }}</span>
+                <span>{{ vm.entityGroupConfig.tableTitle }}</span>
                 <span flex></span>
                 <md-button ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     Fetch more

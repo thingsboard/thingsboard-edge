@@ -32,6 +32,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     vm.types = types;
 
     vm.entityGroup = entityGroup;
+    vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
 
     vm.columns = vm.entityGroup.configuration.columns;
 

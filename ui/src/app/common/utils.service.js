@@ -158,7 +158,8 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
         insertVariable: insertVariable,
         customTranslation: customTranslation,
         objToBase64: objToBase64,
-        base64toObj: base64toObj
+        base64toObj: base64toObj,
+        groupConfigDefaults: groupConfigDefaults
     }
 
     return service;
@@ -509,4 +510,44 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
         return obj;
     }
 
+    function groupConfigDefaults(groupConfig) {
+        groupConfig.deleteEntityTitle = groupConfig.deleteEntityTitle ||
+            (() => { return $translate.instant('entity-table.delete-entity-title'); });
+
+        groupConfig.deleteEntityContent = groupConfig.deleteEntityContent ||
+            (() => { return $translate.instant('entity-table.delete-entity-text'); });
+
+        groupConfig.deleteEntitiesTitle = groupConfig.deleteEntitiesTitle ||
+            ((count) => { return $translate.instant('entity-table.delete-entities-title', {count: count}, 'messageformat'); });
+
+        groupConfig.deleteEntitiesContent = groupConfig.deleteEntitiesContent ||
+            (() => { return $translate.instant('entity-table.delete-entities-text'); });
+
+        groupConfig.actionCellDescriptors = groupConfig.actionCellDescriptors || [];
+        groupConfig.groupActionDescriptors = groupConfig.groupActionDescriptors || [];
+
+        groupConfig.addEnabled = groupConfig.addEnabled ||
+            (() => { return true });
+
+        groupConfig.deleteEnabled = groupConfig.deleteEnabled ||
+            (() => { return true });
+
+        groupConfig.entitiesDeleteEnabled = groupConfig.entitiesDeleteEnabled ||
+            (() => { return true });
+        groupConfig.detailsReadOnly = groupConfig.detailsReadOnly ||
+            (() => { return false });
+
+        groupConfig.loadEntity = groupConfig.loadEntity ||
+            ((/*entityId*/) => { return $q.when() });
+
+        groupConfig.deleteEntity = groupConfig.deleteEntity ||
+            (() => { return $q.when() });
+
+        groupConfig.saveEntity = groupConfig.saveEntity ||
+            ((entity) => { return $q.when(entity) });
+
+       // groupConfig.addEntityController = groupConfig.addEntityController || 'AddEntityController';
+       // groupConfig.addEntityTemplateUrl = groupConfig.addEntityTemplateUrl || addEntityTemplate;
+
+    }
 }

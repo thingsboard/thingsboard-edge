@@ -58,8 +58,8 @@ export default function EntityGroupRoutes($stateProvider, types) {
             resolve: {
                 entityGroup:
                     /*@ngInject*/
-                    function($stateParams, entityGroupService) {
-                        return entityGroupService.getEntityGroup($stateParams.entityGroupId);
+                    function($stateParams, $q, entityGroupService, deviceGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, deviceGroupConfig);
                     }
             },
             data: {
@@ -105,8 +105,8 @@ export default function EntityGroupRoutes($stateProvider, types) {
             resolve: {
                 entityGroup:
                 /*@ngInject*/
-                    function($stateParams, entityGroupService) {
-                        return entityGroupService.getEntityGroup($stateParams.entityGroupId);
+                    function($stateParams, $q, entityGroupService, assetGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, assetGroupConfig);
                     }
             },
             data: {
@@ -117,4 +117,25 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         });
+
+    function constructGroupConfig($stateParams, $q, entityGroupService, entityGroupConfigFactory) {
+        var deferred = $q.defer();
+        entityGroupService.getEntityGroup($stateParams.entityGroupId).then(
+            (entityGroup) => {
+                entityGroupConfigFactory.createConfig($stateParams, entityGroup).then(
+                    (entityGroupConfig) => {
+                        entityGroup.entityGroupConfig = entityGroupConfig;
+                        deferred.resolve(entityGroup);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            },
+            () => {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
+    }
 }
