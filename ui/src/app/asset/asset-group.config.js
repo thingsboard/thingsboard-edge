@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*@ngInject*/
-export default function AssetGroupConfig($q, $translate, utils, assetService) {
+export default function AssetGroupConfig($q, $translate, utils, userService, assetService) {
 
     var service = {
         createConfig: createConfig
@@ -24,7 +24,18 @@ export default function AssetGroupConfig($q, $translate, utils, assetService) {
 
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
+
+        var authority = userService.getAuthority();
+
+        var entityScope = 'tenant';
+        if (authority === 'CUSTOMER_USER') {
+            entityScope = 'customer_user';
+        }
+
         var groupConfig = {
+
+            entityScope: entityScope,
+
             tableTitle: entityGroup.name + ': ' + $translate.instant('asset.assets'),
 
             loadEntity: (entityId) => {return assetService.getAsset(entityId)},
@@ -45,7 +56,7 @@ export default function AssetGroupConfig($q, $translate, utils, assetService) {
                 return true;
             },
             deleteEntityTitle: (entity) => {
-                return $translate.instant('asset.delete-asset-title', {name: entity.name});
+                return $translate.instant('asset.delete-asset-title', {assetName: entity.name});
             },
             deleteEntityContent: (/*entity*/) => {
                 return $translate.instant('asset.delete-asset-text');

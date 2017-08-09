@@ -18,20 +18,20 @@
 <tb-device ng-if="vm.entityType == vm.types.entityType.device"
            device="vm.entity"
            is-edit="vm.isEdit"
-           device-scope="vm.entityScope"
+           device-scope="vm.entityGroupConfig.entityScope"
            the-form="vm.theForm"
-           on-delete-device="vm.onDelete(event, vm.entity)"
+           on-delete-device="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
            on-make-public="vm.onMakePublic(event, vm.entity)"
            on-assign-to-customer="vm.onAssignToCustomer(event, vm.entity)"
            on-unassign-from-customer="vm.onUnassignFromCustomer(event, vm.entity, isPublic)"
-           on-manage-credentials="vm.onManageCredentials(event, vm.entity)">
+           on-manage-credentials="vm.entityGroupConfig.onManageCredentials(event, vm.entity)">
 </tb-device>
 <tb-asset  ng-if="vm.entityType == vm.types.entityType.asset"
            asset="vm.entity"
            is-edit="vm.isEdit"
-           asset-scope="vm.entityScope"
+           asset-scope="vm.entityGroupConfig.entityScope"
            the-form="vm.theForm"
-           on-delete-asset="vm.onDelete(event, vm.entity)"
+           on-delete-asset="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
            on-make-public="vm.onMakePublic(event, vm.entity)"
            on-assign-to-customer="vm.onAssignToCustomer(event, vm.entity)"
            on-unassign-from-customer="vm.onUnassignFromCustomer(event, vm.entity, isPublic)">

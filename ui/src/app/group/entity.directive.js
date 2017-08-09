@@ -26,6 +26,7 @@ export default function Entity() {
         restrict: "E",
         scope: true,
         bindToController: {
+            entityGroupConfig: '=',
             entityType: '=',
             entity: '=',
             isEdit: '=',

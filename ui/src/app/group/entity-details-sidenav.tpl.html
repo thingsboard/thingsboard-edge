@@ -32,7 +32,8 @@
         <md-tabs ng-class="{'tb-headless': vm.isEdit}"
                  id="tabs" md-border-bottom flex class="tb-absolute-fill">
             <md-tab label="{{ 'details.details' | translate }}">
-                <tb-entity entity-type="vm.entityType"
+                <tb-entity entity-group-config="vm.entityGroupConfig"
+                           entity-type="vm.entityType"
                            entity="vm.editingEntity"
                            is-edit="vm.isEdit"
                            the-form="vm.detailsForm">

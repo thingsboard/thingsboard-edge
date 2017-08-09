@@ -27,14 +27,45 @@ import addEntityTemplate from './add-entity.tpl.html';
 export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdDialog, $document, utils, entityGroupService, telemetryWebsocketService,
                                               $stateParams, $q, $translate, $filter, types, entityGroup) {
 
-    var vm = this; //eslint-disable-line
+    var vm = this;
 
     vm.types = types;
 
     vm.entityGroup = entityGroup;
     vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
-
+    vm.entityType = vm.entityGroup.type;
     vm.columns = vm.entityGroup.configuration.columns;
+    vm.translations = vm.types.entityTypeTranslations[vm.entityType];
+
+    vm.entityGroupConfig.onDeleteEntity = deleteEntity;
+
+    vm.actionCellDescriptors = angular.copy(vm.entityGroupConfig.actionCellDescriptors);
+    vm.actionCellDescriptors.push(
+        {
+            name: $translate.instant('action.delete'),
+            icon: 'delete',
+            isEnabled: (entity) => {
+                return vm.entityGroupConfig.deleteEnabled(entity);
+            },
+            onAction: ($event, entity) => {
+                deleteEntity($event, entity);
+            }
+        }
+    );
+
+    vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
+    vm.groupActionDescriptors.push(
+        {
+            name: $translate.instant('action.delete'),
+            icon: 'delete',
+            isEnabled: () => {
+                return vm.entityGroupConfig.entitiesDeleteEnabled();
+            },
+            onAction: ($event, entities) => {
+                deleteEntities($event, entities);
+            }
+        }
+    );
 
     var tsKeysList = [];
     var attrKeysList = [];
@@ -67,9 +98,6 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
 
     vm.scheduledSubscribe = [];
     vm.scheduledUnsubscribe = [];
-
-    //TODO:
-    vm.actionCellDescriptors = [];
 
     vm.showData = true;
     vm.hasData = false;
@@ -244,6 +272,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     }
 
     function updateEntities() {
+        vm.isDetailsOpen = false;
         var result = $filter('orderBy')(vm.allEntities, vm.query.order);
         if (vm.query.search != null) {
             result = $filter('filter')(result, {$: vm.query.search});
@@ -333,6 +362,70 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
                     }
                 }
             }
+        );
+    }
+
+    function onEntitiesDeleted(entityIds) {
+        entityIds.forEach((entityId) => {
+            var result = $filter('filter')(vm.allEntities, { id: { id: entityId }});
+            if (result && result.length) {
+                var prevEntity = result[0];
+                var index = vm.allEntities.indexOf(prevEntity);
+                if (index > -1) {
+                    vm.allEntities.splice(index, 1);
+                }
+                index = vm.entities.indexOf(prevEntity);
+                if (index > -1) {
+                    vm.entities.splice(index, 1);
+                }
+            }
+        });
+        updateEntities();
+    }
+
+    function deleteEntity($event, entity) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title(vm.entityGroupConfig.deleteEntityTitle(entity))
+            .htmlContent(vm.entityGroupConfig.deleteEntityContent(entity))
+            .ariaLabel(vm.entityGroupConfig.deleteEntityTitle(entity))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+                vm.entityGroupConfig.deleteEntity(entity.id.id).then(function success() {
+                    onEntitiesDeleted([entity.id.id]);
+                });
+            },
+            function () {
+            });
+
+    }
+
+    function deleteEntities($event, entities) {
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title(vm.entityGroupConfig.deleteEntitiesTitle(entities.length))
+            .htmlContent(vm.entityGroupConfig.deleteEntitiesContent(entities.length))
+            .ariaLabel(vm.entityGroupConfig.deleteEntitiesTitle(entities.length))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+                var tasks = [];
+                var entityIds = [];
+                entities.forEach((entity) => {
+                    if (vm.entityGroupConfig.deleteEnabled(entity)) {
+                        tasks.push(vm.entityGroupConfig.deleteEntity(entity.id.id));
+                        entityIds.push(entity.id.id);
+                    }
+                });
+                $q.all(tasks).then(function () {
+                    onEntitiesDeleted(entityIds);
+                });
+            },
+            function () {}
         );
     }
 
