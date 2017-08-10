@@ -227,7 +227,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     }
 
     function fetchMore() {
-        entityGroupService.getEntityGroupEntities(vm.entityGroup.id.id, vm.entityGroup.type, vm.pageLink).then(
+        entityGroupService.getEntityGroupEntities(vm.entityGroup.id.id, vm.pageLink).then(
             function success(entities) {
                 vm.allEntities = vm.allEntities.concat(entities.data);
                 vm.hasNext = entities.hasNext;
@@ -261,7 +261,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             var firstEntity = vm.allEntities[0];
             pageLink.idOffset = firstEntity.id.id;
         }
-        entityGroupService.getEntityGroupEntities(vm.entityGroup.id.id, vm.entityGroup.type, pageLink, true).then(
+        entityGroupService.getEntityGroupEntities(vm.entityGroup.id.id, pageLink, true).then(
             function success(entities) {
                 var latestEntities = entities.data.reverse();
                 vm.allEntities = latestEntities.concat(vm.allEntities);
@@ -342,7 +342,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     }
 
     function onEntityUpdated(entity) {
-        entityGroupService.getEntityGroupEntity(vm.entityGroup.id.id, vm.entityGroup.type, entity.id.id).then(
+        entityGroupService.getEntityGroupEntity(vm.entityGroup.id.id, entity.id.id).then(
             function success(entity) {
                 var result = $filter('filter')(vm.allEntities, { id: { id: entity.id.id }});
                 if (result && result.length) {
@@ -569,7 +569,7 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
             vm.entity = entity;
             $scope.theForm.$setPristine();
             if (!vm.entityGroup.groupAll) {
-                entityGroupService.addEntityToEntityGroup(vm.entityGroup.id.id, entity.id.entityType, entity.id.id).then(
+                entityGroupService.addEntityToEntityGroup(vm.entityGroup.id.id, entity.id.id).then(
                     function success() {
                         $mdDialog.hide();
                     }

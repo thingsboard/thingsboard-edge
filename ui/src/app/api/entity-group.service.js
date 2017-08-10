@@ -91,9 +91,9 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
-    function addEntityToEntityGroup(entityGroupId, entityType, entityId) {
+    function addEntityToEntityGroup(entityGroupId, entityId) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '/' + entityId;
+        var url = '/api/entityGroup/' + entityGroupId + '/' + entityId;
         $http.post(url, null).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -102,9 +102,9 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
-    function addEntitiesToEntityGroup(entityGroupId, entityType, entityIds) {
+    function addEntitiesToEntityGroup(entityGroupId, entityIds) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '/' + entityIds.join();
+        var url = '/api/entityGroup/' + entityGroupId + '/' + entityIds.join();
         $http.post(url, null).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -113,9 +113,9 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
-    function removeEntityFromEntityGroup(entityGroupId, entityType, entityId) {
+    function removeEntityFromEntityGroup(entityGroupId, entityId) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '/' + entityId;
+        var url = '/api/entityGroup/' + entityGroupId + '/' + entityId;
         $http.delete(url).then(function success() {
             deferred.resolve();
         }, function fail() {
@@ -124,9 +124,9 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
-    function removeEntitiesFromEntityGroup(entityGroupId, entityType, entityIds) {
+    function removeEntitiesFromEntityGroup(entityGroupId, entityIds) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '/' + entityIds.join();
+        var url = '/api/entityGroup/' + entityGroupId + '/' + entityIds.join();
         $http.delete(url).then(function success() {
             deferred.resolve();
         }, function fail() {
@@ -135,9 +135,9 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
-    function getEntityGroupEntity(entityGroupId, entityType, entityId, config) {
+    function getEntityGroupEntity(entityGroupId, entityId, config) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '/' + entityId;
+        var url = '/api/entityGroup/' + entityGroupId + '/' + entityId;
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -146,9 +146,9 @@ function EntityGroupService($http, $q) {
         return deferred.promise;
     }
 
-    function getEntityGroupEntities(entityGroupId, entityType, pageLink, ascOrder, config) {
+    function getEntityGroupEntities(entityGroupId, pageLink, ascOrder, config) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityType + '?limit=' + pageLink.limit;
+        var url = '/api/entityGroup/' + entityGroupId + '?limit=' + pageLink.limit;
 
         if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
             url += '&startTime=' + pageLink.startTime;
