@@ -31,7 +31,6 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.rule.RuleService;
 import org.thingsboard.server.dao.service.DataValidator;

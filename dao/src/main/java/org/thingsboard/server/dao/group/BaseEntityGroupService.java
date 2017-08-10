@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
@@ -60,6 +62,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private EntityGroupDao entityGroupDao;
+
+    @Autowired
+    private RelationDao relationDao;
 
     @Autowired
     private AttributesService attributesService;
@@ -129,14 +134,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<List<EntityGroup>> findAllEntityGroups(EntityId parentEntityId) {
         log.trace("Executing findAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
-        return entityGroupDao.findAllEntityGroups(parentEntityId);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFrom(parentEntityId, RelationTypeGroup.TO_ENTITY_GROUP);
+        return relationsToEntityGroups(relations);
     }
 
     @Override
     public void deleteAllEntityGroups(EntityId parentEntityId) {
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
-        ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupDao.findAllEntityGroups(parentEntityId);
+        ListenableFuture<List<EntityGroup>> entityGroupsFuture = findAllEntityGroups(parentEntityId);
         try {
             List<EntityGroup> entityGroups = entityGroupsFuture.get();
             entityGroups.forEach(entityGroup -> deleteEntityGroup(entityGroup.getId()));
@@ -152,7 +158,19 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException("Incorrect groupType " + groupType);
         }
-        return entityGroupDao.findEntityGroupsByType(parentEntityId, groupType);
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(parentEntityId, relationType, RelationTypeGroup.TO_ENTITY_GROUP);
+        return relationsToEntityGroups(relations);
+    }
+
+    private ListenableFuture<List<EntityGroup>> relationsToEntityGroups(ListenableFuture<List<EntityRelation>> relations) {
+        return Futures.transform(relations, (AsyncFunction<List<EntityRelation>, List<EntityGroup>>) input -> {
+            List<ListenableFuture<EntityGroup>> entityGroupFutures = new ArrayList<>(input.size());
+            for (EntityRelation relation : input) {
+                entityGroupFutures.add(entityGroupDao.findByIdAsync(relation.getTo().getId()));
+            }
+            return Futures.successfulAsList(entityGroupFutures);
+        });
     }
 
     @Override
@@ -163,7 +181,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException("Incorrect groupType " + groupType);
         }
         validateString(name, "Incorrect name " + name);
-        return entityGroupDao.findEntityGroupByTypeAndName(parentEntityId, groupType, name);
+        ListenableFuture<List<EntityGroup>> entityGroups = findEntityGroupsByType(parentEntityId, groupType);
+        return Futures.transform(entityGroups, (Function<List<EntityGroup>, Optional<EntityGroup>>) input -> {
+            for (EntityGroup entityGroup : input) {
+                if (entityGroup.getName().equals(name)) {
+                    return Optional.of(entityGroup);
+                }
+            }
+            return Optional.empty();
+        });
     }
 
     @Override
@@ -185,7 +211,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
         try {
-            Optional<EntityGroup> entityGroup = entityGroupDao.findEntityGroupByTypeAndName(parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
+            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
             if (entityGroup.isPresent()) {
                 addEntityToEntityGroup(entityGroup.get().getId(), entityId);
             } else {
@@ -195,6 +221,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.error("Unable to add entity to group All", e);
         }
     }
+
+
 
     @Override
     public void addEntitiesToEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds) {
@@ -250,7 +278,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException("Unable to find entity group by id " + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        ListenableFuture<List<EntityId>> entityIds = entityGroupDao.findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
+        ListenableFuture<List<EntityId>> entityIds = findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
         return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView>>() {
             @Nullable
             @Override
@@ -262,6 +290,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 });
                 return new TimePageData<>(entities, pageLink);
             }
+        });
+    }
+
+    private ListenableFuture<List<EntityId>> findEntityIds(EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(entityGroupId,
+                EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
+        return Futures.transform(relations, (Function<List<EntityRelation>, List<EntityId>>) input -> {
+            List<EntityId> entityIds = new ArrayList<>(input.size());
+            for (EntityRelation relation : input) {
+                entityIds.add(relation.getTo());
+            }
+            return entityIds;
         });
     }
 
@@ -370,7 +410,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         @Override
         protected void validateCreate(EntityGroup entityGroup) {
             try {
-                entityGroupDao.findEntityGroupByTypeAndName(this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
+                findEntityGroupByTypeAndName(this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
                         d -> {
                             throw new DataValidationException("Entity group with such name already present in " +
                                     this.parentEntityId.getEntityType().toString() + "!");
@@ -384,7 +424,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         @Override
         protected void validateUpdate(EntityGroup entityGroup) {
             try {
-                entityGroupDao.findEntityGroupByTypeAndName(this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
+                findEntityGroupByTypeAndName(this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
                         d -> {
                             if (!d.getId().equals(entityGroup.getId())) {
                                 throw new DataValidationException("Entity group with such name already present in " +
