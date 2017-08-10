@@ -148,7 +148,7 @@ function EntityGroupService($http, $q) {
 
     function getEntityGroupEntities(entityGroupId, pageLink, ascOrder, config) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '?limit=' + pageLink.limit;
+        var url = '/api/entityGroup/' + entityGroupId + '/entities?limit=' + pageLink.limit;
 
         if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
             url += '&startTime=' + pageLink.startTime;
