@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -69,6 +71,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
     @Autowired
     private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    private EntityService entityService;
 
     @Override
     public Device findDeviceById(DeviceId deviceId) {
@@ -276,6 +281,17 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     break;
                 case TYPE:
                     entityView.put(key, device.getType());
+                    break;
+                case ASSIGNED_CUSTOMER:
+                    String assignedCustomerName = "";
+                    if(!device.getCustomerId().isNullUid()) {
+                        try {
+                            assignedCustomerName = entityService.fetchEntityNameAsync(device.getCustomerId()).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            log.error("Failed to fetch assigned customer name!", e);
+                        }
+                    }
+                    entityView.put(key, assignedCustomerName);
                     break;
             }
         }

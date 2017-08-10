@@ -19,7 +19,6 @@ import addDeviceTemplate from './add-device.tpl.html';
 import deviceCard from './device-card.tpl.html';
 import assignToCustomerTemplate from './assign-to-customer.tpl.html';
 import addDevicesToCustomerTemplate from './add-devices-to-customer.tpl.html';
-import deviceCredentialsTemplate from './device-credentials.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -48,7 +47,7 @@ export function DeviceCardController(types) {
 
 
 /*@ngInject*/
-export function DeviceController($rootScope, userService, deviceService, customerService, $state, $stateParams,
+export function DeviceController($rootScope, tbDialogs, userService, deviceService, customerService, $state, $stateParams,
                                  $document, $mdDialog, $q, $translate, types) {
 
     var customerId = $stateParams.customerId;
@@ -542,19 +541,6 @@ export function DeviceController($rootScope, userService, deviceService, custome
     }
 
     function manageCredentials($event, device) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageDeviceCredentialsController',
-            controllerAs: 'vm',
-            templateUrl: deviceCredentialsTemplate,
-            locals: {deviceId: device.id.id, isReadOnly: isCustomerUser()},
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-        }, function () {
-        });
+        tbDialogs.manageDeviceCredentials($event, device, isCustomerUser());
     }
 }

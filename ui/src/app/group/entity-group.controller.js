@@ -38,6 +38,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     vm.translations = vm.types.entityTypeTranslations[vm.entityType];
 
     vm.entityGroupConfig.onDeleteEntity = deleteEntity;
+    vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
 
     vm.actionCellDescriptors = angular.copy(vm.entityGroupConfig.actionCellDescriptors);
     vm.actionCellDescriptors.push(

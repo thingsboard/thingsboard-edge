@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-/* eslint-disable import/no-unresolved, import/default */
-
-import deviceCredentialsTemplate from './device-credentials.tpl.html';
-
-/* eslint-enable import/no-unresolved, import/default */
-
 /*@ngInject*/
-export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, utils, userService, deviceService) {
+export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, tbDialogs, utils, userService, deviceService) {
 
     var service = {
         createConfig: createConfig
@@ -78,7 +72,13 @@ export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, 
 
         groupConfig.onManageCredentials = (event, entity) => {
             var isReadOnly = entityScope == 'customer_user' ? true : false;
-            manageCredentials(event, entity, isReadOnly);
+            tbDialogs.manageDeviceCredentials(event, entity, isReadOnly);
+        };
+
+        groupConfig.onAssignToCustomer = (event, entity) => {
+            tbDialogs.assignDevicesToCustomer(event, [entity.id.id]).then(
+                () => { groupConfig.onEntityUpdated(entity); }
+            );
         };
 
         groupConfig.actionCellDescriptors = [
@@ -90,7 +90,7 @@ export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, 
                 },
                 onAction: ($event, entity) => {
                     var isReadOnly = entityScope == 'customer_user' ? true : false;
-                    manageCredentials($event, entity, isReadOnly);
+                    tbDialogs.manageDeviceCredentials($event, entity, isReadOnly);
                 }
             }
         ];
@@ -101,20 +101,4 @@ export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, 
         return deferred.promise;
     }
 
-    function manageCredentials($event, device, isReadOnly) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageDeviceCredentialsController',
-            controllerAs: 'vm',
-            templateUrl: deviceCredentialsTemplate,
-            locals: {deviceId: device.id.id, isReadOnly: isReadOnly},
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-        }, function () {
-        });
-    }
 }

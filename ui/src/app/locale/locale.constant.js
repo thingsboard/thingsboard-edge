@@ -757,6 +757,7 @@ export default angular.module('thingsboard.locale', [])
                         "created-time": "Created time",
                         "name": "Name",
                         "type": "Type",
+                        "assigned_customer": "Assigned Customer",
                         "authority": "Authority",
                         "first_name": "First name",
                         "last_name": "Last name",

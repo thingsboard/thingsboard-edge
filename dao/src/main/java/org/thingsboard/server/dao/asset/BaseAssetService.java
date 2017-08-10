@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -73,6 +75,9 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private EntityService entityService;
 
     @Override
     public Asset findAssetById(AssetId assetId) {
@@ -264,6 +269,17 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                     break;
                 case TYPE:
                     entityView.put(key, asset.getType());
+                    break;
+                case ASSIGNED_CUSTOMER:
+                    String assignedCustomerName = "";
+                    if(!asset.getCustomerId().isNullUid()) {
+                        try {
+                            assignedCustomerName = entityService.fetchEntityNameAsync(asset.getCustomerId()).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            log.error("Failed to fetch assigned customer name!", e);
+                        }
+                    }
+                    entityView.put(key, assignedCustomerName);
                     break;
             }
         }

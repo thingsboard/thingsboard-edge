@@ -291,6 +291,10 @@ export default angular.module('thingsboard.types', [])
                         name: 'entity-group.entity-field.type',
                         value: 'type'
                     },
+                    assigned_customer: {
+                        name: 'entity-group.entity-field.assigned_customer',
+                        value: 'assigned_customer'
+                    },
                     authority: {
                         name: 'entity-group.entity-field.authority',
                         value: 'authority'

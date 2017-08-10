@@ -49,7 +49,8 @@ import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 
 import thingsboardLocales from './locale/locale.constant';
 import thingsboardLogin from './login';
-import thingsboardDialogs from './components/datakey-config-dialog.controller';
+import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
+import thingsboardDialogs from './dialog';
 import thingsboardMenu from './services/menu.service';
 import thingsboardRaf from './common/raf.provider';
 import thingsboardUtils from './common/utils.service';
@@ -108,6 +109,7 @@ angular.module('thingsboard', [
     'flow',
     thingsboardLocales,
     thingsboardLogin,
+    thingsboardDatakeyConfigDialog,
     thingsboardDialogs,
     thingsboardMenu,
     thingsboardRaf,

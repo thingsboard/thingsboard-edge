@@ -84,6 +84,7 @@ function EntityGroupColumnController($element, $scope, $filter, $mdMedia, $trans
         case types.entityType.asset:
         case types.entityType.device:
             vm.entityField.type = types.entityGroup.entityField.type;
+            vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
             break;
     }
 
