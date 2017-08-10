@@ -257,7 +257,9 @@ export default angular.module('thingsboard.locale', [])
                     "select-asset": "Select asset",
                     "no-assets-matching": "No assets matching '{{entity}}' were found.",
                     "asset-required": "Asset is required",
-                    "name-starts-with": "Asset name starts with"
+                    "name-starts-with": "Asset name starts with",
+                    "selected-assets": "{ count, select, 1 {1 asset} other {# assets} } selected",
+                    "search": "Search assets"
                 },
                 "attribute": {
                     "attributes": "Attributes",
@@ -351,7 +353,9 @@ export default angular.module('thingsboard.locale', [])
                     "idCopiedMessage": "Customer Id has been copied to clipboard",
                     "select-customer": "Select customer",
                     "no-customers-matching": "No customers matching '{{entity}}' were found.",
-                    "customer-required": "Customer is required"
+                    "customer-required": "Customer is required",
+                    "selected-customers": "{ count, select, 1 {1 customer} other {# customers} } selected",
+                    "search": "Search customers"
                 },
                 "datetime": {
                     "date-from": "Date from",
@@ -618,7 +622,9 @@ export default angular.module('thingsboard.locale', [])
                     "is-gateway": "Is gateway",
                     "public": "Public",
                     "device-public": "Device is public",
-                    "select-device": "Select device"
+                    "select-device": "Select device",
+                    "selected-devices": "{ count, select, 1 {1 device} other {# devices} } selected",
+                    "search": "Search devices"
                 },
                 "dialog": {
                     "close": "Close dialog"
@@ -738,6 +744,7 @@ export default angular.module('thingsboard.locale', [])
                     "asset-groups": "Asset groups",
                     "device-group": "Device group",
                     "asset-group": "Asset group",
+                    "fetch-more": "Fetch more",
                     "column-type": {
                         "column-type": "Column type",
                         "client-attribute": "Client attribute",
@@ -1052,7 +1059,9 @@ export default angular.module('thingsboard.locale', [])
                     "idCopiedMessage": "Tenant Id has been copied to clipboard",
                     "select-tenant": "Select tenant",
                     "no-tenants-matching": "No tenants matching '{{entity}}' were found.",
-                    "tenant-required": "Tenant is required"
+                    "tenant-required": "Tenant is required",
+                    "selected-tenants": "{ count, select, 1 {1 tenant} other {# tenants} } selected",
+                    "search": "Search tenants"
                 },
                 "timeinterval": {
                     "seconds-interval": "{ seconds, select, 1 {1 second} other {# seconds} }",
@@ -1117,7 +1126,9 @@ export default angular.module('thingsboard.locale', [])
                     "activation-link": "User activation link",
                     "activation-link-text": "In order to activate user use the following <a href='{{activationLink}}' target='_blank'>activation link</a> :",
                     "copy-activation-link": "Copy activation link",
-                    "activation-link-copied-message": "User activation link has been copied to clipboard"
+                    "activation-link-copied-message": "User activation link has been copied to clipboard",
+                    "selected-users": "{ count, select, 1 {1 user} other {# users} } selected",
+                    "search": "Search users"
                 },
                 "value": {
                     "type": "Value type",

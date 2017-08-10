@@ -377,7 +377,10 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-devices',
                     nameStartsWith: 'entity.device-name-starts-with',
                     details: 'device.device-details',
-                    add: 'device.add'
+                    add: 'device.add',
+                    noEntities: 'device.no-devices-text',
+                    selectedEntities: 'device.selected-devices',
+                    search: 'device.search'
                 },
                 "ASSET": {
                     type: 'entity.type-asset',
@@ -385,7 +388,10 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-assets',
                     nameStartsWith: 'entity.asset-name-starts-with',
                     details: 'asset.asset-details',
-                    add: 'asset.add'
+                    add: 'asset.add',
+                    noEntities: 'asset.no-assets-text',
+                    selectedEntities: 'asset.selected-assets',
+                    search: 'asset.search'
                 },
                 "RULE": {
                     type: 'entity.type-rule',
@@ -409,7 +415,10 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-tenants',
                     nameStartsWith: 'entity.tenant-name-starts-with',
                     details: 'tenant.tenant-details',
-                    add: 'tenant.add'
+                    add: 'tenant.add',
+                    noEntities: 'tenant.no-tenants-text',
+                    selectedEntities: 'tenant.selected-tenants',
+                    search: 'tenant.search'
                 },
                 "CUSTOMER": {
                     type: 'entity.type-customer',
@@ -417,7 +426,10 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-customers',
                     nameStartsWith: 'entity.customer-name-starts-with',
                     details: 'customer.customer-details',
-                    add: 'customer.add'
+                    add: 'customer.add',
+                    noEntities: 'customer.no-customers-text',
+                    selectedEntities: 'customer.selected-customers',
+                    search: 'customer.search'
                 },
                 "USER": {
                     type: 'entity.type-user',
@@ -425,7 +437,10 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-users',
                     nameStartsWith: 'entity.user-name-starts-with',
                     details: 'user.user-details',
-                    add: 'user.add'
+                    add: 'user.add',
+                    noEntities: 'user.no-users-text',
+                    selectedEntities: 'user.selected-users',
+                    search: 'user.search'
                 },
                 "DASHBOARD": {
                     type: 'entity.type-dashboard',

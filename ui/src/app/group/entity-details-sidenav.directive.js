@@ -26,6 +26,7 @@ export default function EntityDetailsSidenav() {
         restrict: "E",
         scope: true,
         bindToController: {
+            entityGroupConfig: '=',
             isOpen: '=',
             entityType: '=',
             entityId: '=',

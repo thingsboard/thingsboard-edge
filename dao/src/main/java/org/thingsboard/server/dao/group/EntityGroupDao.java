@@ -32,13 +32,5 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
 
     EntityGroup save(EntityGroup entityGroup);
 
-    ListenableFuture<List<EntityGroup>> findAllEntityGroups(EntityId parentEntityId);
-
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(EntityId parentEntityId, EntityType groupType);
-
-    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(EntityId parentEntityId, EntityType groupType, String name);
-
-    ListenableFuture<List<EntityId>> findEntityIds(EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink);
-
 }
 

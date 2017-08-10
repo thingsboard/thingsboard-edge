@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.thingsboard.server.dao.sql.group;
 
-package org.thingsboard.server.dao.group;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.dao.model.nosql.EntityGroupEntity;
-import org.thingsboard.server.dao.nosql.CassandraAbstractModelDao;
-import org.thingsboard.server.dao.util.NoSqlDao;
-
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_COLUMN_FAMILY_NAME;
+import org.thingsboard.server.dao.group.EntityGroupDao;
+import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 @Component
-@Slf4j
-@NoSqlDao
-public class CassandraEntityGroupDao extends CassandraAbstractModelDao<EntityGroupEntity, EntityGroup> implements EntityGroupDao {
+@SqlDao
+public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityGroup> implements EntityGroupDao {
+
+    @Autowired
+    EntityGroupRepository entityGroupRepository;
 
     @Override
-    protected Class<EntityGroupEntity> getColumnFamilyClass() {
+    protected Class<EntityGroupEntity> getEntityClass() {
         return EntityGroupEntity.class;
     }
 
     @Override
-    protected String getColumnFamilyName() {
-        return ENTITY_GROUP_COLUMN_FAMILY_NAME;
+    protected CrudRepository<EntityGroupEntity, String> getCrudRepository() {
+        return entityGroupRepository;
     }
-
 }

@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable import/no-unresolved, import/default */
+
+import deviceCredentialsTemplate from './device-credentials.tpl.html';
+
+/* eslint-enable import/no-unresolved, import/default */
+
 /*@ngInject*/
-export default function DeviceGroupConfig($q, $translate, utils, deviceService) {
+export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, utils, userService, deviceService) {
 
     var service = {
         createConfig: createConfig
@@ -24,7 +31,18 @@ export default function DeviceGroupConfig($q, $translate, utils, deviceService) 
 
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
+
+        var authority = userService.getAuthority();
+
+        var entityScope = 'tenant';
+        if (authority === 'CUSTOMER_USER') {
+            entityScope = 'customer_user';
+        }
+
         var groupConfig = {
+
+            entityScope: entityScope,
+
             tableTitle: entityGroup.name + ': ' + $translate.instant('device.devices'),
 
             loadEntity: (entityId) => {return deviceService.getDevice(entityId)},
@@ -45,7 +63,7 @@ export default function DeviceGroupConfig($q, $translate, utils, deviceService) 
                 return true;
             },
             deleteEntityTitle: (entity) => {
-                return $translate.instant('device.delete-device-title', {name: entity.name});
+                return $translate.instant('device.delete-device-title', {deviceName: entity.name});
             },
             deleteEntityContent: (/*entity*/) => {
                 return $translate.instant('device.delete-device-text');
@@ -58,9 +76,45 @@ export default function DeviceGroupConfig($q, $translate, utils, deviceService) 
             }
         };
 
+        groupConfig.onManageCredentials = (event, entity) => {
+            var isReadOnly = entityScope == 'customer_user' ? true : false;
+            manageCredentials(event, entity, isReadOnly);
+        };
+
+        groupConfig.actionCellDescriptors = [
+            {
+                name: $translate.instant(entityScope == 'tenant' ? 'device.manage-credentials' : 'device.view-credentials'),
+                icon: 'security',
+                isEnabled: () => {
+                    return true;
+                },
+                onAction: ($event, entity) => {
+                    var isReadOnly = entityScope == 'customer_user' ? true : false;
+                    manageCredentials($event, entity, isReadOnly);
+                }
+            }
+        ];
+
         utils.groupConfigDefaults(groupConfig);
 
         deferred.resolve(groupConfig);
         return deferred.promise;
+    }
+
+    function manageCredentials($event, device, isReadOnly) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: 'ManageDeviceCredentialsController',
+            controllerAs: 'vm',
+            templateUrl: deviceCredentialsTemplate,
+            locals: {deviceId: device.id.id, isReadOnly: isReadOnly},
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function () {
+        }, function () {
+        });
     }
 }

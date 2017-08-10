@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.sql;
+package org.thingsboard.server.dao.sql.group;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
-
-public abstract class JpaAbstractDaoListeningExecutorService {
-    protected ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
-
-    @PreDestroy
-    void onDestroy() {
-        service.shutdown();
-    }
+@SqlDao
+public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity, String> {
 }
