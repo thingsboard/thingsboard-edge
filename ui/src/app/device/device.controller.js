@@ -17,7 +17,6 @@
 
 import addDeviceTemplate from './add-device.tpl.html';
 import deviceCard from './device-card.tpl.html';
-import assignToCustomerTemplate from './assign-to-customer.tpl.html';
 import addDevicesToCustomerTemplate from './add-devices-to-customer.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -395,38 +394,11 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
     }
 
     function assignToCustomer($event, deviceIds) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var pageSize = 10;
-        customerService.getCustomers({limit: pageSize, textSearch: ''}).then(
-            function success(_customers) {
-                var customers = {
-                    pageSize: pageSize,
-                    data: _customers.data,
-                    nextPageLink: _customers.nextPageLink,
-                    selection: null,
-                    hasNext: _customers.hasNext,
-                    pending: false
-                };
-                if (customers.hasNext) {
-                    customers.nextPageLink.limit = pageSize;
-                }
-                $mdDialog.show({
-                    controller: 'AssignDeviceToCustomerController',
-                    controllerAs: 'vm',
-                    templateUrl: assignToCustomerTemplate,
-                    locals: {deviceIds: deviceIds, customers: customers},
-                    parent: angular.element($document[0].body),
-                    fullscreen: true,
-                    targetEvent: $event
-                }).then(function () {
-                    vm.grid.refreshList();
-                }, function () {
-                });
-            },
-            function fail() {
-            });
+        tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
+            () => {
+                vm.grid.refreshList();
+            }
+        );
     }
 
     function addDevicesToCustomer($event) {
@@ -474,70 +446,31 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
     }
 
     function unassignFromCustomer($event, device, isPublic) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var title;
-        var content;
-        var label;
-        if (isPublic) {
-            title = $translate.instant('device.make-private-device-title', {deviceName: device.name});
-            content = $translate.instant('device.make-private-device-text');
-            label = $translate.instant('device.make-private');
-        } else {
-            title = $translate.instant('device.unassign-device-title', {deviceName: device.name});
-            content = $translate.instant('device.unassign-device-text');
-            label = $translate.instant('device.unassign-device');
-        }
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title(title)
-            .htmlContent(content)
-            .ariaLabel(label)
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            deviceService.unassignDeviceFromCustomer(device.id.id).then(function success() {
+        tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
+            () => {
                 vm.grid.refreshList();
-            });
-        });
+            }
+        );
     }
 
     function unassignDevicesFromCustomer($event, items) {
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title($translate.instant('device.unassign-devices-title', {count: items.selectedCount}, 'messageformat'))
-            .htmlContent($translate.instant('device.unassign-devices-text'))
-            .ariaLabel($translate.instant('device.unassign-device'))
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            var tasks = [];
-            for (var id in items.selections) {
-                tasks.push(deviceService.unassignDeviceFromCustomer(id));
-            }
-            $q.all(tasks).then(function () {
+        var deviceIds = [];
+        for (var id in items.selections) {
+            deviceIds.push(id);
+        }
+        tbDialogs.unassignDevicesFromCustomer($event, deviceIds).then(
+            () => {
                 vm.grid.refreshList();
-            });
-        });
+            }
+        );
     }
 
     function makePublic($event, device) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title($translate.instant('device.make-public-device-title', {deviceName: device.name}))
-            .htmlContent($translate.instant('device.make-public-device-text'))
-            .ariaLabel($translate.instant('device.make-public'))
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            deviceService.makeDevicePublic(device.id.id).then(function success() {
+        tbDialogs.makeDevicePublic($event, device).then(
+            () => {
                 vm.grid.refreshList();
-            });
-        });
+            }
+        );
     }
 
     function manageCredentials($event, device) {

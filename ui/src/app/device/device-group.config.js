@@ -15,7 +15,7 @@
  */
 
 /*@ngInject*/
-export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, tbDialogs, utils, userService, deviceService) {
+export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, userService, deviceService) {
 
     var service = {
         createConfig: createConfig
@@ -77,7 +77,19 @@ export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, 
 
         groupConfig.onAssignToCustomer = (event, entity) => {
             tbDialogs.assignDevicesToCustomer(event, [entity.id.id]).then(
-                () => { groupConfig.onEntityUpdated(entity); }
+                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
+            );
+        };
+
+        groupConfig.onUnassignFromCustomer = (event, entity, isPublic) => {
+            tbDialogs.unassignDeviceFromCustomer(event, entity, isPublic).then(
+                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
+            );
+        };
+
+        groupConfig.onMakePublic = (event, entity) => {
+            tbDialogs.makeDevicePublic(event, entity).then(
+                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
         };
 
@@ -92,6 +104,41 @@ export default function DeviceGroupConfig($q, $translate, $mdDialog, $document, 
                     var isReadOnly = entityScope == 'customer_user' ? true : false;
                     tbDialogs.manageDeviceCredentials($event, entity, isReadOnly);
                 }
+            }
+        ];
+
+        groupConfig.groupActionDescriptors = [
+            {
+                name: $translate.instant('device.assign-devices'),
+                icon: "assignment_ind",
+                isEnabled: () => {
+                    return true;
+                },
+                onAction: (event, entities) => {
+                    var deviceIds = [];
+                    entities.forEach((entity) => {
+                        deviceIds.push(entity.id.id);
+                    });
+                    tbDialogs.assignDevicesToCustomer(event, deviceIds).then(
+                        () => { groupConfig.onEntitiesUpdated(deviceIds, true); }
+                    );
+                },
+            },
+            {
+                name: $translate.instant('device.unassign-devices'),
+                icon: "assignment_return",
+                isEnabled: () => {
+                    return true;
+                },
+                onAction: (event, entities) => {
+                    var deviceIds = [];
+                    entities.forEach((entity) => {
+                        deviceIds.push(entity.id.id);
+                    });
+                    tbDialogs.unassignDevicesFromCustomer(event, deviceIds).then(
+                        () => { groupConfig.onEntitiesUpdated(deviceIds, true); }
+                    );
+                },
             }
         ];
 

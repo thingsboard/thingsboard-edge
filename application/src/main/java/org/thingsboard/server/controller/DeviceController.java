@@ -115,10 +115,7 @@ public class DeviceController extends BaseController {
         checkParameter("deviceId", strDeviceId);
         try {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            Device device = checkDeviceId(deviceId);
-            if (device.getCustomerId() == null || device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                throw new IncorrectParameterException("Device isn't assigned to any customer!");
-            }
+            checkDeviceId(deviceId);
             return checkNotNull(deviceService.unassignDeviceFromCustomer(deviceId));
         } catch (Exception e) {
             throw handleException(e);

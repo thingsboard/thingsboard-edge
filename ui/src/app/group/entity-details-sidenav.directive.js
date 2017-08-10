@@ -61,11 +61,21 @@ function EntityDetailsSidenavController($scope, $window, types, entityService, h
 
     $scope.$watch('vm.entityId', function(newVal, prevVal) {
         if (vm.entityId && !angular.equals(newVal, prevVal)) {
-            vm.isEdit = false;
-            vm.detailsForm.$setPristine();
-            loadEntity();
+            reload();
         }
     });
+
+    $scope.$on('reloadEntityDetails', () => {
+        if (vm.entityId) {
+            reload();
+        }
+    });
+
+    function reload() {
+        vm.isEdit = false;
+        vm.detailsForm.$setPristine();
+        loadEntity();
+    }
 
     function loadEntity() {
         entityService.getEntity(vm.entityType, vm.entityId).then(

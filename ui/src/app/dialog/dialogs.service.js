@@ -18,16 +18,26 @@
 
 import deviceCredentialsTemplate from './../device/device-credentials.tpl.html';
 import assignDevicesToCustomerTemplate from './../device/assign-to-customer.tpl.html';
+import assignAssetsToCustomerTemplate from './../asset/assign-to-customer.tpl.html';
+
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function Dialogs($q, $translate, $mdDialog, $document, customerService) {
+export default function Dialogs($q, $translate, $mdDialog, $document, deviceService, assetService, customerService) {
 
 
     var service = {
         manageDeviceCredentials: manageDeviceCredentials,
-        assignDevicesToCustomer: assignDevicesToCustomer
+        assignDevicesToCustomer: assignDevicesToCustomer,
+        unassignDeviceFromCustomer: unassignDeviceFromCustomer,
+        unassignDevicesFromCustomer: unassignDevicesFromCustomer,
+        makeDevicePublic: makeDevicePublic,
+        assignAssetsToCustomer: assignAssetsToCustomer,
+        unassignAssetFromCustomer: unassignAssetFromCustomer,
+        unassignAssetsFromCustomer: unassignAssetsFromCustomer,
+        makeAssetPublic: makeAssetPublic,
+        confirm: confirm
     }
 
     return service;
@@ -88,32 +98,166 @@ export default function Dialogs($q, $translate, $mdDialog, $document, customerSe
         return deferred.promise;
     }
 
-/*    function selectEntity($event, targetEntityType, selectEntityTitle,
-                          confirmSelectTitle, placeholderText, notFoundText, requiredText, onEntitySelected) {
+    function unassignDeviceFromCustomer($event, device, isPublic) {
+        var deferred = $q.defer();
+        var title;
+        var content;
+        var label;
+        if (isPublic) {
+            title = $translate.instant('device.make-private-device-title', {deviceName: device.name});
+            content = $translate.instant('device.make-private-device-text');
+            label = $translate.instant('device.make-private');
+        } else {
+            title = $translate.instant('device.unassign-device-title', {deviceName: device.name});
+            content = $translate.instant('device.unassign-device-text');
+            label = $translate.instant('device.unassign-device');
+        }
+        confirm($event, title, content, label).then(
+            () => {
+                deviceService.unassignDeviceFromCustomer(device.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function unassignDevicesFromCustomer($event, deviceIds) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('device.unassign-devices-title', {count: deviceIds.length}, 'messageformat'),
+                        $translate.instant('device.unassign-devices-text'),
+                        $translate.instant('device.unassign-device')).then(
+            () => {
+                var tasks = [];
+                deviceIds.forEach((deviceId) => {
+                    tasks.push(deviceService.unassignDeviceFromCustomer(deviceId));
+                });
+                $q.all(tasks).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function makeDevicePublic($event, device) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('device.make-public-device-title', {deviceName: device.name}),
+                        $translate.instant('device.make-public-device-text'),
+                        $translate.instant('device.make-public')).then(
+            () => {
+                deviceService.makeDevicePublic(device.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function assignAssetsToCustomer($event, assetIds) {
         var deferred = $q.defer();
         if ($event) {
             $event.stopPropagation();
         }
-        $mdDialog.show({
-            controller: 'SelectEntityController',
-            controllerAs: 'vm',
-            templateUrl: selectEntityTemplate,
-            locals: {targetEntityType: targetEntityType,
-                selectEntityTitle: selectEntityTitle,
-                confirmSelectTitle: confirmSelectTitle,
-                placeholderText: placeholderText,
-                notFoundText: notFoundText,
-                requiredText: requiredText,
-                onEntitySelected: onEntitySelected
+        var pageSize = 10;
+        customerService.getCustomers({limit: pageSize, textSearch: ''}).then(
+            function success(_customers) {
+                var customers = {
+                    pageSize: pageSize,
+                    data: _customers.data,
+                    nextPageLink: _customers.nextPageLink,
+                    selection: null,
+                    hasNext: _customers.hasNext,
+                    pending: false
+                };
+                if (customers.hasNext) {
+                    customers.nextPageLink.limit = pageSize;
+                }
+                $mdDialog.show({
+                    controller: 'AssignAssetToCustomerController',
+                    controllerAs: 'vm',
+                    templateUrl: assignAssetsToCustomerTemplate,
+                    locals: {assetIds: assetIds, customers: customers},
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event
+                }).then(function () {
+                    deferred.resolve();
+                }, function () {
+                    deferred.reject();
+                });
             },
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then((targetEntityId) => {
-            deferred.resolve(targetEntityId);
-        }, () => {
-            deferred.reject();
-        });
+            function fail() {
+                deferred.reject();
+            });
+        return deferred.promise;
+    }
+
+    function unassignAssetFromCustomer($event, asset, isPublic) {
+        var deferred = $q.defer();
+        var title;
+        var content;
+        var label;
+        if (isPublic) {
+            title = $translate.instant('asset.make-private-asset-title', {assetName: asset.name});
+            content = $translate.instant('asset.make-private-asset-text');
+            label = $translate.instant('asset.make-private');
+        } else {
+            title = $translate.instant('asset.unassign-asset-title', {assetName: asset.name});
+            content = $translate.instant('asset.unassign-asset-text');
+            label = $translate.instant('asset.unassign-asset');
+        }
+        confirm($event, title, content, label).then(
+            () => {
+                assetService.unassignAssetFromCustomer(asset.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function unassignAssetsFromCustomer($event, assetIds) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('asset.unassign-assets-title', {count: assetIds.length}, 'messageformat'),
+            $translate.instant('asset.unassign-assets-text'),
+            $translate.instant('asset.unassign-asset')).then(
+            () => {
+                var tasks = [];
+                assetIds.forEach((assetId) => {
+                    tasks.push(assetService.unassignAssetFromCustomer(assetId));
+                });
+                $q.all(tasks).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function makeAssetPublic($event, asset) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('asset.make-public-asset-title', {assetName: asset.name}),
+            $translate.instant('asset.make-public-asset-text'),
+            $translate.instant('asset.make-public')).then(
+            () => {
+                assetService.makeAssetPublic(asset.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
         return deferred.promise;
     }
 
@@ -129,6 +273,6 @@ export default function Dialogs($q, $translate, $mdDialog, $document, customerSe
             .cancel($translate.instant('action.no'))
             .ok($translate.instant('action.yes'));
         return $mdDialog.show(confirm);
-    }*/
+    }
 
 }

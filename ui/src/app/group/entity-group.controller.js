@@ -39,6 +39,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
 
     vm.entityGroupConfig.onDeleteEntity = deleteEntity;
     vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
+    vm.entityGroupConfig.onEntitiesUpdated = onEntitiesUpdated;
 
     vm.actionCellDescriptors = angular.copy(vm.entityGroupConfig.actionCellDescriptors);
     vm.actionCellDescriptors.push(
@@ -342,8 +343,8 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
         }
     }
 
-    function onEntityUpdated(entity) {
-        entityGroupService.getEntityGroupEntity(vm.entityGroup.id.id, entity.id.id).then(
+    function onEntityUpdated(entityId, reloadDetails) {
+        entityGroupService.getEntityGroupEntity(vm.entityGroup.id.id, entityId).then(
             function success(entity) {
                 var result = $filter('filter')(vm.allEntities, { id: { id: entity.id.id }});
                 if (result && result.length) {
@@ -364,6 +365,19 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
                 }
             }
         );
+        if (reloadDetails) {
+            $scope.$broadcast('reloadEntityDetails');
+        }
+    }
+
+    function onEntitiesUpdated(entityIds, reloadDetails) {
+        entityIds.forEach((entityId) => {
+            onEntityUpdated(entityId, false);
+        });
+        if (reloadDetails) {
+            $scope.$broadcast('reloadEntityDetails');
+        }
+        vm.selectedEntities.length = 0;
     }
 
     function onEntitiesDeleted(entityIds) {
