@@ -53,6 +53,8 @@ public class AlarmProcessor implements RuleProcessor<AlarmProcessorConfiguration
     static final String IS_NEW_ALARM = "isNewAlarm";
     static final String IS_EXISTING_ALARM = "isExistingAlarm";
     static final String IS_CLEARED_ALARM = "isClearedAlarm";
+    static final String IS_NEW_OR_CLEARED_ALARM = "isNewOrClearedAlarm";
+
 
     protected NashornJsEvaluator newAlarmEvaluator;
     protected NashornJsEvaluator clearAlarmEvaluator;
@@ -133,6 +135,7 @@ public class AlarmProcessor implements RuleProcessor<AlarmProcessorConfiguration
             if (existing.getStartTs() == alarm.getStartTs()) {
                 log.debug("[{}][{}] New Active Alarm detected", ctx.getRuleId(), existing.getId());
                 md.put(IS_NEW_ALARM, Boolean.TRUE);
+                md.put(IS_NEW_OR_CLEARED_ALARM, Boolean.TRUE);
             } else {
                 log.debug("[{}][{}] Existing Active Alarm detected", ctx.getRuleId(), existing.getId());
                 md.put(IS_EXISTING_ALARM, Boolean.TRUE);
@@ -144,10 +147,10 @@ public class AlarmProcessor implements RuleProcessor<AlarmProcessorConfiguration
                 ctx.clearAlarm(alarm.get().getId(), System.currentTimeMillis());
                 log.debug("[{}][{}] Existing Active Alarm cleared");
                 md.put(IS_CLEARED_ALARM, Boolean.TRUE);
+                md.put(IS_NEW_OR_CLEARED_ALARM, Boolean.TRUE);
                 existing = alarm.get();
             }
         }
-        //TODO: handle cleared alarms
 
         if (existing != null) {
             md.put("alarmId", existing.getId().getId());
