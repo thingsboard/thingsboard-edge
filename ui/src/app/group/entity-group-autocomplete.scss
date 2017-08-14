@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2016-2017 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-import SelectEntityGroupController from './select-entity-group.controller';
-import Dialogs from './dialogs.service';
-
-export default angular.module('thingsboard.dialogs', [])
-    .controller('SelectEntityGroupController', SelectEntityGroupController)
-    .factory('tbDialogs', Dialogs)
-    .name;
+.tb-entity-group-autocomplete {
+  .tb-not-found {
+    display: block;
+    line-height: 1.5;
+    height: 48px;
+  }
+  .tb-entity-group-item {
+    display: block;
+    height: 48px;
+  }
+  li {
+    height: auto !important;
+    white-space: normal !important;
+  }
+}

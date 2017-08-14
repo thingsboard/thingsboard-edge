@@ -24,7 +24,7 @@ import addEntityTemplate from './add-entity.tpl.html';
 
 
 /*@ngInject*/
-export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdDialog, $document, utils, entityGroupService, telemetryWebsocketService,
+export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdDialog, $document, utils, tbDialogs, entityGroupService, telemetryWebsocketService,
                                               $stateParams, $q, $translate, $filter, types, entityGroup) {
 
     var vm = this;
@@ -56,6 +56,46 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     );
 
     vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
+
+    vm.groupActionDescriptors.push(
+        {
+            name: $translate.instant('entity-group.add-to-group'),
+            icon: 'add_circle',
+            isEnabled: () => {
+                return true;
+            },
+            onAction: ($event, entities) => {
+                addEntitiesToEntityGroup($event, entities);
+            }
+        }
+    );
+
+    vm.groupActionDescriptors.push(
+        {
+            name: $translate.instant('entity-group.move-to-group'),
+            icon: 'swap_vertical_circle',
+            isEnabled: () => {
+                return !vm.entityGroup.groupAll;
+            },
+            onAction: ($event, entities) => {
+                moveEntitiesToEntityGroup($event, entities);
+            }
+        }
+    );
+
+    vm.groupActionDescriptors.push(
+        {
+            name: $translate.instant('entity-group.remove-from-group'),
+            icon: 'remove_circle',
+            isEnabled: () => {
+                return !vm.entityGroup.groupAll;
+            },
+            onAction: ($event, entities) => {
+                removeEntitiesFromEntityGroup($event, entities);
+            }
+        }
+    );
+
     vm.groupActionDescriptors.push(
         {
             name: $translate.instant('action.delete'),
@@ -443,6 +483,58 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             function () {}
         );
     }
+
+    function addEntitiesToEntityGroup($event, entities) {
+        var onEntityGroupSelected = (targetEntityGroupId) => {
+            var entityIds = [];
+            entities.forEach((entity) => {
+                entityIds.push(entity.id.id);
+            });
+            return entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds);
+        };
+        tbDialogs.selectEntityGroup($event, vm.entityType,
+            'entity-group.add-to-group', 'action.add',
+            vm.translations.selectGroupToAdd,
+            'entity-group.no-entity-groups-matching',
+            'entity-group.target-entity-group-required', onEntityGroupSelected, [vm.entityGroup.id.id]).then(
+            () => { vm.selectedEntities.length = 0; }
+        );
+    }
+
+    function moveEntitiesToEntityGroup($event, entities) {
+        var entityIds = [];
+        entities.forEach((entity) => {
+            entityIds.push(entity.id.id);
+        });
+        var onEntityGroupSelected = (targetEntityGroupId) => {
+            var tasks = [];
+            tasks.push(entityGroupService.removeEntitiesFromEntityGroup(vm.entityGroup.id.id, entityIds));
+            tasks.push(entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds));
+            return $q.all(tasks);
+        };
+        tbDialogs.selectEntityGroup($event, vm.entityType,
+            'entity-group.move-to-group', 'action.move',
+            vm.translations.selectGroupToMove,
+            'entity-group.no-entity-groups-matching',
+            'entity-group.target-entity-group-required', onEntityGroupSelected, [vm.entityGroup.id.id]).then(
+            () => { onEntitiesDeleted(entityIds); }
+        );
+    }
+
+    function removeEntitiesFromEntityGroup($event, entities) {
+        var title = $translate.instant('entity-group.remove-from-group');
+        var content = $translate.instant(vm.translations.removeFromGroup, {count: entities.length, entityGroup: vm.entityGroup.name}, 'messageformat');
+        tbDialogs.confirm($event, title, content, title).then( () => {
+            var entityIds = [];
+            entities.forEach((entity) => {
+                entityIds.push(entity.id.id);
+            });
+            entityGroupService.removeEntitiesFromEntityGroup(vm.entityGroup.id.id, entityIds).then(() => {
+                onEntitiesDeleted(entityIds);
+            });
+        });
+    }
+
 
     function updateSubscriptions() {
         if (vm.tsKeys.length || vm.attrKeys.length) {

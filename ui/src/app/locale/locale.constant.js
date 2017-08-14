@@ -69,7 +69,8 @@ export default angular.module('thingsboard.locale', [])
                     "paste-reference": "Paste reference",
                     "import": "Import",
                     "export": "Export",
-                    "share-via": "Share via {{provider}}"
+                    "share-via": "Share via {{provider}}",
+                    "move": "Move"
                 },
                 "aggregation": {
                     "aggregation": "Aggregation",
@@ -259,7 +260,10 @@ export default angular.module('thingsboard.locale', [])
                     "asset-required": "Asset is required",
                     "name-starts-with": "Asset name starts with",
                     "selected-assets": "{ count, select, 1 {1 asset} other {# assets} } selected",
-                    "search": "Search assets"
+                    "search": "Search assets",
+                    "select-group-to-add": "Select target group to add selected assets",
+                    "select-group-to-move": "Select target group to move selected assets",
+                    "remove-assets-from-group": "Are you sure you want to remove { count, select, 1 {1 asset} other {# assets} } from group '{entityGroup}'?"
                 },
                 "attribute": {
                     "attributes": "Attributes",
@@ -355,7 +359,10 @@ export default angular.module('thingsboard.locale', [])
                     "no-customers-matching": "No customers matching '{{entity}}' were found.",
                     "customer-required": "Customer is required",
                     "selected-customers": "{ count, select, 1 {1 customer} other {# customers} } selected",
-                    "search": "Search customers"
+                    "search": "Search customers",
+                    "select-group-to-add": "Select target group to add selected customers",
+                    "select-group-to-move": "Select target group to move selected customers",
+                    "remove-customers-from-group": "Are you sure you want to remove { count, select, 1 {1 customer} other {# customers} } from group '{entityGroup}'?"
                 },
                 "datetime": {
                     "date-from": "Date from",
@@ -624,7 +631,10 @@ export default angular.module('thingsboard.locale', [])
                     "device-public": "Device is public",
                     "select-device": "Select device",
                     "selected-devices": "{ count, select, 1 {1 device} other {# devices} } selected",
-                    "search": "Search devices"
+                    "search": "Search devices",
+                    "select-group-to-add": "Select target group to add selected devices",
+                    "select-group-to-move": "Select target group to move selected devices",
+                    "remove-devices-from-group": "Are you sure you want to remove { count, select, 1 {1 device} other {# devices} } from group '{entityGroup}'?"
                 },
                 "dialog": {
                     "close": "Close dialog"
@@ -775,7 +785,12 @@ export default angular.module('thingsboard.locale', [])
                         "asc": "Ascending",
                         "desc": "Descending",
                         "none": "None"
-                    }
+                    },
+                    "add-to-group": "Add to group",
+                    "move-to-group": "Move to group",
+                    "no-entity-groups-matching": "No entity groups matching '{{entityGroup}}' were found.",
+                    "target-entity-group-required": "Target entity group is required.",
+                    "remove-from-group": "Remove from group"
                 },
                 "event": {
                     "events": "Events",

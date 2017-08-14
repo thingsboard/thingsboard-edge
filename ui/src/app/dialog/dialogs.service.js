@@ -19,7 +19,7 @@
 import deviceCredentialsTemplate from './../device/device-credentials.tpl.html';
 import assignDevicesToCustomerTemplate from './../device/assign-to-customer.tpl.html';
 import assignAssetsToCustomerTemplate from './../asset/assign-to-customer.tpl.html';
-
+import selectEntityGroupTemplate from './select-entity-group.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -37,6 +37,7 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
         unassignAssetFromCustomer: unassignAssetFromCustomer,
         unassignAssetsFromCustomer: unassignAssetsFromCustomer,
         makeAssetPublic: makeAssetPublic,
+        selectEntityGroup: selectEntityGroup,
         confirm: confirm
     }
 
@@ -258,6 +259,36 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
                 );
             }
         );
+        return deferred.promise;
+    }
+
+    function selectEntityGroup($event, targetGroupType, selectEntityGroupTitle,
+                               confirmSelectTitle, placeholderText, notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {
+        var deferred = $q.defer();
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: 'SelectEntityGroupController',
+            controllerAs: 'vm',
+            templateUrl: selectEntityGroupTemplate,
+            locals: {targetGroupType: targetGroupType,
+                selectEntityGroupTitle: selectEntityGroupTitle,
+                confirmSelectTitle: confirmSelectTitle,
+                placeholderText: placeholderText,
+                notFoundText: notFoundText,
+                requiredText: requiredText,
+                onEntityGroupSelected: onEntityGroupSelected,
+                excludeGroupIds: excludeGroupIds
+            },
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            targetEvent: $event
+        }).then((targetEntityGroupId) => {
+            deferred.resolve(targetEntityGroupId);
+        }, () => {
+            deferred.reject();
+        });
         return deferred.promise;
     }
 

@@ -384,7 +384,10 @@ export default angular.module('thingsboard.types', [])
                     add: 'device.add',
                     noEntities: 'device.no-devices-text',
                     selectedEntities: 'device.selected-devices',
-                    search: 'device.search'
+                    search: 'device.search',
+                    selectGroupToAdd: 'device.select-group-to-add',
+                    selectGroupToMove: 'device.select-group-to-move',
+                    removeFromGroup: 'device.remove-devices-from-group'
                 },
                 "ASSET": {
                     type: 'entity.type-asset',
@@ -395,7 +398,10 @@ export default angular.module('thingsboard.types', [])
                     add: 'asset.add',
                     noEntities: 'asset.no-assets-text',
                     selectedEntities: 'asset.selected-assets',
-                    search: 'asset.search'
+                    search: 'asset.search',
+                    selectGroupToAdd: 'asset.select-group-to-add',
+                    selectGroupToMove: 'asset.select-group-to-move',
+                    removeFromGroup: 'asset.remove-assets-from-group'
                 },
                 "RULE": {
                     type: 'entity.type-rule',
@@ -433,7 +439,10 @@ export default angular.module('thingsboard.types', [])
                     add: 'customer.add',
                     noEntities: 'customer.no-customers-text',
                     selectedEntities: 'customer.selected-customers',
-                    search: 'customer.search'
+                    search: 'customer.search',
+                    selectGroupToAdd: 'customer.select-group-to-add',
+                    selectGroupToMove: 'customer.select-group-to-move',
+                    removeFromGroup: 'customer.remove-customers-from-group'
                 },
                 "USER": {
                     type: 'entity.type-user',

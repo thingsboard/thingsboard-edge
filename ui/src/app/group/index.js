@@ -18,6 +18,7 @@ import EntityGroupRoutes from './entity-group.routes';
 import {EntityGroupsController, EntityGroupCardController} from './entity-groups.controller';
 import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
+import EntityGroupAutocompleteDirective from './entity-group-autocomplete.directive';
 import EntityGroupColumn from './entity-group-column.directive';
 import EntityGroupColumns from './entity-group-columns.directive';
 import EntityDetailsSidenav from './entity-details-sidenav.directive';
@@ -29,6 +30,7 @@ export default angular.module('thingsboard.entityGroup', [])
     .controller('EntityGroupCardController', EntityGroupCardController)
     .controller('EntityGroupController', EntityGroupController)
     .directive('tbEntityGroup', EntityGroupDirective)
+    .directive('tbEntityGroupAutocomplete', EntityGroupAutocompleteDirective)
     .directive('tbEntityGroupColumn', EntityGroupColumn)
     .directive('tbEntityGroupColumns', EntityGroupColumns)
     .directive('tbEntityDetailsSidenav', EntityDetailsSidenav)

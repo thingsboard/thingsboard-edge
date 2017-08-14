@@ -1,0 +1,43 @@
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-autocomplete ng-required="tbRequired"
+                 ng-disabled="disabled"
+                 md-input-name="entityGroup"
+                 ng-model="entityGroup"
+                 md-selected-item="entityGroup"
+                 md-search-text="entityGroupSearchText"
+                 md-search-text-change="entityGroupSearchTextChanged()"
+                 md-items="item in fetchEntityGroups(entityGroupSearchText)"
+                 md-item-text="item.name"
+                 md-min-length="0"
+                 md-floating-label="{{ placeholderText | translate }}"
+                 md-menu-class="tb-entity-group-autocomplete">
+    <md-item-template>
+        <div class="tb-entity-group-item">
+            <span md-highlight-text="entityGroupSearchText" md-highlight-flags="^i">{{item.name}}</span>
+        </div>
+    </md-item-template>
+    <md-not-found>
+        <div class="tb-not-found">
+            <span>{{ notFoundText | translate:{entityGroup: entityGroupSearchText} }}</span>
+        </div>
+    </md-not-found>
+    <div ng-messages="theForm.entityGroup.$error">
+        <div ng-message="required">{{ requiredText | translate }}</div>
+    </div>
+</md-autocomplete>
