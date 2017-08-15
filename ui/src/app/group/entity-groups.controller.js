@@ -61,6 +61,17 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     vm.types = types;
 
+    vm.actionSources = {
+        'actionCellButton': {
+            name: 'widget-action.action-cell-button',
+            multiple: true
+        },
+        'rowClick': {
+            name: 'widget-action.row-click',
+            multiple: false
+        }
+    };
+
     vm.entityGroupGridConfig = {
 
         refreshParamsFunc: null,

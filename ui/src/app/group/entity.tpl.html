@@ -24,7 +24,10 @@
            on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
            on-assign-to-customer="vm.entityGroupConfig.onAssignToCustomer(event, vm.entity)"
            on-unassign-from-customer="vm.entityGroupConfig.onUnassignFromCustomer(event, vm.entity, isPublic)"
-           on-manage-credentials="vm.entityGroupConfig.onManageCredentials(event, vm.entity)">
+           on-manage-credentials="vm.entityGroupConfig.onManageCredentials(event, vm.entity)"
+           hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
+           hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)"
+           hide-manage-credentials="!vm.entityGroupConfig.manageCredentialsEnabled(vm.entity)">
 </tb-device>
 <tb-asset  ng-if="vm.entityType == vm.types.entityType.asset"
            asset="vm.entity"
@@ -34,5 +37,7 @@
            on-delete-asset="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
            on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
            on-assign-to-customer="vm.entityGroupConfig.onAssignToCustomer(event, vm.entity)"
-           on-unassign-from-customer="vm.entityGroupConfig.onUnassignFromCustomer(event, vm.entity, isPublic)">
+           on-unassign-from-customer="vm.entityGroupConfig.onUnassignFromCustomer(event, vm.entity, isPublic)"
+           hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
+           hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
 </tb-asset>

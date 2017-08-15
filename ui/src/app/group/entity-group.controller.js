@@ -24,7 +24,7 @@ import addEntityTemplate from './add-entity.tpl.html';
 
 
 /*@ngInject*/
-export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdDialog, $document, utils, tbDialogs, entityGroupService, telemetryWebsocketService,
+export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $document, utils, tbDialogs, entityGroupService, telemetryWebsocketService,
                                               $stateParams, $q, $translate, $filter, types, entityGroup) {
 
     var vm = this;
@@ -41,7 +41,63 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
     vm.entityGroupConfig.onEntitiesUpdated = onEntitiesUpdated;
 
-    vm.actionCellDescriptors = angular.copy(vm.entityGroupConfig.actionCellDescriptors);
+    vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
+    if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
+        vm.tableTitle = vm.settings.groupTableTitle;
+    } else {
+        vm.tableTitle = vm.entityGroupConfig.tableTitle;
+    }
+
+    vm.actionDescriptorsBySourceId = {};
+    if (vm.entityGroup.configuration.actions) {
+        for (var actionSourceId in vm.entityGroup.configuration.actions) {
+            var descriptors = vm.entityGroup.configuration.actions[actionSourceId];
+            var actionDescriptors = [];
+            descriptors.forEach(function(descriptor) {
+                var actionDescriptor = angular.copy(descriptor);
+                actionDescriptor.displayName = utils.customTranslation(descriptor.name, descriptor.name);
+                actionDescriptors.push(actionDescriptor);
+            });
+            vm.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
+        }
+    }
+
+    var actionCellButtonDescriptors = vm.actionDescriptorsBySourceId['actionCellButton'];
+    vm.actionCellDescriptors = [];
+    if (actionCellButtonDescriptors) {
+        actionCellButtonDescriptors.forEach((descriptor) => {
+            vm.actionCellDescriptors.push(
+                {
+                    name: descriptor.displayName,
+                    icon: descriptor.icon,
+                    isEnabled: () => {
+                        return true;
+                    },
+                    onAction: ($event, entity) => {
+                        handleDescriptorAction($event, entity, descriptor);
+                    }
+                }
+            );
+        });
+    }
+
+    vm.entityGroupConfig.actionCellDescriptors.forEach((descriptor) => {
+        vm.actionCellDescriptors.push(descriptor);
+    });
+    if (vm.settings.detailsMode == types.entityGroup.detailsMode.onActionButtonClick.value) {
+        vm.actionCellDescriptors.push(
+            {
+                name: $translate.instant(vm.translations.details),
+                icon: 'edit',
+                isEnabled: () => {
+                    return true;
+                },
+                onAction: ($event, entity) => {
+                    toggleEntityDetails($event, entity);
+                }
+            }
+        );
+    }
     vm.actionCellDescriptors.push(
         {
             name: $translate.instant('action.delete'),
@@ -62,7 +118,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             name: $translate.instant('entity-group.add-to-group'),
             icon: 'add_circle',
             isEnabled: () => {
-                return true;
+                return vm.settings.enableGroupTransfer;
             },
             onAction: ($event, entities) => {
                 addEntitiesToEntityGroup($event, entities);
@@ -75,7 +131,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             name: $translate.instant('entity-group.move-to-group'),
             icon: 'swap_vertical_circle',
             isEnabled: () => {
-                return !vm.entityGroup.groupAll;
+                return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
             },
             onAction: ($event, entities) => {
                 moveEntitiesToEntityGroup($event, entities);
@@ -88,7 +144,7 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             name: $translate.instant('entity-group.remove-from-group'),
             icon: 'remove_circle',
             isEnabled: () => {
-                return !vm.entityGroup.groupAll;
+                return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
             },
             onAction: ($event, entities) => {
                 removeEntitiesFromEntityGroup($event, entities);
@@ -153,8 +209,8 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     vm.currentEntity = null;
     vm.isDetailsOpen = false;
 
-    vm.displayPagination = true;
-    vm.defaultPageSize = 10;
+    vm.displayPagination = vm.settings.displayPagination;
+    vm.defaultPageSize = vm.settings.defaultPageSize;
     vm.defaultSortOrder = '-' + types.entityGroup.entityField.created_time.value;
 
     for (var i=0;i<vm.columns.length;i++) {
@@ -210,6 +266,10 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
         vm.isGtXs = isGtXs;
     });
 
+    $scope.$watch(function() { return $mdMedia('gt-sm'); }, function(isGtSm) {
+        vm.isGtSm = isGtSm;
+    });
+
     $scope.$watch(function() { return $mdMedia('gt-md'); }, function(isGtMd) {
         vm.isGtMd = isGtMd;
         if (vm.isGtMd) {
@@ -241,6 +301,18 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
     }
 
     function onRowClick($event, entity) {
+        if (vm.settings.detailsMode == types.entityGroup.detailsMode.onRowClick.value) {
+            toggleEntityDetails($event, entity);
+        } else {
+            var descriptors = vm.actionDescriptorsBySourceId['rowClick'];
+            if (descriptors && descriptors.length) {
+                var descriptor = descriptors[0];
+                handleDescriptorAction($event, entity, descriptor);
+            }
+        }
+    }
+
+    function toggleEntityDetails($event, entity) {
         if ($event) {
             $event.stopPropagation();
         }
@@ -248,20 +320,19 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             vm.currentEntity = entity;
             vm.isDetailsOpen = true;
             /*var descriptors = vm.ctx.actionsApi.getActionDescriptors('rowClick');
-            if (descriptors.length) {
-                var entityId;
-                var entityName;
-                if (vm.currentEntity) {
-                    entityId = vm.currentEntity.id;
-                    entityName = vm.currentEntity.entityName;
-                }
-                vm.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName);
-            }*/
+             if (descriptors.length) {
+             var entityId;
+             var entityName;
+             if (vm.currentEntity) {
+             entityId = vm.currentEntity.id;
+             entityName = vm.currentEntity.entityName;
+             }
+             vm.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName);
+             }*/
         } else {
             vm.isDetailsOpen = !vm.isDetailsOpen;
         }
     }
-
 
     function isCurrent(entity) {
         return (vm.currentEntity && entity && vm.currentEntity.id && entity.id) &&
@@ -436,6 +507,67 @@ export default function EntityGroupController($rootScope, $scope, $mdMedia, $mdD
             }
         });
         updateEntities();
+    }
+
+    function handleDescriptorAction($event, entity, descriptor) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var entityId = entity.id;
+        var entityName = entity.name;
+        var type = descriptor.type;
+        var targetEntityParamName = descriptor.stateEntityParamName;
+        var targetEntityId;
+        if (descriptor.setEntityId) {
+            targetEntityId = entityId;
+        }
+        switch (type) {
+            case types.entityGroupActionTypes.openDashboard.value:
+                var targetDashboardId = descriptor.targetDashboardId;
+                var targetDashboardStateId = descriptor.targetDashboardStateId;
+                var stateObject = {};
+                stateObject.params = {};
+                updateEntityParams(stateObject.params, targetEntityParamName, targetEntityId, entityName);
+                if (targetDashboardStateId) {
+                    stateObject.id = targetDashboardStateId;
+                }
+                var stateParams = {
+                    dashboardId: targetDashboardId,
+                    state: utils.objToBase64([ stateObject ])
+                }
+                $state.go('home.dashboards.dashboard', stateParams);
+                break;
+            case types.widgetActionTypes.custom.value:
+                var customFunction = descriptor.customFunction;
+                if (angular.isDefined(customFunction) && customFunction.length > 0) {
+                    try {
+                        var customActionFunction = new Function('$event', '$injector', 'entityId', 'entityName', customFunction);
+                        customActionFunction($event, $injector, entityId, entityName);
+                    } catch (e) {
+                        //
+                    }
+                }
+                break;
+        }
+    }
+
+    function updateEntityParams(params, targetEntityParamName, targetEntityId, entityName) {
+        if (targetEntityId) {
+            var targetEntityParams;
+            if (targetEntityParamName && targetEntityParamName.length) {
+                targetEntityParams = params[targetEntityParamName];
+                if (!targetEntityParams) {
+                    targetEntityParams = {};
+                    params[targetEntityParamName] = targetEntityParams;
+                }
+            } else {
+                targetEntityParams = params;
+            }
+            targetEntityParams.entityId = targetEntityId;
+            if (entityName) {
+                targetEntityParams.entityName = entityName;
+            }
+        }
     }
 
     function deleteEntity($event, entity) {

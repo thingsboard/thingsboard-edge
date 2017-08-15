@@ -343,6 +343,20 @@ export default angular.module('thingsboard.types', [])
                         name: 'entity-group.entity-field.phone',
                         value: 'phone'
                     }
+                },
+                detailsMode: {
+                    onRowClick: {
+                        name: 'entity-group.details-mode.on-row-click',
+                        value: 'onRowClick'
+                    },
+                    onActionButtonClick: {
+                        name: 'entity-group.details-mode.on-action-button-click',
+                        value: 'onActionButtonClick'
+                    },
+                    disabled: {
+                        name: 'entity-group.details-mode.disabled',
+                        value: 'disabled'
+                    }
                 }
             },
             entityTypeResources: {
@@ -596,6 +610,16 @@ export default angular.module('thingsboard.types', [])
                     name: 'widget-action.update-dashboard-state',
                     value: 'updateDashboardState'
                 },
+                openDashboard: {
+                    name: 'widget-action.open-dashboard',
+                    value: 'openDashboard'
+                },
+                custom: {
+                    name: 'widget-action.custom',
+                    value: 'custom'
+                }
+            },
+            entityGroupActionTypes: {
                 openDashboard: {
                     name: 'widget-action.open-dashboard',
                     value: 'openDashboard'

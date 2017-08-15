@@ -15,7 +15,7 @@
  */
 
 /*@ngInject*/
-export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, userService, deviceService) {
+export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, types, userService, deviceService) {
 
     var service = {
         createConfig: createConfig
@@ -33,6 +33,8 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, user
             entityScope = 'customer_user';
         }
 
+        var settings = utils.groupSettingsDefaults(types.entityType.device, entityGroup.configuration.settings);
+
         var groupConfig = {
 
             entityScope: entityScope,
@@ -44,17 +46,23 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, user
             deleteEntity: (entityId) => {return deviceService.deleteDevice(entityId)},
 
             addEnabled: () => {
-                return true;
+                return settings.enableAdd;
             },
 
             detailsReadOnly: () => {
                 return false;
             },
+            assignmentEnabled: () => {
+                return settings.enableAssignment;
+            },
+            manageCredentialsEnabled: () => {
+                return settings.enableCredentialsManagement;
+            },
             deleteEnabled: () => {
-                return true;
+                return settings.enableDelete;
             },
             entitiesDeleteEnabled: () => {
-                return true;
+                return settings.enableDelete;
             },
             deleteEntityTitle: (entity) => {
                 return $translate.instant('device.delete-device-title', {deviceName: entity.name});
@@ -98,7 +106,7 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, user
                 name: $translate.instant(entityScope == 'tenant' ? 'device.manage-credentials' : 'device.view-credentials'),
                 icon: 'security',
                 isEnabled: () => {
-                    return true;
+                    return settings.enableCredentialsManagement;
                 },
                 onAction: ($event, entity) => {
                     var isReadOnly = entityScope == 'customer_user' ? true : false;
@@ -112,7 +120,7 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, user
                 name: $translate.instant('device.assign-devices'),
                 icon: "assignment_ind",
                 isEnabled: () => {
-                    return true;
+                    return settings.enableAssignment;
                 },
                 onAction: (event, entities) => {
                     var deviceIds = [];
@@ -128,7 +136,7 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, user
                 name: $translate.instant('device.unassign-devices'),
                 icon: "assignment_return",
                 isEnabled: () => {
-                    return true;
+                    return settings.enableAssignment;
                 },
                 onAction: (event, entities) => {
                     var deviceIds = [];

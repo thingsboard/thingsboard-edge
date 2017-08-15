@@ -208,6 +208,7 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
     return {
         restrict: "E",
         require: "^ngModel",
+        disabled:'=ngDisabled',
         scope: {},
         link: linker
     };

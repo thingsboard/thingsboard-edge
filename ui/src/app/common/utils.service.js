@@ -159,7 +159,8 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
         customTranslation: customTranslation,
         objToBase64: objToBase64,
         base64toObj: base64toObj,
-        groupConfigDefaults: groupConfigDefaults
+        groupConfigDefaults: groupConfigDefaults,
+        groupSettingsDefaults: groupSettingsDefaults
     }
 
     return service;
@@ -549,5 +550,46 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
        // groupConfig.addEntityController = groupConfig.addEntityController || 'AddEntityController';
        // groupConfig.addEntityTemplateUrl = groupConfig.addEntityTemplateUrl || addEntityTemplate;
 
+    }
+
+    function groupSettingsDefaults(entityType, settings) {
+        if (angular.isUndefined(settings.groupTableTitle)) {
+            settings.groupTableTitle = '';
+        }
+        if (angular.isUndefined(settings.enableSearch)) {
+            settings.enableSearch = true;
+        }
+        if (angular.isUndefined(settings.enableAdd)) {
+            settings.enableAdd = true;
+        }
+        if (angular.isUndefined(settings.enableDelete)) {
+            settings.enableDelete = true;
+        }
+        if (angular.isUndefined(settings.enableSelection)) {
+            settings.enableSelection = true;
+        }
+        if (angular.isUndefined(settings.enableGroupTransfer)) {
+            settings.enableGroupTransfer = true;
+        }
+        if (angular.isUndefined(settings.detailsMode)) {
+            settings.detailsMode = types.entityGroup.detailsMode.onRowClick.value;
+        }
+        if (angular.isUndefined(settings.displayPagination)) {
+            settings.displayPagination = true;
+        }
+        if (angular.isUndefined(settings.defaultPageSize)) {
+            settings.defaultPageSize = 10;
+        }
+        if (entityType == types.entityType.device || entityType == types.entityType.asset) {
+            if (angular.isUndefined(settings.enableAssignment)) {
+                settings.enableAssignment = true;
+            }
+        }
+        if (entityType == types.entityType.device) {
+            if (angular.isUndefined(settings.enableCredentialsManagement)) {
+                settings.enableCredentialsManagement = true;
+            }
+        }
+        return settings;
     }
 }

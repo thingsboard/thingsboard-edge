@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*@ngInject*/
-export default function AssetGroupConfig($q, $translate, tbDialogs, utils, userService, assetService) {
+export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types, userService, assetService) {
 
     var service = {
         createConfig: createConfig
@@ -32,6 +32,8 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, userS
             entityScope = 'customer_user';
         }
 
+        var settings = utils.groupSettingsDefaults(types.entityType.asset, entityGroup.configuration.settings);
+
         var groupConfig = {
 
             entityScope: entityScope,
@@ -43,17 +45,20 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, userS
             deleteEntity: (entityId) => {return assetService.deleteAsset(entityId)},
 
             addEnabled: () => {
-                return true;
+                return settings.enableAdd;
             },
 
             detailsReadOnly: () => {
                 return false;
             },
+            assignmentEnabled: () => {
+                return settings.enableAssignment;
+            },
             deleteEnabled: () => {
-                return true;
+                return settings.enableDelete;
             },
             entitiesDeleteEnabled: () => {
-                return true;
+                return settings.enableDelete;
             },
             deleteEntityTitle: (entity) => {
                 return $translate.instant('asset.delete-asset-title', {assetName: entity.name});
@@ -92,7 +97,7 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, userS
                 name: $translate.instant('asset.assign-assets'),
                 icon: "assignment_ind",
                 isEnabled: () => {
-                    return true;
+                    return settings.enableAssignment;
                 },
                 onAction: (event, entities) => {
                     var assetIds = [];
@@ -108,7 +113,7 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, userS
                 name: $translate.instant('asset.unassign-assets'),
                 icon: "assignment_return",
                 isEnabled: () => {
-                    return true;
+                    return settings.enableAssignment;
                 },
                 onAction: (event, entities) => {
                     var assetIds = [];

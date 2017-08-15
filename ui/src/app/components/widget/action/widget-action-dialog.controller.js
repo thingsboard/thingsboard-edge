@@ -16,7 +16,7 @@
 
 /*@ngInject*/
 export default function WidgetActionDialogController($scope, $mdDialog, $filter, $q, dashboardService, dashboardUtils, types, utils,
-                                                     isAdd, fetchDashboardStates, actionSources, widgetActions, action) {
+                                                     isAdd, fetchDashboardStates, actionSources, actionTypes, customFunctionArgs, widgetActions, action) {
 
     var vm = this;
 
@@ -25,7 +25,9 @@ export default function WidgetActionDialogController($scope, $mdDialog, $filter,
     vm.isAdd = isAdd;
     vm.fetchDashboardStates = fetchDashboardStates;
     vm.actionSources = actionSources;
+    vm.actionTypes = actionTypes;
     vm.widgetActions = widgetActions;
+    vm.customFunctionArgs = customFunctionArgs;
 
     vm.targetDashboardStateSearchText = '';
 

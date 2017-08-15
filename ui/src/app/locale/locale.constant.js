@@ -732,10 +732,16 @@ export default angular.module('thingsboard.locale', [])
                     "columns": "Columns",
                     "add-column": "Add column",
                     "column-value": "Value",
+                    "column-value-required": "Column value is required.",
                     "column-title": "Title",
                     "default-sort-order": "Default sort order",
+                    "default-sort-order-required": "Default sort order is required.",
                     "hide-in-mobile-view": "Mobile hidden",
+                    "use-cell-content-function": "Use cell content function",
+                    "edit-column": "Edit column",
+                    "column-details": "Column details",
                     "actions": "Actions",
+                    "settings": "Settings",
                     "delete": "Delete entity group",
                     "name": "Name",
                     "name-required": "Name is required.",
@@ -763,6 +769,7 @@ export default angular.module('thingsboard.locale', [])
                         "timeseries": "Timeseries",
                         "entity-field": "Entity field"
                     },
+                    "column-type-required": "Column type is required.",
                     "entity-field": {
                         "created-time": "Created time",
                         "name": "Name",
@@ -786,11 +793,27 @@ export default angular.module('thingsboard.locale', [])
                         "desc": "Descending",
                         "none": "None"
                     },
+                    "details-mode": {
+                        "on-row-click": "On row click",
+                        "on-action-button-click": "On details button click",
+                        "disabled": "Disabled"
+                    },
                     "add-to-group": "Add to group",
                     "move-to-group": "Move to group",
                     "no-entity-groups-matching": "No entity groups matching '{{entityGroup}}' were found.",
                     "target-entity-group-required": "Target entity group is required.",
-                    "remove-from-group": "Remove from group"
+                    "remove-from-group": "Remove from group",
+                    "group-table-title": "Group table title",
+                    "enable-search": "Enable entities search",
+                    "enable-add": "Enable entities add",
+                    "enable-delete": "Enable entities delete",
+                    "enable-selection": "Enable entities selection",
+                    "enable-group-transfer": "Enable group transfer actions",
+                    "display-pagination": "Display pagination",
+                    "default-page-size": "Default page size",
+                    "enable-assignment-actions": "Enable assignment actions",
+                    "enable-credentials-management": "Enable credentials management",
+                    "open-details-on": "Open entity details on"
                 },
                 "event": {
                     "events": "Events",

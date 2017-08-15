@@ -16,9 +16,12 @@
 
 import './entity-group-column.scss';
 
+import EntityGroupColumnDialogController from './entity-group-column-dialog.controller';
+
 /* eslint-disable import/no-unresolved, import/default */
 
 import entityGroupColumnTemplate from './entity-group-column.tpl.html';
+import entityGroupColumnDialogTemplate from './entity-group-column-dialog.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -32,7 +35,8 @@ export default function EntityGroupColumn() {
             entityType: '=',
             readOnly: '=',
             onDefaultSortOrderChanged: '&',
-            onRemoveColumn: '&'
+            onRemoveColumn: '&',
+            onUpdateColumn: '&'
         },
         controller: EntityGroupColumnController,
         controllerAs: 'vm',
@@ -41,7 +45,7 @@ export default function EntityGroupColumn() {
 }
 
 /*@ngInject*/
-function EntityGroupColumnController($element, $scope, $filter, $mdMedia, $translate, utils, types) {
+function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, types) {
     var vm = this;
     vm.columnTypes = {};
     vm.entityField = {};
@@ -98,5 +102,26 @@ function EntityGroupColumnController($element, $scope, $filter, $mdMedia, $trans
         if ($event) {
             $event.stopPropagation();
         }
+        $mdDialog.show({
+            controller: EntityGroupColumnDialogController,
+            controllerAs: 'vm',
+            templateUrl: entityGroupColumnDialogTemplate,
+            parent: angular.element($document[0].body),
+            locals: {
+                readOnly: vm.readOnly,
+                column: angular.copy(vm.column),
+                entityType: vm.entityType,
+                columnTypes: vm.columnTypes,
+                entityField: vm.entityField
+            },
+            skipHide: true,
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function (column) {
+            if (vm.onUpdateColumn) {
+                vm.onUpdateColumn({updatedColumn: column});
+            }
+        });
+
     }
 }

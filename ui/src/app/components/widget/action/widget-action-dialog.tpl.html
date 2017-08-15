@@ -56,7 +56,7 @@
                         <md-input-container class="md-block">
                             <label translate>widget-config.action-type</label>
                             <md-select name="actionType" required aria-label="{{ 'widget-config.action-type' | translate }}" ng-model="vm.action.type">
-                                <md-option ng-repeat="actionType in vm.types.widgetActionTypes" ng-value="actionType.value">
+                                <md-option ng-repeat="actionType in vm.actionTypes" ng-value="actionType.value">
                                     {{ actionType.name | translate }}
                                 </md-option>
                             </md-select>
@@ -120,7 +120,7 @@
                         </div>
                         <tb-js-func ng-if="vm.action.type == vm.types.widgetActionTypes.custom.value"
                                     ng-model="vm.action.customFunction"
-                                    function-args="{{ ['$event', 'widgetContext', 'entityId'] }}"
+                                    function-args="{{ vm.customFunctionArgs }}"
                                     validation-args="{{ [] }}">
                         </tb-js-func>
                     </fieldset>

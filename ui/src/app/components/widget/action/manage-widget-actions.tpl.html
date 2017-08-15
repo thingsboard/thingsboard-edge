@@ -20,13 +20,13 @@
         <div class="md-toolbar-tools">
             <span translate>widget-config.actions</span>
             <span flex></span>
-            <md-button class="md-icon-button" ng-click="vm.addAction($event)">
+            <md-button ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addAction($event)">
                 <md-icon>add</md-icon>
                 <md-tooltip md-direction="top">
                     {{ 'widget-config.add-action' | translate }}
                 </md-tooltip>
             </md-button>
-            <md-button class="md-icon-button" ng-click="vm.enterFilterMode()">
+            <md-button ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.enterFilterMode()">
                 <md-icon>search</md-icon>
                 <md-tooltip md-direction="top">
                     {{ 'action.search' | translate }}
@@ -74,14 +74,14 @@
                     </td>
                     <td md-cell>{{action.typeName}}</td>
                     <td md-cell class="tb-action-cell">
-                        <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
+                        <md-button ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
                                    ng-click="vm.editAction($event, action)">
                             <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
                             <md-tooltip md-direction="top">
                                 {{ 'widget-config.edit-action' | translate }}
                             </md-tooltip>
                         </md-button>
-                        <md-button class="md-icon-button" aria-label="{{'action.delete' | translate}}" ng-click="vm.deleteAction($event, action)">
+                        <md-button ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{'action.delete' | translate}}" ng-click="vm.deleteAction($event, action)">
                             <md-icon aria-label="Delete" class="material-icons">delete</md-icon>
                             <md-tooltip md-direction="top">
                                 {{ 'widget-config.delete-action' | translate }}

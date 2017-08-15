@@ -60,7 +60,8 @@
                                           entity-type="vm.entityType"
                                           read-only="!vm.isEdit || vm.isReadOnly"
                                           on-default-sort-order-changed="vm.defaultSortOrderChanged(event, column)"
-                                          on-remove-column="vm.removeColumn(event, column)">
+                                          on-remove-column="vm.removeColumn(event, column)"
+                                          on-update-column="vm.updateColumn(column, updatedColumn)">
                             </tb-entity-group-column>
                         </dnd-nodrag>
                     </div>
