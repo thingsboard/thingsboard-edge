@@ -95,6 +95,16 @@
                             {{ 'entity-group.hide-in-mobile-view' | translate }}
                         </md-checkbox>
                         <md-checkbox ng-disabled="loading || vm.readOnly"
+                                     aria-label="{{ 'entity-group.use-cell-style-function' | translate }}"
+                                     ng-model="vm.column.useCellStyleFunction">
+                            {{ 'entity-group.use-cell-style-function' | translate }}
+                        </md-checkbox>
+                        <tb-js-func ng-model="vm.column.cellStyleFunction"
+                                    ng-disabled="loading || vm.readOnly || !vm.column.useCellStyleFunction"
+                                    function-args="{{ ['value', 'entity'] }}"
+                                    validation-args="{{ [] }}">
+                        </tb-js-func>
+                        <md-checkbox ng-disabled="loading || vm.readOnly"
                                      aria-label="{{ 'entity-group.use-cell-content-function' | translate }}"
                                      ng-model="vm.column.useCellContentFunction">
                             {{ 'entity-group.use-cell-content-function' | translate }}

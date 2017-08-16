@@ -34,6 +34,10 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
         scope.types = types;
         scope.aliasFilterTypes = entityService.getAliasFilterTypesByEntityTypes(scope.allowedEntityTypes);
 
+        scope.entityGroupTypes = [types.entityType.device, types.entityType.asset, types.entityType.customer].filter((entityType) =>
+            scope.allowedEntityTypes ? scope.allowedEntityTypes.indexOf(entityType) > -1 : true
+        );
+
         scope.$watch('filter.type', function (newType, prevType) {
             if (newType && newType != prevType) {
                 updateFilter();
@@ -49,6 +53,14 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     filter.singleEntity = null;
                     filter.resolveMultiple = false;
                     break;
+                case types.aliasFilterType.entityGroup.value:
+                    filter.groupStateEntity = false;
+                    filter.stateEntityParamName = null;
+                    filter.defaultStateGroupType = null;
+                    filter.defaultStateEntityGroup = null;
+                    filter.groupType = null;
+                    filter.entityGroup = null;
+                    break;
                 case types.aliasFilterType.entityList.value:
                     filter.entityType = null;
                     filter.entityList = [];
@@ -56,6 +68,14 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                 case types.aliasFilterType.entityName.value:
                     filter.entityType = null;
                     filter.entityNameFilter = '';
+                    break;
+                case types.aliasFilterType.entityGroupList.value:
+                    filter.groupType = null;
+                    filter.entityGroupList = [];
+                    break;
+                case types.aliasFilterType.entityGroupName.value:
+                    filter.groupType = null;
+                    filter.entityGroupNameFilter = '';
                     break;
                 case types.aliasFilterType.stateEntity.value:
                     filter.stateEntityParamName = null;

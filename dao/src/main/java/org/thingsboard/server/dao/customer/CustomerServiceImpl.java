@@ -165,12 +165,10 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     private BiFunction<EntityView, List<EntityField>, EntityView> customerViewFunction = ((entityView, entityFields) -> {
         Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
+        entityView.put(EntityField.NAME.name().toLowerCase(), customer.getName());
         for (EntityField field : entityFields) {
             String key = field.name().toLowerCase();
             switch (field) {
-                case NAME:
-                    entityView.put(key, customer.getName());
-                    break;
                 case TITLE:
                     entityView.put(key, customer.getTitle());
                     break;

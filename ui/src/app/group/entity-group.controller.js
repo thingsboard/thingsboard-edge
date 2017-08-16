@@ -35,6 +35,27 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
     vm.entityType = vm.entityGroup.type;
     vm.columns = vm.entityGroup.configuration.columns;
+    vm.columns.forEach((column) => {
+        if (column.useCellStyleFunction && column.cellStyleFunction && column.cellStyleFunction.length) {
+            try {
+                column.cellStyleFunction = new Function('value, entity', column.cellStyleFunction);
+            } catch (e) {
+                delete column.cellStyleFunction;
+            }
+        } else {
+            delete column.cellStyleFunction;
+        }
+        if (column.useCellContentFunction && column.cellContentFunction && column.cellContentFunction.length) {
+            try {
+                column.cellContentFunction = new Function('value, entity, $filter', column.cellContentFunction);
+            } catch (e) {
+                delete column.cellContentFunction;
+            }
+        } else {
+            delete column.cellContentFunction;
+        }
+    });
+
     vm.translations = vm.types.entityTypeTranslations[vm.entityType];
 
     vm.entityGroupConfig.onDeleteEntity = deleteEntity;
@@ -319,16 +340,6 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         if (vm.currentEntity != entity) {
             vm.currentEntity = entity;
             vm.isDetailsOpen = true;
-            /*var descriptors = vm.ctx.actionsApi.getActionDescriptors('rowClick');
-             if (descriptors.length) {
-             var entityId;
-             var entityName;
-             if (vm.currentEntity) {
-             entityId = vm.currentEntity.id;
-             entityName = vm.currentEntity.entityName;
-             }
-             vm.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName);
-             }*/
         } else {
             vm.isDetailsOpen = !vm.isDetailsOpen;
         }
@@ -414,16 +425,25 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         }
     }
 
-    function cellStyle(/*entity, column*/) {
-        //TODO:
-        return {};
+    function cellStyle(entity, column) {
+        var style;
+        if (column.cellStyleFunction) {
+            var value = entity[column.key];
+            try {
+                style = column.cellStyleFunction(value, entity);
+            } catch (e) {
+                style = {};
+            }
+        } else {
+            style = {};
+        }
+        return style;
     }
 
     function cellContent(entity, column) {
-        //TODO:
         var content;
         var value = entity[column.key];
-        if (column.useCellContentFunction && column.cellContentFunction) {
+        if (column.cellContentFunction) {
             var strContent = '';
             if (angular.isDefined(value)) {
                 strContent = '' + value;
@@ -503,6 +523,10 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 index = vm.entities.indexOf(prevEntity);
                 if (index > -1) {
                     vm.entities.splice(index, 1);
+                }
+                index = vm.selectedEntities.indexOf(prevEntity);
+                if (index > -1) {
+                    vm.selectedEntities.splice(index, 1);
                 }
             }
         });

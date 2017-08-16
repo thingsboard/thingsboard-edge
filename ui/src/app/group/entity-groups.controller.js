@@ -194,10 +194,12 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
             $event.stopPropagation();
         }
         var targetState;
-        if (entityGroup.type == types.entityType.device) {
-            targetState = 'home.deviceGroups.deviceGroup';
-        } else if (entityGroup.type == types.entityType.asset) {
+        if (entityGroup.type == types.entityType.asset) {
             targetState = 'home.assetGroups.assetGroup';
+        } else if (entityGroup.type == types.entityType.device) {
+            targetState = 'home.deviceGroups.deviceGroup';
+        } else if (entityGroup.type == types.entityType.customer) {
+            targetState = 'home.customerGroups.customerGroup';
         }
         if (targetState) {
             $state.go(targetState, {entityGroupId: entityGroup.id.id});

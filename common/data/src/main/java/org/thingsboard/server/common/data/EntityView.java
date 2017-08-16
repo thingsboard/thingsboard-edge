@@ -18,13 +18,15 @@ package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class EntityView implements HasId<EntityId> {
+public class EntityView implements HasId<EntityId>, HasName {
 
     private final EntityId id;
     private Map<String, String> properties = new HashMap<>();
@@ -50,6 +52,12 @@ public class EntityView implements HasId<EntityId> {
     }
 
     @Override
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public String getName() {
+        return this.properties.get(EntityField.NAME.name().toLowerCase());
+    }
+
+    @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (id != null ? id.hashCode() : 0);
@@ -67,4 +75,5 @@ public class EntityView implements HasId<EntityId> {
         return id != null ? id.equals(that.id) : that.id == null;
 
     }
+
 }

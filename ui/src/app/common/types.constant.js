@@ -161,6 +161,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'singleEntity',
                     name: 'alias.filter-type-single-entity'
                 },
+                entityGroup: {
+                    value: 'entityGroup',
+                    name: 'alias.filter-type-entity-group'
+                },
                 entityList: {
                     value: 'entityList',
                     name: 'alias.filter-type-entity-list'
@@ -168,6 +172,14 @@ export default angular.module('thingsboard.types', [])
                 entityName: {
                     value: 'entityName',
                     name: 'alias.filter-type-entity-name'
+                },
+                entityGroupList: {
+                    value: 'entityGroupList',
+                    name: 'alias.filter-type-entity-group-list'
+                },
+                entityGroupName: {
+                    value: 'entityGroupName',
+                    name: 'alias.filter-type-entity-group-name'
                 },
                 stateEntity: {
                     value: 'stateEntity',
@@ -401,7 +413,10 @@ export default angular.module('thingsboard.types', [])
                     search: 'device.search',
                     selectGroupToAdd: 'device.select-group-to-add',
                     selectGroupToMove: 'device.select-group-to-move',
-                    removeFromGroup: 'device.remove-devices-from-group'
+                    removeFromGroup: 'device.remove-devices-from-group',
+                    group: 'device.group',
+                    groupList: 'device.list-of-groups',
+                    groupNameStartsWith: 'device.group-name-starts-with'
                 },
                 "ASSET": {
                     type: 'entity.type-asset',
@@ -415,7 +430,10 @@ export default angular.module('thingsboard.types', [])
                     search: 'asset.search',
                     selectGroupToAdd: 'asset.select-group-to-add',
                     selectGroupToMove: 'asset.select-group-to-move',
-                    removeFromGroup: 'asset.remove-assets-from-group'
+                    removeFromGroup: 'asset.remove-assets-from-group',
+                    group: 'asset.group',
+                    groupList: 'asset.list-of-groups',
+                    groupNameStartsWith: 'asset.group-name-starts-with'
                 },
                 "RULE": {
                     type: 'entity.type-rule',
@@ -456,7 +474,10 @@ export default angular.module('thingsboard.types', [])
                     search: 'customer.search',
                     selectGroupToAdd: 'customer.select-group-to-add',
                     selectGroupToMove: 'customer.select-group-to-move',
-                    removeFromGroup: 'customer.remove-customers-from-group'
+                    removeFromGroup: 'customer.remove-customers-from-group',
+                    group: 'customer.group',
+                    groupList: 'customer.list-of-groups',
+                    groupNameStartsWith: 'customer.group-name-starts-with'
                 },
                 "USER": {
                     type: 'entity.type-user',
@@ -484,6 +505,9 @@ export default angular.module('thingsboard.types', [])
                     nameStartsWith: 'entity.alarm-name-starts-with',
                     details: 'alarm.alarm-details',
                     add: 'alarm.alarm'
+                },
+                "ENTITY_GROUP": {
+                    type: 'entity.type-entity-group'
                 }
             },
             entitySearchDirection: {

@@ -18,13 +18,14 @@ export default angular.module('thingsboard.api.entityGroup', [])
     .name;
 
 /*@ngInject*/
-function EntityGroupService($http, $q) {
+function EntityGroupService($http, $q, utils) {
 
     var service = {
         getEntityGroup: getEntityGroup,
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
         getTenantEntityGroups: getTenantEntityGroups,
+        getTenantEntityGroupsByPageLink: getTenantEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
         removeEntityFromEntityGroup: removeEntityFromEntityGroup,
@@ -88,6 +89,19 @@ function EntityGroupService($http, $q) {
         }, function fail() {
             deferred.reject();
         });
+        return deferred.promise;
+    }
+
+    function getTenantEntityGroupsByPageLink(pageLink, groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        getTenantEntityGroups(groupType, ignoreErrors, config).then(
+            function success(entityGroups) {
+                utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
+            },
+            function fail() {
+                deferred.reject();
+            }
+        );
         return deferred.promise;
     }
 

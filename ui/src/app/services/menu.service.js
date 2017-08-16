@@ -26,6 +26,15 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
     var sections = [];
     var homeSections = [];
 
+    var customerGroups = {
+        name: 'customer.customers',
+        type: 'toggle',
+        state: 'home.customerGroups',
+        height: '0px',
+        icon: 'supervisor_account',
+        pages: []
+    };
+
     var assetGroups = {
         name: 'asset.assets',
         type: 'toggle',
@@ -199,12 +208,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             state: 'home.rules',
                             icon: 'settings_ethernet'
                         },
-                        {
-                            name: 'customer.customers',
-                            type: 'link',
-                            state: 'home.customers',
-                            icon: 'supervisor_account'
-                        },
+                        customerGroups,
                         assetGroups,
                         deviceGroups,
                         {
@@ -242,7 +246,8 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                 {
                                     name: 'customer.customers',
                                     icon: 'supervisor_account',
-                                    state: 'home.customers'
+                                    //state: 'home.customers',
+                                    state: 'home.customerGroups'
                                 }
                             ]
                         },
@@ -284,6 +289,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                 ]
                             }];
 
+                    loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account');
                     loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain');
                     loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other');
 

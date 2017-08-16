@@ -23,11 +23,11 @@ import entityGroupTemplate from './entity-group.tpl.html';
 /*@ngInject*/
 export default function EntityGroupRoutes($stateProvider, types) {
     $stateProvider
-        .state('home.deviceGroups', {
-            url: '/deviceGroups',
-            params: {'groupType': types.entityType.device, 'topIndex': 0},
+        .state('home.customerGroups', {
+            url: '/customerGroups',
+            params: {'groupType': types.entityType.customer, 'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            auth: ['TENANT_ADMIN'],
             views: {
                 "content@home": {
                     templateUrl: entityGroupsTemplate,
@@ -37,17 +37,17 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             data: {
                 searchEnabled: true,
-                pageTitle: 'entity-group.device-groups'
+                pageTitle: 'entity-group.customer-groups'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "devices_other", "label": "entity-group.device-groups"}'
+                label: '{"icon": "supervisor_account", "label": "entity-group.customer-groups"}'
             }
         })
-        .state('home.deviceGroups.deviceGroup', {
+        .state('home.customerGroups.customerGroup', {
             url: '/:entityGroupId',
             reloadOnSearch: false,
             module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            auth: ['TENANT_ADMIN'],
             views: {
                 "content@home": {
                     templateUrl: entityGroupTemplate,
@@ -57,17 +57,17 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             resolve: {
                 entityGroup:
-                    /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, deviceGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, deviceGroupConfig);
+                /*@ngInject*/
+                    function($stateParams, $q, entityGroupService, customerGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, customerGroupConfig);
                     }
             },
             data: {
                 searchEnabled: false,
-                pageTitle: 'entity-group.device-group'
+                pageTitle: 'entity-group.customer-group'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         })
         .state('home.assetGroups', {
@@ -116,7 +116,55 @@ export default function EntityGroupRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
+        })
+        .state('home.deviceGroups', {
+            url: '/deviceGroups',
+            params: {'groupType': types.entityType.device, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controller: 'EntityGroupsController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.device-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "entity-group.device-groups"}'
+            }
+        })
+        .state('home.deviceGroups.deviceGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup:
+                    /*@ngInject*/
+                    function($stateParams, $q, entityGroupService, deviceGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, deviceGroupConfig);
+                    }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.device-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
         });
+
 
     function constructGroupConfig($stateParams, $q, entityGroupService, entityGroupConfigFactory) {
         var deferred = $q.defer();

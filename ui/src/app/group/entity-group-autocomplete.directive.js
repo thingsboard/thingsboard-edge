@@ -39,7 +39,11 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
             if (!scope.allEntityGroups) {
                 entityGroupService.getTenantEntityGroups(scope.groupType).then(
                     function success(entityGroups) {
-                        scope.allEntityGroups = $filter('filter')(entityGroups, {groupAll: false});
+                        if (scope.excludeGroupAll) {
+                            scope.allEntityGroups = $filter('filter')(entityGroups, {groupAll: false});
+                        } else {
+                            scope.allEntityGroups = entityGroups;
+                        }
                         if (scope.excludeGroupIds) {
                             scope.excludeGroupIds.forEach((excludeId) => {
                                 var toExclude = $filter('filter')(scope.allEntityGroups, {id: {id: excludeId}}, true);
@@ -96,6 +100,14 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
             scope.updateView();
         });
 
+        scope.$watch('groupType', function (newGroupType, prevGroupType) {
+            if (!angular.equals(newGroupType, prevGroupType)) {
+                scope.allEntityGroups = null;
+                scope.entityGroup = null;
+                scope.updateView();
+            }
+        });
+
         scope.$watch('disabled', function () {
             scope.updateView();
         });
@@ -112,6 +124,7 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
             theForm: '=?',
             tbRequired: '=?',
             excludeGroupIds: '=?',
+            excludeGroupAll: '=?',
             disabled:'=ngDisabled',
             placeholderText: '@',
             notFoundText: '@',

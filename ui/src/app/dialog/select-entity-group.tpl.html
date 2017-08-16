@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="{{ vm.selectEntityGroupTitle | translate }}" style="width: 800px;">
+<md-dialog aria-label="{{ vm.selectEntityGroupTitle | translate }}" class="tb-select-entity-group-dialog" style="width: 800px;">
     <form name="theForm" ng-submit="vm.selectEntityGroup()">
         <md-toolbar>
             <div class="md-toolbar-tools">
@@ -32,17 +32,37 @@
             <div class="md-dialog-content">
                 <md-content class="md-padding" layout="column">
                     <fieldset ng-disabled="loading">
-                        <tb-entity-group-autocomplete
-                                ng-model="vm.targetEntityGroupId"
-                                tb-required="true"
-                                group-type="vm.targetGroupType"
-                                the-form="theForm"
-                                exclude-group-ids="vm.excludeGroupIds"
-                                placeholder-text="{{vm.placeholderText}}"
-                                not-found-text="{{vm.notFoundText}}"
-                                required-text="{{vm.requiredText}}"
-                        >
-                        </tb-entity-group-autocomplete>
+                        <md-radio-group ng-model="vm.addToGroupType" class="md-primary">
+                            <md-radio-button flex ng-value=0 class="md-primary md-align-top-left md-radio-interactive">
+                                <section flex layout="column">
+                                    <span translate style="padding-bottom: 10px;">entity-group.select-existing</span>
+                                    <tb-entity-group-autocomplete
+                                            ng-model="vm.targetEntityGroupId"
+                                            tb-required="vm.addToGroupType === 0"
+                                            group-type="vm.targetGroupType"
+                                            the-form="theForm"
+                                            exclude-group-ids="vm.excludeGroupIds"
+                                            exclude-group-all="true"
+                                            placeholder-text="{{vm.placeholderText}}"
+                                            not-found-text="{{vm.notFoundText}}"
+                                            required-text="{{vm.requiredText}}"
+                                    >
+                                    </tb-entity-group-autocomplete>
+                                </section>
+                            </md-radio-button>
+                            <md-radio-button flex ng-value=1 class="md-primary md-align-top-left md-radio-interactive">
+                                <section flex layout="column">
+                                    <span translate>entity-group.create-new</span>
+                                    <md-input-container class="md-block">
+                                        <label translate>entity-group.new-entity-group-name</label>
+                                        <input ng-required="vm.addToGroupType === 1" name="title" ng-model="vm.newEntityGroup.name">
+                                        <div ng-messages="theForm.title.$error">
+                                            <div translate ng-message="required">entity-group.name-required</div>
+                                        </div>
+                                    </md-input-container>
+                                </section>
+                            </md-radio-button>
+                        </md-radio-group>
                     </fieldset>
                 </md-content>
             </div>

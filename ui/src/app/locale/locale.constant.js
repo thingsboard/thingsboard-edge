@@ -165,8 +165,11 @@ export default angular.module('thingsboard.locale', [])
                     "name-required": "Alias name is required",
                     "duplicate-alias": "Alias with same name is already exists.",
                     "filter-type-single-entity": "Single entity",
+                    "filter-type-entity-group": "Group entities",
                     "filter-type-entity-list": "Entity list",
                     "filter-type-entity-name": "Entity name",
+                    "filter-type-entity-group-list": "Entity group list",
+                    "filter-type-entity-group-name": "Entity group name",
                     "filter-type-state-entity": "Entity from dashboard state",
                     "filter-type-state-entity-description": "Entity taken from dashboard state parameters",
                     "filter-type-asset-type": "Asset type",
@@ -188,13 +191,16 @@ export default angular.module('thingsboard.locale', [])
                     "entity-filter-no-entity-matched": "No entities matching specified filter were found.",
                     "no-entity-filter-specified": "No entity filter specified",
                     "root-state-entity": "Use dashboard state entity as root",
+                    "group-state-entity": "Use dashboard state entity as entity group",
                     "root-entity": "Root entity",
                     "state-entity-parameter-name": "State entity parameter name",
                     "default-state-entity": "Default state entity",
+                    "default-state-entity-group": "Default state entity group",
                     "default-entity-parameter-name": "By default",
                     "max-relation-level": "Max relation level",
                     "unlimited-level": "Unlimited level",
                     "state-entity": "Dashboard state entity",
+                    "entities-of-group-state-entity": "Entities from dashboard state entity group",
                     "all-entities": "All entities",
                     "any-relation": "any"
                 },
@@ -263,7 +269,10 @@ export default angular.module('thingsboard.locale', [])
                     "search": "Search assets",
                     "select-group-to-add": "Select target group to add selected assets",
                     "select-group-to-move": "Select target group to move selected assets",
-                    "remove-assets-from-group": "Are you sure you want to remove { count, select, 1 {1 asset} other {# assets} } from group '{entityGroup}'?"
+                    "remove-assets-from-group": "Are you sure you want to remove { count, select, 1 {1 asset} other {# assets} } from group '{entityGroup}'?",
+                    "group": "Group of assets",
+                    "list-of-groups": "{ count, select, 1 {One asset group} other {List of # asset groups} }",
+                    "group-name-starts-with": "Asset groups whose names start with '{{prefix}}'"
                 },
                 "attribute": {
                     "attributes": "Attributes",
@@ -362,7 +371,10 @@ export default angular.module('thingsboard.locale', [])
                     "search": "Search customers",
                     "select-group-to-add": "Select target group to add selected customers",
                     "select-group-to-move": "Select target group to move selected customers",
-                    "remove-customers-from-group": "Are you sure you want to remove { count, select, 1 {1 customer} other {# customers} } from group '{entityGroup}'?"
+                    "remove-customers-from-group": "Are you sure you want to remove { count, select, 1 {1 customer} other {# customers} } from group '{entityGroup}'?",
+                    "group": "Group of customers",
+                    "list-of-groups": "{ count, select, 1 {One customer group} other {List of # customer groups} }",
+                    "group-name-starts-with": "Customer groups whose names start with '{{prefix}}'"
                 },
                 "datetime": {
                     "date-from": "Date from",
@@ -634,7 +646,10 @@ export default angular.module('thingsboard.locale', [])
                     "search": "Search devices",
                     "select-group-to-add": "Select target group to add selected devices",
                     "select-group-to-move": "Select target group to move selected devices",
-                    "remove-devices-from-group": "Are you sure you want to remove { count, select, 1 {1 device} other {# devices} } from group '{entityGroup}'?"
+                    "remove-devices-from-group": "Are you sure you want to remove { count, select, 1 {1 device} other {# devices} } from group '{entityGroup}'?",
+                    "group": "Group of devices",
+                    "list-of-groups": "{ count, select, 1 {One device group} other {List of # device groups} }",
+                    "group-name-starts-with": "Device groups whose names start with '{{prefix}}'"
                 },
                 "dialog": {
                     "close": "Close dialog"
@@ -725,9 +740,11 @@ export default angular.module('thingsboard.locale', [])
                     "entity-name": "Entity name",
                     "details": "Entity details",
                     "no-entities-prompt": "No entities found",
-                    "no-data": "No data to display"
+                    "no-data": "No data to display",
+                    "type-entity-group": "Entity Group"
                 },
                 "entity-group": {
+                    "entity-group": "Entity group",
                     "details": "Details",
                     "columns": "Columns",
                     "add-column": "Add column",
@@ -737,6 +754,7 @@ export default angular.module('thingsboard.locale', [])
                     "default-sort-order": "Default sort order",
                     "default-sort-order-required": "Default sort order is required.",
                     "hide-in-mobile-view": "Mobile hidden",
+                    "use-cell-style-function": "Use cell style function",
                     "use-cell-content-function": "Use cell content function",
                     "edit-column": "Edit column",
                     "column-details": "Column details",
@@ -758,8 +776,10 @@ export default angular.module('thingsboard.locale', [])
                     "delete-entity-groups-text": "Be careful, after the confirmation all selected entity groups will be removed and all related data will become unrecoverable.",
                     "device-groups": "Device groups",
                     "asset-groups": "Asset groups",
+                    "customer-groups": "Customer groups",
                     "device-group": "Device group",
                     "asset-group": "Asset group",
+                    "customer-group": "Customer group",
                     "fetch-more": "Fetch more",
                     "column-type": {
                         "column-type": "Column type",
@@ -800,6 +820,7 @@ export default angular.module('thingsboard.locale', [])
                     },
                     "add-to-group": "Add to group",
                     "move-to-group": "Move to group",
+                    "select-entity-group": "Select entity group",
                     "no-entity-groups-matching": "No entity groups matching '{{entityGroup}}' were found.",
                     "target-entity-group-required": "Target entity group is required.",
                     "remove-from-group": "Remove from group",
@@ -813,7 +834,18 @@ export default angular.module('thingsboard.locale', [])
                     "default-page-size": "Default page size",
                     "enable-assignment-actions": "Enable assignment actions",
                     "enable-credentials-management": "Enable credentials management",
-                    "open-details-on": "Open entity details on"
+                    "enable-users-management": "Enable users management",
+                    "enable-assets-management": "Enable assets management",
+                    "enable-devices-management": "Enable devices management",
+                    "enable-dashboards-management": "Enable dashboards management",
+                    "open-details-on": "Open entity details on",
+                    "select-existing": "Select existing entity group",
+                    "create-new": "Create new entity group",
+                    "new-entity-group-name": "New entity group name",
+                    "entity-group-list": "Entity group list",
+                    "entity-group-list-empty": "No entity groups selected.",
+                    "name-starts-with": "Entity group name starts with",
+                    "entity-group-name-filter-required": "Entity group name filter is required."
                 },
                 "event": {
                     "events": "Events",

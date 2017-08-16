@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div style="background: #fff;" tb-expand-fullscreen fullscreen-zindex="100" expand-button-id="expand-button" on-fullscreen-changed="onFullscreenChanged()" layout="column">
+<div style="background: #fff;" ng-class="{'tb-disabled': disabled}"tb-expand-fullscreen fullscreen-zindex="100" expand-button-id="expand-button" on-fullscreen-changed="onFullscreenChanged()" layout="column">
 	<div layout="row" layout-align="start center" style="height: 40px;">
 		<span style="font-style: italic;">function({{ functionArgsString }}) {</span>
 		<span flex></span>

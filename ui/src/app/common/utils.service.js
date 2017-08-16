@@ -590,6 +590,20 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
                 settings.enableCredentialsManagement = true;
             }
         }
+        if (entityType == types.entityType.customer) {
+            if (angular.isUndefined(settings.enableUsersManagement)) {
+                settings.enableUsersManagement = true;
+            }
+            if (angular.isUndefined(settings.enableAssetsManagement)) {
+                settings.enableAssetsManagement = true;
+            }
+            if (angular.isUndefined(settings.enableDevicesManagement)) {
+                settings.enableDevicesManagement = true;
+            }
+            if (angular.isUndefined(settings.enableDashboardsManagement)) {
+                settings.enableDashboardsManagement = true;
+            }
+        }
         return settings;
     }
 }

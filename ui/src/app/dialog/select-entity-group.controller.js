@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import './select-entity-group.scss';
+
 /*@ngInject*/
-export default function SelectEntityGroupController($scope, $mdDialog,
+export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService,
                                                     targetGroupType, selectEntityGroupTitle, confirmSelectTitle, placeholderText,
                                                     notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {
 
@@ -30,6 +32,11 @@ export default function SelectEntityGroupController($scope, $mdDialog,
     vm.onEntityGroupSelected = onEntityGroupSelected;
     vm.excludeGroupIds = excludeGroupIds;
 
+    vm.addToGroupType = 0;
+    vm.newEntityGroup = {
+        type: targetGroupType
+    };
+
     vm.selectEntityGroup = selectEntityGroup;
     vm.cancel = cancel;
 
@@ -39,14 +46,27 @@ export default function SelectEntityGroupController($scope, $mdDialog,
 
     function selectEntityGroup() {
         $scope.theForm.$setPristine();
+        if (vm.addToGroupType === 1) {
+            entityGroupService.saveEntityGroup(vm.newEntityGroup).then(
+                (entityGroup) => {
+                    groupSelected(entityGroup.id.id);
+                    $rootScope.$broadcast(targetGroupType+'changed');
+                }
+            );
+        } else {
+            groupSelected(vm.targetEntityGroupId);
+        }
+    }
+
+    function groupSelected(entityGroupId) {
         if (onEntityGroupSelected) {
-            onEntityGroupSelected(vm.targetEntityGroupId).then(
+            onEntityGroupSelected(entityGroupId).then(
                 () => {
                     $mdDialog.hide();
                 }
             );
         } else {
-            $mdDialog.hide(vm.targetEntityGroupId);
+            $mdDialog.hide(entityGroupId);
         }
     }
 }

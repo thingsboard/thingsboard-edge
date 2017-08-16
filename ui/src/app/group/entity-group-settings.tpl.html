@@ -59,5 +59,19 @@
         <md-checkbox ng-if="vm.entityType == vm.types.entityType.device" ng-disabled="loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-credentials-management' | translate }}"
                      ng-model="vm.settings.enableCredentialsManagement">{{ 'entity-group.enable-credentials-management' | translate }}
         </md-checkbox>
+        <section ng-if="vm.entityType == vm.types.entityType.customer" layout="column">
+            <md-checkbox ng-disabled="loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-users-management' | translate }}"
+                         ng-model="vm.settings.enableUsersManagement">{{ 'entity-group.enable-users-management' | translate }}
+            </md-checkbox>
+            <md-checkbox ng-disabled="loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-assets-management' | translate }}"
+                         ng-model="vm.settings.enableAssetsManagement">{{ 'entity-group.enable-assets-management' | translate }}
+            </md-checkbox>
+            <md-checkbox ng-disabled="loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-devices-management' | translate }}"
+                         ng-model="vm.settings.enableDevicesManagement">{{ 'entity-group.enable-devices-management' | translate }}
+            </md-checkbox>
+            <md-checkbox ng-disabled="loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-dashboards-management' | translate }}"
+                         ng-model="vm.settings.enableDashboardsManagement">{{ 'entity-group.enable-dashboards-management' | translate }}
+            </md-checkbox>
+        </section>
     </fieldset>
 </md-content>
