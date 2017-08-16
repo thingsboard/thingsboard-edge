@@ -782,6 +782,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             var value;
             if (keyData && keyData.length) {
                 value = keyData[0][1];
+            } else {
+                value = '';
             }
             if (!angular.equals(entity[key], value)) {
                 entity[key] = value;
