@@ -779,15 +779,12 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         var updated = false;
         for (var key in data) {
             var keyData = data[key];
-            var value;
             if (keyData && keyData.length) {
-                value = keyData[0][1];
-            } else {
-                value = '';
-            }
-            if (!angular.equals(entity[key], value)) {
-                entity[key] = value;
-                updated = true;
+                var value = keyData[0][1];
+                if (!angular.equals(entity[key], value)) {
+                    entity[key] = value;
+                    updated = true;
+                }
             }
         }
         if (updated) {
