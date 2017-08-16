@@ -161,6 +161,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'singleEntity',
                     name: 'alias.filter-type-single-entity'
                 },
+                entityGroup: {
+                    value: 'entityGroup',
+                    name: 'alias.filter-type-entity-group'
+                },
                 entityList: {
                     value: 'entityList',
                     name: 'alias.filter-type-entity-list'
@@ -168,6 +172,14 @@ export default angular.module('thingsboard.types', [])
                 entityName: {
                     value: 'entityName',
                     name: 'alias.filter-type-entity-name'
+                },
+                entityGroupList: {
+                    value: 'entityGroupList',
+                    name: 'alias.filter-type-entity-group-list'
+                },
+                entityGroupName: {
+                    value: 'entityGroupName',
+                    name: 'alias.filter-type-entity-group-name'
                 },
                 stateEntity: {
                     value: 'stateEntity',
@@ -343,6 +355,20 @@ export default angular.module('thingsboard.types', [])
                         name: 'entity-group.entity-field.phone',
                         value: 'phone'
                     }
+                },
+                detailsMode: {
+                    onRowClick: {
+                        name: 'entity-group.details-mode.on-row-click',
+                        value: 'onRowClick'
+                    },
+                    onActionButtonClick: {
+                        name: 'entity-group.details-mode.on-action-button-click',
+                        value: 'onActionButtonClick'
+                    },
+                    disabled: {
+                        name: 'entity-group.details-mode.disabled',
+                        value: 'disabled'
+                    }
                 }
             },
             entityTypeResources: {
@@ -384,7 +410,13 @@ export default angular.module('thingsboard.types', [])
                     add: 'device.add',
                     noEntities: 'device.no-devices-text',
                     selectedEntities: 'device.selected-devices',
-                    search: 'device.search'
+                    search: 'device.search',
+                    selectGroupToAdd: 'device.select-group-to-add',
+                    selectGroupToMove: 'device.select-group-to-move',
+                    removeFromGroup: 'device.remove-devices-from-group',
+                    group: 'device.group',
+                    groupList: 'device.list-of-groups',
+                    groupNameStartsWith: 'device.group-name-starts-with'
                 },
                 "ASSET": {
                     type: 'entity.type-asset',
@@ -395,7 +427,13 @@ export default angular.module('thingsboard.types', [])
                     add: 'asset.add',
                     noEntities: 'asset.no-assets-text',
                     selectedEntities: 'asset.selected-assets',
-                    search: 'asset.search'
+                    search: 'asset.search',
+                    selectGroupToAdd: 'asset.select-group-to-add',
+                    selectGroupToMove: 'asset.select-group-to-move',
+                    removeFromGroup: 'asset.remove-assets-from-group',
+                    group: 'asset.group',
+                    groupList: 'asset.list-of-groups',
+                    groupNameStartsWith: 'asset.group-name-starts-with'
                 },
                 "RULE": {
                     type: 'entity.type-rule',
@@ -433,7 +471,13 @@ export default angular.module('thingsboard.types', [])
                     add: 'customer.add',
                     noEntities: 'customer.no-customers-text',
                     selectedEntities: 'customer.selected-customers',
-                    search: 'customer.search'
+                    search: 'customer.search',
+                    selectGroupToAdd: 'customer.select-group-to-add',
+                    selectGroupToMove: 'customer.select-group-to-move',
+                    removeFromGroup: 'customer.remove-customers-from-group',
+                    group: 'customer.group',
+                    groupList: 'customer.list-of-groups',
+                    groupNameStartsWith: 'customer.group-name-starts-with'
                 },
                 "USER": {
                     type: 'entity.type-user',
@@ -461,6 +505,9 @@ export default angular.module('thingsboard.types', [])
                     nameStartsWith: 'entity.alarm-name-starts-with',
                     details: 'alarm.alarm-details',
                     add: 'alarm.alarm'
+                },
+                "ENTITY_GROUP": {
+                    type: 'entity.type-entity-group'
                 }
             },
             entitySearchDirection: {
@@ -587,6 +634,16 @@ export default angular.module('thingsboard.types', [])
                     name: 'widget-action.update-dashboard-state',
                     value: 'updateDashboardState'
                 },
+                openDashboard: {
+                    name: 'widget-action.open-dashboard',
+                    value: 'openDashboard'
+                },
+                custom: {
+                    name: 'widget-action.custom',
+                    value: 'custom'
+                }
+            },
+            entityGroupActionTypes: {
                 openDashboard: {
                     name: 'widget-action.open-dashboard',
                     value: 'openDashboard'

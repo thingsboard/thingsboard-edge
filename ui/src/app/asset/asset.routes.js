@@ -67,6 +67,34 @@ export default function AssetRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "domain", "label": "{{ vm.customerAssetsTitle }}", "translate": "false"}'
             }
+        })
+        .state('home.customerGroups.customerGroup.assets', {
+            url: '/:customerId/assets',
+            params: {'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: assetsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('AssetController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            data: {
+                assetsType: 'customer',
+                searchEnabled: true,
+                searchByEntitySubtype: true,
+                searchEntityType: types.entityType.asset,
+                pageTitle: 'customer.assets'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "{{ vm.customerAssetsTitle }}", "translate": "false"}'
+            }
         });
-
 }

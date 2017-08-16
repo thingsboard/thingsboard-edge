@@ -227,6 +227,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     private BiFunction<EntityView, List<EntityField>, EntityView> userViewFunction = ((entityView, entityFields) -> {
         User user = findUserById(new UserId(entityView.getId().getId()));
+        entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
         for (EntityField field : entityFields) {
             String key = field.name().toLowerCase();
             switch (field) {
@@ -241,9 +242,6 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                     break;
                 case EMAIL:
                     entityView.put(key, user.getEmail());
-                    break;
-                case NAME:
-                    entityView.put(key, user.getName());
                     break;
             }
         }

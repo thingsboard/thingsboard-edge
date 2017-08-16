@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import SelectEntityGroupController from './select-entity-group.controller';
 import Dialogs from './dialogs.service';
 
 export default angular.module('thingsboard.dialogs', [])
+    .controller('SelectEntityGroupController', SelectEntityGroupController)
     .factory('tbDialogs', Dialogs)
     .name;

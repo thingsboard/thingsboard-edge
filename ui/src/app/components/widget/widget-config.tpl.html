@@ -288,8 +288,10 @@
     <md-tab label="{{ 'widget-config.actions' | translate }}">
         <md-content class="md-padding" layout="column">
             <tb-manage-widget-actions
+                    action-types="types.widgetActionTypes"
                     action-sources="actionSources"
                     widget-actions="actions"
+                    custom-function-args="['$event', 'widgetContext', 'entityId', 'entityName']"
                     fetch-dashboard-states="fetchDashboardStates({query: query})">
             </tb-manage-widget-actions>
         </md-content>

@@ -17,7 +17,6 @@
 
 import addAssetTemplate from './add-asset.tpl.html';
 import assetCard from './asset-card.tpl.html';
-import assignToCustomerTemplate from './assign-to-customer.tpl.html';
 import addAssetsToCustomerTemplate from './add-assets-to-customer.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -47,7 +46,7 @@ export function AssetCardController(types) {
 
 
 /*@ngInject*/
-export function AssetController($rootScope, userService, assetService, customerService, $state, $stateParams,
+export function AssetController($rootScope, tbDialogs, userService, assetService, customerService, $state, $stateParams,
                                 $document, $mdDialog, $q, $translate, types) {
 
     var customerId = $stateParams.customerId;
@@ -361,38 +360,11 @@ export function AssetController($rootScope, userService, assetService, customerS
     }
 
     function assignToCustomer($event, assetIds) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var pageSize = 10;
-        customerService.getCustomers({limit: pageSize, textSearch: ''}).then(
-            function success(_customers) {
-                var customers = {
-                    pageSize: pageSize,
-                    data: _customers.data,
-                    nextPageLink: _customers.nextPageLink,
-                    selection: null,
-                    hasNext: _customers.hasNext,
-                    pending: false
-                };
-                if (customers.hasNext) {
-                    customers.nextPageLink.limit = pageSize;
-                }
-                $mdDialog.show({
-                    controller: 'AssignAssetToCustomerController',
-                    controllerAs: 'vm',
-                    templateUrl: assignToCustomerTemplate,
-                    locals: {assetIds: assetIds, customers: customers},
-                    parent: angular.element($document[0].body),
-                    fullscreen: true,
-                    targetEvent: $event
-                }).then(function () {
-                    vm.grid.refreshList();
-                }, function () {
-                });
-            },
-            function fail() {
-            });
+        tbDialogs.assignAssetsToCustomer($event, assetIds).then(
+            () => {
+                vm.grid.refreshList();
+            }
+        );
     }
 
     function addAssetsToCustomer($event) {
@@ -440,69 +412,30 @@ export function AssetController($rootScope, userService, assetService, customerS
     }
 
     function unassignFromCustomer($event, asset, isPublic) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var title;
-        var content;
-        var label;
-        if (isPublic) {
-            title = $translate.instant('asset.make-private-asset-title', {assetName: asset.name});
-            content = $translate.instant('asset.make-private-asset-text');
-            label = $translate.instant('asset.make-private');
-        } else {
-            title = $translate.instant('asset.unassign-asset-title', {assetName: asset.name});
-            content = $translate.instant('asset.unassign-asset-text');
-            label = $translate.instant('asset.unassign-asset');
-        }
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title(title)
-            .htmlContent(content)
-            .ariaLabel(label)
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            assetService.unassignAssetFromCustomer(asset.id.id).then(function success() {
+        tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
+            () => {
                 vm.grid.refreshList();
-            });
-        });
+            }
+        );
     }
 
     function unassignAssetsFromCustomer($event, items) {
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title($translate.instant('asset.unassign-assets-title', {count: items.selectedCount}, 'messageformat'))
-            .htmlContent($translate.instant('asset.unassign-assets-text'))
-            .ariaLabel($translate.instant('asset.unassign-asset'))
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            var tasks = [];
-            for (var id in items.selections) {
-                tasks.push(assetService.unassignAssetFromCustomer(id));
-            }
-            $q.all(tasks).then(function () {
+        var assetIds = [];
+        for (var id in items.selections) {
+            assetIds.push(id);
+        }
+        tbDialogs.unassignAssetsFromCustomer($event, assetIds).then(
+            () => {
                 vm.grid.refreshList();
-            });
-        });
+            }
+        );
     }
 
     function makePublic($event, asset) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title($translate.instant('asset.make-public-asset-title', {assetName: asset.name}))
-            .htmlContent($translate.instant('asset.make-public-asset-text'))
-            .ariaLabel($translate.instant('asset.make-public'))
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            assetService.makeAssetPublic(asset.id.id).then(function success() {
+        tbDialogs.makeAssetPublic($event, asset).then(
+            () => {
                 vm.grid.refreshList();
-            });
-        });
+            }
+        );
     }
 }

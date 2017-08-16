@@ -16,11 +16,13 @@
 
 package org.thingsboard.server.common.data.group;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.thingsboard.server.common.data.EntityType;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityGroupConfiguration {
 
     private List<ColumnConfiguration> columns;

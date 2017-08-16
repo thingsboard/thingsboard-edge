@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*@ngInject*/
-export default function AssetGroupConfig($q, $translate, utils, userService, assetService) {
+export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types, userService, assetService) {
 
     var service = {
         createConfig: createConfig
@@ -32,6 +32,8 @@ export default function AssetGroupConfig($q, $translate, utils, userService, ass
             entityScope = 'customer_user';
         }
 
+        var settings = utils.groupSettingsDefaults(types.entityType.asset, entityGroup.configuration.settings);
+
         var groupConfig = {
 
             entityScope: entityScope,
@@ -43,17 +45,20 @@ export default function AssetGroupConfig($q, $translate, utils, userService, ass
             deleteEntity: (entityId) => {return assetService.deleteAsset(entityId)},
 
             addEnabled: () => {
-                return true;
+                return settings.enableAdd;
             },
 
             detailsReadOnly: () => {
                 return false;
             },
+            assignmentEnabled: () => {
+                return settings.enableAssignment;
+            },
             deleteEnabled: () => {
-                return true;
+                return settings.enableDelete;
             },
             entitiesDeleteEnabled: () => {
-                return true;
+                return settings.enableDelete;
             },
             deleteEntityTitle: (entity) => {
                 return $translate.instant('asset.delete-asset-title', {assetName: entity.name});
@@ -68,6 +73,59 @@ export default function AssetGroupConfig($q, $translate, utils, userService, ass
                 return $translate.instant('asset.delete-assets-text');
             }
         };
+
+        groupConfig.onAssignToCustomer = (event, entity) => {
+            tbDialogs.assignAssetsToCustomer(event, [entity.id.id]).then(
+                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
+            );
+        };
+
+        groupConfig.onUnassignFromCustomer = (event, entity, isPublic) => {
+            tbDialogs.unassignAssetFromCustomer(event, entity, isPublic).then(
+                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
+            );
+        };
+
+        groupConfig.onMakePublic = (event, entity) => {
+            tbDialogs.makeAssetPublic(event, entity).then(
+                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
+            );
+        };
+
+        groupConfig.groupActionDescriptors = [
+            {
+                name: $translate.instant('asset.assign-assets'),
+                icon: "assignment_ind",
+                isEnabled: () => {
+                    return settings.enableAssignment;
+                },
+                onAction: (event, entities) => {
+                    var assetIds = [];
+                    entities.forEach((entity) => {
+                        assetIds.push(entity.id.id);
+                    });
+                    tbDialogs.assignAssetsToCustomer(event, assetIds).then(
+                        () => { groupConfig.onEntitiesUpdated(assetIds, true); }
+                    );
+                },
+            },
+            {
+                name: $translate.instant('asset.unassign-assets'),
+                icon: "assignment_return",
+                isEnabled: () => {
+                    return settings.enableAssignment;
+                },
+                onAction: (event, entities) => {
+                    var assetIds = [];
+                    entities.forEach((entity) => {
+                        assetIds.push(entity.id.id);
+                    });
+                    tbDialogs.unassignAssetsFromCustomer(event, assetIds).then(
+                        () => { groupConfig.onEntitiesUpdated(assetIds, true); }
+                    );
+                },
+            }
+        ];
 
         utils.groupConfigDefaults(groupConfig);
 

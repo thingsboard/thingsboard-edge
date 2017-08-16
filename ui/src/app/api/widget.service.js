@@ -295,9 +295,16 @@ function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $tr
         tenantWidgetsBundles = undefined;
     }
 
+    var widgetsBundleCachePromise;
+
     function loadWidgetsBundleCache() {
         var deferred = $q.defer();
         if (!allWidgetsBundles) {
+            if (widgetsBundleCachePromise) {
+                return widgetsBundleCachePromise;
+            } else {
+                widgetsBundleCachePromise = deferred.promise;
+            }
             var url = '/api/widgetsBundles';
             $http.get(url, null).then(function success(response) {
                 allWidgetsBundles = response.data;
@@ -313,8 +320,10 @@ function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $tr
                     }
                 }
                 deferred.resolve();
+                widgetsBundleCachePromise = null;
             }, function fail() {
                 deferred.reject();
+                widgetsBundleCachePromise = null;
             });
         } else {
             deferred.resolve();

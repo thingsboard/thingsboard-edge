@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div style="background: #fff;" tb-expand-fullscreen fullscreen-zindex="100" expand-button-id="expand-button" on-fullscreen-changed="onFullscreenChanged()" layout="column">
+<div style="background: #fff;" ng-class="{'tb-disabled': disabled}"tb-expand-fullscreen fullscreen-zindex="100" expand-button-id="expand-button" on-fullscreen-changed="onFullscreenChanged()" layout="column">
 	<div layout="row" layout-align="start center" style="height: 40px;">
 		<span style="font-style: italic;">function({{ functionArgsString }}) {</span>
 		<span flex></span>
@@ -23,7 +23,8 @@
 	</div>
 	<div flex id="tb-javascript-panel" class="tb-js-func-panel" layout="column">
 		<div flex id="tb-javascript-input"
-			 ui-ace="jsEditorOptions" 
+			 ui-ace="jsEditorOptions"
+			 ng-readonly="disabled"
 			 ng-model="functionBody">
 		</div>
 	</div>

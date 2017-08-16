@@ -261,12 +261,10 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
     private BiFunction<EntityView, List<EntityField>, EntityView> assetViewFunction = ((entityView, entityFields) -> {
         Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
+        entityView.put(EntityField.NAME.name().toLowerCase(), asset.getName());
         for (EntityField field : entityFields) {
             String key = field.name().toLowerCase();
             switch (field) {
-                case NAME:
-                    entityView.put(key, asset.getName());
-                    break;
                 case TYPE:
                     entityView.put(key, asset.getType());
                     break;

@@ -183,7 +183,7 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<EntityView> getEntities(
             @PathVariable("entityGroupId") String strEntityGroupId,

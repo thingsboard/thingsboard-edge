@@ -48,6 +48,7 @@ function EntityGroupColumnsController($element, $scope, $mdMedia, $filter, $tran
     vm.addColumn = addColumn;
     vm.defaultSortOrderChanged = defaultSortOrderChanged;
     vm.removeColumn = removeColumn;
+    vm.updateColumn = updateColumn;
 
     $scope.$watch(function() { return $mdMedia('gt-xs'); }, function(isGtXs) {
         vm.isGtXs = isGtXs;
@@ -91,6 +92,12 @@ function EntityGroupColumnsController($element, $scope, $mdMedia, $filter, $tran
         if (index > -1) {
             vm.columns.splice(index, 1);
         }
+    }
+
+    function updateColumn(column, updatedColumn) {
+        var index = vm.columns.indexOf(column);
+        vm.columns[index] = updatedColumn;
+        defaultSortOrderChanged(null, updatedColumn);
     }
 
 }

@@ -42,8 +42,11 @@ function ManageWidgetActions() {
         scope: true,
         bindToController: {
             actionSources: '=',
+            actionTypes: '=',
             widgetActions: '=',
             fetchDashboardStates: '&',
+            customFunctionArgs: '=',
+            disabled:'=ngDisabled'
         },
         controller: ManageWidgetActionsController,
         controllerAs: 'vm',
@@ -55,8 +58,8 @@ function ManageWidgetActions() {
 
 
 /*@ngInject*/
-function ManageWidgetActionsController($rootScope, $scope, $document, $mdDialog, $q, $filter,
-                              $translate, $timeout, utils, types) {
+function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
+                              $translate, $timeout, utils) {
 
     let vm = this;
 
@@ -188,7 +191,10 @@ function ManageWidgetActionsController($rootScope, $scope, $document, $mdDialog,
             templateUrl: widgetActionDialogTemplate,
             parent: angular.element($document[0].body),
             locals: {isAdd: isAdd, fetchDashboardStates: vm.fetchDashboardStates,
-                actionSources: availableActionSources, widgetActions: vm.widgetActions,
+                actionSources: availableActionSources,
+                actionTypes: vm.actionTypes,
+                widgetActions: vm.widgetActions,
+                customFunctionArgs: vm.customFunctionArgs,
                 action: angular.copy(action)},
             skipHide: true,
             fullscreen: true,
@@ -210,7 +216,7 @@ function ManageWidgetActionsController($rootScope, $scope, $document, $mdDialog,
     function saveAction(action, prevActionId) {
         var actionSourceName = vm.actionSources[action.actionSourceId].name;
         action.actionSourceName = utils.customTranslation(actionSourceName, actionSourceName);
-        action.typeName = $translate.instant(types.widgetActionTypes[action.type].name);
+        action.typeName = $translate.instant(vm.actionTypes[action.type].name);
         var actionSourceId = action.actionSourceId;
         var widgetAction = angular.copy(action);
         delete widgetAction.actionSourceId;
@@ -250,7 +256,7 @@ function ManageWidgetActionsController($rootScope, $scope, $document, $mdDialog,
                 var action = angular.copy(actionSourceAction);
                 action.actionSourceId = actionSourceId;
                 action.actionSourceName = utils.customTranslation(actionSource.name, actionSource.name);
-                action.typeName = $translate.instant(types.widgetActionTypes[actionSourceAction.type].name);
+                action.typeName = $translate.instant(vm.actionTypes[actionSourceAction.type].name);
                 vm.allActions.push(action);
             }
         }

@@ -47,6 +47,14 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                         entityType = scope.filter.singleEntity.entityType;
                         scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].list, {count: 1}, 'messageformat');
                         break;
+                    case types.aliasFilterType.entityGroup.value:
+                        if (scope.filter.groupStateEntity) {
+                            scope.filterDisplayValue = $translate.instant('alias.entities-of-group-state-entity');
+                        } else {
+                            entityType = scope.filter.groupType;
+                            scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].group);
+                        }
+                        break;
                     case types.aliasFilterType.entityList.value:
                         entityType = scope.filter.entityType;
                         var count = scope.filter.entityList.length;
@@ -56,6 +64,16 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                         entityType = scope.filter.entityType;
                         prefix = scope.filter.entityNameFilter;
                         scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].nameStartsWith, {prefix: prefix});
+                        break;
+                    case types.aliasFilterType.entityGroupList.value:
+                        entityType = scope.filter.groupType;
+                        count = scope.filter.entityGroupList.length;
+                        scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].groupList, {count: count}, 'messageformat');
+                        break;
+                    case types.aliasFilterType.entityGroupName.value:
+                        entityType = scope.filter.groupType;
+                        prefix = scope.filter.entityGroupNameFilter;
+                        scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].groupNameStartsWith, {prefix: prefix});
                         break;
                     case types.aliasFilterType.stateEntity.value:
                         scope.filterDisplayValue = $translate.instant('alias.filter-type-state-entity-description');

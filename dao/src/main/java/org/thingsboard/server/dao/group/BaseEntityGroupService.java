@@ -20,6 +20,7 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
@@ -94,7 +95,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
-            JsonNode jsonConfiguration = new ObjectMapper().valueToTree(entityGroupConfiguration);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
+            jsonConfiguration.putObject("settings");
+            jsonConfiguration.putObject("actions");
             entityGroup.setConfiguration(jsonConfiguration);
         }
         EntityGroup savedEntityGroup = entityGroupDao.save(entityGroup);

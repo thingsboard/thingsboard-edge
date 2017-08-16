@@ -35,7 +35,23 @@
                     the-form="vm.grid.detailsForm">
             </tb-entity-group-columns>
         </md-tab>
+        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.settings' | translate }}">
+            <tb-entity-group-settings
+                    settings="vm.grid.operatingItem().configuration.settings"
+                    entity-type="vm.grid.operatingItem().type"
+                    is-edit="vm.grid.detailsConfig.isDetailsEditMode"
+                    the-form="vm.grid.detailsForm">
+            </tb-entity-group-settings>
+        </md-tab>
         <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.actions' | translate }}">
-            TODO: Entity group actions
+            <div class="md-padding">
+                <tb-manage-widget-actions
+                        ng-disabled="!vm.grid.detailsConfig.isDetailsEditMode"
+                        action-types="vm.types.entityGroupActionTypes"
+                        action-sources="vm.actionSources"
+                        custom-function-args="['$event', '$injector', 'entityId', 'entityName']"
+                        widget-actions="vm.grid.operatingItem().configuration.actions">
+                </tb-manage-widget-actions>
+            </div>
         </md-tab>
 </tb-grid>

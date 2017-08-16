@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-tb-js-func {
-  position: relative;
-  .tb-disabled {
-    color: rgba(0,0,0,0.38);
-  }
-}
 
-.tb-js-func-panel {
-  margin-left: 15px;
-  border: 1px solid #C0C0C0;
-  height: 100%;
-  #tb-javascript-input {
-    min-width: 400px;
-    min-height: 200px;
-    width: 100%;
-    height: 100%;
+.tb-entity-group-autocomplete {
+  .tb-not-found {
+    display: block;
+    line-height: 1.5;
+    height: 48px;
+  }
+  .tb-entity-group-item {
+    display: block;
+    height: 48px;
+  }
+  li {
+    height: auto !important;
+    white-space: normal !important;
   }
 }

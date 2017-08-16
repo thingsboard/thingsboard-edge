@@ -273,12 +273,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
     private BiFunction<EntityView, List<EntityField>, EntityView> deviceViewFunction = ((entityView, entityFields) -> {
         Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
+        entityView.put(EntityField.NAME.name().toLowerCase(), device.getName());
         for (EntityField field : entityFields) {
             String key = field.name().toLowerCase();
             switch (field) {
-                case NAME:
-                    entityView.put(key, device.getName());
-                    break;
                 case TYPE:
                     entityView.put(key, device.getType());
                     break;

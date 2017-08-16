@@ -585,10 +585,17 @@ export function DashboardsController(userService, dashboardService, customerServ
             $event.stopPropagation();
         }
         if (vm.dashboardsScope === 'customer') {
-            $state.go('home.customers.dashboards.dashboard', {
-                customerId: customerId,
-                dashboardId: dashboard.id.id
-            });
+            if (vm.entityGroup) {
+                $state.go('home.customerGroups.customerGroup.dashboards.dashboard', {
+                    customerId: customerId,
+                    dashboardId: dashboard.id.id
+                });
+            } else {
+                $state.go('home.customers.dashboards.dashboard', {
+                    customerId: customerId,
+                    dashboardId: dashboard.id.id
+                });
+            }
         } else {
             $state.go('home.dashboards.dashboard', {dashboardId: dashboard.id.id});
         }

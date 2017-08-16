@@ -35,6 +35,61 @@
                           ng-model="filter.singleEntity">
         </tb-entity-select>
     </section>
+    <section layout="column" ng-if="filter.type == types.aliasFilterType.entityGroup.value" id="entityGroupFilter">
+        <label class="tb-small">{{ 'entity-group.entity-group' | translate }}</label>
+        <section class="tb-root-state-entity-switch" layout="row" layout-align="start center" style="padding-left: 0px;">
+            <md-switch class="root-state-entity-switch" ng-model="filter.groupStateEntity"
+                       aria-label="{{ 'alias.group-state-entity' | translate }}">
+            </md-switch>
+            <label class="tb-small root-state-entity-label" translate>alias.group-state-entity</label>
+        </section>
+        <div flex layout="row" ng-if="!filter.groupStateEntity">
+            <tb-entity-type-select
+                    ng-model="filter.groupType"
+                    the-form="theForm"
+                    tb-required="true"
+                    allowed-entity-types="entityGroupTypes">
+            </tb-entity-type-select>
+            <tb-entity-group-autocomplete flex ng-if="filter.groupType"
+                    ng-model="filter.entityGroup"
+                    tb-required="true"
+                    group-type="filter.groupType"
+                    the-form="theForm"
+                    placeholder-text="entity-group.select-entity-group"
+                    not-found-text="entity-group.no-entity-groups-matching"
+                    required-text="entity-group.target-entity-group-required">
+            </tb-entity-group-autocomplete>
+        </div>
+        <div flex layout="column" ng-if="filter.groupStateEntity">
+            <md-input-container class="md-block" style="margin-top: 32px;">
+                <label translate>alias.state-entity-parameter-name</label>
+                <input name="stateEntityParamName"
+                       placeholder="{{ 'alias.default-entity-parameter-name' | translate }}"
+                       ng-model="filter.stateEntityParamName"
+                       aria-label="{{ 'alias.state-entity-parameter-name' | translate }}">
+            </md-input-container>
+            <div flex layout="column">
+                <label class="tb-small">{{ 'alias.default-state-entity-group' | translate }}</label>
+                <div flex layout="row">
+                    <tb-entity-type-select
+                            ng-model="filter.defaultStateGroupType"
+                            the-form="theForm"
+                            tb-required="false"
+                            allowed-entity-types="entityGroupTypes">
+                    </tb-entity-type-select>
+                    <tb-entity-group-autocomplete flex ng-if="filter.defaultStateGroupType"
+                                                  ng-model="filter.defaultStateEntityGroup"
+                                                  tb-required="true"
+                                                  group-type="filter.defaultStateGroupType"
+                                                  the-form="theForm"
+                                                  placeholder-text="entity-group.select-entity-group"
+                                                  not-found-text="entity-group.no-entity-groups-matching"
+                                                  required-text="entity-group.target-entity-group-required">
+                    </tb-entity-group-autocomplete>
+                </div>
+            </div>
+        </div>
+    </section>
     <section layout="column" ng-if="filter.type == types.aliasFilterType.entityList.value" id="entityListFilter">
         <tb-entity-type-select
                 ng-model="filter.entityType"
@@ -62,6 +117,36 @@
                    aria-label="{{ 'entity.name-starts-with' | translate }}">
             <div ng-messages="theForm.entityNameFilter.$error">
                 <div ng-message="required" translate>entity.entity-name-filter-required</div>
+            </div>
+        </md-input-container>
+    </section>
+    <section layout="column" ng-if="filter.type == types.aliasFilterType.entityGroupList.value" id="entityGroupListFilter">
+        <tb-entity-type-select
+                ng-model="filter.groupType"
+                the-form="theForm"
+                tb-required="true"
+                allowed-entity-types="entityGroupTypes">
+        </tb-entity-type-select>
+        <tb-entity-group-list
+                ng-model="filter.entityGroupList"
+                tb-required="true"
+                group-type="filter.groupType">
+        </tb-entity-group-list>
+    </section>
+    <section flex layout="column" ng-if="filter.type == types.aliasFilterType.entityGroupName.value" id="entityGroupNameFilter">
+        <tb-entity-type-select
+                ng-model="filter.groupType"
+                the-form="theForm"
+                tb-required="true"
+                allowed-entity-types="entityGroupTypes">
+        </tb-entity-type-select>
+        <md-input-container class="md-block">
+            <label translate>entity-group.name-starts-with</label>
+            <input required name="entityGroupNameFilter"
+                   ng-model="filter.entityGroupNameFilter"
+                   aria-label="{{ 'entity-group.name-starts-with' | translate }}">
+            <div ng-messages="theForm.entityGroupNameFilter.$error">
+                <div ng-message="required" translate>entity-group.entity-group-name-filter-required</div>
             </div>
         </md-input-container>
     </section>

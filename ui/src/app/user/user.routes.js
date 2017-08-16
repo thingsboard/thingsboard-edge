@@ -64,6 +64,33 @@ export default function UserRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "account_circle", "label": "user.customer-users"}'
             }
+        })
+        .state('home.customerGroups.customerGroup.users', {
+            url: '/:customerId/users',
+            params: {'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: usersTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('UserController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            data: {
+                usersType: 'customer',
+                searchEnabled: true,
+                pageTitle: 'user.customer-users'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "user.customer-users"}'
+            }
         });
 
 }

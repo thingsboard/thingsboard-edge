@@ -20,7 +20,7 @@
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
-                <span>{{ vm.entityGroupConfig.tableTitle }}</span>
+                <span>{{ vm.tableTitle }}</span>
                 <span flex></span>
                 <md-button ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     {{ 'entity-group.fetch-more' | translate }}
@@ -31,7 +31,7 @@
                         {{ vm.translations.add | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button class="md-icon-button" ng-click="vm.enterFilterMode()">
+                <md-button ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode()">
                     <md-icon>search</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.search | translate }}
@@ -76,10 +76,10 @@
             </div>
         </md-toolbar>
         <md-table-container flex>
-            <table md-table md-row-select multiple="" ng-model="vm.selectedEntities">
+            <table md-table md-row-select="vm.settings.enableSelection" multiple="" ng-model="vm.selectedEntities">
                 <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
-                    <th md-column md-order-by="{{ column.key }}" ng-repeat="column in vm.columns"><span>{{ vm.getColumnTitle(column) }}</span></th>
+                    <th md-column ng-if="!column.mobileHide || vm.isGtMd" md-order-by="{{ column.key }}" ng-repeat="column in vm.columns"><span>{{ vm.getColumnTitle(column) }}</span></th>
                     <th md-column ng-if="vm.actionCellDescriptors.length"><span>&nbsp</span></th>
                 </tr>
                 </thead>
@@ -87,7 +87,7 @@
                 <tr ng-show="vm.entities.length" md-row md-select="entity"
                     md-select-id="id.id" md-auto-select="false" ng-repeat="entity in vm.entities"
                     ng-click="vm.onRowClick($event, entity)" ng-class="{'tb-current': vm.isCurrent(entity)}">
-                    <td md-cell flex ng-repeat="column in vm.columns"
+                    <td md-cell ng-if="!column.mobileHide || vm.isGtMd" flex ng-repeat="column in vm.columns"
                         ng-style="vm.cellStyle(entity, column)"
                         ng-bind-html="vm.cellContent(entity, column)">
                     </td>
@@ -127,5 +127,5 @@
         entity-type="vm.entityGroup.type"
         entity-id="vm.currentEntity.id.id"
         is-open="vm.isDetailsOpen"
-        on-entity-updated="vm.onEntityUpdated(entity)">
+        on-entity-updated="vm.onEntityUpdated(entity.id.id)">
 </tb-entity-details-sidenav>

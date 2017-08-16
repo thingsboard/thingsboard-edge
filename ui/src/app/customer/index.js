@@ -22,6 +22,7 @@ import thingsboardContactShort from '../components/contact-short.filter';
 import CustomerRoutes from './customer.routes';
 import CustomerController from './customer.controller';
 import CustomerDirective from './customer.directive';
+import CustomerGroupConfig from './customer-group.config';
 
 export default angular.module('thingsboard.customer', [
     uiRouter,
@@ -33,4 +34,5 @@ export default angular.module('thingsboard.customer', [
     .config(CustomerRoutes)
     .controller('CustomerController', CustomerController)
     .directive('tbCustomer', CustomerDirective)
+    .factory('customerGroupConfig', CustomerGroupConfig)
     .name;

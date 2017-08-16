@@ -66,7 +66,9 @@ export default function AssetDirective($compile, $templateCache, toast, $transla
             onAssignToCustomer: '&',
             onMakePublic: '&',
             onUnassignFromCustomer: '&',
-            onDeleteAsset: '&'
+            onDeleteAsset: '&',
+            hideAssignmentActions: '=',
+            hideDelete: '='
         }
     };
 }

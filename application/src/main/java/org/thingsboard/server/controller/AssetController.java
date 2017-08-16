@@ -107,10 +107,7 @@ public class AssetController extends BaseController {
         checkParameter("assetId", strAssetId);
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
-            Asset asset = checkAssetId(assetId);
-            if (asset.getCustomerId() == null || asset.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                throw new IncorrectParameterException("Asset isn't assigned to any customer!");
-            }
+            checkAssetId(assetId);
             return checkNotNull(assetService.unassignAssetFromCustomer(assetId));
         } catch (Exception e) {
             throw handleException(e);
