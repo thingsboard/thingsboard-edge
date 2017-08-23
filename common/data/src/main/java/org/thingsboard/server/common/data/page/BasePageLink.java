@@ -15,13 +15,13 @@
  */
 package org.thingsboard.server.common.data.page;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -30,6 +30,7 @@ public abstract class BasePageLink implements Serializable {
 
     private static final long serialVersionUID = -4189954843653250481L;
 
+    @ApiModelProperty(value = "Page link limit", required = true, allowableValues = "range[1, infinity]")
     @Getter protected final int limit;
 
     @Getter @Setter protected UUID idOffset;

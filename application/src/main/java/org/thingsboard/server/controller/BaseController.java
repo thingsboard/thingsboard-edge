@@ -182,6 +182,27 @@ public abstract class BaseController {
         }
     }
 
+    EntityType checkStrEntityGroupType(String name, String strGroupType) throws ThingsboardException {
+        checkParameter(name, strGroupType);
+        EntityType groupType;
+        try {
+            groupType = EntityType.valueOf(strGroupType);
+        } catch (IllegalArgumentException e) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + strGroupType + "'! Only 'CUSTOMER', 'ASSET' or 'DEVICE' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return checkEntityGroupType(groupType);
+    }
+
+    EntityType checkEntityGroupType(EntityType groupType) throws ThingsboardException {
+        if (groupType == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET && groupType != EntityType.DEVICE) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET' or 'DEVICE' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
     UUID toUUID(String id) {
         return UUID.fromString(id);
     }

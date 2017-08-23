@@ -21,14 +21,20 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class EntityGroup extends BaseData<EntityGroupId> implements HasName {
 
     private static final long serialVersionUID = 2807349040519543363L;
 
     public static final String GROUP_ALL_NAME = "All";
 
+    @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE")
     private EntityType type;
+
+    @ApiModelProperty(required = true)
     private String name;
+
     private JsonNode additionalInfo;
     private JsonNode configuration;
 

@@ -118,11 +118,11 @@ public class Validator {
      */
     public static void validatePageLink(BasePageLink pageLink, String errorMessage) {
         if (pageLink == null) {
-            throw new IncorrectParameterException(errorMessage);
+            throw new IncorrectParameterException("Page link must be specified.");
         } else if (pageLink.getLimit() < 1) {
-            throw new IncorrectParameterException(errorMessage);
+            throw new IncorrectParameterException("Incorrect page link limit '"+pageLink.getLimit()+"'. Limit must be greater than zero.");
         } else if (pageLink.getIdOffset() != null && pageLink.getIdOffset().version() != 1) {
-            throw new IncorrectParameterException(errorMessage);
+            throw new IncorrectParameterException("Incorrect page link ID offset '" + pageLink.getIdOffset() + "'. ID offset must be timebased uuid (version 1).");
         }
     }
 

@@ -17,6 +17,7 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardException;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +59,7 @@ public class EntityGroupController extends BaseController {
     @ResponseBody
     public EntityGroup saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
         try {
+            checkEntityGroupType(entityGroup.getType());
             return checkNotNull(entityGroupService.saveEntityGroup(getCurrentUser().getTenantId(), entityGroup));
         } catch (Exception e) {
             throw handleException(e);
@@ -85,10 +88,9 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/tenant/entityGroups/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroup> getTenantEntityGroups(
-            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         try {
-            checkParameter("groupType", strGroupType);
-            EntityType groupType = EntityType.valueOf(strGroupType);
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(entityGroupService.findEntityGroupsByType(tenantId, groupType).get());
         } catch (Exception e) {
@@ -161,20 +163,16 @@ public class EntityGroupController extends BaseController {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
             EntityType entityType = entityGroup.getType();
+            checkEntityGroupType(entityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
             checkEntityId(entityId);
             EntityView result = null;
-            if (entityType == EntityType.USER) {
-                result = userService.findGroupUser(entityGroupId, entityId);
-            } else if (entityType == EntityType.CUSTOMER) {
+            if (entityType == EntityType.CUSTOMER) {
                 result = customerService.findGroupCustomer(entityGroupId, entityId);
             } else if (entityType == EntityType.ASSET) {
                 result = assetService.findGroupAsset(entityGroupId, entityId);
             } else if (entityType == EntityType.DEVICE) {
                 result = deviceService.findGroupDevice(entityGroupId, entityId);
-            } else {
-                throw new ThingsboardException("Unable to get entity for entity group: " +
-                        "Unsupported entity type " + entityType + "!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
             return checkNotNull(result);
         } catch (Exception e) {
@@ -187,7 +185,7 @@ public class EntityGroupController extends BaseController {
     @ResponseBody
     public TimePageData<EntityView> getEntities(
             @PathVariable("entityGroupId") String strEntityGroupId,
-            @RequestParam int limit,
+            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime,
             @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
@@ -197,20 +195,16 @@ public class EntityGroupController extends BaseController {
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
         EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
         try {
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             ListenableFuture<TimePageData<EntityView>> asyncResult = null;
-            if (entityType == EntityType.USER) {
-                asyncResult = userService.findUsersByEntityGroupId(entityGroupId, pageLink);
-            } else if (entityType == EntityType.CUSTOMER) {
+            if (entityType == EntityType.CUSTOMER) {
                 asyncResult = customerService.findCustomersByEntityGroupId(entityGroupId, pageLink);
             } else if (entityType == EntityType.ASSET) {
                 asyncResult = assetService.findAssetsByEntityGroupId(entityGroupId, pageLink);
             } else if (entityType == EntityType.DEVICE) {
                 asyncResult = deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink);
-            } else {
-                throw new ThingsboardException("Unable to get entities for entity group: " +
-                        "Unsupported entity type " + entityType + "!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
             return checkNotNull(asyncResult.get());
         } catch (Exception e) {
@@ -218,4 +212,21 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/entityGroups/{entityType}/{entityId}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityGroupId> getEntityGroupsForEntity(
+            @ApiParam(value = "Entity type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE") @PathVariable("entityType") String strEntityType,
+            @PathVariable("entityId") String strEntityId) throws ThingsboardException {
+        checkParameter("entityType", strEntityType);
+        checkParameter("entityId", strEntityId);
+        try {
+            EntityType entityType = checkStrEntityGroupType("entityType", strEntityType);
+            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
+            checkEntityId(entityId);
+            return checkNotNull(entityGroupService.findEntityGroupsForEntity(entityId).get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
 }

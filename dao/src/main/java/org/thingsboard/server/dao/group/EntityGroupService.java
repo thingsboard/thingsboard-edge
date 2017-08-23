@@ -71,4 +71,6 @@ public interface EntityGroupService {
     ListenableFuture<TimePageData<EntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
                                                             BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
 
+    ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(EntityId entityId);
+
 }

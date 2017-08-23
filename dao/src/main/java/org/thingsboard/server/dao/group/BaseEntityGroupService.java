@@ -297,6 +297,19 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         });
     }
 
+    @Override
+    public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(EntityId entityId) {
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(entityId,
+                EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+        return Futures.transform(relations, (Function<List<EntityRelation>, List<EntityGroupId>>) input -> {
+            List<EntityGroupId> entityGroupIds = new ArrayList<>(input.size());
+            for (EntityRelation relation : input) {
+                entityGroupIds.add(new EntityGroupId(relation.getFrom().getId()));
+            }
+            return entityGroupIds;
+        });
+    }
+
     private ListenableFuture<List<EntityId>> findEntityIds(EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
         ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(entityGroupId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
