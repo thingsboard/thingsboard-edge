@@ -89,12 +89,13 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("alarm_widgets");
 
                         systemDataLoaderService.loadSystemWidgets();
-                    case "1.3.0": // to 1.3.0EE
-                        log.info("Upgrading ThingsBoard from version 1.3.0 to 1.3.0EE ...");
+                    case "1.3.0": // to 1.3.1EE
+                    case "1.3.1": // to 1.3.1EE
+                        log.info("Upgrading ThingsBoard from version {} to 1.3.1EE ...", upgradeFromVersion);
 
-                        databaseUpgradeService.upgradeDatabase("1.3.0");
+                        databaseUpgradeService.upgradeDatabase("1.3.1");
 
-                        dataUpdateService.updateData("1.3.0");
+                        dataUpdateService.updateData("1.3.1");
 
                         break;
                     default:
