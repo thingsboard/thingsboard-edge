@@ -27,7 +27,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
     var homeSections = [];
 
     var customerGroups = {
-        name: 'customer.customers',
+        name: 'entity-group.customer-groups',
         type: 'toggle',
         state: 'home.customerGroups',
         height: '0px',
@@ -36,7 +36,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
     };
 
     var assetGroups = {
-        name: 'asset.assets',
+        name: 'entity-group.asset-groups',
         type: 'toggle',
         state: 'home.assetGroups',
         height: '0px',
@@ -45,7 +45,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
     };
 
     var deviceGroups = {
-        name: 'device.devices',
+        name: 'entity-group.device-groups',
         type: 'toggle',
         state: 'home.deviceGroups',
         height: '0px',
