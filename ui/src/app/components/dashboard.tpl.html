@@ -70,6 +70,27 @@
 											   </md-tooltip>
 											   <ng-md-icon size="20" icon="{{action.icon}}"></ng-md-icon>
 									</md-button>
+									<md-menu ng-show="!vm.isEdit && vm.enableWidgetDataExport(widget)" md-position-mode="target target">
+										<md-button class="md-icon-button"  aria-label="{{ 'widget.export-data' | translate }}" ng-click="$mdOpenMenu($event)">
+											<ng-md-icon size="20" icon="file_download" md-menu-origin aria-label="{{ 'widget.export-data' | translate }}"></ng-md-icon>
+										</md-button>
+										<md-menu-content width="4">
+											<md-menu-item>
+												<md-button ng-click="vm.exportWidgetData($event, widget, vm.types.widgetExportType.csv.value)">
+													<md-icon md-menu-align-target aria-label="{{ vm.types.widgetExportType.csv.name | translate }}"
+															 md-svg-icon="mdi:file-delimited"></md-icon>
+													<span translate>{{vm.types.widgetExportType.csv.name}}</span>
+												</md-button>
+											</md-menu-item>
+											<md-menu-item>
+												<md-button ng-click="vm.exportWidgetData($event, widget, vm.types.widgetExportType.xls.value)">
+													<md-icon md-menu-align-target aria-label="{{ vm.types.widgetExportType.xls.name | translate }}"
+															 md-svg-icon="mdi:file-excel"></md-icon>
+													<span translate>{{vm.types.widgetExportType.xls.name}}</span>
+												</md-button>
+											</md-menu-item>
+										</md-menu-content>
+									</md-menu>
 									<md-button id="expand-button"
 											   ng-show="!vm.isEdit && vm.enableWidgetFullscreen(widget)"
 											   aria-label="{{ 'fullscreen.fullscreen' | translate }}"

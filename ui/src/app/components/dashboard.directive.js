@@ -100,6 +100,8 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
 
     var vm = this;
 
+    vm.types = types;
+
     vm.gridster = null;
 
     vm.stDiff = 0;
@@ -193,8 +195,10 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.widgetActions = widgetActions;
     vm.dropWidgetShadow = dropWidgetShadow;
     vm.enableWidgetFullscreen = enableWidgetFullscreen;
+    vm.enableWidgetDataExport = enableWidgetDataExport;
     vm.hasTimewindow = hasTimewindow;
     vm.hasAggregation = hasAggregation;
+    vm.exportWidgetData = exportWidgetData;
     vm.editWidget = editWidget;
     vm.exportWidget = exportWidget;
     vm.removeWidget = removeWidget;
@@ -678,6 +682,16 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         return pos;
     }
 
+    function exportWidgetData($event, widget, widgetExportType) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var ctx = widgetContext(widget);
+        if (ctx && ctx.exportWidgetData) {
+            ctx.exportWidgetData(widgetExportType);
+        }
+    }
+
     function editWidget ($event, widget) {
         if ($event) {
             $event.stopPropagation();
@@ -986,6 +1000,14 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     function enableWidgetFullscreen(widget) {
         if (angular.isDefined(widget.config.enableFullscreen)) {
             return widget.config.enableFullscreen;
+        } else {
+            return true;
+        }
+    }
+
+    function enableWidgetDataExport(widget) {
+        if (angular.isDefined(widget.config.enableDataExport)) {
+            return widget.config.enableDataExport;
         } else {
             return true;
         }

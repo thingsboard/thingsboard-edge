@@ -618,6 +618,16 @@ export default angular.module('thingsboard.types', [])
                     }
                 }
             },
+            widgetExportType: {
+                csv: {
+                    name: 'widget.export-to-csv',
+                    value: 'csv'
+                },
+                xls: {
+                    name: 'widget.export-to-excel',
+                    value: 'xls'
+                }
+            },
             widgetActionSources: {
                 headerButton: {
                     name: 'widget-action.header-button',

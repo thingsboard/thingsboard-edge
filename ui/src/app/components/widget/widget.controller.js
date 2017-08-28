@@ -123,7 +123,8 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
             getActionDescriptors: getActionDescriptors,
             handleWidgetAction: handleWidgetAction
         },
-        stateController: stateController
+        stateController: stateController,
+        exportWidgetData: exportWidgetData
     };
 
     widgetContext.customHeaderActions = [];
@@ -490,6 +491,10 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 break;
         }
+    }
+
+    function exportWidgetData(widgetExportType) {
+        console.log(`export widget data: ${widgetExportType}`); //eslint-disable-line
     }
 
     function getFirstEntityInfo() {
