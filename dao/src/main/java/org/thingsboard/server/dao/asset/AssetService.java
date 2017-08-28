@@ -20,6 +20,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
