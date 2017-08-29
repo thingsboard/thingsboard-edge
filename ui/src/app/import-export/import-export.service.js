@@ -28,6 +28,28 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                                      entityService, dashboardService, pluginService, ruleService, widgetService, toast) {
 
 
+    const JSON_TYPE = {
+        mimeType: 'text/json',
+        extension: 'json'
+    };
+    const CSV_TYPE = {
+        mimeType: 'attachament/csv',
+        extension: 'csv'
+    };
+
+    const XLS_TYPE = {
+        mimeType: 'application/vnd.ms-excel',
+        extension: 'xls'
+    };
+
+    const TEMPLATE_XLS = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
+        <head><!--[if gte mso 9]><xml>
+        <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
+        <![endif]--></head>
+        <body>{table}</body></html>`;
+
     var service = {
         exportDashboard: exportDashboard,
         importDashboard: importDashboard,
@@ -40,7 +62,9 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         exportWidgetType: exportWidgetType,
         importWidgetType: importWidgetType,
         exportWidgetsBundle: exportWidgetsBundle,
-        importWidgetsBundle: importWidgetsBundle
+        importWidgetsBundle: importWidgetsBundle,
+        exportCsv: exportCsv,
+        exportXls: exportXls
     }
 
     return service;
@@ -68,7 +92,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                         }
                         var name = widgetsBundle.title;
                         name = name.toLowerCase().replace(/\W/g,"_");
-                        exportToPc(widgetsBundleItem, name + '.json');
+                        exportToPc(widgetsBundleItem, name);
                     },
                     function fail (rejection) {
                         var message = rejection;
@@ -168,7 +192,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                 }
                 var name = widgetType.name;
                 name = name.toLowerCase().replace(/\W/g,"_");
-                exportToPc(prepareExport(widgetType), name + '.json');
+                exportToPc(prepareExport(widgetType), name);
             },
             function fail(rejection) {
                 var message = rejection;
@@ -222,7 +246,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             function success(rule) {
                 var name = rule.name;
                 name = name.toLowerCase().replace(/\W/g,"_");
-                exportToPc(prepareExport(rule), name + '.json');
+                exportToPc(prepareExport(rule), name);
             },
             function fail(rejection) {
                 var message = rejection;
@@ -281,7 +305,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                 }
                 var name = plugin.name;
                 name = name.toLowerCase().replace(/\W/g,"_");
-                exportToPc(prepareExport(plugin), name + '.json');
+                exportToPc(prepareExport(plugin), name);
             },
             function fail(rejection) {
                 var message = rejection;
@@ -336,7 +360,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         var widgetItem = itembuffer.prepareWidgetItem(dashboard, sourceState, sourceLayout, widget);
         var name = widgetItem.widget.config.title;
         name = name.toLowerCase().replace(/\W/g,"_");
-        exportToPc(prepareExport(widgetItem), name + '.json');
+        exportToPc(prepareExport(widgetItem), name);
     }
 
     function prepareAliasesInfo(aliasesInfo) {
@@ -536,7 +560,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             function success(dashboard) {
                 var name = dashboard.title;
                 name = name.toLowerCase().replace(/\W/g,"_");
-                exportToPc(prepareExport(dashboard), name + '.json');
+                exportToPc(prepareExport(dashboard), name);
             },
             function fail(rejection) {
                 var message = rejection;
@@ -694,40 +718,6 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         return exportedData;
     }
 
-    function exportToPc(data, filename) {
-        if (!data) {
-            $log.error('No data');
-            return;
-        }
-
-        if (!filename) {
-            filename = 'download.json';
-        }
-
-        if (angular.isObject(data)) {
-            data = angular.toJson(data, 2);
-        }
-
-        var blob = new Blob([data], {type: 'text/json'});
-
-        // FOR IE:
-
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveOrOpenBlob(blob, filename);
-        }
-        else{
-            var e = document.createEvent('MouseEvents'),
-                a = document.createElement('a');
-
-            a.download = filename;
-            a.href = window.URL.createObjectURL(blob);
-            a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
-            e.initEvent('click', true, false, window,
-                0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            a.dispatchEvent(e);
-        }
-    }
-
     function openImportDialog($event, importTitle, importFileLabel) {
         var deferred = $q.defer();
         $mdDialog.show({
@@ -748,6 +738,79 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             deferred.reject();
         });
         return deferred.promise;
+    }
+
+    function exportToPc(data, filename) {
+        if (!data) {
+            $log.error('No data');
+            return;
+        }
+        exportJson(data, filename);
+    }
+
+    function exportJson(data, filename) {
+        if (angular.isObject(data)) {
+            data = angular.toJson(data, 2);
+        }
+        downloadFile(data, filename, JSON_TYPE);
+    }
+
+    function exportCsv(data, filename) {
+        var colsHead;
+        var colsData;
+        if (data && data.length) {
+            colsHead = Object.keys(data[0]).map(key => [key]).join(';');
+            colsData = data.map(obj => [ // obj === row
+                Object.keys(obj).map(col => [
+                    obj[col]
+                ]).join(';')
+            ]).join('\n');
+        } else {
+            colsHead = '';
+            colsData = '';
+        }
+        var csvData = `${colsHead}\n${colsData}`;
+        downloadFile(csvData, filename, CSV_TYPE);
+    }
+
+    function exportXls(data, filename) {
+        var colsHead;
+        var colsData;
+        if (data && data.length) {
+            colsHead = `<tr>${Object.keys(data[0]).map(key => `<td><b>${key}</b></td>`).join('')}</tr>`;
+            colsData = data.map(obj => [`<tr>
+                ${Object.keys(obj).map(col => `<td>${obj[col] ? obj[col] : ''}</td>`).join('')}
+            </tr>`])
+                .join('');
+        } else {
+            colsHead = '';
+            colsData = '';
+        }
+        var tableData = `<table>${colsHead}${colsData}</table>`.trim();
+        var parameters = { title: filename, table: tableData };
+        var xlsData = TEMPLATE_XLS.replace(/{(\w+)}/g, (x, y) => parameters[y]);
+        downloadFile(xlsData, filename, XLS_TYPE);
+    }
+
+    function downloadFile(data, filename, fileType) {
+        if (!filename) {
+            filename = 'download';
+        }
+        filename += '.' + fileType.extension;
+        var blob = new Blob([data], {type: fileType.mimeType});
+        // FOR IE:
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            var e = document.createEvent('MouseEvents'),
+                a = document.createElement('a');
+            a.download = filename;
+            a.href = window.URL.createObjectURL(blob);
+            a.dataset.downloadurl = [fileType.mimeType, a.download, a.href].join(':');
+            e.initEvent('click', true, false, window,
+                0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            a.dispatchEvent(e);
+        }
     }
 
 }

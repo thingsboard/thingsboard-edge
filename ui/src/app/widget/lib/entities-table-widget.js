@@ -144,6 +144,8 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $tra
 
         vm.ctx.widgetActions = [ vm.searchAction ];
 
+        vm.ctx.customDataExport = customDataExport;
+
         vm.actionCellDescriptors = vm.ctx.actionsApi.getActionDescriptors('actionCellButton');
 
         if (vm.settings.entitiesTitle && vm.settings.entitiesTitle.length) {
@@ -387,6 +389,33 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $tra
 
     function getEntityValue(entity, key) {
         return getDescendantProp(entity, key.name);
+    }
+
+    function customDataExport() {
+        var exportedData = [];
+        var entitiesToExport = $filter('orderBy')(vm.allEntities, vm.query.order);
+        if (vm.query.search != null) {
+            entitiesToExport = $filter('filter')(entitiesToExport, {$: vm.query.search});
+        }
+        if (!entitiesToExport || !entitiesToExport.length) {
+            entitiesToExport = [{}];
+        }
+        for (var row=0; row < entitiesToExport.length; row ++) {
+            var dataObj = {};
+            var entity = entitiesToExport[row];
+            if (vm.displayEntityName) {
+                dataObj[vm.entityNameColumnTitle] = entity.entityName;
+            }
+            if (vm.displayEntityType) {
+                dataObj[$translate.instant('entity.entity-type')] = entity.entityType;
+            }
+            for (var col=0; col < vm.dataKeys.length; col ++) {
+                var dataKey = vm.dataKeys[col];
+                dataObj[dataKey.title] = cellContent(entity, dataKey);
+            }
+            exportedData.push(dataObj);
+        }
+        return exportedData;
     }
 
     function updateEntitiesData(data) {

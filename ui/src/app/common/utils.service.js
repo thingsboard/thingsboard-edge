@@ -34,7 +34,7 @@ export default angular.module('thingsboard.utils', [thingsboardTypes])
 const varsRegex = /\$\{([^\}]*)\}/g;
 
 /*@ngInject*/
-function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, types) {
+function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $timeout, types) {
 
     var predefinedFunctions = {},
         predefinedFunctionsList = [],
@@ -138,6 +138,7 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
         getDefaultDatasource: getDefaultDatasource,
         getDefaultDatasourceJson: getDefaultDatasourceJson,
         getDefaultAlarmDataKeys: getDefaultAlarmDataKeys,
+        defaultAlarmFieldContent: defaultAlarmFieldContent,
         getMaterialColor: getMaterialColor,
         getMaterialIcons: getMaterialIcons,
         getCommonMaterialIcons: getCommonMaterialIcons,
@@ -290,6 +291,30 @@ function Utils($mdColorPalette, $rootScope, $window, $translate, $q, $timeout, t
 
     function getDefaultAlarmDataKeys() {
         return angular.copy(defaultAlarmDataKeys);
+    }
+
+    function defaultAlarmFieldContent(key, value) {
+        if (angular.isDefined(value)) {
+            var alarmField = types.alarmFields[key.name];
+            if (alarmField) {
+                if (alarmField.time) {
+                    return $filter('date')(value, 'yyyy-MM-dd HH:mm:ss');
+                } else if (alarmField.value == types.alarmFields.severity.value) {
+                    return $translate.instant(types.alarmSeverity[value].name);
+                } else if (alarmField.value == types.alarmFields.status.value) {
+                    return $translate.instant('alarm.display-status.'+value);
+                } else if (alarmField.value == types.alarmFields.originatorType.value) {
+                    return $translate.instant(types.entityTypeTranslations[value].type);
+                }
+                else {
+                    return value;
+                }
+            } else {
+                return value;
+            }
+        } else {
+            return '';
+        }
     }
 
     function isDescriptorSchemaNotEmpty(descriptor) {

@@ -21,7 +21,7 @@
 	<md-progress-circular md-mode="indeterminate" ng-disabled="(!vm.loading() && !vm.dashboardLoading || vm.isEdit) && !vm.isResizing" class="md-warn" md-diameter="100">
 	</md-progress-circular>
 </md-content>
-<md-menu md-position-mode="target target" tb-mousepoint-menu>
+<md-menu md-position-mode="target target" tb-mousepoint-menu md-nest-level="-2">
 	<md-content id="gridster-parent" class="tb-dashboard-content" flex layout-wrap ng-click="" ng-style="{'overflowY': vm.isAutofillHeight() ? 'hidden' : 'auto'}"
 				tb-contextmenu="vm.openDashboardContextMenu($event, $mdOpenMousepointMenu)">
 		<div ng-class="vm.dashboardClass" id="gridster-background" style="height: auto; min-height: 100%; display: inline;">
@@ -70,11 +70,16 @@
 											   </md-tooltip>
 											   <ng-md-icon size="20" icon="{{action.icon}}"></ng-md-icon>
 									</md-button>
-									<md-menu ng-show="!vm.isEdit && vm.enableWidgetDataExport(widget)" md-position-mode="target target">
+									<md-menu ng-if="!vm.isEdit && vm.enableWidgetDataExport(widget)" md-position-mode="target target">
 										<md-button class="md-icon-button"  aria-label="{{ 'widget.export-data' | translate }}" ng-click="$mdOpenMenu($event)">
-											<ng-md-icon size="20" icon="file_download" md-menu-origin aria-label="{{ 'widget.export-data' | translate }}"></ng-md-icon>
+											<md-icon md-menu-origin aria-label="{{ 'widget.export-data' | translate }}"
+													 ng-style="{color: vm.widgetColor(widget)}"
+													 md-svg-icon="mdi:file-export"></md-icon>
+											<md-tooltip md-direction="top">
+												{{ 'widget.export-data' | translate }}
+											</md-tooltip>
 										</md-button>
-										<md-menu-content width="4">
+										<md-menu-content id="exportWidgetDataMenu" width="4">
 											<md-menu-item>
 												<md-button ng-click="vm.exportWidgetData($event, widget, vm.types.widgetExportType.csv.value)">
 													<md-icon md-menu-align-target aria-label="{{ vm.types.widgetExportType.csv.name | translate }}"
@@ -140,7 +145,7 @@
 									</div>
 								</div>
 							</div>
-							<md-menu-content id="menu" width="4" ng-mouseleave="$mdCloseMousepointMenu()">
+							<md-menu-content id="widgetMenu" width="4" ng-mouseleave="$mdCloseMousepointMenu()">
 								<md-menu-item ng-repeat ="item in vm.widgetContextMenuItems">
 									<md-button ng-disabled="!item.enabled" ng-click="item.action(vm.widgetContextMenuEvent, widget)">
 										<md-icon ng-if="item.icon" md-menu-align-target aria-label="{{ item.value | translate }}" class="material-icons">{{item.icon}}</md-icon>
@@ -155,7 +160,7 @@
 			</div>
 		</div>
 	</md-content>
-	<md-menu-content id="menu" width="4" ng-mouseleave="$mdCloseMousepointMenu()">
+	<md-menu-content id="dashboardMenu" width="4" ng-mouseleave="$mdCloseMousepointMenu()">
 		<md-menu-item ng-repeat ="item in vm.contextMenuItems">
 			<md-button ng-disabled="!item.enabled" ng-click="item.action(vm.contextMenuEvent)">
 				<md-icon ng-if="item.icon" md-menu-align-target aria-label="{{ item.value | translate }}" class="material-icons">{{item.icon}}</md-icon>

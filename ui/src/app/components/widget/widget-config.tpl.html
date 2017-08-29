@@ -203,7 +203,10 @@
                                 </md-checkbox>
                             </div>
                         </div>
-                        <div layout="column" layout-gt-sm='row'>
+                        <div layout="column" layout-gt-sm='row'
+                             ng-if="widgetType === types.widgetType.timeseries.value ||
+                                    widgetType === types.widgetType.latest.value ||
+                                    widgetType === types.widgetType.alarm.value">
                             <div layout="row" layout-padding>
                                 <md-checkbox flex aria-label="{{ 'widget-config.enable-data-export' | translate }}"
                                              ng-model="enableDataExport">{{ 'widget-config.enable-data-export' | translate }}

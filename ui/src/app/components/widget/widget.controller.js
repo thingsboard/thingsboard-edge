@@ -21,7 +21,7 @@ import Subscription from '../../api/subscription';
 
 /*@ngInject*/
 export default function WidgetController($scope, $state, $timeout, $window, $element, $q, $log, $injector, $filter, $compile, tbRaf, types, utils, timeService,
-                                         datasourceService, alarmService, entityService, deviceService, visibleRect, isEdit, isMobile, stDiff, dashboardTimewindow,
+                                         datasourceService, importExport, alarmService, entityService, deviceService, visibleRect, isEdit, isMobile, stDiff, dashboardTimewindow,
                                          dashboardTimewindowApi, widget, aliasController, stateController, widgetInfo, widgetType) {
 
     var vm = this;
@@ -495,6 +495,28 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
 
     function exportWidgetData(widgetExportType) {
         console.log(`export widget data: ${widgetExportType}`); //eslint-disable-line
+        var filename;
+        if (widgetContext.widgetTitle && widgetContext.widgetTitle.length) {
+            filename = widgetContext.widgetTitle;
+        } else {
+            filename = widget.config.title;
+        }
+        var data = prepareWidgetExportData();
+        if (widgetExportType == types.widgetExportType.csv.value) {
+            importExport.exportCsv(data, filename);
+        } else if (widgetExportType == types.widgetExportType.xls.value) {
+            importExport.exportXls(data, filename);
+        }
+    }
+
+    function prepareWidgetExportData() {
+        if (angular.isFunction(widgetContext.customDataExport)) {
+            return widgetContext.customDataExport();
+        } else if (widgetContext.defaultSubscription) {
+            return widgetContext.defaultSubscription.exportData();
+        } else {
+            return [];
+        }
     }
 
     function getFirstEntityInfo() {

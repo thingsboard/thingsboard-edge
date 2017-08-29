@@ -159,6 +159,8 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
 
         vm.ctx.widgetActions = [ vm.searchAction ];
 
+        vm.ctx.customDataExport = customDataExport;
+
         vm.actionCellDescriptors = vm.ctx.actionsApi.getActionDescriptors('actionCellButton');
 
         if (vm.settings.alarmsTitle && vm.settings.alarmsTitle.length) {
@@ -491,7 +493,7 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
                     content = strContent;
                 }
             } else {
-                content = defaultContent(key, value);
+                content = utils.defaultAlarmFieldContent(key, value);
             }
             return content;
         } else {
@@ -499,29 +501,6 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
         }
     }
 
-    function defaultContent(key, value) {
-        if (angular.isDefined(value)) {
-            var alarmField = types.alarmFields[key.name];
-            if (alarmField) {
-                if (alarmField.time) {
-                    return $filter('date')(value, 'yyyy-MM-dd HH:mm:ss');
-                } else if (alarmField.value == types.alarmFields.severity.value) {
-                    return $translate.instant(types.alarmSeverity[value].name);
-                } else if (alarmField.value == types.alarmFields.status.value) {
-                    return $translate.instant('alarm.display-status.'+value);
-                } else if (alarmField.value == types.alarmFields.originatorType.value) {
-                    return $translate.instant(types.entityTypeTranslations[value].type);
-                }
-                else {
-                    return value;
-                }
-            } else {
-                return value;
-            }
-        } else {
-            return '';
-        }
-    }
     function defaultStyle(key, value) {
         if (angular.isDefined(value)) {
             var alarmField = types.alarmFields[key.name];
@@ -553,6 +532,27 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
         } else {
             return getDescendantProp(alarm, key.name);
         }
+    }
+
+    function customDataExport() {
+        var exportedData = [];
+        var alarmsToExport = $filter('orderBy')(vm.allAlarms, vm.query.order);
+        if (vm.query.search != null) {
+            alarmsToExport = $filter('filter')(alarmsToExport, {$: vm.query.search});
+        }
+        if (!alarmsToExport || !alarmsToExport.length) {
+            alarmsToExport = [{}];
+        }
+        for (var row=0; row < alarmsToExport.length; row ++) {
+            var dataObj = {};
+            var alarm = alarmsToExport[row];
+            for (var col=0; col < vm.alarmSource.dataKeys.length; col ++) {
+                var dataKey = vm.alarmSource.dataKeys[col];
+                dataObj[dataKey.title] = cellContent(alarm, dataKey);
+            }
+            exportedData.push(dataObj);
+        }
+        return exportedData;
     }
 
     function updateAlarmSource() {

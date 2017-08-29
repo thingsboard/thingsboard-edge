@@ -184,6 +184,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.widgetRow = widgetRow;
     vm.widgetCol = widgetCol;
     vm.widgetStyle = widgetStyle;
+    vm.widgetColor = widgetColor;
     vm.showWidgetTitle = showWidgetTitle;
     vm.hasWidgetTitleTemplate = hasWidgetTitleTemplate;
     vm.widgetTitleTemplate = widgetTitleTemplate;
@@ -1006,10 +1007,16 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     }
 
     function enableWidgetDataExport(widget) {
-        if (angular.isDefined(widget.config.enableDataExport)) {
-            return widget.config.enableDataExport;
+        if (widget.type === types.widgetType.timeseries.value ||
+            widget.type === types.widgetType.latest.value ||
+            widget.type === types.widgetType.alarm.value) {
+            if (angular.isDefined(widget.config.enableDataExport)) {
+                return widget.config.enableDataExport;
+            } else {
+                return true;
+            }
         } else {
-            return true;
+            return false;
         }
     }
 
