@@ -840,6 +840,78 @@ export default class Subscription {
         return subscriptionsChanged;
     }
 
+    exportData() {
+        var exportedData = [], dataObj, col, row, key, value;
+        if (this.type == this.ctx.types.widgetType.timeseries.value || this.type == this.ctx.types.widgetType.latest.value) {
+
+            const checkProperty = (dataObj, key) => {
+                var toCheck = key;
+                var count = 1;
+                while(dataObj.hasOwnProperty(toCheck)) {
+                    count++;
+                    toCheck = key + count;
+                }
+                return toCheck;
+            }
+
+            if (this.data.length) {
+                var firstSeries =  this.data[0].data;
+                for (row=0; row < firstSeries.length; row ++) {
+                    dataObj = {};
+                    var timestamp = firstSeries[row][0];
+                    dataObj["Timestamp"] = this.ctx.$filter('date')(timestamp, 'yyyy-MM-dd HH:mm:ss');
+                    for (col=0; col < this.data.length; col ++) {
+                        key = this.data[col].dataKey.label;
+                        value = this.data[col].data[row][1];
+                        dataObj[checkProperty(dataObj, key)] = value;
+                    }
+                    exportedData.push(dataObj);
+                }
+                if (!exportedData.length) {
+                    dataObj = {};
+                    dataObj["Timestamp"] = null;
+                    for (col=0; col < this.data.length; col ++) {
+                        key = this.data[col].dataKey.label;
+                        dataObj[checkProperty(dataObj, key)] = null;
+                    }
+                    exportedData.push(dataObj);
+                }
+            }
+        } else if (this.type == this.ctx.types.widgetType.alarm.value) {
+
+            const getDescendantProp = (obj, path) => (
+                path.split('.').reduce((acc, part) => acc && acc[part], obj)
+            );
+            var dataKey;
+            for (row=0; row < this.alarms.length; row ++) {
+                var alarm = this.alarms[row];
+                dataObj = {};
+                for (col=0; col < this.alarmSource.dataKeys.length; col ++) {
+                    dataKey =  this.alarmSource.dataKeys[col];
+                    key = dataKey.title;
+                    var alarmField = this.ctx.types.alarmFields[dataKey.name];
+                    if (alarmField) {
+                        value = getDescendantProp(alarm, alarmField.value);
+                    } else {
+                        value = getDescendantProp(alarm, dataKey.name);
+                    }
+                    dataObj[key] = this.ctx.utils.defaultAlarmFieldContent(dataKey, value);
+                }
+                exportedData.push(dataObj);
+            }
+            if (!exportedData.length) {
+                dataObj = {};
+                for (col=0; col < this.alarmSource.dataKeys.length; col ++) {
+                    dataKey =  this.alarmSource.dataKeys[col];
+                    key = dataKey.title;
+                    dataObj[key] = null;
+                }
+                exportedData.push(dataObj);
+            }
+        }
+        return exportedData;
+    }
+
     destroy() {
         this.unsubscribe();
         for (var cafId in this.cafs) {

@@ -1263,7 +1263,10 @@ export default angular.module('thingsboard.locale', [])
                     "widget-template-load-failed-error": "Failed to load widget template!",
                     "add": "Add Widget",
                     "undo": "Undo widget changes",
-                    "export": "Export widget"
+                    "export": "Export widget",
+                    "export-data": "Export widget data",
+                    "export-to-csv": "Export data to CSV...",
+                    "export-to-excel": "Export data to XLS..."
                 },
                 "widget-action": {
                     "header-button": "Widget header button",
@@ -1313,6 +1316,7 @@ export default angular.module('thingsboard.locale', [])
                     "display-title": "Display title",
                     "drop-shadow": "Drop shadow",
                     "enable-fullscreen": "Enable fullscreen",
+                    "enable-data-export": "Enable data export",
                     "background-color": "Background color",
                     "text-color": "Text color",
                     "padding": "Padding",
