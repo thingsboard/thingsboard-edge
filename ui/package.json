@@ -50,6 +50,7 @@
     "canvas-gauges": "^2.0.9",
     "clipboard": "^1.5.15",
     "compass-sass-mixins": "^0.12.7",
+    "event-source-polyfill": "0.0.9",
     "flot": "git://github.com/flot/flot.git#0.9-work",
     "flot-curvedlines": "git://github.com/MichaelZinsmaier/CurvedLines.git#master",
     "font-awesome": "^4.6.3",
