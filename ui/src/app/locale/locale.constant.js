@@ -1364,6 +1364,14 @@ export default angular.module('thingsboard.locale', [])
                     "widget-type-file": "Widget type file",
                     "invalid-widget-type-file-error": "Unable to import widget type: Invalid widget type data structure."
                 },
+                "white-labeling": {
+                    "white-labeling": "White Labeling",
+                    "preview": "Preview",
+                    "logo": "Logo",
+                    "drop-logo-image": "Drop an logo image or click to select a file to upload.",
+                    "no-logo-image": "No logo selected",
+                    "logo-height": "Logo height, px"
+                },
                 "icon": {
                     "icon": "Icon",
                     "select-icon": "Select icon",
