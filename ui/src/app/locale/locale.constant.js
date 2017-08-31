@@ -1370,7 +1370,10 @@ export default angular.module('thingsboard.locale', [])
                     "logo": "Logo",
                     "drop-logo-image": "Drop an logo image or click to select a file to upload.",
                     "no-logo-image": "No logo selected",
-                    "logo-height": "Logo height, px"
+                    "logo-height": "Logo height, px",
+                    "primary-palette": "Primary palette",
+                    "accent-palette": "Accent palette",
+                    "customize-palette": "Customize"
                 },
                 "icon": {
                     "icon": "Icon",

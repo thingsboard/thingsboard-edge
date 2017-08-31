@@ -56,6 +56,44 @@
                         <label translate>white-labeling.logo-height</label>
                         <input type="number" step="1" min="1" ng-model="vm.whiteLabelingParams.logoImageHeight">
                     </md-input-container>
+                    <div layout="row">
+                        <md-input-container flex class="md-block">
+                            <label translate>white-labeling.primary-palette</label>
+                            <md-select aria-label="{{ 'white-labeling.primary-palette' | translate }}"
+                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.primaryPalette.type)"
+                                       ng-model="vm.whiteLabelingParams.paletteSettings.primaryPalette.type">
+                                <md-option></md-option>
+                                <md-option ng-repeat="palette in vm.palettes"
+                                           ng-style="vm.paletteStyle(palette.value)"
+                                           ng-value="palette.value">
+                                    <div ng-style="vm.paletteStyle(palette.value)">{{palette.name}}</div>
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <div layout="column" layout-align="center">
+                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.primaryPalette.type"
+                                       class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
+                        </div>
+                    </div>
+                    <div layout="row">
+                        <md-input-container flex class="md-block">
+                            <label translate>white-labeling.accent-palette</label>
+                            <md-select aria-label="{{ 'white-labeling.accent-palette' | translate }}"
+                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.accentPalette.type)"
+                                       ng-model="vm.whiteLabelingParams.paletteSettings.accentPalette.type">
+                                <md-option></md-option>
+                                <md-option ng-repeat="palette in vm.palettes"
+                                           ng-style="vm.paletteStyle(palette.value)"
+                                           ng-value="palette.value">
+                                    <div ng-style="vm.paletteStyle(palette.value)">{{palette.name}}</div>
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <div layout="column" layout-align="center">
+                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.accentPalette.type"
+                                       class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
+                        </div>
+                    </div>
                     <div layout="row" layout-align="end center" width="100%" layout-wrap>
                         <md-button ng-disabled="loading || vm.whiteLabelForm.$invalid" ng-click="vm.preview()" class="md-raised">{{'white-labeling.preview' | translate}}</md-button>
                         <md-button ng-disabled="loading || vm.whiteLabelForm.$invalid || !vm.whiteLabelForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>

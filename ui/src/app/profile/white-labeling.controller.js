@@ -15,10 +15,51 @@
  */
 
 /*@ngInject*/
-export default function WhiteLabelingController(userService, $scope, whiteLabelingService/*, $document, $mdDialog, $translate*/) {
+export default function WhiteLabelingController(userService, $scope, whiteLabelingService, $mdTheming/*, $document, $mdDialog, $translate*/) {
     var vm = this;
 
     vm.whiteLabelingParams = {};
+    vm.palettes = {};
+
+    for (var paletteKey in $mdTheming.PALETTES) {
+        if (!paletteKey.startsWith('tb-') && !paletteKey.startsWith('custom-')) {
+            var paletteName = paletteKey.toUpperCase().replace('-', ' ');
+            var palette = {
+                name: paletteName,
+                value: paletteKey,
+                info: $mdTheming.PALETTES[paletteKey]
+            };
+            vm.palettes[paletteKey] = palette;
+        }
+    }
+
+    vm.paletteStyle = (key) => {
+        var palette;
+        if (key) {
+            palette = vm.palettes[key];
+        }
+        if (palette) {
+            var hex = palette.info['500'].hex;
+            var contrast = palette.info['500'].contrast;
+            return {
+                backgroundColor: hex,
+                color: `rgb(${contrast[0]},${contrast[1]},${contrast[2]})`
+            };
+        } else {
+            return {};
+        }
+    };
+
+    vm.paletteTextColor = (key) => {
+        var style = vm.paletteStyle(key);
+        if (style.color) {
+            return style.color;
+        } else {
+            return 'inherit';
+        }
+    };
+
+    console.log($mdTheming.PALETTES); //eslint-disable-line
 
     vm.save = save;
     vm.preview = preview;
