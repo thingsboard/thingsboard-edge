@@ -60,18 +60,20 @@
                         <md-input-container flex class="md-block">
                             <label translate>white-labeling.primary-palette</label>
                             <md-select aria-label="{{ 'white-labeling.primary-palette' | translate }}"
-                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.primaryPalette.type)"
-                                       ng-model="vm.whiteLabelingParams.paletteSettings.primaryPalette.type">
+                                       style="font-weight: 500;"
+                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.primaryPalette)"
+                                       ng-model="vm.whiteLabelingParams.paletteSettings.primaryPalette.type"
+                                       ng-change="vm.paletteTypeChanged('primaryPalette', vm.primaryPalettes)">
                                 <md-option></md-option>
-                                <md-option ng-repeat="palette in vm.palettes"
-                                           ng-style="vm.paletteStyle(palette.value)"
-                                           ng-value="palette.value">
-                                    <div ng-style="vm.paletteStyle(palette.value)">{{palette.name}}</div>
+                                <md-option ng-repeat="palette in vm.primaryPalettes"
+                                           ng-style="vm.paletteStyle(palette)"
+                                           ng-value="palette.type">
+                                    <div ng-style="vm.paletteStyle(palette)">{{vm.paletteName(palette)}}</div>
                                 </md-option>
                             </md-select>
                         </md-input-container>
                         <div layout="column" layout-align="center">
-                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.primaryPalette.type"
+                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.primaryPalette.type" ng-click="vm.editPrimaryPalette($event)"
                                        class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
                         </div>
                     </div>
@@ -79,18 +81,20 @@
                         <md-input-container flex class="md-block">
                             <label translate>white-labeling.accent-palette</label>
                             <md-select aria-label="{{ 'white-labeling.accent-palette' | translate }}"
-                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.accentPalette.type)"
-                                       ng-model="vm.whiteLabelingParams.paletteSettings.accentPalette.type">
+                                       style="font-weight: 500;"
+                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.accentPalette)"
+                                       ng-model="vm.whiteLabelingParams.paletteSettings.accentPalette.type"
+                                       ng-change="vm.paletteTypeChanged('accentPalette', vm.accentPalettes)">
                                 <md-option></md-option>
-                                <md-option ng-repeat="palette in vm.palettes"
-                                           ng-style="vm.paletteStyle(palette.value)"
-                                           ng-value="palette.value">
-                                    <div ng-style="vm.paletteStyle(palette.value)">{{palette.name}}</div>
+                                <md-option ng-repeat="palette in vm.accentPalettes"
+                                           ng-style="vm.paletteStyle(palette)"
+                                           ng-value="palette.type">
+                                    <div ng-style="vm.paletteStyle(palette)">{{vm.paletteName(palette)}}</div>
                                 </md-option>
                             </md-select>
                         </md-input-container>
                         <div layout="column" layout-align="center">
-                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.accentPalette.type"
+                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.accentPalette.type" ng-click="vm.editAccentPalette($event)"
                                        class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
                         </div>
                     </div>

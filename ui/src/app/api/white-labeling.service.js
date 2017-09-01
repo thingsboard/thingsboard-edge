@@ -25,11 +25,19 @@ export default angular.module('thingsboard.api.whiteLabeling', [])
     .name;
 
 /*@ngInject*/
-function WhiteLabelingService($rootScope, $q, userService, $http, store) {
+function WhiteLabelingService($rootScope, $q, userService, $http, store, themeProvider, $mdTheming) {
 
     var defaultWLParams = {
         logoImageUrl: defaultImageUrl,
-        logoImageHeight: 36
+        logoImageHeight: 36,
+        paletteSettings: {
+            primaryPalette: {
+                type: 'tb-primary'
+            },
+            accentPalette: {
+                type: 'tb-accent'
+            }
+        }
     };
 
     var parentWLParams = {};
@@ -45,7 +53,8 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store) {
         whiteLabelPreview: whiteLabelPreview,
         getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
         saveWhiteLabelParams: saveWhiteLabelParams,
-        cancelWhiteLabelPreview: cancelWhiteLabelPreview
+        cancelWhiteLabelPreview: cancelWhiteLabelPreview,
+        applyDefaultTheme: applyDefaultTheme
     };
 
     if (userService.isUserLoaded()) {
@@ -56,6 +65,12 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store) {
             onUserLoaded();
         });
     }
+
+    configureTheme();
+
+    $rootScope.whiteLabelingChangedHandle = $rootScope.$on('whiteLabelingChanged', () => {
+        configureTheme();
+    });
 
     return service;
 
@@ -221,6 +236,21 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store) {
         }
     }
 
+    function hasPalette(wlParams, paletteType) {
+        return wlParams.paletteSettings && wlParams.paletteSettings[paletteType]
+               && wlParams.paletteSettings[paletteType].type;
+    }
+
+    function getInstantPalette(paletteType) {
+        if (hasPalette(currentWLParams, paletteType)) {
+            return currentWLParams.paletteSettings[paletteType];
+        } else if (hasPalette(parentWLParams, paletteType)) {
+            return parentWLParams.paletteSettings[paletteType];
+        } else {
+            return defaultWLParams.paletteSettings[paletteType];
+        }
+    }
+
     function getParam(paramName) {
         if (userParamsLoaded) {
             return $q.when(getInstantParam(paramName));
@@ -228,6 +258,27 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store) {
             var deferred = $q.defer();
             var paramResolveTask = () => {
                 deferred.resolve(getInstantParam(paramName));
+            };
+            paramResolveTasks.push(paramResolveTask);
+            return deferred.promise;
+        }
+    }
+
+    function getPaletteSettings() {
+        if (userParamsLoaded) {
+            var paletteSettings = {
+                primaryPalette: getInstantPalette('primaryPalette'),
+                accentPalette: getInstantPalette('accentPalette')
+            }
+            return $q.when(paletteSettings);
+        } else {
+            var deferred = $q.defer();
+            var paramResolveTask = () => {
+                var paletteSettings = {
+                    primaryPalette: getInstantPalette('primaryPalette'),
+                    accentPalette: getInstantPalette('accentPalette')
+                }
+                deferred.resolve(paletteSettings);
             };
             paramResolveTasks.push(paramResolveTask);
             return deferred.promise;
@@ -250,6 +301,123 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store) {
     function cancelWhiteLabelPreview() {
         currentWLParams = userWLParams;
         $rootScope.$broadcast('whiteLabelingChanged');
+    }
+
+    function configureTheme() {
+        getPaletteSettings().then(
+            (paletteSettings) => {
+                store.set('theme_palette_settings', angular.toJson(paletteSettings));
+                applyThemePalettes(paletteSettings);
+            }
+        );
+    }
+
+    function applyDefaultTheme() {
+        var paletteSettingsJson = store.get('theme_palette_settings');
+        var storedPaletteSettings;
+        if (paletteSettingsJson && paletteSettingsJson.length) {
+            try {
+                storedPaletteSettings = angular.fromJson(paletteSettingsJson)
+            } catch (e) {
+                /**/
+            }
+        }
+        if (storedPaletteSettings) {
+            applyThemePalettes(storedPaletteSettings);
+        } else {
+            $rootScope.currentTheme = 'default';
+        }
+    }
+
+    function applyThemePalettes(paletteSettings) {
+        var primaryPalette = paletteSettings.primaryPalette;
+        var accentPalette = paletteSettings.accentPalette;
+        var primaryPaletteName;
+        var accentPaletteName;
+        if (primaryPalette.type != 'custom') {
+            primaryPaletteName = primaryPalette.type;
+        } else {
+            primaryPaletteName = 'custom-primary';
+            var customPrimaryPalette = themeProvider.extendPalette(primaryPalette.extends, prepareColors(primaryPalette.colors, primaryPalette.extends));
+            themeProvider.definePalette(primaryPaletteName, customPrimaryPalette);
+        }
+        if (accentPalette.type != 'custom') {
+            accentPaletteName = accentPalette.type;
+        } else {
+            accentPaletteName = 'custom-accent';
+            var customAccentPalette = themeProvider.extendPalette(accentPalette.extends, prepareColors(accentPalette.colors, accentPalette.extends));
+            themeProvider.definePalette(accentPaletteName, customAccentPalette);
+        }
+
+        cleanupThemes();
+
+        var themeName = 'tb-custom-theme-' + (Math.random()*1000).toFixed(0);
+        themeProvider.theme(themeName)
+            .primaryPalette(primaryPaletteName)
+            .accentPalette(accentPaletteName);
+
+        $mdTheming.generateTheme(themeName);
+
+        $mdTheming.THEMES = angular.extend({}, themeProvider._THEMES);
+
+        themeProvider.setDefaultTheme(themeName);
+
+        $rootScope.currentTheme = themeName;
+    }
+
+    function cleanupThemes() {
+        var styleElements = angular.element('style');
+        for (var i=0;i<styleElements.length;i++) {
+            var styleElement = styleElements[i];
+            if (styleElement.hasAttribute('md-theme-style')) {
+                var content = styleElement.innerHTML || styleElement.innerText || styleElement.textContent;
+                if( content.indexOf('tb-custom-theme-') >= 0){
+                    styleElement.parentNode.removeChild(styleElement);
+                }
+            }
+        }
+
+        for (var theme in themeProvider._THEMES) {
+            if (theme.startsWith('tb-custom-theme-')) {
+                delete themeProvider._THEMES[theme];
+            }
+        }
+    }
+
+    function prepareColors(origColors, extendPalette) {
+        var extendPaletteInfo = $mdTheming.PALETTES[extendPalette];
+        var colors = {};
+        for (var hue in origColors) {
+            var rgbValue = colorToRgbaArray(origColors[hue]);
+            colors[hue] = {
+                hex: origColors[hue],
+                value: rgbValue,
+                contrast: extendPaletteInfo[hue].contrast
+            };
+        }
+        return colors;
+    }
+
+    function colorToRgbaArray(clr) {
+        if (angular.isArray(clr) && clr.length == 3) return clr;
+        if (/^rgb/.test(clr)) {
+            return clr.replace(/(^\s*rgba?\(|\)\s*$)/g, '').split(',').map(function(value, i) {
+                return i == 3 ? parseFloat(value, 10) : parseInt(value, 10);
+            });
+        }
+        if (clr.charAt(0) == '#') clr = clr.substring(1);
+        if (!/^([a-fA-F0-9]{3}){1,2}$/g.test(clr)) return;
+
+        var dig = clr.length / 3;
+        var red = clr.substr(0, dig);
+        var grn = clr.substr(dig, dig);
+        var blu = clr.substr(dig * 2);
+        if (dig === 1) {
+            red += red;
+            grn += grn;
+            blu += blu;
+        }
+        return [parseInt(red, 16), parseInt(grn, 16), parseInt(blu, 16)];
     }
 
 }

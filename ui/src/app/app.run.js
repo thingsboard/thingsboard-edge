@@ -17,14 +17,19 @@ import Flow from '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import UrlHandler from './url.handler';
 
 /*@ngInject*/
-export default function AppRun($rootScope, $window, $injector, $location, $log, $state, $mdDialog, $filter, loginService, userService, $translate) {
+export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
+                               whiteLabelingService, loginService, userService, $translate) {
 
     $window.Flow = Flow;
     var frame = $window.frameElement;
     var unauthorizedDialog = null;
     var forbiddenDialog = null;
 
+    $mdTheming.generateTheme('default');
+    $mdTheming.generateTheme('tb-dark');
+
     $rootScope.iframeMode = false;
+    whiteLabelingService.applyDefaultTheme();
 
     if (frame) {
         $rootScope.iframeMode = true;

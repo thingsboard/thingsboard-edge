@@ -1373,7 +1373,14 @@ export default angular.module('thingsboard.locale', [])
                     "logo-height": "Logo height, px",
                     "primary-palette": "Primary palette",
                     "accent-palette": "Accent palette",
-                    "customize-palette": "Customize"
+                    "customize-palette": "Customize",
+                    "edit-palette": "Edit palette",
+                    "save-palette": "Save palette",
+                    "primary-background": "Primary background",
+                    "secondary-background": "Secondary background",
+                    "hue1": "HUE 1",
+                    "hue2": "HUE 2",
+                    "hue3": "HUE 3"
                 },
                 "icon": {
                     "icon": "Icon",

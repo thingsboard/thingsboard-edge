@@ -151,6 +151,9 @@ export default function AppConfig($provide,
     }
 
     function configureTheme() {
+        //white-labeling
+        $mdThemingProvider.generateThemesOnDemand(true);
+        $provide.value('themeProvider', $mdThemingProvider);
 
         var theme = 'indigo';
 
@@ -161,7 +164,7 @@ export default function AppConfig($provide,
         }
 
         $mdThemingProvider.setDefaultTheme('default');
-        //$mdThemingProvider.alwaysWatchTheme(true);
+        $mdThemingProvider.alwaysWatchTheme(true);
     }
 
 }
