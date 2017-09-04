@@ -17,7 +17,7 @@ import './json-form.scss';
 
 import React from 'react';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import thingsboardTheme from './styles/thingsboardTheme';
+import createThingsboardTheme from './styles/thingsboardTheme';
 import ThingsboardSchemaForm from './json-form-schema-form.jsx';
 
 class ReactSchemaForm extends React.Component {
@@ -31,7 +31,7 @@ class ReactSchemaForm extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            muiTheme: getMuiTheme(thingsboardTheme)
+            muiTheme: getMuiTheme(createThingsboardTheme(props.primaryPalette, props.accentPalette))
         };
     }
 
@@ -45,6 +45,8 @@ class ReactSchemaForm extends React.Component {
 }
 
 ReactSchemaForm.propTypes = {
+        primaryPalette: React.PropTypes.object,
+        accentPalette: React.PropTypes.object,
         schema: React.PropTypes.object,
         form: React.PropTypes.array,
         model: React.PropTypes.object,

@@ -29,7 +29,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     $mdTheming.generateTheme('tb-dark');
 
     $rootScope.iframeMode = false;
-    whiteLabelingService.applyDefaultTheme();
 
     if (frame) {
         $rootScope.iframeMode = true;
@@ -112,7 +111,13 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             showForbiddenDialog();
                         } else if (to.redirectTo) {
                             evt.preventDefault();
-                            $state.go(to.redirectTo, params)
+                            var redirect;
+                            if(angular.isObject(to.redirectTo)) {
+                                redirect = to.redirectTo[authority];
+                            } else {
+                                redirect = to.redirectTo;
+                            }
+                            $state.go(redirect, params)
                         }
                     }
                 } else {

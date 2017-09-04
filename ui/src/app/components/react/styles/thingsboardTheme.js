@@ -20,25 +20,7 @@ import spacing from 'material-ui/styles/spacing';
 
 const PRIMARY_BACKGROUND_COLOR = "#305680";//"#3f51b5";
 
-/*var blueGrayPalette = {
-    primary1Color: blueGrey500,
-    primary2Color: blueGrey700,
-    primary3Color: blueGrey100,
-    accent1Color: orange500,
-    accent2Color: grey100,
-    accent3Color: grey500,
-    textColor: grey900,
-    secondaryTextColor: grey600,
-    alternateTextColor: white,
-    canvasColor: white,
-    borderColor: grey400,
-    disabledColor: fade(darkBlack, 0.3),
-    pickerHeaderColor: cyan500,
-    clockCircleColor: fade(darkBlack, 0.07),
-    shadowColor: fullBlack,
-};*/
-
-var indigoPalette = {
+var thingsboardPalette = {
     primary1Color: PRIMARY_BACKGROUND_COLOR,
     primary2Color: indigo700,
     primary3Color: indigo100,
@@ -56,8 +38,16 @@ var indigoPalette = {
     shadowColor: fullBlack,
 };
 
-export default {
-    spacing: spacing,
-    fontFamily: 'Roboto, \'Helvetica Neue\', sans-serif',
-    palette: indigoPalette,
-};
+export default function createThingsboardTheme (primaryPalette, accentPalette) {
+    thingsboardPalette.primary1Color = primaryPalette ? primaryPalette['500'].hex : PRIMARY_BACKGROUND_COLOR;
+    thingsboardPalette.primary2Color = primaryPalette ? primaryPalette['700'].hex : indigo700;
+    thingsboardPalette.primary3Color = primaryPalette ? primaryPalette['100'].hex : indigo100;
+    thingsboardPalette.accent1Color = accentPalette ? accentPalette['500'].hex : deepOrange500;
+
+    return {
+        spacing: spacing,
+        fontFamily: 'Roboto, \'Helvetica Neue\', sans-serif',
+        palette: thingsboardPalette,
+    };
+}
+

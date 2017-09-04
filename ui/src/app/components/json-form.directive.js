@@ -28,7 +28,7 @@ export default angular.module('thingsboard.directives.jsonForm', [])
     .name;
 
 /*@ngInject*/
-function JsonForm($compile, $templateCache, $mdColorPicker) {
+function JsonForm($compile, $templateCache, $mdColorPicker, whiteLabelingService) {
 
     var linker = function (scope, element) {
 
@@ -85,7 +85,9 @@ function JsonForm($compile, $templateCache, $mdColorPicker) {
             },
             onColorClick: function(event, key, val) {
                 scope.showColorPicker(event, val);
-            }
+            },
+            primaryPalette: whiteLabelingService.getPrimaryPalette(),
+            accentPalette: whiteLabelingService.getAccentPalette()
         };
 
         scope.showColorPicker = function (event, color) {

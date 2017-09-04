@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/whiteLabel")
+@RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 
     private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
@@ -59,7 +59,7 @@ public class WhiteLabelingController extends BaseController {
     private AttributesService attributesService;
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/logoImageChecksum", method = RequestMethod.GET, produces = "text/plain")
+    @RequestMapping(value = "/whiteLabel/logoImageChecksum", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
     public String getLogoImageChecksum(
             @RequestParam(required = false, defaultValue = "false") boolean parent) throws ThingsboardException {
@@ -90,7 +90,7 @@ public class WhiteLabelingController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/logoImage", method = RequestMethod.GET, produces = "text/plain")
+    @RequestMapping(value = "/whiteLabel/logoImage", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
     public String getLogoImage(
             @RequestParam(required = false, defaultValue = "false") boolean parent) throws ThingsboardException {
@@ -121,7 +121,7 @@ public class WhiteLabelingController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public JsonNode getWhiteLabelParams(
             @RequestParam(required = false, defaultValue = "false") boolean parent) throws ThingsboardException {
@@ -151,7 +151,7 @@ public class WhiteLabelingController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/currentWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/whiteLabel/currentWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public JsonNode getCurrentWhiteLabelParams() throws ThingsboardException {
         try {
@@ -171,6 +171,17 @@ public class WhiteLabelingController extends BaseController {
             whiteLabelParams = prepareWhiteLabelParams(whiteLabelParams);
             ((ObjectNode)whiteLabelParams).put(LOGO_IMAGE_URL, logoImage);
             return whiteLabelParams;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @RequestMapping(value = "/noauth/whiteLabel/systemPaletteSettings", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public JsonNode getSystemPaletteSettings() throws ThingsboardException {
+        try {
+            JsonNode whiteLabelParams = prepareWhiteLabelParams(getSysAdminWhiteLabelParams());
+            return whiteLabelParams.get(PALETTE_SETTINGS);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -203,7 +214,7 @@ public class WhiteLabelingController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/logoImage", method = RequestMethod.POST, produces = "text/plain")
+    @RequestMapping(value = "/whiteLabel/logoImage", method = RequestMethod.POST, produces = "text/plain")
     @ResponseBody
     public String saveLogoImage(@RequestBody(required=false) String logoImageBase64) throws ThingsboardException {
         try {
@@ -228,7 +239,7 @@ public class WhiteLabelingController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/whiteLabelParams", method = RequestMethod.POST)
+    @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void saveWhiteLabelParams(@RequestBody JsonNode whiteLabelParams) throws ThingsboardException {
         try {

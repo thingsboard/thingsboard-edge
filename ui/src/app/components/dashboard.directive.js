@@ -80,6 +80,7 @@ function Dashboard() {
             onInitFailed: '&?',
             dashboardStyle: '=?',
             dashboardClass: '=?',
+            embedded: '=?',
             ignoreLoading: '=?'
         },
         controller: DashboardController,
@@ -89,7 +90,7 @@ function Dashboard() {
 }
 
 /*@ngInject*/
-function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $mdUtil, $q, timeService, types, utils) {
+function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $mdUtil, $mdColors, $q, timeService, types, utils) {
 
     var highlightedMode = false;
     var highlightedWidget = null;
@@ -109,6 +110,11 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.isMobileDisabled = angular.isDefined(vm.isMobileDisabled) ? vm.isMobileDisabled : false;
 
     vm.isMobileSize = false;
+
+    vm.embeddedDashboardBackground = $mdColors.getThemeColor(`primary-hue-3`);
+    //vm.computedDashboardStyle = {
+    //};
+
 
     if (!('dashboardTimewindow' in vm)) {
         vm.dashboardTimewindow = timeService.defaultTimewindow();
@@ -395,6 +401,23 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     $scope.$watch('vm.isMobileSize', function (newVal, prevVal) {
         if (!angular.equals(newVal, prevVal)) {
             $scope.$broadcast('mobileModeChanged', vm.isMobileSize);
+        }
+    });
+
+    $scope.$watch('vm.embedded', function () {
+        /*console.log(vm.dashboardStyle); //eslint-disable-line
+        if (vm.dashboardStyle) {
+            vm.computedDashboardStyle = angular.copy(vm.dashboardStyle);
+        } else {
+            vm.computedDashboardStyle = {};
+        }
+        if (vm.embedded && !vm.computedDashboardStyle['background-color']) {
+            vm.computedDashboardStyle['background-color'] = vm.embeddedDashboardBackground;
+        }*/
+        if (vm.embedded) {
+            $element.css({backgroundColor: vm.embeddedDashboardBackground});
+        } else {
+            $element.css({backgroundColor: 'initial'});
         }
     });
 

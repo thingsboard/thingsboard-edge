@@ -23,8 +23,6 @@ import thingsboardConfirmOnExit from '../components/confirm-on-exit.directive';
 import ProfileRoutes from './profile.routes';
 import ProfileController from './profile.controller';
 import ChangePasswordController from './change-password.controller';
-import WhiteLabelingRoutes from './white-labeling.routes';
-import WhiteLabelingController from './white-labeling.controller';
 
 export default angular.module('thingsboard.profile', [
     uiRouter,
@@ -35,8 +33,6 @@ export default angular.module('thingsboard.profile', [
     thingsboardConfirmOnExit
 ])
     .config(ProfileRoutes)
-    .config(WhiteLabelingRoutes)
     .controller('ProfileController', ProfileController)
     .controller('ChangePasswordController', ChangePasswordController)
-    .controller('WhiteLabelingController', WhiteLabelingController)
     .name;

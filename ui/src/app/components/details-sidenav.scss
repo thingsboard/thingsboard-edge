@@ -54,9 +54,4 @@ md-sidenav.tb-sidenav-details {
   @media (min-width: $layout-breakpoint-lg) {
     width: 45% !important;
   }
-  tb-dashboard {
-    md-content {
-      background-color: $primary-hue-3;
-    }
-  }
 }

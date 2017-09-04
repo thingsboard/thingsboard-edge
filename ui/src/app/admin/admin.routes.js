@@ -15,8 +15,8 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import generalSettingsTemplate from '../admin/general-settings.tpl.html';
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
+import whiteLabelingTemplate from './white-labeling.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -26,29 +26,13 @@ export default function AdminRoutes($stateProvider) {
         .state('home.settings', {
             url: '/settings',
             module: 'private',
-            auth: ['SYS_ADMIN'],
-            redirectTo: 'home.settings.general',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
+            redirectTo: {
+                'SYS_ADMIN': 'home.settings.outgoing-mail',
+                'TENANT_ADMIN': 'home.settings.whiteLabel',
+                'CUSTOMER_USER': 'home.settings.whiteLabel'},
             ncyBreadcrumb: {
                 label: '{"icon": "settings", "label": "admin.system-settings"}'
-            }
-        })
-        .state('home.settings.general', {
-            url: '/general',
-            module: 'private',
-            auth: ['SYS_ADMIN'],
-            views: {
-                "content@home": {
-                    templateUrl: generalSettingsTemplate,
-                    controllerAs: 'vm',
-                    controller: 'AdminController'
-                }
-            },
-            data: {
-                key: 'general',
-                pageTitle: 'admin.general-settings'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "settings_applications", "label": "admin.general"}'
             }
         })
         .state('home.settings.outgoing-mail', {
@@ -68,6 +52,24 @@ export default function AdminRoutes($stateProvider) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "mail", "label": "admin.outgoing-mail"}'
+            }
+        })
+        .state('home.settings.whiteLabel', {
+            url: '/whiteLabel',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: whiteLabelingTemplate,
+                    controllerAs: 'vm',
+                    controller: 'WhiteLabelingController'
+                }
+            },
+            data: {
+                pageTitle: 'white-labeling.white-labeling'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "format_paint", "label": "white-labeling.white-labeling"}'
             }
         });
 }

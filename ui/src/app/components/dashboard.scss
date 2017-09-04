@@ -84,20 +84,23 @@ tb-dashboard {
   left: 0;
   right: 0;
   bottom: 0;
+
+  md-content.tb-dashboard-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    outline: none;
+    background: none;
+    .gridster-item {
+      @include transition(none);
+    }
+  }
+
 }
 
-md-content.tb-dashboard-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  outline: none;
-  background: none;
-  .gridster-item {
-      @include transition(none);
-  }
-}
+
 
 .tb-widget-error-container {
   position: absolute;

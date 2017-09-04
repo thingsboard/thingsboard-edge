@@ -50,7 +50,6 @@ function UserMenuController($scope, userService, $translate, $state) {
     vm.authorityName = authorityName;
     vm.logout = logout;
     vm.openProfile = openProfile;
-    vm.openWhiteLabeling = openWhiteLabeling;
     vm.userDisplayName = userDisplayName;
 
     function authorityName() {
@@ -91,10 +90,6 @@ function UserMenuController($scope, userService, $translate, $state) {
 
     function openProfile() {
         $state.go('home.profile');
-    }
-
-    function openWhiteLabeling() {
-        $state.go('home.whiteLabel');
     }
 
     function logout() {

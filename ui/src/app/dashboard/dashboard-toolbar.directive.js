@@ -45,7 +45,7 @@ export default function DashboardToolbar() {
 
 
 /*@ngInject*/
-function DashboardToolbarController($scope, $element, $timeout, mdFabToolbarAnimation) {
+function DashboardToolbarController($rootScope, $scope, $element, $timeout, $mdColors, mdFabToolbarAnimation) {
 
     let vm = this;
 
@@ -77,12 +77,12 @@ function DashboardToolbarController($scope, $element, $timeout, mdFabToolbarAnim
         }
         var ctrl = vm.mdFabToolbarElement.controller('mdFabToolbar');
         if (ctrl.isOpen) {
+            var color = $mdColors.getThemeColor(`primary-500`);
+            vm.mdFabBackgroundElement.css({backgroundColor: color});
             if (!vm.mdFabBackgroundElement[0].offsetWidth) {
                 mdFabToolbarAnimation.addClass(vm.mdFabToolbarElement, 'md-is-open', function () {
                 });
             } else {
-                var color = window.getComputedStyle(vm.mdFabTriggerElement[0]).getPropertyValue('background-color'); //eslint-disable-line
-
                 var width = vm.mdFabToolbarElement[0].offsetWidth;
                 var scale = 2 * (width / vm.mdFabTriggerElement[0].offsetWidth);
                 vm.mdFabBackgroundElement[0].style.backgroundColor = color;
