@@ -27,6 +27,37 @@
         <md-card-content>
             <form name="vm.whiteLabelForm" ng-submit="vm.save()" tb-confirm-on-exit="vm.onFormExit()" confirm-form="vm.whiteLabelForm">
                 <fieldset ng-disabled="loading">
+                    <md-input-container flex class="md-block">
+                        <label translate>white-labeling.app-title</label>
+                        <input ng-model="vm.whiteLabelingParams.appTitle">
+                    </md-input-container>
+                    <div class="tb-container">
+                        <label class="tb-label" translate>white-labeling.favicon</label>
+                        <div flow-init="{singleFile:true}"
+                             flow-file-added="vm.faviconImageAdded( $file )" class="tb-image-select-container">
+                            <div class="tb-image-preview-container">
+                                <div ng-show="!vm.whiteLabelingParams.faviconUrl" translate>white-labeling.no-favicon-image</div>
+                                <img ng-show="vm.whiteLabelingParams.faviconUrl" class="tb-image-preview" src="{{vm.whiteLabelingParams.faviconUrl}}" />
+                            </div>
+                            <div class="tb-image-clear-container">
+                                <md-button ng-click="vm.clearFaviconImage()"
+                                           class="tb-image-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                    <md-tooltip md-direction="top">
+                                        {{ 'action.remove' | translate }}
+                                    </md-tooltip>
+                                    <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">
+                                        close
+                                    </md-icon>
+                                </md-button>
+                            </div>
+                            <div class="alert tb-flow-drop" flow-drop>
+                                <label for="faviconSelect" translate>white-labeling.drop-favicon-image</label>
+                                <input class="file-input" flow-btn flow-attrs="{accept:'image/x-icon, image/gif, image/png, image/vnd.microsoft.icon'}" id="faviconSelect">
+                            </div>
+                        </div>
+                        <div class="tb-hint" style="padding-top: 10px;" translate
+                             translate-values="{kbSize: vm.maxFaviconSizeKb}">white-labeling.favicon-description</div>
+                    </div>
                     <div class="tb-container">
                         <label class="tb-label" translate>white-labeling.logo</label>
                         <div flow-init="{singleFile:true}"
@@ -47,10 +78,12 @@
                                 </md-button>
                             </div>
                             <div class="alert tb-flow-drop" flow-drop>
-                                <label for="select" translate>white-labeling.drop-logo-image</label>
-                                <input class="file-input" flow-btn flow-attrs="{accept:'image/*'}" id="select">
+                                <label for="logoSelect" translate>white-labeling.drop-logo-image</label>
+                                <input class="file-input" flow-btn flow-attrs="{accept:'image/*'}" id="logoSelect">
                             </div>
                         </div>
+                        <div class="tb-hint" style="padding-top: 10px;" translate
+                             translate-values="{kbSize: vm.maxLogoSizeKb}">white-labeling.logo-description</div>
                     </div>
                     <md-input-container flex class="md-block">
                         <label translate>white-labeling.logo-height</label>

@@ -30,6 +30,9 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     var defaultWLParams = {
         logoImageUrl: defaultImageUrl,
         logoImageHeight: 36,
+        appTitle: 'ThingsBoard EE',
+        faviconUrl: 'static/thingsboard.ico',
+        faviconType: 'image/x-icon',
         paletteSettings: {
             primaryPalette: {
                 type: 'tb-primary'
@@ -46,8 +49,10 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     var currentWLParams = {};
 
     var defaultsLoaded = false;
+    var systemParamsLoaded = false;
     var userParamsLoaded = false;
     var paramResolveTasks = [];
+    var systemParamResolveTasks = [];
 
     var primaryPaletteName = 'tb-primary';
     var accentPaletteName = 'tb-accent';
@@ -55,6 +60,9 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     var service = {
         logoImageUrl: logoImageUrl,
         logoImageHeight: logoImageHeight,
+        appTitle: appTitle,
+        faviconUrl: faviconUrl,
+        faviconType: faviconType,
         whiteLabelPreview: whiteLabelPreview,
         getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
         saveWhiteLabelParams: saveWhiteLabelParams,
@@ -72,22 +80,29 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         });
     }
 
-    configureTheme();
-
-    $rootScope.whiteLabelingChangedHandle = $rootScope.$on('whiteLabelingChanged', () => {
-        configureTheme();
-    });
+    configureWhiteLabeling(true);
 
     return service;
 
+    function wlChanged(loadPalette) {
+        configureWhiteLabeling(loadPalette).then(
+            () => {
+                $rootScope.$broadcast('whiteLabelingChanged');
+            }
+        );
+    }
+
     function onUserLoaded() {
         if (userService.isAuthenticated()) {
-            loadUserWhiteLabelingParams();
+            reloadUserWhiteLabelingParams();
             $rootScope.wlUserLoadedHandle = $rootScope.$on('userLoaded', () => {
                 reloadUserWhiteLabelingParams();
             });
             $rootScope.wlUserAuthenticatedHandle = $rootScope.$on('authenticated', () => {
                 reloadUserWhiteLabelingParams();
+            });
+            $rootScope.wlUserAuthenticatedHandle = $rootScope.$on('unauthenticated', () => {
+                resetUserWhiteLabelingParams();
             });
         } else {
             $rootScope.wlUserAuthenticatedHandle = $rootScope.$on('authenticated', () => {
@@ -99,8 +114,16 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
 
     function reloadUserWhiteLabelingParams() {
         loadUserWhiteLabelingParams().then(() => {
-            $rootScope.$broadcast('whiteLabelingChanged');
+            wlChanged(true);
         });
+    }
+
+    function resetUserWhiteLabelingParams() {
+        userWLParams = {};
+        parentWLParams = {};
+        currentWLParams = userWLParams;
+        userParamsLoaded = false;
+        wlChanged(false);
     }
 
     function loadUserWhiteLabelingParams() {
@@ -136,8 +159,8 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
                 loadWhiteLabelParams(parent).then(
                     (whiteLabelParams) => {
                         if (whiteLabelParams) {
-                            wlParams.logoImageHeight = whiteLabelParams.logoImageHeight;
-                            wlParams.paletteSettings = whiteLabelParams.paletteSettings;
+                            wlParams = checkWlParams(whiteLabelParams);
+                            wlParams.logoImageUrl = logoImageUrl;
                         }
                         deferred.resolve(wlParams);
                     },
@@ -153,6 +176,34 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         return deferred.promise;
     }
 
+    function checkWlParams(whiteLabelParams) {
+        if (!whiteLabelParams) {
+            whiteLabelParams = {};
+        }
+        if (!whiteLabelParams.paletteSettings) {
+            whiteLabelParams.paletteSettings = {};
+        }
+        if (whiteLabelParams.faviconUrl && whiteLabelParams.faviconUrl.length) {
+            whiteLabelParams.faviconType = extractTypeFromDataUrl(whiteLabelParams.faviconUrl);
+        }
+        return whiteLabelParams;
+    }
+
+    function extractTypeFromDataUrl(dataUrl) {
+        var type;
+        if (dataUrl) {
+            var res = dataUrl.split(";");
+            if (res && res.length) {
+                res = res[0];
+                res = res.split(":");
+                if (res && res.length > 1) {
+                    type = res[1];
+                }
+            }
+        }
+        return type;
+    }
+
     function userWhiteLabelingParamsLoaded() {
         currentWLParams = userWLParams;
         userParamsLoaded = true;
@@ -160,6 +211,14 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
             paramResolveTasks[i]();
         }
         paramResolveTasks.length = 0;
+    }
+
+    function systemWhiteLabelingParamsLoaded() {
+        systemParamsLoaded = true;
+        for (var i=0;i<systemParamResolveTasks.length;i++) {
+            systemParamResolveTasks[i]();
+        }
+        systemParamResolveTasks.length = 0;
     }
 
     function loadLogoImage(parent) {
@@ -214,9 +273,9 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         return deferred.promise;
     }
 
-    function getSystemPaletteSettings() {
+    function getSystemWhiteLabelParams() {
         var deferred = $q.defer();
-        var url = '/api/noauth/whiteLabel/systemPaletteSettings';
+        var url = '/api/noauth/whiteLabel/systemWhiteLabelParams';
         $http.get(url, null).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -233,10 +292,8 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
             store.set('logo_image_checksum', logoImageChecksum);
             store.set('logo_image_url', wlParams.logoImageUrl);
             url = '/api/whiteLabel/whiteLabelParams';
-            var params = {
-                logoImageHeight: wlParams.logoImageHeight,
-                paletteSettings: wlParams.paletteSettings
-            };
+            var params = angular.copy(wlParams);
+            delete params.logoImageUrl;
             $http.post(url, params).then(function success() {
                 reloadUserWhiteLabelingParams();
                 deferred.resolve();
@@ -255,6 +312,8 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
             return currentWLParams[paramName];
         } else if (parentWLParams[paramName]) {
             return parentWLParams[paramName];
+        } else if (systemWLParams[paramName]) {
+            return systemWLParams[paramName];
         } else {
             return defaultWLParams[paramName];
         }
@@ -277,11 +336,23 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         }
     }
 
-    function getParam(paramName) {
+    function getParam(paramName, systemByDefault) {
+        var deferred;
         if (userParamsLoaded) {
             return $q.when(getInstantParam(paramName));
+        } else if (systemByDefault) {
+            if (systemParamsLoaded) {
+                return $q.when(getInstantParam(paramName));
+            } else {
+                deferred = $q.defer();
+                var systemParamResolveTask = () => {
+                    deferred.resolve(getInstantParam(paramName));
+                };
+                systemParamResolveTasks.push(systemParamResolveTask);
+                return deferred.promise;
+            }
         } else {
-            var deferred = $q.defer();
+            deferred = $q.defer();
             var paramResolveTask = () => {
                 deferred.resolve(getInstantParam(paramName));
             };
@@ -311,6 +382,14 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         }
     }
 
+    function faviconUrl() {
+        return getParam('faviconUrl', true);
+    }
+
+    function faviconType() {
+        return getParam('faviconType', true);
+    }
+
     function logoImageUrl() {
         return getParam('logoImageUrl');
     }
@@ -319,14 +398,18 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         return getParam('logoImageHeight');
     }
 
+    function appTitle() {
+        return getParam('appTitle', true);
+    }
+
     function whiteLabelPreview(wLParams) {
         currentWLParams = wLParams;
-        $rootScope.$broadcast('whiteLabelingChanged');
+        wlChanged(true);
     }
 
     function cancelWhiteLabelPreview() {
         currentWLParams = userWLParams;
-        $rootScope.$broadcast('whiteLabelingChanged');
+        wlChanged(true);
     }
 
     function getPrimaryPalette() {
@@ -337,15 +420,22 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         return themeProvider._PALETTES[accentPaletteName];
     }
 
-    function configureTheme() {
+    function configureWhiteLabeling(loadPalette) {
+        var deferred = $q.defer();
         loadDefaults().then(() => {
-            getPaletteSettings().then(
-                (paletteSettings) => {
-                    store.set('theme_palette_settings', angular.toJson(paletteSettings));
-                    applyThemePalettes(paletteSettings);
-                }
-            );
+            if (loadPalette) {
+                getPaletteSettings().then(
+                    (paletteSettings) => {
+                        store.set('theme_palette_settings', angular.toJson(paletteSettings));
+                        applyThemePalettes(paletteSettings);
+                        deferred.resolve();
+                    }
+                );
+            } else {
+                deferred.resolve();
+            }
         });
+        return deferred.promise;
     }
 
     function loadDefaults() {
@@ -367,22 +457,16 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
                 $rootScope.currentTheme = 'default';
             }
         }
-        getSystemPaletteSettings().then(
-            (paletteSettings) => {
-                systemWLParams.paletteSettings = {
-                    primaryPalette: paletteSettings ? paletteSettings.primaryPalette : null,
-                    accentPalette: paletteSettings ? paletteSettings.accentPalette : null
-                };
-                if (paletteSettings && paletteSettings.primaryPalette
-                    && paletteSettings.accentPalette) {
-                    applyLoginThemePalettes(paletteSettings);
-                } else {
-                    $rootScope.currentLoginTheme = 'tb-dark';
-                }
+        getSystemWhiteLabelParams().then(
+            (wlParams) => {
+                systemWLParams = checkWlParams(wlParams);
+                applyLoginThemePalettes(systemWLParams.paletteSettings);
+                systemWhiteLabelingParamsLoaded();
                 deferred.resolve();
             },
             () => {
                 $rootScope.currentLoginTheme = 'tb-dark';
+                systemWhiteLabelingParamsLoaded();
                 deferred.resolve();
             }
         );
@@ -426,12 +510,18 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     function applyLoginThemePalettes(paletteSettings) {
         var primaryPalette = paletteSettings.primaryPalette;
         var accentPalette = paletteSettings.accentPalette;
-        if (!primaryPalette.type) {
+        if (!primaryPalette || !primaryPalette.type) {
             primaryPalette = defaultWLParams.paletteSettings.primaryPalette;
         }
-        if (!accentPalette.type) {
+        if (!accentPalette || !accentPalette.type) {
             accentPalette = defaultWLParams.paletteSettings.accentPalette;
         }
+        if (primaryPalette == defaultWLParams.paletteSettings.primaryPalette &&
+            accentPalette == defaultWLParams.paletteSettings.accentPalette) {
+            $rootScope.currentLoginTheme = 'tb-dark';
+            return;
+        }
+
         var primaryPaletteName;
         var accentPaletteName;
         var backgroundPaletteName;

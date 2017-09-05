@@ -47,8 +47,6 @@ public class WhiteLabelingController extends BaseController {
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
 
     private static final String LOGO_IMAGE_URL = "logoImageUrl";
-    private static final String LOGO_IMAGE_HEIGHT = "logoImageHeight";
-    private static final String PALETTE_SETTINGS = "paletteSettings";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -176,12 +174,11 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/noauth/whiteLabel/systemPaletteSettings", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/noauth/whiteLabel/systemWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public JsonNode getSystemPaletteSettings() throws ThingsboardException {
+    public JsonNode getSystemWhiteLabelParams() throws ThingsboardException {
         try {
-            JsonNode whiteLabelParams = prepareWhiteLabelParams(getSysAdminWhiteLabelParams());
-            return whiteLabelParams.get(PALETTE_SETTINGS);
+            return prepareWhiteLabelParams(getSysAdminWhiteLabelParams());
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -190,25 +187,6 @@ public class WhiteLabelingController extends BaseController {
     private JsonNode prepareWhiteLabelParams(JsonNode whiteLabelParams) throws Exception {
         if (whiteLabelParams == null) {
             whiteLabelParams = objectMapper.createObjectNode();
-        }
-        if (whiteLabelParams.has(LOGO_IMAGE_HEIGHT)) {
-            int val = whiteLabelParams.get(LOGO_IMAGE_HEIGHT).asInt();
-            if (val <= 0) {
-                ((ObjectNode)whiteLabelParams).put(LOGO_IMAGE_HEIGHT, "");
-            } else {
-                ((ObjectNode)whiteLabelParams).put(LOGO_IMAGE_HEIGHT, val);
-            }
-        } else {
-            ((ObjectNode)whiteLabelParams).put(LOGO_IMAGE_HEIGHT, "");
-        }
-        String paletteSettings = null;
-        if (whiteLabelParams.has(PALETTE_SETTINGS)) {
-            paletteSettings = whiteLabelParams.get(PALETTE_SETTINGS).asText();
-        }
-        if (StringUtils.isEmpty(paletteSettings)) {
-            ((ObjectNode)whiteLabelParams).set(PALETTE_SETTINGS, objectMapper.createObjectNode());
-        } else {
-            ((ObjectNode)whiteLabelParams).set(PALETTE_SETTINGS, objectMapper.readTree(paletteSettings));
         }
         return whiteLabelParams;
     }
@@ -243,18 +221,6 @@ public class WhiteLabelingController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void saveWhiteLabelParams(@RequestBody JsonNode whiteLabelParams) throws ThingsboardException {
         try {
-            JsonNode logoImageHeight = whiteLabelParams.get(LOGO_IMAGE_HEIGHT);
-            if (logoImageHeight == null) {
-                ((ObjectNode)whiteLabelParams).put(LOGO_IMAGE_HEIGHT, "");
-            } else {
-                ((ObjectNode)whiteLabelParams).put(LOGO_IMAGE_HEIGHT, logoImageHeight.asText());
-            }
-            JsonNode paletteSettings = whiteLabelParams.get(PALETTE_SETTINGS);
-            if (paletteSettings == null) {
-                ((ObjectNode)whiteLabelParams).put(PALETTE_SETTINGS, "");
-            } else {
-                ((ObjectNode)whiteLabelParams).put(PALETTE_SETTINGS, objectMapper.writeValueAsString(paletteSettings));
-            }
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
                 saveSysAdminWhiteLabelParams(whiteLabelParams);
@@ -283,9 +249,9 @@ public class WhiteLabelingController extends BaseController {
         saveEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM, logoImageChecksum);
     }
 
-    private void saveSysAdminWhiteLabelParams(JsonNode whiteLabelParams) throws ThingsboardException {
+    private void saveSysAdminWhiteLabelParams(JsonNode whiteLabelParams) throws Exception {
         AdminSettings whiteLabelParamsSettings = getAdminSettings(WHITE_LABEL_PARAMS);
-        whiteLabelParamsSettings.setJsonValue(whiteLabelParams);
+        ((ObjectNode)whiteLabelParamsSettings.getJsonValue()).put("value", objectMapper.writeValueAsString(whiteLabelParams));
         adminSettingsService.saveAdminSettings(whiteLabelParamsSettings);
     }
 
@@ -319,10 +285,15 @@ public class WhiteLabelingController extends BaseController {
         return getEntityAttributeValue(entityId, LOGO_IMAGE);
     }
 
-    private JsonNode getSysAdminWhiteLabelParams() throws ThingsboardException {
+    private JsonNode getSysAdminWhiteLabelParams() throws Exception {
         AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(WHITE_LABEL_PARAMS);
         if (whiteLabelParamsSettings != null) {
-            return whiteLabelParamsSettings.getJsonValue();
+            String value = whiteLabelParamsSettings.getJsonValue().get("value").asText();
+            if (!StringUtils.isEmpty(value)) {
+                return objectMapper.readTree(value);
+            } else {
+                return null;
+            }
         } else {
             return null;
         }

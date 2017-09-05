@@ -22,9 +22,17 @@ import paletteTemplate from './palette-dialog.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+const faviconTypes = ['image/x-icon', 'image/png', 'image/gif', 'image/vnd.microsoft.icon'];
+const maxFaviconSize = 262144;
+const maxLogoSize = 4194304;
+
 /*@ngInject*/
-export default function WhiteLabelingController(userService, $scope, $mdDialog, $document, $q, whiteLabelingService, $mdTheming, $filter) {
+export default function WhiteLabelingController(userService, $scope, $mdDialog, $document, $q,
+                                                $translate, toast, whiteLabelingService, $mdTheming, $filter) {
     var vm = this;
+
+    vm.maxFaviconSizeKb = maxFaviconSize / 1024;
+    vm.maxLogoSizeKb = maxLogoSize / 1024;
 
     vm.whiteLabelingParams = {};
     vm.primaryPalettes = [];
@@ -82,6 +90,8 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
     vm.save = save;
     vm.preview = preview;
 
+    vm.faviconImageAdded = faviconImageAdded;
+    vm.clearFaviconImage = clearFaviconImage;
     vm.logoImageAdded = logoImageAdded;
     vm.clearLogoImage = clearLogoImage;
     vm.onFormExit = onFormExit;
@@ -95,28 +105,82 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
         whiteLabelingService.getCurrentWhiteLabelParams().then(
             (whiteLabelingParams) => {
                 vm.whiteLabelingParams = whiteLabelingParams;
+                if (!vm.whiteLabelingParams.paletteSettings) {
+                    vm.whiteLabelingParams.paletteSettings = {};
+                }
                 updateCustomPalette('primaryPalette', vm.primaryPalettes);
                 updateCustomPalette('accentPalette', vm.accentPalettes);
             }
         );
     }
 
+    function faviconImageAdded($file) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+            $scope.$apply(function() {
+                var dataUrl = event.target.result;
+                var type = extractType(dataUrl);
+                if (type && faviconTypes.indexOf(type) > -1) {
+                    vm.whiteLabelForm.$setDirty();
+                    vm.whiteLabelingParams.faviconUrl = dataUrl;
+                } else {
+                    toast.showError($translate.instant('white-labeling.favicon-type-error'));
+                }
+            });
+        };
+        if ($file.file.size > maxFaviconSize) {
+            toast.showError($translate.instant('white-labeling.favicon-size-error', {kbSize: vm.maxFaviconSizeKb}));
+            return false;
+        } else {
+            reader.readAsDataURL($file.file);
+        }
+    }
+
+    function clearFaviconImage() {
+        vm.whiteLabelForm.$setDirty();
+        vm.whiteLabelingParams.faviconUrl = null;
+    }
+
     function logoImageAdded($file) {
         var reader = new FileReader();
         reader.onload = function(event) {
             $scope.$apply(function() {
-                if (event.target.result && event.target.result.startsWith('data:image/')) {
+                var dataUrl = event.target.result;
+                var type = extractType(dataUrl);
+                if (type && type.startsWith('image/')) {
                     vm.whiteLabelForm.$setDirty();
-                    vm.whiteLabelingParams.logoImageUrl = event.target.result;
+                    vm.whiteLabelingParams.logoImageUrl = dataUrl;
+                } else {
+                    toast.showError($translate.instant('white-labeling.logo-type-error'));
                 }
             });
         };
-        reader.readAsDataURL($file.file);
+        if ($file.file.size > maxLogoSize) {
+            toast.showError($translate.instant('white-labeling.logo-size-error', {kbSize: vm.maxLogoSizeKb}));
+            return false;
+        } else {
+            reader.readAsDataURL($file.file);
+        }
     }
 
     function clearLogoImage() {
         vm.whiteLabelForm.$setDirty();
         vm.whiteLabelingParams.logoImageUrl = null;
+    }
+
+    function extractType(dataUrl) {
+        var type;
+        if (dataUrl) {
+            var res = dataUrl.split(";");
+            if (res && res.length) {
+                res = res[0];
+                res = res.split(":");
+                if (res && res.length > 1) {
+                    type = res[1];
+                }
+            }
+        }
+        return type;
     }
 
     function save() {
