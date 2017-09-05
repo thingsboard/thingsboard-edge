@@ -17,7 +17,7 @@
 
 CREATE TABLE IF NOT EXISTS admin_settings (
     id varchar(31) NOT NULL CONSTRAINT admin_settings_pkey PRIMARY KEY,
-    json_value varchar,
+    json_value varchar(10000000),
     key varchar(255)
 );
 

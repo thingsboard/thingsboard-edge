@@ -124,16 +124,16 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             icon: 'settings',
                             pages: [
                                 {
-                                    name: 'admin.general',
-                                    type: 'link',
-                                    state: 'home.settings.general',
-                                    icon: 'settings_applications'
-                                },
-                                {
                                     name: 'admin.outgoing-mail',
                                     type: 'link',
                                     state: 'home.settings.outgoing-mail',
                                     icon: 'mail'
+                                },
+                                {
+                                    name: 'white-labeling.white-labeling',
+                                    type: 'link',
+                                    state: 'home.settings.whiteLabel',
+                                    icon: 'format_paint'
                                 }
                             ]
                         }];
@@ -177,14 +177,14 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                 name: 'admin.system-settings',
                                 places: [
                                     {
-                                        name: 'admin.general',
-                                        icon: 'settings_applications',
-                                        state: 'home.settings.general'
-                                    },
-                                    {
                                         name: 'admin.outgoing-mail',
                                         icon: 'mail',
                                         state: 'home.settings.outgoing-mail'
+                                    },
+                                    {
+                                        name: 'white-labeling.white-labeling',
+                                        icon: 'format_paint',
+                                        state: 'home.settings.whiteLabel'
                                     }
                                 ]
                             }];
@@ -222,6 +222,21 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             type: 'link',
                             state: 'home.dashboards',
                             icon: 'dashboards'
+                        },
+                        {
+                            name: 'admin.system-settings',
+                            type: 'toggle',
+                            state: 'home.settings',
+                            height: '40px',
+                            icon: 'settings',
+                            pages: [
+                                {
+                                    name: 'white-labeling.white-labeling',
+                                    type: 'link',
+                                    state: 'home.settings.whiteLabel',
+                                    icon: 'format_paint'
+                                }
+                            ]
                         }];
 
                     homeSections =
@@ -287,6 +302,16 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                         state: 'home.dashboards'
                                     }
                                 ]
+                            },
+                            {
+                                name: 'admin.system-settings',
+                                places: [
+                                    {
+                                        name: 'white-labeling.white-labeling',
+                                        icon: 'format_paint',
+                                        state: 'home.settings.whiteLabel'
+                                    }
+                                ]
                             }];
 
                     loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account');
@@ -318,6 +343,21 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             type: 'link',
                             state: 'home.dashboards',
                             icon: 'dashboard'
+                        },
+                        {
+                            name: 'admin.system-settings',
+                            type: 'toggle',
+                            state: 'home.settings',
+                            height: '40px',
+                            icon: 'settings',
+                            pages: [
+                                {
+                                    name: 'white-labeling.white-labeling',
+                                    type: 'link',
+                                    state: 'home.settings.whiteLabel',
+                                    icon: 'format_paint'
+                                }
+                            ]
                         }];
 
                     homeSections =
@@ -348,6 +388,16 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                         name: 'dashboard.dashboards',
                                         icon: 'dashboard',
                                         state: 'home.dashboards'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'admin.system-settings',
+                                places: [
+                                    {
+                                        name: 'white-labeling.white-labeling',
+                                        icon: 'format_paint',
+                                        state: 'home.settings.whiteLabel'
                                     }
                                 ]
                             }];

@@ -17,14 +17,20 @@ import Flow from '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import UrlHandler from './url.handler';
 
 /*@ngInject*/
-export default function AppRun($rootScope, $window, $injector, $location, $log, $state, $mdDialog, $filter, loginService, userService, $translate) {
+export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
+                               whiteLabelingService, loginService, userService, $translate) {
 
     $window.Flow = Flow;
     var frame = $window.frameElement;
     var unauthorizedDialog = null;
     var forbiddenDialog = null;
 
+    $mdTheming.generateTheme('default');
+    $mdTheming.generateTheme('tb-dark');
+
     $rootScope.iframeMode = false;
+
+    var favicon = angular.element('link[rel="icon"]');
 
     if (frame) {
         $rootScope.iframeMode = true;
@@ -107,7 +113,13 @@ export default function AppRun($rootScope, $window, $injector, $location, $log, 
                             showForbiddenDialog();
                         } else if (to.redirectTo) {
                             evt.preventDefault();
-                            $state.go(to.redirectTo, params)
+                            var redirect;
+                            if(angular.isObject(to.redirectTo)) {
+                                redirect = to.redirectTo[authority];
+                            } else {
+                                redirect = to.redirectTo;
+                            }
+                            $state.go(redirect, params)
                         }
                     }
                 } else {
@@ -129,21 +141,45 @@ export default function AppRun($rootScope, $window, $injector, $location, $log, 
             }
         })
 
-        $rootScope.pageTitle = 'ThingsBoard';
+        updateFavicon();
+        updatePageTitle();
 
         $rootScope.stateChangeSuccessHandle = $rootScope.$on('$stateChangeSuccess', function (evt, to, params) {
             if (userService.isPublic() && to.name === 'home.dashboards.dashboard') {
                 $location.search('publicId', userService.getPublicId());
                 userService.updateLastPublicDashboardId(params.dashboardId);
             }
-            if (angular.isDefined(to.data.pageTitle)) {
-                $translate(to.data.pageTitle).then(function (translation) {
-                    $rootScope.pageTitle = 'ThingsBoard | ' + translation;
-                }, function (translationId) {
-                    $rootScope.pageTitle = 'ThingsBoard | ' + translationId;
-                });
+            updatePageTitle(to.data.pageTitle);
+        });
+
+        $rootScope.appTitleWhiteLabelingChangedHandle = $rootScope.$on('whiteLabelingChanged', () => {
+            updateFavicon();
+            updatePageTitle($state.current.data.pageTitle);
+        });
+    }
+
+    function updateFavicon() {
+        whiteLabelingService.faviconUrl().then((iconUrl) => {
+            whiteLabelingService.faviconType().then((iconType) => {
+                favicon.attr('type', iconType);
+                favicon.attr('href', iconUrl);
+            });
+        });
+    }
+
+    function updatePageTitle(pageTitle) {
+        whiteLabelingService.appTitle().then((appTitle) => {
+            if (angular.isDefined(pageTitle)) {
+                $translate(pageTitle).then(
+                    (translation) => {
+                        $rootScope.pageTitle = `${appTitle} | ${translation}`;
+                    }, (translationId) => {
+                        $rootScope.pageTitle = `${appTitle} | ${translationId}`;
+                    });
+            } else {
+                $rootScope.pageTitle = appTitle;
             }
-        })
+        });
     }
 
     function gotoDefaultPlace(params) {

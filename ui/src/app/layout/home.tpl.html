@@ -27,7 +27,8 @@
       <header class="tb-nav-header">
           <md-toolbar class="tb-nav-header-toolbar">
           	 <div flex layout="row" layout-align="start start" class="md-toolbar-tools inset">
-				<md-icon md-svg-src="{{vm.logoSvg}}" aria-label="logo" class="tb-logo-title"></md-icon>
+				<!--md-icon md-svg-src="{{vm.logoSvg}}" aria-label="logo" class="tb-logo-title"></md-icon-->
+				<img ng-src="{{vm.logoSvg}}" aria-label="logo" ng-style="{height: vm.logoHeight+'px'}" class="tb-logo-title"/>
           	 </div>
           </md-toolbar>
       </header>
@@ -55,7 +56,7 @@
 			  <div flex layout="row" ng-show="!vm.displaySearchMode()" tb-no-animate class="md-toolbar-tools">
 				  <span ng-cloak ncy-breadcrumb></span>
 			  </div>
-			  <div layout="row" ng-show="vm.displaySearchMode()" md-theme="tb-dark" flex>
+			  <div layout="row" ng-show="vm.displaySearchMode()" md-theme="{{currentLoginTheme}}" flex>
 				  <div class="tb-entity-subtype-search" layout="row" layout-align="start center" ng-if="vm.displayEntitySubtypeSearch()">
 					  <tb-entity-subtype-select
 							  entity-type="searchConfig.searchEntityType"

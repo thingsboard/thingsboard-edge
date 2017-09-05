@@ -42,6 +42,9 @@ function ConfirmOnExit($state, $mdDialog, $window, $filter) {
                         } else {
                             $scope.isDirty = false;
                         }
+                        if ($scope.onConfirm) {
+                            $scope.onConfirm();
+                        }
                         $state.go(next.name, params);
                     }, function () {
                     });
@@ -50,7 +53,8 @@ function ConfirmOnExit($state, $mdDialog, $window, $filter) {
         },
         scope: {
             confirmForm: '=',
-            isDirty: '='
+            isDirty: '=',
+            onConfirm: '&?tbConfirmOnExit'
         }
     };
 }

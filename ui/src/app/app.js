@@ -73,6 +73,7 @@ import thingsboardApiAttribute from './api/attribute.service';
 import thingsboardApiEntity from './api/entity.service';
 import thingsboardApiAlarm from './api/alarm.service';
 import thingsboardApiEntityGroup from './api/entity-group.service';
+import thingsboardApiWhiteLabeling from './api/white-labeling.service';
 
 import 'typeface-roboto';
 import 'font-awesome/css/font-awesome.min.css';
@@ -133,6 +134,7 @@ angular.module('thingsboard', [
     thingsboardApiEntity,
     thingsboardApiAlarm,
     thingsboardApiEntityGroup,
+    thingsboardApiWhiteLabeling,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

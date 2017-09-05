@@ -16,16 +16,10 @@
 
 import $ from 'jquery';
 
-/* eslint-disable import/no-unresolved, import/default */
-
-import logoSvg from '../../svg/logo_title_white.svg';
-
-/* eslint-enable import/no-unresolved, import/default */
-
 /* eslint-disable angular/angularelement */
 
 /*@ngInject*/
-export default function HomeController(types, loginService, userService, deviceService, Fullscreen, $scope, $element, $rootScope, $document, $state,
+export default function HomeController(types, loginService, userService, deviceService, whiteLabelingService, Fullscreen, $scope, $element, $rootScope, $document, $state,
                                        $window, $log, $mdMedia, $animate, $timeout) {
 
     var siteSideNav = $('.tb-site-sidenav', $element);
@@ -33,7 +27,6 @@ export default function HomeController(types, loginService, userService, deviceS
     var vm = this;
 
     vm.Fullscreen = Fullscreen;
-    vm.logoSvg = logoSvg;
 
     if (angular.isUndefined($rootScope.searchConfig)) {
         $rootScope.searchConfig = {
@@ -81,6 +74,10 @@ export default function HomeController(types, loginService, userService, deviceS
         watchEntitySubtype($scope.searchConfig.searchByEntitySubtype);
     });
 
+    $scope.$on('whiteLabelingChanged', () => {
+        loadLogo();
+    });
+
     vm.isGtSm = $mdMedia('gt-sm');
     if (vm.isGtSm) {
         vm.isLockSidenav = true;
@@ -99,6 +96,17 @@ export default function HomeController(types, loginService, userService, deviceS
             $animate.enabled(siteSideNav, false);
         }
     });
+
+    loadLogo();
+
+    function loadLogo() {
+        whiteLabelingService.logoImageUrl().then((logoUrl) => {
+            vm.logoSvg = logoUrl;
+        });
+        whiteLabelingService.logoImageHeight().then((logoHeight) => {
+            vm.logoHeight = logoHeight;
+        });
+    }
 
     function watchEntitySubtype(enableWatch) {
         if ($scope.entitySubtypeWatch) {

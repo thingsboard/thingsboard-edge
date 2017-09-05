@@ -21,3 +21,5 @@ CREATE TABLE IF NOT EXISTS entity_group (
     additional_info varchar,
     configuration varchar(10000000)
 );
+
+ALTER TABLE admin_settings ALTER COLUMN json_value varchar(10000000);

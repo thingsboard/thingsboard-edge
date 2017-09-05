@@ -1,0 +1,143 @@
+<!--
+
+    Copyright © 2016-2017 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="row" width="100%" layout-wrap>
+    <md-card flex-gt-sm="60" flex="100" >
+        <md-card-title>
+            <md-card-title-text>
+                <span translate class="md-headline">white-labeling.white-labeling</span>
+            </md-card-title-text>
+        </md-card-title>
+        <md-progress-linear md-mode="indeterminate" ng-disabled="!loading" ng-show="loading"></md-progress-linear>
+        <span style="min-height: 5px;" flex="" ng-show="!loading"></span>
+        <md-card-content>
+            <form name="vm.whiteLabelForm" ng-submit="vm.save()" tb-confirm-on-exit="vm.onFormExit()" confirm-form="vm.whiteLabelForm">
+                <fieldset ng-disabled="loading">
+                    <md-input-container flex class="md-block">
+                        <label translate>white-labeling.app-title</label>
+                        <input ng-model="vm.whiteLabelingParams.appTitle">
+                    </md-input-container>
+                    <div class="tb-container">
+                        <label class="tb-label" translate>white-labeling.favicon</label>
+                        <div flow-init="{singleFile:true}"
+                             flow-file-added="vm.faviconImageAdded( $file )" class="tb-image-select-container">
+                            <div class="tb-image-preview-container">
+                                <div ng-show="!vm.whiteLabelingParams.faviconUrl" translate>white-labeling.no-favicon-image</div>
+                                <img ng-show="vm.whiteLabelingParams.faviconUrl" class="tb-image-preview" src="{{vm.whiteLabelingParams.faviconUrl}}" />
+                            </div>
+                            <div class="tb-image-clear-container">
+                                <md-button ng-click="vm.clearFaviconImage()"
+                                           class="tb-image-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                    <md-tooltip md-direction="top">
+                                        {{ 'action.remove' | translate }}
+                                    </md-tooltip>
+                                    <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">
+                                        close
+                                    </md-icon>
+                                </md-button>
+                            </div>
+                            <div class="alert tb-flow-drop" flow-drop>
+                                <label for="faviconSelect" translate>white-labeling.drop-favicon-image</label>
+                                <input class="file-input" flow-btn flow-attrs="{accept:'image/x-icon, image/gif, image/png, image/vnd.microsoft.icon'}" id="faviconSelect">
+                            </div>
+                        </div>
+                        <div class="tb-hint" style="padding-top: 10px;" translate
+                             translate-values="{kbSize: vm.maxFaviconSizeKb}">white-labeling.favicon-description</div>
+                    </div>
+                    <div class="tb-container">
+                        <label class="tb-label" translate>white-labeling.logo</label>
+                        <div flow-init="{singleFile:true}"
+                             flow-file-added="vm.logoImageAdded( $file )" class="tb-image-select-container">
+                            <div class="tb-image-preview-container">
+                                <div ng-show="!vm.whiteLabelingParams.logoImageUrl" translate>white-labeling.no-logo-image</div>
+                                <img ng-show="vm.whiteLabelingParams.logoImageUrl" class="tb-image-preview" src="{{vm.whiteLabelingParams.logoImageUrl}}" />
+                            </div>
+                            <div class="tb-image-clear-container">
+                                <md-button ng-click="vm.clearLogoImage()"
+                                           class="tb-image-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                    <md-tooltip md-direction="top">
+                                        {{ 'action.remove' | translate }}
+                                    </md-tooltip>
+                                    <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">
+                                        close
+                                    </md-icon>
+                                </md-button>
+                            </div>
+                            <div class="alert tb-flow-drop" flow-drop>
+                                <label for="logoSelect" translate>white-labeling.drop-logo-image</label>
+                                <input class="file-input" flow-btn flow-attrs="{accept:'image/*'}" id="logoSelect">
+                            </div>
+                        </div>
+                        <div class="tb-hint" style="padding-top: 10px;" translate
+                             translate-values="{kbSize: vm.maxLogoSizeKb}">white-labeling.logo-description</div>
+                    </div>
+                    <md-input-container flex class="md-block">
+                        <label translate>white-labeling.logo-height</label>
+                        <input type="number" step="1" min="1" ng-model="vm.whiteLabelingParams.logoImageHeight">
+                    </md-input-container>
+                    <div layout="row">
+                        <md-input-container flex class="md-block">
+                            <label translate>white-labeling.primary-palette</label>
+                            <md-select aria-label="{{ 'white-labeling.primary-palette' | translate }}"
+                                       style="font-weight: 500;"
+                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.primaryPalette)"
+                                       ng-model="vm.whiteLabelingParams.paletteSettings.primaryPalette.type"
+                                       ng-change="vm.paletteTypeChanged('primaryPalette', vm.primaryPalettes)">
+                                <md-option></md-option>
+                                <md-option ng-repeat="palette in vm.primaryPalettes"
+                                           ng-style="vm.paletteStyle(palette)"
+                                           ng-value="palette.type">
+                                    <div ng-style="vm.paletteStyle(palette)">{{vm.paletteName(palette)}}</div>
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <div layout="column" layout-align="center">
+                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.primaryPalette.type" ng-click="vm.editPrimaryPalette($event)"
+                                       class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
+                        </div>
+                    </div>
+                    <div layout="row">
+                        <md-input-container flex class="md-block">
+                            <label translate>white-labeling.accent-palette</label>
+                            <md-select aria-label="{{ 'white-labeling.accent-palette' | translate }}"
+                                       style="font-weight: 500;"
+                                       ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.accentPalette)"
+                                       ng-model="vm.whiteLabelingParams.paletteSettings.accentPalette.type"
+                                       ng-change="vm.paletteTypeChanged('accentPalette', vm.accentPalettes)">
+                                <md-option></md-option>
+                                <md-option ng-repeat="palette in vm.accentPalettes"
+                                           ng-style="vm.paletteStyle(palette)"
+                                           ng-value="palette.type">
+                                    <div ng-style="vm.paletteStyle(palette)">{{vm.paletteName(palette)}}</div>
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <div layout="column" layout-align="center">
+                            <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.accentPalette.type" ng-click="vm.editAccentPalette($event)"
+                                       class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="end center" width="100%" layout-wrap>
+                        <md-button ng-disabled="loading || vm.whiteLabelForm.$invalid" ng-click="vm.preview()" class="md-raised">{{'white-labeling.preview' | translate}}</md-button>
+                        <md-button ng-disabled="loading || vm.whiteLabelForm.$invalid || !vm.whiteLabelForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
+                    </div>
+                </fieldset>
+            </form>
+        </md-card-content>
+    </md-card>
+</div>
+

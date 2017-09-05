@@ -212,6 +212,7 @@
                          class="tb-absolute-fill" md-border-bottom>
                     <md-tab ng-if="vm.timeseriesWidgetTypes.length > 0" style="height: 100%;" label="{{ 'widget.timeseries' | translate }}">
                         <tb-dashboard
+                                embedded="true"
                                 alias-controller="vm.dashboardCtx.aliasController"
                                 widgets="vm.timeseriesWidgetTypes"
                                 is-edit="false"
@@ -223,6 +224,7 @@
                     </md-tab>
                     <md-tab ng-if="vm.latestWidgetTypes.length > 0" style="height: 100%;" label="{{ 'widget.latest-values' | translate }}">
                         <tb-dashboard
+                                embedded="true"
                                 alias-controller="vm.dashboardCtx.aliasController"
                                 widgets="vm.latestWidgetTypes"
                                 is-edit="false"
@@ -234,6 +236,7 @@
                     </md-tab>
                     <md-tab ng-if="vm.rpcWidgetTypes.length > 0" style="height: 100%;" label="{{ 'widget.rpc' | translate }}">
                         <tb-dashboard
+                                embedded="true"
                                 alias-controller="vm.dashboardCtx.aliasController"
                                 widgets="vm.rpcWidgetTypes"
                                 is-edit="false"
@@ -245,6 +248,7 @@
                     </md-tab>
                     <md-tab ng-if="vm.alarmWidgetTypes.length > 0" style="height: 100%;" label="{{ 'widget.alarm' | translate }}">
                         <tb-dashboard
+                                embedded="true"
                                 alias-controller="vm.dashboardCtx.aliasController"
                                 widgets="vm.alarmWidgetTypes"
                                 is-edit="false"
@@ -256,6 +260,7 @@
                     </md-tab>
                     <md-tab ng-if="vm.staticWidgetTypes.length > 0" style="height: 100%;" label="{{ 'widget.static' | translate }}">
                         <tb-dashboard
+                                embedded="true"
                                 alias-controller="vm.dashboardCtx.aliasController"
                                 widgets="vm.staticWidgetTypes"
                                 is-edit="false"
@@ -331,8 +336,5 @@
                             options='{"easing": "circ-in-out", "duration": 375, "rotation": "none"}'></ng-md-icon>
             </md-button>
         </section>
-    </section>
-    <section class="tb-powered-by-footer" ng-style="{'color': vm.dashboard.configuration.settings.titleColor}">
-        <span>Powered by <a href="https://thingsboard.io" target="_blank">Thingsboard v.{{ vm.thingsboardVersion }}</a></span>
     </section>
 </md-content>
