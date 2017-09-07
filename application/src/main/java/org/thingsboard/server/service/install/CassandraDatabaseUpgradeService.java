@@ -163,7 +163,6 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Relations restored.");
 
                 break;
-            case "1.3.0":
             case "1.3.1":
 
                 log.info("Updating schema ...");

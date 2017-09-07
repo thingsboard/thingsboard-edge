@@ -79,9 +79,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
     public void updateData(String fromVersion) throws Exception {
 
         switch (fromVersion) {
-            case "1.3.0":
             case "1.3.1":
-                log.info("Updating data from version {} to 1.3.1EE ...", fromVersion);
+                log.info("Updating data from version 1.3.1 to 1.3.1EE ...");
 
                 tenantsGroupAllUpdater.updateEntities(null);
 

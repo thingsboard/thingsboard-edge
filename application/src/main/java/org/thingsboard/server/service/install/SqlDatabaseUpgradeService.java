@@ -66,7 +66,6 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
-            case "1.3.0":
             case "1.3.1":
                 log.info("Updating schema ...");
                 Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.1ee", SCHEMA_UPDATE_SQL);
