@@ -139,7 +139,8 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
             handleWidgetAction: handleWidgetAction
         },
         stateController: stateController,
-        exportWidgetData: exportWidgetData
+        exportWidgetData: exportWidgetData,
+        aliasController: aliasController
     };
 
     widgetContext.customHeaderActions = [];
@@ -509,7 +510,6 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
     }
 
     function exportWidgetData(widgetExportType) {
-        console.log(`export widget data: ${widgetExportType}`); //eslint-disable-line
         var filename;
         if (widgetContext.widgetTitle && widgetContext.widgetTitle.length) {
             filename = widgetContext.widgetTitle;
