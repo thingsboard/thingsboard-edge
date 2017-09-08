@@ -56,7 +56,8 @@ export default function StatesControllerService() {
         getStateControllers: getStateControllers,
         getStateController: getStateController,
         preserveStateControllerState: preserveStateControllerState,
-        withdrawStateControllerState: withdrawStateControllerState
+        withdrawStateControllerState: withdrawStateControllerState,
+        cleanupPreservedStates: cleanupPreservedStates
     };
 
     return service;
@@ -81,6 +82,12 @@ export default function StatesControllerService() {
         var state = statesControllers[id].state;
         statesControllers[id].state = null;
         return state;
+    }
+
+    function cleanupPreservedStates() {
+        for (var id in statesControllers) {
+            statesControllers[id].state = null;
+        }
     }
 
 }
