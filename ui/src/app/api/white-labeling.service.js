@@ -196,6 +196,8 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         }
         if (!whiteLabelParams.paletteSettings) {
             whiteLabelParams.paletteSettings = {};
+        } else if (angular.isString(whiteLabelParams.paletteSettings)) {
+            whiteLabelParams.paletteSettings = angular.fromJson(whiteLabelParams.paletteSettings);
         }
         if (whiteLabelParams.faviconUrl && whiteLabelParams.faviconUrl.length) {
             whiteLabelParams.faviconType = extractTypeFromDataUrl(whiteLabelParams.faviconUrl);
@@ -280,7 +282,7 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         var deferred = $q.defer();
         var url = '/api/whiteLabel/currentWhiteLabelParams';
         $http.get(url, null).then(function success(response) {
-            deferred.resolve(response.data);
+            deferred.resolve(checkWlParams(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -475,6 +477,9 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
             (wlParams) => {
                 systemWLParams = checkWlParams(wlParams);
                 applyLoginThemePalettes(systemWLParams.paletteSettings);
+                if (userService.getAuthority() == 'SYS_ADMIN') {
+                    systemWLParams = {};
+                }
                 systemWhiteLabelingParamsLoaded();
                 deferred.resolve();
             },
@@ -488,6 +493,10 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     }
 
     function applyThemePalettes(paletteSettings) {
+
+        cleanupPalettes('custom-primary');
+        cleanupPalettes('custom-accent');
+
         var primaryPalette = paletteSettings.primaryPalette;
         var accentPalette = paletteSettings.accentPalette;
         if (primaryPalette.type != 'custom') {
@@ -514,6 +523,7 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
 
         $mdTheming.generateTheme(themeName);
 
+        $mdTheming.PALETTES = angular.extend({}, themeProvider._PALETTES);
         $mdTheming.THEMES = angular.extend({}, themeProvider._THEMES);
 
         themeProvider.setDefaultTheme(themeName);
@@ -535,6 +545,8 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
             $rootScope.currentLoginTheme = 'tb-dark';
             return;
         }
+
+        cleanupPalettes('custom-login-');
 
         var primaryPaletteName;
         var accentPaletteName;
@@ -577,9 +589,18 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
 
         $mdTheming.generateTheme(themeName);
 
+        $mdTheming.PALETTES = angular.extend({}, themeProvider._PALETTES);
         $mdTheming.THEMES = angular.extend({}, themeProvider._THEMES);
 
         $rootScope.currentLoginTheme = themeName;
+    }
+
+    function cleanupPalettes(prefix) {
+        for (var palette in themeProvider._PALETTES) {
+            if (palette.startsWith(prefix)) {
+                delete themeProvider._PALETTES[palette];
+            }
+        }
     }
 
     function cleanupThemes(prefix) {
