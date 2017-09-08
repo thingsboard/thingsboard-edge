@@ -1008,6 +1008,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     function setEditMode(isEdit, revert) {
         vm.isEdit = isEdit;
         if (vm.isEdit) {
+            vm.dashboardCtx.stateController.preserveState();
             vm.prevDashboard = angular.copy(vm.dashboard);
         } else {
             if (vm.widgetEditMode) {
@@ -1024,7 +1025,6 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                 } else {
                     vm.dashboard.configuration.timewindow = vm.dashboardCtx.dashboardTimewindow;
                 }
-                vm.dashboardCtx.stateController.resetState();
             }
         }
     }
