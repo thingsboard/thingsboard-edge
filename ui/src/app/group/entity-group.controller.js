@@ -749,7 +749,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             keys: tsElseAttr ? vm.tsKeys : vm.attrKeys
         };
         var subscriber = {
-            subscriptionCommand: subscriptionCommand,
+            subscriptionCommands: [ subscriptionCommand ],
             type: tsElseAttr ? types.dataKeyType.timeseries : types.dataKeyType.attribute,
             onData: function(data) {
                 if (data.data) {
