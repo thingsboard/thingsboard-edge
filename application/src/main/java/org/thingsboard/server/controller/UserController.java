@@ -98,7 +98,7 @@ public class UserController extends BaseController {
                         userCredentials.getActivateToken());
                 String email = savedUser.getEmail();
                 try {
-                    mailService.sendActivationEmail(activateUrl, email);
+                    mailService.sendActivationEmail(getTenantId(), activateUrl, email);
                 } catch (ThingsboardException e) {
                     userService.deleteUser(savedUser.getId());
                     throw e;
@@ -123,7 +123,7 @@ public class UserController extends BaseController {
                 String baseUrl = constructBaseUrl(request);
                 String activateUrl = String.format("%s/api/noauth/activate?activateToken=%s", baseUrl,
                         userCredentials.getActivateToken());
-                mailService.sendActivationEmail(activateUrl, email);
+                mailService.sendActivationEmail(getTenantId(), activateUrl, email);
             } else {
                 throw new ThingsboardException("User is already active!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }

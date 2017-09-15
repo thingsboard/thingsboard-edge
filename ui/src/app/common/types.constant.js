@@ -591,6 +591,28 @@ export default angular.module('thingsboard.types', [])
                     icon: "mdi:checkbox-marked-outline"
                 }
             },
+            mailTemplate: {
+                test: {
+                    value: "test",
+                    name: "admin.mail-template.test"
+                },
+                activation: {
+                    value: "activation",
+                    name: "admin.mail-template.activation"
+                },
+                accountActivated: {
+                    value: "accountActivated",
+                    name: "admin.mail-template.account-activated"
+                },
+                resetPassword: {
+                    value: "resetPassword",
+                    name: "admin.mail-template.reset-password"
+                },
+                passwordWasReset: {
+                    value: "passwordWasReset",
+                    name: "admin.mail-template.password-was-reset"
+                }
+            },
             widgetType: {
                 timeseries: {
                     value: "timeseries",

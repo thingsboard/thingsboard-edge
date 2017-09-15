@@ -44,6 +44,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
@@ -143,8 +144,10 @@ public class AuthController extends BaseController {
             String baseUrl = constructBaseUrl(request);
             String resetPasswordUrl = String.format("%s/api/noauth/resetPassword?resetToken=%s", baseUrl,
                     userCredentials.getResetToken());
-            
-            mailService.sendResetPasswordEmail(resetPasswordUrl, email);
+
+            User user = userService.findUserById(userCredentials.getUserId());
+
+            mailService.sendResetPasswordEmail(user.getTenantId(), resetPasswordUrl, email);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -190,7 +193,7 @@ public class AuthController extends BaseController {
             String email = user.getEmail();
 
             try {
-                mailService.sendAccountActivatedEmail(loginUrl, email);
+                mailService.sendAccountActivatedEmail(user.getTenantId(), loginUrl, email);
             } catch (Exception e) {
                 log.info("Unable to send account activation email [{}]", e.getMessage());
             }
@@ -228,7 +231,7 @@ public class AuthController extends BaseController {
                 String baseUrl = constructBaseUrl(request);
                 String loginUrl = String.format("%s/login", baseUrl);
                 String email = user.getEmail();
-                mailService.sendPasswordWasResetEmail(loginUrl, email);
+                mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
 
                 JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
                 JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);

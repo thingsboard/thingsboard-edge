@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.service.mail.MailTemplates;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -155,6 +156,12 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         node.put("password", "");
         mailSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(mailSettings);
+
+        AdminSettings mailTemplateSettings = new AdminSettings();
+        mailTemplateSettings.setKey("mailTemplates");
+        node = MailTemplates.defaultMailTemplates;
+        mailTemplateSettings.setJsonValue(node);
+        adminSettingsService.saveAdminSettings(mailTemplateSettings);
     }
 
     @Override

@@ -31,175 +31,128 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.MessageSource;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.velocity.VelocityEngineUtils;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardException;
 
-import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Service
 @Slf4j
 public class DefaultMailService implements MailService {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
-    private MessageSource messages;
-    
+    private AdminSettingsService adminSettingsService;
+
     @Autowired
-    @Qualifier("velocityEngine")
-    private VelocityEngine engine;
-    
-    private JavaMailSenderImpl mailSender;
-    
-    private String mailFrom;
-    
-    @Autowired
-    private AdminSettingsService adminSettingsService; 
-    
-    @PostConstruct
-    private void init() {
-        updateMailConfiguration();
-    }
+    private AttributesService attributesService;
 
     @Override
-    public void updateMailConfiguration() {
-        AdminSettings settings = adminSettingsService.findAdminSettingsByKey("mail");
-        if (settings != null) {
-            JsonNode jsonConfig = settings.getJsonValue();
-            mailSender = createMailSender(jsonConfig);
-            mailFrom = jsonConfig.get("mailFrom").asText();
-        } else {
-            throw new IncorrectParameterException("Failed to date mail configuration. Settings not found!");
-        }
-    }
-    
-    private JavaMailSenderImpl createMailSender(JsonNode jsonConfig) {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(jsonConfig.get("smtpHost").asText());
-        mailSender.setPort(parsePort(jsonConfig.get("smtpPort").asText()));
-        mailSender.setUsername(jsonConfig.get("username").asText());
-        mailSender.setPassword(jsonConfig.get("password").asText());
-        mailSender.setJavaMailProperties(createJavaMailProperties(jsonConfig));
-        return mailSender;
-    }
-
-    private Properties createJavaMailProperties(JsonNode jsonConfig) {
-        Properties javaMailProperties = new Properties();
-        String protocol = jsonConfig.get("smtpProtocol").asText();
-        javaMailProperties.put("mail.transport.protocol", protocol);
-        javaMailProperties.put("mail." + protocol + ".host", jsonConfig.get("smtpHost").asText());
-        javaMailProperties.put("mail." + protocol + ".port", jsonConfig.get("smtpPort").asText());
-        javaMailProperties.put("mail." + protocol + ".timeout", jsonConfig.get("timeout").asText());
-        javaMailProperties.put("mail." + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(jsonConfig.get("username").asText())));
-        javaMailProperties.put("mail." + protocol + ".starttls.enable", jsonConfig.get("enableTls"));
-        return javaMailProperties;
-    }
-    
-    private int parsePort(String strPort) {
-        try {
-            return Integer.valueOf(strPort);
-        } catch (NumberFormatException e) {
-            throw new IncorrectParameterException(String.format("Invalid smtp port value: %s", strPort));
-        }
-    }
-
-    @Override
-    public void sendEmail(String email, String subject, String message) throws ThingsboardException {
-        sendMail(mailSender, mailFrom, email, subject, message);
+    public void sendEmail(TenantId tenantId, String email, String subject, String message) throws ThingsboardException {
+        sendMail(tenantId, email, subject, message);
     }
     
     @Override
-    public void sendTestMail(JsonNode jsonConfig, String email) throws ThingsboardException {
+    public void sendTestMail(TenantId tenantId, JsonNode jsonConfig, String email) throws ThingsboardException {
         JavaMailSenderImpl testMailSender = createMailSender(jsonConfig);
-        String mailFrom = jsonConfig.get("mailFrom").asText();
-        String subject = messages.getMessage("test.message.subject", null, Locale.US);
-        
+        String mailFrom = getStringValue(jsonConfig, "mailFrom");
+
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, MailTemplates.TEST);
+
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("targetEmail", email);
-        
-        String message = VelocityEngineUtils.mergeTemplateIntoString(this.engine,
-                "test.vm", "UTF-8", model);
-        
+
+        String message = MailTemplates.body(mailTemplates, MailTemplates.TEST, model);
+
         sendMail(testMailSender, mailFrom, email, subject, message); 
     }
 
     @Override
-    public void sendActivationEmail(String activationLink, String email) throws ThingsboardException {
-        
-        String subject = messages.getMessage("activation.subject", null, Locale.US);
-        
+    public void sendActivationEmail(TenantId tenantId, String activationLink, String email) throws ThingsboardException {
+
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACTIVATION);
+
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("activationLink", activationLink);
         model.put("targetEmail", email);
-        
-        String message = VelocityEngineUtils.mergeTemplateIntoString(this.engine,
-                "activation.vm", "UTF-8", model);
-        
-        sendMail(mailSender, mailFrom, email, subject, message); 
+
+        String message = MailTemplates.body(mailTemplates, MailTemplates.ACTIVATION, model);
+
+        sendMail(tenantId, email, subject, message);
     }
     
     @Override
-    public void sendAccountActivatedEmail(String loginLink, String email) throws ThingsboardException {
-        
-        String subject = messages.getMessage("account.activated.subject", null, Locale.US);
-        
+    public void sendAccountActivatedEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
+
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED);
+
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("loginLink", loginLink);
         model.put("targetEmail", email);
-        
-        String message = VelocityEngineUtils.mergeTemplateIntoString(this.engine,
-                "account.activated.vm", "UTF-8", model);
-        
-        sendMail(mailSender, mailFrom, email, subject, message); 
+
+        String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED, model);
+
+        sendMail(tenantId, email, subject, message);
     }
 
     @Override
-    public void sendResetPasswordEmail(String passwordResetLink, String email) throws ThingsboardException {
-        
-        String subject = messages.getMessage("reset.password.subject", null, Locale.US);
-        
+    public void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, String email) throws ThingsboardException {
+
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, MailTemplates.RESET_PASSWORD);
+
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("passwordResetLink", passwordResetLink);
         model.put("targetEmail", email);
-        
-        String message = VelocityEngineUtils.mergeTemplateIntoString(this.engine,
-                "reset.password.vm", "UTF-8", model);
-        
-        sendMail(mailSender, mailFrom, email, subject, message); 
+
+        String message = MailTemplates.body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
+
+        sendMail(tenantId, email, subject, message);
     }
     
     @Override
-    public void sendPasswordWasResetEmail(String loginLink, String email) throws ThingsboardException {
-        
-        String subject = messages.getMessage("password.was.reset.subject", null, Locale.US);
-        
+    public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
+
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
+
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("loginLink", loginLink);
         model.put("targetEmail", email);
-        
-        String message = VelocityEngineUtils.mergeTemplateIntoString(this.engine,
-                "password.was.reset.vm", "UTF-8", model);
-        
-        sendMail(mailSender, mailFrom, email, subject, message); 
+
+        String message = MailTemplates.body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
+
+        sendMail(tenantId, email, subject, message);
     }
 
+    private void sendMail(TenantId tenantId, String email,
+                          String subject, String message) throws ThingsboardException {
+        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        String mailFrom = getStringValue(jsonConfig, "mailFrom");
+        sendMail(mailSender, mailFrom, email, subject, message);
+    }
 
     private void sendMail(JavaMailSenderImpl mailSender, 
             String mailFrom, String email, 
@@ -214,6 +167,92 @@ public class DefaultMailService implements MailService {
             mailSender.send(helper.getMimeMessage());
         } catch (Exception e) {
             throw handleException(e);
+        }
+    }
+
+    private JavaMailSenderImpl createMailSender(JsonNode jsonConfig) {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(getStringValue(jsonConfig, "smtpHost"));
+        mailSender.setPort(parsePort(getStringValue(jsonConfig, "smtpPort")));
+        mailSender.setUsername(getStringValue(jsonConfig, "username"));
+        mailSender.setPassword(getStringValue(jsonConfig, "password"));
+        mailSender.setJavaMailProperties(createJavaMailProperties(jsonConfig));
+        return mailSender;
+    }
+
+    private Properties createJavaMailProperties(JsonNode jsonConfig) {
+        Properties javaMailProperties = new Properties();
+        String protocol = getStringValue(jsonConfig, "smtpProtocol");
+        javaMailProperties.put("mail.transport.protocol", protocol);
+        javaMailProperties.put("mail." + protocol + ".host", getStringValue(jsonConfig, "smtpHost"));
+        javaMailProperties.put("mail." + protocol + ".port", getStringValue(jsonConfig, "smtpPort"));
+        javaMailProperties.put("mail." + protocol + ".timeout", getStringValue(jsonConfig, "timeout"));
+        javaMailProperties.put("mail." + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(getStringValue(jsonConfig, "username"))));
+        String enableTls = getStringValue(jsonConfig, "enableTls");
+        if (StringUtils.isEmpty(enableTls)) {
+            enableTls = "false";
+        }
+        javaMailProperties.put("mail." + protocol + ".starttls.enable", enableTls);
+        return javaMailProperties;
+    }
+
+    private int parsePort(String strPort) {
+        try {
+            return Integer.valueOf(strPort);
+        } catch (NumberFormatException e) {
+            throw new IncorrectParameterException(String.format("Invalid smtp port value: %s", strPort));
+        }
+    }
+
+    private String getStringValue(JsonNode jsonNode, String key) {
+        if (jsonNode.has(key)) {
+            return jsonNode.get(key).asText();
+        } else {
+            return "";
+        }
+    }
+
+    private JsonNode getConfig(TenantId tenantId, String key) throws ThingsboardException {
+        try {
+            JsonNode jsonConfig = null;
+            if (tenantId != null && !tenantId.isNullUid()) {
+                String jsonString = getEntityAttributeValue(tenantId, key);
+                if (!StringUtils.isEmpty(jsonString)) {
+                    try {
+                        jsonConfig = objectMapper.readTree(jsonString);
+                    } catch (Exception e) {
+                    }
+                }
+                if (jsonConfig != null) {
+                    JsonNode useSystemMailSettingsNode = jsonConfig.get("useSystemMailSettings");
+                    if (useSystemMailSettingsNode == null || useSystemMailSettingsNode.asBoolean()) {
+                        jsonConfig = null;
+                    }
+                }
+            }
+            if (jsonConfig == null) {
+                AdminSettings settings = adminSettingsService.findAdminSettingsByKey(key);
+                if (settings != null) {
+                    jsonConfig = settings.getJsonValue();
+                }
+            }
+            if (jsonConfig == null) {
+                throw new IncorrectParameterException("Failed to get mail configuration. Settings not found!");
+            }
+            return jsonConfig;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
+        List<AttributeKvEntry> attributeKvEntries =
+                attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+        if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
+            AttributeKvEntry kvEntry = attributeKvEntries.get(0);
+            return kvEntry.getValueAsString();
+        } else {
+            return "";
         }
     }
 

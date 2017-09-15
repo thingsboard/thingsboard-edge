@@ -1,0 +1,133 @@
+/**
+ * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Thingsboard OÜ and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Thingsboard OÜ
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+
+package org.thingsboard.server.service.mail;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+
+import java.io.StringWriter;
+import java.util.Map;
+
+public class MailTemplates {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static final String TEST = "test";
+    public static final String ACTIVATION = "activation";
+    public static final String ACCOUNT_ACTIVATED = "accountActivated";
+    public static final String RESET_PASSWORD = "resetPassword";
+    public static final String PASSWORD_WAS_RESET = "passwordWasReset";
+
+    private static final String SUBJECT = "subject";
+    private static final String BODY = "body";
+
+    public static final ObjectNode defaultMailTemplates = createDefaultMailTemplates();
+
+    public static String subject(JsonNode config, String template) {
+        JsonNode templateNode = getTemplate(config, template);
+        if (templateNode.has(SUBJECT)) {
+            return templateNode.get(SUBJECT).asText();
+        } else {
+            throw new IncorrectParameterException("Template '"+template+"' doesn't have subject field.");
+        }
+    }
+
+    public static String body(JsonNode config, String template, Map<String, Object> model) {
+        JsonNode templateNode = getTemplate(config, template);
+        if (templateNode.has(BODY)) {
+            String bodyTemplate = templateNode.get(BODY).asText();
+            VelocityContext velocityContext = new VelocityContext(model);
+            StringWriter out = new StringWriter();
+            Velocity.evaluate(velocityContext, out, template, bodyTemplate);
+            return out.toString();
+        } else {
+            throw new IncorrectParameterException("Template '"+template+"' doesn't have body field.");
+        }
+    }
+
+    private static JsonNode getTemplate(JsonNode config, String template) {
+        JsonNode templateNode = config.get(template);
+        if (templateNode == null) {
+            defaultMailTemplates.get(template);
+        }
+        if (templateNode == null) {
+            throw new IncorrectParameterException("Can't find template with name '"+template+"'.");
+        }
+        return templateNode;
+    }
+
+    private static ObjectNode createDefaultMailTemplates() {
+        ObjectNode node = objectMapper.createObjectNode();
+        node.set(TEST,
+                createMailTemplate(
+                        "Test message from Thingsboard",
+                        "This email is indicating that your outgoing mail settings were set up correctly."
+                )
+        );
+        node.set(ACTIVATION,
+                createMailTemplate(
+                        "Your account activation on Thingsboard",
+                        "This email is indicating that your outgoing mail settings were set up correctly."
+                )
+        );
+        node.set(ACCOUNT_ACTIVATED,
+                createMailTemplate(
+                        "Thingsboard - your account has been activated",
+                        "This email is indicating that your outgoing mail settings were set up correctly."
+                )
+        );
+        node.set(RESET_PASSWORD,
+                createMailTemplate(
+                        "Thingsboard - Password reset has been requested",
+                        "This email is indicating that your outgoing mail settings were set up correctly."
+                )
+        );
+        node.set(PASSWORD_WAS_RESET,
+                createMailTemplate(
+                        "Thingsboard - your account password has been reset",
+                        "This email is indicating that your outgoing mail settings were set up correctly."
+                )
+        );
+        return node;
+    }
+
+    private static JsonNode createMailTemplate(String subject, String body) {
+        ObjectNode template = objectMapper.createObjectNode();
+        template.put(SUBJECT, subject);
+        template.put(BODY, body);
+        return template;
+    }
+}

@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.install;
 
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -44,8 +45,10 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.service.mail.MailTemplates;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +70,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private UserService userService;
 
     @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
     private CustomerService customerService;
 
     @Autowired
@@ -83,6 +89,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.3.1 to 1.3.1EE ...");
 
                 tenantsGroupAllUpdater.updateEntities(null);
+
+                AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey("mailTemplates");
+                if (mailTemplateSettings == null) {
+                    mailTemplateSettings = new AdminSettings();
+                    mailTemplateSettings.setKey("mailTemplates");
+                    JsonNode node = MailTemplates.defaultMailTemplates;
+                    mailTemplateSettings.setJsonValue(node);
+                    adminSettingsService.saveAdminSettings(mailTemplateSettings);
+                }
 
                 break;
             default:

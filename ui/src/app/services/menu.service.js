@@ -242,9 +242,15 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '40px',
+                            height: '80px',
                             icon: 'settings',
                             pages: [
+                                {
+                                    name: 'admin.outgoing-mail',
+                                    type: 'link',
+                                    state: 'home.settings.outgoing-mail',
+                                    icon: 'mail'
+                                },
                                 {
                                     name: 'white-labeling.white-labeling',
                                     type: 'link',
@@ -321,6 +327,11 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             {
                                 name: 'admin.system-settings',
                                 places: [
+                                    {
+                                        name: 'admin.outgoing-mail',
+                                        icon: 'mail',
+                                        state: 'home.settings.outgoing-mail'
+                                    },
                                     {
                                         name: 'white-labeling.white-labeling',
                                         icon: 'format_paint',

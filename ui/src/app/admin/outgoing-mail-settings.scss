@@ -28,72 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "~compass-sass-mixins/lib/animate";
 
-.tb-invisible {
-  display: none !important;
-}
-
-.tb-primary-toolbar {
-  h1 {
-    font-size: 24px !important;
-    font-weight: 400 !important;
+.tb-outgoing-mail-settings {
+  .tb-mail-body {
   }
-}
-
-.tb-breadcrumb {
-  font-size: 18px !important;
-  font-weight: 400 !important;
-  h1, a, span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  a {
-    border: none;
-    opacity: 0.75;
-    @include transition(opacity 0.35s);
-  }
-  a:hover, a:focus {
-    opacity: 1;
-    text-decoration: none !important;
-    border: none;
-  }
-  .divider {
-    padding: 0px 30px;
-  }
-}
-
-md-sidenav.tb-site-sidenav {
-  width: 250px;
-}
-
-.tb-logo-title {
-  width: auto;
-  margin: auto;
-}
-
-.tb-nav-header {
-  flex-shrink: 0;
-  z-index: 2;
-  white-space: nowrap;
-}
-
-.tb-nav-header-toolbar {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  flex-shrink: 0;
-  z-index: 2;
-  white-space: nowrap;
-}
-
-.tb-side-menu-toolbar {
-  overflow-y: auto;
-}
-
-.tb-entity-subtype-search {
-  margin-top: 15px;
-}
-
-.tb-entity-search {
-  margin-top: 34px;
 }

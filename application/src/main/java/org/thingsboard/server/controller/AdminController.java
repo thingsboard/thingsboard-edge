@@ -30,19 +30,35 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.exception.ThingsboardException;
 import org.thingsboard.server.service.mail.MailService;
 import org.thingsboard.server.service.update.UpdateService;
 import org.thingsboard.server.service.update.model.UpdateMessage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController extends BaseController {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private MailService mailService;
@@ -51,27 +67,39 @@ public class AdminController extends BaseController {
     private AdminSettingsService adminSettingsService;
 
     @Autowired
+    private AttributesService attributesService;
+
+    @Autowired
     private UpdateService updateService;
 
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings/{key}", method = RequestMethod.GET)
     @ResponseBody
-    public AdminSettings getAdminSettings(@PathVariable("key") String key) throws ThingsboardException {
+    public AdminSettings getAdminSettings(@PathVariable("key") String key,
+                                          @RequestParam(required = false,
+                                                        defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
         try {
-            return checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+            Authority authority = getCurrentUser().getAuthority();
+            if (authority == Authority.SYS_ADMIN) {
+                return checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+            } else {
+                return getTenantAdminSettings(key, systemByDefault);
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     @ResponseBody 
     public AdminSettings saveAdminSettings(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
-            adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(adminSettings));
-            if (adminSettings.getKey().equals("mail")) {
-                mailService.updateMailConfiguration();
+            Authority authority = getCurrentUser().getAuthority();
+            if (authority == Authority.SYS_ADMIN) {
+                adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(adminSettings));
+            } else {
+                adminSettings = saveTenantAdminSettings(adminSettings);
             }
             return adminSettings;
         } catch (Exception e) {
@@ -79,14 +107,14 @@ public class AdminController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings/testMail", method = RequestMethod.POST)
     public void sendTestMail(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
                String email = getCurrentUser().getEmail();
-               mailService.sendTestMail(adminSettings.getJsonValue(), email);
+               mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -102,6 +130,61 @@ public class AdminController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private AdminSettings getTenantAdminSettings(String key, boolean systemByDefault) throws Exception {
+        String jsonString = getEntityAttributeValue(getTenantId(), key);
+        JsonNode jsonValue = null;
+        if (!StringUtils.isEmpty(jsonString)) {
+            try {
+                jsonValue = objectMapper.readTree(jsonString);
+            } catch (Exception e) {}
+        }
+        if (jsonValue == null) {
+            if (systemByDefault) {
+                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+                jsonValue = systemAdminSettings.getJsonValue();
+            } else {
+                jsonValue = objectMapper.createObjectNode();
+            }
+        }
+        AdminSettings adminSettings = new AdminSettings();
+        adminSettings.setKey(key);
+        adminSettings.setJsonValue(jsonValue);
+        return adminSettings;
+    }
+
+    private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
+        JsonNode jsonValue = adminSettings.getJsonValue();
+        String jsonString = null;
+        if (jsonValue != null) {
+            try {
+                jsonString = objectMapper.writeValueAsString(jsonValue);
+            } catch (Exception e) {}
+        }
+        if (jsonString == null) {
+            jsonString = "";
+        }
+        saveEntityAttribute(getTenantId(), adminSettings.getKey(), jsonString);
+        return adminSettings;
+    }
+
+    private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
+        List<AttributeKvEntry> attributeKvEntries =
+                attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+        if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
+            AttributeKvEntry kvEntry = attributeKvEntries.get(0);
+            return kvEntry.getValueAsString();
+        } else {
+            return "";
+        }
+    }
+
+    private void saveEntityAttribute(EntityId entityId, String key, String value) throws Exception {
+        List<AttributeKvEntry> attributes = new ArrayList<>();
+        long ts = System.currentTimeMillis();
+        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
+        attributesService.save(entityId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
 }

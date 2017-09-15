@@ -44,7 +44,7 @@ export default function AdminRoutes($stateProvider) {
             auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
             redirectTo: {
                 'SYS_ADMIN': 'home.settings.outgoing-mail',
-                'TENANT_ADMIN': 'home.settings.whiteLabel',
+                'TENANT_ADMIN': 'home.settings.outgoing-mail',
                 'CUSTOMER_USER': 'home.settings.whiteLabel'},
             ncyBreadcrumb: {
                 label: '{"icon": "settings", "label": "admin.system-settings"}'
@@ -53,7 +53,7 @@ export default function AdminRoutes($stateProvider) {
         .state('home.settings.outgoing-mail', {
             url: '/outgoing-mail',
             module: 'private',
-            auth: ['SYS_ADMIN'],
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
             views: {
                 "content@home": {
                     templateUrl: outgoingMailSettingsTemplate,

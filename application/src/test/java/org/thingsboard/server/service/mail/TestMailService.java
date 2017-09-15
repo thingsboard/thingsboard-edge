@@ -53,19 +53,19 @@ public class TestMailService {
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                String activationLink = (String) args[0];
+                String activationLink = (String) args[1];
                 currentActivateToken = activationLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendActivationEmail(Mockito.anyString(), Mockito.anyString());
+        }).when(mailService).sendActivationEmail(null, Mockito.anyString(), Mockito.anyString());
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                String passwordResetLink = (String) args[0];
+                String passwordResetLink = (String) args[1];
                 currentResetPasswordToken = passwordResetLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendResetPasswordEmail(Mockito.anyString(), Mockito.anyString());
+        }).when(mailService).sendResetPasswordEmail(null, Mockito.anyString(), Mockito.anyString());
         return mailService;
     }
 
