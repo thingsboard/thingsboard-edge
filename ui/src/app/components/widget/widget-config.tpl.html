@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-tabs ng-class="{'tb-headless': (widgetType === types.widgetType.static.value && !displayAdvanced())}" id="tabs" md-border-bottom flex class="tb-absolute-fill"
+<md-tabs ng-class="{'tb-headless': (widgetType === types.widgetType.static.value && !displayAdvanced())}"
+         id="tabs" md-border-bottom flex class="tb-widget-config tb-absolute-fill"
          md-selected="selectedTab">
     <md-tab label="{{ 'widget-config.data' | translate }}"
             ng-show="widgetType !== types.widgetType.static.value">
@@ -302,7 +303,7 @@
         </div>
     </md-tab>
     <md-tab ng-if="displayAdvanced()" label="{{ 'widget-config.advanced' | translate }}">
-        <md-content class="md-padding" layout="column">
+        <md-content flex class="md-padding tb-advanced-widget-config" layout="column">
             <ng-form flex name="ngform"
                      layout="column"
                      layout-padding>

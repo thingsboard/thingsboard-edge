@@ -30,11 +30,14 @@
  */
 package org.thingsboard.server.extensions.api.plugins;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvQuery;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.extensions.api.plugins.msg.PluginToRuleMsg;
 import org.thingsboard.server.extensions.api.plugins.msg.TimeoutMsg;
@@ -124,4 +127,12 @@ public interface PluginContext {
 
     void getCustomerDevices(TenantId tenantId, CustomerId customerId, int limit, PluginCallback<List<Device>> callback);
 
+
+    /*
+    *   Relations API
+    * */
+
+    ListenableFuture<List<EntityRelation>> findByFromAndType(EntityId from, String relationType);
+
+    ListenableFuture<List<EntityRelation>> findByToAndType(EntityId from, String relationType);
 }

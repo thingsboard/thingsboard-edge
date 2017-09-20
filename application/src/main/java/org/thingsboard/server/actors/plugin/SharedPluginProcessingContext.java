@@ -45,6 +45,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.plugin.PluginService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -76,6 +77,7 @@ public final class SharedPluginProcessingContext {
     final AttributesService attributesService;
     final ClusterRpcService rpcService;
     final ClusterRoutingService routingService;
+    final RelationService relationService;
     final PluginId pluginId;
     final TenantId tenantId;
 
@@ -98,6 +100,7 @@ public final class SharedPluginProcessingContext {
         this.pluginService = sysContext.getPluginService();
         this.customerService = sysContext.getCustomerService();
         this.tenantService = sysContext.getTenantService();
+        this.relationService = sysContext.getRelationService();
     }
 
     public PluginId getPluginId() {
