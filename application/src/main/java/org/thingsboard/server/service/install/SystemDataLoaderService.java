@@ -36,6 +36,8 @@ public interface SystemDataLoaderService {
 
     void createAdminSettings() throws Exception;
 
+    void loadMailTemplates() throws Exception;
+
     void loadSystemWidgets() throws Exception;
 
     void loadSystemPlugins() throws Exception;

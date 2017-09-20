@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import './outgoing-mail-settings.scss';
+import './mail-template-settings.scss';
 
 /*@ngInject*/
 export default function AdminController(adminService, userService, toast, $scope, $rootScope, $state, $translate, types) {
@@ -38,11 +38,9 @@ export default function AdminController(adminService, userService, toast, $scope
     vm.types = types;
     vm.save = save;
     vm.sendTestMail = sendTestMail;
-    vm.saveMailTemplates = saveMailTemplates;
     vm.isTenantAdmin = isTenantAdmin;
 
     vm.useSystemMailSettings = false;
-    vm.selectedTab = 0;
 
     vm.smtpProtocols = ('smtp smtps').split(' ').map(function (protocol) {
         return protocol;
@@ -57,18 +55,20 @@ export default function AdminController(adminService, userService, toast, $scope
     });
 
     vm.tinyMceOptions = {
-        plugins: ['textcolor colorpicker link table'],
-        toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor | link | table | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat',
+        plugins: ['textcolor colorpicker link table image imagetools code fullscreen'],
+        menubar: "edit insert tools view format table",
+        toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor | link | table | image | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat | code | fullscreen',
         font_formats: 'Helvetica Neue="Helvetica Neue",helvetica,arial,sans-serif;Helvetica=helvetica,arial,sans-serif;Times New Roman=times new roman,times,serif;Sans Serif=sans-serif,helvetica,arial;Arial=arial,helvetica,sans-serif;Courier New=courier new,courier,monospace;',
         fontsize_formats: '8pt 10pt 11pt 12pt 14pt 18pt 24pt 36pt',
-        height: 200,
+        height: 280,
+        autofocus: false,
         branding: false,
         setup: function(ed)
         {
             ed.on('init', function()
             {
-                ed.execCommand("fontName", false, "Helvetica Neue");
-                ed.execCommand("fontSize", false, "11pt");
+                //ed.execCommand("fontName", false, "Helvetica Neue");
+                //ed.execCommand("fontSize", false, "11pt");
             });
         }
     };
@@ -76,24 +76,14 @@ export default function AdminController(adminService, userService, toast, $scope
     loadSettings();
 
     function loadSettings() {
-        adminService.getAdminSettings($state.$current.data.key).then(function success(settings) {
+
+        var systemByDefault = $state.$current.data.key == "mailTemplates";
+
+        adminService.getAdminSettings($state.$current.data.key, systemByDefault).then(function success(settings) {
             vm.settings = settings;
             if (isTenantAdmin()) {
                 vm.useSystemMailSettings =
                     angular.isDefined(vm.settings.jsonValue.useSystemMailSettings) ? vm.settings.jsonValue.useSystemMailSettings : true;
-            }
-        });
-        if ($state.$current.data.key == "mail") {
-            loadMailTemplatesSettings();
-        }
-    }
-
-    function loadMailTemplatesSettings() {
-        adminService.getAdminSettings('mailTemplates', true).then(function success(settings) {
-            vm.mailTemplateSettings = settings;
-            if (isTenantAdmin()) {
-                vm.useSystemMailTemplateSettings =
-                    angular.isDefined(vm.mailTemplateSettings.jsonValue.useSystemMailSettings) ? vm.mailTemplateSettings.jsonValue.useSystemMailSettings : true;
             }
         });
     }
@@ -105,16 +95,6 @@ export default function AdminController(adminService, userService, toast, $scope
         adminService.saveAdminSettings(vm.settings).then(function success(settings) {
             vm.settings = settings;
             vm.settingsForm.$setPristine();
-        });
-    }
-
-    function saveMailTemplates() {
-        if (isTenantAdmin()) {
-            vm.mailTemplateSettings.jsonValue.useSystemMailSettings = vm.useSystemMailTemplateSettings;
-        }
-        adminService.saveAdminSettings(vm.mailTemplateSettings).then(function success(settings) {
-            vm.mailTemplateSettings = settings;
-            vm.templateSettingsForm.$setPristine();
         });
     }
 

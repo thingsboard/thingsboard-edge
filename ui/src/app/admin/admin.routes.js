@@ -31,6 +31,7 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
+import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
 import whiteLabelingTemplate from './white-labeling.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -67,6 +68,25 @@ export default function AdminRoutes($stateProvider) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "mail", "label": "admin.outgoing-mail"}'
+            }
+        })
+        .state('home.settings.mail-template', {
+            url: '/mail-template',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: mailTemplateSettingsTemplate,
+                    controllerAs: 'vm',
+                    controller: 'AdminController'
+                }
+            },
+            data: {
+                key: 'mailTemplates',
+                pageTitle: 'admin.mail-template-settings'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "format_shapes", "label": "admin.mail-templates"}'
             }
         })
         .state('home.settings.whiteLabel', {

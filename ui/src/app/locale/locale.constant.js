@@ -101,8 +101,8 @@ export default angular.module('thingsboard.locale', [])
                 "admin": {
                     "general": "General",
                     "general-settings": "General Settings",
-                    "outgoing-mail": "Outgoing Mail",
-                    "outgoing-mail-settings": "Outgoing Mail Settings",
+                    "outgoing-mail": "Mail Server",
+                    "outgoing-mail-settings": "Outgoing Mail Server Settings",
                     "system-settings": "System Settings",
                     "test-mail-sent": "Test mail was successfully sent!",
                     "base-url": "Base URL",
@@ -121,8 +121,8 @@ export default angular.module('thingsboard.locale', [])
                     "enable-tls": "Enable TLS",
                     "send-test-mail": "Send test mail",
                     "use-system-mail-settings": "Use System Mail Server Settings",
-                    "mail-server-settings": "Mail Server",
-                    "mail-template-settings": "Mail Templates",
+                    "mail-templates": "Mail Templates",
+                    "mail-template-settings": "Mail Templates Settings",
                     "use-system-mail-template-settings": "Use System Mail Templates",
                     "mail-template": {
                         "mail-template": "Mail template",

@@ -32,8 +32,6 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -43,8 +41,6 @@ import java.util.Map;
 
 public class MailTemplates {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     public static final String TEST = "test";
     public static final String ACTIVATION = "activation";
     public static final String ACCOUNT_ACTIVATED = "accountActivated";
@@ -53,8 +49,6 @@ public class MailTemplates {
 
     private static final String SUBJECT = "subject";
     private static final String BODY = "body";
-
-    public static final ObjectNode defaultMailTemplates = createDefaultMailTemplates();
 
     public static String subject(JsonNode config, String template) {
         JsonNode templateNode = getTemplate(config, template);
@@ -81,53 +75,9 @@ public class MailTemplates {
     private static JsonNode getTemplate(JsonNode config, String template) {
         JsonNode templateNode = config.get(template);
         if (templateNode == null) {
-            defaultMailTemplates.get(template);
-        }
-        if (templateNode == null) {
             throw new IncorrectParameterException("Can't find template with name '"+template+"'.");
         }
         return templateNode;
     }
 
-    private static ObjectNode createDefaultMailTemplates() {
-        ObjectNode node = objectMapper.createObjectNode();
-        node.set(TEST,
-                createMailTemplate(
-                        "Test message from Thingsboard",
-                        "This email is indicating that your outgoing mail settings were set up correctly."
-                )
-        );
-        node.set(ACTIVATION,
-                createMailTemplate(
-                        "Your account activation on Thingsboard",
-                        "This email is indicating that your outgoing mail settings were set up correctly."
-                )
-        );
-        node.set(ACCOUNT_ACTIVATED,
-                createMailTemplate(
-                        "Thingsboard - your account has been activated",
-                        "This email is indicating that your outgoing mail settings were set up correctly."
-                )
-        );
-        node.set(RESET_PASSWORD,
-                createMailTemplate(
-                        "Thingsboard - Password reset has been requested",
-                        "This email is indicating that your outgoing mail settings were set up correctly."
-                )
-        );
-        node.set(PASSWORD_WAS_RESET,
-                createMailTemplate(
-                        "Thingsboard - your account password has been reset",
-                        "This email is indicating that your outgoing mail settings were set up correctly."
-                )
-        );
-        return node;
-    }
-
-    private static JsonNode createMailTemplate(String subject, String body) {
-        ObjectNode template = objectMapper.createObjectNode();
-        template.put(SUBJECT, subject);
-        template.put(BODY, body);
-        return template;
-    }
 }

@@ -135,7 +135,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '80px',
+                            height: '120px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -143,6 +143,12 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.outgoing-mail',
                                     icon: 'mail'
+                                },
+                                {
+                                    name: 'admin.mail-templates',
+                                    type: 'link',
+                                    state: 'home.settings.mail-template',
+                                    icon: 'format_shapes'
                                 },
                                 {
                                     name: 'white-labeling.white-labeling',
@@ -197,6 +203,11 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                         state: 'home.settings.outgoing-mail'
                                     },
                                     {
+                                        name: 'admin.mail-templates',
+                                        icon: 'format_shapes',
+                                        state: 'home.settings.mail-template'
+                                    },
+                                    {
                                         name: 'white-labeling.white-labeling',
                                         icon: 'format_paint',
                                         state: 'home.settings.whiteLabel'
@@ -242,7 +253,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '80px',
+                            height: '120px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -250,6 +261,12 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.outgoing-mail',
                                     icon: 'mail'
+                                },
+                                {
+                                    name: 'admin.mail-templates',
+                                    type: 'link',
+                                    state: 'home.settings.mail-template',
+                                    icon: 'format_shapes'
                                 },
                                 {
                                     name: 'white-labeling.white-labeling',
@@ -331,6 +348,11 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                         name: 'admin.outgoing-mail',
                                         icon: 'mail',
                                         state: 'home.settings.outgoing-mail'
+                                    },
+                                    {
+                                        name: 'admin.mail-templates',
+                                        icon: 'format_shapes',
+                                        state: 'home.settings.mail-template'
                                     },
                                     {
                                         name: 'white-labeling.white-labeling',

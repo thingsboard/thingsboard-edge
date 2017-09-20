@@ -82,6 +82,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private static final String PLUGINS_DIR = "plugins";
     private static final String RULES_DIR = "rules";
     private static final String DASHBOARDS_DIR = "dashboards";
+    private static final String MAIL_TEMPLATES_DIR = "mail_templates";
+    private static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -157,10 +159,16 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         mailSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(mailSettings);
 
+        loadMailTemplates();
+    }
+
+    @Override
+    public void loadMailTemplates() throws Exception {
         AdminSettings mailTemplateSettings = new AdminSettings();
         mailTemplateSettings.setKey("mailTemplates");
-        node = MailTemplates.defaultMailTemplates;
-        mailTemplateSettings.setJsonValue(node);
+        Path mailTemplatesFile = Paths.get(dataDir, JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
+        JsonNode mailTemplatesJson = objectMapper.readTree(mailTemplatesFile.toFile());
+        mailTemplateSettings.setJsonValue(mailTemplatesJson);
         adminSettingsService.saveAdminSettings(mailTemplateSettings);
     }
 

@@ -1,0 +1,78 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-mail-template-settings" layout="row" style="width: 100%;" layout-wrap tb-help="'outgoingMailSettings'" help-container-id="help-container">
+    <md-card flex-gt-sm="60" flex="100" style="height: 100%;">
+        <md-card-title>
+            <md-card-title-text layout="row">
+                <span translate class="md-headline">admin.mail-template-settings</span>
+                <span flex></span>
+                <div id="help-container"></div>
+            </md-card-title-text>
+        </md-card-title>
+        <md-progress-linear md-mode="indeterminate" ng-disabled="!loading" ng-show="loading"></md-progress-linear>
+        <span style="min-height: 5px;" flex="" ng-show="!loading"></span>
+        <md-card-content>
+            <form name="vm.settingsForm" ng-submit="vm.save()" tb-confirm-on-exit confirm-form="vm.settingsForm">
+                <div flex layout="column">
+                    <md-checkbox ng-if="vm.isTenantAdmin()" ng-disabled="loading"
+                                 aria-label="{{ 'admin.use-system-mail-template-settings' | translate }}" ng-model="vm.useSystemMailSettings">{{ 'admin.use-system-mail-template-settings' | translate }}</md-checkbox>
+                    <fieldset ng-disabled="loading" ng-if="!vm.useSystemMailSettings">
+                        <div style="padding-top: 20px;"></div>
+                        <md-input-container class="md-block">
+                            <label translate>admin.mail-template</label>
+                            <md-select ng-disabled="loading" ng-model="vm.mailTemplate">
+                                <md-option ng-repeat="mailTemplate in vm.types.mailTemplate" value="{{mailTemplate.value}}">
+                                    {{mailTemplate.name | translate }}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <div style="padding-top: 20px;"></div>
+                        <md-input-container class="md-block">
+                            <label translate>admin.mail-subject</label>
+                            <input ng-model="vm.settings.jsonValue[vm.mailTemplate].subject">
+                        </md-input-container>
+                        <ng-form name="vm.mailBodyForm">
+                            <div class="tb-container tb-mail-body">
+                                <label class="tb-label" translate>admin.mail-body</label>
+                                <textarea ui-tinymce="vm.tinyMceOptions" ng-model="vm.settings.jsonValue[vm.mailTemplate].body"></textarea>
+                            </div>
+                        </ng-form>
+                    </fieldset>
+                    <div layout="row" layout-align="end center" width="100%" layout-wrap style="margin-top: 10px;">
+                        <md-button ng-disabled="loading || vm.settingsForm.$invalid || !vm.settingsForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
+                    </div>
+                </div>
+            </form>
+        </md-card-content>
+    </md-card>
+</div>
