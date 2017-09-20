@@ -101,8 +101,8 @@ export default angular.module('thingsboard.locale', [])
                 "admin": {
                     "general": "General",
                     "general-settings": "General Settings",
-                    "outgoing-mail": "Outgoing Mail",
-                    "outgoing-mail-settings": "Outgoing Mail Settings",
+                    "outgoing-mail": "Mail Server",
+                    "outgoing-mail-settings": "Outgoing Mail Server Settings",
                     "system-settings": "System Settings",
                     "test-mail-sent": "Test mail was successfully sent!",
                     "base-url": "Base URL",
@@ -119,7 +119,21 @@ export default angular.module('thingsboard.locale', [])
                     "timeout-required": "Timeout is required.",
                     "timeout-invalid": "That doesn't look like a valid timeout.",
                     "enable-tls": "Enable TLS",
-                    "send-test-mail": "Send test mail"
+                    "send-test-mail": "Send test mail",
+                    "use-system-mail-settings": "Use System Mail Server Settings",
+                    "mail-templates": "Mail Templates",
+                    "mail-template-settings": "Mail Templates Settings",
+                    "use-system-mail-template-settings": "Use System Mail Templates",
+                    "mail-template": {
+                        "mail-template": "Mail template",
+                        "test": "Test email message",
+                        "activation": "Account activation message",
+                        "account-activated": "Account activated message",
+                        "reset-password": "Reset password message",
+                        "password-was-reset": "Password was reset message"
+                    },
+                    "mail-subject": "Mail Subject",
+                    "mail-body": "Mail body"
                 },
                 "alarm": {
                     "alarm": "Alarm",

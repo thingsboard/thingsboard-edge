@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.service.mail.MailTemplates;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,6 +82,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private static final String PLUGINS_DIR = "plugins";
     private static final String RULES_DIR = "rules";
     private static final String DASHBOARDS_DIR = "dashboards";
+    private static final String MAIL_TEMPLATES_DIR = "mail_templates";
+    private static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -155,6 +158,18 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         node.put("password", "");
         mailSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(mailSettings);
+
+        loadMailTemplates();
+    }
+
+    @Override
+    public void loadMailTemplates() throws Exception {
+        AdminSettings mailTemplateSettings = new AdminSettings();
+        mailTemplateSettings.setKey("mailTemplates");
+        Path mailTemplatesFile = Paths.get(dataDir, JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
+        JsonNode mailTemplatesJson = objectMapper.readTree(mailTemplatesFile.toFile());
+        mailTemplateSettings.setJsonValue(mailTemplatesJson);
+        adminSettingsService.saveAdminSettings(mailTemplateSettings);
     }
 
     @Override

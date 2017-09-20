@@ -37,8 +37,9 @@
  * TYPE DEFAULTS
  ***************/
 
-button, html, input, select, textarea {
+body, button, html, input, select, textarea {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 16px;
 }
 
 .mdi-set {

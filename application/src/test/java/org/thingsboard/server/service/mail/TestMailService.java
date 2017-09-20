@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.exception.ThingsboardException;
 
 @Profile("test")
@@ -53,19 +54,19 @@ public class TestMailService {
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                String activationLink = (String) args[0];
+                String activationLink = (String) args[1];
                 currentActivateToken = activationLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendActivationEmail(Mockito.anyString(), Mockito.anyString());
+        }).when(mailService).sendActivationEmail(Mockito.any(TenantId.class), Mockito.anyString(), Mockito.anyString());
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                String passwordResetLink = (String) args[0];
+                String passwordResetLink = (String) args[1];
                 currentResetPasswordToken = passwordResetLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendResetPasswordEmail(Mockito.anyString(), Mockito.anyString());
+        }).when(mailService).sendResetPasswordEmail(Mockito.any(TenantId.class), Mockito.anyString(), Mockito.anyString());
         return mailService;
     }
 

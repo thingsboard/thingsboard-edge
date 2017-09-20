@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 
@@ -67,6 +68,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private UserService userService;
 
     @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
     private CustomerService customerService;
 
     @Autowired
@@ -74,6 +78,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private SystemDataLoaderService systemDataLoaderService;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -83,6 +90,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.3.1 to 1.3.1EE ...");
 
                 tenantsGroupAllUpdater.updateEntities(null);
+
+                AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey("mailTemplates");
+                if (mailTemplateSettings == null) {
+                    systemDataLoaderService.loadMailTemplates();
+                }
 
                 break;
             default:

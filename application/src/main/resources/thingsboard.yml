@@ -220,7 +220,10 @@ cache:
 updates:
   # Enable/disable updates checking.
   enabled: "${UPDATES_ENABLED:true}"
-  
+
+# spring velocity configuration
+spring.velocity.checkTemplateLocation: "false"
+
 # spring CORS configuration
 spring.mvc.cors:
    mappings:

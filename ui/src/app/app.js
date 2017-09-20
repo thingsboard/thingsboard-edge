@@ -54,6 +54,17 @@ import angularJwt from 'angular-jwt';
 import 'angular-drag-and-drop-lists';
 import mdDataTable from 'angular-material-data-table';
 import ngTouch from 'angular-touch';
+import 'tinymce/tinymce.min';
+import 'tinymce/themes/modern/theme.min';
+import 'tinymce/plugins/colorpicker';
+import 'tinymce/plugins/textcolor';
+import 'tinymce/plugins/link';
+import 'tinymce/plugins/table';
+import 'tinymce/plugins/image';
+import 'tinymce/plugins/imagetools';
+import 'tinymce/plugins/code';
+import 'tinymce/plugins/fullscreen';
+import 'angular-ui-tinymce';
 import 'angular-carousel';
 import 'clipboard';
 import 'ngclipboard';
@@ -89,6 +100,8 @@ import thingsboardApiAlarm from './api/alarm.service';
 import thingsboardApiEntityGroup from './api/entity-group.service';
 import thingsboardApiWhiteLabeling from './api/white-labeling.service';
 
+import 'tinymce/skins/lightgray/skin.min.css';
+import 'tinymce/skins/lightgray/content.min.css';
 import 'typeface-roboto';
 import 'font-awesome/css/font-awesome.min.css';
 import 'angular-material/angular-material.min.css';
@@ -121,6 +134,7 @@ angular.module('thingsboard', [
     'dndLists',
     mdDataTable,
     ngTouch,
+    'ui.tinymce',
     'angular-carousel',
     'ngclipboard',
     react.name,

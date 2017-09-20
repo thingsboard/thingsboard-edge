@@ -44,9 +44,9 @@ function AdminService($http, $q) {
 
     return service;
 
-    function getAdminSettings(key) {
+    function getAdminSettings(key, systemByDefault) {
         var deferred = $q.defer();
-        var url = '/api/admin/settings/' + key;
+        var url = '/api/admin/settings/' + key + '?systemByDefault=' + ( systemByDefault ? 'true': 'false' );
         $http.get(url, null).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
