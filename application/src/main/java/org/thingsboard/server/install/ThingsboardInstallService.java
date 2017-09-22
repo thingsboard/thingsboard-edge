@@ -118,8 +118,8 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("maps_v2");
 
                         systemDataLoaderService.loadSystemWidgets();
-                    case "1.3.1": // to 1.3.1EE
-                        log.info("Upgrading ThingsBoard from version 1.3.1 to 1.3.1EE ...");
+                    case "1.3.1": // to 1.3.1PE
+                        log.info("Upgrading ThingsBoard from version 1.3.1 to 1.3.1PE ...");
 
                         databaseUpgradeService.upgradeDatabase("1.3.1");
 

@@ -68,7 +68,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
         switch (fromVersion) {
             case "1.3.1":
                 log.info("Updating schema ...");
-                Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.1ee", SCHEMA_UPDATE_SQL);
+                Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.1pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
                     conn.createStatement().execute(sql);

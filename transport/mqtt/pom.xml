@@ -35,14 +35,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>1.3.1EE-SNAPSHOT</version>
+        <version>1.3.1PE-SNAPSHOT</version>
         <artifactId>transport</artifactId>
     </parent>
     <groupId>org.thingsboard.transport</groupId>
     <artifactId>mqtt</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard EE MQTT Transport</name>
+    <name>ThingsBoard PE MQTT Transport</name>
     <url>https://thingsboard.io</url>
 
     <properties>
