@@ -44,7 +44,7 @@
 
     <name>ThingsBoard PE Server Application</name>
     <url>https://thingsboard.io</url>
-    <description>ThingsBoard Enterprise Edition: IoT Platform - Device management, data collection, processing and visualization
+    <description>ThingsBoard Professional Edition: IoT Platform - Device management, data collection, processing and visualization
     </description>
 
     <properties>
@@ -544,7 +544,7 @@
                     </excludes>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Title>ThingsBoard Enterprise Edition</Implementation-Title>
+                            <Implementation-Title>ThingsBoard Professional Edition</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                         </manifestEntries>
                     </archive>
