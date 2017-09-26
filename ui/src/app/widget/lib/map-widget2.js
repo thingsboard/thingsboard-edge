@@ -145,6 +145,7 @@ export default class TbMapWidgetV2 {
 
         this.locationSettings.showLabel = this.ctx.settings.showLabel !== false;
         this.locationSettings.displayTooltip = this.ctx.settings.showTooltip !== false;
+        this.locationSettings.autocloseTooltip = this.ctx.settings.autocloseTooltip !== false;
         this.locationSettings.labelColor = this.ctx.widgetConfig.color || '#000000',
         this.locationSettings.label = this.ctx.settings.label || "${entityName}";
         this.locationSettings.color = this.ctx.settings.color ? tinycolor(this.ctx.settings.color).toHexString() : "#FE7569";
@@ -600,6 +601,11 @@ const commonMapSettingsSchema =
                     "type":"boolean",
                     "default":true
                 },
+                "autocloseTooltip": {
+                    "title": "Auto-close tooltips",
+                    "type":"boolean",
+                    "default":true
+                },
                 "tooltipPattern":{
                     "title":"Tooltip (for ex. 'Text ${keyName} units.' or <link-act name='my-action'>Link text</link-act>')",
                     "type":"string",
@@ -655,6 +661,7 @@ const commonMapSettingsSchema =
             "showLabel",
             "label",
             "showTooltip",
+            "autocloseTooltip",
             {
                 "key": "tooltipPattern",
                 "type": "textarea"
@@ -762,6 +769,11 @@ const imageMapSettingsSchema =
                 "type":"boolean",
                 "default":true
             },
+            "autocloseTooltip": {
+                "title": "Auto-close tooltips",
+                "type":"boolean",
+                "default":true
+            },
             "tooltipPattern":{
                 "title":"Tooltip (for ex. 'Text ${keyName} units.' or <link-act name='my-action'>Link text</link-act>')",
                 "type":"string",
@@ -836,6 +848,7 @@ const imageMapSettingsSchema =
         "showLabel",
         "label",
         "showTooltip",
+        "autocloseTooltip",
         {
             "key": "tooltipPattern",
             "type": "textarea"
