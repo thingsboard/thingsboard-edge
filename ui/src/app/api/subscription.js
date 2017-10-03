@@ -94,9 +94,7 @@ export default class Subscription {
             this.alarms = [];
 
             this.originalTimewindow = null;
-            this.timeWindow = {
-                stDiff: this.ctx.stDiff
-            }
+            this.timeWindow = {};
             this.useDashboardTimewindow = options.useDashboardTimewindow;
 
             if (this.useDashboardTimewindow) {
@@ -138,9 +136,7 @@ export default class Subscription {
             this.data = [];
             this.hiddenData = [];
             this.originalTimewindow = null;
-            this.timeWindow = {
-                stDiff: this.ctx.stDiff
-            }
+            this.timeWindow = {};
             this.useDashboardTimewindow = options.useDashboardTimewindow;
             this.stateData = options.stateData;
             if (this.useDashboardTimewindow) {
@@ -227,24 +223,48 @@ export default class Subscription {
         }
     }
 
-    initAlarmSubscription() {
+    loadStDiff() {
         var deferred = this.ctx.$q.defer();
-        if (!this.ctx.aliasController) {
-            this.configureAlarmsData();
-            deferred.resolve();
-        } else {
-            var subscription = this;
-            this.ctx.aliasController.resolveAlarmSource(this.alarmSource).then(
-                function success(alarmSource) {
-                    subscription.alarmSource = alarmSource;
-                    subscription.configureAlarmsData();
+        if (this.ctx.getStDiff && this.timeWindow) {
+            this.ctx.getStDiff().then(
+                (stDiff) => {
+                    this.timeWindow.stDiff = stDiff;
                     deferred.resolve();
                 },
-                function fail() {
-                    deferred.reject();
+                () => {
+                    this.timeWindow.stDiff = 0;
+                    deferred.resolve();
                 }
             );
+        } else {
+            if (this.timeWindow) {
+                this.timeWindow.stDiff = 0;
+            }
+            deferred.resolve();
         }
+        return deferred.promise;
+    }
+
+    initAlarmSubscription() {
+        var deferred = this.ctx.$q.defer();
+        var subscription = this;
+        this.loadStDiff().then(() => {
+            if (!subscription.ctx.aliasController) {
+                subscription.configureAlarmsData();
+                deferred.resolve();
+            } else {
+                subscription.ctx.aliasController.resolveAlarmSource(subscription.alarmSource).then(
+                    function success(alarmSource) {
+                        subscription.alarmSource = alarmSource;
+                        subscription.configureAlarmsData();
+                        deferred.resolve();
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+            }
+        });
         return deferred.promise;
     }
 
@@ -266,22 +286,24 @@ export default class Subscription {
 
     initDataSubscription() {
         var deferred = this.ctx.$q.defer();
-        if (!this.ctx.aliasController) {
-            this.configureData();
-            deferred.resolve();
-        } else {
-            var subscription = this;
-            this.ctx.aliasController.resolveDatasources(this.datasources).then(
-                function success(datasources) {
-                    subscription.datasources = datasources;
-                    subscription.configureData();
-                    deferred.resolve();
-                },
-                function fail() {
-                    deferred.reject();
-                }
-            );
-        }
+        var subscription = this;
+        this.loadStDiff().then(() => {
+            if (!subscription.ctx.aliasController) {
+                subscription.configureData();
+                deferred.resolve();
+            } else {
+                subscription.ctx.aliasController.resolveDatasources(subscription.datasources).then(
+                    function success(datasources) {
+                        subscription.datasources = datasources;
+                        subscription.configureData();
+                        deferred.resolve();
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+            }
+        });
         return deferred.promise;
     }
 

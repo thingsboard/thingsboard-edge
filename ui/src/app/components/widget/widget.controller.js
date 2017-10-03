@@ -36,7 +36,7 @@ import Subscription from '../../api/subscription';
 
 /*@ngInject*/
 export default function WidgetController($scope, $state, $timeout, $window, $element, $q, $log, $injector, $filter, $compile, tbRaf, types, utils, timeService,
-                                         datasourceService, importExport, alarmService, entityService, deviceService, visibleRect, isEdit, isMobile, stDiff, dashboardTimewindow,
+                                         datasourceService, importExport, alarmService, entityService, dashboardService, deviceService, visibleRect, isEdit, isMobile, dashboardTimewindow,
                                          dashboardTimewindowApi, widget, aliasController, stateController, widgetInfo, widgetType) {
 
     var vm = this;
@@ -175,7 +175,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         widgetUtils: widgetContext.utils,
         dashboardTimewindowApi: dashboardTimewindowApi,
         types: types,
-        stDiff: stDiff,
+        getStDiff: dashboardService.getServerTimeDiff,
         aliasController: aliasController
     };
 

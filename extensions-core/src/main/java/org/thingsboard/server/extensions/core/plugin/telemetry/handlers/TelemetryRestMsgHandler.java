@@ -107,7 +107,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
                 if (!StringUtils.isEmpty(scope)) {
                     ctx.loadAttributes(entityId, scope, callback);
                 } else {
-                    ctx.loadAttributes(entityId, Arrays.asList(DataConstants.ALL_SCOPES), callback);
+                    ctx.loadAttributes(entityId, Arrays.asList(DataConstants.allScopes()), callback);
                 }
             }
         } else if (method.equals("values")) {
@@ -147,9 +147,9 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
                 } else {
                     if (!StringUtils.isEmpty(keys)) {
                         List<String> keyList = Arrays.asList(keys.split(","));
-                        ctx.loadAttributes(entityId, Arrays.asList(DataConstants.ALL_SCOPES), keyList, callback);
+                        ctx.loadAttributes(entityId, Arrays.asList(DataConstants.allScopes()), keyList, callback);
                     } else {
-                        ctx.loadAttributes(entityId, Arrays.asList(DataConstants.ALL_SCOPES), callback);
+                        ctx.loadAttributes(entityId, Arrays.asList(DataConstants.allScopes()), callback);
                     }
                 }
             }

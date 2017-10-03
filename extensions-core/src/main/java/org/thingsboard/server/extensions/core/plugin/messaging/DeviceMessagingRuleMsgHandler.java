@@ -49,10 +49,7 @@ import org.thingsboard.server.extensions.api.plugins.handlers.RuleMsgHandler;
 import org.thingsboard.server.extensions.api.plugins.msg.*;
 import org.thingsboard.server.extensions.api.rules.RuleException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Andrew Shvayka
@@ -104,8 +101,9 @@ public class DeviceMessagingRuleMsgHandler implements RuleMsgHandler {
         if (pendindMsg != null) {
             log.trace("[{}] Received response: {}", requestId, msg);
             ToServerRpcResponseMsg response;
-            if (msg.getError().isPresent()) {
-                response = new ToServerRpcResponseMsg(pendindMsg.getRequestId(), toJsonString(msg.getError().get()));
+            Optional<RpcError> rpcError = msg.getError();
+            if (rpcError.isPresent()) {
+                response = new ToServerRpcResponseMsg(pendindMsg.getRequestId(), toJsonString(rpcError.get()));
             } else {
                 response = new ToServerRpcResponseMsg(pendindMsg.getRequestId(), msg.getResponse().orElse(""));
             }

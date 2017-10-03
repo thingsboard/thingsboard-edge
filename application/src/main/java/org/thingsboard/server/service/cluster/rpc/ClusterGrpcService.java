@@ -110,6 +110,7 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
                 future.onMsg(msg);
             } catch (InterruptedException e) {
                 log.warn("Failed to report created session!");
+                Thread.currentThread().interrupt();
             }
         } else {
             log.warn("Failed to lookup pending session!");
@@ -132,6 +133,7 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
                 log.info("RPC server stopped!");
             } catch (InterruptedException e) {
                 log.warn("Failed to onStop RPC server!");
+                Thread.currentThread().interrupt();
             }
         }
     }

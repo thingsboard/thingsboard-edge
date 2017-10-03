@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import jsonSchemaDefaults from 'json-schema-defaults';
+
 import thingsboardTypes from '../../common/types.constant';
 import thingsboardUtils from '../../common/utils.service';
 import thingsboardEntityAliasSelect from '../entity-alias-select.directive';
@@ -438,7 +438,7 @@ function WidgetConfig($compile, $templateCache, $rootScope, $translate, $timeout
             }
 
             if (angular.isDefined(scope.datakeySettingsSchema.schema)) {
-                result.settings = jsonSchemaDefaults(scope.datakeySettingsSchema.schema);
+                result.settings = utils.generateObjectFromJsonSchema(scope.datakeySettingsSchema.schema);
             }
 
             return result;
