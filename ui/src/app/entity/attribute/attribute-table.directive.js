@@ -46,7 +46,7 @@ import AliasController from '../../api/alias-controller';
 /*@ngInject*/
 export default function AttributeTableDirective($compile, $templateCache, $rootScope, $q, $mdEditDialog, $mdDialog,
                                                 $mdUtil, $document, $translate, $filter, utils, types, dashboardUtils,
-                                                dashboardService, entityService, attributeService, widgetService) {
+                                                entityService, attributeService, widgetService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -420,10 +420,6 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
             scope.selectedWidgetsBundleAlias = null;
             scope.mode = 'default';
             scope.getEntityAttributes(true);
-        }
-
-        scope.getServerTimeDiff = function() {
-            return dashboardService.getServerTimeDiff();
         }
 
         scope.addWidgetToDashboard = function($event) {

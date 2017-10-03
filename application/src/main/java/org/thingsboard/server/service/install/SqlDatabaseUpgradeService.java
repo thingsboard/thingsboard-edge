@@ -71,7 +71,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                 Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.1pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
-                    conn.createStatement().execute(sql);
+                    conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                 }
                 log.info("Schema updated.");
                 break;

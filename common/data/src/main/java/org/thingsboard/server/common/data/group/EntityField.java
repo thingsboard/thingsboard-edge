@@ -54,7 +54,7 @@ public enum EntityField {
     TYPE,
     ASSIGNED_CUSTOMER;
 
-    public static Map<EntityType, EntityField[]> defaultFieldsByEntityType =
+    protected static final Map<EntityType, EntityField[]> defaultFieldsByEntityType =
             new HashMap<>();
     static {
         defaultFieldsByEntityType.put(EntityType.USER, new EntityField[]{CREATED_TIME, FIRST_NAME, LAST_NAME, EMAIL, AUTHORITY});

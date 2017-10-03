@@ -44,8 +44,7 @@ export default function DashboardLayout() {
             dashboardCtx: '=',
             isEdit: '=',
             isMobile: '=',
-            widgetEditMode: '=',
-            getStDiff: '&?'
+            widgetEditMode: '='
         },
         controller: DashboardLayoutController,
         controllerAs: 'vm',

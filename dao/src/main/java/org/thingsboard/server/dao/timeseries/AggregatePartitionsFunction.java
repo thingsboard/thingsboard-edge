@@ -64,7 +64,6 @@ public class AggregatePartitionsFunction implements com.google.common.base.Funct
         this.ts = ts;
     }
 
-    @Nullable
     @Override
     public Optional<TsKvEntry> apply(@Nullable List<ResultSet> rsList) {
         try {

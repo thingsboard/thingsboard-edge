@@ -67,10 +67,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -240,7 +237,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             @Nullable
             @Override
             public List<Asset> apply(@Nullable List<Asset> assetList) {
-                return assetList.stream().filter(asset -> query.getAssetTypes().contains(asset.getType())).collect(Collectors.toList());
+                return assetList == null ? Collections.emptyList() : assetList.stream().filter(asset -> query.getAssetTypes().contains(asset.getType())).collect(Collectors.toList());
             }
         });
 

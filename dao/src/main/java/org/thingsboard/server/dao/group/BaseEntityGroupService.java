@@ -302,10 +302,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             @Override
             public TimePageData<EntityView> apply(@Nullable List<EntityId> entityIds) {
                 List<EntityView> entities = new ArrayList<>();
-                entityIds.forEach(entityId -> {
-                    EntityView entityView = toEntityView(entityId, columnsInfo, transformFunction);
-                    entities.add(entityView);
-                });
+                if (entityIds != null) {
+                    entityIds.forEach(entityId -> {
+                        EntityView entityView = toEntityView(entityId, columnsInfo, transformFunction);
+                        entities.add(entityView);
+                    });
+                }
                 return new TimePageData<>(entities, pageLink);
             }
         });

@@ -30,7 +30,7 @@
  */
 
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet/dist/leaflet';
+import * as L from 'leaflet';
 
 const maxZoom = 4;
 

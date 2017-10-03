@@ -183,7 +183,6 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
             }
         });
         return Futures.transform(listenableFuture, new Function<TsKvEntity, Optional<TsKvEntry>>() {
-            @Nullable
             @Override
             public Optional<TsKvEntry> apply(@Nullable TsKvEntity entity) {
                 if (entity != null && entity.isNotEmpty()) {
