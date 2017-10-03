@@ -220,7 +220,12 @@ public class EntityGroupController extends BaseController {
             } else if (entityType == EntityType.DEVICE) {
                 asyncResult = deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink);
             }
-            return checkNotNull(asyncResult.get());
+            checkNotNull(asyncResult);
+            if (asyncResult != null) {
+                return checkNotNull(asyncResult.get());
+            } else {
+                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
