@@ -93,6 +93,7 @@ public class MqttPlugin extends AbstractPlugin<MqttPluginConfiguration> {
 
                             @Override
                             public void onFailure(IMqttToken iMqttToken, Throwable e) {
+                                //Do nothing
                             }
                         }).waitForCompletion();
                     } catch (MqttException e) {

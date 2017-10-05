@@ -49,6 +49,7 @@ import org.thingsboard.server.extensions.api.plugins.msg.ResponsePluginToRuleMsg
 import org.thingsboard.server.extensions.api.plugins.msg.TelemetryUploadRequestRuleToPluginMsg;
 import org.thingsboard.server.extensions.api.plugins.msg.UpdateAttributesRequestRuleToPluginMsg;
 import org.thingsboard.server.extensions.core.plugin.telemetry.SubscriptionManager;
+import org.thingsboard.server.extensions.core.plugin.telemetry.sub.Subscription;
 import org.thingsboard.server.extensions.core.plugin.telemetry.sub.SubscriptionType;
 
 import java.util.*;
@@ -111,17 +112,9 @@ public class TelemetryRuleMsgHandler extends DefaultRuleMsgHandler {
             @Override
             public void onSuccess(PluginContext ctx, Void data) {
                 ctx.reply(new ResponsePluginToRuleMsg(msg.getUid(), tenantId, ruleId, BasicStatusCodeResponse.onSuccess(request.getMsgType(), request.getRequestId())));
-                subscriptionManager.onLocalSubscriptionUpdate(ctx, msg.getDeviceId(), SubscriptionType.TIMESERIES, s -> {
-                    List<TsKvEntry> subscriptionUpdate = new ArrayList<TsKvEntry>();
-                    for (Map.Entry<Long, List<KvEntry>> entry : request.getData().entrySet()) {
-                        for (KvEntry kv : entry.getValue()) {
-                            if (s.isAllKeys() || s.getKeyStates().containsKey((kv.getKey()))) {
-                                subscriptionUpdate.add(new BasicTsKvEntry(entry.getKey(), kv));
-                            }
-                        }
-                    }
-                    return subscriptionUpdate;
-                });
+                subscriptionManager.onLocalSubscriptionUpdate(ctx, msg.getDeviceId(), SubscriptionType.TIMESERIES, s ->
+                    prepareSubscriptionUpdate(request, s)
+                );
             }
 
             @Override
@@ -130,6 +123,18 @@ public class TelemetryRuleMsgHandler extends DefaultRuleMsgHandler {
                 ctx.reply(new ResponsePluginToRuleMsg(msg.getUid(), tenantId, ruleId, BasicStatusCodeResponse.onError(request.getMsgType(), request.getRequestId(), e)));
             }
         });
+    }
+
+    private List<TsKvEntry> prepareSubscriptionUpdate(TelemetryUploadRequest request, Subscription s) {
+        List<TsKvEntry> subscriptionUpdate = new ArrayList<>();
+        for (Map.Entry<Long, List<KvEntry>> entry : request.getData().entrySet()) {
+            for (KvEntry kv : entry.getValue()) {
+                if (s.isAllKeys() || s.getKeyStates().containsKey((kv.getKey()))) {
+                    subscriptionUpdate.add(new BasicTsKvEntry(entry.getKey(), kv));
+                }
+            }
+        }
+        return subscriptionUpdate;
     }
 
     @Override
@@ -142,7 +147,7 @@ public class TelemetryRuleMsgHandler extends DefaultRuleMsgHandler {
                         ctx.reply(new ResponsePluginToRuleMsg(msg.getUid(), tenantId, ruleId, BasicStatusCodeResponse.onSuccess(request.getMsgType(), request.getRequestId())));
 
                         subscriptionManager.onLocalSubscriptionUpdate(ctx, msg.getDeviceId(), SubscriptionType.ATTRIBUTES, s -> {
-                            List<TsKvEntry> subscriptionUpdate = new ArrayList<TsKvEntry>();
+                            List<TsKvEntry> subscriptionUpdate = new ArrayList<>();
                             for (AttributeKvEntry kv : request.getAttributes()) {
                                 if (s.isAllKeys() || s.getKeyStates().containsKey(kv.getKey())) {
                                     subscriptionUpdate.add(new BasicTsKvEntry(kv.getLastUpdateTs(), kv));

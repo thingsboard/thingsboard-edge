@@ -61,6 +61,7 @@ public class GatewayDeviceSessionCtx extends DeviceAwareSessionContext {
     private static final Gson GSON = new Gson();
     private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final ByteBufAllocator ALLOCATOR = new UnpooledByteBufAllocator(false);
+    public static final String DEVICE_PROPERTY = "device";
 
     private GatewaySessionCtx parent;
     private final MqttSessionId sessionId;
@@ -116,13 +117,15 @@ public class GatewayDeviceSessionCtx extends DeviceAwareSessionContext {
             case TO_DEVICE_RPC_REQUEST:
                 ToDeviceRpcRequestMsg rpcRequest = (ToDeviceRpcRequestMsg) msg;
                 return Optional.of(createMqttPublishMsg(MqttTopics.GATEWAY_RPC_TOPIC, rpcRequest));
+            default:
+                break;
         }
         return Optional.empty();
     }
 
     @Override
     public void onMsg(SessionCtrlMsg msg) throws SessionException {
-
+        //Do nothing
     }
 
     @Override
@@ -142,7 +145,7 @@ public class GatewayDeviceSessionCtx extends DeviceAwareSessionContext {
     private MqttMessage createMqttPublishMsg(String topic, GetAttributesResponse response) {
         JsonObject result = new JsonObject();
         result.addProperty("id", response.getRequestId());
-        result.addProperty("device", device.getName());
+        result.addProperty(DEVICE_PROPERTY, device.getName());
         Optional<AttributesKVMsg> responseData = response.getData();
         if (responseData.isPresent()) {
             AttributesKVMsg msg = responseData.get();
@@ -187,14 +190,14 @@ public class GatewayDeviceSessionCtx extends DeviceAwareSessionContext {
 
     private MqttMessage createMqttPublishMsg(String topic, AttributesKVMsg data) {
         JsonObject result = new JsonObject();
-        result.addProperty("device", device.getName());
+        result.addProperty(DEVICE_PROPERTY, device.getName());
         result.add("data", JsonConverter.toJson(data, false));
         return createMqttPublishMsg(topic, result);
     }
 
     private MqttMessage createMqttPublishMsg(String topic, ToDeviceRpcRequestMsg data) {
         JsonObject result = new JsonObject();
-        result.addProperty("device", device.getName());
+        result.addProperty(DEVICE_PROPERTY, device.getName());
         result.add("data", JsonConverter.toJson(data, true));
         return createMqttPublishMsg(topic, result);
     }

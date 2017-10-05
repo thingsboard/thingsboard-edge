@@ -77,9 +77,6 @@ public class AuthController extends BaseController {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private MailService mailService;
 
     @PreAuthorize("isAuthenticated()")
