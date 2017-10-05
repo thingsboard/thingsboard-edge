@@ -337,7 +337,7 @@ class RuleActorMessageProcessor extends ComponentMsgProcessor<RuleId> {
 
     @Override
     public void onClusterEventMsg(ClusterEventMsg msg) throws Exception {
-
+        //Do nothing
     }
 
     private void stopAction() {

@@ -92,6 +92,8 @@ class ASyncMsgProcessor extends AbstractSessionActorMsgProcessor {
             case UNSUBSCRIBE_RPC_COMMANDS_REQUEST:
                 subscribedToRpcCommands = false;
                 break;
+            default:
+                break;
         }
         currentTargetServer = forwardToAppActor(ctx, pendingMsg);
     }
@@ -109,6 +111,8 @@ class ASyncMsgProcessor extends AbstractSessionActorMsgProcessor {
                             pendingMap.remove(responseMsg.getRequestId());
                         }
                         break;
+                    default:
+                        break;
                 }
                 sessionCtx.onMsg(new BasicSessionActorToAdaptorMsg(this.sessionCtx, msg));
             } else {
@@ -124,6 +128,7 @@ class ASyncMsgProcessor extends AbstractSessionActorMsgProcessor {
         // TODO Auto-generated method stub        
     }
 
+    @Override
     protected void cleanupSession(ActorContext ctx) {
         toDeviceMsg(new SessionCloseMsg()).ifPresent(m -> forwardToAppActor(ctx, m));
     }

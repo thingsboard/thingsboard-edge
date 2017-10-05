@@ -217,7 +217,7 @@ public class DefaultActorService implements ActorService {
 
     @Override
     public void onServerUpdated(ServerInstance server) {
-
+        //Do nothing
     }
 
     @Override

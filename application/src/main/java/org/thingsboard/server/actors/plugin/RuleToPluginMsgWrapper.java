@@ -74,7 +74,7 @@ public class RuleToPluginMsgWrapper implements ToPluginActorMsg, RuleAwareMsg {
     }
 
 
-    public RuleToPluginMsg<?> getMsg() {
+    public RuleToPluginMsg getMsg() {
         return msg;
     }
 

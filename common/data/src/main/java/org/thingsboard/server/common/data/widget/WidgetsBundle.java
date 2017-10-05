@@ -95,7 +95,7 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> {
 
     @Override
     public String getSearchText() {
-        return title;
+        return getTitle();
     }
 
     @Override

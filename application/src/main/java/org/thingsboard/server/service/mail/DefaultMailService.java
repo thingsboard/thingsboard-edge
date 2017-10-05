@@ -58,6 +58,9 @@ import java.util.*;
 public class DefaultMailService implements MailService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    public static final String MAIL_PROP = "mail.";
+    public static final String TARGET_EMAIL = "targetEmail";
+    public static final String UTF_8 = "UTF-8";
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -79,11 +82,11 @@ public class DefaultMailService implements MailService {
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.TEST);
 
         Map<String, Object> model = new HashMap<String, Object>();
-        model.put("targetEmail", email);
+        model.put(TARGET_EMAIL, email);
 
         String message = MailTemplates.body(mailTemplates, MailTemplates.TEST, model);
 
-        sendMail(testMailSender, mailFrom, email, subject, message); 
+        sendMail(testMailSender, mailFrom, email, subject, message);
     }
 
     @Override
@@ -94,7 +97,7 @@ public class DefaultMailService implements MailService {
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("activationLink", activationLink);
-        model.put("targetEmail", email);
+        model.put(TARGET_EMAIL, email);
 
         String message = MailTemplates.body(mailTemplates, MailTemplates.ACTIVATION, model);
 
@@ -109,7 +112,7 @@ public class DefaultMailService implements MailService {
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("loginLink", loginLink);
-        model.put("targetEmail", email);
+        model.put(TARGET_EMAIL, email);
 
         String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED, model);
 
@@ -124,7 +127,7 @@ public class DefaultMailService implements MailService {
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("passwordResetLink", passwordResetLink);
-        model.put("targetEmail", email);
+        model.put(TARGET_EMAIL, email);
 
         String message = MailTemplates.body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
 
@@ -139,7 +142,7 @@ public class DefaultMailService implements MailService {
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("loginLink", loginLink);
-        model.put("targetEmail", email);
+        model.put(TARGET_EMAIL, email);
 
         String message = MailTemplates.body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
 
@@ -159,7 +162,7 @@ public class DefaultMailService implements MailService {
             String subject, String message) throws ThingsboardException {
         try {
             MimeMessage mimeMsg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, UTF_8);
             helper.setFrom(mailFrom);
             helper.setTo(email);
             helper.setSubject(subject);

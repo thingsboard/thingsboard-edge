@@ -60,12 +60,12 @@ public class DummyDiscoveryService implements DiscoveryService {
 
     @Override
     public void publishCurrentServer() {
-
+        //Do nothing
     }
 
     @Override
     public void unpublishCurrentServer() {
-
+        //Do nothing
     }
 
     @Override
