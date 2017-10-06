@@ -36,8 +36,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 
-import java.util.concurrent.ExecutionException;
-
 @Slf4j
 public abstract class AbstractEntityService {
 
@@ -49,17 +47,11 @@ public abstract class AbstractEntityService {
 
     protected void deleteEntityRelations(EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
-        try {
-            relationService.deleteEntityRelations(entityId).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        relationService.deleteEntityRelations(entityId);
     }
 
     protected void deleteEntityGroups(EntityId entityId) {
         log.trace("Executing deleteEntityGroups [{}]", entityId);
         entityGroupService.deleteAllEntityGroups(entityId);
     }
-
-
 }
