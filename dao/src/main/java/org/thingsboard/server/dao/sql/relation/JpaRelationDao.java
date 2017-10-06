@@ -135,12 +135,25 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<Boolean> saveRelation(EntityRelation relation) {
+    public boolean saveRelation(EntityRelation relation) {
+        return relationRepository.save(new RelationEntity(relation)) != null;
+    }
+
+    @Override
+    public ListenableFuture<Boolean> saveRelationAsync(EntityRelation relation) {
         return service.submit(() -> relationRepository.save(new RelationEntity(relation)) != null);
     }
 
     @Override
-    public ListenableFuture<Boolean> deleteRelation(EntityRelation relation) {
+    public boolean deleteRelation(EntityRelation relation) {
+        RelationCompositeKey key = new RelationCompositeKey(relation);
+        boolean relationExistsBeforeDelete = relationRepository.exists(key);
+        relationRepository.delete(key);
+        return relationExistsBeforeDelete;
+    }
+
+    @Override
+    public ListenableFuture<Boolean> deleteRelationAsync(EntityRelation relation) {
         RelationCompositeKey key = new RelationCompositeKey(relation);
         return service.submit(
                 () -> {
@@ -151,7 +164,15 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<Boolean> deleteRelation(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+    public boolean deleteRelation(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
+        boolean relationExistsBeforeDelete = relationRepository.exists(key);
+        relationRepository.delete(key);
+        return relationExistsBeforeDelete;
+    }
+
+    @Override
+    public ListenableFuture<Boolean> deleteRelationAsync(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
         return service.submit(
                 () -> {
@@ -162,7 +183,16 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<Boolean> deleteOutboundRelations(EntityId entity) {
+    public boolean deleteOutboundRelations(EntityId entity) {
+        boolean relationExistsBeforeDelete = relationRepository
+                .findAllByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name())
+                .size() > 0;
+        relationRepository.deleteByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name());
+        return relationExistsBeforeDelete;
+    }
+
+    @Override
+    public ListenableFuture<Boolean> deleteOutboundRelationsAsync(EntityId entity) {
         return service.submit(
                 () -> {
                     boolean relationExistsBeforeDelete = relationRepository
