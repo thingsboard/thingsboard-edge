@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardException;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,10 +114,10 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityIds}", method = RequestMethod.POST)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/addEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void addEntitiesToEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                         @PathVariable("entityIds") String[] strEntityIds) throws ThingsboardException {
+                                         @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         try {
@@ -141,10 +140,10 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityIds}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/deleteEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void removeEntitiesFromEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                              @PathVariable("entityIds") String[] strEntityIds) throws ThingsboardException {
+                                              @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         try {
