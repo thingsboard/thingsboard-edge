@@ -81,6 +81,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -578,6 +579,14 @@ public abstract class BaseController {
 
     protected void checkEntityGroup(EntityGroup entityGroup) throws ThingsboardException {
         checkNotNull(entityGroup);
+        try {
+            if (!entityGroupService.checkEntityGroup(getTenantId(), entityGroup).get()) {
+                throw new ThingsboardException("You don't have permission to perform this operation!",
+                        ThingsboardErrorCode.PERMISSION_DENIED);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected String constructBaseUrl(HttpServletRequest request) {
