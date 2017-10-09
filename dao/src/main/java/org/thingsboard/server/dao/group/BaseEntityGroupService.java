@@ -270,6 +270,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
+
+        try {
+            if (!relationService.checkRelation(entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP).get()) {
+                return null;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+        }
+
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
