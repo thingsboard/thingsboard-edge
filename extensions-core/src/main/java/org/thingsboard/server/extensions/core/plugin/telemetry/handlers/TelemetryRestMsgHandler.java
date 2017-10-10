@@ -32,6 +32,7 @@ package org.thingsboard.server.extensions.core.plugin.telemetry.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,9 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
 import org.thingsboard.server.common.transport.adaptor.JsonConverter;
+import org.thingsboard.server.extensions.api.exception.InvalidParametersException;
+import org.thingsboard.server.extensions.api.exception.ToErrorResponseEntity;
+import org.thingsboard.server.extensions.api.exception.UncheckedApiException;
 import org.thingsboard.server.extensions.api.plugins.PluginCallback;
 import org.thingsboard.server.extensions.api.plugins.PluginContext;
 import org.thingsboard.server.extensions.api.plugins.handlers.DefaultRestMsgHandler;
@@ -100,13 +104,13 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             ctx.loadLatestTimeseries(entityId, new PluginCallback<List<TsKvEntry>>() {
                 @Override
                 public void onSuccess(PluginContext ctx, List<TsKvEntry> value) {
-                    List<String> keys = value.stream().map(tsKv -> tsKv.getKey()).collect(Collectors.toList());
+                    List<String> keys = value.stream().map(KvEntry::getKey).collect(Collectors.toList());
                     msg.getResponseHolder().setResult(new ResponseEntity<>(keys, HttpStatus.OK));
                 }
 
                 @Override
                 public void onFailure(PluginContext ctx, Exception e) {
-                    msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                    handleError(e, msg, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
         } else if (feature == TelemetryFeature.ATTRIBUTES) {
@@ -178,6 +182,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
     @Override
     public void handleHttpPostRequest(PluginContext ctx, PluginRestMsg msg) throws ServletException {
         RestRequest request = msg.getRequest();
+        Exception error = null;
         try {
             String[] pathParams = request.getPathParams();
             EntityId entityId;
@@ -215,8 +220,9 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             }
         } catch (IOException | RuntimeException e) {
             log.debug("Failed to process POST request due to exception", e);
+            error = e;
         }
-        msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        handleError(error, msg, HttpStatus.BAD_REQUEST);
     }
 
     private boolean handleHttpPostAttributes(PluginContext ctx, PluginRestMsg msg, RestRequest request,
@@ -225,23 +231,9 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
                 DataConstants.SHARED_SCOPE.equals(scope)) {
             JsonNode jsonNode = jsonMapper.readTree(request.getRequestBody());
             if (jsonNode.isObject()) {
-                long ts = System.currentTimeMillis();
-                List<AttributeKvEntry> attributes = new ArrayList<>();
-                jsonNode.fields().forEachRemaining(entry -> {
-                    String key = entry.getKey();
-                    JsonNode value = entry.getValue();
-                    if (entry.getValue().isTextual()) {
-                        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value.textValue()), ts));
-                    } else if (entry.getValue().isBoolean()) {
-                        attributes.add(new BaseAttributeKvEntry(new BooleanDataEntry(key, value.booleanValue()), ts));
-                    } else if (entry.getValue().isDouble()) {
-                        attributes.add(new BaseAttributeKvEntry(new DoubleDataEntry(key, value.doubleValue()), ts));
-                    } else if (entry.getValue().isNumber()) {
-                        attributes.add(new BaseAttributeKvEntry(new LongDataEntry(key, value.longValue()), ts));
-                    }
-                });
-                if (attributes.size() > 0) {
-                    ctx.saveAttributes(ctx.getSecurityCtx().orElseThrow(() -> new IllegalArgumentException()).getTenantId(), entityId, scope, attributes, new PluginCallback<Void>() {
+                List<AttributeKvEntry> attributes = extractRequestAttributes(jsonNode);
+                if (!attributes.isEmpty()) {
+                    ctx.saveAttributes(ctx.getSecurityCtx().orElseThrow(IllegalArgumentException::new).getTenantId(), entityId, scope, attributes, new PluginCallback<Void>() {
                         @Override
                         public void onSuccess(PluginContext ctx, Void value) {
                             msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.OK));
@@ -251,7 +243,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
                         @Override
                         public void onFailure(PluginContext ctx, Exception e) {
                             log.error("Failed to save attributes", e);
-                            msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                            handleError(e, msg, HttpStatus.BAD_REQUEST);
                         }
                     });
                     return true;
@@ -261,8 +253,36 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
         return false;
     }
 
+    private List<AttributeKvEntry> extractRequestAttributes(JsonNode jsonNode) {
+        long ts = System.currentTimeMillis();
+        List<AttributeKvEntry> attributes = new ArrayList<>();
+        jsonNode.fields().forEachRemaining(entry -> {
+            String key = entry.getKey();
+            JsonNode value = entry.getValue();
+            if (entry.getValue().isTextual()) {
+                attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value.textValue()), ts));
+            } else if (entry.getValue().isBoolean()) {
+                attributes.add(new BaseAttributeKvEntry(new BooleanDataEntry(key, value.booleanValue()), ts));
+            } else if (entry.getValue().isDouble()) {
+                attributes.add(new BaseAttributeKvEntry(new DoubleDataEntry(key, value.doubleValue()), ts));
+            } else if (entry.getValue().isNumber()) {
+                if (entry.getValue().isBigInteger()) {
+                    throw new UncheckedApiException(new InvalidParametersException("Big integer values are not supported!"));
+                } else {
+                    attributes.add(new BaseAttributeKvEntry(new LongDataEntry(key, value.longValue()), ts));
+                }
+            }
+        });
+        return  attributes;
+    }
+
     private void handleHttpPostTimeseries(PluginContext ctx, PluginRestMsg msg, RestRequest request, EntityId entityId, long ttl) {
-        TelemetryUploadRequest telemetryRequest = JsonConverter.convertToTelemetry(new JsonParser().parse(request.getRequestBody()));
+        TelemetryUploadRequest telemetryRequest;
+        try {
+            telemetryRequest = JsonConverter.convertToTelemetry(new JsonParser().parse(request.getRequestBody()));
+        } catch (JsonSyntaxException e) {
+            throw new UncheckedApiException(new InvalidParametersException(e.getMessage()));
+        }
         List<TsKvEntry> entries = new ArrayList<>();
         for (Map.Entry<Long, List<KvEntry>> entry : telemetryRequest.getData().entrySet()) {
             for (KvEntry kv : entry.getValue()) {
@@ -279,7 +299,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             @Override
             public void onFailure(PluginContext ctx, Exception e) {
                 log.error("Failed to save attributes", e);
-                msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                handleError(e, msg, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
     }
@@ -287,6 +307,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
     @Override
     public void handleHttpDeleteRequest(PluginContext ctx, PluginRestMsg msg) throws ServletException {
         RestRequest request = msg.getRequest();
+        Exception error = null;
         try {
             String[] pathParams = request.getPathParams();
             EntityId entityId;
@@ -308,7 +329,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
                 String keysParam = request.getParameter("keys");
                 if (!StringUtils.isEmpty(keysParam)) {
                     String[] keys = keysParam.split(",");
-                    ctx.removeAttributes(ctx.getSecurityCtx().orElseThrow(() -> new IllegalArgumentException()).getTenantId(), entityId, scope, Arrays.asList(keys), new PluginCallback<Void>() {
+                    ctx.removeAttributes(ctx.getSecurityCtx().orElseThrow(IllegalArgumentException::new).getTenantId(), entityId, scope, Arrays.asList(keys), new PluginCallback<Void>() {
                         @Override
                         public void onSuccess(PluginContext ctx, Void value) {
                             msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.OK));
@@ -317,7 +338,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
                         @Override
                         public void onFailure(PluginContext ctx, Exception e) {
                             log.error("Failed to remove attributes", e);
-                            msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                            handleError(e, msg, HttpStatus.INTERNAL_SERVER_ERROR);
                         }
                     });
                     return;
@@ -325,8 +346,9 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             }
         } catch (RuntimeException e) {
             log.debug("Failed to process DELETE request due to Runtime exception", e);
+            error = e;
         }
-        msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        handleError(error, msg, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -334,14 +356,14 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
         return new PluginCallback<List<AttributeKvEntry>>() {
             @Override
             public void onSuccess(PluginContext ctx, List<AttributeKvEntry> attributes) {
-                List<String> keys = attributes.stream().map(attrKv -> attrKv.getKey()).collect(Collectors.toList());
+                List<String> keys = attributes.stream().map(KvEntry::getKey).collect(Collectors.toList());
                 msg.getResponseHolder().setResult(new ResponseEntity<>(keys, HttpStatus.OK));
             }
 
             @Override
             public void onFailure(PluginContext ctx, Exception e) {
                 log.error("Failed to fetch attributes", e);
-                msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                handleError(e, msg, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         };
     }
@@ -358,7 +380,7 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             @Override
             public void onFailure(PluginContext ctx, Exception e) {
                 log.error("Failed to fetch attributes", e);
-                msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                handleError(e, msg, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         };
     }
@@ -383,8 +405,19 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             @Override
             public void onFailure(PluginContext ctx, Exception e) {
                 log.error("Failed to fetch historical data", e);
-                msg.getResponseHolder().setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+                handleError(e, msg, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         };
     }
+
+    private void handleError(Exception e, PluginRestMsg msg, HttpStatus defaultErrorStatus) {
+        ResponseEntity responseEntity;
+        if (e != null && e instanceof ToErrorResponseEntity) {
+            responseEntity = ((ToErrorResponseEntity)e).toErrorResponseEntity();
+        } else {
+            responseEntity = new ResponseEntity<>(defaultErrorStatus);
+        }
+        msg.getResponseHolder().setResult(responseEntity);
+    }
+
 }
