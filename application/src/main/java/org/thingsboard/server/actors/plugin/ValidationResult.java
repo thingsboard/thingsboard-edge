@@ -28,22 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.extensions.api.exception;
+package org.thingsboard.server.actors.plugin;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-/**
- * Created by ashvayka on 21.02.17.
- */
-public class UnauthorizedException extends Exception implements ToErrorResponseEntity {
+@Data
+@AllArgsConstructor
+public class ValidationResult {
 
-    public UnauthorizedException(String message) {
-        super(message);
+    private final ValidationResultCode resultCode;
+    private final String message;
+
+    public static ValidationResult ok() {
+        return new ValidationResult(ValidationResultCode.OK, "Ok");
     }
 
-    @Override
-    public ResponseEntity<String> toErrorResponseEntity() {
-        return new ResponseEntity<>(getMessage(), HttpStatus.UNAUTHORIZED);
+    public static ValidationResult accessDenied(String message) {
+        return new ValidationResult(ValidationResultCode.ACCESS_DENIED, message);
     }
+
+    public static ValidationResult entityNotFound(String message) {
+        return new ValidationResult(ValidationResultCode.ENTITY_NOT_FOUND, message);
+    }
+
+    public static ValidationResult unauthorized(String message) {
+        return new ValidationResult(ValidationResultCode.UNAUTHORIZED, message);
+    }
+
+    public static ValidationResult internalError(String message) {
+        return new ValidationResult(ValidationResultCode.INTERNAL_ERROR, message);
+    }
+
 }

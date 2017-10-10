@@ -74,6 +74,10 @@ import static org.thingsboard.server.dao.service.Validator.*;
 public class BaseEntityGroupService extends AbstractEntityService implements EntityGroupService {
 
     public static final String ENTITY_GROUP_RELATION_PREFIX = "ENTITY_GROUP_";
+    public static final String INCORRECT_PARENT_ENTITY_ID = "Incorrect parentEntityId ";
+    public static final String INCORRECT_GROUP_TYPE = "Incorrect groupType ";
+    public static final String INCORRECT_ENTITY_GROUP_ID = "Incorrect entityGroupId ";
+    public static final String INCORRECT_ENTITY_ID = "Incorrect entityId ";
 
     @Autowired
     private EntityGroupDao entityGroupDao;
@@ -90,21 +94,21 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public EntityGroup findEntityGroupById(EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupById [{}]", entityGroupId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         return entityGroupDao.findById(entityGroupId.getId());
     }
 
     @Override
     public ListenableFuture<EntityGroup> findEntityGroupByIdAsync(EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupByIdAsync [{}]", entityGroupId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         return entityGroupDao.findByIdAsync(entityGroupId.getId());
     }
 
     @Override
     public EntityGroup saveEntityGroup(EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         new EntityGroupValidator(parentEntityId).validate(entityGroup);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
@@ -128,11 +132,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public ListenableFuture<Boolean> checkEntityGroup(EntityId parentEntityId, EntityGroup entityGroup) {
+        log.trace("Executing checkEntityGroup [{}]", entityGroup);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        return relationService.checkRelation(parentEntityId, entityGroup.getId(),
+                ENTITY_GROUP_RELATION_PREFIX + entityGroup.getType().name()
+                , RelationTypeGroup.TO_ENTITY_GROUP);
+    }
+
+    @Override
     public EntityGroup createEntityGroupAll(EntityId parentEntityId, EntityType groupType) {
         log.trace("Executing createEntityGroupAll, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
-            throw new IncorrectParameterException("Incorrect groupType " + groupType);
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(EntityGroup.GROUP_ALL_NAME);
@@ -143,7 +156,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void deleteEntityGroup(EntityGroupId entityGroupId) {
         log.trace("Executing deleteEntityGroup [{}]", entityGroupId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         deleteEntityRelations(entityGroupId);
         entityGroupDao.removeById(entityGroupId.getId());
     }
@@ -151,7 +164,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public ListenableFuture<List<EntityGroup>> findAllEntityGroups(EntityId parentEntityId) {
         log.trace("Executing findAllEntityGroups, parentEntityId [{}]", parentEntityId);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFrom(parentEntityId, RelationTypeGroup.TO_ENTITY_GROUP);
         return relationsToEntityGroups(relations);
     }
@@ -159,7 +172,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void deleteAllEntityGroups(EntityId parentEntityId) {
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         ListenableFuture<List<EntityGroup>> entityGroupsFuture = findAllEntityGroups(parentEntityId);
         try {
             List<EntityGroup> entityGroups = entityGroupsFuture.get();
@@ -172,9 +185,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(EntityId parentEntityId, EntityType groupType) {
         log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
-            throw new IncorrectParameterException("Incorrect groupType " + groupType);
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(parentEntityId, relationType, RelationTypeGroup.TO_ENTITY_GROUP);
@@ -194,9 +207,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
-            throw new IncorrectParameterException("Incorrect groupType " + groupType);
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validateString(name, "Incorrect name " + name);
         ListenableFuture<List<EntityGroup>> entityGroups = findEntityGroupsByType(parentEntityId, groupType);
@@ -213,8 +226,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void addEntityToEntityGroup(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         EntityRelation entityRelation = new EntityRelation();
         entityRelation.setFrom(entityGroupId);
         entityRelation.setTo(entityId);
@@ -226,8 +239,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void addEntityToEntityGroupAll(EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
-        validateEntityId(parentEntityId, "Incorrect parentEntityId " + parentEntityId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         try {
             Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
             if (entityGroup.isPresent()) {
@@ -245,22 +258,22 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void addEntitiesToEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         entityIds.forEach(entityId -> addEntityToEntityGroup(entityGroupId, entityId));
     }
 
     @Override
     public void removeEntityFromEntityGroup(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing removeEntityFromEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         relationService.deleteRelation(entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
     }
 
     @Override
     public void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing removeEntitiesFromEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         entityIds.forEach(entityId -> removeEntityFromEntityGroup(entityGroupId, entityId));
     }
 
@@ -268,8 +281,16 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public EntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
                                                         BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+
+        try {
+            if (!relationService.checkRelation(entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP).get()) {
+                return null;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+        }
+
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
@@ -286,7 +307,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                             findEntities(EntityGroupId entityGroupId,
                                          TimePageLink pageLink, BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
@@ -357,30 +378,39 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         EntityGroupColumnsInfo columnsInfo = new EntityGroupColumnsInfo();
         columns.forEach(column -> {
             if (column.getType() == ColumnType.ENTITY_FIELD) {
-                EntityField entityField = null;
-                try {
-                    entityField = EntityField.valueOf(column.getKey().toUpperCase());
-                } catch (Exception e) {}
-                if (entityField != null) {
-                    if (entityField == EntityField.CREATED_TIME) {
-                        columnsInfo.commonEntityFields.add(entityField);
-                    } else {
-                        columnsInfo.entityFields.add(entityField);
-                    }
-                }
+                processEntityFieldColumnInfo(column, columnsInfo);
             } else if (column.getType().isAttribute()) {
-                String scope = column.getType().getAttributeScope();
-                List<String> keys = columnsInfo.attributeScopeToKeysMap.get(scope);
-                if (keys == null) {
-                    keys = new ArrayList<>();
-                    columnsInfo.attributeScopeToKeysMap.put(scope, keys);
-                }
-                keys.add(column.getKey());
+                processAttributeColumnInfo(column, columnsInfo);
             } else if (column.getType() == ColumnType.TIMESERIES) {
                 columnsInfo.timeseriesKeys.add(column.getKey());
             }
         });
         return columnsInfo;
+    }
+
+    private void processEntityFieldColumnInfo(ColumnConfiguration column, EntityGroupColumnsInfo columnsInfo) {
+        EntityField entityField = null;
+        try {
+            entityField = EntityField.valueOf(column.getKey().toUpperCase());
+        } catch (Exception e) {
+        }
+        if (entityField != null) {
+            if (entityField == EntityField.CREATED_TIME) {
+                columnsInfo.commonEntityFields.add(entityField);
+            } else {
+                columnsInfo.entityFields.add(entityField);
+            }
+        }
+    }
+
+    private void processAttributeColumnInfo(ColumnConfiguration column, EntityGroupColumnsInfo columnsInfo) {
+        String scope = column.getType().getAttributeScope();
+        List<String> keys = columnsInfo.attributeScopeToKeysMap.get(scope);
+        if (keys == null) {
+            keys = new ArrayList<>();
+            columnsInfo.attributeScopeToKeysMap.put(scope, keys);
+        }
+        keys.add(column.getKey());
     }
 
     private EntityView toEntityView(EntityId entityId, EntityGroupColumnsInfo columnsInfo,

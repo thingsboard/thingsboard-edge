@@ -122,8 +122,8 @@ function EntityGroupService($http, $q, utils) {
 
     function addEntityToEntityGroup(entityGroupId, entityId) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityId;
-        $http.post(url, null).then(function success(response) {
+        var url = '/api/entityGroup/' + entityGroupId + '/addEntities';
+        $http.post(url, [entityId]).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -133,8 +133,8 @@ function EntityGroupService($http, $q, utils) {
 
     function addEntitiesToEntityGroup(entityGroupId, entityIds) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityIds.join();
-        $http.post(url, null).then(function success(response) {
+        var url = '/api/entityGroup/' + entityGroupId + '/addEntities';
+        $http.post(url, entityIds).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -144,8 +144,8 @@ function EntityGroupService($http, $q, utils) {
 
     function removeEntityFromEntityGroup(entityGroupId, entityId) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityId;
-        $http.delete(url).then(function success() {
+        var url = '/api/entityGroup/' + entityGroupId + '/deleteEntities';
+        $http.post(url, [entityId]).then(function success() {
             deferred.resolve();
         }, function fail() {
             deferred.reject();
@@ -155,8 +155,8 @@ function EntityGroupService($http, $q, utils) {
 
     function removeEntitiesFromEntityGroup(entityGroupId, entityIds) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/' + entityIds.join();
-        $http.delete(url).then(function success() {
+        var url = '/api/entityGroup/' + entityGroupId + '/deleteEntities';
+        $http.post(url, entityIds).then(function success() {
             deferred.resolve();
         }, function fail() {
             deferred.reject();

@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardException;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,11 +54,13 @@ import java.util.List;
 @RequestMapping("/api")
 public class EntityGroupController extends BaseController {
 
+    public static final String ENTITY_GROUP_ID = "entityGroupId";
+
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.GET)
     @ResponseBody
-    public EntityGroup getEntityGroupById(@PathVariable("entityGroupId") String strEntityGroupId) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
+    public EntityGroup getEntityGroupById(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             return checkEntityGroupId(entityGroupId);
@@ -83,8 +84,8 @@ public class EntityGroupController extends BaseController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
+    public void deleteEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
@@ -113,11 +114,11 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityIds}", method = RequestMethod.POST)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/addEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void addEntitiesToEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId,
-                                         @PathVariable("entityIds") String[] strEntityIds) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
+    public void addEntitiesToEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+                                         @RequestBody String[] strEntityIds) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -139,11 +140,11 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityIds}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/deleteEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void removeEntitiesFromEntityGroup(@PathVariable("entityGroupId") String strEntityGroupId,
-                                              @PathVariable("entityIds") String[] strEntityIds) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
+    public void removeEntitiesFromEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+                                              @RequestBody String[] strEntityIds) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -168,9 +169,9 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public EntityView getGroupEntity(
-            @PathVariable("entityGroupId") String strEntityGroupId,
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
             @PathVariable("entityId") String strEntityId) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkParameter("entityId", strEntityId);
 
         try {
@@ -198,14 +199,14 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<EntityView> getEntities(
-            @PathVariable("entityGroupId") String strEntityGroupId,
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
             @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime,
             @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
             @RequestParam(required = false) String offset
     ) throws ThingsboardException {
-        checkParameter("entityGroupId", strEntityGroupId);
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
         EntityType entityType = entityGroup.getType();

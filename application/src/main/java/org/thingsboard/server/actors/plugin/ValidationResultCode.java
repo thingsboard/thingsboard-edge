@@ -28,22 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.extensions.api.exception;
+package org.thingsboard.server.actors.plugin;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-/**
- * Created by ashvayka on 21.02.17.
- */
-public class UnauthorizedException extends Exception implements ToErrorResponseEntity {
-
-    public UnauthorizedException(String message) {
-        super(message);
-    }
-
-    @Override
-    public ResponseEntity<String> toErrorResponseEntity() {
-        return new ResponseEntity<>(getMessage(), HttpStatus.UNAUTHORIZED);
-    }
+public enum ValidationResultCode {
+    OK,
+    UNAUTHORIZED,
+    ACCESS_DENIED,
+    ENTITY_NOT_FOUND,
+    INTERNAL_ERROR
 }
