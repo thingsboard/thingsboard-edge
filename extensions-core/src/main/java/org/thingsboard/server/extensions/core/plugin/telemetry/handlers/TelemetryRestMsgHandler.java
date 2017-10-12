@@ -297,13 +297,13 @@ public class TelemetryRestMsgHandler extends DefaultRestMsgHandler {
             throw new IllegalArgumentException(e.getMessage());
         }
         List<TsKvEntry> entries = new ArrayList<>();
-        if (entries.isEmpty()) {
-            throw new IllegalArgumentException("No timeseries data found in request body!");
-        }
         for (Map.Entry<Long, List<KvEntry>> entry : telemetryRequest.getData().entrySet()) {
             for (KvEntry kv : entry.getValue()) {
                 entries.add(new BasicTsKvEntry(entry.getKey(), kv));
             }
+        }
+        if (entries.isEmpty()) {
+            throw new IllegalArgumentException("No timeseries data found in request body!");
         }
         ctx.saveTsData(entityId, entries, ttl, new PluginCallback<Void>() {
             @Override

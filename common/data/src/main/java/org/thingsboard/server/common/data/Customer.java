@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -74,6 +75,15 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @JsonIgnore
+    public boolean isPublic() {
+        if (getAdditionalInfo() != null && getAdditionalInfo().has("isPublic")) {
+            return additionalInfo.get("isPublic").asBoolean();
+        }
+
+        return false;
     }
 
     @Override
@@ -164,5 +174,4 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
         builder.append("]");
         return builder.toString();
     }
-
 }
