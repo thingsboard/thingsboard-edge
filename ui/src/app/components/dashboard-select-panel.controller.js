@@ -1,4 +1,4 @@
-/**
+/*
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -28,45 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+/*@ngInject*/
+export default function DashboardSelectPanelController(mdPanelRef, $scope, $filter, dashboards, dashboardId, onDashboardSelected) {
 
-.tb-details-title {
-  font-size: 1.600rem;
-  font-weight: 400;
-  text-transform: uppercase;
-  margin: 20px 8px 0 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: inherit;
-}
+    var vm = this;
+    vm._mdPanelRef = mdPanelRef;
+    vm.dashboards = dashboards;
+    vm.dashboardId = dashboardId;
 
-.tb-details-subtitle {
-  font-size: 1.000rem;
-  margin: 10px 0;
-  opacity: 0.8;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: inherit;
-}
+    vm.dashboardSelected = dashboardSelected;
 
-md-sidenav.tb-sidenav-details {
-  .md-toolbar-tools {
-      min-height: 100px;
-      max-height: 120px;
-      height: 100%;
-  }
-  width: 100% !important;
-  max-width: 100% !important;
-  z-index: 59 !important;
-  @media (min-width: $layout-breakpoint-sm) {
-    width: 80% !important;
-  }
-  @media (min-width: $layout-breakpoint-md) {
-    width: 65% !important;
-  }
-  @media (min-width: $layout-breakpoint-lg) {
-    width: 45% !important;
-  }
+    function dashboardSelected(dashboardId) {
+        if (onDashboardSelected) {
+            onDashboardSelected(dashboardId);
+        }
+    }
 }
