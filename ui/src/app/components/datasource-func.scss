@@ -31,7 +31,7 @@
 @import '../../scss/constants';
 
 .tb-datasource-func {
-  @media (min-width: $layout-breakpoint-gt-sm) {
+  @media (min-width: $layout-breakpoint-sm) {
     padding-left: 8px;
   }
 
