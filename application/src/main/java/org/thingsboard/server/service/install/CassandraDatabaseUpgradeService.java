@@ -169,10 +169,10 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Relations restored.");
 
                 break;
-            case "1.3.1":
+            case "1.4.0":
 
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.1pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.4.0pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
                 log.info("Schema updated.");
 
