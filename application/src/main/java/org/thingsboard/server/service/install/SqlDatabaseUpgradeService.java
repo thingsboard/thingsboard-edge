@@ -66,9 +66,9 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
-            case "1.3.1":
+            case "1.4.0":
                 log.info("Updating schema ...");
-                Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.1ee", SCHEMA_UPDATE_SQL);
+                Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.4.0ee", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
                     conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script

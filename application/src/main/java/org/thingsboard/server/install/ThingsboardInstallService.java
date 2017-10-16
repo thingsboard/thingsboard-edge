@@ -101,7 +101,7 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("gpio_widgets");
                         systemDataLoaderService.deleteSystemWidgetBundle("alarm_widgets");
 
-                    case "1.3.0":
+                    case "1.3.0": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
                         log.info("Upgrading ThingsBoard from version 1.3.0 to 1.3.1 ...");
 
                         log.info("Updating system data...");
@@ -117,12 +117,14 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("maps_v2");
 
                         systemDataLoaderService.loadSystemWidgets();
-                    case "1.3.1": // to 1.3.1EE
-                        log.info("Upgrading ThingsBoard from version 1.3.1 to 1.3.1EE ...");
+                    case "1.3.1": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
+                        log.info("Upgrading ThingsBoard from version 1.3.1 to 1.4.0 ...");
+                    case "1.4.0": // to 1.4.0EE
+                        log.info("Upgrading ThingsBoard from version 1.4.0 to 1.4.0EE ...");
 
-                        databaseUpgradeService.upgradeDatabase("1.3.1");
+                        databaseUpgradeService.upgradeDatabase("1.4.0");
 
-                        dataUpdateService.updateData("1.3.1");
+                        dataUpdateService.updateData("1.4.0");
 
                         break;
                     default:
