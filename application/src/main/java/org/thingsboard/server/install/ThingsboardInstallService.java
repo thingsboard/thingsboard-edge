@@ -104,6 +104,8 @@ public class ThingsboardInstallService {
                     case "1.3.0": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
                         log.info("Upgrading ThingsBoard from version 1.3.0 to 1.3.1 ...");
 
+                        databaseUpgradeService.upgradeDatabase("1.3.0");
+
                         log.info("Updating system data...");
 
                         systemDataLoaderService.deleteSystemWidgetBundle("charts");
