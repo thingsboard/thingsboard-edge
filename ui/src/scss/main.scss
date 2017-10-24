@@ -37,7 +37,7 @@
  * TYPE DEFAULTS
  ***************/
 
-body, button, html, input, select, textarea {
+body, button, html, input, select, textarea, td, th {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
   font-size: 16px;
 }
@@ -128,7 +128,7 @@ a.md-button {
 }
 
 form {
-  md-content {
+  md-content.md-default-theme, md-content[class*="md-tb-custom-theme-"], md-content {
     background-color: #fff;
   }
 }
@@ -141,7 +141,7 @@ md-bottom-sheet .md-subheader {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-md-content.md-default-theme, md-content {
+md-content.md-default-theme, md-content[class*="md-tb-custom-theme-"], md-content {
   background-color: $gray;
 }
 
