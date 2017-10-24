@@ -32,6 +32,8 @@ import $ from 'jquery';
 import canvasGauges from 'canvas-gauges';
 /*import tinycolor from 'tinycolor2';*/
 
+/* eslint-disable angular/angularelement */
+
 export default class TbAnalogueCompass {
     constructor(ctx, canvasId) {
         this.ctx = ctx;
@@ -451,3 +453,5 @@ export default class TbAnalogueCompass {
         };
     }
 }
+
+/* eslint-enable angular/angularelement */
