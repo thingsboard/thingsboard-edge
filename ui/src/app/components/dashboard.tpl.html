@@ -90,7 +90,7 @@
 											<md-icon md-menu-origin aria-label="{{ 'widget.export-data' | translate }}"
 													 ng-style="{color: vm.widgetColor(widget)}"
 													 md-svg-icon="mdi:file-export"></md-icon>
-											<md-tooltip md-direction="top">
+											<md-tooltip md-direction="{{vm.isWidgetExpanded ? 'bottom' : 'top'}}">
 												{{ 'widget.export-data' | translate }}
 											</md-tooltip>
 										</md-button>
