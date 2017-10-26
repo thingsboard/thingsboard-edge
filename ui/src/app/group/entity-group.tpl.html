@@ -37,16 +37,16 @@
             <div class="md-toolbar-tools">
                 <span>{{ vm.tableTitle }}</span>
                 <span flex></span>
-                <md-button ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
+                <md-button ng-disabled="loading" ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     {{ 'entity-group.fetch-more' | translate }}
                 </md-button>
-                <md-button ng-show="vm.entityGroupConfig.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
+                <md-button ng-disabled="loading" ng-show="vm.entityGroupConfig.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.add | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode()">
+                <md-button ng-disabled="loading" ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode()">
                     <md-icon>search</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.search | translate }}
