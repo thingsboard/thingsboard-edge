@@ -75,7 +75,7 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
     vm.selectedAlarms = []
 
     vm.alarmSource = null;
-    vm.allAlarms = null;
+    vm.allAlarms = [];
 
     vm.currentAlarm = null;
 
