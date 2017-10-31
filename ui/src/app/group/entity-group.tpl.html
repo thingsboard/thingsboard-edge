@@ -35,9 +35,10 @@
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
-                <span>{{ vm.tableTitle }}</span>
+                <span class="group-table-title">{{ vm.tableTitle }}</span>
+                <span hide-xs hide-sm class="group-table-entities-title">{{ vm.entitiesTitle }}</span>
                 <span flex></span>
-                <md-button ng-disabled="loading" ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
+                <md-button class="fetch-more" ng-disabled="loading" ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     {{ 'entity-group.fetch-more' | translate }}
                 </md-button>
                 <md-button ng-disabled="loading" ng-show="vm.entityGroupConfig.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
