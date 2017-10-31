@@ -79,8 +79,10 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
     if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
         vm.tableTitle = vm.settings.groupTableTitle;
+        vm.entitiesTitle = '';
     } else {
-        vm.tableTitle = vm.entityGroupConfig.tableTitle;
+        vm.tableTitle = vm.entityGroup.name;
+        vm.entitiesTitle = ': ' + $translate.instant(types.entityTypeTranslations[vm.entityType].typePlural);
     }
 
     vm.actionDescriptorsBySourceId = {};

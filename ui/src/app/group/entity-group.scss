@@ -29,6 +29,25 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 .tb-entity-group-table {
+  .group-table-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .group-table-entities-title {
+    white-space: nowrap;
+    padding-right: 20px;
+  }
+  md-toolbar.md-table-toolbar {
+      button.md-icon-button {
+        width: 40px;
+        min-width: 40px;
+      }
+      button.fetch-more {
+        width: 100px;
+        min-width: 100px;
+      }
+  }
   &.tb-data-table {
     .tb-entity-group-table-content {
       background: #fff;
