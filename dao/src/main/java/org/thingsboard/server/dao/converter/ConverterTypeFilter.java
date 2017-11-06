@@ -28,11 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.converter;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, RULE, PLUGIN, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION
+import lombok.Data;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+@Data
+public class ConverterTypeFilter {
+    @Nullable
+    private String relationType;
+    @Nullable
+    private List<String> converterTypes;
 }

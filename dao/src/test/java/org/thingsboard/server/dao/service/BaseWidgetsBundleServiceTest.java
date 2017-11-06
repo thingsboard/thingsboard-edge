@@ -48,19 +48,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseWidgetsBundleServiceTest extends AbstractServiceTest {
+public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
 
     private IdComparator<WidgetsBundle> idComparator = new IdComparator<>();
 
     private TenantId tenantId;
 
     @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
+    public void beforeRun() {
+        tenantId = before();
     }
 
     @After

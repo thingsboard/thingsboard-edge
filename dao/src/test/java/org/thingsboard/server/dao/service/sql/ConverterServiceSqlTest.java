@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.service.sql;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, RULE, PLUGIN, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION
+import org.thingsboard.server.dao.service.BaseConverterServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+
+@DaoSqlTest
+public class ConverterServiceSqlTest extends BaseConverterServiceTest {
 }

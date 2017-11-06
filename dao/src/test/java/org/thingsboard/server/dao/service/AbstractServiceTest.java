@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.rule.RuleMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.component.ComponentDescriptorService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -103,6 +104,9 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected AssetService assetService;
+
+    @Autowired
+    protected ConverterService converterService;
 
     @Autowired
     protected DeviceCredentialsService deviceCredentialsService;
