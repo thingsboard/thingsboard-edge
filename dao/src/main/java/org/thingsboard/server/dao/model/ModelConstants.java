@@ -56,6 +56,7 @@ public class ModelConstants {
     public static final String TITLE_PROPERTY = "title";
     public static final String ALIAS_PROPERTY = "alias";
     public static final String SEARCH_TEXT_PROPERTY = "search_text";
+    public static final String CONFIGURATION_PROPERTY = "configuration";
     public static final String ADDITIONAL_INFO_PROPERTY = "additional_info";
     public static final String ENTITY_TYPE_PROPERTY = "entity_type";
 
@@ -165,6 +166,21 @@ public class ModelConstants {
     public static final String ASSET_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "asset_by_customer_by_type_and_search_text";
     public static final String ASSET_BY_TENANT_AND_NAME_VIEW_NAME = "asset_by_tenant_and_name";
     public static final String ASSET_TYPES_BY_TENANT_VIEW_NAME = "asset_types_by_tenant";
+
+    /**
+     * Cassandra converter constants.
+     */
+    public static final String CONVERTER_COLUMN_FAMILY_NAME = "converter";
+    public static final String CONVERTER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String CONVERTER_NAME_PROPERTY = "name";
+    public static final String CONVERTER_TYPE_PROPERTY = "type";
+    public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
+    public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+
+    public static final String CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "converter_by_tenant_and_search_text";
+    public static final String CONVERTER_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "converter_by_tenant_by_type_and_search_text";
+    public static final String CONVERTER_BY_TENANT_AND_NAME_VIEW_NAME = "converter_by_tenant_and_name";
+    public static final String CONVERTER_TYPES_BY_TENANT_VIEW_NAME = "converter_types_by_tenant";
 
     /**
      * Cassandra entity_subtype constants.

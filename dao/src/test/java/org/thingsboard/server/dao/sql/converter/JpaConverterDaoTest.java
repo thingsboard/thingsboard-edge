@@ -30,12 +30,132 @@
  */
 package org.thingsboard.server.dao.sql.converter;
 
+import com.datastax.driver.core.utils.UUIDs;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.converter.ConverterDao;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+
+import static junit.framework.TestCase.assertFalse;
+import static org.junit.Assert.*;
 
 public class JpaConverterDaoTest extends AbstractJpaDaoTest {
 
     @Autowired
     private ConverterDao converterDao;
+
+    @Test
+    public void testFindConvertersByTenantId() {
+        UUID tenantId1 = UUIDs.timeBased();
+        UUID tenantId2 = UUIDs.timeBased();
+        for (int i = 0; i < 60; i++) {
+            UUID converterId = UUIDs.timeBased();
+            UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
+            saveConverter(converterId, tenantId, "CONVERTER_" + i, "TYPE_1");
+        }
+        assertEquals(60, converterDao.find().size());
+
+        TextPageLink pageLink1 = new TextPageLink(20, "CONVERTER_");
+        List<Converter> converters1 = converterDao.findConvertersByTenantId(tenantId1, pageLink1);
+        assertEquals(20, converters1.size());
+
+        TextPageLink pageLink2 = new TextPageLink(20, "CONVERTER_", converters1.get(19).getId().getId(), null);
+        List<Converter> converters2 = converterDao.findConvertersByTenantId(tenantId1, pageLink2);
+        assertEquals(10, converters2.size());
+
+        TextPageLink pageLink3 = new TextPageLink(20, "CONVERTER_", converters2.get(9).getId().getId(), null);
+        List<Converter> converters3 = converterDao.findConvertersByTenantId(tenantId1, pageLink3);
+        assertEquals(0, converters3.size());
+    }
+
+    @Test
+    public void testFindConvertersByTenantIdAndIdsAsync() throws ExecutionException, InterruptedException {
+        UUID tenantId = UUIDs.timeBased();
+        List<UUID> searchIds = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            UUID converterId = UUIDs.timeBased();
+            saveConverter(converterId, tenantId, "CONVERTER_" + i, "TYPE_1");
+            if (i % 3 == 0) {
+                searchIds.add(converterId);
+            }
+        }
+
+        ListenableFuture<List<Converter>> convertersFuture = converterDao
+                .findConvertersByTenantIdAndIdsAsync(tenantId, searchIds);
+        List<Converter> converters = convertersFuture.get();
+        assertNotNull(converters);
+        assertEquals(10, converters.size());
+    }
+
+    @Test
+    public void testFindAssetsByTenantIdAndName() {
+        UUID converterId1 = UUIDs.timeBased();
+        UUID converterId2 = UUIDs.timeBased();
+        UUID tenantId1 = UUIDs.timeBased();
+        UUID tenantId2 = UUIDs.timeBased();
+        String name = "TEST_CONVERTER";
+        saveConverter(converterId1, tenantId1, name, "TYPE_1");
+        saveConverter(converterId2, tenantId2, name, "TYPE_1");
+
+        Optional<Converter> converterOpt1 = converterDao.findConvertersByTenantIdAndName(tenantId2, name);
+        assertTrue("Optional expected to be non-empty", converterOpt1.isPresent());
+        assertEquals(converterId2, converterOpt1.get().getId().getId());
+
+        Optional<Converter> converterOpt2 = converterDao.findConvertersByTenantIdAndName(tenantId2, "NON_EXISTENT_NAME");
+        assertFalse("Optional expected to be empty", converterOpt2.isPresent());
+    }
+
+    @Test
+    public void testFindTenantAssetTypesAsync() throws ExecutionException, InterruptedException {
+        UUID tenantId1 = UUIDs.timeBased();
+        UUID tenantId2 = UUIDs.timeBased();
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_1", "TYPE_1");
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_2", "TYPE_1");
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_3", "TYPE_2");
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_4", "TYPE_3");
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_5", "TYPE_3");
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_6", "TYPE_3");
+
+        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_7", "TYPE_4");
+        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_8", "TYPE_1");
+        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_9", "TYPE_1");
+
+        List<EntitySubtype> tenant1Types = converterDao.findTenantConverterTypesAsync(tenantId1).get();
+        assertNotNull(tenant1Types);
+        List<EntitySubtype> tenant2Types = converterDao.findTenantConverterTypesAsync(tenantId2).get();
+        assertNotNull(tenant2Types);
+
+        assertEquals(3, tenant1Types.size());
+        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_1")));
+        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_2")));
+        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_3")));
+        assertFalse(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_4")));
+
+        assertEquals(2, tenant2Types.size());
+        assertTrue(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_1")));
+        assertTrue(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_4")));
+        assertFalse(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_2")));
+        assertFalse(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_3")));
+    }
+
+    private void saveConverter(UUID id, UUID tenantId, String name, String type) {
+        Converter converter = new Converter();
+        converter.setId(new ConverterId(id));
+        converter.setTenantId(new TenantId(tenantId));
+        converter.setName(name);
+        converter.setType(type);
+        converterDao.save(converter);
+    }
 }

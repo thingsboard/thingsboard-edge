@@ -285,6 +285,45 @@ CREATE TABLE IF NOT EXISTS thingsboard.entity_subtype (
     PRIMARY KEY (tenant_id, entity_type, type)
 );
 
+CREATE TABLE IF NOT EXISTS thingsboard.converter (
+    id timeuuid,
+    tenant_id timeuuid,
+    name text,
+    type text,
+    search_text text,
+    configuration text,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id, type)
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.converter_by_tenant_and_name AS
+    SELECT *
+    from thingsboard.converter
+    WHERE tenant_id IS NOT NULL AND type IS NOT NULL AND name IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, name, id, type)
+    WITH CLUSTERING ORDER BY ( name ASC, id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.converter_by_tenant_and_search_text AS
+    SELECT *
+    from thingsboard.converter
+    WHERE tenant_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, search_text, id, type)
+    WITH CLUSTERING ORDER BY ( search_text ASC, id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.converter_by_tenant_by_type_and_search_text AS
+    SELECT *
+    from thingsboard.converter
+    WHERE tenant_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, type, search_text, id)
+    WITH CLUSTERING ORDER BY ( type ASC, search_text ASC, id DESC);
+
+CREATE TABLE IF NOT EXISTS thingsboard.entity_subtype (
+    tenant_id timeuuid,
+    entity_type text,
+    type text,
+    PRIMARY KEY (tenant_id, entity_type, type)
+);
+
 CREATE TABLE IF NOT EXISTS thingsboard.alarm (
 	id timeuuid,
 	tenant_id timeuuid,

@@ -37,3 +37,14 @@ CREATE TABLE IF NOT EXISTS thingsboard.entity_group (
     configuration text,
     PRIMARY KEY (id, type)
 );
+
+CREATE TABLE IF NOT EXISTS thingsboard.converter (
+    id timeuuid,
+    tenant_id timeuuid,
+    name text,
+    type text,
+    search_text text,
+    configuration text,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id, type)
+);

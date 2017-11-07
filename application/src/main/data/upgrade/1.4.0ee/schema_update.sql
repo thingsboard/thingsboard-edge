@@ -38,3 +38,13 @@ CREATE TABLE IF NOT EXISTS entity_group (
 );
 
 ALTER TABLE admin_settings ALTER COLUMN json_value varchar(10000000);
+
+CREATE TABLE IF NOT EXISTS converter (
+    id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);

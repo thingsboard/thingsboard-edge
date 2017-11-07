@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -193,7 +193,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         }
 
         List<Converter> loadedConverters;
-        loadedConverters = getConvertersTitleList(23, null);
+        loadedConverters = getConvertersList(23, null, null);
 
         Collections.sort(converters, idComparator);
         Collections.sort(loadedConverters, idComparator);
@@ -210,8 +210,8 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         tenantService.deleteTenant(tenantId);
     }
 
-    public List<Converter> createConvertersTitleList(int maxInt, String title) {
-        List<Converter> convertersTitle = new ArrayList<>();
+    public List<Converter> createConvertersList(int maxInt, String title, String type) {
+        List<Converter> converters = new ArrayList<>();
         for (int i = 0; i < maxInt; i++) {
             Converter converter = new Converter();
             converter.setTenantId(tenantId);
@@ -219,44 +219,54 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
             String name = title + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
-            converter.setType("default");
-            convertersTitle.add(converterService.saveConverter(converter));
+            converter.setType(type);
+            converters.add(converterService.saveConverter(converter));
         }
-        return convertersTitle;
+        return converters;
     }
 
-    public List<Converter> getConvertersTitleList(int limit, String title) {
-        List<Converter> loadedConvertersTitle = new ArrayList<>();
+    public List<Converter> getConvertersList(int limit, String title, String type) {
+        List<Converter> loadedConverters = new ArrayList<>();
         TextPageData<Converter> pageData;
         TextPageLink pageLink = new TextPageLink(limit, title);
-        do {
-            pageData = converterService.findConvertersByTenantId(tenantId, pageLink);
-            loadedConvertersTitle.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-        return loadedConvertersTitle;
+        if (type == null) {
+            do {
+                pageData = converterService.findConvertersByTenantId(tenantId, pageLink);
+                loadedConverters.addAll(pageData.getData());
+                if (pageData.hasNext()) {
+                    pageLink = pageData.getNextPageLink();
+                }
+            } while (pageData.hasNext());
+        } else {
+            do {
+                pageData = converterService.findConvertersByTenantIdAndType(tenantId, type, pageLink);
+                loadedConverters.addAll(pageData.getData());
+                if (pageData.hasNext()) {
+                    pageLink = pageData.getNextPageLink();
+                }
+            } while (pageData.hasNext());
+        }
+        return loadedConverters;
     }
 
     @Test
     public void testFindConvertersByTenantIdAndName() {
         String title1 = "Converter title 1";
         List<Converter> convertersTitle1;
-        convertersTitle1 = createConvertersTitleList(143, title1);
+        convertersTitle1 = createConvertersList(143, title1, "default");
 
         String title2 = "Converter title 2";
         List<Converter> convertersTitle2;
-        convertersTitle2 = createConvertersTitleList(175, title2);
+        convertersTitle2 = createConvertersList(175, title2, "default");
 
         List<Converter> loadedConvertersTitle1;
-        loadedConvertersTitle1 = getConvertersTitleList(15, title1);
+        loadedConvertersTitle1 = getConvertersList(15, title1, null);
         Collections.sort(convertersTitle1, idComparator);
         Collections.sort(loadedConvertersTitle1, idComparator);
         Assert.assertEquals(convertersTitle1, loadedConvertersTitle1);
 
         List<Converter> loadedConvertersTitle2;
-        loadedConvertersTitle2 = getConvertersTitleList(4, title2);
+        loadedConvertersTitle2 = getConvertersList(4, title2, null);
         Collections.sort(convertersTitle2, idComparator);
         Collections.sort(loadedConvertersTitle2, idComparator);
         Assert.assertEquals(convertersTitle2, loadedConvertersTitle2);
@@ -276,6 +286,49 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
 
         pageLink = new TextPageLink(4, title2);
         pageData = converterService.findConvertersByTenantId(tenantId, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Test
+    public void testFindConvertersByTenantIdAndType() {
+        String title1 = "Converter title 1";
+        String type1 = "typeA";
+        List<Converter> convertersType1;
+        convertersType1 = createConvertersList(143, title1, type1);
+
+        String title2 = "Converter title 2";
+        String type2 = "typeB";
+        List<Converter> convertersType2;
+        convertersType2 = createConvertersList(175, title2, type2);
+
+        List<Converter> loadedConvertersType1;
+        loadedConvertersType1 = getConvertersList(15, null, type1);
+        Collections.sort(convertersType1, idComparator);
+        Collections.sort(loadedConvertersType1, idComparator);
+        Assert.assertEquals(convertersType1, loadedConvertersType1);
+
+        List<Converter> loadedConvertersType2;
+        loadedConvertersType2 = getConvertersList(4, null, type2);
+        Collections.sort(convertersType2, idComparator);
+        Collections.sort(loadedConvertersType2, idComparator);
+        Assert.assertEquals(convertersType2, loadedConvertersType2);
+
+        for (Converter converter : loadedConvertersType1) {
+            converterService.deleteConverter(converter.getId());
+        }
+
+        TextPageLink pageLink = new TextPageLink(4);
+        TextPageData<Converter>  pageData = converterService.findConvertersByTenantIdAndType(tenantId, type1, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+
+        for (Converter converter : loadedConvertersType2) {
+            converterService.deleteConverter(converter.getId());
+        }
+
+        pageLink = new TextPageLink(4);
+        pageData = converterService.findConvertersByTenantIdAndType(tenantId, type2, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
