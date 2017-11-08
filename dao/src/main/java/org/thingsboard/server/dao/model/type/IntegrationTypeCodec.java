@@ -28,42 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.group;
+package org.thingsboard.server.dao.model.type;
 
-import org.thingsboard.server.common.data.EntityType;
+import com.datastax.driver.extras.codecs.enums.EnumNameCodec;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-import java.util.HashMap;
-import java.util.Map;
+public class IntegrationTypeCodec extends EnumNameCodec<IntegrationType> {
 
-public enum EntityField {
-
-    CREATED_TIME,
-    NAME,
-    AUTHORITY,
-    FIRST_NAME,
-    LAST_NAME,
-    EMAIL,
-    TITLE,
-    COUNTRY,
-    STATE,
-    CITY,
-    ADDRESS,
-    ADDRESS2,
-    ZIP,
-    PHONE,
-    TYPE,
-    ASSIGNED_CONVERTER,
-    ASSIGNED_CUSTOMER;
-
-    protected static final Map<EntityType, EntityField[]> defaultFieldsByEntityType =
-            new HashMap<>();
-    static {
-        defaultFieldsByEntityType.put(EntityType.USER, new EntityField[]{CREATED_TIME, FIRST_NAME, LAST_NAME, EMAIL, AUTHORITY});
-        defaultFieldsByEntityType.put(EntityType.CUSTOMER, new EntityField[]{CREATED_TIME, TITLE, EMAIL, COUNTRY, CITY});
-        defaultFieldsByEntityType.put(EntityType.ASSET, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
-        defaultFieldsByEntityType.put(EntityType.CONVERTER, new EntityField[]{CREATED_TIME, NAME, TYPE});
-        defaultFieldsByEntityType.put(EntityType.INTEGRATION, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CONVERTER});
-        defaultFieldsByEntityType.put(EntityType.DEVICE, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
+    public IntegrationTypeCodec() {
+        super(IntegrationType.class);
     }
-
 }

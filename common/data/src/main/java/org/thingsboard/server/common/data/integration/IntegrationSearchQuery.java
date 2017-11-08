@@ -28,42 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.group;
+package org.thingsboard.server.common.data.integration;
 
+import lombok.Data;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
-public enum EntityField {
+@Data
+public class IntegrationSearchQuery {
 
-    CREATED_TIME,
-    NAME,
-    AUTHORITY,
-    FIRST_NAME,
-    LAST_NAME,
-    EMAIL,
-    TITLE,
-    COUNTRY,
-    STATE,
-    CITY,
-    ADDRESS,
-    ADDRESS2,
-    ZIP,
-    PHONE,
-    TYPE,
-    ASSIGNED_CONVERTER,
-    ASSIGNED_CUSTOMER;
+    private RelationsSearchParameters parameters;
+    private String relationType;
+    private List<IntegrationType> integrationTypes;
 
-    protected static final Map<EntityType, EntityField[]> defaultFieldsByEntityType =
-            new HashMap<>();
-    static {
-        defaultFieldsByEntityType.put(EntityType.USER, new EntityField[]{CREATED_TIME, FIRST_NAME, LAST_NAME, EMAIL, AUTHORITY});
-        defaultFieldsByEntityType.put(EntityType.CUSTOMER, new EntityField[]{CREATED_TIME, TITLE, EMAIL, COUNTRY, CITY});
-        defaultFieldsByEntityType.put(EntityType.ASSET, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
-        defaultFieldsByEntityType.put(EntityType.CONVERTER, new EntityField[]{CREATED_TIME, NAME, TYPE});
-        defaultFieldsByEntityType.put(EntityType.INTEGRATION, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CONVERTER});
-        defaultFieldsByEntityType.put(EntityType.DEVICE, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
+    public EntityRelationsQuery toEntitySearchQuery() {
+        EntityRelationsQuery query = new EntityRelationsQuery();
+        query.setParameters(parameters);
+        query.setFilters(
+                Collections.singletonList(new EntityTypeFilter(relationType == null ? EntityRelation.CONTAINS_TYPE : relationType,
+                        Collections.singletonList(EntityType.INTEGRATION))));
+        return query;
     }
-
 }
