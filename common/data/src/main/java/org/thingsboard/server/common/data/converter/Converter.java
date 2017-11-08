@@ -61,7 +61,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
         this.tenantId = converter.getTenantId();
         this.name = converter.getName();
         this.type = converter.getType();
-        this.additionalInfo = converter.getConfiguration();
+        this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
 
