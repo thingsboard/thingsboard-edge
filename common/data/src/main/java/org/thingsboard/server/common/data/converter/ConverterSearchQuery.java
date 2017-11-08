@@ -45,7 +45,7 @@ public class ConverterSearchQuery {
 
     private RelationsSearchParameters parameters;
     private String relationType;
-    private List<String> converterTypes;
+    private List<ConverterType> converterTypes;
 
     public EntityRelationsQuery toEntitySearchQuery() {
         EntityRelationsQuery query = new EntityRelationsQuery();

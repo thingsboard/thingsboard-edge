@@ -28,18 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.converter;
+package org.thingsboard.server.dao.model.type;
 
-import lombok.Data;
+import com.datastax.driver.extras.codecs.enums.EnumNameCodec;
 import org.thingsboard.server.common.data.converter.ConverterType;
 
-import javax.annotation.Nullable;
-import java.util.List;
+public class ConverterTypeCodec extends EnumNameCodec<ConverterType> {
 
-@Data
-public class ConverterTypeFilter {
-    @Nullable
-    private String relationType;
-    @Nullable
-    private List<ConverterType> converterTypes;
+    public ConverterTypeCodec() {
+        super(ConverterType.class);
+    }
 }

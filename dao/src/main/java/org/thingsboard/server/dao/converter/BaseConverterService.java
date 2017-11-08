@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterSearchQuery;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -131,10 +132,10 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
-    public TextPageData<Converter> findConvertersByTenantIdAndType(TenantId tenantId, String type, TextPageLink pageLink) {
+    public TextPageData<Converter> findConvertersByTenantIdAndType(TenantId tenantId, ConverterType type, TextPageLink pageLink) {
         log.trace("Executing findConvertersByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type.toString(), "Incorrect type " + type);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<Converter> converters = converterDao.findConvertersByTenantIdAndType(tenantId.getId(), type, pageLink);
         return new TextPageData<>(converters, pageLink);
@@ -182,7 +183,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         ListenableFuture<List<EntitySubtype>> tenantConverterTypes = converterDao.findTenantConverterTypesAsync(tenantId.getId());
         return Futures.transform(tenantConverterTypes,
                 (Function<List<EntitySubtype>, List<EntitySubtype>>) converterTypes -> {
-                    converterTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    if (converterTypes != null) {
+                        converterTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    }
                     return converterTypes;
                 });
     }
@@ -209,7 +212,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         for (EntityField field : entityFields) {
             String key = field.name().toLowerCase();
             if (field == EntityField.TYPE) {
-                entityView.put(key, converter.getType());
+                entityView.put(key, converter.getType().toString());
             }
         }
         return entityView;

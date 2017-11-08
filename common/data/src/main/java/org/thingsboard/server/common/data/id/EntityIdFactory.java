@@ -70,6 +70,8 @@ public class EntityIdFactory {
                 return new DeviceId(uuid);
             case ASSET:
                 return new AssetId(uuid);
+            case CONVERTER:
+                return new ConverterId(uuid);
             case ALARM:
                 return new AlarmId(uuid);
             case ENTITY_GROUP:

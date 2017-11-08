@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -70,7 +71,7 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    public List<Converter> findConvertersByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
+    public List<Converter> findConvertersByTenantIdAndType(UUID tenantId, ConverterType type, TextPageLink pageLink) {
         return DaoUtil.convertDataList(converterRepository
                 .findByTenantIdAndType(
                         fromTimeUUID(tenantId),
@@ -107,12 +108,12 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
         return converterRepository;
     }
 
-    private List<EntitySubtype> convertTenantConverterTypesToDto(UUID tenantId, List<String> types) {
+    private List<EntitySubtype> convertTenantConverterTypesToDto(UUID tenantId, List<ConverterType> types) {
         List<EntitySubtype> list = Collections.emptyList();
         if (types != null && !types.isEmpty()) {
             list = new ArrayList<>();
-            for (String type : types) {
-                list.add(new EntitySubtype(new TenantId(tenantId), EntityType.CONVERTER, type));
+            for (ConverterType type : types) {
+                list.add(new EntitySubtype(new TenantId(tenantId), EntityType.CONVERTER, type.toString()));
             }
         }
         return list;

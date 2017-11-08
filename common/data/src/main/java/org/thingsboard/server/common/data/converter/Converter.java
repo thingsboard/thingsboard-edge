@@ -44,7 +44,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
 
     private TenantId tenantId;
     private String name;
-    private String type;
+    private ConverterType type;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
 
@@ -82,11 +82,11 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
         this.name = name;
     }
 
-    public String getType() {
+    public ConverterType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ConverterType type) {
         this.type = type;
     }
 

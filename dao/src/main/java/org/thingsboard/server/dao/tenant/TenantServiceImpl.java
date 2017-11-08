@@ -117,6 +117,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.DEVICE);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.CONVERTER);
         }
         return savedTenant;
     }

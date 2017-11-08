@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.EntitySubtypeEntity;
@@ -76,7 +77,7 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
     @Override
     public Converter save(Converter domain) {
         Converter savedConverter = super.save(domain);
-        EntitySubtype entitySubtype = new EntitySubtype(savedConverter.getTenantId(), EntityType.CONVERTER, savedConverter.getType());
+        EntitySubtype entitySubtype = new EntitySubtype(savedConverter.getTenantId(), EntityType.CONVERTER, savedConverter.getType().toString());
         EntitySubtypeEntity entitySubtypeEntity = new EntitySubtypeEntity(entitySubtype);
         Statement saveStatement = cluster.getMapper(EntitySubtypeEntity.class).saveQuery(entitySubtypeEntity);
         executeWrite(saveStatement);
@@ -94,7 +95,7 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
     }
 
     @Override
-    public List<Converter> findConvertersByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
+    public List<Converter> findConvertersByTenantIdAndType(UUID tenantId, ConverterType type, TextPageLink pageLink) {
         log.debug("Try to find converters by tenantId [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
         List<ConverterEntity> converterEntities = findPageWithTextSearch(CONVERTER_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(CONVERTER_TYPE_PROPERTY, type),

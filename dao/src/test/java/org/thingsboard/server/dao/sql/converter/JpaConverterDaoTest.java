@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -63,7 +64,7 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         for (int i = 0; i < 60; i++) {
             UUID converterId = UUIDs.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
-            saveConverter(converterId, tenantId, "CONVERTER_" + i, "TYPE_1");
+            saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.JS);
         }
         assertEquals(60, converterDao.find().size());
 
@@ -86,7 +87,7 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         List<UUID> searchIds = new ArrayList<>();
         for (int i = 0; i < 30; i++) {
             UUID converterId = UUIDs.timeBased();
-            saveConverter(converterId, tenantId, "CONVERTER_" + i, "TYPE_1");
+            saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.JS);
             if (i % 3 == 0) {
                 searchIds.add(converterId);
             }
@@ -106,8 +107,8 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         UUID tenantId1 = UUIDs.timeBased();
         UUID tenantId2 = UUIDs.timeBased();
         String name = "TEST_CONVERTER";
-        saveConverter(converterId1, tenantId1, name, "TYPE_1");
-        saveConverter(converterId2, tenantId2, name, "TYPE_1");
+        saveConverter(converterId1, tenantId1, name, ConverterType.JS);
+        saveConverter(converterId2, tenantId2, name, ConverterType.JS);
 
         Optional<Converter> converterOpt1 = converterDao.findConvertersByTenantIdAndName(tenantId2, name);
         assertTrue("Optional expected to be non-empty", converterOpt1.isPresent());
@@ -121,36 +122,31 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
     public void testFindTenantAssetTypesAsync() throws ExecutionException, InterruptedException {
         UUID tenantId1 = UUIDs.timeBased();
         UUID tenantId2 = UUIDs.timeBased();
-        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_1", "TYPE_1");
-        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_2", "TYPE_1");
-        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_3", "TYPE_2");
-        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_4", "TYPE_3");
-        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_5", "TYPE_3");
-        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_6", "TYPE_3");
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_1", ConverterType.JS);
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_2", ConverterType.JS);
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_3", ConverterType.GENERIC);
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_4", ConverterType.GENERIC);
+        saveConverter(UUIDs.timeBased(), tenantId1, "TEST_CONVERTER_5", ConverterType.GENERIC);
 
-        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_7", "TYPE_4");
-        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_8", "TYPE_1");
-        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_9", "TYPE_1");
+        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_6", ConverterType.JS);
+        saveConverter(UUIDs.timeBased(), tenantId2, "TEST_CONVERTER_7", ConverterType.JS);
 
         List<EntitySubtype> tenant1Types = converterDao.findTenantConverterTypesAsync(tenantId1).get();
         assertNotNull(tenant1Types);
         List<EntitySubtype> tenant2Types = converterDao.findTenantConverterTypesAsync(tenantId2).get();
         assertNotNull(tenant2Types);
 
-        assertEquals(3, tenant1Types.size());
-        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_1")));
-        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_2")));
-        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_3")));
-        assertFalse(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_4")));
+        assertEquals(2, tenant1Types.size());
+        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals(ConverterType.JS.toString())));
+        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals(ConverterType.GENERIC.toString())));
+        assertFalse(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_1")));
 
-        assertEquals(2, tenant2Types.size());
-        assertTrue(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_1")));
-        assertTrue(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_4")));
+        assertEquals(1, tenant2Types.size());
+        assertTrue(tenant2Types.stream().anyMatch(t -> t.getType().equals(ConverterType.JS.toString())));
         assertFalse(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_2")));
-        assertFalse(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_3")));
     }
 
-    private void saveConverter(UUID id, UUID tenantId, String name, String type) {
+    private void saveConverter(UUID id, UUID tenantId, String name, ConverterType type) {
         Converter converter = new Converter();
         converter.setId(new ConverterId(id));
         converter.setTenantId(new TenantId(tenantId));

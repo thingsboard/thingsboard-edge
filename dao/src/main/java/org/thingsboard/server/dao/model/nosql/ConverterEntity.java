@@ -38,9 +38,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.type.ConverterTypeCodec;
 import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
@@ -61,8 +63,8 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
     private UUID tenantId;
 
     @PartitionKey(value = 2)
-    @Column(name = CONVERTER_TYPE_PROPERTY)
-    private String type;
+    @Column(name = CONVERTER_TYPE_PROPERTY, codec = ConverterTypeCodec.class)
+    private ConverterType type;
 
     @Column(name = CONVERTER_NAME_PROPERTY)
     private String name;
@@ -109,11 +111,11 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         this.tenantId = tenantId;
     }
 
-    public String getType() {
+    public ConverterType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ConverterType type) {
         this.type = type;
     }
 

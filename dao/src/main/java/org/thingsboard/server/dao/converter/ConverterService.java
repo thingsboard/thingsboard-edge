@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterSearchQuery;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -58,7 +59,7 @@ public interface ConverterService {
 
     TextPageData<Converter> findConvertersByTenantId(TenantId tenantId, TextPageLink pageLink);
 
-    TextPageData<Converter> findConvertersByTenantIdAndType(TenantId tenantId, String type, TextPageLink pageLink);
+    TextPageData<Converter> findConvertersByTenantIdAndType(TenantId tenantId, ConverterType type, TextPageLink pageLink);
 
     ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
 

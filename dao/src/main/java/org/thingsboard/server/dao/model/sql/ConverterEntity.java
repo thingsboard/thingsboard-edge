@@ -38,6 +38,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -45,9 +46,7 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
@@ -65,8 +64,9 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
     @Column(name = CONVERTER_NAME_PROPERTY)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = CONVERTER_TYPE_PROPERTY)
-    private String type;
+    private ConverterType type;
 
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;

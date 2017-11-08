@@ -32,13 +32,11 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -69,7 +67,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType("default");
+        converter.setType(ConverterType.JS);
         Converter savedConverter = converterService.saveConverter(converter);
 
         Assert.assertNotNull(savedConverter);
@@ -91,7 +89,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testSaveConverterWithEmptyName() {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
-        converter.setType("default");
+        converter.setType(ConverterType.JS);
         converterService.saveConverter(converter);
     }
 
@@ -99,7 +97,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testSaveConverterWithEmptyTenant() {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType("default");
+        converter.setType(ConverterType.JS);
         converterService.saveConverter(converter);
     }
 
@@ -107,7 +105,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testSaveConverterWithInvalidTenant() {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType("default");
+        converter.setType(ConverterType.JS);
         converter.setTenantId(new TenantId(UUIDs.timeBased()));
         converterService.saveConverter(converter);
     }
@@ -117,7 +115,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType("default");
+        converter.setType(ConverterType.JS);
         Converter savedConverter = converterService.saveConverter(converter);
         Converter foundConverter = converterService.findConverterById(savedConverter.getId());
         Assert.assertNotNull(foundConverter);
@@ -132,30 +130,22 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
             for (int i = 0; i < 3; i++) {
                 Converter converter = new Converter();
                 converter.setTenantId(tenantId);
-                converter.setName("My converter B" + i);
-                converter.setType("typeB");
+                converter.setName("My converter A" + i);
+                converter.setType(ConverterType.JS);
                 converters.add(converterService.saveConverter(converter));
             }
             for (int i = 0; i < 7; i++) {
                 Converter converter = new Converter();
                 converter.setTenantId(tenantId);
-                converter.setName("My converter C" + i);
-                converter.setType("typeC");
-                converters.add(converterService.saveConverter(converter));
-            }
-            for (int i = 0; i < 9; i++) {
-                Converter converter = new Converter();
-                converter.setTenantId(tenantId);
-                converter.setName("My converter A" + i);
-                converter.setType("typeA");
+                converter.setName("My converter B" + i);
+                converter.setType(ConverterType.GENERIC);
                 converters.add(converterService.saveConverter(converter));
             }
             List<EntitySubtype> converterTypes = converterService.findConverterTypesByTenantId(tenantId).get();
             Assert.assertNotNull(converterTypes);
-            Assert.assertEquals(3, converterTypes.size());
-            Assert.assertEquals("typeA", converterTypes.get(0).getType());
-            Assert.assertEquals("typeB", converterTypes.get(1).getType());
-            Assert.assertEquals("typeC", converterTypes.get(2).getType());
+            Assert.assertEquals(2, converterTypes.size());
+            Assert.assertEquals(ConverterType.GENERIC.toString(), converterTypes.get(0).getType());
+            Assert.assertEquals(ConverterType.JS.toString(), converterTypes.get(1).getType());
         } finally {
             converters.forEach((converter) -> converterService.deleteConverter(converter.getId()));
         }
@@ -166,7 +156,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType("default");
+        converter.setType(ConverterType.JS);
         Converter savedConverter = converterService.saveConverter(converter);
         Converter foundConverter = converterService.findConverterById(savedConverter.getId());
         Assert.assertNotNull(foundConverter);
@@ -188,12 +178,21 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
             Converter converter = new Converter();
             converter.setTenantId(tenantId);
             converter.setName("Converter" + i);
-            converter.setType("default");
+            converter.setType(ConverterType.JS);
             converters.add(converterService.saveConverter(converter));
         }
 
-        List<Converter> loadedConverters;
-        loadedConverters = getConvertersList(23, null, null);
+        List<Converter> loadedConverters = new ArrayList<>();
+        TextPageLink pageLink = new TextPageLink(23);
+        TextPageData<Converter> pageData;
+        do {
+            pageData = converterService.findConvertersByTenantId(tenantId, pageLink);
+            loadedConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageData.getNextPageLink();
+            }
+        } while (pageData.hasNext());
+
 
         Collections.sort(converters, idComparator);
         Collections.sort(loadedConverters, idComparator);
@@ -202,15 +201,15 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
 
         converterService.deleteConvertersByTenantId(tenantId);
 
-        TextPageLink pageLink = new TextPageLink(33);
-        TextPageData<Converter> pageData = converterService.findConvertersByTenantId(tenantId, pageLink);
+        pageLink = new TextPageLink(33);
+        pageData = converterService.findConvertersByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
 
         tenantService.deleteTenant(tenantId);
     }
 
-    public List<Converter> createConvertersList(int maxInt, String title, String type) {
+    public List<Converter> createConvertersList(int maxInt, String title, ConverterType type) {
         List<Converter> converters = new ArrayList<>();
         for (int i = 0; i < maxInt; i++) {
             Converter converter = new Converter();
@@ -225,7 +224,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         return converters;
     }
 
-    public List<Converter> getConvertersList(int limit, String title, String type) {
+    public List<Converter> getConvertersList(int limit, String title, ConverterType type) {
         List<Converter> loadedConverters = new ArrayList<>();
         TextPageData<Converter> pageData;
         TextPageLink pageLink = new TextPageLink(limit, title);
@@ -253,11 +252,11 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testFindConvertersByTenantIdAndName() {
         String title1 = "Converter title 1";
         List<Converter> convertersTitle1;
-        convertersTitle1 = createConvertersList(143, title1, "default");
+        convertersTitle1 = createConvertersList(143, title1, ConverterType.JS);
 
         String title2 = "Converter title 2";
         List<Converter> convertersTitle2;
-        convertersTitle2 = createConvertersList(175, title2, "default");
+        convertersTitle2 = createConvertersList(175, title2, ConverterType.JS);
 
         List<Converter> loadedConvertersTitle1;
         loadedConvertersTitle1 = getConvertersList(15, title1, null);
@@ -293,12 +292,12 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     @Test
     public void testFindConvertersByTenantIdAndType() {
         String title1 = "Converter title 1";
-        String type1 = "typeA";
+        ConverterType type1 = ConverterType.GENERIC;
         List<Converter> convertersType1;
         convertersType1 = createConvertersList(143, title1, type1);
 
         String title2 = "Converter title 2";
-        String type2 = "typeB";
+        ConverterType type2 = ConverterType.JS;
         List<Converter> convertersType2;
         convertersType2 = createConvertersList(175, title2, type2);
 
