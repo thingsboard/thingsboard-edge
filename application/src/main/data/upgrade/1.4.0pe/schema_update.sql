@@ -37,4 +37,4 @@ CREATE TABLE IF NOT EXISTS entity_group (
     configuration varchar(10000000)
 );
 
-ALTER TABLE admin_settings ALTER COLUMN json_value varchar(10000000);
+ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);
