@@ -431,10 +431,10 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         CustomerId customerId = customer.getId();
 
         List<Asset> assets = new ArrayList<>();
-        for (int i=0;i<278;i++) {
+        for (int i = 0; i < 278; i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
-            asset.setName("Asset"+i);
+            asset.setName("Asset" + i);
             asset.setType("default");
             asset = assetService.saveAsset(asset);
             assets.add(assetService.assignAssetToCustomer(asset.getId(), customerId));
@@ -468,7 +468,6 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindAssetsByTenantIdCustomerIdAndName() {
-
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer.setTenantId(tenantId);
@@ -555,7 +554,6 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindAssetsByTenantIdCustomerIdAndType() {
-
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer.setTenantId(tenantId);

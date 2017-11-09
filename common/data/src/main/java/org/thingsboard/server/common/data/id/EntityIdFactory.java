@@ -72,6 +72,8 @@ public class EntityIdFactory {
                 return new AssetId(uuid);
             case CONVERTER:
                 return new ConverterId(uuid);
+            case INTEGRATION:
+                return new IntegrationId(uuid);
             case ALARM:
                 return new AlarmId(uuid);
             case ENTITY_GROUP:

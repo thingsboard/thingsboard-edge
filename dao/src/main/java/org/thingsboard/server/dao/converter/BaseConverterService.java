@@ -51,7 +51,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -74,9 +73,6 @@ public class BaseConverterService extends AbstractEntityService implements Conve
 
     @Autowired
     private TenantDao tenantDao;
-
-    @Autowired
-    private EntityService entityService;
 
     @Autowired
     private ConverterDao converterDao;

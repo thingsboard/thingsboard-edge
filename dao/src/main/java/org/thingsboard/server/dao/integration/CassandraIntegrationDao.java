@@ -30,80 +30,159 @@
  */
 package org.thingsboard.server.dao.integration;
 
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Select;
+import com.datastax.driver.mapping.Result;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.model.EntitySubtypeEntity;
 import org.thingsboard.server.dao.model.nosql.IntegrationEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import javax.annotation.Nullable;
+import java.util.*;
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Component
 @Slf4j
 @NoSqlDao
 public class CassandraIntegrationDao extends CassandraAbstractSearchTextDao<IntegrationEntity, Integration> implements IntegrationDao {
 
-
-
     @Override
     protected Class<IntegrationEntity> getColumnFamilyClass() {
-        return null;
+        return IntegrationEntity.class;
     }
 
     @Override
     protected String getColumnFamilyName() {
-        return null;
+        return INTEGRATION_COLUMN_FAMILY_NAME;
     }
 
     @Override
     public Integration save(Integration integration) {
-        return null;
+        Integration savedIntegration = super.save(integration);
+        EntitySubtype entitySubtype = new EntitySubtype(savedIntegration.getTenantId(), EntityType.INTEGRATION, savedIntegration.getType().toString());
+        EntitySubtypeEntity entitySubtypeEntity = new EntitySubtypeEntity(entitySubtype);
+        Statement saveStatement = cluster.getMapper(EntitySubtypeEntity.class).saveQuery(entitySubtypeEntity);
+        executeWrite(saveStatement);
+        return savedIntegration;
     }
 
     @Override
     public List<Integration> findIntegrationsByTenantId(UUID tenantId, TextPageLink pageLink) {
-        return null;
+        log.debug("Try to find integrations by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
+        List<IntegrationEntity> integrationEntities = findPageWithTextSearch(INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Collections.singletonList(eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId)), pageLink);
+
+        log.trace("Found integrations [{}] by tenantId [{}] and pageLink [{}]", integrationEntities, tenantId, pageLink);
+        return DaoUtil.convertDataList(integrationEntities);
     }
 
     @Override
     public List<Integration> findIntegrationsByTenantIdAndType(UUID tenantId, IntegrationType type, TextPageLink pageLink) {
-        return null;
+        log.debug("Try to find integrations by tenantId [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
+        List<IntegrationEntity> integrationEntities = findPageWithTextSearch(INTEGRATION_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(INTEGRATION_TYPE_PROPERTY, type),
+                        eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId)), pageLink);
+        log.trace("Found integrations [{}] by tenantId [{}], type [{}] and pageLink [{}]", integrationEntities, tenantId, type, pageLink);
+        return DaoUtil.convertDataList(integrationEntities);
     }
 
     @Override
     public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
-        return null;
+        log.debug("Try to find integrations by tenantId [{}] and integration Ids [{}]", tenantId, integrationIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, integrationIds));
+        return findListByStatementAsync(query);
     }
 
     @Override
     public List<Integration> findIntegrationsByTenantIdAndConverterId(UUID tenantId, UUID defaultConverterId, TextPageLink pageLink) {
-        return null;
+        log.debug("Try to find integrations by tenantId [{}], converterId[{}] and pageLink [{}]", tenantId, defaultConverterId, pageLink);
+        List<IntegrationEntity> integrationEntities = findPageWithTextSearch(INTEGRATION_BY_CONVERTER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(INTEGRATION_CONVERTER_ID_PROPERTY, defaultConverterId),
+                        eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId)),
+                pageLink);
+
+        log.trace("Found integrations [{}] by tenantId [{}], converterId [{}] and pageLink [{}]", integrationEntities, tenantId, defaultConverterId, pageLink);
+        return DaoUtil.convertDataList(integrationEntities);
     }
 
     @Override
     public List<Integration> findIntegrationsByTenantIdAndConverterIdAndType(UUID tenantId, UUID defaultConverterId, IntegrationType type, TextPageLink pageLink) {
-        return null;
+        log.debug("Try to find integrations by tenantId [{}], converterId [{}], type [{}] and pageLink [{}]", tenantId, defaultConverterId, type, pageLink);
+        List<IntegrationEntity> integrationEntities = findPageWithTextSearch(INTEGRATION_BY_CONVERTER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(INTEGRATION_TYPE_PROPERTY, type),
+                        eq(INTEGRATION_CONVERTER_ID_PROPERTY, defaultConverterId),
+                        eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId)),
+                pageLink);
+
+        log.trace("Found integrations [{}] by tenantId [{}], converterId [{}], type [{}] and pageLink [{}]", integrationEntities, tenantId, defaultConverterId, type, pageLink);
+        return DaoUtil.convertDataList(integrationEntities);
     }
 
     @Override
     public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndConverterIdAndIdsAsync(UUID tenantId, UUID defaultConverterId, List<UUID> integrationIds) {
-        return null;
+        log.debug("Try to find integrations by tenantId [{}], converterId [{}] and integration Ids [{}]", tenantId, defaultConverterId, integrationIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId));
+        query.and(eq(INTEGRATION_CONVERTER_ID_PROPERTY, defaultConverterId));
+        query.and(in(ID_PROPERTY, integrationIds));
+        return findListByStatementAsync(query);
     }
 
     @Override
     public Optional<Integration> findIntegrationsByTenantIdAndRoutingKey(UUID tenantId, String routingKey) {
-        return null;
+        Select select = select().from(INTEGRATION_BY_TENANT_AND_ROUTING_KEY_VIEW_NAME);
+        Select.Where query = select.where();
+        query.and(eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId));
+        query.and(eq(INTEGRATION_ROUTING_KEY_PROPERTY, routingKey));
+        IntegrationEntity integrationEntity = findOneByStatement(query);
+        return Optional.ofNullable(DaoUtil.getData(integrationEntity));
     }
 
     @Override
     public ListenableFuture<List<EntitySubtype>> findTenantIntegrationTypesAsync(UUID tenantId) {
-        return null;
+        Select select = select().from(ENTITY_SUBTYPE_COLUMN_FAMILY_NAME);
+        Select.Where query = select.where();
+        query.and(eq(ENTITY_SUBTYPE_TENANT_ID_PROPERTY, tenantId));
+        query.and(eq(ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY, EntityType.INTEGRATION));
+        query.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
+        ResultSetFuture resultSetFuture = getSession().executeAsync(query);
+        return Futures.transform(resultSetFuture, new Function<ResultSet, List<EntitySubtype>>() {
+            @Nullable
+            @Override
+            public List<EntitySubtype> apply(@Nullable ResultSet resultSet) {
+                Result<EntitySubtypeEntity> result = cluster.getMapper(EntitySubtypeEntity.class).map(resultSet);
+                if (result != null) {
+                    List<EntitySubtype> entitySubtypes = new ArrayList<>();
+                    result.all().forEach((entitySubtypeEntity) ->
+                            entitySubtypes.add(entitySubtypeEntity.toEntitySubtype())
+                    );
+                    return entitySubtypes;
+                } else {
+                    return Collections.emptyList();
+                }
+            }
+        });
     }
 }

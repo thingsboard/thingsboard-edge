@@ -62,6 +62,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleService;
@@ -107,6 +108,9 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected ConverterService converterService;
+
+    @Autowired
+    protected IntegrationService integrationService;
 
     @Autowired
     protected DeviceCredentialsService deviceCredentialsService;

@@ -48,3 +48,15 @@ CREATE TABLE IF NOT EXISTS thingsboard.converter (
     additional_info text,
     PRIMARY KEY (id, tenant_id, type)
 );
+
+CREATE TABLE IF NOT EXISTS thingsboard.integration (
+    id timeuuid,
+    tenant_id timeuuid,
+    converter_id timeuuid,
+    type text,
+    routing_key text,
+    search_text text,
+    configuration text,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id, converter_id, type, routing_key)
+);
