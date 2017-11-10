@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @EqualsAndHashCode(callSuper = true)
 public class Converter extends SearchTextBased<ConverterId> implements HasName {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -1541581333235769915L;
 
     private TenantId tenantId;
     private String name;
