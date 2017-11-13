@@ -28,14 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.nosql;
+package org.thingsboard.server.controller.sql;
 
-import org.thingsboard.server.controller.BaseAssetControllerTest;
-import org.thingsboard.server.dao.service.DaoNoSqlTest;
+import org.thingsboard.server.controller.BaseIntegrationControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-/**
- * Created by Valerii Sosliuk on 6/28/2017.
- */
-@DaoNoSqlTest
-public class AssetControllerNoSqlTest extends BaseAssetControllerTest {
+@DaoSqlTest
+public class IntegrationControllerSqlTest extends BaseIntegrationControllerTest {
 }
