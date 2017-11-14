@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -190,6 +191,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Converter converter = new Converter();
         converter.setName("My converter");
+        converter.setType(ConverterType.JS);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         Integration assignedIntegration = doPost("/api/converter/" + savedConverter.getId().getId().toString()
@@ -239,6 +241,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Converter converter = new Converter();
         converter.setName("Different converter");
+        converter.setType(ConverterType.GENERIC);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         login(tenantAdmin.getEmail(), "testPassword1");
@@ -260,59 +263,15 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
     @Test
     public void testFindTenantIntegrations() throws Exception {
-        List<Integration> integrations = new ArrayList<>();
+        List<Integration> integrationList = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
             Integration integration = new Integration();
             integration.setRoutingKey("Integration" + i);
             integration.setType(IntegrationType.OCEANCONNECT);
-            integrations.add(doPost("/api/integration", integration, Integration.class));
+            integrationList.add(doPost("/api/integration", integration, Integration.class));
         }
         List<Integration> loadedIntegrations = new ArrayList<>();
         TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Integration> pageData;
-        do {
-            pageData = doGetTypedWithPageLink("/api/tenant/integrations?",
-                    new TypeReference<TextPageData<Integration>>() {
-                    }, pageLink);
-            loadedIntegrations.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(integrations, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
-
-        Assert.assertEquals(integrations, loadedIntegrations);
-    }
-
-    @Test
-    public void testFindTenantIntegrationsByRoutingKey() throws Exception {
-        String title1 = "Integration title 1";
-        List<Integration> integrations = new ArrayList<>();
-        for (int i = 0; i < 143; i++) {
-            Integration integration = new Integration();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String routingKey = title1 + suffix;
-            routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
-            integration.setRoutingKey(routingKey);
-            integration.setType(IntegrationType.OCEANCONNECT);
-            integrations.add(doPost("/api/integration", integration, Integration.class));
-        }
-        String title2 = "Integration title 2";
-        List<Integration> integrations1 = new ArrayList<>();
-        for (int i = 0; i < 75; i++) {
-            Integration integration = new Integration();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String routingKey = title2 + suffix;
-            routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
-            integration.setRoutingKey(routingKey);
-            integration.setType(IntegrationType.OCEANCONNECT);
-            integrations1.add(doPost("/api/integration", integration, Integration.class));
-        }
-
-        List<Integration> loadedIntegrations = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
         TextPageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/integrations?",
@@ -324,13 +283,40 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrations, idComparator);
+        Collections.sort(integrationList, idComparator);
         Collections.sort(loadedIntegrations, idComparator);
 
-        Assert.assertEquals(integrations, loadedIntegrations);
+        Assert.assertEquals(integrationList, loadedIntegrations);
+    }
+
+    @Test
+    public void testFindTenantIntegrationsByRoutingKey() throws Exception {
+        String title1 = "Integration title 1";
+        List<Integration> integrations1 = new ArrayList<>();
+        for (int i = 0; i < 143; i++) {
+            Integration integration = new Integration();
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String routingKey = title1 + suffix;
+            routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
+            integration.setRoutingKey(routingKey);
+            integration.setType(IntegrationType.OCEANCONNECT);
+            integrations1.add(doPost("/api/integration", integration, Integration.class));
+        }
+        String title2 = "Integration title 2";
+        List<Integration> integrations2 = new ArrayList<>();
+        for (int i = 0; i < 75; i++) {
+            Integration integration = new Integration();
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String routingKey = title2 + suffix;
+            routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
+            integration.setRoutingKey(routingKey);
+            integration.setType(IntegrationType.OCEANCONNECT);
+            integrations2.add(doPost("/api/integration", integration, Integration.class));
+        }
 
         List<Integration> loadedIntegrations1 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        TextPageLink pageLink = new TextPageLink(15, title1);
+        TextPageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/integrations?",
                     new TypeReference<TextPageData<Integration>>() {
@@ -346,7 +332,24 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Assert.assertEquals(integrations1, loadedIntegrations1);
 
-        for (Integration integration : loadedIntegrations) {
+        List<Integration> loadedIntegrations2 = new ArrayList<>();
+        pageLink = new TextPageLink(4, title2);
+        do {
+            pageData = doGetTypedWithPageLink("/api/tenant/integrations?",
+                    new TypeReference<TextPageData<Integration>>() {
+                    }, pageLink);
+            loadedIntegrations2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageData.getNextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(integrations2, idComparator);
+        Collections.sort(loadedIntegrations2, idComparator);
+
+        Assert.assertEquals(integrations2, loadedIntegrations2);
+
+        for (Integration integration : loadedIntegrations1) {
             doDelete("/api/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }
@@ -358,7 +361,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
-        for (Integration integration : loadedIntegrations1) {
+        for (Integration integration : loadedIntegrations2) {
             doDelete("/api/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }
@@ -375,7 +378,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testFindTenantIntegrationsByType() throws Exception {
         String title1 = "Integration title 1";
         IntegrationType type1 = IntegrationType.OCEANCONNECT;
-        List<Integration> integrations = new ArrayList<>();
+        List<Integration> integrations1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -383,11 +386,11 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
             integration.setRoutingKey(routingKey);
             integration.setType(type1);
-            integrations.add(doPost("/api/integration", integration, Integration.class));
+            integrations1.add(doPost("/api/integration", integration, Integration.class));
         }
         String title2 = "Integration title 2";
         IntegrationType type2 = IntegrationType.SIGFOX;
-        List<Integration> integrations1 = new ArrayList<>();
+        List<Integration> integrations2 = new ArrayList<>();
         for (int i = 0; i < 75; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -395,33 +398,16 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
             integration.setRoutingKey(routingKey);
             integration.setType(type2);
-            integrations1.add(doPost("/api/integration", integration, Integration.class));
+            integrations2.add(doPost("/api/integration", integration, Integration.class));
         }
 
-        List<Integration> loadedIntegrations = new ArrayList<>();
+        List<Integration> loadedIntegrations1 = new ArrayList<>();
         TextPageLink pageLink = new TextPageLink(15);
-        TextPageData<Integration> pageData;
+        TextPageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/integrations?type={type}&",
                     new TypeReference<TextPageData<Integration>>() {
                     }, pageLink, type1);
-            loadedIntegrations.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(integrations, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
-
-        Assert.assertEquals(integrations, loadedIntegrations);
-
-        List<Integration> loadedIntegrations1 = new ArrayList<>();
-        pageLink = new TextPageLink(4);
-        do {
-            pageData = doGetTypedWithPageLink("/api/tenant/integrations?type={type}&",
-                    new TypeReference<TextPageData<Integration>>() {
-                    }, pageLink, type2);
             loadedIntegrations1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageData.getNextPageLink();
@@ -432,6 +418,23 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Collections.sort(loadedIntegrations1, idComparator);
 
         Assert.assertEquals(integrations1, loadedIntegrations1);
+
+        List<Integration> loadedIntegrations2 = new ArrayList<>();
+        pageLink = new TextPageLink(4);
+        do {
+            pageData = doGetTypedWithPageLink("/api/tenant/integrations?type={type}&",
+                    new TypeReference<TextPageData<Integration>>() {
+                    }, pageLink, type2);
+            loadedIntegrations2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageData.getNextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(integrations2, idComparator);
+        Collections.sort(loadedIntegrations2, idComparator);
+
+        Assert.assertEquals(integrations2, loadedIntegrations2);
 
         for (Integration integration : loadedIntegrations1) {
             doDelete("/api/integration/" + integration.getId().getId().toString())
@@ -445,7 +448,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
-        for (Integration integration : loadedIntegrations1) {
+        for (Integration integration : loadedIntegrations2) {
             doDelete("/api/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }
@@ -462,47 +465,49 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testFindConverterIntegrations() throws Exception {
         Converter converter = new Converter();
         converter.setName("Test converter");
+        converter.setType(ConverterType.GENERIC);
         converter = doPost("/api/converter", converter, Converter.class);
         ConverterId converterId = converter.getId();
 
-        List<Integration> integrations = new ArrayList<>();
+        List<Integration> integrations1 = new ArrayList<>();
         for (int i = 0; i < 128; i++) {
             Integration integration = new Integration();
             integration.setRoutingKey("Integration" + i);
             integration.setType(IntegrationType.OCEANCONNECT);
             integration = doPost("/api/integration", integration, Integration.class);
-            integrations.add(doPost("/api/converter/" + converterId.getId().toString()
+            integrations1.add(doPost("/api/converter/" + converterId.getId().toString()
                     + "/integration/" + integration.getId().getId().toString(), Integration.class));
         }
 
-        List<Integration> loadedIntegrations = new ArrayList<>();
+        List<Integration> loadedIntegrations1 = new ArrayList<>();
         TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Integration> pageData;
+        TextPageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?",
                     new TypeReference<TextPageData<Integration>>() {
                     }, pageLink);
-            loadedIntegrations.addAll(pageData.getData());
+            loadedIntegrations1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageData.getNextPageLink();
             }
         } while (pageData.hasNext());
 
-        Collections.sort(integrations, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
+        Collections.sort(integrations1, idComparator);
+        Collections.sort(loadedIntegrations1, idComparator);
 
-        Assert.assertEquals(integrations, loadedIntegrations);
+        Assert.assertEquals(integrations1, loadedIntegrations1);
     }
 
     @Test
     public void testFindConverterIntegrationsByRoutingKey() throws Exception {
         Converter converter = new Converter();
         converter.setName("Test converter");
+        converter.setType(ConverterType.JS);
         converter = doPost("/api/converter", converter, Converter.class);
         ConverterId converterId = converter.getId();
 
         String title1 = "Integration title 1";
-        List<Integration> integrations = new ArrayList<>();
+        List<Integration> integrations1 = new ArrayList<>();
         for (int i = 0; i < 125; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -511,11 +516,11 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setRoutingKey(routingKey);
             integration.setType(IntegrationType.OCEANCONNECT);
             integration = doPost("/api/integration", integration, Integration.class);
-            integrations.add(doPost("/api/converter/" + converterId.getId().toString()
+            integrations1.add(doPost("/api/converter/" + converterId.getId().toString()
                     + "/integration/" + integration.getId().getId().toString(), Integration.class));
         }
         String title2 = "Integration title 2";
-        List<Integration> integrations1 = new ArrayList<>();
+        List<Integration> integrations2 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -524,30 +529,13 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setRoutingKey(routingKey);
             integration.setType(IntegrationType.OCEANCONNECT);
             integration = doPost("/api/integration", integration, Integration.class);
-            integrations1.add(doPost("/api/converter/" + converterId.getId().toString()
+            integrations2.add(doPost("/api/converter/" + converterId.getId().toString()
                     + "/integration/" + integration.getId().getId().toString(), Integration.class));
         }
 
-        List<Integration> loadedIntegrations = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
-        TextPageData<Integration> pageData;
-        do {
-            pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?",
-                    new TypeReference<TextPageData<Integration>>() {
-                    }, pageLink);
-            loadedIntegrations.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(integrations, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
-
-        Assert.assertEquals(integrations, loadedIntegrations);
-
         List<Integration> loadedIntegrations1 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        TextPageLink pageLink = new TextPageLink(15, title1);
+        TextPageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?",
                     new TypeReference<TextPageData<Integration>>() {
@@ -563,7 +551,24 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Assert.assertEquals(integrations1, loadedIntegrations1);
 
-        for (Integration integration : loadedIntegrations) {
+        List<Integration> loadedIntegrations2 = new ArrayList<>();
+        pageLink = new TextPageLink(4, title2);
+        do {
+            pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?",
+                    new TypeReference<TextPageData<Integration>>() {
+                    }, pageLink);
+            loadedIntegrations2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageData.getNextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(integrations2, idComparator);
+        Collections.sort(loadedIntegrations2, idComparator);
+
+        Assert.assertEquals(integrations2, loadedIntegrations2);
+
+        for (Integration integration : loadedIntegrations1) {
             doDelete("/api/converter/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }
@@ -575,7 +580,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
-        for (Integration integration : loadedIntegrations1) {
+        for (Integration integration : loadedIntegrations2) {
             doDelete("/api/converter/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }
@@ -592,12 +597,13 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testFindConverterIntegrationsByType() throws Exception {
         Converter converter = new Converter();
         converter.setName("Test converter");
+        converter.setType(ConverterType.GENERIC);
         converter = doPost("/api/converter", converter, Converter.class);
         ConverterId converterId = converter.getId();
 
         String title1 = "Integration title 1";
         IntegrationType type1 = IntegrationType.OCEANCONNECT;
-        List<Integration> integrations = new ArrayList<>();
+        List<Integration> integrations1 = new ArrayList<>();
         for (int i = 0; i < 125; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -606,12 +612,12 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setRoutingKey(routingKey);
             integration.setType(type1);
             integration = doPost("/api/integration", integration, Integration.class);
-            integrations.add(doPost("/api/converter/" + converterId.getId().toString()
+            integrations1.add(doPost("/api/converter/" + converterId.getId().toString()
                     + "/integration/" + integration.getId().getId().toString(), Integration.class));
         }
         String title2 = "Integration title 2";
         IntegrationType type2 = IntegrationType.SIGFOX;
-        List<Integration> integrations1 = new ArrayList<>();
+        List<Integration> integrations2 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -620,34 +626,17 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setRoutingKey(routingKey);
             integration.setType(type2);
             integration = doPost("/api/integration", integration, Integration.class);
-            integrations1.add(doPost("/api/converter/" + converterId.getId().toString()
+            integrations2.add(doPost("/api/converter/" + converterId.getId().toString()
                     + "/integration/" + integration.getId().getId().toString(), Integration.class));
         }
 
-        List<Integration> loadedIntegrations = new ArrayList<>();
+        List<Integration> loadedIntegrations1 = new ArrayList<>();
         TextPageLink pageLink = new TextPageLink(15);
-        TextPageData<Integration> pageData;
+        TextPageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?type={type}&",
                     new TypeReference<TextPageData<Integration>>() {
                     }, pageLink, type1);
-            loadedIntegrations.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(integrations, idComparator);
-        Collections.sort(loadedIntegrations, idComparator);
-
-        Assert.assertEquals(integrations, loadedIntegrations);
-
-        List<Integration> loadedIntegrations1 = new ArrayList<>();
-        pageLink = new TextPageLink(4);
-        do {
-            pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?type={type}&",
-                    new TypeReference<TextPageData<Integration>>() {
-                    }, pageLink, type2);
             loadedIntegrations1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageData.getNextPageLink();
@@ -659,7 +648,24 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Assert.assertEquals(integrations1, loadedIntegrations1);
 
-        for (Integration integration : loadedIntegrations) {
+        List<Integration> loadedIntegrations2 = new ArrayList<>();
+        pageLink = new TextPageLink(4);
+        do {
+            pageData = doGetTypedWithPageLink("/api/converter/" + converterId.getId().toString() + "/integrations?type={type}&",
+                    new TypeReference<TextPageData<Integration>>() {
+                    }, pageLink, type2);
+            loadedIntegrations2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageData.getNextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(integrations2, idComparator);
+        Collections.sort(loadedIntegrations2, idComparator);
+
+        Assert.assertEquals(integrations2, loadedIntegrations2);
+
+        for (Integration integration : loadedIntegrations1) {
             doDelete("/api/converter/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }
@@ -671,7 +677,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
-        for (Integration integration : loadedIntegrations1) {
+        for (Integration integration : loadedIntegrations2) {
             doDelete("/api/converter/integration/" + integration.getId().getId().toString())
                     .andExpect(status().isOk());
         }

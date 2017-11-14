@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.common.data.integration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBased;
@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
 @EqualsAndHashCode(callSuper = true)
 public class Integration extends SearchTextBased<IntegrationId> implements HasName {
 
@@ -70,9 +69,58 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.additionalInfo = integration.getAdditionalInfo();
     }
 
+    public TenantId getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(TenantId tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public ConverterId getDefaultConverterId() {
+        return defaultConverterId;
+    }
+
+    public void setDefaultConverterId(ConverterId defaultConverterId) {
+        this.defaultConverterId = defaultConverterId;
+    }
+
+    public String getRoutingKey() {
+        return routingKey;
+    }
+
+    public void setRoutingKey(String routingKey) {
+        this.routingKey = routingKey;
+    }
+
+    public IntegrationType getType() {
+        return type;
+    }
+
+    public void setType(IntegrationType type) {
+        this.type = type;
+    }
+
+    public JsonNode getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(JsonNode configuration) {
+        this.configuration = configuration;
+    }
+
+    public JsonNode getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    public void setAdditionalInfo(JsonNode additionalInfo) {
+        this.additionalInfo = additionalInfo;
+    }
+
     @Override
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
-        return getRoutingKey();
+        return routingKey;
     }
 
     @Override
