@@ -35,14 +35,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>1.4.0EE-SNAPSHOT</version>
+        <version>1.4.0PE-SNAPSHOT</version>
         <artifactId>common</artifactId>
     </parent>
     <groupId>org.thingsboard.common</groupId>
     <artifactId>message</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard EE Server Common Messages</name>
+    <name>ThingsBoard PE Server Common Messages</name>
     <url>https://thingsboard.io</url>
 
     <properties>

@@ -35,16 +35,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>1.4.0EE-SNAPSHOT</version>
+        <version>1.4.0PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <groupId>org.thingsboard</groupId>
     <artifactId>application</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard EE Server Application</name>
+    <name>ThingsBoard PE Server Application</name>
     <url>https://thingsboard.io</url>
-    <description>ThingsBoard Enterprise Edition: IoT Platform - Device management, data collection, processing and visualization
+    <description>ThingsBoard Professional Edition: IoT Platform - Device management, data collection, processing and visualization
     </description>
 
     <properties>
@@ -544,7 +544,7 @@
                     </excludes>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Title>ThingsBoard Enterprise Edition</Implementation-Title>
+                            <Implementation-Title>ThingsBoard Professional Edition</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                         </manifestEntries>
                     </archive>

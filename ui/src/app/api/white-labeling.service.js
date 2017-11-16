@@ -44,7 +44,7 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     var defaultWLParams = {
         logoImageUrl: defaultImageUrl,
         logoImageHeight: 36,
-        appTitle: 'ThingsBoard EE',
+        appTitle: 'ThingsBoard PE',
         faviconUrl: 'static/thingsboard.ico',
         faviconType: 'image/x-icon',
         paletteSettings: {
