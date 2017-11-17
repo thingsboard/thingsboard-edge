@@ -329,7 +329,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                         entities.add(entityView);
                     });
                 }
-                return new TimePageData<>(entities, pageLink);
+                TimePageData<EntityView> result = new TimePageData<>(entities, pageLink);
+                result.getData().removeIf(entity -> entity.isSkipEntity());
+                return result;
             }
         });
     }
@@ -425,7 +427,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (!columnsInfo.entityFields.isEmpty()) {
             entityView = transformFunction.apply(entityView, columnsInfo.entityFields);
         }
-        fetchEntityAttributes(entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
+        if (!entityView.isSkipEntity()) {
+            fetchEntityAttributes(entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
+        }
         return entityView;
     }
 

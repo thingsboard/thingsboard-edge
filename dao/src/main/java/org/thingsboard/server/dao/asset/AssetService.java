@@ -85,5 +85,5 @@ public interface AssetService {
 
     EntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink);
 }

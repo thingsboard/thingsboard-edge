@@ -85,6 +85,6 @@ public interface DeviceService {
 
     EntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink);
 
 }
