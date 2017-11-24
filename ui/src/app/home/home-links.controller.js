@@ -34,5 +34,7 @@ import './home-links.scss';
 /*@ngInject*/
 export default function HomeLinksController($scope, menu) {
     var vm = this;
-    vm.model = menu.getHomeSections();
+    menu.getHomeSections().then((homeSections) => {
+        vm.model = homeSections;
+    });
 }

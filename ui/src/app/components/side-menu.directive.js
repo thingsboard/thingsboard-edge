@@ -48,11 +48,13 @@ function SideMenu($compile, $templateCache, menu) {
 
     var linker = function (scope, element) {
 
-        scope.sections = menu.getSections();
-
         var template = $templateCache.get(sidemenuTemplate);
 
         element.html(template);
+
+        menu.getSections().then((sections) => {
+            scope.sections = sections;
+        });
 
         $compile(element.contents())(scope);
     }
