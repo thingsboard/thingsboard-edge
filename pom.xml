@@ -63,6 +63,7 @@
         <commons-validator.version>1.5.0</commons-validator.version>
         <commons-io.version>2.5</commons-io.version>
         <commons-csv.version>1.4</commons-csv.version>
+        <commons-codec.version>1.11</commons-codec.version>
         <jackson.version>2.8.8.1</jackson.version>
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
         <scala.version>2.11</scala.version>
@@ -380,6 +381,12 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.extensions</groupId>
+                <artifactId>extension-twilio-sms</artifactId>
+                <classifier>extension</classifier>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>data</artifactId>
                 <version>${project.version}</version>
@@ -606,6 +613,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-csv</artifactId>
                 <version>${commons-csv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>

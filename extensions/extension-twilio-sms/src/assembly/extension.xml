@@ -30,33 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.thingsboard</groupId>
-        <version>1.4.0PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
-    </parent>
-    <groupId>org.thingsboard</groupId>
-    <artifactId>extensions</artifactId>
-    <packaging>pom</packaging>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+    <id>extension</id>
+    <formats>
+        <format>jar</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/</outputDirectory>
+            <useProjectArtifact>true</useProjectArtifact>
+            <unpack>true</unpack>
+            <scope>runtime</scope>
+            <excludes>
 
-    <name>ThingsBoard PE Extensions</name>
-    <url>https://thingsboard.io</url>
-
-    <properties>
-        <main.dir>${basedir}/..</main.dir>
-    </properties>
-
-    <modules>
-        <module>extension-rabbitmq</module>
-        <module>extension-rest-api-call</module>
-        <module>extension-kafka</module>
-        <module>extension-mqtt</module>
-        <module>extension-sqs</module>
-        <module>extension-sns</module>
-        <module>extension-twilio-sms</module>
-    </modules>
-
-</project>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+</assembly>
