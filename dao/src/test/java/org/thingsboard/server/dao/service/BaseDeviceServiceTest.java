@@ -54,19 +54,15 @@ import java.util.List;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
-public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
+public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
     
     private IdComparator<Device> idComparator = new IdComparator<>();
     
     private TenantId tenantId;
 
     @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
+    public void beforeRun() {
+        tenantId = before();
     }
 
     @After

@@ -59,6 +59,8 @@ public abstract class CassandraAbstractDao {
             registerCodecIfNotFound(registry, new AuthorityCodec());
             registerCodecIfNotFound(registry, new ComponentLifecycleStateCodec());
             registerCodecIfNotFound(registry, new ComponentTypeCodec());
+            registerCodecIfNotFound(registry, new ConverterTypeCodec());
+            registerCodecIfNotFound(registry, new IntegrationTypeCodec());
             registerCodecIfNotFound(registry, new ComponentScopeCodec());
             registerCodecIfNotFound(registry, new EntityTypeCodec());
         }

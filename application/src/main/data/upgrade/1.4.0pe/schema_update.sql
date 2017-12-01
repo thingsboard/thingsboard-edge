@@ -37,4 +37,25 @@ CREATE TABLE IF NOT EXISTS entity_group (
     configuration varchar(10000000)
 );
 
+CREATE TABLE IF NOT EXISTS converter (
+    id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);
+
+CREATE TABLE IF NOT EXISTS integration (
+    id varchar(31) NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar,
+    converter_id varchar(31),
+    routing_key varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);
+
 ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);

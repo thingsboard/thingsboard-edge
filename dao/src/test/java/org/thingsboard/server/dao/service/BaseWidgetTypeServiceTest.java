@@ -49,19 +49,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseWidgetTypeServiceTest extends AbstractServiceTest {
+public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
 
     private IdComparator<WidgetType> idComparator = new IdComparator<>();
 
     private TenantId tenantId;
 
     @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
+    public void beforeRun() {
+        tenantId = before();
     }
 
     @After

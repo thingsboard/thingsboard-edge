@@ -34,5 +34,5 @@ package org.thingsboard.server.common.data;
  * @author Andrew Shvayka
  */
 public enum EntityType {
-    TENANT, CUSTOMER, USER, RULE, PLUGIN, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP
+    TENANT, CUSTOMER, USER, RULE, PLUGIN, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION
 }

@@ -62,6 +62,27 @@ CREATE TABLE IF NOT EXISTS asset (
     type varchar(255)
 );
 
+CREATE TABLE IF NOT EXISTS integration (
+    id varchar(31) NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar,
+    converter_id varchar(31),
+    routing_key varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);
+
+CREATE TABLE IF NOT EXISTS converter (
+    id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);
+
 CREATE TABLE IF NOT EXISTS attribute_kv (
   entity_type varchar(255),
   entity_id varchar(31),
