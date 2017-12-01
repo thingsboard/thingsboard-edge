@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardException;
 
@@ -165,7 +166,7 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public EntityView getGroupEntity(
@@ -195,7 +196,7 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<EntityView> getEntities(
@@ -215,11 +216,15 @@ public class EntityGroupController extends BaseController {
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             ListenableFuture<TimePageData<EntityView>> asyncResult = null;
             if (entityType == EntityType.CUSTOMER) {
+                if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                    throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
+                            ThingsboardErrorCode.PERMISSION_DENIED);
+                }
                 asyncResult = customerService.findCustomersByEntityGroupId(entityGroupId, pageLink);
             } else if (entityType == EntityType.ASSET) {
-                asyncResult = assetService.findAssetsByEntityGroupId(entityGroupId, pageLink);
+                asyncResult = assetService.findAssetsByEntityGroupIdAndCustomerId(entityGroupId, getCurrentUser().getCustomerId(), pageLink);
             } else if (entityType == EntityType.DEVICE) {
-                asyncResult = deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink);
+                asyncResult = deviceService.findDevicesByEntityGroupIdAndCustomerId(entityGroupId, getCurrentUser().getCustomerId(), pageLink);
             }
             checkNotNull(asyncResult);
             if (asyncResult != null) {

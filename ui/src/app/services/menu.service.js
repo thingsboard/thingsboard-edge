@@ -35,11 +35,13 @@ export default angular.module('thingsboard.menu', [thingsboardApiUser])
     .name;
 
 /*@ngInject*/
-function Menu(userService, $state, $rootScope, types, entityGroupService) {
+function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
 
     var authority = '';
     var sections = [];
     var homeSections = [];
+    var isMenuReady = false;
+    var menuReadyTasks = [];
 
     var customerGroups = {
         name: 'entity-group.customer-groups',
@@ -73,7 +75,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
         getSections: getSections,
         sectionHeight: sectionHeight,
         sectionActive: sectionActive
-    }
+    };
 
     if (userService.isUserLoaded() === true) {
         buildMenu();
@@ -86,14 +88,35 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
     return service;
 
     function getSections() {
-        return sections;
+        var deferred = $q.defer();
+        if (isMenuReady) {
+            deferred.resolve(sections);
+        } else {
+            menuReadyTasks.push(
+                () => {
+                    deferred.resolve(sections);
+                }
+            );
+        }
+        return deferred.promise;
     }
 
     function getHomeSections() {
-        return homeSections;
+        var deferred = $q.defer();
+        if (isMenuReady) {
+            deferred.resolve(homeSections);
+        } else {
+            menuReadyTasks.push(
+                () => {
+                    deferred.resolve(homeSections);
+                }
+            );
+        }
+        return deferred.promise;
     }
 
     function buildMenu() {
+        isMenuReady = false;
         var user = userService.getCurrentUser();
         if (user) {
             if (authority !== user.authority) {
@@ -361,11 +384,6 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                                     }
                                 ]
                             }];
-
-                    loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account');
-                    loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain');
-                    loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other');
-
                 } else if (authority === 'CUSTOMER_USER') {
                     sections = [
                         {
@@ -451,10 +469,36 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                             }];
                 }
             }
+            if (authority === 'TENANT_ADMIN') {
+                reloadGroups().then(() => {
+                    onMenuReady();
+                });
+            } else {
+                onMenuReady();
+            }
         }
     }
 
+    function onMenuReady() {
+        isMenuReady = true;
+        if (menuReadyTasks.length) {
+            for (var i=0;i<menuReadyTasks.length;i++) {
+                menuReadyTasks[i]();
+            }
+            menuReadyTasks.length = 0;
+        }
+    }
+
+    function reloadGroups() {
+        var tasks = [];
+        tasks.push(loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account'));
+        tasks.push(loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain'));
+        tasks.push(loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other'));
+        return $q.all(tasks);
+    }
+
     function loadGroups(section, groupType, groupState, icon) {
+        var deferred = $q.defer();
         entityGroupService.getTenantEntityGroups(groupType).then(
             function success(entityGroups) {
                 var pages = [];
@@ -470,6 +514,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
                 });
                 section.height = (40 * pages.length) + 'px';
                 section.pages = pages;
+                deferred.resolve();
             }
         );
         if (service[groupType + 'changeHandle']) {
@@ -478,6 +523,7 @@ function Menu(userService, $state, $rootScope, types, entityGroupService) {
         service[groupType + 'changeHandle'] = $rootScope.$on(groupType + 'changed', function () {
             loadGroups(section, groupType, groupState, icon);
         });
+        return deferred.promise;
     }
 
     function sectionHeight(section) {

@@ -87,7 +87,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         switch (fromVersion) {
             case "1.4.0":
-                log.info("Updating data from version 1.4.0 to 1.4.0EE ...");
+                log.info("Updating data from version 1.4.0 to 1.4.0PE ...");
 
                 tenantsGroupAllUpdater.updateEntities(null);
 

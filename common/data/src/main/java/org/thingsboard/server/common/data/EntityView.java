@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -44,6 +45,9 @@ public class EntityView implements HasId<EntityId>, HasName {
 
     private final EntityId id;
     private Map<String, String> properties = new HashMap<>();
+
+    @JsonIgnore
+    private boolean skipEntity = false;
 
     public EntityView(EntityId id) {
         super();
@@ -69,6 +73,14 @@ public class EntityView implements HasId<EntityId>, HasName {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return this.properties.get(EntityField.NAME.name().toLowerCase());
+    }
+
+    public boolean isSkipEntity() {
+        return skipEntity;
+    }
+
+    public void setSkipEntity(boolean skipEntity) {
+        this.skipEntity = skipEntity;
     }
 
     @Override

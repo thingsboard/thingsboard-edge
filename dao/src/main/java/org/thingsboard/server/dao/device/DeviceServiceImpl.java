@@ -285,41 +285,60 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, deviceViewFunction);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, new DeviceViewFunction());
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, deviceViewFunction);
+        return entityGroupService.findEntities(entityGroupId, pageLink, new DeviceViewFunction(customerId));
     }
 
-    private BiFunction<EntityView, List<EntityField>, EntityView> deviceViewFunction = ((entityView, entityFields) -> {
-        Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
-        entityView.put(EntityField.NAME.name().toLowerCase(), device.getName());
-        for (EntityField field : entityFields) {
-            String key = field.name().toLowerCase();
-            switch (field) {
-                case TYPE:
-                    entityView.put(key, device.getType());
-                    break;
-                case ASSIGNED_CUSTOMER:
-                    String assignedCustomerName = "";
-                    if(!device.getCustomerId().isNullUid()) {
-                        try {
-                            assignedCustomerName = entityService.fetchEntityNameAsync(device.getCustomerId()).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            log.error("Failed to fetch assigned customer name!", e);
-                        }
-                    }
-                    entityView.put(key, assignedCustomerName);
-                    break;
-            }
+    class DeviceViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
+
+        private final CustomerId customerId;
+
+        DeviceViewFunction() {
+            this.customerId = null;
         }
-        return entityView;
-    });
+
+        DeviceViewFunction(CustomerId customerId) {
+            this.customerId = customerId;
+        }
+
+        @Override
+        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
+            Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
+            if (this.customerId != null && !this.customerId.isNullUid()
+                    && !this.customerId.equals(device.getCustomerId())) {
+                entityView.setSkipEntity(true);
+                return entityView;
+            }
+            entityView.put(EntityField.NAME.name().toLowerCase(), device.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TYPE:
+                        entityView.put(key, device.getType());
+                        break;
+                    case ASSIGNED_CUSTOMER:
+                        String assignedCustomerName = "";
+                        if(!device.getCustomerId().isNullUid()) {
+                            try {
+                                assignedCustomerName = entityService.fetchEntityNameAsync(device.getCustomerId()).get();
+                            } catch (InterruptedException | ExecutionException e) {
+                                log.error("Failed to fetch assigned customer name!", e);
+                            }
+                        }
+                        entityView.put(key, assignedCustomerName);
+                        break;
+                }
+            }
+            return entityView;
+        }
+    }
 
     private DataValidator<Device> deviceValidator =
             new DataValidator<Device>() {

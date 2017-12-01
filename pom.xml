@@ -35,10 +35,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>1.4.0EE-SNAPSHOT</version>
+    <version>1.4.0PE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>ThingsBoard EE</name>
+    <name>ThingsBoard PE</name>
     <url>https://thingsboard.io</url>
     <inceptionYear>2016</inceptionYear>
 
@@ -363,6 +363,18 @@
             <dependency>
                 <groupId>org.thingsboard.extensions</groupId>
                 <artifactId>extension-mqtt</artifactId>
+                <classifier>extension</classifier>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.extensions</groupId>
+                <artifactId>extension-sqs</artifactId>
+                <classifier>extension</classifier>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.extensions</groupId>
+                <artifactId>extension-sns</artifactId>
                 <classifier>extension</classifier>
                 <version>${project.version}</version>
             </dependency>

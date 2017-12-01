@@ -260,41 +260,60 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         log.trace("Executing findGroupAsset, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, assetViewFunction);
+        return entityGroupService.findGroupEntity(entityGroupId, entityId, new AssetViewFunction());
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, assetViewFunction);
+        return entityGroupService.findEntities(entityGroupId, pageLink, new AssetViewFunction(customerId));
     }
 
-    private BiFunction<EntityView, List<EntityField>, EntityView> assetViewFunction = ((entityView, entityFields) -> {
-        Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
-        entityView.put(EntityField.NAME.name().toLowerCase(), asset.getName());
-        for (EntityField field : entityFields) {
-            String key = field.name().toLowerCase();
-            switch (field) {
-                case TYPE:
-                    entityView.put(key, asset.getType());
-                    break;
-                case ASSIGNED_CUSTOMER:
-                    String assignedCustomerName = "";
-                    if(!asset.getCustomerId().isNullUid()) {
-                        try {
-                            assignedCustomerName = entityService.fetchEntityNameAsync(asset.getCustomerId()).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            log.error("Failed to fetch assigned customer name!", e);
-                        }
-                    }
-                    entityView.put(key, assignedCustomerName);
-                    break;
-            }
+    class AssetViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
+
+        private final CustomerId customerId;
+
+        AssetViewFunction() {
+            this.customerId = null;
         }
-        return entityView;
-    });
+
+        AssetViewFunction(CustomerId customerId) {
+            this.customerId = customerId;
+        }
+
+        @Override
+        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
+            Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
+            if (this.customerId != null && !this.customerId.isNullUid()
+                    && !this.customerId.equals(asset.getCustomerId())) {
+                entityView.setSkipEntity(true);
+                return entityView;
+            }
+            entityView.put(EntityField.NAME.name().toLowerCase(), asset.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TYPE:
+                        entityView.put(key, asset.getType());
+                        break;
+                    case ASSIGNED_CUSTOMER:
+                        String assignedCustomerName = "";
+                        if(!asset.getCustomerId().isNullUid()) {
+                            try {
+                                assignedCustomerName = entityService.fetchEntityNameAsync(asset.getCustomerId()).get();
+                            } catch (InterruptedException | ExecutionException e) {
+                                log.error("Failed to fetch assigned customer name!", e);
+                            }
+                        }
+                        entityView.put(key, assignedCustomerName);
+                        break;
+                }
+            }
+            return entityView;
+        }
+    }
 
     private DataValidator<Asset> assetValidator =
             new DataValidator<Asset>() {

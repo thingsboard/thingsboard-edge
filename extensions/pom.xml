@@ -35,14 +35,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>1.4.0EE-SNAPSHOT</version>
+        <version>1.4.0PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <groupId>org.thingsboard</groupId>
     <artifactId>extensions</artifactId>
     <packaging>pom</packaging>
 
-    <name>ThingsBoard EE Extensions</name>
+    <name>ThingsBoard PE Extensions</name>
     <url>https://thingsboard.io</url>
 
     <properties>
@@ -54,6 +54,8 @@
         <module>extension-rest-api-call</module>
         <module>extension-kafka</module>
         <module>extension-mqtt</module>
+        <module>extention-sqs</module>
+        <module>extension-sns</module>
     </modules>
 
 </project>

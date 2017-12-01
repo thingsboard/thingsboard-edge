@@ -113,8 +113,8 @@ public class ThingsboardInstallService {
 
                         systemDataLoaderService.loadSystemWidgets();
 
-                    case "1.4.0": // to 1.4.0EE
-                        log.info("Upgrading ThingsBoard from version 1.4.0 to 1.4.0EE ...");
+                    case "1.4.0": // to 1.4.0PE
+                        log.info("Upgrading ThingsBoard from version 1.4.0 to 1.4.0PE ...");
 
                         databaseUpgradeService.upgradeDatabase("1.4.0");
 

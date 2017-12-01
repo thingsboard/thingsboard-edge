@@ -80,8 +80,8 @@ function LoginService($http, $q) {
 
     function sendResetPasswordLink(email) {
         var deferred = $q.defer();
-        var url = '/api/noauth/resetPasswordByEmail?email=' + email;
-        $http.post(url, null).then(function success(response) {
+        var url = '/api/noauth/resetPasswordByEmail';
+        $http.post(url, {email: email}).then(function success(response) {
             deferred.resolve(response);
         }, function fail() {
             deferred.reject();
@@ -91,8 +91,8 @@ function LoginService($http, $q) {
 
     function resetPassword(resetToken, password) {
         var deferred = $q.defer();
-        var url = '/api/noauth/resetPassword?resetToken=' + resetToken + '&password=' + password;
-        $http.post(url, null).then(function success(response) {
+        var url = '/api/noauth/resetPassword';
+        $http.post(url, {resetToken: resetToken, password: password}).then(function success(response) {
             deferred.resolve(response);
         }, function fail() {
             deferred.reject();
@@ -102,8 +102,8 @@ function LoginService($http, $q) {
 
     function activate(activateToken, password) {
         var deferred = $q.defer();
-        var url = '/api/noauth/activate?activateToken=' + activateToken + '&password=' + password;
-        $http.post(url, null).then(function success(response) {
+        var url = '/api/noauth/activate';
+        $http.post(url, {activateToken: activateToken, password: password}).then(function success(response) {
             deferred.resolve(response);
         }, function fail() {
             deferred.reject();
@@ -113,8 +113,8 @@ function LoginService($http, $q) {
 
     function changePassword(currentPassword, newPassword) {
         var deferred = $q.defer();
-        var url = '/api/auth/changePassword?currentPassword=' + currentPassword + '&newPassword=' + newPassword;
-        $http.post(url, null).then(function success(response) {
+        var url = '/api/auth/changePassword';
+        $http.post(url, {currentPassword: currentPassword, newPassword: newPassword}).then(function success(response) {
             deferred.resolve(response);
         }, function fail() {
             deferred.reject();

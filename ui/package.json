@@ -1,8 +1,8 @@
 {
   "name": "thingsboard",
   "private": true,
-  "version": "1.4.0EE",
-  "description": "ThingsBoard EE UI",
+  "version": "1.4.0PE",
+  "description": "ThingsBoard PE UI",
   "licenses": [
     {
       "type": "Apache-2.0",
