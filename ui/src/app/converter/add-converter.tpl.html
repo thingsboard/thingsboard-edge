@@ -30,20 +30,32 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="background: #fff;" ng-class="{'tb-disabled': disabled}" tb-expand-fullscreen fullscreen-zindex="100" expand-button-id="expand-button" on-fullscreen-changed="onFullscreenChanged()" layout="column">
-	<div layout="row" layout-align="start center" style="height: 40px;">
-		<label class="tb-title no-padding">function {{ functionName }}({{ functionArgsString }}) {</label>
-		<span flex></span>
-		<div id="expand-button" layout="column" aria-label="Fullscreen" class="md-button md-icon-button tb-md-32 tb-fullscreen-button-style"></div>
-	</div>
-	<div flex id="tb-javascript-panel" class="tb-js-func-panel" layout="column">
-		<div flex id="tb-javascript-input"
-			 ui-ace="jsEditorOptions"
-			 ng-readonly="disabled"
-			 ng-model="functionBody">
-		</div>
-	</div>
-	<div layout="row" layout-align="start center"  style="height: 40px;">
-		<label class="tb-title no-padding">}</label>
-	</div>	   
-</div>
+<md-dialog aria-label="{{ 'converter.add' | translate }}" tb-help="'converters'" help-container-id="help-container" style="width: 600px;">
+    <form name="theForm" ng-submit="vm.add()">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2 translate>converter.add</h2>
+                <span flex></span>
+                <div id="help-container"></div>
+                <md-button class="md-icon-button" ng-click="vm.cancel()">
+                    <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-progress-linear class="md-warn" md-mode="indeterminate" ng-disabled="!loading" ng-show="loading"></md-progress-linear>
+        <span style="min-height: 5px;" flex="" ng-show="!loading"></span>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <tb-converter converter="vm.item" is-edit="true" the-form="theForm"></tb-converter>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <span flex></span>
+            <md-button ng-disabled="loading || theForm.$invalid || !theForm.$dirty" type="submit" class="md-raised md-primary">
+                {{ 'action.add' | translate }}
+            </md-button>
+            <md-button ng-disabled="loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ 'action.cancel' | translate }}</md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>
+

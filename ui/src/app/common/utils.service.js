@@ -48,7 +48,7 @@ export default angular.module('thingsboard.utils', [thingsboardTypes])
 const varsRegex = /\$\{([^\}]*)\}/g;
 
 /*@ngInject*/
-function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $timeout, types) {
+function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $translate, $q, $timeout, types) {
 
     var predefinedFunctions = {},
         predefinedFunctionsList = [],
@@ -168,6 +168,7 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         guid: guid,
         cleanCopy: cleanCopy,
         isLocalUrl: isLocalUrl,
+        baseUrl: baseUrl,
         validateDatasources: validateDatasources,
         createKey: createKey,
         createLabelFromDatasource: createLabelFromDatasource,
@@ -424,14 +425,17 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         deferred.resolve(response);
     }
 
-    function guid() {
+    function guid(separator) {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
                 .toString(16)
                 .substring(1);
         }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
+        if (angular.isUndefined(separator) || separator == null) {
+            separator = '-';
+        }
+        return s4() + s4() + separator + s4() + separator + s4() + separator +
+            s4() + separator + s4() + s4() + s4();
     }
 
     function cleanCopy(object) {
@@ -464,6 +468,15 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         } else {
             return false;
         }
+    }
+
+    function baseUrl() {
+        var url = $location.protocol() + '://' + $location.host();
+        var port = $location.port();
+        if (port != 80 && port != 443) {
+            url += ":" + port;
+        }
+        return url;
     }
 
     function validateDatasources(datasources) {

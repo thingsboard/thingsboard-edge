@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.datastax.driver.core.utils.UUIDs;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -83,11 +84,16 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         UUID tenantId2 = UUIDs.timeBased();
         UUID converterId1 = UUIDs.timeBased();
         UUID converterId2 = UUIDs.timeBased();
-        String routingKey = "TEST_INTEGRATION";
-        saveIntegration(integrationId1, tenantId1, converterId1, routingKey, IntegrationType.OCEANCONNECT);
-        saveIntegration(integrationId2, tenantId2, converterId2, routingKey, IntegrationType.OCEANCONNECT);
+        String routingKey = RandomStringUtils.randomAlphanumeric(15);
+        String routingKey2 = RandomStringUtils.randomAlphanumeric(15);
+        saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT);
+        saveIntegration(integrationId2, tenantId2, converterId2, "TEST_INTEGRATION", routingKey2, IntegrationType.OCEANCONNECT);
 
         Optional<Integration> integrationOpt1 = integrationDao.findByRoutingKey(routingKey);
+        assertTrue("Optional expected to be non-empty", integrationOpt1.isPresent());
+        assertEquals(integrationId1, integrationOpt1.get().getId().getId());
+
+        integrationOpt1 = integrationDao.findByRoutingKey(routingKey2);
         assertTrue("Optional expected to be non-empty", integrationOpt1.isPresent());
         assertEquals(integrationId2, integrationOpt1.get().getId().getId());
 
@@ -102,15 +108,17 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
             UUID integrationId = UUIDs.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             UUID converterId = i % 2 == 0 ? converterId1 : converterId2;
-            saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, IntegrationType.OCEANCONNECT);
+            saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),
+                    IntegrationType.OCEANCONNECT);
         }
     }
 
-    private void saveIntegration(UUID id, UUID tenantId, UUID converterId, String routingKey, IntegrationType type) {
+    private void saveIntegration(UUID id, UUID tenantId, UUID converterId, String name, String routingKey, IntegrationType type) {
         Integration integration = new Integration();
         integration.setId(new IntegrationId(id));
         integration.setTenantId(new TenantId(tenantId));
         integration.setDefaultConverterId(new ConverterId(converterId));
+        integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
         integrationDao.save(integration);

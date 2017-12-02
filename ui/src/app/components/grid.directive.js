@@ -719,10 +719,13 @@ function AddItemController($scope, $mdDialog, saveItemFunction, helpLinks) {
     }
 
     function add() {
-        saveItemFunction(vm.item).then(function success(item) {
-            vm.item = item;
-            $scope.theForm.$setPristine();
-            $mdDialog.hide();
-        });
+        $scope.$broadcast('form-submit');
+        if ($scope.theForm.$valid) {
+            saveItemFunction(vm.item).then(function success(item) {
+                vm.item = item;
+                $scope.theForm.$setPristine();
+                $mdDialog.hide();
+            });
+        }
     }
 }

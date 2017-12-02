@@ -249,6 +249,28 @@ export default angular.module('thingsboard.types', [])
                 function: "function",
                 alarm: "alarm"
             },
+            converterType: {
+                "GENERIC": {
+                    name: "converter.type-generic",
+                    value: "GENERIC"
+                },
+                "CUSTOM": {
+                    name: "converter.type-custom",
+                    value: "CUSTOM"
+                }
+            },
+            integrationType: {
+                "OCEANCONNECT": {
+                    name: "integration.type-ocean-connect",
+                    value: "OCEANCONNECT",
+                    http: true
+                },
+                "SIGFOX": {
+                    name: "integration.type-sigfox",
+                    value: "SIGFOX",
+                    http: true
+                }
+            },
             componentType: {
                 filter: "FILTER",
                 processor: "PROCESSOR",
@@ -265,7 +287,9 @@ export default angular.module('thingsboard.types', [])
                 user: "USER",
                 dashboard: "DASHBOARD",
                 alarm: "ALARM",
-                entityGroup: "ENTITY_GROUP"
+                entityGroup: "ENTITY_GROUP",
+                converter: "CONVERTER",
+                integration: "INTEGRATION"
             },
             entityGroup: {
                 sortOrder: {
@@ -413,6 +437,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ALARM": {
                     helpId: 'docs'
+                },
+                "CONVERTER": {
+                    helpId: 'converters'
+                },
+                "INTEGRATION": {
+                    helpId: 'integrations'
                 }
             },
             entityTypeTranslations: {
@@ -523,6 +553,22 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ENTITY_GROUP": {
                     type: 'entity.type-entity-group'
+                },
+                "CONVERTER": {
+                    type: 'entity.type-converter',
+                    typePlural: 'entity.type-converters',
+                    list: 'entity.list-of-converters',
+                    nameStartsWith: 'entity.converter-name-starts-with',
+                    details: 'converter.converter-details',
+                    add: 'converter.add'
+                },
+                "INTEGRATION": {
+                    type: 'entity.type-integration',
+                    typePlural: 'entity.type-integrations',
+                    list: 'entity.list-of-integrations',
+                    nameStartsWith: 'entity.integration-name-starts-with',
+                    details: 'integration.integration-details',
+                    add: 'integration.add'
                 }
             },
             entitySearchDirection: {

@@ -37,7 +37,9 @@ export default angular.module('thingsboard.api.entity', [thingsboardTypes])
 /*@ngInject*/
 function EntityService($http, $q, $filter, $translate, $log, userService, deviceService,
                        assetService, tenantService, customerService,
-                       ruleService, pluginService, dashboardService, entityGroupService, entityRelationService, attributeService, types, utils) {
+                       ruleService, pluginService, dashboardService, entityGroupService,
+                       converterService, integrationService,
+                       entityRelationService, attributeService, types, utils) {
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
@@ -92,6 +94,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.alarm:
                 $log.error('Get Alarm Entity is not implemented!');
                 break;
+            case types.entityType.converter:
+                promise = converterService.getConverter(entityId);
+                break;
+            case types.entityType.integration:
+                promise = integrationService.getIntegration(entityId);
+                break;
         }
         return promise;
     }
@@ -129,6 +137,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.alarm:
                 $log.error('Save Alarm Entity is not implemented!');
+                break;
+            case types.entityType.converter:
+                promise = converterService.saveConverter(entity);
+                break;
+            case types.entityType.integration:
+                promise = integrationService.saveIntegration(entity);
                 break;
         }
         return promise;
@@ -230,6 +244,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.entityGroup:
                 promise = getEntitiesByIdsPromise(entityGroupService.getEntityGroup, entityIds);
+                break;
+            case types.entityType.converter:
+                promise = getEntitiesByIdsPromise(converterService.getConverter, entityIds);
+                break;
+            case types.entityType.integration:
+                promise = getEntitiesByIdsPromise(integrationService.getIntegration, entityIds);
                 break;
         }
         return promise;
@@ -359,6 +379,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                } else {
                     $log.error('Get Customer Entity Groups is not implemented!');
                 }
+                break;
+            case types.entityType.converter:
+                promise = converterService.getConverters(pageLink);
+                break;
+            case types.entityType.integration:
+                promise = integrationService.getIntegrations(pageLink);
                 break;
         }
         return promise;
@@ -929,6 +955,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.rule = types.entityType.rule;
                 entityTypes.plugin = types.entityType.plugin;
                 entityTypes.dashboard = types.entityType.dashboard;
+                entityTypes.converter = types.entityType.converter;
+                entityTypes.integration = types.entityType.integration;
                 break;
             case 'CUSTOMER_USER':
                 entityTypes.device = types.entityType.device;

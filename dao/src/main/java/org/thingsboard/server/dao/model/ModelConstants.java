@@ -185,6 +185,7 @@ public class ModelConstants {
      */
     public static final String INTEGRATION_COLUMN_FAMILY_NAME = "integration";
     public static final String INTEGRATION_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String INTEGRATION_NAME_PROPERTY = "name";
     public static final String INTEGRATION_CONVERTER_ID_PROPERTY = "converter_id";
     public static final String INTEGRATION_ROUTING_KEY_PROPERTY = "routing_key";
     public static final String INTEGRATION_TYPE_PROPERTY = "type";

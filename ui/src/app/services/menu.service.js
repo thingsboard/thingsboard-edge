@@ -257,6 +257,18 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             state: 'home.rules',
                             icon: 'settings_ethernet'
                         },
+                        {
+                            name: 'converter.converters',
+                            type: 'link',
+                            state: 'home.converters',
+                            icon: 'transform'
+                        },
+                        {
+                            name: 'integration.integrations',
+                            type: 'link',
+                            state: 'home.integrations',
+                            icon: 'input'
+                        },
                         customerGroups,
                         assetGroups,
                         deviceGroups,
@@ -313,6 +325,26 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     name: 'rule.rules',
                                     icon: 'settings_ethernet',
                                     state: 'home.rules'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'converter.management',
+                            places: [
+                                {
+                                    name: 'converter.converters',
+                                    icon: 'transform',
+                                    state: 'home.converters'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'integration.management',
+                            places: [
+                                {
+                                    name: 'integration.integrations',
+                                    icon: 'input',
+                                    state: 'home.integrations'
                                 }
                             ]
                         },

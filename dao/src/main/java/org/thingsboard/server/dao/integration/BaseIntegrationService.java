@@ -151,6 +151,9 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void validateDataImpl(Integration integration) {
+                    if (StringUtils.isEmpty(integration.getName())) {
+                        throw new DataValidationException("Integration name should be specified!");
+                    }
                     if (integration.getType() == null) {
                         throw new DataValidationException("Integration type should be specified!");
                     }
