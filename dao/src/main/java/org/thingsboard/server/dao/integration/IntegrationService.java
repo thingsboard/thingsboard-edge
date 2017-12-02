@@ -31,57 +31,28 @@
 package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationSearchQuery;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface IntegrationService {
+
+    Integration saveIntegration(Integration integration);
 
     Integration findIntegrationById(IntegrationId integrationId);
 
     ListenableFuture<Integration> findIntegrationByIdAsync(IntegrationId integrationId);
 
-    Optional<Integration> findIntegrationByTenantIdAndRoutingKey(TenantId tenantId, String routingKey);
+    Optional<Integration> findIntegrationByRoutingKey(String routingKey);
 
-    Integration saveIntegration(Integration integration);
-
-    Integration assignIntegrationToConverter(IntegrationId integrationId, ConverterId converterId);
-
-    Integration unassignIntegrationFromConverter(IntegrationId integrationId);
+    TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink);
 
     void deleteIntegration(IntegrationId integrationId);
 
-    TextPageData<Integration> findIntegrationsByTenantId(TenantId tenantId, TextPageLink pageLink);
-
-    TextPageData<Integration> findIntegrationsByTenantIdAndType(TenantId tenantId, IntegrationType type, TextPageLink pageLink);
-
-    ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds);
-
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
-    TextPageData<Integration> findIntegrationsByTenantIdAndConverterId(TenantId tenantId, ConverterId converterId, TextPageLink pageLink);
-
-    TextPageData<Integration> findIntegrationsByTenantIdAndConverterIdAndType(TenantId tenantId, ConverterId converterId, IntegrationType type, TextPageLink pageLink);
-
-    ListenableFuture<List<Integration>> findIntegrationsByTenantIdConverterIdAndIdsAsync(TenantId tenantId, ConverterId converterId, List<IntegrationId> integrationIds);
-
-    void unassignConverterIntegrations(TenantId tenantId, ConverterId converterId);
-
-    ListenableFuture<List<Integration>> findIntegrationsByQuery(IntegrationSearchQuery query);
-
-    ListenableFuture<List<EntitySubtype>> findIntegrationTypesByTenantId(TenantId tenantId);
-
-    EntityView findGroupIntegration(EntityGroupId entityGroupId, EntityId entityId);
-
-    ListenableFuture<TimePageData<EntityView>> findIntegrationsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 }

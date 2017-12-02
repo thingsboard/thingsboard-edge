@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.model.nosql;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
@@ -55,23 +56,20 @@ import static org.thingsboard.server.dao.model.ModelConstants.*;
 @ToString
 public class IntegrationEntity implements SearchTextEntity<Integration> {
 
-    @PartitionKey(value = 0)
+    @PartitionKey
     @Column(name = ID_PROPERTY)
     private UUID id;
 
-    @PartitionKey(value = 1)
+    @ClusteringColumn
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private UUID tenantId;
 
-    @PartitionKey(value = 2)
     @Column(name = INTEGRATION_CONVERTER_ID_PROPERTY)
     private UUID converterId;
 
-    @PartitionKey(value = 3)
     @Column(name = INTEGRATION_TYPE_PROPERTY, codec = IntegrationTypeCodec.class)
     private IntegrationType type;
 
-    @PartitionKey(value = 4)
     @Column(name = INTEGRATION_ROUTING_KEY_PROPERTY)
     private String routingKey;
 

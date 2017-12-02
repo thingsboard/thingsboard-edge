@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS entity_group (
 CREATE TABLE IF NOT EXISTS converter (
     id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
     additional_info varchar,
-    configuration varchar,
+    configuration varchar(10000000),
     name varchar(255),
     search_text varchar(255),
     tenant_id varchar(31),
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS converter (
 CREATE TABLE IF NOT EXISTS integration (
     id varchar(31) NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
     additional_info varchar,
-    configuration varchar,
+    configuration varchar(10000000),
     converter_id varchar(31),
     routing_key varchar(255),
     search_text varchar(255),

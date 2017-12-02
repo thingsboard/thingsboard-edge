@@ -178,9 +178,7 @@ public class ModelConstants {
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
     public static final String CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "converter_by_tenant_and_search_text";
-    public static final String CONVERTER_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "converter_by_tenant_by_type_and_search_text";
     public static final String CONVERTER_BY_TENANT_AND_NAME_VIEW_NAME = "converter_by_tenant_and_name";
-    public static final String CONVERTER_TYPES_BY_TENANT_VIEW_NAME = "converter_types_by_tenant";
 
     /**
      * Cassandra integration constants.
@@ -194,11 +192,7 @@ public class ModelConstants {
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
     public static final String INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_tenant_and_search_text";
-    public static final String INTEGRATION_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_tenant_by_type_and_search_text";
-    public static final String INTEGRATION_BY_CONVERTER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_converter_and_search_text";
-    public static final String INTEGRATION_BY_CONVERTER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_converter_by_type_and_search_text";
-    public static final String INTEGRATION_BY_TENANT_AND_ROUTING_KEY_VIEW_NAME = "integration_by_tenant_and_routing_key";
-    public static final String INTEGRATION_TYPES_BY_TENANT_VIEW_NAME = "integration_types_by_tenant";
+    public static final String INTEGRATION_BY_ROUTING_KEY_VIEW_NAME = "integration_by_routing_key";
 
     /**
      * Cassandra entity_subtype constants.

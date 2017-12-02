@@ -30,16 +30,11 @@
  */
 package org.thingsboard.server.dao.sql.converter;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.converter.ConverterDao;
@@ -47,10 +42,12 @@ import org.thingsboard.server.dao.model.sql.ConverterEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
@@ -61,9 +58,9 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     private ConverterRepository converterRepository;
 
     @Override
-    public List<Converter> findConvertersByTenantId(UUID tenantId, TextPageLink pageLink) {
+    public List<Converter> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
         return DaoUtil.convertDataList(converterRepository
-                .findByTenantId(
+                .findByTenantIdAndPageLink(
                         fromTimeUUID(tenantId),
                         Objects.toString(pageLink.getTextSearch(), ""),
                         pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
@@ -71,31 +68,9 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    public List<Converter> findConvertersByTenantIdAndType(UUID tenantId, ConverterType type, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(converterRepository
-                .findByTenantIdAndType(
-                        fromTimeUUID(tenantId),
-                        type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
-    }
-
-    @Override
-    public ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> converterIds) {
-        return service.submit(() ->
-                DaoUtil.convertDataList(converterRepository.findByTenantIdAndIdIn(fromTimeUUID(tenantId), fromTimeUUIDs(converterIds))));
-    }
-
-    @Override
-    public Optional<Converter> findConvertersByTenantIdAndName(UUID tenantId, String name) {
+    public Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name) {
         Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(fromTimeUUID(tenantId), name));
         return Optional.ofNullable(converter);
-    }
-
-    @Override
-    public ListenableFuture<List<EntitySubtype>> findTenantConverterTypesAsync(UUID tenantId) {
-        return service.submit(() -> convertTenantConverterTypesToDto(tenantId, converterRepository.findTenantConverterTypes(fromTimeUUID(tenantId))));
     }
 
     @Override
@@ -108,14 +83,4 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
         return converterRepository;
     }
 
-    private List<EntitySubtype> convertTenantConverterTypesToDto(UUID tenantId, List<ConverterType> types) {
-        List<EntitySubtype> list = Collections.emptyList();
-        if (types != null && !types.isEmpty()) {
-            list = new ArrayList<>();
-            for (ConverterType type : types) {
-                list.add(new EntitySubtype(new TenantId(tenantId), EntityType.CONVERTER, type.toString()));
-            }
-        }
-        return list;
-    }
 }

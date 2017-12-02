@@ -31,45 +31,24 @@
 package org.thingsboard.server.dao.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterSearchQuery;
-import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface ConverterService {
+
+    Converter saveConverter(Converter converter);
 
     Converter findConverterById(ConverterId converterId);
 
     ListenableFuture<Converter> findConverterByIdAsync(ConverterId converterId);
 
-    Optional<Converter> findConverterByTenantIdAndName(TenantId tenantId, String name);
-
-    Converter saveConverter(Converter converter);
+    TextPageData<Converter> findTenantConverters(TenantId tenantId, TextPageLink pageLink);
 
     void deleteConverter(ConverterId converterId);
 
-    TextPageData<Converter> findConvertersByTenantId(TenantId tenantId, TextPageLink pageLink);
-
-    TextPageData<Converter> findConvertersByTenantIdAndType(TenantId tenantId, ConverterType type, TextPageLink pageLink);
-
-    ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
-
     void deleteConvertersByTenantId(TenantId tenantId);
 
-    ListenableFuture<List<Converter>> findConvertersByQuery(ConverterSearchQuery query);
-
-    ListenableFuture<List<EntitySubtype>> findConverterTypesByTenantId(TenantId tenantId);
-
-    EntityView findGroupConverter(EntityGroupId entityGroupId, EntityId entityId);
-
-    ListenableFuture<TimePageData<EntityView>> findConvertersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 }

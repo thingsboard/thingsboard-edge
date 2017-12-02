@@ -30,24 +30,15 @@
  */
 package org.thingsboard.server.controller;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterSearchQuery;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.exception.ThingsboardException;
-import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -55,7 +46,7 @@ public class ConverterController extends BaseController {
 
     public static final String CONVERTER_ID = "converterId";
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.GET)
     @ResponseBody
     public Converter getConverterById(@PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
@@ -68,13 +59,30 @@ public class ConverterController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
     public Converter saveConverter(@RequestBody Converter converter) throws ThingsboardException {
         try {
             converter.setTenantId(getCurrentUser().getTenantId());
             return checkNotNull(converterService.saveConverter(converter));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converters", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<Converter> getConverters(
+            @RequestParam int limit,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -94,97 +102,4 @@ public class ConverterController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/converters", params = {"limit"}, method = RequestMethod.GET)
-    @ResponseBody
-    public TextPageData<Converter> getTenantConverters(
-            @RequestParam int limit,
-            @RequestParam(required = false) ConverterType type,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            if (type != null && type.toString().trim().length() > 0) {
-                return checkNotNull(converterService.findConvertersByTenantIdAndType(tenantId, type, pageLink));
-            } else {
-                return checkNotNull(converterService.findConvertersByTenantId(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/converters", params = {"converterName"}, method = RequestMethod.GET)
-    @ResponseBody
-    public Converter getTenantConverter(
-            @RequestParam String converterName) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(converterService.findConverterByTenantIdAndName(tenantId, converterName));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
-    @ResponseBody
-    public List<Converter> getConvertersByIds(
-            @RequestParam("converterIds") String[] strConverterIds) throws ThingsboardException {
-        checkArrayParameter("converterIds", strConverterIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<ConverterId> converterIds = new ArrayList<>();
-            for (String strConverterId : strConverterIds) {
-                converterIds.add(new ConverterId(toUUID(strConverterId)));
-            }
-            ListenableFuture<List<Converter>> converters;
-            converters = converterService.findConvertersByTenantIdAndIdsAsync(tenantId, converterIds);
-            return checkNotNull(converters.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/converters", method = RequestMethod.POST)
-    @ResponseBody
-    public List<Converter> findByQuery(@RequestBody ConverterSearchQuery query) throws ThingsboardException {
-        checkNotNull(query);
-        checkNotNull(query.getParameters());
-        checkNotNull(query.getConverterTypes());
-        checkEntityId(query.getParameters().getEntityId());
-        try {
-            List<Converter> converters = checkNotNull(converterService.findConvertersByQuery(query).get());
-            converters = converters.stream().filter(converter -> {
-                try {
-                    checkConverter(converter);
-                    return true;
-                } catch (ThingsboardException e) {
-                    return false;
-                }
-            }).collect(Collectors.toList());
-            return converters;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/converter/types", method = RequestMethod.GET)
-    @ResponseBody
-    public List<EntitySubtype> getConverterTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> converterTypes = converterService.findConverterTypesByTenantId(tenantId);
-            return checkNotNull(converterTypes.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
 }

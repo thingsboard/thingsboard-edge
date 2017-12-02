@@ -30,43 +30,32 @@
  */
 package org.thingsboard.server.dao.integration;
 
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.AsyncFunction;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationSearchQuery;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
 
-import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
@@ -74,7 +63,6 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
-    public static final String INCORRECT_CONVERTER_ID = "Incorrect converterId ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
 
     @Autowired
@@ -86,8 +74,12 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     @Autowired
     private ConverterDao converterDao;
 
-    @Autowired
-    private EntityService entityService;
+    @Override
+    public Integration saveIntegration(Integration integration) {
+        log.trace("Executing saveIntegration [{}]", integration);
+        integrationValidator.validate(integration);
+        return integrationDao.save(integration);
+    }
 
     @Override
     public Integration findIntegrationById(IntegrationId integrationId) {
@@ -104,35 +96,19 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    public Optional<Integration> findIntegrationByTenantIdAndRoutingKey(TenantId tenantId, String routingKey) {
-        log.trace("Executing findIntegrationByTenantIdAndRoutingKey [{}][{}]", tenantId, routingKey);
+    public Optional<Integration> findIntegrationByRoutingKey(String routingKey) {
+        log.trace("Executing findIntegrationByRoutingKey [{}]", routingKey);
+        Validator.validateString(routingKey, "Incorrect integration routingKey for search request.");
+        return integrationDao.findByRoutingKey(routingKey);
+    }
+
+    @Override
+    public TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink) {
+        log.trace("Executing findTenantIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        return integrationDao.findIntegrationsByTenantIdAndRoutingKey(tenantId.getId(), routingKey);
-    }
-
-    @Override
-    public Integration saveIntegration(Integration integration) {
-        log.trace("Executing saveIntegration [{}]", integration);
-        integrationValidator.validate(integration);
-        Integration savedIntegration = integrationDao.save(integration);
-        if (integration.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedIntegration.getTenantId(), savedIntegration.getId());
-        }
-        return savedIntegration;
-    }
-
-    @Override
-    public Integration assignIntegrationToConverter(IntegrationId integrationId, ConverterId converterId) {
-        Integration integration = findIntegrationById(integrationId);
-        integration.setDefaultConverterId(converterId);
-        return saveIntegration(integration);
-    }
-
-    @Override
-    public Integration unassignIntegrationFromConverter(IntegrationId integrationId) {
-        Integration integration = findIntegrationById(integrationId);
-        integration.setDefaultConverterId(null);
-        return saveIntegration(integration);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Integration> integrations = integrationDao.findByTenantIdAndPageLink(tenantId.getId(), pageLink);
+        return new TextPageData<>(integrations, pageLink);
     }
 
     @Override
@@ -144,158 +120,18 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    public TextPageData<Integration> findIntegrationsByTenantId(TenantId tenantId, TextPageLink pageLink) {
-        log.trace("Executing findIntegrationsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Integration> integrations = integrationDao.findIntegrationsByTenantId(tenantId.getId(), pageLink);
-        return new TextPageData<>(integrations, pageLink);
-    }
-
-    @Override
-    public TextPageData<Integration> findIntegrationsByTenantIdAndType(TenantId tenantId, IntegrationType type, TextPageLink pageLink) {
-        log.trace("Executing findIntegrationsByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type.toString(), "Incorrect type " + type);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Integration> integrations = integrationDao.findIntegrationsByTenantIdAndType(tenantId.getId(), type, pageLink);
-        return new TextPageData<>(integrations, pageLink);
-    }
-
-    @Override
-    public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds) {
-        log.trace("Executing findIntegrationsByTenantIdAndIdsAsync, tenantId [{}], integrationIds [{}]", tenantId, integrationIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(integrationIds, "Incorrect integrationIds " + integrationIds);
-        return integrationDao.findIntegrationsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(integrationIds));
-    }
-
-    @Override
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantIntegrationsRemover.removeEntities(tenantId);
     }
 
-    @Override
-    public TextPageData<Integration> findIntegrationsByTenantIdAndConverterId(TenantId tenantId, ConverterId converterId, TextPageLink pageLink) {
-        log.trace("Executing findIntegrationsByTenantIdAndConverterId, tenantId [{}], converterId [{}], pageLink [{}]", tenantId, converterId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Integration> integrations = integrationDao.findIntegrationsByTenantIdAndConverterId(tenantId.getId(), converterId.getId(), pageLink);
-        return new TextPageData<>(integrations, pageLink);
-    }
-
-    @Override
-    public TextPageData<Integration> findIntegrationsByTenantIdAndConverterIdAndType(TenantId tenantId, ConverterId converterId, IntegrationType type, TextPageLink pageLink) {
-        log.trace("Executing findIntegrationsByTenantIdAndConverterIdAndType, tenantId [{}], converterId [{}], type [{}], pageLink [{}]", tenantId, converterId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        validateString(type.toString(), "Incorrect type " + type);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Integration> integrations = integrationDao.findIntegrationsByTenantIdAndConverterIdAndType(tenantId.getId(), converterId.getId(), type, pageLink);
-        return new TextPageData<>(integrations, pageLink);
-    }
-
-    @Override
-    public ListenableFuture<List<Integration>> findIntegrationsByTenantIdConverterIdAndIdsAsync(TenantId tenantId, ConverterId converterId, List<IntegrationId> integrationIds) {
-        log.trace("Executing findIntegrationsByTenantIdConverterIdAndIdsAsync, tenantId [{}], converterId [{}], integrationIds [{}]", tenantId, converterId, integrationIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        validateIds(integrationIds, "Incorrect integrationIds " + integrationIds);
-        return integrationDao.findIntegrationsByTenantIdAndConverterIdAndIdsAsync(tenantId.getId(), converterId.getId(), toUUIDs(integrationIds));
-    }
-
-    @Override
-    public void unassignConverterIntegrations(TenantId tenantId, ConverterId converterId) {
-        log.trace("Executing unassignConverterIntegrations, tenantId [{}], converterId [{}]", tenantId, converterId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        new ConverterIntegrationsUnassigner(tenantId).removeEntities(converterId);
-    }
-
-    @Override
-    public ListenableFuture<List<Integration>> findIntegrationsByQuery(IntegrationSearchQuery query) {
-        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(query.toEntitySearchQuery());
-        ListenableFuture<List<Integration>> integrations = Futures.transform(relations, (AsyncFunction<List<EntityRelation>, List<Integration>>) relations1 -> {
-            EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();
-            List<ListenableFuture<Integration>> futures = new ArrayList<>();
-            for (EntityRelation relation : relations1) {
-                EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();
-                if (entityId.getEntityType() == EntityType.INTEGRATION) {
-                    futures.add(findIntegrationByIdAsync(new IntegrationId(entityId.getId())));
-                }
-            }
-            return Futures.successfulAsList(futures);
-        });
-        integrations = Futures.transform(integrations, (Function<List<Integration>, List<Integration>>) integrationList ->
-                integrationList == null ? Collections.emptyList() : integrationList.stream().filter(integration -> query.getIntegrationTypes().contains(integration.getType())).collect(Collectors.toList())
-        );
-        return integrations;
-    }
-
-    @Override
-    public ListenableFuture<List<EntitySubtype>> findIntegrationTypesByTenantId(TenantId tenantId) {
-        log.trace("Executing findIntegrationTypesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        ListenableFuture<List<EntitySubtype>> tenantIntegrationTypes = integrationDao.findTenantIntegrationTypesAsync(tenantId.getId());
-        return Futures.transform(tenantIntegrationTypes,
-                (Function<List<EntitySubtype>, List<EntitySubtype>>) integrationTypes -> {
-                    if (integrationTypes != null) {
-                        integrationTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                    }
-                    return integrationTypes;
-                });
-    }
-
-    @Override
-    public EntityView findGroupIntegration(EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing findGroupIntegration, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, integrationViewFunction);
-    }
-
-    @Override
-    public ListenableFuture<TimePageData<EntityView>> findIntegrationsByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findIntegrationsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, integrationViewFunction);
-    }
-
-    private BiFunction<EntityView, List<EntityField>, EntityView> integrationViewFunction = ((entityView, entityFields) -> {
-        Integration integration = findIntegrationById(new IntegrationId(entityView.getId().getId()));
-        entityView.put(EntityField.NAME.name().toLowerCase(), integration.getRoutingKey());
-        for (EntityField field : entityFields) {
-            String key = field.name().toLowerCase();
-            switch (field) {
-                case TYPE:
-                    entityView.put(key, integration.getType().toString());
-                    break;
-                case ASSIGNED_CONVERTER:
-                    String assignedConverterName = "";
-                    if(!integration.getDefaultConverterId().isNullUid()) {
-                        try {
-                            assignedConverterName = entityService.fetchEntityNameAsync(integration.getDefaultConverterId()).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            log.error("Failed to fetch assigned converter name!", e);
-                        }
-                    }
-                    entityView.put(key, assignedConverterName);
-                    break;
-            }
-        }
-        return entityView;
-    });
-
     private DataValidator<Integration> integrationValidator =
             new DataValidator<Integration>() {
 
                 @Override
                 protected void validateCreate(Integration integration) {
-                    integrationDao.findIntegrationsByTenantIdAndRoutingKey(integration.getTenantId().getId(), integration.getRoutingKey()).ifPresent(
+                    integrationDao.findByRoutingKey(integration.getRoutingKey()).ifPresent(
                             d -> {
                                 throw new DataValidationException("Integration with such routing key already exists!");
                             }
@@ -304,7 +140,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void validateUpdate(Integration integration) {
-                    integrationDao.findIntegrationsByTenantIdAndRoutingKey(integration.getTenantId().getId(), integration.getRoutingKey()).ifPresent(
+                    integrationDao.findByRoutingKey(integration.getRoutingKey()).ifPresent(
                             d -> {
                                 if (!d.getId().equals(integration.getId())) {
                                     throw new DataValidationException("Integration with such routing key already exists!");
@@ -315,13 +151,13 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void validateDataImpl(Integration integration) {
-                    if (StringUtils.isEmpty(integration.getType())) {
+                    if (integration.getType() == null) {
                         throw new DataValidationException("Integration type should be specified!");
                     }
                     if (StringUtils.isEmpty(integration.getRoutingKey())) {
                         throw new DataValidationException("Integration routing key should be specified!");
                     }
-                    if (integration.getTenantId() == null) {
+                    if (integration.getTenantId() == null || integration.getTenantId().isNullUid()) {
                         throw new DataValidationException("Integration should be assigned to tenant!");
                     } else {
                         Tenant tenant = tenantDao.findById(integration.getTenantId().getId());
@@ -329,15 +165,15 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
                             throw new DataValidationException("Integration is referencing to non-existent tenant!");
                         }
                     }
-                    if (integration.getDefaultConverterId() == null) {
-                        integration.setDefaultConverterId(new ConverterId(NULL_UUID));
-                    } else if (!integration.getDefaultConverterId().getId().equals(NULL_UUID)) {
+                    if (integration.getDefaultConverterId() == null || integration.getDefaultConverterId().isNullUid()) {
+                        throw new DataValidationException("Integration default converter should be specified!");
+                    } else {
                         Converter converter = converterDao.findById(integration.getDefaultConverterId().getId());
                         if (converter == null) {
-                            throw new DataValidationException("Can't assign integration to non-existent converter!");
+                            throw new DataValidationException("Integration is referencing to non-existent converter!");
                         }
                         if (!converter.getTenantId().equals(integration.getTenantId())) {
-                            throw new DataValidationException("Can't assign integration to converter from different tenant!");
+                            throw new DataValidationException("Integration can't have converter from different tenant!");
                         }
                     }
                 }
@@ -348,7 +184,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected List<Integration> findEntities(TenantId id, TextPageLink pageLink) {
-                    return integrationDao.findIntegrationsByTenantId(id.getId(), pageLink);
+                    return integrationDao.findByTenantIdAndPageLink(id.getId(), pageLink);
                 }
 
                 @Override
@@ -357,22 +193,4 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
                 }
             };
 
-    class ConverterIntegrationsUnassigner extends PaginatedRemover<ConverterId, Integration> {
-
-        private TenantId tenantId;
-
-        ConverterIntegrationsUnassigner(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
-
-        @Override
-        protected List<Integration> findEntities(ConverterId id, TextPageLink pageLink) {
-            return integrationDao.findIntegrationsByTenantIdAndConverterId(tenantId.getId(), id.getId(), pageLink);
-        }
-
-        @Override
-        protected void removeEntity(Integration entity) {
-            unassignIntegrationFromConverter(new IntegrationId(entity.getId().getId()));
-        }
-    }
 }

@@ -30,10 +30,7 @@
  */
 package org.thingsboard.server.dao.integration;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
 
@@ -48,85 +45,20 @@ import java.util.UUID;
 public interface IntegrationDao extends Dao<Integration> {
 
     /**
-     * Save or update integration object
-     *
-     * @param integration the integration object
-     * @return saved integration object
-     */
-    Integration save(Integration integration);
-
-    /**
      * Find integrations by tenantId and page link.
      *
      * @param tenantId the tenantId
      * @param pageLink the page link
      * @return the list of integration objects
      */
-    List<Integration> findIntegrationsByTenantId(UUID tenantId, TextPageLink pageLink);
+    List<Integration> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink);
 
     /**
-     * Find integrations by tenantId, type and page link.
+     * Find integrations by routing Key.
      *
-     * @param tenantId the tenantId
-     * @param type the type
-     * @param pageLink the page link
-     * @return the list of integration objects
-     */
-    List<Integration> findIntegrationsByTenantIdAndType(UUID tenantId, IntegrationType type, TextPageLink pageLink);
-
-    /**
-     * Find integrations by tenantId and integrations Ids.
-     *
-     * @param tenantId the tenantId
-     * @param integrationIds the integration Ids
-     * @return the list of integration objects
-     */
-    ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
-
-    /**
-     * Find integrations by tenantId, defaultConverterId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param defaultConverterId the defaultConverterId
-     * @param pageLink the page link
-     * @return the list of integration objects
-     */
-    List<Integration> findIntegrationsByTenantIdAndConverterId(UUID tenantId, UUID defaultConverterId, TextPageLink pageLink);
-
-    /**
-     * Find integrations by tenantId, defaultConverterId, type and page link.
-     *
-     * @param tenantId the tenantId
-     * @param defaultConverterId the defaultConverterId
-     * @param type the type
-     * @param pageLink the page link
-     * @return the list of integration objects
-     */
-    List<Integration> findIntegrationsByTenantIdAndConverterIdAndType(UUID tenantId, UUID defaultConverterId, IntegrationType type, TextPageLink pageLink);
-
-    /**
-     * Find integrations by tenantId, defaultConverterId and integrations Ids.
-     *
-     * @param tenantId the tenantId
-     * @param defaultConverterId the defaultConverterId
-     * @param integrationIds the integration Ids
-     * @return the list of integration objects
-     */
-    ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndConverterIdAndIdsAsync(UUID tenantId, UUID defaultConverterId, List<UUID> integrationIds);
-
-    /**
-     * Find integrations by tenantId and routing Key.
-     *
-     * @param tenantId the tenantId
      * @param routingKey the integration routingKey
      * @return the optional integration object
      */
-    Optional<Integration> findIntegrationsByTenantIdAndRoutingKey(UUID tenantId, String routingKey);
+    Optional<Integration> findByRoutingKey(String routingKey);
 
-    /**
-     * Find tenants integration types.
-     *
-     * @return the list of tenant integration type objects
-     */
-    ListenableFuture<List<EntitySubtype>> findTenantIntegrationTypesAsync(UUID tenantId);
 }

@@ -34,7 +34,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -46,49 +45,12 @@ public interface IntegrationRepository extends CrudRepository<IntegrationEntity,
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
             "AND a.id > :idOffset ORDER BY a.id")
-    List<IntegrationEntity> findByTenantId(@Param("tenantId") String tenantId,
+    List<IntegrationEntity> findByTenantIdAndPageLink(@Param("tenantId") String tenantId,
                                      @Param("textSearch") String textSearch,
                                      @Param("idOffset") String idOffset,
                                      Pageable pageable);
 
-    @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND a.converterId = :converterId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<IntegrationEntity> findByTenantIdAndConverterId(@Param("tenantId") String tenantId,
-                                                  @Param("converterId") String converterId,
-                                                  @Param("textSearch") String textSearch,
-                                                  @Param("idOffset") String idOffset,
-                                                  Pageable pageable);
 
-    List<IntegrationEntity> findByTenantIdAndIdIn(String tenantId, List<String> integrationIds);
-
-    List<IntegrationEntity> findByTenantIdAndConverterIdAndIdIn(String tenantId, String converterId, List<String> integrationIds);
-
-    IntegrationEntity findByTenantIdAndRoutingKey(String tenantId, String routingKey);
-
-    @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<IntegrationEntity> findByTenantIdAndType(@Param("tenantId") String tenantId,
-                                            @Param("type") IntegrationType type,
-                                            @Param("textSearch") String textSearch,
-                                            @Param("idOffset") String idOffset,
-                                            Pageable pageable);
-
-    @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND a.converterId = :converterId AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<IntegrationEntity> findByTenantIdAndConverterIdAndType(@Param("tenantId") String tenantId,
-                                                         @Param("converterId") String converterId,
-                                                         @Param("type") IntegrationType type,
-                                                         @Param("textSearch") String textSearch,
-                                                         @Param("idOffset") String idOffset,
-                                                         Pageable pageable);
-
-    @Query("SELECT DISTINCT a.type FROM IntegrationEntity a WHERE a.tenantId = :tenantId")
-    List<IntegrationType> findTenantIntegrationTypes(@Param("tenantId") String tenantId);
+    IntegrationEntity findByRoutingKey(String routingKey);
 
 }

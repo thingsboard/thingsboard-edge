@@ -412,12 +412,13 @@ public abstract class BaseController {
         }
     }
 
-    protected void checkIntegration(Integration integration) throws ThingsboardException {
+    protected Integration checkIntegration(Integration integration) throws ThingsboardException {
         checkNotNull(integration);
         checkTenantId(integration.getTenantId());
         if (integration.getDefaultConverterId() != null && !integration.getDefaultConverterId().getId().equals(ModelConstants.NULL_UUID)) {
             checkConverterId(integration.getDefaultConverterId());
         }
+        return integration;
     }
 
     Converter checkConverterId(ConverterId converterId) throws ThingsboardException {
@@ -434,7 +435,6 @@ public abstract class BaseController {
     protected void checkConverter(Converter converter) throws ThingsboardException {
         checkNotNull(converter);
         checkTenantId(converter.getTenantId());
-
     }
 
     Alarm checkAlarmId(AlarmId alarmId) throws ThingsboardException {

@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.model.nosql;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
@@ -54,15 +55,14 @@ import static org.thingsboard.server.dao.model.ModelConstants.*;
 @ToString
 public final class ConverterEntity implements SearchTextEntity<Converter> {
 
-    @PartitionKey(value = 0)
+    @PartitionKey
     @Column(name = ID_PROPERTY)
     private UUID id;
 
-    @PartitionKey(value = 1)
+    @ClusteringColumn
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
     private UUID tenantId;
 
-    @PartitionKey(value = 2)
     @Column(name = CONVERTER_TYPE_PROPERTY, codec = ConverterTypeCodec.class)
     private ConverterType type;
 

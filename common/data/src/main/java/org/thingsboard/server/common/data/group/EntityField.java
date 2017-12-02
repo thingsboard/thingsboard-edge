@@ -52,7 +52,6 @@ public enum EntityField {
     ZIP,
     PHONE,
     TYPE,
-    ASSIGNED_CONVERTER,
     ASSIGNED_CUSTOMER;
 
     protected static final Map<EntityType, EntityField[]> defaultFieldsByEntityType =
@@ -61,8 +60,6 @@ public enum EntityField {
         defaultFieldsByEntityType.put(EntityType.USER, new EntityField[]{CREATED_TIME, FIRST_NAME, LAST_NAME, EMAIL, AUTHORITY});
         defaultFieldsByEntityType.put(EntityType.CUSTOMER, new EntityField[]{CREATED_TIME, TITLE, EMAIL, COUNTRY, CITY});
         defaultFieldsByEntityType.put(EntityType.ASSET, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
-        defaultFieldsByEntityType.put(EntityType.CONVERTER, new EntityField[]{CREATED_TIME, NAME, TYPE});
-        defaultFieldsByEntityType.put(EntityType.INTEGRATION, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CONVERTER});
         defaultFieldsByEntityType.put(EntityType.DEVICE, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
     }
 

@@ -31,26 +31,23 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
@@ -66,81 +63,20 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         assertEquals(60, integrationDao.find().size());
 
         TextPageLink pageLink1 = new TextPageLink(20, "INTEGRATION_");
-        List<Integration> integrations1 = integrationDao.findIntegrationsByTenantId(tenantId1, pageLink1);
+        List<Integration> integrations1 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
         assertEquals(20, integrations1.size());
 
         TextPageLink pageLink2 = new TextPageLink(20, "INTEGRATION_", integrations1.get(19).getId().getId(), null);
-        List<Integration> integrations2 = integrationDao.findIntegrationsByTenantId(tenantId1, pageLink2);
+        List<Integration> integrations2 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink2);
         assertEquals(10, integrations2.size());
 
         TextPageLink pageLink3 = new TextPageLink(20, "INTEGRATION_", integrations2.get(9).getId().getId(), null);
-        List<Integration> integrations3 = integrationDao.findIntegrationsByTenantId(tenantId1, pageLink3);
+        List<Integration> integrations3 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink3);
         assertEquals(0, integrations3.size());
     }
 
     @Test
-    public void testFindIntegrationsByTenantIdAndConverterId() {
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID converterId1 = UUIDs.timeBased();
-        saveTernary(tenantId1, converterId1);
-
-        TextPageLink pageLink1 = new TextPageLink(20, "INTEGRATION_");
-        List<Integration> integrations1 = integrationDao.findIntegrationsByTenantIdAndConverterId(tenantId1, converterId1, pageLink1);
-        assertEquals(20, integrations1.size());
-
-        TextPageLink pageLink2 = new TextPageLink(20, "INTEGRATION_", integrations1.get(19).getId().getId(), null);
-        List<Integration> integrations2 = integrationDao.findIntegrationsByTenantIdAndConverterId(tenantId1, converterId1, pageLink2);
-        assertEquals(10, integrations2.size());
-
-        TextPageLink pageLink3 = new TextPageLink(20, "INTEGRATION_", integrations2.get(9).getId().getId(), null);
-        List<Integration> integrations3 = integrationDao.findIntegrationsByTenantIdAndConverterId(tenantId1, converterId1, pageLink3);
-        assertEquals(0, integrations3.size());
-    }
-
-    @Test
-    public void testFindIntegrationsByTenantIdAndIdsAsync() throws ExecutionException, InterruptedException {
-        UUID tenantId = UUIDs.timeBased();
-        UUID converterId = UUIDs.timeBased();
-        List<UUID> searchIds = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            UUID integrationId = UUIDs.timeBased();
-            saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, IntegrationType.OCEANCONNECT);
-            if (i % 3 == 0) {
-                searchIds.add(integrationId);
-            }
-        }
-
-        ListenableFuture<List<Integration>> integrationsFuture = integrationDao
-                .findIntegrationsByTenantIdAndIdsAsync(tenantId, searchIds);
-        List<Integration> integrations = integrationsFuture.get();
-        assertNotNull(integrations);
-        assertEquals(10, integrations.size());
-    }
-
-    @Test
-    public void testFindIntegrationsByTenantIdConverterIdAndIdsAsync() throws ExecutionException, InterruptedException {
-        UUID tenantId = UUIDs.timeBased();
-        UUID converterId1 = UUIDs.timeBased();
-        UUID converterId2 = UUIDs.timeBased();
-        List<UUID> searchIds = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            UUID integrationId = UUIDs.timeBased();
-            UUID converterId = i % 2 == 0 ? converterId1 : converterId2;
-            saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, IntegrationType.OCEANCONNECT);
-            if (i % 3 == 0) {
-                searchIds.add(integrationId);
-            }
-        }
-
-        ListenableFuture<List<Integration>> integrationsFuture = integrationDao
-                .findIntegrationsByTenantIdAndConverterIdAndIdsAsync(tenantId, converterId1, searchIds);
-        List<Integration> integrations = integrationsFuture.get();
-        assertNotNull(integrations);
-        assertEquals(5, integrations.size());
-    }
-
-    @Test
-    public void testFindIntegrationsByTenantIdAndRoutingKey() {
+    public void testFindIntegrationByRoutingKey() {
         UUID integrationId1 = UUIDs.timeBased();
         UUID integrationId2 = UUIDs.timeBased();
         UUID tenantId1 = UUIDs.timeBased();
@@ -151,42 +87,12 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         saveIntegration(integrationId1, tenantId1, converterId1, routingKey, IntegrationType.OCEANCONNECT);
         saveIntegration(integrationId2, tenantId2, converterId2, routingKey, IntegrationType.OCEANCONNECT);
 
-        Optional<Integration> integrationOpt1 = integrationDao.findIntegrationsByTenantIdAndRoutingKey(tenantId2, routingKey);
+        Optional<Integration> integrationOpt1 = integrationDao.findByRoutingKey(routingKey);
         assertTrue("Optional expected to be non-empty", integrationOpt1.isPresent());
         assertEquals(integrationId2, integrationOpt1.get().getId().getId());
 
-        Optional<Integration> integrationOpt2 = integrationDao.findIntegrationsByTenantIdAndRoutingKey(tenantId2, "NON_EXISTENT_ROUTING_KEY");
+        Optional<Integration> integrationOpt2 = integrationDao.findByRoutingKey("NON_EXISTENT_ROUTING_KEY");
         assertFalse("Optional expected to be empty", integrationOpt2.isPresent());
-    }
-
-    @Test
-    public void testFindTenantIntegrationTypesAsync() throws ExecutionException, InterruptedException {
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID tenantId2 = UUIDs.timeBased();
-        UUID converterId1 = UUIDs.timeBased();
-        UUID converterId2 = UUIDs.timeBased();
-        saveIntegration(UUIDs.timeBased(), tenantId1, converterId1, "TEST_INTEGRATION_1", IntegrationType.OCEANCONNECT);
-        saveIntegration(UUIDs.timeBased(), tenantId1, converterId1, "TEST_INTEGRATION_2", IntegrationType.OCEANCONNECT);
-        saveIntegration(UUIDs.timeBased(), tenantId1, converterId1, "TEST_INTEGRATION_3", IntegrationType.SIGFOX);
-        saveIntegration(UUIDs.timeBased(), tenantId1, converterId1, "TEST_INTEGRATION_4", IntegrationType.SIGFOX);
-        saveIntegration(UUIDs.timeBased(), tenantId1, converterId1, "TEST_INTEGRATION_5", IntegrationType.SIGFOX);
-
-        saveIntegration(UUIDs.timeBased(), tenantId2, converterId2, "TEST_INTEGRATION_6", IntegrationType.OCEANCONNECT);
-        saveIntegration(UUIDs.timeBased(), tenantId2, converterId2, "TEST_INTEGRATION_7", IntegrationType.OCEANCONNECT);
-
-        List<EntitySubtype> tenant1Types = integrationDao.findTenantIntegrationTypesAsync(tenantId1).get();
-        assertNotNull(tenant1Types);
-        List<EntitySubtype> tenant2Types = integrationDao.findTenantIntegrationTypesAsync(tenantId2).get();
-        assertNotNull(tenant2Types);
-
-        assertEquals(2, tenant1Types.size());
-        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals(IntegrationType.OCEANCONNECT.toString())));
-        assertTrue(tenant1Types.stream().anyMatch(t -> t.getType().equals(IntegrationType.SIGFOX.toString())));
-        assertFalse(tenant1Types.stream().anyMatch(t -> t.getType().equals("TYPE_1")));
-
-        assertEquals(1, tenant2Types.size());
-        assertTrue(tenant2Types.stream().anyMatch(t -> t.getType().equals(IntegrationType.OCEANCONNECT.toString())));
-        assertFalse(tenant2Types.stream().anyMatch(t -> t.getType().equals("TYPE_2")));
     }
 
     private void saveTernary(UUID tenantId1, UUID converterId1) {

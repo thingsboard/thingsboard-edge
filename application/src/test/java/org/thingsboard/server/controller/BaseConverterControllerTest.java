@@ -36,7 +36,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -118,31 +117,6 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     }
 
     @Test
-    public void testFindConverterTypesByTenantId() throws Exception {
-        List<Converter> converters = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            Converter converter = new Converter();
-            converter.setName("My converter A" + i);
-            converter.setType(ConverterType.GENERIC);
-            converters.add(doPost("/api/converter", converter, Converter.class));
-        }
-        for (int i = 0; i < 7; i++) {
-            Converter converter = new Converter();
-            converter.setName("My converter B" + i);
-            converter.setType(ConverterType.JS);
-            converters.add(doPost("/api/converter", converter, Converter.class));
-        }
-        List<EntitySubtype> converterTypes = doGetTyped("/api/converter/types",
-                new TypeReference<List<EntitySubtype>>() {
-                });
-
-        Assert.assertNotNull(converterTypes);
-        Assert.assertEquals(2, converterTypes.size());
-        Assert.assertEquals(ConverterType.GENERIC.toString(), converterTypes.get(0).getType());
-        Assert.assertEquals(ConverterType.JS.toString(), converterTypes.get(1).getType());
-    }
-
-    @Test
     public void testDeleteConverter() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
@@ -187,7 +161,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         TextPageLink pageLink = new TextPageLink(23);
         TextPageData<Converter> pageData;
         do {
-            pageData = doGetTypedWithPageLink("/api/tenant/converters?",
+            pageData = doGetTypedWithPageLink("/api/converters?",
                     new TypeReference<TextPageData<Converter>>() {
                     }, pageLink);
             loadedConverters.addAll(pageData.getData());
@@ -203,7 +177,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     }
 
     @Test
-    public void testFindTenantConvertersByName() throws Exception {
+    public void testFindTenantConvertersBySearchText() throws Exception {
         String title1 = "Converter title 1";
         List<Converter> converters = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
@@ -231,7 +205,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         TextPageLink pageLink = new TextPageLink(15, title1);
         TextPageData<Converter> pageData;
         do {
-            pageData = doGetTypedWithPageLink("/api/tenant/converters?",
+            pageData = doGetTypedWithPageLink("/api/converters?",
                     new TypeReference<TextPageData<Converter>>() {
                     }, pageLink);
             loadedConverters.addAll(pageData.getData());
@@ -248,7 +222,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         List<Converter> loadedConverters1 = new ArrayList<>();
         pageLink = new TextPageLink(4, title2);
         do {
-            pageData = doGetTypedWithPageLink("/api/tenant/converters?",
+            pageData = doGetTypedWithPageLink("/api/converters?",
                     new TypeReference<TextPageData<Converter>>() {
                     }, pageLink);
             loadedConverters1.addAll(pageData.getData());
@@ -268,7 +242,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         }
 
         pageLink = new TextPageLink(4, title1);
-        pageData = doGetTypedWithPageLink("/api/tenant/converters?",
+        pageData = doGetTypedWithPageLink("/api/converters?",
                 new TypeReference<TextPageData<Converter>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
@@ -280,97 +254,11 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         }
 
         pageLink = new TextPageLink(4, title2);
-        pageData = doGetTypedWithPageLink("/api/tenant/converters?",
+        pageData = doGetTypedWithPageLink("/api/converters?",
                 new TypeReference<TextPageData<Converter>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    @Test
-    public void testFindTenantConvertersByType() throws Exception {
-        String title1 = "Converter title 1";
-        ConverterType type1 = ConverterType.GENERIC;
-        List<Converter> converters = new ArrayList<>();
-        for (int i = 0; i < 143; i++) {
-            Converter converter = new Converter();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            converter.setName(name);
-            converter.setType(type1);
-            converters.add(doPost("/api/converter", converter, Converter.class));
-        }
-        String title2 = "Converter title 2";
-        ConverterType type2 = ConverterType.JS;
-        List<Converter> converters1 = new ArrayList<>();
-        for (int i = 0; i < 75; i++) {
-            Converter converter = new Converter();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            converter.setName(name);
-            converter.setType(type2);
-            converters1.add(doPost("/api/converter", converter, Converter.class));
-        }
-
-        List<Converter> loadedConverters = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15);
-        TextPageData<Converter> pageData;
-        do {
-            pageData = doGetTypedWithPageLink("/api/tenant/converters?type={type}&",
-                    new TypeReference<TextPageData<Converter>>() {
-                    }, pageLink, type1);
-            loadedConverters.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(converters, idComparator);
-        Collections.sort(loadedConverters, idComparator);
-
-        Assert.assertEquals(converters, loadedConverters);
-
-        List<Converter> loadedConverters1 = new ArrayList<>();
-        pageLink = new TextPageLink(4);
-        do {
-            pageData = doGetTypedWithPageLink("/api/tenant/converters?type={type}&",
-                    new TypeReference<TextPageData<Converter>>() {
-                    }, pageLink, type2);
-            loadedConverters1.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(converters1, idComparator);
-        Collections.sort(loadedConverters1, idComparator);
-
-        Assert.assertEquals(converters1, loadedConverters1);
-
-        for (Converter converter : loadedConverters) {
-            doDelete("/api/converter/" + converter.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-
-        pageLink = new TextPageLink(4);
-        pageData = doGetTypedWithPageLink("/api/tenant/converters?type={type}&",
-                new TypeReference<TextPageData<Converter>>() {
-                }, pageLink, type1);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-
-        for (Converter converter : loadedConverters1) {
-            doDelete("/api/converter/" + converter.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-
-        pageLink = new TextPageLink(4);
-        pageData = doGetTypedWithPageLink("/api/tenant/converters?type={type}&",
-                new TypeReference<TextPageData<Converter>>() {
-                }, pageLink, type2);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-    }
 }
