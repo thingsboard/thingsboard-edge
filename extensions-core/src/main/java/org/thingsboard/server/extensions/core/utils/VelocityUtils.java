@@ -44,7 +44,7 @@ import org.thingsboard.server.common.msg.session.FromDeviceMsg;
 import org.thingsboard.server.extensions.api.device.DeviceAttributes;
 import org.thingsboard.server.extensions.api.device.DeviceMetaData;
 import org.thingsboard.server.extensions.api.rules.RuleProcessingMetaData;
-import org.thingsboard.server.extensions.core.filter.NashornJsEvaluator;
+import org.thingsboard.server.extensions.core.filter.NashornJsFilterEvaluator;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -85,9 +85,9 @@ public class VelocityUtils {
         context.put("date", new DateTool());
         DeviceAttributes deviceAttributes = deviceMetaData.getDeviceAttributes();
 
-        pushAttributes(context, deviceAttributes.getClientSideAttributes(), NashornJsEvaluator.CLIENT_SIDE);
-        pushAttributes(context, deviceAttributes.getServerSideAttributes(), NashornJsEvaluator.SERVER_SIDE);
-        pushAttributes(context, deviceAttributes.getServerSidePublicAttributes(), NashornJsEvaluator.SHARED);
+        pushAttributes(context, deviceAttributes.getClientSideAttributes(), NashornJsFilterEvaluator.CLIENT_SIDE);
+        pushAttributes(context, deviceAttributes.getServerSideAttributes(), NashornJsFilterEvaluator.SERVER_SIDE);
+        pushAttributes(context, deviceAttributes.getServerSidePublicAttributes(), NashornJsFilterEvaluator.SHARED);
 
         switch (payload.getMsgType()) {
             case POST_TELEMETRY_REQUEST:

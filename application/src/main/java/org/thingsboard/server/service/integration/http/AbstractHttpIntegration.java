@@ -28,65 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.extensions.core.filter;
+package org.thingsboard.server.service.integration.http;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.msg.device.ToDeviceActorMsg;
-import org.thingsboard.server.extensions.api.rules.RuleContext;
-import org.thingsboard.server.extensions.api.rules.RuleFilter;
-
-import javax.script.ScriptException;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 04.12.17.
  */
-@Slf4j
-public abstract class BasicJsFilter implements RuleFilter<JsFilterConfiguration> {
+public abstract class AbstractHttpIntegration implements ThingsboardPlatformIntegration<HttpIntegrationMsg> {
 
-    protected JsFilterConfiguration configuration;
-    protected NashornJsFilterEvaluator evaluator;
-
-    @Override
-    public void init(JsFilterConfiguration configuration) {
-        this.configuration = configuration;
-        initEvaluator(configuration);
-    }
+    protected Integration configuration;
+    protected ThingsboardDataConverter converter;
 
     @Override
-    public boolean filter(RuleContext ctx, ToDeviceActorMsg msg) {
-        try {
-            return doFilter(ctx, msg);
-        } catch (ScriptException e) {
-            log.warn("RuleFilter evaluation exception: {}", e.getMessage(), e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected abstract boolean doFilter(RuleContext ctx, ToDeviceActorMsg msg) throws ScriptException;
-
-    @Override
-    public void resume() {
-        initEvaluator(configuration);
+    public void init(Integration dto, ThingsboardDataConverter converter) {
+        this.configuration = dto;
+        this.converter = converter;
     }
 
     @Override
-    public void suspend() {
-        destroyEvaluator();
+    public void update(Integration dto, ThingsboardDataConverter converter) {
+        init(dto, converter);
     }
 
     @Override
-    public void stop() {
-        destroyEvaluator();
+    public Integration getConfiguration() {
+        return configuration;
     }
 
-    private void initEvaluator(JsFilterConfiguration configuration) {
-        evaluator = new NashornJsFilterEvaluator(configuration.getFilter());
-    }
+    @Override
+    public void destroy() {
 
-    private void destroyEvaluator() {
-        if (evaluator != null) {
-            evaluator.destroy();
-        }
     }
-
 }

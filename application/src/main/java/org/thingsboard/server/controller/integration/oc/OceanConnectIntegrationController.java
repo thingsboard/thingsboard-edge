@@ -38,9 +38,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.BaseController;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
+import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
 
 import java.util.Optional;
 
@@ -58,9 +61,9 @@ public class OceanConnectIntegrationController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
-            @RequestBody JsonNode notification
+            @RequestBody JsonNode msg
     ) {
-        log.debug("[{}] Received request: {}", routingKey, notification);
+        log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
         Optional<ThingsboardPlatformIntegration> integration = integrationService.getIntegrationByRoutingKey(routingKey);
@@ -70,18 +73,23 @@ public class OceanConnectIntegrationController extends BaseController {
             return result;
         }
 
-        if(!notification.has("deviceId")){
+        if (integration.get().getConfiguration().getType() != IntegrationType.OCEANCONNECT) {
             result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
             return result;
         }
 
-        process(integration.get(), notification, result);
+        if (!msg.has("deviceId")) {
+            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            return result;
+        }
+
+        process((OceanConnectIntegration) integration.get(), msg, result);
 
         return result;
     }
 
-    private void process(ThingsboardPlatformIntegration thingsboardPlatformIntegration, JsonNode notification, DeferredResult<ResponseEntity> result) {
-
+    private void process(OceanConnectIntegration integration, JsonNode msg, DeferredResult<ResponseEntity> result) {
+        integration.process(new HttpIntegrationMsg(msg, result));
     }
 
 }

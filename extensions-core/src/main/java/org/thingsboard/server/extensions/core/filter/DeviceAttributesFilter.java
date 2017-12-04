@@ -54,12 +54,12 @@ public class DeviceAttributesFilter extends BasicJsFilter {
     }
 
     private Bindings toBindings(DeviceAttributes attributes, FromDeviceMsg msg) {
-        Bindings bindings = NashornJsEvaluator.getAttributeBindings(attributes);
+        Bindings bindings = NashornJsFilterEvaluator.getAttributeBindings(attributes);
 
         if (msg != null) {
             switch (msg.getMsgType()) {
                 case POST_ATTRIBUTES_REQUEST:
-                    bindings = NashornJsEvaluator.updateBindings(bindings, (UpdateAttributesRequest) msg);
+                    bindings = NashornJsFilterEvaluator.updateBindings(bindings, (UpdateAttributesRequest) msg);
                     break;
                 default:
                     break;

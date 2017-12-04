@@ -49,7 +49,7 @@ import org.thingsboard.server.extensions.api.rules.RuleContext;
 import org.thingsboard.server.extensions.api.rules.RuleException;
 import org.thingsboard.server.extensions.api.rules.RuleProcessingMetaData;
 import org.thingsboard.server.extensions.api.rules.RuleProcessor;
-import org.thingsboard.server.extensions.core.filter.NashornJsEvaluator;
+import org.thingsboard.server.extensions.core.filter.NashornJsFilterEvaluator;
 import org.thingsboard.server.extensions.core.utils.VelocityUtils;
 
 import javax.script.Bindings;
@@ -72,8 +72,8 @@ public class AlarmProcessor implements RuleProcessor<AlarmProcessorConfiguration
     static final String IS_NEW_OR_CLEARED_ALARM = "isNewOrClearedAlarm";
 
 
-    protected NashornJsEvaluator newAlarmEvaluator;
-    protected NashornJsEvaluator clearAlarmEvaluator;
+    protected NashornJsFilterEvaluator newAlarmEvaluator;
+    protected NashornJsFilterEvaluator clearAlarmEvaluator;
 
     private ObjectMapper mapper = new ObjectMapper();
     private AlarmProcessorConfiguration configuration;
@@ -230,16 +230,16 @@ public class AlarmProcessor implements RuleProcessor<AlarmProcessorConfiguration
     }
 
     private Bindings buildBindings(RuleContext ctx, FromDeviceMsg msg) {
-        Bindings bindings = NashornJsEvaluator.getAttributeBindings(ctx.getDeviceMetaData().getDeviceAttributes());
+        Bindings bindings = NashornJsFilterEvaluator.getAttributeBindings(ctx.getDeviceMetaData().getDeviceAttributes());
         if (msg != null) {
             switch (msg.getMsgType()) {
                 case POST_ATTRIBUTES_REQUEST:
-                    bindings = NashornJsEvaluator.updateBindings(bindings, (UpdateAttributesRequest) msg);
+                    bindings = NashornJsFilterEvaluator.updateBindings(bindings, (UpdateAttributesRequest) msg);
                     break;
                 case POST_TELEMETRY_REQUEST:
                     TelemetryUploadRequest telemetryMsg = (TelemetryUploadRequest) msg;
                     for (List<KvEntry> entries : telemetryMsg.getData().values()) {
-                        bindings = NashornJsEvaluator.toBindings(bindings, entries);
+                        bindings = NashornJsFilterEvaluator.toBindings(bindings, entries);
                     }
                     break;
                 default:
@@ -250,8 +250,8 @@ public class AlarmProcessor implements RuleProcessor<AlarmProcessorConfiguration
     }
 
     private void initEvaluators() {
-        newAlarmEvaluator = new NashornJsEvaluator(configuration.getNewAlarmExpression());
-        clearAlarmEvaluator = new NashornJsEvaluator(configuration.getClearAlarmExpression());
+        newAlarmEvaluator = new NashornJsFilterEvaluator(configuration.getNewAlarmExpression());
+        clearAlarmEvaluator = new NashornJsFilterEvaluator(configuration.getClearAlarmExpression());
     }
 
     private void destroyEvaluators() {

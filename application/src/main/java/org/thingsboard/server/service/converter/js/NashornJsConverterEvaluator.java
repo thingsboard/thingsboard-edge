@@ -28,65 +28,52 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.extensions.core.filter;
+package org.thingsboard.server.service.converter.js;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.msg.device.ToDeviceActorMsg;
-import org.thingsboard.server.extensions.api.rules.RuleContext;
-import org.thingsboard.server.extensions.api.rules.RuleFilter;
+import org.springframework.util.Base64Utils;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
+import org.thingsboard.server.extensions.api.device.DeviceAttributes;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 
-import javax.script.ScriptException;
+import javax.script.*;
+import java.util.*;
 
 /**
  * @author Andrew Shvayka
  */
 @Slf4j
-public abstract class BasicJsFilter implements RuleFilter<JsFilterConfiguration> {
+public class NashornJsConverterEvaluator {
 
-    protected JsFilterConfiguration configuration;
-    protected NashornJsFilterEvaluator evaluator;
+    private static NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
 
-    @Override
-    public void init(JsFilterConfiguration configuration) {
-        this.configuration = configuration;
-        initEvaluator(configuration);
+    private Invocable engine;
+
+    NashornJsConverterEvaluator(String script) {
+        engine = compileScript(script);
     }
 
-    @Override
-    public boolean filter(RuleContext ctx, ToDeviceActorMsg msg) {
+    private static Invocable compileScript(String script) {
+        ScriptEngine engine = factory.getScriptEngine("--no-java");
         try {
-            return doFilter(ctx, msg);
+            engine.eval(script);
+            return (Invocable) engine;
         } catch (ScriptException e) {
-            log.warn("RuleFilter evaluation exception: {}", e.getMessage(), e);
-            throw new RuntimeException(e);
+            log.warn("Failed to compile filter script: {}", e.getMessage(), e);
+            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
         }
     }
 
-    protected abstract boolean doFilter(RuleContext ctx, ToDeviceActorMsg msg) throws ScriptException;
-
-    @Override
-    public void resume() {
-        initEvaluator(configuration);
+    String execute(byte[] data, UplinkMetaData metadata) throws ScriptException, NoSuchMethodException {
+        return engine.invokeFunction("convertUplinkInternal", data, metadata.getKvMap()).toString();
     }
 
-    @Override
-    public void suspend() {
-        destroyEvaluator();
+    public void destroy() {
+        engine = null;
     }
 
-    @Override
-    public void stop() {
-        destroyEvaluator();
-    }
-
-    private void initEvaluator(JsFilterConfiguration configuration) {
-        evaluator = new NashornJsFilterEvaluator(configuration.getFilter());
-    }
-
-    private void destroyEvaluator() {
-        if (evaluator != null) {
-            evaluator.destroy();
-        }
-    }
 
 }

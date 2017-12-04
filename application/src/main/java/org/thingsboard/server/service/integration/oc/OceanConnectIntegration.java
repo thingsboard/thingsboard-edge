@@ -30,37 +30,44 @@
  */
 package org.thingsboard.server.service.integration.oc;
 
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
-import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
-public class OceanConnectIntegration implements ThingsboardPlatformIntegration {
+@Slf4j
+public class OceanConnectIntegration extends AbstractHttpIntegration {
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public Integration getConfiguration() {
-        return null;
+    public void process(HttpIntegrationMsg msg) {
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(msg);
+
+        if (uplinkDataList != null) {
+            for (UplinkData data : uplinkDataList) {
+                log.info("[{}] Processing uplink data", data);
+            }
+        }
     }
 
-    @Override
-    public void init(Integration dto, ThingsboardDataConverter converter) {
-
-    }
-
-    @Override
-    public void update(Integration dto, ThingsboardDataConverter converter) {
-
-    }
-
-    @Override
-    public void destroy() {
-
-    }
-
-    @Override
-    public void process(Object msg) {
-
+    private List<UplinkData> convertToUplinkDataList(HttpIntegrationMsg msg) {
+        List<UplinkData> uplinkDataList = null;
+        try {
+            byte[] data = mapper.writeValueAsBytes(msg.getMsg());
+            UplinkMetaData md = new UplinkMetaData(Collections.singletonMap("integrationName", configuration.getName()));
+            uplinkDataList = this.converter.convertUplink(data, md);
+        } catch (Exception e) {
+            log.warn("Failed to apply data converter function", e);
+        }
+        return uplinkDataList;
     }
 }

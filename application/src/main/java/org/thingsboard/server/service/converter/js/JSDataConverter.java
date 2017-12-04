@@ -30,25 +30,94 @@
  */
 package org.thingsboard.server.service.converter.js;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
+import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
+import org.thingsboard.server.common.transport.adaptor.JsonConverter;
+import org.thingsboard.server.extensions.core.filter.NashornJsFilterEvaluator;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.converter.UplinkMetaData;
+
+import javax.script.ScriptException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSDataConverter implements ThingsboardDataConverter {
+
+    private final AtomicInteger telemetryIdSeq = new AtomicInteger();
+    private final AtomicInteger attrRequestIdSeq = new AtomicInteger();
+
+    protected NashornJsConverterEvaluator uplinkEvaluator;
+
     @Override
     public void init(Converter configuration) {
-
+        uplinkEvaluator = new NashornJsConverterEvaluator(configuration.getConfiguration().get("uplinkConverterFunction").asText());
     }
 
     @Override
     public void update(Converter configuration) {
-
+        destroy();
+        init(configuration);
     }
 
     @Override
     public void destroy() {
+        if (uplinkEvaluator != null) {
+            uplinkEvaluator.destroy();
+        }
+    }
 
+    @Override
+    public List<UplinkData> convertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
+        List<UplinkData> result = new ArrayList<>();
+        JsonElement element = new JsonParser().parse(applyJsFunction(data, metadata));
+        if (element.isJsonArray()) {
+            for (JsonElement uplinkJson : element.getAsJsonArray()) {
+                result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
+            }
+        } else if (element.isJsonObject()) {
+            result.add(parseUplinkData(element.getAsJsonObject()));
+        }
+
+        return result;
+    }
+
+    private UplinkData parseUplinkData(JsonObject src) {
+        if (!src.has("deviceName")) {
+            throw new JsonParseException("Device name is not set!");
+        }
+        UplinkData.UplinkDataBuilder builder = UplinkData.builder();
+        builder.deviceName(src.get("deviceName").getAsString());
+        if (src.has("telemetry")) {
+            builder.telemetry(parseTelemetry(src.get("telemetry")));
+        }
+        if (src.has("attributes")) {
+            builder.attributesUpdate(parseAttributesUpdate(src.get("attributes")));
+        }
+
+        //TODO: add support of attribute requests and client-side RPC.
+
+        return builder.build();
+    }
+
+    private TelemetryUploadRequest parseTelemetry(JsonElement src) {
+        return JsonConverter.convertToTelemetry(src, telemetryIdSeq.getAndIncrement());
+    }
+
+    private UpdateAttributesRequest parseAttributesUpdate(JsonElement src) {
+        return JsonConverter.convertToAttributes(src, attrRequestIdSeq.getAndIncrement());
+    }
+
+    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
+        return uplinkEvaluator.execute(data, metadata);
     }
 }

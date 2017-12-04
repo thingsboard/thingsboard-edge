@@ -28,64 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.extensions.core.filter;
+package org.thingsboard.server.service.converter.js;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.msg.device.ToDeviceActorMsg;
-import org.thingsboard.server.extensions.api.rules.RuleContext;
-import org.thingsboard.server.extensions.api.rules.RuleFilter;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 
 import javax.script.ScriptException;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 04.12.17.
  */
-@Slf4j
-public abstract class BasicJsFilter implements RuleFilter<JsFilterConfiguration> {
+@RunWith(MockitoJUnitRunner.class)
+public class NashornJsConverterEvaluatorTest {
 
-    protected JsFilterConfiguration configuration;
-    protected NashornJsFilterEvaluator evaluator;
 
-    @Override
-    public void init(JsFilterConfiguration configuration) {
-        this.configuration = configuration;
-        initEvaluator(configuration);
+    @Test
+    public void basicTest() throws ScriptException, NoSuchMethodException {
+        NashornJsConverterEvaluator eval = create("uplinkConvertor.js");
+        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData(Collections.singletonMap("temperatureKeyName", "temperature")));
+        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
     }
 
-    @Override
-    public boolean filter(RuleContext ctx, ToDeviceActorMsg msg) {
-        try {
-            return doFilter(ctx, msg);
-        } catch (ScriptException e) {
-            log.warn("RuleFilter evaluation exception: {}", e.getMessage(), e);
+    private NashornJsConverterEvaluator create(String scriptName) {
+        InputStream src = NashornJsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
+        return new NashornJsConverterEvaluator(read(src));
+    }
+
+    public static String read(InputStream input) {
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
+            return buffer.lines().collect(Collectors.joining(System.lineSeparator()));
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    protected abstract boolean doFilter(RuleContext ctx, ToDeviceActorMsg msg) throws ScriptException;
-
-    @Override
-    public void resume() {
-        initEvaluator(configuration);
-    }
-
-    @Override
-    public void suspend() {
-        destroyEvaluator();
-    }
-
-    @Override
-    public void stop() {
-        destroyEvaluator();
-    }
-
-    private void initEvaluator(JsFilterConfiguration configuration) {
-        evaluator = new NashornJsFilterEvaluator(configuration.getFilter());
-    }
-
-    private void destroyEvaluator() {
-        if (evaluator != null) {
-            evaluator.destroy();
         }
     }
 

@@ -54,7 +54,7 @@ public class DeviceTelemetryFilter extends BasicJsFilter {
         if (deviceMsg instanceof TelemetryUploadRequest) {
             TelemetryUploadRequest telemetryMsg = (TelemetryUploadRequest) deviceMsg;
             for (List<KvEntry> entries : telemetryMsg.getData().values()) {
-                if (evaluator.execute(NashornJsEvaluator.toBindings(entries))) {
+                if (evaluator.execute(NashornJsFilterEvaluator.toBindings(entries))) {
                     return true;
                 }
             }
