@@ -35,6 +35,7 @@ import {utf8ToBytes} from './../common/utf8-support';
 /* eslint-disable import/no-unresolved, import/default */
 
 import converterFieldsetTemplate from './converter-fieldset.tpl.html';
+import jsDecoderTemplate from './js-decoder.tpl.txt';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -51,7 +52,8 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             param2: "text"
         };
 
-        scope.decoderValidationBytes = utf8ToBytes(angular.toJson(decoderValidation));
+        scope.decoderValidationPayload = utf8ToBytes(angular.toJson(decoderValidation));
+        scope.decoderMetadata = {};
 
         scope.converterTypeChanged = () => {
             if (scope.converter.type == types.converterType.CUSTOM.value) {
@@ -59,11 +61,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     scope.converter.configuration = {};
                 }
                 if (!scope.converter.configuration.decoder || !scope.converter.configuration.decoder.length) {
-                    scope.converter.configuration.decoder = '// Decode an uplink message from a buffer\n'+
-                        '// (array) of bytes to an object of fields.\n\n'+
-                        'var str = String.fromCharCode.apply(String, bytes);\n'+
-                        'var decoded = JSON.parse(str);\n\n'+
-                        'return decoded;\n';
+                    scope.converter.configuration.decoder = jsDecoderTemplate;
                 }
                 /*if (!scope.converter.configuration.encoder || !scope.converter.configuration.encoder.length) {
                     scope.converter.configuration.encoder = '// Encode downlink messages sent as\n'+

@@ -67,9 +67,8 @@
             <label translate class="tb-title no-padding">converter.decoder</label>
             <tb-js-func ng-model="converter.configuration.decoder"
                         function-name="Decoder"
-                        function-args="{{ ['bytes'] }}"
-                        validation-args="{{ [[decoderValidationBytes]] }}"
-                        result-type="object">
+                        function-args="{{ ['payload', 'metadata'] }}"
+                        validation-args="{{ [[decoderValidationPayload, decoderMetadata]] }}">
             </tb-js-func>
             <br/>
 

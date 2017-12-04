@@ -294,6 +294,7 @@
                             <exclude>src/sh/**</exclude>
                             <exclude>src/main/scripts/control/**</exclude>
                             <exclude>src/main/scripts/windows/**</exclude>
+                            <exclude>**/*.tpl.txt</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
