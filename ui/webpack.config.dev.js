@@ -123,6 +123,10 @@ module.exports = {
                 loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src/app')) + '/!html!html-minifier-loader'
             },
             {
+                test: /\.tpl\.txt$/,
+                loader: 'raw-loader'
+            },
+            {
                 test: /\.(svg)(\?v=[0-9]+\.[0-9]+\.[0-9]+)?$/,
                 loader: 'url?limit=8192'
             },

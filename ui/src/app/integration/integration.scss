@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -29,45 +29,25 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import './home-links.scss';
+@import '../../scss/constants';
 
-/*@ngInject*/
-export default function HomeLinksController($scope, $mdMedia, menu) {
-
-    var vm = this;
-
-    vm.sectionColspan = sectionColspan;
-
-    $scope.$watch(function() { return $mdMedia('lg'); }, function() {
-        updateColumnCount();
-    });
-
-    $scope.$watch(function() { return $mdMedia('gt-lg'); }, function() {
-        updateColumnCount();
-    });
-
-    updateColumnCount();
-
-    menu.getHomeSections().then((homeSections) => {
-        vm.model = homeSections;
-    });
-
-    function updateColumnCount() {
-        vm.cols = 2;
-        if ($mdMedia('lg')) {
-            vm.cols = 3;
-        }
-        if ($mdMedia('gt-lg')) {
-            vm.cols = 4;
-        }
+.tb-metadata-panel-group {
+  .tb-panel-title {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    min-width: 120px;
+    @media (min-width: $layout-breakpoint-sm) {
+      min-width: 180px;
     }
-
-    function sectionColspan(section) {
-        var colspan = vm.cols;
-        if (section && section.places && section.places.length <= colspan) {
-            colspan = section.places.length;
-        }
-        return colspan;
+  }
+  &.disabled {
+    .tb-panel-title {
+      color: rgba(0, 0, 0, 0.38);
     }
-
+  }
+  md-icon.md-expansion-panel-icon {
+    margin-right: 0px;
+  }
 }

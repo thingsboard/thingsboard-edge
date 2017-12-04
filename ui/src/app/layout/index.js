@@ -44,6 +44,7 @@ import thingsboardNoAnimate from '../components/no-animate.directive';
 import thingsboardOnFinishRender from '../components/finish-render.directive';
 import thingsboardSideMenu from '../components/side-menu.directive';
 import thingsboardDashboardAutocomplete from '../components/dashboard-autocomplete.directive';
+import thingsboardKvMap from '../components/kv-map.directive';
 
 import thingsboardUserMenu from './user-menu.directive';
 
@@ -105,7 +106,8 @@ export default angular.module('thingsboard.home', [
     thingsboardNoAnimate,
     thingsboardOnFinishRender,
     thingsboardSideMenu,
-    thingsboardDashboardAutocomplete
+    thingsboardDashboardAutocomplete,
+    thingsboardKvMap
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

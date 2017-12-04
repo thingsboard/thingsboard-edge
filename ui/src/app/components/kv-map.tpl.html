@@ -1,0 +1,74 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+
+<section layout="column" class="tb-kv-map">
+    <label translate class="tb-title no-padding">{{ vm.titleText }}</label>
+    <div flex layout="row"
+         ng-repeat="keyVal in vm.kvList track by $index"
+         style="max-height: 40px;" layout-align="start center">
+        <md-input-container flex md-no-float class="md-block" ng-disabled="vm.disabled"
+                            style="margin: 10px 0px 0px 0px; max-height: 40px;">
+            <input placeholder="{{ 'key-val.key' | translate }}"
+                   ng-required="true" name="key" ng-model="keyVal.key">
+        </md-input-container>
+        <md-input-container flex md-no-float class="md-block" ng-disabled="vm.disabled"
+                            style="margin: 10px 0px 0px 0px; max-height: 40px;">
+            <input placeholder="{{ 'key-val.value' | translate }}"
+                   ng-required="true" name="value" ng-model="keyVal.value">
+        </md-input-container>
+        <md-button ng-show="!vm.disabled" ng-disabled="loading" class="md-icon-button md-primary"
+                   ng-click="vm.removeKeyVal($index)"
+                   aria-label="{{ 'action.remove' | translate }}">
+            <md-tooltip md-direction="top">
+                {{ 'key-val.remove-entry' | translate }}
+            </md-tooltip>
+            <md-icon aria-label="{{ 'action.delete' | translate }}"
+                     class="material-icons">
+                close
+            </md-icon>
+        </md-button>
+    </div>
+    <span ng-show="!vm.kvList.length"
+          layout-align="center center" ng-class="{'disabled': vm.disabled}"
+          class="no-data-found" translate>key-val.no-data</span>
+    <div>
+        <md-button ng-show="!vm.disabled" ng-disabled="loading" class="md-primary md-raised"
+                   ng-click="vm.addKeyVal()"
+                   aria-label="{{ 'action.add' | translate }}">
+            <md-tooltip md-direction="top">
+                {{ 'key-val.add-entry' | translate }}
+            </md-tooltip>
+            <span translate>action.add</span>
+        </md-button>
+    </div>
+</section>
