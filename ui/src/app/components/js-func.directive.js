@@ -64,6 +64,8 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
             scope.resultType = "nocheck";
         }
 
+        scope.validationTriggerArg = attrs.validationTriggerArg;
+
         scope.functionValid = true;
 
         var Range = ace.acequire("ace/range").Range;
@@ -213,9 +215,15 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
             }
         };
 
-        scope.$on('form-submit', function () {
-            scope.functionValid = scope.validate();
-            scope.updateValidity();
+        scope.$on('form-submit', function (event, args) {
+            if (!args || scope.validationTriggerArg && scope.validationTriggerArg == args) {
+                scope.validationArgs = scope.$eval(attrs.validationArgs);
+                scope.cleanupJsErrors();
+                scope.functionValid = true;
+                scope.updateValidity();
+                scope.functionValid = scope.validate();
+                scope.updateValidity();
+            }
         });
 
         $compile(element.contents())(scope);

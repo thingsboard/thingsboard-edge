@@ -176,6 +176,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         customTranslation: customTranslation,
         objToBase64: objToBase64,
         base64toObj: base64toObj,
+        stringToBase64: stringToBase64,
+        base64toString: base64toString,
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults
     }
@@ -595,6 +597,18 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         var json = utf8Decode(encoded);
         var obj = angular.fromJson(json);
         return obj;
+    }
+
+    function stringToBase64(value) {
+        var encoded = utf8Encode(value);
+        var b64Encoded = base64js.fromByteArray(encoded);
+        return b64Encoded;
+    }
+
+    function base64toString(b64Encoded) {
+        var encoded = base64js.toByteArray(b64Encoded);
+        var value = utf8Decode(encoded);
+        return value;
     }
 
     function groupConfigDefaults(groupConfig) {

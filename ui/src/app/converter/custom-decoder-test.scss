@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -29,15 +29,31 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import ConverterRoutes from './converter.routes';
-import {ConverterController, ConverterCardController} from './converter.controller';
-import CustomDecoderTestController from './custom-decoder-test.controller';
-import ConverterDirective from './converter.directive';
+@import '../../scss/constants';
 
-export default angular.module('thingsboard.converter', [])
-    .config(ConverterRoutes)
-    .controller('ConverterController', ConverterController)
-    .controller('ConverterCardController', ConverterCardController)
-    .controller('CustomDecoderTestController', CustomDecoderTestController)
-    .directive('tbConverter', ConverterDirective)
-    .name;
+.tb-input-params-panel-group, .tb-output-panel-group {
+  .tb-panel-title {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    min-width: 120px;
+    @media (min-width: $layout-breakpoint-sm) {
+      min-width: 180px;
+    }
+  }
+  .tb-panel-desc {
+    pointer-events: none;
+    color: #666;
+    font-size: 13px;
+    font-weight: 400;
+  }
+  &.disabled {
+    .tb-panel-title, .tb-panel-desc {
+      color: rgba(0, 0, 0, 0.38);
+    }
+  }
+  md-icon.md-expansion-panel-icon {
+    margin-right: 0px;
+  }
+}

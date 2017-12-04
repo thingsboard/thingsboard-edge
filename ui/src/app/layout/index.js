@@ -45,6 +45,7 @@ import thingsboardOnFinishRender from '../components/finish-render.directive';
 import thingsboardSideMenu from '../components/side-menu.directive';
 import thingsboardDashboardAutocomplete from '../components/dashboard-autocomplete.directive';
 import thingsboardKvMap from '../components/kv-map.directive';
+import thingsboardJsonContent from '../components/json-content.directive';
 
 import thingsboardUserMenu from './user-menu.directive';
 
@@ -107,7 +108,8 @@ export default angular.module('thingsboard.home', [
     thingsboardOnFinishRender,
     thingsboardSideMenu,
     thingsboardDashboardAutocomplete,
-    thingsboardKvMap
+    thingsboardKvMap,
+    thingsboardJsonContent
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

@@ -35,12 +35,13 @@ import {utf8ToBytes} from './../common/utf8-support';
 /* eslint-disable import/no-unresolved, import/default */
 
 import converterFieldsetTemplate from './converter-fieldset.tpl.html';
+import customDecoderTestTemplate from './custom-decoder-test.tpl.html';
 import jsDecoderTemplate from './js-decoder.tpl.txt';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function ConverterDirective($compile, $templateCache, $translate, toast, types) {
+export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, toast, types) {
     var linker = function (scope, element) {
         var template = $templateCache.get(converterFieldsetTemplate);
         element.html(template);
@@ -75,6 +76,38 @@ export default function ConverterDirective($compile, $templateCache, $translate,
 
         scope.onConverterIdCopied = function() {
             toast.showSuccess($translate.instant('converter.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+        };
+
+        scope.$watch('converter', function(newVal) {
+            if (newVal) {
+                if (!scope.converter.id) {
+                    scope.converter.type = types.converterType.CUSTOM.value;
+                    scope.converterTypeChanged();
+                }
+            }
+        });
+
+        scope.openCustomDecoderTestDialog = function ($event) {
+            if ($event) {
+                $event.stopPropagation();
+            }
+            var decoder = angular.copy(scope.converter.configuration.decoder);
+            $mdDialog.show({
+                controller: 'CustomDecoderTestController',
+                controllerAs: 'vm',
+                templateUrl: customDecoderTestTemplate,
+                parent: angular.element($document[0].body),
+                locals: {
+                    decoder: decoder
+                },
+                fullscreen: true,
+                skipHide: true,
+                targetEvent: $event
+            }).then(
+                (decoder) => {
+                    scope.converter.configuration.decoder = decoder;
+                }
+            );
         };
 
         $compile(element.contents())(scope);

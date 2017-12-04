@@ -380,10 +380,23 @@ export default angular.module('thingsboard.locale', [])
                     "description": "Description",
                     "decoder": "Decoder",
                     "encoder": "Encoder",
+                    "test-decoder-fuction": "Test decoder function",
+                    "custom-decoder-input-params": "Decoder input parameters",
+                    "payload": "Payload",
+                    "payload-content-type": "Payload content type",
+                    "payload-content": "Payload content",
+                    "test": "Test",
+                    "metadata": "Metadata",
+                    "output": "Output",
                     "type": "Type",
                     "type-required": "Type is required.",
                     "type-generic": "Generic",
                     "type-custom": "Custom"
+                },
+                "content-type": {
+                    "json": "Json",
+                    "text": "Text",
+                    "binary": "Binary (Base64)"
                 },
                 "customer": {
                     "customer": "Customer",
