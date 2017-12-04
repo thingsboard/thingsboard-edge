@@ -28,6 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+import './integration.scss';
+
 /* eslint-disable import/no-unresolved, import/default */
 
 import integrationFieldsetTemplate from './integration-fieldset.tpl.html';
@@ -35,11 +38,13 @@ import integrationFieldsetTemplate from './integration-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function IntegrationDirective($compile, $templateCache, $translate, utils, integrationService, toast, types) {
+export default function IntegrationDirective($compile, $templateCache, $translate, $mdExpansionPanel, utils, integrationService, toast, types) {
     var linker = function (scope, element) {
         var template = $templateCache.get(integrationFieldsetTemplate);
         element.html(template);
 
+        scope.metadataPanelId = (Math.random()*1000).toFixed(0);
+        scope.$mdExpansionPanel = $mdExpansionPanel;
         scope.types = types;
 
         scope.httpEndpoint = null;
@@ -48,9 +53,12 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             if (newVal) {
                 if (!scope.integration.id) {
                     scope.integration.routingKey = utils.guid('');
-                    if (!scope.integration.configuration) {
-                        scope.integration.configuration = {};
-                    }
+                }
+                if (!scope.integration.configuration) {
+                    scope.integration.configuration = {};
+                }
+                if (!scope.integration.configuration.metadata) {
+                    scope.integration.configuration.metadata = {};
                 }
                 if (scope.integration.type && types.integrationType[scope.integration.type].http) {
                     scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);

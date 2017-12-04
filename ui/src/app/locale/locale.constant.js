@@ -1003,6 +1003,7 @@ export default angular.module('thingsboard.locale', [])
                     "http-endpoint": "HTTP endpoint URL",
                     "copy-http-endpoint-url": "Copy HTTP endpoint URL",
                     "http-endpoint-url-copied-message": "HTTP endpoint URL has been copied to clipboard",
+                    "metadata": "Metadata",
                     "type": "Type",
                     "type-required": "Type is required.",
                     "default-converter": "Default data converter",
@@ -1016,6 +1017,13 @@ export default angular.module('thingsboard.locale', [])
                 "js-func": {
                     "no-return-error": "Function must return value!",
                     "return-type-mismatch": "Function must return value of '{{type}}' type!"
+                },
+                "key-val": {
+                    "key": "Key",
+                    "value": "Value",
+                    "remove-entry": "Remove entry",
+                    "add-entry": "Add entry",
+                    "no-data": "No entries"
                 },
                 "layout": {
                     "layout": "Layout",

@@ -47,6 +47,7 @@ import 'md-color-picker';
 import mdPickers from 'mdPickers';
 import ngSanitize from 'angular-sanitize';
 import vAccordion from 'v-accordion';
+import 'angular-material-expansion-panel';
 import ngAnimate from 'angular-animate';
 import 'angular-websocket';
 import uiRouter from 'angular-ui-router';
@@ -110,6 +111,7 @@ import 'angular-material/angular-material.min.css';
 import 'angular-material-icons/angular-material-icons.css';
 import 'angular-gridster/dist/angular-gridster.min.css';
 import 'v-accordion/dist/v-accordion.min.css'
+import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
 import 'md-color-picker/dist/mdColorPicker.min.css';
 import 'mdPickers/dist/mdPickers.min.css';
 import 'angular-hotkeys/build/hotkeys.min.css';
@@ -130,6 +132,7 @@ angular.module('thingsboard', [
     mdPickers,
     ngSanitize,
     vAccordion,
+    'material.components.expansionPanels',
     ngAnimate,
     'ngWebSocket',
     angularJwt,
