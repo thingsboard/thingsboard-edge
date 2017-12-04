@@ -288,6 +288,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.entity_subtype (
 CREATE TABLE IF NOT EXISTS thingsboard.integration (
     id timeuuid,
     tenant_id timeuuid,
+    name text,
     converter_id timeuuid,
     type text,
     routing_key text,

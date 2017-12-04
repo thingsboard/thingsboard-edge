@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.driver.core.utils.UUIDs;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -81,7 +82,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(converterId);
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         Integration savedIntegration = integrationService.saveIntegration(integration);
 
@@ -92,11 +94,11 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(integration.getDefaultConverterId(), savedIntegration.getDefaultConverterId());
         Assert.assertEquals(integration.getRoutingKey(), savedIntegration.getRoutingKey());
 
-        savedIntegration.setRoutingKey("My new integration");
+        savedIntegration.setName("My new integration");
 
         integrationService.saveIntegration(savedIntegration);
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
-        Assert.assertEquals(foundIntegration.getRoutingKey(), savedIntegration.getRoutingKey());
+        Assert.assertEquals(foundIntegration.getName(), savedIntegration.getName());
 
         integrationService.deleteIntegration(savedIntegration.getId());
     }
@@ -106,6 +108,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(converterId);
+        integration.setName("My integration");
         integration.setType(IntegrationType.OCEANCONNECT);
         integrationService.saveIntegration(integration);
     }
@@ -114,7 +117,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
     public void testSaveIntegrationWithEmptyTenant() {
         Integration integration = new Integration();
         integration.setDefaultConverterId(converterId);
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         integrationService.saveIntegration(integration);
     }
@@ -122,7 +126,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
     @Test(expected = DataValidationException.class)
     public void testSaveIntegrationWithInvalidTenant() {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(converterId);
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setTenantId(new TenantId(UUIDs.timeBased()));
@@ -132,7 +137,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
     @Test(expected = DataValidationException.class)
     public void testSaveIntegrationWithEmptyConverterId() {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setTenantId(tenantId);
         integration.setType(IntegrationType.OCEANCONNECT);
         integrationService.saveIntegration(integration);
@@ -143,7 +149,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(converterId);
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         Integration savedIntegration = integrationService.saveIntegration(integration);
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
@@ -157,7 +164,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(converterId);
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         Integration savedIntegration = integrationService.saveIntegration(integration);
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
@@ -182,7 +190,8 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
             Integration integration = new Integration();
             integration.setTenantId(tenantId);
             integration.setDefaultConverterId(converterId);
-            integration.setRoutingKey("Integration" + i);
+            integration.setName("Integration" + i);
+            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integrations.add(integrationService.saveIntegration(integration));
         }

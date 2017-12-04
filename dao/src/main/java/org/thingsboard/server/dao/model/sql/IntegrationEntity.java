@@ -60,6 +60,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private String tenantId;
 
+    @Column(name = INTEGRATION_NAME_PROPERTY)
+    private String name;
+
     @Column(name = INTEGRATION_CONVERTER_ID_PROPERTY)
     private String converterId;
 
@@ -95,6 +98,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         if (integration.getDefaultConverterId() != null) {
             this.converterId = UUIDConverter.fromTimeUUID(integration.getDefaultConverterId().getId());
         }
+        this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.configuration = integration.getConfiguration();
@@ -107,7 +111,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
 
     @Override
     public String getSearchTextSource() {
-        return routingKey;
+        return name;
     }
 
     @Override
@@ -125,6 +129,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         if (converterId != null) {
             integration.setDefaultConverterId(new ConverterId(UUIDConverter.fromString(converterId)));
         }
+        integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
         integration.setConfiguration(configuration);

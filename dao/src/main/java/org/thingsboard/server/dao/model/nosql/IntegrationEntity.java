@@ -50,6 +50,7 @@ import org.thingsboard.server.dao.model.type.JsonCodec;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_PROPERTY;
 
 @Table(name = INTEGRATION_COLUMN_FAMILY_NAME)
 @EqualsAndHashCode
@@ -69,6 +70,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
 
     @Column(name = INTEGRATION_TYPE_PROPERTY, codec = IntegrationTypeCodec.class)
     private IntegrationType type;
+
+    @Column(name = INTEGRATION_NAME_PROPERTY)
+    private String name;
 
     @Column(name = INTEGRATION_ROUTING_KEY_PROPERTY)
     private String routingKey;
@@ -96,7 +100,8 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         if (integration.getDefaultConverterId() != null) {
             this.converterId = integration.getDefaultConverterId().getId();
         }
-        this.routingKey = integration.getName();
+        this.name = integration.getName();
+        this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -160,9 +165,17 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         this.additionalInfo = additionalInfo;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public String getSearchTextSource() {
-        return getRoutingKey();
+        return getName();
     }
 
     public String getSearchText() {
@@ -184,6 +197,7 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         if (converterId != null) {
             integration.setDefaultConverterId(new ConverterId(converterId));
         }
+        integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
         integration.setConfiguration(configuration);

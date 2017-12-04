@@ -56,6 +56,7 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
         var template = $templateCache.get(jsFuncTemplate);
         element.html(template);
 
+        scope.functionName = attrs.functionName;
         scope.functionArgs = scope.$eval(attrs.functionArgs);
         scope.validationArgs = scope.$eval(attrs.validationArgs);
         scope.resultType = attrs.resultType;

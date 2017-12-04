@@ -46,6 +46,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
 
     private TenantId tenantId;
     private ConverterId defaultConverterId;
+    private String name;
     private String routingKey;
     private IntegrationType type;
     private transient JsonNode configuration;
@@ -63,6 +64,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         super(integration);
         this.tenantId = integration.getTenantId();
         this.defaultConverterId = integration.getDefaultConverterId();
+        this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.configuration = integration.getConfiguration();
@@ -118,14 +120,17 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     }
 
     @Override
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
-        return routingKey;
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String getSearchText() {
-        return getRoutingKey();
+        return getName();
     }
 
     @Override
@@ -135,6 +140,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         builder.append(tenantId);
         builder.append(", defaultConverterId=");
         builder.append(defaultConverterId);
+        builder.append(", name=");
+        builder.append(name);
         builder.append(", routingKey=");
         builder.append(routingKey);
         builder.append(", type=");

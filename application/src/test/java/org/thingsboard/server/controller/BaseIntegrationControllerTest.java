@@ -96,7 +96,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     @Test
     public void testSaveIntegration() throws Exception {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
@@ -108,17 +109,18 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertEquals(savedConverter.getId(), savedIntegration.getDefaultConverterId());
         Assert.assertEquals(integration.getRoutingKey(), savedIntegration.getRoutingKey());
 
-        savedIntegration.setRoutingKey("My new integration");
+        savedIntegration.setName("My new integration");
         doPost("/api/integration", savedIntegration, Integration.class);
 
         Integration foundIntegration = doGet("/api/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
-        Assert.assertEquals(foundIntegration.getRoutingKey(), savedIntegration.getRoutingKey());
+        Assert.assertEquals(foundIntegration.getName(), savedIntegration.getName());
     }
 
     @Test
     public void testFindIntegrationById() throws Exception {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
@@ -130,7 +132,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     @Test
     public void testDeleteIntegration() throws Exception {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
@@ -145,7 +148,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     @Test
     public void testSaveIntegrationWithEmptyType() throws Exception {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         doPost("/api/integration", integration)
                 .andExpect(status().isBadRequest())
@@ -155,6 +159,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     @Test
     public void testSaveIntegrationWithEmptyRoutingKey() throws Exception {
         Integration integration = new Integration();
+        integration.setName("My integration");
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setDefaultConverterId(savedConverter.getId());
         doPost("/api/integration", integration)
@@ -165,7 +170,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     @Test
     public void testSaveIntegrationWithEmptyConverterId() throws Exception {
         Integration integration = new Integration();
-        integration.setRoutingKey("My integration");
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         doPost("/api/integration", integration)
                 .andExpect(status().isBadRequest())
@@ -177,7 +183,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         List<Integration> integrationList = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
             Integration integration = new Integration();
-            integration.setRoutingKey("Integration" + i);
+            integration.setName("Integration" + i);
+            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integration.setDefaultConverterId(savedConverter.getId());
             integrationList.add(doPost("/api/integration", integration, Integration.class));
@@ -208,9 +215,10 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         for (int i = 0; i < 143; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String routingKey = title1 + suffix;
-            routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
-            integration.setRoutingKey(routingKey);
+            String name = title1 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            integration.setName(name);
+            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integration.setDefaultConverterId(savedConverter.getId());
             integrations1.add(doPost("/api/integration", integration, Integration.class));
@@ -220,9 +228,10 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         for (int i = 0; i < 75; i++) {
             Integration integration = new Integration();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String routingKey = title2 + suffix;
-            routingKey = i % 2 == 0 ? routingKey.toLowerCase() : routingKey.toUpperCase();
-            integration.setRoutingKey(routingKey);
+            String name = title2 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            integration.setName(name);
+            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integration.setDefaultConverterId(savedConverter.getId());
             integrations2.add(doPost("/api/integration", integration, Integration.class));

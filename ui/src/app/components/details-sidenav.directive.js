@@ -72,7 +72,10 @@ function DetailsSidenav($timeout) {
 
         scope.detailsApply = function () {
             $timeout(function () {
-                scope.onApplyDetails();
+                scope.$broadcast('form-submit');
+                if (scope.theForm.$valid) {
+                    scope.onApplyDetails();
+                }
             });
         }
 
