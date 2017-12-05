@@ -1,12 +1,12 @@
 /**
- * The Thingsboard Authors ("COMPANY") CONFIDENTIAL
+ * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2017 The Thingsboard Authors. All Rights Reserved.
+ * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of The Thingsboard Authors and its suppliers,
+ * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to The Thingsboard Authors
+ * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *

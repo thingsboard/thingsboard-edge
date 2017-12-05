@@ -1,0 +1,91 @@
+/**
+ * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Thingsboard OÜ and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Thingsboard OÜ
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+.extension-form {
+  li > .md-button {
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0;
+  }
+  .vAccordion--default {
+    margin-top: 0;
+    padding-left: 3px;
+  }
+  .tb-container {
+    width:100%;
+  }
+  .dropdown-messages {
+    .tb-error-message {
+      padding: 5px 0 0 0;
+    }
+  }
+  .dropdown-section {
+    margin-bottom: 30px;
+  }
+  v-pane.inner-invalid > v-pane-header {
+    border-bottom: 2px solid rgb(221,44,0);
+  }
+}
+
+.extension-form.extension-mqtt {
+  md-checkbox{
+    margin-left: 10px;
+  }
+}
+
+.tb-extension-custom-transformer-panel {
+  margin-left: 15px;
+  border: 1px solid #C0C0C0;
+  height: 100%;
+  .tb-extension-custom-transformer {
+    min-width: 600px;
+    min-height: 200px;
+    width: 100%;
+    height: 100%;
+  }
+  .ace_text-input {
+    position:absolute!important
+  }
+}
+
+.extensionDialog {
+  min-width: 1000px;
+}
+
+.tb-container-for-select {
+  height: 58px;
+}
+
+.tb-drop-file-input-hide {
+  height: 200%;
+  display: block;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}

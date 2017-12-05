@@ -54,7 +54,7 @@
         <module>extension-rest-api-call</module>
         <module>extension-kafka</module>
         <module>extension-mqtt</module>
-        <module>extention-sqs</module>
+        <module>extension-sqs</module>
         <module>extension-sns</module>
     </modules>
 

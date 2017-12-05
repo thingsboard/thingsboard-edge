@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    The Thingsboard Authors ("COMPANY") CONFIDENTIAL
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2017 The Thingsboard Authors. All Rights Reserved.
+    Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of The Thingsboard Authors and its suppliers,
+    the property of Thingsboard OÜ and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to The Thingsboard Authors
+    herein are proprietary to Thingsboard OÜ
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -37,15 +37,15 @@
     <parent>
         <artifactId>extensions</artifactId>
         <groupId>org.thingsboard</groupId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.0PE-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard.extensions</groupId>
     <artifactId>extension-sns</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard Server SNS Extension</name>
-    <url>http://thingsboard.org</url>
+    <name>Thingsboard PE Server SNS Extension</name>
+    <url>https://thingsboard.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

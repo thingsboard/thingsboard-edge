@@ -50,6 +50,7 @@ import thingsboardUserMenu from './user-menu.directive';
 import thingsboardEntity from '../entity';
 import thingsboardEvent from '../event';
 import thingsboardAlarm from '../alarm';
+import thingsboardExtension from '../extension';
 import thingsboardTenant from '../tenant';
 import thingsboardCustomer from '../customer';
 import thingsboardUser from '../user';
@@ -82,6 +83,7 @@ export default angular.module('thingsboard.home', [
     thingsboardEntity,
     thingsboardEvent,
     thingsboardAlarm,
+    thingsboardExtension,
     thingsboardTenant,
     thingsboardCustomer,
     thingsboardUser,
