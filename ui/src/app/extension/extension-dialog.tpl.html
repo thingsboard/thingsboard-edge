@@ -1,0 +1,96 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-dialog class="extensionDialog" aria-label="{{ (vm.isAdd ? 'extension.add' : 'extension.edit' ) | translate }}">
+    <form name="theForm" ng-submit="vm.save()" novalidate>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2 translate>{{ vm.isAdd ? 'extension.add' : 'extension.edit'}}</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="vm.cancel()">
+                    <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+
+        <md-progress-linear class="md-warn" md-mode="indeterminate" ng-disabled="!loading" ng-show="loading"></md-progress-linear>
+
+        <span style="min-height: 5px;" flex="" ng-show="!loading"></span>
+
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <md-content class="md-padding" layout="column">
+                    <fieldset ng-disabled="loading">
+                        <section flex layout="row">
+                            <md-input-container flex="60" class="md-block" md-is-error="theForm.extensionId.$touched && theForm.extensionId.$invalid">
+                                <label translate>extension.extension-id</label>
+                                <input required name="extensionId" ng-model="vm.extension.id" ng-change="vm.validateId()">
+                                <div ng-messages="theForm.extensionId.$error">
+                                    <div translate ng-message="required">extension.field-required</div>
+                                    <div translate ng-message="uniqueIdValidation">extension.unique-id-required</div>
+                                </div>
+                            </md-input-container>
+
+                            <md-input-container flex="40" class="md-block" md-is-error="theForm.extensionType.$touched && theForm.extensionType.$invalid">
+                                <label translate>extension.extension-type</label>
+
+                                <md-select ng-disabled="!vm.isAdd" required name="extensionType" ng-change="vm.extensionTypeChange()" ng-model="vm.extension.type">
+                                    <md-option ng-repeat="(key,value) in vm.types.extensionType" ng-value="value">
+                                        {{value}}
+                                    </md-option>
+                                </md-select>
+
+                                <div ng-messages="theForm.extensionType.$error">
+                                    <div translate ng-message="required">extension.field-required</div>
+                                </div>
+                            </md-input-container>
+                        </section>
+                        <div tb-extension-form-http config="vm.extension.configuration" is-add="vm.isAdd" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.http"></div>
+                        <div tb-extension-form-mqtt config="vm.extension.configuration" is-add="vm.isAdd" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.mqtt"></div>
+                        <div tb-extension-form-opc  configuration="vm.extension.configuration"  ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.opc"></div>
+                    </fieldset>
+                </md-content>
+            </div>
+        </md-dialog-content>
+
+        <md-dialog-actions layout="row">
+            <md-button type="submit"
+                       class="md-raised md-primary"
+            >
+                {{ (vm.isAdd  ? 'action.add' : 'action.save') | translate }}
+            </md-button>
+
+            <md-button ng-disabled="loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ 'action.cancel' | translate }}
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>
