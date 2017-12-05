@@ -31,20 +31,18 @@
 
 import './custom-decoder-test.scss';
 
+import Split from 'split.js';
+
 import beautify from 'js-beautify';
 import {utf8ToBytes} from './../common/utf8-support';
 
 const js_beautify = beautify.js;
 
 /*@ngInject*/
-export default function CustomDecoderTestController($scope, $mdDialog, $mdExpansionPanel, $mdExpansionPanelGroup, $q, $mdUtil, types, utils, decoder) {
+export default function CustomDecoderTestController($scope, $mdDialog, $window, $document, $timeout,
+                                                    $q, $mdUtil, $translate, toast, types, utils, onShowingCallback, decoder) {
 
     var vm = this;
-
-    vm.metadataPanelId = (Math.random()*10000).toFixed(0);
-    vm.payloadPanelId = (Math.random()*10000).toFixed(0);
-    vm.outputPanelId = (Math.random()*10000).toFixed(0);
-    vm.$mdExpansionPanel = $mdExpansionPanel;
 
     vm.types = types;
     vm.decoder = decoder;
@@ -76,9 +74,77 @@ export default function CustomDecoderTestController($scope, $mdDialog, $mdExpans
         }
     });
 
-    $mdExpansionPanel().waitFor(vm.payloadPanelId).then(() => {
-        expandPanel(vm.payloadPanelId);
+    $scope.$watch('theForm.metadataForm.$dirty', (newVal) => {
+        if (newVal) {
+            toast.hide();
+        }
     });
+
+    onShowingCallback.onShowed = () => {
+        vm.decoderTestDialogElement = angular.element('.tb-custom-decoder-test-dialog');
+        var w = vm.decoderTestDialogElement.width();
+        if (w > 0) {
+            initSplitLayout();
+        } else {
+            $scope.$watch(
+                function () {
+                    return vm.decoderTestDialogElement[0].offsetWidth || parseInt(vm.decoderTestDialogElement.css('width'), 10);
+                },
+                function (newSize) {
+                    if (newSize > 0) {
+                        initSplitLayout();
+                    }
+                }
+            );
+        }
+    };
+
+    function onDividerDrag() {
+        $scope.$broadcast('update-ace-editor-size');
+    }
+
+    function initSplitLayout() {
+        if (!vm.layoutInited) {
+            Split([angular.element('#top_panel', vm.decoderTestDialogElement)[0], angular.element('#bottom_panel', vm.decoderTestDialogElement)[0]], {
+                sizes: [35, 65],
+                gutterSize: 8,
+                cursor: 'row-resize',
+                direction: 'vertical',
+                onDrag: function () {
+                    onDividerDrag()
+                }
+            });
+
+            Split([angular.element('#top_left_panel', vm.decoderTestDialogElement)[0], angular.element('#top_right_panel', vm.decoderTestDialogElement)[0]], {
+                sizes: [50, 50],
+                gutterSize: 8,
+                cursor: 'col-resize',
+                onDrag: function () {
+                    onDividerDrag()
+                }
+            });
+
+            Split([angular.element('#bottom_left_panel', vm.decoderTestDialogElement)[0], angular.element('#bottom_right_panel', vm.decoderTestDialogElement)[0]], {
+                sizes: [50, 50],
+                gutterSize: 8,
+                cursor: 'col-resize',
+                onDrag: function () {
+                    onDividerDrag()
+                }
+            });
+
+            onDividerDrag();
+
+            $scope.$applyAsync(function () {
+                vm.layoutInited = true;
+                var w = angular.element($window);
+                $timeout(function () {
+                    w.triggerHandler('resize')
+                });
+            });
+
+        }
+    }
 
     function convertContent(content, contentType) {
         var stringContent = '';
@@ -107,89 +173,43 @@ export default function CustomDecoderTestController($scope, $mdDialog, $mdExpans
     }
 
     function test() {
-        collapsePanelGroup('inputParametersPanelGroup');
-        collapsePanel(vm.outputPanelId, false).then(
-            () => {
-                vm.output = '';
-                if (checkInputParamErrors()) {
-                    updateInputContent();
-                    $mdUtil.nextTick(() => {
-                        if (checkDecoderErrors()) {
-                            var decoderFunction = new Function('payload, metadata', vm.decoder);
-                            var res = decoderFunction.apply(this, [vm.inputParams.payload, vm.inputParams.metadata]);
-                            vm.output = angular.toJson(res, true);
-                            expandPanel(vm.outputPanelId).then(
-                                () => {
-                                    focusToComponent('#'+vm.outputPanelId);
-                                });
-                        }
-                    });
+        vm.output = '';
+        if (checkInputParamErrors()) {
+            updateInputContent();
+            $mdUtil.nextTick(() => {
+                if (checkDecoderErrors()) {
+                    var decoderFunction = new Function('payload, metadata', vm.decoder);
+                    var res = decoderFunction.apply(this, [vm.inputParams.payload, vm.inputParams.metadata]);
+                    vm.output = angular.toJson(res, true);
                 }
             });
+        }
     }
 
     function checkInputParamErrors() {
+        $scope.theForm.metadataForm.$setPristine();
         $scope.$broadcast('form-submit', 'validatePayload');
         if (!$scope.theForm.payloadForm.$valid) {
-            expandPanel(vm.payloadPanelId).then(
-                () => {
-                    focusToComponent('#'+vm.payloadPanelId);
-                });
             return false;
         } else if (!$scope.theForm.metadataForm.$valid) {
-            expandPanel(vm.metadataPanelId).then(
-                () => {
-                    focusToComponent('#'+vm.metadataPanelId);
-                });
+            showMetadataError($translate.instant('converter.metadata-required'));
             return false;
         }
         return true;
+    }
+
+    function showMetadataError(error) {
+        var toastParent = angular.element('#metadata-panel', vm.decoderTestDialogElement);
+        toast.showError(error, toastParent, 'bottom left');
     }
 
     function checkDecoderErrors() {
         $scope.$broadcast('form-submit', 'validateDecoder');
         if (!$scope.theForm.decoderForm.$valid) {
-            focusToComponent('#decoderInput');
             return false;
         }
         return true;
     }
-
-    function expandPanel(panelId) {
-        var panel = vm.$mdExpansionPanel(panelId);
-        if (panel.isOpen()) {
-            return $q.when();
-        } else {
-            return panel.expand();
-        }
-    }
-
-    function collapsePanelGroup(panelGroupId) {
-        var panelGroup = vm.$mdExpansionPanel(panelGroupId);
-        if (panelGroup.getOpen().length) {
-            panelGroup.collapseAll(true);
-        }
-    }
-
-    function collapsePanel(panelId, animate) {
-        if (angular.isUndefined(animate)) {
-            animate = true;
-        }
-        var panel = vm.$mdExpansionPanel(panelId);
-        if (!panel.isOpen()) {
-            return $q.when();
-        } else {
-            return panel.collapse({animation: animate});
-        }
-    }
-
-    function focusToComponent(id) {
-        var scrollParent = angular.element('.tb-custom-decoder-test-dialog md-dialog-content');
-        scrollParent.animate({
-            scrollTop: scrollParent.scrollTop() + (angular.element(id).offset().top - scrollParent.offset().top)
-        }, 500);
-    }
-
     function cancel() {
         $mdDialog.cancel();
     }

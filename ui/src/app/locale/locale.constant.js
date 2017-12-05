@@ -388,6 +388,7 @@ export default angular.module('thingsboard.locale', [])
                     "payload-content": "Payload content",
                     "test": "Test",
                     "metadata": "Metadata",
+                    "metadata-required": "Metadata entries can't be empty.",
                     "output": "Output",
                     "type": "Type",
                     "type-required": "Type is required.",

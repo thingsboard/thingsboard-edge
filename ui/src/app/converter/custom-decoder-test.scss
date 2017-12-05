@@ -30,30 +30,95 @@
  */
 
 @import '../../scss/constants';
+@import "~compass-sass-mixins/lib/compass";
 
-.tb-input-params-panel-group, .tb-output-panel-group {
-  .tb-panel-title {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    min-width: 120px;
-    @media (min-width: $layout-breakpoint-sm) {
-      min-width: 180px;
+md-dialog.tb-custom-decoder-test-dialog {
+  &.md-dialog-fullscreen {
+    min-height: 100%;
+    min-width: 100%;
+    border-radius: 0;
+  }
+
+  .tb-split {
+    @include box-sizing(border-box);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .ace_editor {
+    font-size: 14px !important;
+  }
+
+  .tb-content {
+    border: 1px solid #C0C0C0;
+    padding-top: 5px;
+    padding-left: 5px;
+  }
+
+  .gutter {
+    background-color: #eeeeee;
+
+    background-repeat: no-repeat;
+    background-position: 50%;
+  }
+
+  .gutter.gutter-horizontal {
+    cursor: col-resize;
+    background-image: url('../../../node_modules/split.js/grips/vertical.png');
+  }
+
+  .gutter.gutter-vertical {
+    cursor: row-resize;
+    background-image: url('../../../node_modules/split.js/grips/horizontal.png');
+  }
+
+  .tb-split.tb-split-horizontal, .gutter.gutter-horizontal {
+    height: 100%;
+    float: left;
+  }
+
+  .tb-split.tb-split-vertical {
+    display: flex;
+    .tb-split.tb-content {
+      height: 100%;
     }
   }
-  .tb-panel-desc {
-    pointer-events: none;
-    color: #666;
-    font-size: 13px;
-    font-weight: 400;
-  }
-  &.disabled {
-    .tb-panel-title, .tb-panel-desc {
-      color: rgba(0, 0, 0, 0.38);
+
+  div.tb-editor-area-title-panel {
+    position: absolute;
+    font-size: 0.800rem;
+    font-weight: 500;
+    top: 10px;
+    right: 40px;
+    z-index: 5;
+    label {
+      color: #00acc1;
+      background: rgba(220, 220, 220, 0.35);
+      border-radius: 5px;
+      padding: 4px;
+      text-transform: uppercase;
+    }
+    .md-button {
+      color: #7B7B7B;
+      min-width: 32px;
+      min-height: 15px;
+      line-height: 15px;
+      font-size: 0.800rem;
+      margin: 0;
+      padding: 4px;
+      background: rgba(220, 220, 220, 0.35);
     }
   }
-  md-icon.md-expansion-panel-icon {
-    margin-right: 0px;
+
+  .tb-resize-container {
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+    position: relative;
+
+    .ace_editor {
+      height: 100%;
+    }
   }
+
 }

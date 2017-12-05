@@ -82,11 +82,15 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
         }
 
         scope.onFullscreenChanged = function () {
+            updateEditorSize();
+        };
+
+        function updateEditorSize() {
             if (scope.js_editor) {
                 scope.js_editor.resize();
                 scope.js_editor.renderer.updateFull();
             }
-        };
+        }
 
         scope.jsEditorOptions = {
             useWrapMode: true,
@@ -226,6 +230,10 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
             }
         });
 
+        scope.$on('update-ace-editor-size', function () {
+            updateEditorSize();
+        });
+
         $compile(element.contents())(scope);
     }
 
@@ -233,7 +241,8 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
         restrict: "E",
         require: "^ngModel",
         scope: {
-            disabled:'=ngDisabled'
+            disabled:'=ngDisabled',
+            fillHeight:'=?'
         },
         link: linker
     };

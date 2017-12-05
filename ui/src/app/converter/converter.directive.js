@@ -92,17 +92,25 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                 $event.stopPropagation();
             }
             var decoder = angular.copy(scope.converter.configuration.decoder);
+            var onShowingCallback = {
+                onShowed: () => {
+                }
+            };
             $mdDialog.show({
                 controller: 'CustomDecoderTestController',
                 controllerAs: 'vm',
                 templateUrl: customDecoderTestTemplate,
                 parent: angular.element($document[0].body),
                 locals: {
-                    decoder: decoder
+                    decoder: decoder,
+                    onShowingCallback: onShowingCallback
                 },
                 fullscreen: true,
                 skipHide: true,
-                targetEvent: $event
+                targetEvent: $event,
+                onComplete: () => {
+                    onShowingCallback.onShowed();
+                }
             }).then(
                 (decoder) => {
                     scope.converter.configuration.decoder = decoder;

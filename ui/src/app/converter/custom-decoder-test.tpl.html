@@ -31,7 +31,7 @@
 
 -->
 <md-dialog class="tb-custom-decoder-test-dialog" aria-label="{{ 'converter.test-decoder-fuction' | translate }}" style="width: 800px;">
-    <form name="theForm" ng-submit="vm.save()">
+    <form flex name="theForm" ng-submit="vm.save()">
         <md-toolbar>
             <div class="md-toolbar-tools">
                 <h2 translate>converter.test-decoder-fuction</h2>
@@ -41,103 +41,84 @@
                 </md-button>
             </div>
         </md-toolbar>
-        <md-progress-linear class="md-warn" md-mode="indeterminate" ng-disabled="!loading" ng-show="loading"></md-progress-linear>
-        <span style="min-height: 5px;" flex="" ng-show="!loading"></span>
-        <md-dialog-content>
-            <div class="md-dialog-content">
-                <label translate class="tb-title no-padding">converter.custom-decoder-input-params</label>
-                <md-expansion-panel-group class="tb-input-params-panel-group" ng-class="{'disabled': loading}" md-component-id="inputParametersPanelGroup">
-                    <md-expansion-panel id="{{vm.payloadPanelId}}" md-component-id="{{vm.payloadPanelId}}">
-                        <md-expansion-panel-collapsed>
-                            <div class="tb-panel-title">{{ 'converter.payload' | translate }}</div>
-                            <div class="tb-panel-desc">{{ vm.types.contentType[vm.inputParams.payloadContentType].name | translate }}</div>
-                            <span flex></span>
-                            <md-expansion-panel-icon></md-expansion-panel-icon>
-                        </md-expansion-panel-collapsed>
-                        <md-expansion-panel-expanded>
-                            <md-expansion-panel-header ng-click="vm.$mdExpansionPanel(vm.payloadPanelId).collapse()">
-                                <div class="tb-panel-title">{{ 'converter.payload' | translate }}</div>
-                                <div class="tb-panel-desc">{{ vm.types.contentType[vm.inputParams.payloadContentType].name | translate }}</div>
-                                <span flex></span>
-                                <md-expansion-panel-icon></md-expansion-panel-icon>
-                            </md-expansion-panel-header>
-                            <md-expansion-panel-content>
-                                <ng-form name="payloadForm">
-                                    <md-input-container class="md-block">
-                                        <label translate>converter.payload-content-type</label>
-                                        <md-select name="payloadContentType" aria-label="{{ 'converter.payload-content-type' | translate }}"
-                                                   ng-model="vm.inputParams.payloadContentType">
-                                            <md-option ng-repeat="contentType in vm.types.contentType" ng-value="contentType.value">
-                                                {{contentType.name | translate}}
-                                            </md-option>
-                                        </md-select>
-                                    </md-input-container>
-                                    <tb-json-content ng-model="vm.inputParams.stringContent"
+        <md-dialog-content flex style="position: relative;">
+            <div class="tb-absolute-fill">
+                <div id="top_panel" class="tb-split tb-split-vertical">
+                    <div id="top_left_panel" class="tb-split tb-content">
+                        <div class="tb-resize-container">
+                            <div class="tb-editor-area-title-panel">
+                                <label translate>converter.payload</label>
+                            </div>
+                            <ng-form name="payloadForm">
+                                <div layout="column" style="height: 100%;">
+                                    <div layout="row">
+                                        <md-input-container class="md-block" style="margin-bottom: 0px; min-width: 200px;">
+                                            <label translate>converter.payload-content-type</label>
+                                            <md-select name="payloadContentType" aria-label="{{ 'converter.payload-content-type' | translate }}"
+                                                       ng-model="vm.inputParams.payloadContentType">
+                                                <md-option ng-repeat="contentType in vm.types.contentType" ng-value="contentType.value">
+                                                    {{contentType.name | translate}}
+                                                </md-option>
+                                            </md-select>
+                                        </md-input-container>
+                                    </div>
+                                    <tb-json-content flex
+                                                     ng-model="vm.inputParams.stringContent"
                                                      label="{{ 'converter.payload-content' | translate }}"
                                                      content-type="vm.inputParams.payloadContentType"
                                                      validate-content="vm.inputParams.payloadContentType == vm.types.contentType.JSON.value"
-                                                     validation-trigger-arg="validatePayload">
+                                                     validation-trigger-arg="validatePayload"
+                                                     fill-height="true">
                                     </tb-json-content>
-                                </ng-form>
-                            </md-expansion-panel-content>
-                        </md-expansion-panel-expanded>
-                    </md-expansion-panel>
-                    <md-expansion-panel id="{{vm.metadataPanelId}}" md-component-id="{{vm.metadataPanelId}}">
-                        <md-expansion-panel-collapsed>
-                            <div class="tb-panel-title">{{ 'converter.metadata' | translate }}</div>
-                            <span flex></span>
-                            <md-expansion-panel-icon></md-expansion-panel-icon>
-                        </md-expansion-panel-collapsed>
-                        <md-expansion-panel-expanded>
-                            <md-expansion-panel-header ng-click="vm.$mdExpansionPanel(vm.metadataPanelId).collapse()">
-                                <div class="tb-panel-title">{{ 'converter.metadata' | translate }}</div>
-                                <span flex></span>
-                                <md-expansion-panel-icon></md-expansion-panel-icon>
-                            </md-expansion-panel-header>
-                            <md-expansion-panel-content>
-                                <ng-form name="metadataForm">
-                                    <tb-key-val-map title-text="converter.metadata" ng-disabled="loading"
-                                                    key-val-map="vm.inputParams.metadata"></tb-key-val-map>
-                                </ng-form>
-                            </md-expansion-panel-content>
-                        </md-expansion-panel-expanded>
-                    </md-expansion-panel>
-                </md-expansion-panel-group>
-                <div style="height: 20px;"></div>
-                <ng-form name="decoderForm">
-                    <label translate class="tb-title no-padding">converter.decoder</label>
-                    <tb-js-func id="decoderInput" ng-model="vm.decoder"
-                                function-name="Decoder"
-                                function-args="{{ ['payload', 'metadata'] }}"
-                                validation-args="{{ [[vm.inputParams.payload, vm.inputParams.metadata]] }}"
-                                validation-trigger-arg="validateDecoder"
-                                result-type="object">
-                    </tb-js-func>
-                </ng-form>
-                <md-expansion-panel-group class="tb-output-panel-group" ng-class="{'disabled': loading}" md-component-id="outputPanelGroup">
-                    <md-expansion-panel id="{{vm.outputPanelId}}" md-component-id="{{vm.outputPanelId}}">
-                        <md-expansion-panel-collapsed>
-                            <div class="tb-panel-title">{{ 'converter.output' | translate }}</div>
-                            <span flex></span>
-                            <md-expansion-panel-icon></md-expansion-panel-icon>
-                        </md-expansion-panel-collapsed>
-                        <md-expansion-panel-expanded>
-                            <md-expansion-panel-header ng-click="vm.$mdExpansionPanel(vm.outputPanelId).collapse()">
-                                <div class="tb-panel-title">{{ 'converter.output' | translate }}</div>
-                                <span flex></span>
-                                <md-expansion-panel-icon></md-expansion-panel-icon>
-                            </md-expansion-panel-header>
-                            <md-expansion-panel-content>
-                                <tb-json-content ng-model="vm.output"
-                                                 label="{{ 'converter.output' | translate }}"
-                                                 content-type="vm.types.contentType.JSON.value"
-                                                 validate-content="false"
-                                                 ng-readonly="true">
-                                </tb-json-content>
-                            </md-expansion-panel-content>
-                        </md-expansion-panel-expanded>
-                    </md-expansion-panel>
-                </md-expansion-panel-group>
+                                </div>
+                            </ng-form>
+                        </div>
+                    </div>
+                    <div id="top_right_panel" class="tb-split tb-content">
+                        <div class="tb-resize-container" id="metadata-panel">
+                            <div class="tb-editor-area-title-panel">
+                                <label translate>converter.metadata</label>
+                            </div>
+                            <ng-form name="metadataForm">
+                                <tb-key-val-map title-text="converter.metadata" ng-disabled="loading"
+                                                key-val-map="vm.inputParams.metadata"></tb-key-val-map>
+                            </ng-form>
+                        </div>
+                    </div>
+                </div>
+                <div id="bottom_panel" class="tb-split tb-split-vertical">
+                    <div id="bottom_left_panel" class="tb-split tb-content">
+                        <div class="tb-resize-container">
+                            <div class="tb-editor-area-title-panel">
+                                <label translate>converter.decoder</label>
+                            </div>
+                            <ng-form name="decoderForm">
+                                <tb-js-func id="decoderInput" ng-model="vm.decoder"
+                                            function-name="Decoder"
+                                            function-args="{{ ['payload', 'metadata'] }}"
+                                            validation-args="{{ [[vm.inputParams.payload, vm.inputParams.metadata]] }}"
+                                            validation-trigger-arg="validateDecoder"
+                                            result-type="object"
+                                            fill-height="true">
+                                </tb-js-func>
+                            </ng-form>
+                        </div>
+                    </div>
+                    <div id="bottom_right_panel" class="tb-split tb-content">
+                        <div class="tb-resize-container">
+                            <div class="tb-editor-area-title-panel">
+                                <label translate>converter.output</label>
+                            </div>
+                            <tb-json-content ng-model="vm.output"
+                                             label="{{ 'converter.output' | translate }}"
+                                             content-type="vm.types.contentType.JSON.value"
+                                             validate-content="false"
+                                             ng-readonly="true"
+                                             fill-height="true">
+                            </tb-json-content>
+                        </div>
+                    </div>
+                </div>
             </div>
         </md-dialog-content>
         <md-dialog-actions layout="row">

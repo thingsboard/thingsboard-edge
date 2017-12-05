@@ -62,11 +62,15 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
         scope.json_editor;
 
         scope.onFullscreenChanged = function () {
+            updateEditorSize();
+        };
+
+        function updateEditorSize() {
             if (scope.json_editor) {
                 scope.json_editor.resize();
                 scope.json_editor.renderer.updateFull();
             }
-        };
+        }
 
         var mode;
         if (scope.contentType) {
@@ -125,7 +129,7 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
 
         scope.showError = function (error) {
             var toastParent = angular.element('#tb-json-panel', element);
-            toast.showError(error, toastParent, 'top left');
+            toast.showError(error, toastParent, 'bottom left');
         };
 
         scope.validate = function () {
@@ -162,6 +166,10 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
             }
         });
 
+        scope.$on('update-ace-editor-size', function () {
+            updateEditorSize();
+        });
+
         $compile(element.contents())(scope);
     }
 
@@ -172,6 +180,7 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
             contentType: '=',
             validateContent: '=?',
             readonly:'=ngReadonly',
+            fillHeight:'=?'
         },
         link: linker
     };

@@ -30,6 +30,9 @@
  */
 tb-json-content {
   position: relative;
+  .fill-height {
+    height: 100%;
+  }
 }
 
 .tb-json-content-panel {
@@ -38,8 +41,10 @@ tb-json-content {
   height: 100%;
   #tb-json-input {
     min-width: 200px;
-    min-height: 200px;
     width: 100%;
     height: 100%;
+    &:not(.fill-height) {
+      min-height: 200px;
+    }
   }
 }
