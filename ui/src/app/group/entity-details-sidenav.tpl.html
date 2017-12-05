@@ -92,5 +92,12 @@
                                    entity-type="{{vm.entityType}}">
                 </tb-relation-table>
             </md-tab>
+            <md-tab ng-if="!vm.isEdit && vm.entity.additionalInfo.gateway" md-on-select="vm.triggerResize()" label="{{ 'extension.extensions' | translate }}">
+                <tb-extension-table flex
+                                    entity-id="vm.entityId"
+                                    entity-name="vm.entity.name"
+                                    entity-type="{{vm.types.entityType.device}}">
+                </tb-extension-table>
+            </md-tab>
     </form>
 </tb-details-sidenav>
