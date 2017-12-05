@@ -71,6 +71,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
     @Column(name = INTEGRATION_TYPE_PROPERTY, codec = IntegrationTypeCodec.class)
     private IntegrationType type;
 
+    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
+    private boolean debugMode;
+
     @Column(name = INTEGRATION_NAME_PROPERTY)
     private String name;
 
@@ -103,6 +106,7 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
+        this.debugMode = integration.isDebugMode();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -147,6 +151,14 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
 
     public void setRoutingKey(String routingKey) {
         this.routingKey = routingKey;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
     public JsonNode getConfiguration() {
@@ -200,6 +212,7 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
+        integration.setDebugMode(debugMode);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
         return integration;

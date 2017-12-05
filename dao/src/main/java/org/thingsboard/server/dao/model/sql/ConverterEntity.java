@@ -68,6 +68,9 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
     @Column(name = CONVERTER_TYPE_PROPERTY)
     private ConverterType type;
 
+    @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
+    private boolean debugMode;
+
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
 
@@ -92,6 +95,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         }
         this.name = converter.getName();
         this.type = converter.getType();
+        this.debugMode = converter.isDebugMode();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
@@ -119,6 +123,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         }
         converter.setName(name);
         converter.setType(type);
+        converter.setDebugMode(debugMode);
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         return converter;

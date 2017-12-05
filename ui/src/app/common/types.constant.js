@@ -250,13 +250,30 @@ export default angular.module('thingsboard.types', [])
                 alarm: "alarm"
             },
             converterType: {
-                "GENERIC": {
+                /*"GENERIC": {
                     name: "converter.type-generic",
                     value: "GENERIC"
-                },
+                },*/
                 "CUSTOM": {
                     name: "converter.type-custom",
                     value: "CUSTOM"
+                }
+            },
+            contentType: {
+                "JSON": {
+                    value: "JSON",
+                    name: "content-type.json",
+                    code: "json"
+                },
+                "TEXT": {
+                    value: "TEXT",
+                    name: "content-type.text",
+                    code: "text"
+                },
+                "BINARY": {
+                    value: "BINARY",
+                    name: "content-type.binary",
+                    code: "text"
                 }
             },
             integrationType: {

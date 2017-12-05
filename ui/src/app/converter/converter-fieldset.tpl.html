@@ -63,13 +63,26 @@
                 <div translate ng-message="required">converter.type-required</div>
             </div>
         </md-input-container>
+        <md-input-container class="md-block">
+            <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'converter.debug-mode' | translate }}"
+                         ng-model="converter.debugMode">{{ 'converter.debug-mode' | translate }}
+            </md-checkbox>
+        </md-input-container>
         <section layout="column" ng-if="converter.type === types.converterType.CUSTOM.value">
+
             <label translate class="tb-title no-padding">converter.decoder</label>
             <tb-js-func ng-model="converter.configuration.decoder"
                         function-name="Decoder"
                         function-args="{{ ['payload', 'metadata'] }}"
                         validation-args="{{ [[decoderValidationPayload, decoderMetadata]] }}">
             </tb-js-func>
+            <div layout="row">
+                <md-button ng-show="isEdit" ng-disabled="loading"
+                           ng-click="openCustomDecoderTestDialog($event)"
+                           class="md-primary md-raised">
+                    {{ 'converter.test-decoder-fuction' | translate }}
+                </md-button>
+            </div>
             <br/>
 
         </section>

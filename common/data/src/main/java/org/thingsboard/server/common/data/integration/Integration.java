@@ -49,6 +49,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private String name;
     private String routingKey;
     private IntegrationType type;
+    private boolean debugMode;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
 
@@ -67,6 +68,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
+        this.debugMode = integration.isDebugMode();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -101,6 +103,14 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
 
     public void setType(IntegrationType type) {
         this.type = type;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
     public JsonNode getConfiguration() {
@@ -146,6 +156,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         builder.append(routingKey);
         builder.append(", type=");
         builder.append(type);
+        builder.append(", debugMode=");
+        builder.append(debugMode);
         builder.append(", configuration=");
         builder.append(configuration);
         builder.append(", additionalInfo=");

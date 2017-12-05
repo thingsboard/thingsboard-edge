@@ -174,6 +174,7 @@ public class ModelConstants {
     public static final String CONVERTER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String CONVERTER_NAME_PROPERTY = "name";
     public static final String CONVERTER_TYPE_PROPERTY = "type";
+    public static final String CONVERTER_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
@@ -189,6 +190,7 @@ public class ModelConstants {
     public static final String INTEGRATION_CONVERTER_ID_PROPERTY = "converter_id";
     public static final String INTEGRATION_ROUTING_KEY_PROPERTY = "routing_key";
     public static final String INTEGRATION_TYPE_PROPERTY = "type";
+    public static final String INTEGRATION_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 

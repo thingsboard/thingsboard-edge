@@ -63,6 +63,11 @@
                 <div translate ng-message="required">integration.type-required</div>
             </div>
         </md-input-container>
+        <md-input-container class="md-block">
+            <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'integration.debug-mode' | translate }}"
+                         ng-model="integration.debugMode">{{ 'integration.debug-mode' | translate }}
+            </md-checkbox>
+        </md-input-container>
         <tb-entity-autocomplete the-form="theForm"
                                 ng-disabled="loading || !isEdit"
                                 tb-required="true"
@@ -108,7 +113,7 @@
             <label translate>integration.description</label>
             <textarea ng-model="integration.additionalInfo.description" rows="2"></textarea>
         </md-input-container>
-        <md-expansion-panel-group class="tb-metadata-panel-group" ng-class="{'disabled': loading || !isEdit}" md-component-id="notificationsPanelGroup">
+        <md-expansion-panel-group class="tb-metadata-panel-group" ng-class="{'disabled': loading || !isEdit}" md-component-id="metadataPanelGroup">
             <md-expansion-panel md-component-id="{{metadataPanelId}}">
                 <md-expansion-panel-collapsed>
                     <div class="tb-panel-title">{{ 'integration.metadata' | translate }}</div>

@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -28,16 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+tb-json-content {
+  position: relative;
+  .fill-height {
+    height: 100%;
+  }
+}
 
-import ConverterRoutes from './converter.routes';
-import {ConverterController, ConverterCardController} from './converter.controller';
-import CustomDecoderTestController from './custom-decoder-test.controller';
-import ConverterDirective from './converter.directive';
-
-export default angular.module('thingsboard.converter', [])
-    .config(ConverterRoutes)
-    .controller('ConverterController', ConverterController)
-    .controller('ConverterCardController', ConverterCardController)
-    .controller('CustomDecoderTestController', CustomDecoderTestController)
-    .directive('tbConverter', ConverterDirective)
-    .name;
+.tb-json-content-panel {
+  margin-left: 15px;
+  border: 1px solid #C0C0C0;
+  height: 100%;
+  #tb-json-input {
+    min-width: 200px;
+    width: 100%;
+    height: 100%;
+    &:not(.fill-height) {
+      min-height: 200px;
+    }
+  }
+}

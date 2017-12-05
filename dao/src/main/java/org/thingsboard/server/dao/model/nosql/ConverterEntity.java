@@ -66,6 +66,9 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
     @Column(name = CONVERTER_TYPE_PROPERTY, codec = ConverterTypeCodec.class)
     private ConverterType type;
 
+    @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
+    private boolean debugMode;
+
     @Column(name = CONVERTER_NAME_PROPERTY)
     private String name;
 
@@ -91,6 +94,7 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         }
         this.name = converter.getName();
         this.type = converter.getType();
+        this.debugMode = converter.isDebugMode();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
@@ -141,6 +145,14 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         this.searchText = searchText;
     }
 
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
+    }
+
     public JsonNode getConfiguration() {
         return configuration;
     }
@@ -166,6 +178,7 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         }
         converter.setName(name);
         converter.setType(type);
+        converter.setDebugMode(debugMode);
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         return converter;

@@ -73,6 +73,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
+    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
+    private boolean debugMode;
+
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
 
@@ -101,6 +104,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
+        this.debugMode = integration.isDebugMode();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -132,6 +136,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
+        integration.setDebugMode(debugMode);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
         return integration;

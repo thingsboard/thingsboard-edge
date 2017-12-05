@@ -45,6 +45,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
     private TenantId tenantId;
     private String name;
     private ConverterType type;
+    private boolean debugMode;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
 
@@ -61,6 +62,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
         this.tenantId = converter.getTenantId();
         this.name = converter.getName();
         this.type = converter.getType();
+        this.debugMode = converter.isDebugMode();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
@@ -88,6 +90,14 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
 
     public void setType(ConverterType type) {
         this.type = type;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
     public JsonNode getConfiguration() {
@@ -120,6 +130,8 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
         builder.append(name);
         builder.append(", type=");
         builder.append(type);
+        builder.append(", debugMode=");
+        builder.append(debugMode);
         builder.append(", configuration=");
         builder.append(configuration);
         builder.append(", additionalInfo=");
