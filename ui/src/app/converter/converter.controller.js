@@ -44,9 +44,17 @@ export function ConverterCardController(types) {
 }
 
 /*@ngInject*/
-export function ConverterController(converterService, $state, $stateParams, $translate, types) {
+export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types) {
 
     var converterActionsList = [
+        {
+            onAction: function ($event, item) {
+                exportConverter($event, item);
+            },
+            name: function() { $translate.instant('action.export') },
+            details: function() { return $translate.instant('converter.export') },
+            icon: "file_download"
+        },
         {
             onAction: function ($event, item) {
                 vm.grid.deleteItem($event, item);
@@ -57,6 +65,29 @@ export function ConverterController(converterService, $state, $stateParams, $tra
             isEnabled: function() {
                 return true;
             }
+        }
+    ];
+
+    var converterAddItemActionsList = [
+        {
+            onAction: function ($event) {
+                vm.grid.addItem($event);
+            },
+            name: function() { return $translate.instant('action.create') },
+            details: function() { return $translate.instant('converter.create-new-converter') },
+            icon: "insert_drive_file"
+        },
+        {
+            onAction: function ($event) {
+                importExport.importConverter($event).then(
+                    function() {
+                        vm.grid.refreshList();
+                    }
+                );
+            },
+            name: function() { return $translate.instant('action.import') },
+            details: function() { return $translate.instant('converter.import') },
+            icon: "file_upload"
         }
     ];
 
@@ -85,6 +116,7 @@ export function ConverterController(converterService, $state, $stateParams, $tra
         parentCtl: vm,
 
         actionsList: converterActionsList,
+        addItemActions: converterAddItemActionsList,
 
         onGridInited: gridInited,
 
@@ -110,6 +142,8 @@ export function ConverterController(converterService, $state, $stateParams, $tra
     if (angular.isDefined($stateParams.topIndex) && $stateParams.topIndex > 0) {
         vm.converterGridConfig.topIndex = $stateParams.topIndex;
     }
+
+    vm.exportConverter = exportConverter;
 
     function deleteConverterTitle(converter) {
         return $translate.instant('converter.delete-converter-title', {converterName: converter.name});
@@ -149,6 +183,11 @@ export function ConverterController(converterService, $state, $stateParams, $tra
 
     function getConverterTitle(converter) {
         return converter ? converter.name : '';
+    }
+
+    function exportConverter($event, converter) {
+        $event.stopPropagation();
+        importExport.exportConverter(converter.id.id);
     }
 
 }

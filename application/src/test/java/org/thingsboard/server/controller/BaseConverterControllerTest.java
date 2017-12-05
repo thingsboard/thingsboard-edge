@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
@@ -57,6 +59,9 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
 
     @Before
     public void beforeTest() throws Exception {
@@ -89,7 +94,8 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     public void testSaveConverter() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.GENERIC);
+        converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         Assert.assertNotNull(savedConverter);
@@ -109,7 +115,8 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     public void testFindConverterById() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.GENERIC);
+        converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertNotNull(foundConverter);
@@ -120,7 +127,8 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     public void testDeleteConverter() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.GENERIC);
+        converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         doDelete("/api/converter/" + savedConverter.getId().getId().toString())
@@ -142,7 +150,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     @Test
     public void testSaveConverterWithEmptyName() throws Exception {
         Converter converter = new Converter();
-        converter.setType(ConverterType.GENERIC);
+        converter.setType(ConverterType.CUSTOM);
         doPost("/api/converter", converter)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Converter name should be specified")));
@@ -154,7 +162,8 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         for (int i = 0; i < 178; i++) {
             Converter converter = new Converter();
             converter.setName("Converter" + i);
-            converter.setType(ConverterType.GENERIC);
+            converter.setType(ConverterType.CUSTOM);
+            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
         List<Converter> loadedConverters = new ArrayList<>();
@@ -186,7 +195,8 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
-            converter.setType(ConverterType.GENERIC);
+            converter.setType(ConverterType.CUSTOM);
+            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
         String title2 = "Converter title 2";
@@ -197,7 +207,8 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
-            converter.setType(ConverterType.GENERIC);
+            converter.setType(ConverterType.CUSTOM);
+            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters1.add(doPost("/api/converter", converter, Converter.class));
         }
 

@@ -312,6 +312,12 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.integration_by_tenant_and_sea
     PRIMARY KEY ( tenant_id, search_text, id )
     WITH CLUSTERING ORDER BY ( search_text ASC, id DESC );
 
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.integration_by_converter_id AS
+    SELECT *
+    from thingsboard.integration
+    WHERE tenant_id IS NOT NULL AND id IS NOT NULL AND converter_id IS NOT NULL
+    PRIMARY KEY (converter_id, id, tenant_id) WITH CLUSTERING ORDER BY (id DESC);
+
 CREATE TABLE IF NOT EXISTS thingsboard.converter (
     id timeuuid,
     tenant_id timeuuid,

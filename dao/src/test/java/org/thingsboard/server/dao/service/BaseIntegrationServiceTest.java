@@ -31,6 +31,9 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -57,6 +60,15 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
     private TenantId tenantId;
     private ConverterId converterId;
 
+    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+
+    private static final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
+            .createObjectNode();
+    static {
+        INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
+    }
+
     @Before
     public void beforeRun() {
         tenantId = before();
@@ -69,6 +81,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         converter.setTenantId(tenantId);
         converter.setName("My converter");
         converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         return converterService.saveConverter(converter);
     }
 
@@ -85,6 +98,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setName("My integration");
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
 
         Assert.assertNotNull(savedIntegration);
@@ -110,6 +124,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setDefaultConverterId(converterId);
         integration.setName("My integration");
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         integrationService.saveIntegration(integration);
     }
 
@@ -120,6 +135,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setName("My integration");
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         integrationService.saveIntegration(integration);
     }
 
@@ -130,6 +146,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(converterId);
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         integration.setTenantId(new TenantId(UUIDs.timeBased()));
         integrationService.saveIntegration(integration);
     }
@@ -141,6 +158,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setTenantId(tenantId);
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         integrationService.saveIntegration(integration);
     }
 
@@ -152,6 +170,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setName("My integration");
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
         Assert.assertNotNull(foundIntegration);
@@ -167,6 +186,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setName("My integration");
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
         Assert.assertNotNull(foundIntegration);
@@ -193,6 +213,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
             integration.setName("Integration" + i);
             integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integrations.add(integrationService.saveIntegration(integration));
         }
 

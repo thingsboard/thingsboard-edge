@@ -83,4 +83,13 @@ public class CassandraIntegrationDao extends CassandraAbstractSearchTextDao<Inte
         return Optional.ofNullable(DaoUtil.getData(integrationEntity));
     }
 
+    @Override
+    public List<Integration> findByConverterId(UUID converterId) {
+        log.debug("Search integrations by converterId [{}]", converterId);
+        Select.Where query = select().from(INTEGRATION_BY_CONVERTER_ID_VIEW_NAME).where(eq(INTEGRATION_CONVERTER_ID_PROPERTY, converterId));
+        List<IntegrationEntity> integrationEntities = findListByStatement(query);
+        log.trace("Found integrations [{}] by converterId [{}]", integrationEntities, converterId);
+        return DaoUtil.convertDataList(integrationEntities);
+    }
+
 }

@@ -196,6 +196,7 @@ public class ModelConstants {
 
     public static final String INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_tenant_and_search_text";
     public static final String INTEGRATION_BY_ROUTING_KEY_VIEW_NAME = "integration_by_routing_key";
+    public static final String INTEGRATION_BY_CONVERTER_ID_VIEW_NAME = "integration_by_converter_id";
 
     /**
      * Cassandra entity_subtype constants.

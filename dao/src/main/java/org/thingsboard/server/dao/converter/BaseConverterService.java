@@ -39,15 +39,18 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -65,6 +68,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
 
     @Autowired
     private ConverterDao converterDao;
+
+    @Autowired
+    private IntegrationService integrationService;
 
     @Override
     public Converter saveConverter(Converter converter) {
@@ -100,8 +106,17 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public void deleteConverter(ConverterId converterId) {
         log.trace("Executing deleteConverter [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        deleteEntityRelations(converterId);
-        converterDao.removeById(converterId.getId());
+        checkIntegrationsAndDelete(converterId);
+    }
+
+    private void checkIntegrationsAndDelete(ConverterId converterId) {
+        List<Integration> affectedIntegrations = integrationService.findIntegrationsByConverterId(converterId);
+        if (affectedIntegrations.isEmpty()) {
+            deleteEntityRelations(converterId);
+            converterDao.removeById(converterId.getId());
+        } else {
+            throw new DataValidationException("Converter deletion will affect existing integrations!");
+        }
     }
 
     @Override

@@ -622,9 +622,9 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                 for (var id in vm.items.selections) {
                     tasks.push(vm.deleteItemFunc(id));
                 }
-                $q.all(tasks).then(function () {
-                    refreshList();
-                });
+                $q.all(tasks).then(
+                    () => { refreshList(); },
+                    () => { refreshList(); });
             },
             function () {
             });

@@ -40,6 +40,7 @@
             <tb-converter converter="vm.grid.operatingItem()"
                          is-edit="vm.grid.detailsConfig.isDetailsEditMode"
                          the-form="vm.grid.detailsForm"
+                         on-export-converter="vm.exportConverter(event, vm.grid.detailsConfig.currentItem)"
                          on-delete-converter="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"></tb-converter>
         </md-tab>
         <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">

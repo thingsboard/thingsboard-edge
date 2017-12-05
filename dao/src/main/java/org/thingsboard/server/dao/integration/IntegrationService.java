@@ -31,12 +31,14 @@
 package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface IntegrationService {
@@ -48,6 +50,8 @@ public interface IntegrationService {
     ListenableFuture<Integration> findIntegrationByIdAsync(IntegrationId integrationId);
 
     Optional<Integration> findIntegrationByRoutingKey(String routingKey);
+
+    List<Integration> findIntegrationsByConverterId(ConverterId converterId);
 
     TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink);
 

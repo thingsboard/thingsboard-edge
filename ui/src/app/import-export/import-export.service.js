@@ -41,7 +41,7 @@ import entityAliasesTemplate from '../entity/alias/entity-aliases.tpl.html';
 /*@ngInject*/
 export default function ImportExport($log, $translate, $q, $mdDialog, $document, $http, itembuffer, utils, types,
                                      dashboardUtils, entityService, dashboardService, pluginService, ruleService,
-                                     widgetService, toast, attributeService) {
+                                     converterService, widgetService, toast, attributeService) {
 
 
     const JSON_TYPE = {
@@ -75,6 +75,8 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         importPlugin: importPlugin,
         exportRule: exportRule,
         importRule: importRule,
+        exportConverter: exportConverter,
+        importConverter: importConverter,
         exportWidgetType: exportWidgetType,
         importWidgetType: importWidgetType,
         exportWidgetsBundle: exportWidgetsBundle,
@@ -369,6 +371,71 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             || angular.isUndefined(plugin.configuration))
         {
             return false;
+        }
+        return true;
+    }
+
+    // Converter functions
+
+    function exportConverter(converterId) {
+        converterService.getConverter(converterId).then(
+            function success(converter) {
+                if (!converter.configuration || converter.configuration === null) {
+                    converter.configuration = {};
+                }
+                var name = converter.name;
+                name = name.toLowerCase().replace(/\W/g,"_");
+                exportToPc(prepareExport(converter), name);
+            },
+            function fail(rejection) {
+                var message = rejection;
+                if (!message) {
+                    message = $translate.instant('error.unknown-error');
+                }
+                toast.showError($translate.instant('converter.export-failed-error', {error: message}));
+            }
+        );
+    }
+
+    function importConverter($event) {
+        var deferred = $q.defer();
+        openImportDialog($event, 'converter.import', 'converter.converter-file').then(
+            function success(converter) {
+                if (!validateImportedConverter(converter)) {
+                    toast.showError($translate.instant('converter.invalid-converter-file-error'));
+                    deferred.reject();
+                } else {
+                    converterService.saveConverter(converter).then(
+                        function success() {
+                            deferred.resolve();
+                        },
+                        function fail() {
+                            deferred.reject();
+                        }
+                    );
+                }
+            },
+            function fail() {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
+    }
+
+    function validateImportedConverter(converter) {
+        if (angular.isUndefined(converter.name)
+            || angular.isUndefined(converter.type)
+            || angular.isUndefined(converter.configuration))
+        {
+            return false;
+        }
+        if (!types.converterType[converter.type]) {
+            return false;
+        }
+        if (converter.type == types.converterType.CUSTOM.value) {
+            if (!converter.configuration.decoder || !converter.configuration.decoder.length) {
+                return false;
+            }
         }
         return true;
     }

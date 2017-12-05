@@ -53,4 +53,6 @@ public interface IntegrationRepository extends CrudRepository<IntegrationEntity,
 
     IntegrationEntity findByRoutingKey(String routingKey);
 
+    List<IntegrationEntity> findByConverterId(String converterId);
+
 }

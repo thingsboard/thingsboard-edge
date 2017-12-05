@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -64,6 +65,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
+    public static final String INCORRECT_CONVERTER_ID = "Incorrect converterId ";
 
     @Autowired
     private IntegrationDao integrationDao;
@@ -100,6 +102,13 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
         log.trace("Executing findIntegrationByRoutingKey [{}]", routingKey);
         Validator.validateString(routingKey, "Incorrect integration routingKey for search request.");
         return integrationDao.findByRoutingKey(routingKey);
+    }
+
+    @Override
+    public List<Integration> findIntegrationsByConverterId(ConverterId converterId) {
+        log.trace("Executing findIntegrationsByConverterId [{}]", converterId);
+        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
+        return integrationDao.findByConverterId(converterId.getId());
     }
 
     @Override

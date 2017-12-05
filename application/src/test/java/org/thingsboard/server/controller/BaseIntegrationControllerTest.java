@@ -31,6 +31,9 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -61,6 +64,15 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     private Converter savedConverter;
     private User tenantAdmin;
 
+    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+
+    private static final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
+            .createObjectNode();
+    static {
+        INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
+    }
+
     @Before
     public void beforeTest() throws Exception {
         loginSysAdmin();
@@ -81,7 +93,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.GENERIC);
+        converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         savedConverter = doPost("/api/converter", converter, Converter.class);
     }
 
@@ -100,6 +113,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
 
         Assert.assertNotNull(savedIntegration);
@@ -123,6 +137,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
         Integration foundIntegration = doGet("/api/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
         Assert.assertNotNull(foundIntegration);
@@ -136,6 +151,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
 
         doDelete("/api/integration/" + savedIntegration.getId().getId().toString())
@@ -161,6 +177,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Integration integration = new Integration();
         integration.setName("My integration");
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         integration.setDefaultConverterId(savedConverter.getId());
         doPost("/api/integration", integration)
                 .andExpect(status().isBadRequest())
@@ -173,6 +190,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         integration.setName("My integration");
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
         doPost("/api/integration", integration)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Integration default converter should be specified")));
@@ -186,6 +204,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setName("Integration" + i);
             integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setDefaultConverterId(savedConverter.getId());
             integrationList.add(doPost("/api/integration", integration, Integration.class));
         }
@@ -220,6 +239,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setName(name);
             integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setDefaultConverterId(savedConverter.getId());
             integrations1.add(doPost("/api/integration", integration, Integration.class));
         }
@@ -233,6 +253,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setName(name);
             integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setDefaultConverterId(savedConverter.getId());
             integrations2.add(doPost("/api/integration", integration, Integration.class));
         }

@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,6 +55,10 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
 
     private TenantId tenantId;
 
+    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+
+
     @Before
     public void beforeRun() {
         tenantId = before();
@@ -69,6 +75,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converter.setTenantId(tenantId);
         converter.setName("My converter");
         converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
 
         Assert.assertNotNull(savedConverter);
@@ -117,6 +124,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converter.setTenantId(tenantId);
         converter.setName("My converter");
         converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
         Converter foundConverter = converterService.findConverterById(savedConverter.getId());
         Assert.assertNotNull(foundConverter);
@@ -130,6 +138,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converter.setTenantId(tenantId);
         converter.setName("My converter");
         converter.setType(ConverterType.CUSTOM);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
         Converter foundConverter = converterService.findConverterById(savedConverter.getId());
         Assert.assertNotNull(foundConverter);
@@ -152,6 +161,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
             converter.setTenantId(tenantId);
             converter.setName("Converter" + i);
             converter.setType(ConverterType.CUSTOM);
+            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(converterService.saveConverter(converter));
         }
 
