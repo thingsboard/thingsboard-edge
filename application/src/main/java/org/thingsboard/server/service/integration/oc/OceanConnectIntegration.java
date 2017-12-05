@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -39,13 +39,11 @@ import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
 import org.thingsboard.server.service.converter.UplinkData;
-import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,8 +103,7 @@ public class OceanConnectIntegration extends AbstractHttpIntegration {
 
     private List<UplinkData> convertToUplinkDataList(HttpIntegrationMsg msg) throws Exception {
         byte[] data = mapper.writeValueAsBytes(msg.getMsg());
-        UplinkMetaData md = new UplinkMetaData(Collections.singletonMap("integrationName", configuration.getName()));
-        return this.converter.convertUplink(data, md);
+        return this.converter.convertUplink(data, metadata);
     }
 
 }

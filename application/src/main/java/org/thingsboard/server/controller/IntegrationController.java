@@ -30,21 +30,29 @@
  */
 package org.thingsboard.server.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.exception.ThingsboardException;
+import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 @RestController
 @RequestMapping("/api")
 public class IntegrationController extends BaseController {
 
-    public static final String INTEGRATION_ID = "integrationId";
+    private static final String INTEGRATION_ID = "integrationId";
+
+    @Autowired
+    private PlatformIntegrationService platformIntegrationService;
+
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
@@ -78,7 +86,14 @@ public class IntegrationController extends BaseController {
     public Integration saveIntegration(@RequestBody Integration integration) throws ThingsboardException {
         try {
             integration.setTenantId(getCurrentUser().getTenantId());
-            return checkNotNull(integrationService.saveIntegration(integration));
+            boolean create = integration.getId() == null;
+            Integration result = checkNotNull(integrationService.saveIntegration(integration));
+            if (create) {
+                platformIntegrationService.createIntegration(result);
+            } else {
+                platformIntegrationService.createIntegration(result);
+            }
+            return result;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -111,6 +126,7 @@ public class IntegrationController extends BaseController {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             checkIntegrationId(integrationId);
             integrationService.deleteIntegration(integrationId);
+            platformIntegrationService.deleteIntegration(integrationId);
         } catch (Exception e) {
             throw handleException(e);
         }

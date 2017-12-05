@@ -30,9 +30,15 @@
  */
 package org.thingsboard.server.service.integration.http;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -41,11 +47,20 @@ public abstract class AbstractHttpIntegration implements ThingsboardPlatformInte
 
     protected Integration configuration;
     protected ThingsboardDataConverter converter;
+    protected UplinkMetaData metadata;
 
     @Override
     public void init(Integration dto, ThingsboardDataConverter converter) {
         this.configuration = dto;
         this.converter = converter;
+        Map<String, String> mdMap = new HashMap<>();
+        mdMap.put("integrationName", configuration.getName());
+        JsonNode metadata = configuration.getConfiguration().get("metadata");
+        for (Iterator<Map.Entry<String, JsonNode>> it = metadata.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> md = it.next();
+            mdMap.put(md.getKey(), md.getValue().asText());
+        }
+        this.metadata = new UplinkMetaData(mdMap);
     }
 
     @Override

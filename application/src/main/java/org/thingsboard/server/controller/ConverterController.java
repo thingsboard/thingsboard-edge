@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,10 +40,14 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.exception.ThingsboardException;
+import org.thingsboard.server.service.converter.DataConverterService;
 
 @RestController
 @RequestMapping("/api")
 public class ConverterController extends BaseController {
+
+    @Autowired
+    private DataConverterService dataConverterService;
 
     public static final String CONVERTER_ID = "converterId";
 
@@ -65,7 +70,14 @@ public class ConverterController extends BaseController {
     public Converter saveConverter(@RequestBody Converter converter) throws ThingsboardException {
         try {
             converter.setTenantId(getCurrentUser().getTenantId());
-            return checkNotNull(converterService.saveConverter(converter));
+            boolean create = converter.getId() == null;
+            Converter result = checkNotNull(converterService.saveConverter(converter));
+            if (create) {
+                dataConverterService.createConverter(result);
+            } else {
+                dataConverterService.updateConverter(result);
+            }
+            return result;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -97,6 +109,7 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             checkConverterId(converterId);
             converterService.deleteConverter(converterId);
+            dataConverterService.deleteConverter(converterId);
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
