@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.integration (
     routing_key text,
     search_text text,
     configuration text,
+    debug_mode boolean,
     additional_info text,
     PRIMARY KEY (id, tenant_id)
 );
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.converter (
     type text,
     search_text text,
     configuration text,
+    debug_mode boolean,
     additional_info text,
     PRIMARY KEY (id, tenant_id)
 );
