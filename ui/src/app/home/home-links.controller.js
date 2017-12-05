@@ -48,7 +48,9 @@ export default function HomeLinksController($scope, $mdMedia, menu) {
 
     updateColumnCount();
 
-    vm.model = menu.getHomeSections();
+    menu.getHomeSections().then((homeSections) => {
+        vm.model = homeSections;
+    });
 
     function updateColumnCount() {
         vm.cols = 2;
