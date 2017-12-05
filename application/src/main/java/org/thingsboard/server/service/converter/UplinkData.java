@@ -44,6 +44,7 @@ import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
 public class UplinkData {
 
     private final String deviceName;
+    private final String deviceType;
     private final TelemetryUploadRequest telemetry;
     private final UpdateAttributesRequest attributesUpdate;
     private final GetAttributesRequest attributesRequest;

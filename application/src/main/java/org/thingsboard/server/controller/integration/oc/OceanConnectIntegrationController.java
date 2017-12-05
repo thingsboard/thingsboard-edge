@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.BaseController;
+import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
@@ -56,8 +57,12 @@ public class OceanConnectIntegrationController extends BaseController {
     @Autowired
     private PlatformIntegrationService integrationService;
 
+    @Autowired
+    private IntegrationContext context;
+
+
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}/uplink")
+    @RequestMapping(value = "/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
@@ -89,7 +94,7 @@ public class OceanConnectIntegrationController extends BaseController {
     }
 
     private void process(OceanConnectIntegration integration, JsonNode msg, DeferredResult<ResponseEntity> result) {
-        integration.process(new HttpIntegrationMsg(msg, result));
+        integration.process(context, new HttpIntegrationMsg(msg, result));
     }
 
 }

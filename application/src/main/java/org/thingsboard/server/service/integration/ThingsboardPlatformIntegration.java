@@ -46,6 +46,6 @@ public interface ThingsboardPlatformIntegration<T> {
 
     void destroy();
 
-    void process(T msg);
+    void process(IntegrationContext context, T msg);
 
 }

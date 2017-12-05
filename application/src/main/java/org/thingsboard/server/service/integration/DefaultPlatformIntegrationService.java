@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -64,6 +65,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @PostConstruct
     public void init() {
         integrationsByIdMap = new ConcurrentHashMap<>();
+        integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
         //TODO: init integrations maps using information from DB;
     }
 
@@ -98,12 +100,26 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public Optional<ThingsboardPlatformIntegration> getIntegrationById(IntegrationId id) {
-        return Optional.ofNullable(integrationsByIdMap.get(id));
+        ThingsboardPlatformIntegration result = integrationsByIdMap.get(id);
+        if (result == null) {
+            Integration configuration = integrationService.findIntegrationById(id);
+            if (configuration != null) {
+                result = createIntegration(configuration);
+            }
+        }
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key) {
-        return Optional.ofNullable(integrationsByRoutingKeyMap.get(key));
+        ThingsboardPlatformIntegration result = integrationsByRoutingKeyMap.get(key);
+        if (result == null) {
+            Optional<Integration> configuration = integrationService.findIntegrationByRoutingKey(key);
+            if (configuration.isPresent()) {
+                result = createIntegration(configuration.get());
+            }
+        }
+        return Optional.ofNullable(result);
     }
 
     private ThingsboardPlatformIntegration initIntegration(Integration integration) {

@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -53,6 +53,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JSDataConverter implements ThingsboardDataConverter {
 
+
+    private static final String JS_WRAPPER_PREFIX = "function decodeInternal(bytes, metadata) {\n" +
+            "    var payload = [];\n" +
+            "    for (var i = 0; i < bytes.length; i++) {\n" +
+            "        payload.push(bytes[i]);\n" +
+            "    }\n" +
+            "    return JSON.stringify(Decoder(payload, metadata));\n" +
+            "}\n" +
+            "\n" +
+            "function Decoder(payload, metadata) {\n";
+
+    private static final String JS_WRAPPER_SUFIX = "\n}";
+
+
     private final AtomicInteger telemetryIdSeq = new AtomicInteger();
     private final AtomicInteger attrRequestIdSeq = new AtomicInteger();
 
@@ -60,7 +74,10 @@ public class JSDataConverter implements ThingsboardDataConverter {
 
     @Override
     public void init(Converter configuration) {
-        uplinkEvaluator = new NashornJsConverterEvaluator(configuration.getConfiguration().get("uplinkConverterFunction").asText());
+        uplinkEvaluator = new NashornJsConverterEvaluator(
+                JS_WRAPPER_PREFIX
+                        + configuration.getConfiguration().get("decoder").asText()
+                        + JS_WRAPPER_SUFIX);
     }
 
     @Override
@@ -79,7 +96,8 @@ public class JSDataConverter implements ThingsboardDataConverter {
     @Override
     public List<UplinkData> convertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         List<UplinkData> result = new ArrayList<>();
-        JsonElement element = new JsonParser().parse(applyJsFunction(data, metadata));
+        String src = applyJsFunction(data, metadata);
+        JsonElement element = new JsonParser().parse(src);
         if (element.isJsonArray()) {
             for (JsonElement uplinkJson : element.getAsJsonArray()) {
                 result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
@@ -94,9 +112,12 @@ public class JSDataConverter implements ThingsboardDataConverter {
     private UplinkData parseUplinkData(JsonObject src) {
         if (!src.has("deviceName")) {
             throw new JsonParseException("Device name is not set!");
+        } else if (!src.has("deviceType")) {
+            throw new JsonParseException("Device type is not set!");
         }
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.deviceName(src.get("deviceName").getAsString());
+        builder.deviceType(src.get("deviceType").getAsString());
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }

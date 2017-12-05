@@ -1,17 +1,13 @@
-function convertToBytes(bytes) {
-    var result = [];
-    for (var i = 0; i < bytes.length; i++) {
-        result.push(bytes[i]);
-    }
-    return result;
-}
-
 function convertUplinkInternal(bytes, metadata) {
-    return convertUplink(convertToBytes(bytes), metadata);
+    var payload = [];
+    for (var i = 0; i < bytes.length; i++) {
+        payload.push(bytes[i]);
+    }
+    return convertUplink(payload, metadata);
 }
 
-function convertUplink(bytes, metadata) {
-    var deviceName = String.fromCharCode.apply(String, bytes);
+function convertUplink(payload, metadata) {
+    var deviceName = String.fromCharCode.apply(String, payload);
     var telemetryKeyName = metadata.telemetryKeyName;
     return JSON.stringify(
         {
