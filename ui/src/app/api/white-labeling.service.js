@@ -190,7 +190,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         if (!wlParams.appTitle) {
             wlParams.appTitle = defaultWLParams.appTitle;
         }
-        if (!wlParams.favicon || (!wlParams.favicon.url && !wlParams.faviconChecksum)) {
+        if ((!wlParams.favicon || !wlParams.favicon.url) && !wlParams.faviconChecksum) {
             wlParams.favicon = defaultWLParams.favicon;
             wlParams.faviconChecksum = defaultWLParams.faviconChecksum;
         }
