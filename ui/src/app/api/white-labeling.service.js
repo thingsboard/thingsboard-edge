@@ -28,6 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 /* eslint-disable import/no-unresolved, import/default */
 
 import defaultImageUrl from '../../svg/logo_title_white.svg';
@@ -39,14 +40,18 @@ export default angular.module('thingsboard.api.whiteLabeling', [])
     .name;
 
 /*@ngInject*/
-function WhiteLabelingService($rootScope, $q, userService, $http, store, themeProvider, $mdTheming) {
+function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTheming) {
 
-    var defaultWLParams = {
+    const defaultWLParams = {
         logoImageUrl: defaultImageUrl,
+        logoImageChecksum: '4a216f7cb9b76effe0d583ef5bddd98e377e2fa9',
         logoImageHeight: 36,
         appTitle: 'ThingsBoard PE',
-        faviconUrl: 'static/thingsboard.ico',
-        faviconType: 'image/x-icon',
+        favicon: {
+            url: 'static/thingsboard.ico',
+            type: 'image/x-icon'
+        },
+        faviconChecksum: '87059b3055f7ce8b8e43f18f470ed895a316f5ec',
         paletteSettings: {
             primaryPalette: {
                 type: 'tb-primary'
@@ -57,225 +62,169 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         }
     };
 
-    var systemWLParams = {};
-    var parentWLParams = {};
-    var userWLParams = {};
-    var currentWLParams = {};
+    var currentWLParams;
+    var userWlParams;
 
-    var defaultsLoaded = false;
-    var systemParamsLoaded = false;
-    var userParamsLoaded = false;
-    var paramResolveTasks = [];
-    var systemParamResolveTasks = [];
-
-    var primaryPaletteName = 'tb-primary';
-    var accentPaletteName = 'tb-accent';
+    var primaryPaletteName;
+    var accentPaletteName;
 
     var service = {
+        loadSystemWhiteLabelingParams: loadSystemWhiteLabelingParams,
+        loadUserWhiteLabelingParams: loadUserWhiteLabelingParams,
         logoImageUrl: logoImageUrl,
         logoImageHeight: logoImageHeight,
         appTitle: appTitle,
         faviconUrl: faviconUrl,
         faviconType: faviconType,
-        whiteLabelPreview: whiteLabelPreview,
-        getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
-        saveWhiteLabelParams: saveWhiteLabelParams,
-        cancelWhiteLabelPreview: cancelWhiteLabelPreview,
         getPrimaryPalette: getPrimaryPalette,
-        getAccentPalette: getAccentPalette
+        getAccentPalette: getAccentPalette,
+        whiteLabelPreview: whiteLabelPreview,
+        cancelWhiteLabelPreview: cancelWhiteLabelPreview,
+        getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
+        saveWhiteLabelParams: saveWhiteLabelParams
     };
-
-    if (userService.isUserLoaded()) {
-        onUserLoaded();
-    } else {
-        $rootScope.wlUserLoadedHandle = $rootScope.$on('userLoaded', () => {
-            $rootScope.wlUserLoadedHandle();
-            onUserLoaded();
-        });
-    }
-
-    configureWhiteLabeling(true);
 
     return service;
 
-    function wlChanged(loadPalette) {
-        configureWhiteLabeling(loadPalette).then(
-            () => {
+    function logoImageUrl() {
+        return currentWLParams ? currentWLParams.logoImageUrl : '';
+    }
+
+    function logoImageHeight() {
+        return currentWLParams ? currentWLParams.logoImageHeight: '';
+    }
+
+    function appTitle() {
+        return currentWLParams ? currentWLParams.appTitle : '';
+    }
+
+    function faviconUrl() {
+        return currentWLParams ? currentWLParams.favicon.url : '';
+    }
+
+    function faviconType() {
+        return currentWLParams ? currentWLParams.favicon.type : '';
+    }
+
+    function getPrimaryPalette() {
+        return themeProvider._PALETTES[primaryPaletteName];
+    }
+
+    function getAccentPalette() {
+        return themeProvider._PALETTES[accentPaletteName];
+    }
+
+    function loadSystemWhiteLabelingParams() {
+        var deferred = $q.defer();
+        var storedLogoImageChecksum = store.get('system_logo_image_checksum');
+        var storedFaviconChecksum = store.get('system_favicon_checksum');
+        var url = '/api/noauth/whiteLabel/systemWhiteLabelParams';
+        if (storedLogoImageChecksum) {
+            url += '?logoImageChecksum='+storedLogoImageChecksum;
+        }
+        if (storedFaviconChecksum) {
+            if (storedLogoImageChecksum) {
+                url += '&'
+            } else {
+                url += '?'
+            }
+            url += 'faviconChecksum='+storedFaviconChecksum;
+        }
+        $http.get(url, null).then(
+            (response) => {
+                currentWLParams = mergeDefaults(response.data);
+                updateImages(currentWLParams, 'system');
+                applyLoginThemePalettes(currentWLParams.paletteSettings);
                 $rootScope.$broadcast('whiteLabelingChanged');
+                deferred.resolve();
+            },
+            () => {
+                deferred.reject();
             }
         );
-    }
-
-    function onUserLoaded() {
-        if (userService.isAuthenticated()) {
-            reloadUserWhiteLabelingParams();
-            $rootScope.wlUserLoadedHandle = $rootScope.$on('userLoaded', () => {
-                reloadUserWhiteLabelingParams();
-            });
-            $rootScope.wlUserAuthenticatedHandle = $rootScope.$on('authenticated', () => {
-                reloadUserWhiteLabelingParams();
-            });
-            $rootScope.wlUserAuthenticatedHandle = $rootScope.$on('unauthenticated', () => {
-                resetUserWhiteLabelingParams();
-            });
-        } else {
-            $rootScope.wlUserAuthenticatedHandle = $rootScope.$on('authenticated', () => {
-                $rootScope.wlUserAuthenticatedHandle();
-                onUserLoaded();
-            });
-        }
-    }
-
-    function reloadUserWhiteLabelingParams() {
-        loadUserWhiteLabelingParams().then(() => {
-            wlChanged(true);
-        });
-    }
-
-    function resetUserWhiteLabelingParams() {
-        userWLParams = {};
-        parentWLParams = {};
-        currentWLParams = userWLParams;
-        userParamsLoaded = false;
-        wlChanged(false);
+        return deferred.promise;
     }
 
     function loadUserWhiteLabelingParams() {
         var deferred = $q.defer();
-        userWLParams = {};
-        parentWLParams = {};
-        var loadParentWlParams;
-        if (userService.getAuthority() == 'SYS_ADMIN') {
-            loadParentWlParams = $q.when({});
-        } else {
-            loadParentWlParams = loadWlParams(true);
+        var storedLogoImageChecksum = store.get('user_logo_image_checksum');
+        var storedFaviconChecksum = store.get('user_favicon_checksum');
+        var url = '/api/whiteLabel/whiteLabelParams';
+        if (storedLogoImageChecksum) {
+            url += '?logoImageChecksum='+storedLogoImageChecksum;
         }
-        loadParentWlParams.then(
-                (wlParams) => {
-                    parentWLParams = wlParams;
-                    loadWlParams().then(
-                        (wlParams) => {
-                            userWLParams = wlParams;
-                            userWhiteLabelingParamsLoaded();
-                            deferred.resolve();
-                        }
-                    );
-                }
-            );
-        return deferred.promise;
-    }
-
-    function loadWlParams(parent) {
-        var deferred = $q.defer();
-        var wlParams = {};
-        loadLogoImage(parent).then((logoImageUrl) => {
-                wlParams.logoImageUrl = logoImageUrl;
-                loadWhiteLabelParams(parent).then(
-                    (whiteLabelParams) => {
-                        if (whiteLabelParams) {
-                            wlParams = checkWlParams(whiteLabelParams);
-                            wlParams.logoImageUrl = logoImageUrl;
-                        }
-                        deferred.resolve(wlParams);
-                    },
-                    () => {
-                        deferred.resolve(wlParams);
-                    }
-                );
+        if (storedFaviconChecksum) {
+            if (storedLogoImageChecksum) {
+                url += '&'
+            } else {
+                url += '?'
+            }
+            url += 'faviconChecksum='+storedFaviconChecksum;
+        }
+        $http.get(url, null).then(
+            (response) => {
+                userWlParams = mergeDefaults(response.data);
+                updateImages(userWlParams, 'user');
+                currentWLParams = userWlParams;
+                wlChanged();
+                deferred.resolve();
             },
             () => {
-                deferred.resolve(wlParams);
+                deferred.reject();
             }
         );
         return deferred.promise;
     }
 
-    function checkWlParams(whiteLabelParams) {
-        if (!whiteLabelParams) {
-            whiteLabelParams = {};
+    function mergeDefaults(wlParams) {
+        if (!wlParams) {
+            wlParams = {};
         }
-        if (!whiteLabelParams.paletteSettings) {
-            whiteLabelParams.paletteSettings = {};
-        } else if (angular.isString(whiteLabelParams.paletteSettings)) {
-            whiteLabelParams.paletteSettings = angular.fromJson(whiteLabelParams.paletteSettings);
+        if (!wlParams.logoImageUrl && !wlParams.logoImageChecksum) {
+            wlParams.logoImageUrl = defaultWLParams.logoImageUrl;
+            wlParams.logoImageChecksum = defaultWLParams.logoImageChecksum;
         }
-        if (whiteLabelParams.faviconUrl && whiteLabelParams.faviconUrl.length) {
-            whiteLabelParams.faviconType = extractTypeFromDataUrl(whiteLabelParams.faviconUrl);
+        if (!wlParams.logoImageHeight) {
+            wlParams.logoImageHeight = defaultWLParams.logoImageHeight;
         }
-        return whiteLabelParams;
-    }
-
-    function extractTypeFromDataUrl(dataUrl) {
-        var type;
-        if (dataUrl) {
-            var res = dataUrl.split(";");
-            if (res && res.length) {
-                res = res[0];
-                res = res.split(":");
-                if (res && res.length > 1) {
-                    type = res[1];
-                }
+        if (!wlParams.appTitle) {
+            wlParams.appTitle = defaultWLParams.appTitle;
+        }
+        if (!wlParams.favicon || (!wlParams.favicon.url && !wlParams.faviconChecksum)) {
+            wlParams.favicon = defaultWLParams.favicon;
+            wlParams.faviconChecksum = defaultWLParams.faviconChecksum;
+        }
+        if (!wlParams.paletteSettings) {
+            wlParams.paletteSettings = defaultWLParams.paletteSettings;
+        } else {
+            if (!wlParams.paletteSettings.primaryPalette || !wlParams.paletteSettings.primaryPalette.type) {
+                wlParams.paletteSettings.primaryPalette = defaultWLParams.paletteSettings.primaryPalette;
+            }
+            if (!wlParams.paletteSettings.accentPalette || !wlParams.paletteSettings.accentPalette.type) {
+                wlParams.paletteSettings.accentPalette = defaultWLParams.paletteSettings.accentPalette;
             }
         }
-        return type;
+        return wlParams;
     }
 
-    function userWhiteLabelingParamsLoaded() {
-        currentWLParams = userWLParams;
-        userParamsLoaded = true;
-        for (var i=0;i<paramResolveTasks.length;i++) {
-            paramResolveTasks[i]();
-        }
-        paramResolveTasks.length = 0;
+    function wlChanged() {
+        applyThemePalettes(currentWLParams.paletteSettings);
+        $rootScope.$broadcast('whiteLabelingChanged');
     }
 
-    function systemWhiteLabelingParamsLoaded() {
-        systemParamsLoaded = true;
-        for (var i=0;i<systemParamResolveTasks.length;i++) {
-            systemParamResolveTasks[i]();
-        }
-        systemParamResolveTasks.length = 0;
-    }
-
-    function loadLogoImage(parent) {
-        var deferred = $q.defer();
-        var url = '/api/whiteLabel/logoImageChecksum?parent=' + ( parent ? 'true': 'false' );
-        $http.get(url, null).then(function success(response) {
-            var logoImageChecksum = response.data;
-            if (logoImageChecksum && logoImageChecksum.length) {
-                var storedChecksum = store.get(parent ? 'parent_logo_image_checksum' : 'logo_image_checksum');
-                var storedLogoImageUrl = store.get( parent ? 'parent_logo_image_url' : 'logo_image_url');
-                if (angular.equals(logoImageChecksum, storedChecksum) && storedLogoImageUrl && storedLogoImageUrl.length) {
-                    deferred.resolve(storedLogoImageUrl);
-                } else {
-                    url = '/api/whiteLabel/logoImage?parent=' + ( parent ? 'true': 'false' );
-                    $http.get(url, null).then(function success(response) {
-                        var imageUrl = response.data;
-                        store.set(parent ? 'parent_logo_image_checksum' : 'logo_image_checksum', logoImageChecksum);
-                        store.set(parent ? 'parent_logo_image_url' : 'logo_image_url', imageUrl);
-                        deferred.resolve(imageUrl);
-                    }, function fail() {
-                        deferred.reject();
-                    });
-                }
-            } else {
-                deferred.resolve(null);
-            }
+    function whiteLabelPreview(wLParams) {
+        var url = '/api/whiteLabel/previewWhiteLabelParams';
+        $http.post(url, wLParams).then(function success(response) {
+            var wlParams = mergeDefaults(response.data);
+            currentWLParams = wlParams;
+            wlChanged();
         }, function fail() {
-            deferred.reject();
         });
-        return deferred.promise;
     }
 
-    function loadWhiteLabelParams(parent) {
-        var deferred = $q.defer();
-        var url = '/api/whiteLabel/whiteLabelParams?parent=' + ( parent ? 'true': 'false' );
-        $http.get(url, null).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
+    function cancelWhiteLabelPreview() {
+        currentWLParams = userWlParams;
+        wlChanged();
     }
 
     function getCurrentWhiteLabelParams() {
@@ -289,207 +238,60 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
         return deferred.promise;
     }
 
-    function getSystemWhiteLabelParams() {
-        var deferred = $q.defer();
-        var url = '/api/noauth/whiteLabel/systemWhiteLabelParams';
-        $http.get(url, null).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
     function saveWhiteLabelParams(wlParams) {
         var deferred = $q.defer();
-        var url = '/api/whiteLabel/logoImage';
-        $http.post(url, wlParams.logoImageUrl).then(function success(response) {
-            var logoImageChecksum = response.data;
-            store.set('logo_image_checksum', logoImageChecksum);
-            store.set('logo_image_url', wlParams.logoImageUrl);
-            url = '/api/whiteLabel/whiteLabelParams';
-            var params = angular.copy(wlParams);
-            delete params.logoImageUrl;
-            $http.post(url, params).then(function success() {
-                reloadUserWhiteLabelingParams();
-                deferred.resolve();
-            }, function fail() {
-                deferred.reject();
-            });
-
+        var url = '/api/whiteLabel/whiteLabelParams';
+        $http.post(url, wlParams).then(function success() {
+            loadUserWhiteLabelingParams().then(
+                () => {
+                    deferred.resolve();
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
         }, function fail() {
             deferred.reject();
         });
         return deferred.promise;
     }
 
-    function getInstantParam(paramName) {
-        if (currentWLParams[paramName]) {
-            return currentWLParams[paramName];
-        } else if (parentWLParams[paramName]) {
-            return parentWLParams[paramName];
-        } else if (systemWLParams[paramName]) {
-            return systemWLParams[paramName];
-        } else {
-            return defaultWLParams[paramName];
+    function checkWlParams(whiteLabelParams) {
+        if (!whiteLabelParams) {
+            whiteLabelParams = {};
         }
-    }
-
-    function hasPalette(wlParams, paletteType) {
-        return wlParams.paletteSettings && wlParams.paletteSettings[paletteType]
-               && wlParams.paletteSettings[paletteType].type;
-    }
-
-    function getInstantPalette(paletteType) {
-        if (hasPalette(currentWLParams, paletteType)) {
-            return currentWLParams.paletteSettings[paletteType];
-        } else if (hasPalette(parentWLParams, paletteType)) {
-            return parentWLParams.paletteSettings[paletteType];
-        } else if (hasPalette(systemWLParams, paletteType)) {
-            return systemWLParams.paletteSettings[paletteType];
-        } else {
-            return defaultWLParams.paletteSettings[paletteType];
+        if (!whiteLabelParams.paletteSettings) {
+            whiteLabelParams.paletteSettings = {};
         }
+        if (!whiteLabelParams.favicon) {
+            whiteLabelParams.favicon = {};
+        }
+        return whiteLabelParams;
     }
 
-    function getParam(paramName, systemByDefault) {
-        var deferred;
-        if (userParamsLoaded) {
-            return $q.when(getInstantParam(paramName));
-        } else if (systemByDefault) {
-            if (systemParamsLoaded) {
-                return $q.when(getInstantParam(paramName));
-            } else {
-                deferred = $q.defer();
-                var systemParamResolveTask = () => {
-                    deferred.resolve(getInstantParam(paramName));
-                };
-                systemParamResolveTasks.push(systemParamResolveTask);
-                return deferred.promise;
-            }
+    function updateImages(wlParams, prefix) {
+        var storedLogoImageChecksum = store.get(prefix+'_logo_image_checksum');
+        var storedFaviconChecksum = store.get(prefix+'_favicon_checksum');
+        var logoImageChecksum = wlParams.logoImageChecksum;
+        if (logoImageChecksum && !angular.equals(storedLogoImageChecksum, logoImageChecksum)) {
+            var logoImageUrl = wlParams.logoImageUrl;
+            store.set(prefix+'_logo_image_checksum', logoImageChecksum);
+            store.set(prefix+'_logo_image_url', logoImageUrl);
         } else {
-            deferred = $q.defer();
-            var paramResolveTask = () => {
-                deferred.resolve(getInstantParam(paramName));
+            wlParams.logoImageUrl = store.get(prefix+'_logo_image_url');
+        }
+        var faviconChecksum = wlParams.faviconChecksum;
+        if (faviconChecksum && !angular.equals(storedFaviconChecksum, faviconChecksum)) {
+            var favicon = wlParams.favicon;
+            store.set(prefix+'_favicon_checksum', faviconChecksum);
+            store.set(prefix+'_favicon_url', favicon.url);
+            store.set(prefix+'_favicon_type', favicon.type);
+        } else {
+            wlParams.favicon = {
+                url: store.get(prefix+'_favicon_url'),
+                type: store.get(prefix+'_favicon_type'),
             };
-            paramResolveTasks.push(paramResolveTask);
-            return deferred.promise;
         }
-    }
-
-    function getPaletteSettings() {
-        if (userParamsLoaded) {
-            var paletteSettings = {
-                primaryPalette: getInstantPalette('primaryPalette'),
-                accentPalette: getInstantPalette('accentPalette')
-            }
-            return $q.when(paletteSettings);
-        } else {
-            var deferred = $q.defer();
-            var paramResolveTask = () => {
-                var paletteSettings = {
-                    primaryPalette: getInstantPalette('primaryPalette'),
-                    accentPalette: getInstantPalette('accentPalette')
-                }
-                deferred.resolve(paletteSettings);
-            };
-            paramResolveTasks.push(paramResolveTask);
-            return deferred.promise;
-        }
-    }
-
-    function faviconUrl() {
-        return getParam('faviconUrl', true);
-    }
-
-    function faviconType() {
-        return getParam('faviconType', true);
-    }
-
-    function logoImageUrl() {
-        return getParam('logoImageUrl');
-    }
-
-    function logoImageHeight() {
-        return getParam('logoImageHeight');
-    }
-
-    function appTitle() {
-        return getParam('appTitle', true);
-    }
-
-    function whiteLabelPreview(wLParams) {
-        currentWLParams = wLParams;
-        wlChanged(true);
-    }
-
-    function cancelWhiteLabelPreview() {
-        currentWLParams = userWLParams;
-        wlChanged(true);
-    }
-
-    function getPrimaryPalette() {
-        return themeProvider._PALETTES[primaryPaletteName];
-    }
-
-    function getAccentPalette() {
-        return themeProvider._PALETTES[accentPaletteName];
-    }
-
-    function configureWhiteLabeling(loadPalette) {
-        var deferred = $q.defer();
-        loadDefaults().then(() => {
-            if (loadPalette) {
-                getPaletteSettings().then(
-                    (paletteSettings) => {
-                        store.set('theme_palette_settings', angular.toJson(paletteSettings));
-                        applyThemePalettes(paletteSettings);
-                        deferred.resolve();
-                    }
-                );
-            } else {
-                deferred.resolve();
-            }
-        });
-        return deferred.promise;
-    }
-
-    function loadDefaults() {
-        var deferred = $q.defer();
-        if (!defaultsLoaded) {
-            defaultsLoaded = true;
-            var paletteSettingsJson = store.get('theme_palette_settings');
-            var storedPaletteSettings;
-            if (paletteSettingsJson && paletteSettingsJson.length) {
-                try {
-                    storedPaletteSettings = angular.fromJson(paletteSettingsJson)
-                } catch (e) {
-                    /**/
-                }
-            }
-            if (storedPaletteSettings) {
-                applyThemePalettes(storedPaletteSettings);
-            } else {
-                $rootScope.currentTheme = 'default';
-            }
-        }
-        getSystemWhiteLabelParams().then(
-            (wlParams) => {
-                systemWLParams = checkWlParams(wlParams);
-                applyLoginThemePalettes(systemWLParams.paletteSettings);
-                if (userService.getAuthority() == 'SYS_ADMIN') {
-                    systemWLParams = {};
-                }
-                systemWhiteLabelingParamsLoaded();
-                deferred.resolve();
-            },
-            () => {
-                $rootScope.currentLoginTheme = 'tb-dark';
-                systemWhiteLabelingParamsLoaded();
-                deferred.resolve();
-            }
-        );
-        return deferred.promise;
     }
 
     function applyThemePalettes(paletteSettings) {
@@ -499,6 +301,16 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
 
         var primaryPalette = paletteSettings.primaryPalette;
         var accentPalette = paletteSettings.accentPalette;
+
+        if (primaryPalette.type == 'tb-primary' &&
+            accentPalette.type == 'tb-accent') {
+            primaryPaletteName = primaryPalette.type;
+            accentPaletteName = accentPalette.type;
+            $rootScope.currentTheme = 'default';
+            themeProvider.setDefaultTheme('default');
+            return;
+        }
+
         if (primaryPalette.type != 'custom') {
             primaryPaletteName = primaryPalette.type;
         } else {
@@ -534,14 +346,9 @@ function WhiteLabelingService($rootScope, $q, userService, $http, store, themePr
     function applyLoginThemePalettes(paletteSettings) {
         var primaryPalette = paletteSettings.primaryPalette;
         var accentPalette = paletteSettings.accentPalette;
-        if (!primaryPalette || !primaryPalette.type) {
-            primaryPalette = defaultWLParams.paletteSettings.primaryPalette;
-        }
-        if (!accentPalette || !accentPalette.type) {
-            accentPalette = defaultWLParams.paletteSettings.accentPalette;
-        }
-        if (primaryPalette == defaultWLParams.paletteSettings.primaryPalette &&
-            accentPalette == defaultWLParams.paletteSettings.accentPalette) {
+
+        if (primaryPalette.type == 'tb-primary' &&
+            accentPalette.type == 'tb-accent') {
             $rootScope.currentLoginTheme = 'tb-dark';
             return;
         }

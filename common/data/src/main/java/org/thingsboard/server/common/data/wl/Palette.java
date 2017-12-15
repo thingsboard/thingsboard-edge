@@ -28,19 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.settings;
+package org.thingsboard.server.common.data.wl;
 
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-public interface AdminSettingsService {
+import java.util.Map;
 
-    AdminSettings findAdminSettingsById(AdminSettingsId adminSettingsId);
+@Data
+@EqualsAndHashCode
+public class Palette {
 
-    AdminSettings findAdminSettingsByKey(String key);
+    private String type;
 
-    void deleteAdminSettingsByKey(String key);
-    
-    AdminSettings saveAdminSettings(AdminSettings adminSettings);
-    
+    @JsonProperty("extends")
+    private String extendsPalette;
+
+    private Map<String, String> colors;
+
 }

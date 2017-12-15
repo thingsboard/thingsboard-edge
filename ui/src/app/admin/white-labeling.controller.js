@@ -136,7 +136,8 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
                 var type = extractType(dataUrl);
                 if (type && faviconTypes.indexOf(type) > -1) {
                     vm.whiteLabelForm.$setDirty();
-                    vm.whiteLabelingParams.faviconUrl = dataUrl;
+                    vm.whiteLabelingParams.favicon.url = dataUrl;
+                    vm.whiteLabelingParams.favicon.type = extractTypeFromDataUrl(dataUrl);
                 } else {
                     toast.showError($translate.instant('white-labeling.favicon-type-error'));
                 }
@@ -150,9 +151,26 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
         }
     }
 
+    function extractTypeFromDataUrl(dataUrl) {
+        var type;
+        if (dataUrl) {
+            var res = dataUrl.split(";");
+            if (res && res.length) {
+                res = res[0];
+                res = res.split(":");
+                if (res && res.length > 1) {
+                    type = res[1];
+                }
+            }
+        }
+        return type;
+    }
+
     function clearFaviconImage() {
         vm.whiteLabelForm.$setDirty();
-        vm.whiteLabelingParams.faviconUrl = null;
+        vm.whiteLabelingParams.favicon.url = null;
+        vm.whiteLabelingParams.favicon.type = null;
+        vm.whiteLabelingParams.faviconChecksum = null;
     }
 
     function logoImageAdded($file) {
@@ -180,6 +198,7 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
     function clearLogoImage() {
         vm.whiteLabelForm.$setDirty();
         vm.whiteLabelingParams.logoImageUrl = null;
+        vm.whiteLabelingParams.logoImageChecksum = null;
     }
 
     function extractType(dataUrl) {
