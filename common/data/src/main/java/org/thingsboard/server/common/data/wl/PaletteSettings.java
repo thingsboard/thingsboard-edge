@@ -28,19 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.settings;
+package org.thingsboard.server.common.data.wl;
 
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
-public interface AdminSettingsService {
+@Data
+@EqualsAndHashCode
+public class PaletteSettings {
 
-    AdminSettings findAdminSettingsById(AdminSettingsId adminSettingsId);
+    private Palette primaryPalette;
+    private Palette accentPalette;
 
-    AdminSettings findAdminSettingsByKey(String key);
+    public PaletteSettings merge(PaletteSettings otherPaletteSettings) {
+        if (this.primaryPalette == null || StringUtils.isEmpty(this.primaryPalette.getType())) {
+            this.primaryPalette = otherPaletteSettings.primaryPalette;
+        }
+        if (this.accentPalette == null || StringUtils.isEmpty(this.accentPalette.getType())) {
+            this.accentPalette = otherPaletteSettings.accentPalette;
+        }
+        return this;
+    }
 
-    void deleteAdminSettingsByKey(String key);
-    
-    AdminSettings saveAdminSettings(AdminSettings adminSettings);
-    
 }

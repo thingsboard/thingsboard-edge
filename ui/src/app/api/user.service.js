@@ -37,7 +37,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, toast, store, jwtHelper, $translate, $state, $location) {
+function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -313,24 +313,36 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
                 } else if (currentUser) {
                     currentUser.authority = "ANONYMOUS";
                 }
+                var wlPromise = whiteLabelingService.loadUserWhiteLabelingParams();
                 if (currentUser.isPublic) {
                     $rootScope.forceFullscreen = true;
-                    fetchAllowedDashboardIds();
+                    wlPromise.then(
+                        () => { fetchAllowedDashboardIds(); },
+                        () => { deferred.reject(); }
+                    );
                 } else if (currentUser.userId) {
                     getUser(currentUser.userId, true).then(
                         function success(user) {
-                            currentUserDetails = user;
-                            updateUserLang();
-                            $rootScope.forceFullscreen = false;
-                            if (userForceFullscreen()) {
-                                $rootScope.forceFullscreen = true;
-                            }
-                            if ($rootScope.forceFullscreen && (currentUser.authority === 'TENANT_ADMIN' ||
-                                currentUser.authority === 'CUSTOMER_USER')) {
-                                fetchAllowedDashboardIds();
-                            } else {
-                                deferred.resolve();
-                            }
+                            wlPromise.then(
+                                () => {
+                                    currentUserDetails = user;
+                                    updateUserLang();
+                                    $rootScope.forceFullscreen = false;
+                                    if (userForceFullscreen()) {
+                                        $rootScope.forceFullscreen = true;
+                                    }
+                                    if ($rootScope.forceFullscreen && (currentUser.authority === 'TENANT_ADMIN' ||
+                                        currentUser.authority === 'CUSTOMER_USER')) {
+                                        fetchAllowedDashboardIds();
+                                    } else {
+                                        deferred.resolve();
+                                    }
+                                },
+                                () => {
+                                    deferred.reject();
+                                    logout();
+                                }
+                            );
                         },
                         function fail() {
                             deferred.reject();

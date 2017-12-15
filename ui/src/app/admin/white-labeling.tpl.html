@@ -51,8 +51,8 @@
                         <div flow-init="{singleFile:true}"
                              flow-file-added="vm.faviconImageAdded( $file )" class="tb-image-select-container">
                             <div class="tb-image-preview-container">
-                                <div ng-show="!vm.whiteLabelingParams.faviconUrl" translate>white-labeling.no-favicon-image</div>
-                                <img ng-show="vm.whiteLabelingParams.faviconUrl" class="tb-image-preview" src="{{vm.whiteLabelingParams.faviconUrl}}" />
+                                <div ng-show="!vm.whiteLabelingParams.favicon.url" translate>white-labeling.no-favicon-image</div>
+                                <img ng-show="vm.whiteLabelingParams.favicon.url" class="tb-image-preview" src="{{vm.whiteLabelingParams.favicon.url}}" />
                             </div>
                             <div class="tb-image-clear-container">
                                 <md-button ng-click="vm.clearFaviconImage()"

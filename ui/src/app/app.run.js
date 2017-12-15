@@ -61,7 +61,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     function initWatchers() {
         $rootScope.unauthenticatedHandle = $rootScope.$on('unauthenticated', function (event, doLogout) {
             if (doLogout) {
-                $state.go('login');
+                gotoPublicModule('login');
             } else {
                 UrlHandler($injector, $location);
             }
@@ -144,17 +144,19 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                     } else if (to.module === 'private') {
                         evt.preventDefault();
                         if (to.url === '/home' || to.url === '/') {
-                            $state.go('login', params);
+                            gotoPublicModule('login', params);
                         } else {
                             showUnauthorizedDialog();
                         }
+                    } else {
+                        gotoPublicModule(to.name, params);
                     }
                 }
             } else {
                 evt.preventDefault();
                 waitForUserLoaded();
             }
-        })
+        });
 
         updateFavicon();
         updatePageTitle();
@@ -169,36 +171,43 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
 
         $rootScope.appTitleWhiteLabelingChangedHandle = $rootScope.$on('whiteLabelingChanged', () => {
             updateFavicon();
-            updatePageTitle($state.current.data.pageTitle);
+            var pageTitle = $state.current.data ? $state.current.data.pageTitle : '';
+            updatePageTitle(pageTitle);
         });
     }
 
     function updateFavicon() {
-        whiteLabelingService.faviconUrl().then((iconUrl) => {
-            whiteLabelingService.faviconType().then((iconType) => {
-                favicon.attr('type', iconType);
-                favicon.attr('href', iconUrl);
-            });
-        });
+        favicon.attr('type', whiteLabelingService.faviconType());
+        favicon.attr('href', whiteLabelingService.faviconUrl());
     }
 
     function updatePageTitle(pageTitle) {
-        whiteLabelingService.appTitle().then((appTitle) => {
-            if (angular.isDefined(pageTitle)) {
-                $translate(pageTitle).then(
-                    (translation) => {
-                        $rootScope.pageTitle = `${appTitle} | ${translation}`;
-                    }, (translationId) => {
-                        $rootScope.pageTitle = `${appTitle} | ${translationId}`;
-                    });
-            } else {
-                $rootScope.pageTitle = appTitle;
-            }
-        });
+        var appTitle = whiteLabelingService.appTitle();
+        if (angular.isDefined(pageTitle)) {
+            $translate(pageTitle).then(
+                (translation) => {
+                    $rootScope.pageTitle = `${appTitle} | ${translation}`;
+                }, (translationId) => {
+                    $rootScope.pageTitle = `${appTitle} | ${translationId}`;
+                });
+        } else {
+            $rootScope.pageTitle = appTitle;
+        }
     }
 
     function gotoDefaultPlace(params) {
         userService.gotoDefaultPlace(params);
+    }
+
+    function gotoPublicModule(name, params) {
+        whiteLabelingService.loadSystemWhiteLabelingParams().then(
+            () => {
+                $state.go(name, params);
+            },
+            () => {
+                $state.go(name, params);
+            }
+        );
     }
 
     function showUnauthorizedDialog() {
@@ -217,7 +226,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                         .ok(translations['action.sign-in']);
                     $mdDialog.show(unauthorizedDialog).then(function () {
                         unauthorizedDialog = null;
-                        $state.go('login');
+                        gotoPublicModule('login');
                     }, function () {
                         unauthorizedDialog = null;
                     });

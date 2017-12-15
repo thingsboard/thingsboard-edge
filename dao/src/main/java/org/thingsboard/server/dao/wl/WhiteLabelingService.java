@@ -28,19 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.settings;
+package org.thingsboard.server.dao.wl;
 
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
-public interface AdminSettingsService {
+public interface WhiteLabelingService {
 
-    AdminSettings findAdminSettingsById(AdminSettingsId adminSettingsId);
+    WhiteLabelingParams getSystemWhiteLabelingParams();
 
-    AdminSettings findAdminSettingsByKey(String key);
+    WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId);
 
-    void deleteAdminSettingsByKey(String key);
-    
-    AdminSettings saveAdminSettings(AdminSettings adminSettings);
-    
+    WhiteLabelingParams getCustomerWhiteLabelingParams(CustomerId customerId);
+
+    WhiteLabelingParams getMergedSystemWhiteLabelingParams(String logoImageChecksum, String faviconChecksum);
+
+    WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
+
+    WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
+
+    WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
+
+    WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
+
+    WhiteLabelingParams saveCustomerWhiteLabelingParams(CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
+
+    WhiteLabelingParams mergeSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
+
+    WhiteLabelingParams mergeTenantWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
+
+    WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
+
 }

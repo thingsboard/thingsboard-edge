@@ -30,24 +30,38 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.wl.Favicon;
+import org.thingsboard.server.common.data.wl.PaletteSettings;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,6 +71,12 @@ import java.util.concurrent.ExecutionException;
 @Profile("install")
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
+    private static final String LOGO_IMAGE = "logoImage";
+    private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
 
     @Autowired
     private TenantService tenantService;
@@ -82,6 +102,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private SystemDataLoaderService systemDataLoaderService;
 
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private AttributesService attributesService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -95,6 +121,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 if (mailTemplateSettings == null) {
                     systemDataLoaderService.loadMailTemplates();
                 }
+
+                //White Labeling updates
+                updateSystemWhiteLabelingParameters();
+                tenantsWhiteLabelingUpdater.updateEntities(null);
 
                 break;
             default:
@@ -185,6 +215,30 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     };
 
+    private PaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new PaginatedUpdater<String, Tenant>() {
+                @Override
+                protected List<Tenant> findEntities(String id, TextPageLink pageLink) {
+                    return tenantService.findTenants(pageLink).getData();
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    updateEntityWhiteLabelingParameters(tenant.getId());
+                    customersWhiteLabelingUpdater.updateEntities(tenant.getId());
+                }
+    };
+
+    private PaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new PaginatedUpdater<TenantId, Customer>() {
+        @Override
+        protected List<Customer> findEntities(TenantId id, TextPageLink pageLink) {
+            return customerService.findCustomersByTenantId(id, pageLink).getData();
+        }
+        @Override
+        protected void updateEntity(Customer customer) {
+            updateEntityWhiteLabelingParameters(customer.getId());
+        }
+    };
+
     public abstract class PaginatedUpdater<I, D extends IdBased<?>> {
 
         private static final int DEFAULT_LIMIT = 100;
@@ -210,6 +264,137 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         protected abstract void updateEntity(D entity);
 
+    }
+
+    private void updateSystemWhiteLabelingParameters() {
+        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(WHITE_LABEL_PARAMS);
+        JsonNode storedWl = null;
+        String logoImageUrl = null;
+        if (whiteLabelParamsSettings != null) {
+            String json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
+            if (!StringUtils.isEmpty(json)) {
+                try {
+                    storedWl = objectMapper.readTree(json);
+                } catch (IOException e) {
+                    log.error("Unable to read System White Labeling Params!", e);
+                }
+            }
+        }
+        AdminSettings logoImageSettings = adminSettingsService.findAdminSettingsByKey(LOGO_IMAGE);
+        if (logoImageSettings != null) {
+            logoImageUrl = logoImageSettings.getJsonValue().get("value").asText();
+        }
+        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl);
+        whiteLabelingService.saveSystemWhiteLabelingParams(preparedWhiteLabelingParams);
+        adminSettingsService.deleteAdminSettingsByKey(LOGO_IMAGE);
+        adminSettingsService.deleteAdminSettingsByKey(LOGO_IMAGE_CHECKSUM);
+    }
+
+    private void updateEntityWhiteLabelingParameters(EntityId entityId) {
+        JsonNode storedWl = getEntityWhiteLabelParams(entityId);
+        String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
+        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl);
+        if (entityId.getEntityType() == EntityType.TENANT) {
+            whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
+        }
+        if (entityId.getEntityType() == EntityType.CUSTOMER) {
+            whiteLabelingService.saveCustomerWhiteLabelingParams(new CustomerId(entityId.getId()), preparedWhiteLabelingParams);
+        }
+        deleteEntityAttribute(entityId, LOGO_IMAGE);
+        deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);
+    }
+
+    private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl) {
+        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setLogoImageUrl(logoImageUrl);
+        if (storedWl != null) {
+            if (storedWl.has("logoImageUrl")) {
+                logoImageUrl = storedWl.get("logoImageUrl").asText();
+                if (!StringUtils.isEmpty(logoImageUrl)) {
+                    whiteLabelingParams.setLogoImageUrl(logoImageUrl);
+                }
+            }
+            if (storedWl.has("logoImageHeight")) {
+                whiteLabelingParams.setLogoImageHeight(storedWl.get("logoImageHeight").asInt());
+            }
+            if (storedWl.has("appTitle")) {
+                whiteLabelingParams.setAppTitle(storedWl.get("appTitle").asText());
+            }
+            if (storedWl.has("faviconUrl")) {
+                String faviconUrl = storedWl.get("faviconUrl").asText();
+                if (!StringUtils.isEmpty(faviconUrl)) {
+                    String faviconType = "";
+                    if (storedWl.has("faviconType")) {
+                        faviconType = storedWl.get("faviconType").asText();
+                    }
+                    Favicon favicon;
+                    if (StringUtils.isEmpty(faviconType)) {
+                        favicon = new Favicon(faviconUrl);
+                    } else {
+                        favicon = new Favicon(faviconUrl, faviconType);
+                    }
+                    whiteLabelingParams.setFavicon(favicon);
+                }
+            }
+            if (storedWl.has("favicon")) {
+                JsonNode faviconJson = storedWl.get("favicon");
+                Favicon favicon = null;
+                try {
+                    favicon = objectMapper.treeToValue(faviconJson, Favicon.class);
+                } catch (JsonProcessingException e) {
+                    log.error("Unable to read Favicon from previous White Labeling Params!", e);
+                }
+                whiteLabelingParams.setFavicon(favicon);
+            }
+            if (storedWl.has("paletteSettings")) {
+                JsonNode paletteSettingsJson = storedWl.get("paletteSettings");
+                PaletteSettings paletteSettings = null;
+                try {
+                    paletteSettings = objectMapper.treeToValue(paletteSettingsJson, PaletteSettings.class);
+                } catch (JsonProcessingException e) {
+                    log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
+                }
+                whiteLabelingParams.setPaletteSettings(paletteSettings);
+            }
+        }
+        return whiteLabelingParams;
+    }
+
+    private JsonNode getEntityWhiteLabelParams(EntityId entityId) {
+        String value = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
+        if (!StringUtils.isEmpty(value)) {
+            try {
+                return objectMapper.readTree(value);
+            } catch (IOException e) {
+                log.error("Unable to read White Labeling Params from JSON!", e);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private String getEntityAttributeValue(EntityId entityId, String key) {
+        List<AttributeKvEntry> attributeKvEntries = null;
+        try {
+            attributeKvEntries = attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+        } catch (Exception e) {
+            log.error("Unable to find attribute for " + key + "!", e);
+        }
+        if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
+            AttributeKvEntry kvEntry = attributeKvEntries.get(0);
+            return kvEntry.getValueAsString();
+        } else {
+            return "";
+        }
+    }
+
+    private void deleteEntityAttribute(EntityId entityId, String key) {
+        try {
+            attributesService.removeAll(entityId, DataConstants.SERVER_SCOPE,  Arrays.asList(key)).get();
+        } catch (Exception e) {
+            log.error("Unable to delete attribute for " + key + "!", e);
+        }
     }
 
 }
