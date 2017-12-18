@@ -28,33 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.controller.integration;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.controller.BaseController;
+import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 18.12.17.
  */
-public class DataConstants {
+public class BaseIntegrationController extends BaseController {
 
-    public static final String SYSTEM = "SYSTEM";
-    public static final String TENANT = "TENANT";
-    public static final String CUSTOMER = "CUSTOMER";
-    public static final String DEVICE = "DEVICE";
+    @Autowired
+    protected PlatformIntegrationService integrationService;
 
-    public static final String CLIENT_SCOPE = "CLIENT_SCOPE";
-    public static final String SERVER_SCOPE = "SERVER_SCOPE";
-    public static final String SHARED_SCOPE = "SHARED_SCOPE";
+    @Autowired
+    protected IntegrationContext context;
 
-    public static final String[] allScopes() {
-        return new String[]{CLIENT_SCOPE, SHARED_SCOPE, SERVER_SCOPE};
+    protected <T> void process(ThingsboardPlatformIntegration<T> integration, T msg) {
+        integration.process(context, msg);
     }
 
-    public static final String ALARM = "ALARM";
-    public static final String ERROR = "ERROR";
-    public static final String DEBUG_CONVERTER = "DEBUG_CONVERTER";
-    public static final String DEBUG_INTEGRATION = "DEBUG_INTEGRATION";
-    public static final String LC_EVENT = "LC_EVENT";
-    public static final String STATS = "STATS";
-
-    public static final String ONEWAY = "ONEWAY";
-    public static final String TWOWAY = "TWOWAY";
 }

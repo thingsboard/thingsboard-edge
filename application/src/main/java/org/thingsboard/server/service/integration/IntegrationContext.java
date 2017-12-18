@@ -37,6 +37,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.transport.SessionMsgProcessor;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -53,8 +55,19 @@ public class IntegrationContext {
     @Autowired
     private DeviceService deviceService;
 
+    @Lazy
+    @Autowired
+    private EventService eventService;
+
+    @Lazy
+    @Autowired
+    private DiscoveryService discoveryService;
+
     @Value("${http.request_timeout}")
     private long defaultHttpTimeout;
 
+    @Lazy
+    @Autowired
+    private ConverterContext converterContext;
 
 }

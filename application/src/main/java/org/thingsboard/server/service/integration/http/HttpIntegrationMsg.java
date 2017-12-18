@@ -43,7 +43,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 @AllArgsConstructor
 public class HttpIntegrationMsg {
 
-    private JsonNode msg;
-    private DeferredResult<ResponseEntity> callback;
+    private final JsonNode msg;
+    private final DeferredResult<ResponseEntity> callback;
 
 }

@@ -40,6 +40,8 @@ import java.util.Map;
 @Data
 public class UplinkMetaData {
 
+    private final String contentType;
+
     private final Map<String, String> kvMap;
 
 }

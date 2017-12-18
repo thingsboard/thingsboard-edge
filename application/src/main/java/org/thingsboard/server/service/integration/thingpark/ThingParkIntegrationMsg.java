@@ -28,33 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.integration.thingpark;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 18.12.17.
  */
-public class DataConstants {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class ThingParkIntegrationMsg extends HttpIntegrationMsg {
 
-    public static final String SYSTEM = "SYSTEM";
-    public static final String TENANT = "TENANT";
-    public static final String CUSTOMER = "CUSTOMER";
-    public static final String DEVICE = "DEVICE";
+    private final ThingParkRequestParameters params;
 
-    public static final String CLIENT_SCOPE = "CLIENT_SCOPE";
-    public static final String SERVER_SCOPE = "SERVER_SCOPE";
-    public static final String SHARED_SCOPE = "SHARED_SCOPE";
-
-    public static final String[] allScopes() {
-        return new String[]{CLIENT_SCOPE, SHARED_SCOPE, SERVER_SCOPE};
+    public ThingParkIntegrationMsg(JsonNode msg, ThingParkRequestParameters params, DeferredResult<ResponseEntity> callback) {
+        super(msg, callback);
+        this.params = params;
     }
 
-    public static final String ALARM = "ALARM";
-    public static final String ERROR = "ERROR";
-    public static final String DEBUG_CONVERTER = "DEBUG_CONVERTER";
-    public static final String DEBUG_INTEGRATION = "DEBUG_INTEGRATION";
-    public static final String LC_EVENT = "LC_EVENT";
-    public static final String STATS = "STATS";
-
-    public static final String ONEWAY = "ONEWAY";
-    public static final String TWOWAY = "TWOWAY";
 }

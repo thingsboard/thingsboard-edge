@@ -35,7 +35,7 @@
 <div class="tb-cell" flex="20">{{event.body.type}}</div>
 <div class="tb-cell" flex="20">
     <md-button ng-if="event.body.in" class="md-icon-button md-primary"
-               ng-click="showContent($event, event.body.in, 'event.in', types.contentType[event.body.inMessageType])"
+               ng-click="showContent($event, event.body.in, 'event.in', event.body.inMessageType)"
                aria-label="{{ 'action.view' | translate }}">
         <md-tooltip md-direction="top">
             {{ 'action.view' | translate }}
@@ -48,7 +48,7 @@
 </div>
 <div class="tb-cell" flex="20">
     <md-button ng-if="event.body.out" class="md-icon-button md-primary"
-               ng-click="showContent($event, event.body.out, 'event.out', types.contentType[event.body.outMessageType])"
+               ng-click="showContent($event, event.body.out, 'event.out', event.body.outMessageType)"
                aria-label="{{ 'action.view' | translate }}">
         <md-tooltip md-direction="top">
             {{ 'action.view' | translate }}
@@ -61,7 +61,7 @@
 </div>
 <div class="tb-cell" flex="20">
     <md-button ng-if="event.body.metadata" class="md-icon-button md-primary"
-               ng-click="showContent($event, event.body.metadata, 'event.metadata', types.contentType.JSON)"
+               ng-click="showContent($event, event.body.metadata, 'event.metadata', 'JSON')"
                aria-label="{{ 'action.view' | translate }}">
         <md-tooltip md-direction="top">
             {{ 'action.view' | translate }}

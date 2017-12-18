@@ -91,7 +91,7 @@ public class IntegrationController extends BaseController {
             if (create) {
                 platformIntegrationService.createIntegration(result);
             } else {
-                platformIntegrationService.createIntegration(result);
+                platformIntegrationService.updateIntegration(result);
             }
             return result;
         } catch (Exception e) {

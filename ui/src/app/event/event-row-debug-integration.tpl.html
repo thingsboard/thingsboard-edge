@@ -35,7 +35,7 @@
 <div class="tb-cell" flex="20">{{event.body.type}}</div>
 <div class="tb-cell" flex="20">
     <md-button ng-if="event.body.message" class="md-icon-button md-primary"
-               ng-click="showContent($event, event.body.message, 'event.message', types.contentType[event.body.messageType])"
+               ng-click="showContent($event, event.body.message, 'event.message', event.body.messageType)"
                aria-label="{{ 'action.view' | translate }}">
         <md-tooltip md-direction="top">
             {{ 'action.view' | translate }}

@@ -32,7 +32,6 @@ package org.thingsboard.server.service.integration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -41,6 +40,7 @@ import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
+import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
 
 import javax.annotation.PostConstruct;
 import java.util.Optional;
@@ -126,9 +126,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         ThingsboardDataConverter converter = getThingsboardDataConverter(integration);
         switch (integration.getType()) {
             case OCEANCONNECT:
-                OceanConnectIntegration result = new OceanConnectIntegration();
-                result.init(integration, converter);
-                return result;
+                OceanConnectIntegration oceanConnectIntegration = new OceanConnectIntegration();
+                oceanConnectIntegration.init(integration, converter);
+                return oceanConnectIntegration;
+            case THINGPARK:
+                ThingParkIntegration thingParkIntegration = new ThingParkIntegration();
+                thingParkIntegration.init(integration, converter);
+                return thingParkIntegration;
             default:
                 throw new RuntimeException("Not Implemented!");
         }

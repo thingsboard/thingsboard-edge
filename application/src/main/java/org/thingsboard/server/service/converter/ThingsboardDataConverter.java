@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.converter;
 
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.service.integration.ConverterContext;
+import org.thingsboard.server.service.integration.IntegrationContext;
 
 import java.util.List;
 
@@ -45,6 +47,6 @@ public interface ThingsboardDataConverter {
 
     void destroy();
 
-    List<UplinkData> convertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
+    List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception;
 
 }
