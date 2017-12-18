@@ -521,6 +521,11 @@
                                     <artifactId>extension-sns</artifactId>
                                     <classifier>extension</classifier>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.thingsboard.extensions</groupId>
+                                    <artifactId>extension-twilio-sms</artifactId>
+                                    <classifier>extension</classifier>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>
