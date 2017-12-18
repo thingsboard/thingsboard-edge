@@ -32,7 +32,6 @@ package org.thingsboard.server.service.integration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.integration.IntegrationService;

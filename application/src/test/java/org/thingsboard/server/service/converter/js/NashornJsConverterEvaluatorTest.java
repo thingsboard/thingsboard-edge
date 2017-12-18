@@ -54,7 +54,7 @@ public class NashornJsConverterEvaluatorTest {
     @Test
     public void basicTest() throws ScriptException, NoSuchMethodException {
         NashornJsConverterEvaluator eval = create("uplinkConvertor.js");
-        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData(Collections.singletonMap("temperatureKeyName", "temperature")));
+        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
         Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
     }
 

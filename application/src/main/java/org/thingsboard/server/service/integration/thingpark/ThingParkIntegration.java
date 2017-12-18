@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -38,6 +38,7 @@ import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,23 +53,18 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public void process(IntegrationContext context, ThingParkIntegrationMsg msg) {
-        try {
-            if (checkSecurity(msg)) {
-                List<UplinkData> uplinkDataList = convertToUplinkDataList(msg);
-                if (uplinkDataList != null) {
-                    for (UplinkData data : uplinkDataList) {
-                        processUplinkData(context, data);
-                        log.info("[{}] Processing uplink data", data);
-                    }
+    protected void doProcess(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
+        if (checkSecurity(msg)) {
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg);
+            if (uplinkDataList != null) {
+                for (UplinkData data : uplinkDataList) {
+                    processUplinkData(context, data);
+                    log.info("[{}] Processing uplink data", data);
                 }
-                msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.OK));
-            } else {
-                msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.FORBIDDEN));
             }
-        } catch (Exception e) {
-            msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
-            log.warn("Failed to apply data converter function", e);
+            msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.OK));
+        } else {
+            msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.FORBIDDEN));
         }
     }
 
@@ -77,13 +73,13 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
 //        return !StringUtils.isEmpty(msg.getParams().getAsId());
     }
 
-    private List<UplinkData> convertToUplinkDataList(ThingParkIntegrationMsg msg) throws Exception {
+    private List<UplinkData> convertToUplinkDataList(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
         byte[] data = mapper.writeValueAsBytes(msg.getMsg());
-        Map<String, String> mdMap = new HashMap<>(metadata.getKvMap());
+        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         ThingParkRequestParameters params = msg.getParams();
         mdMap.put("LrnDevEui", params.getLrnDevEui());
         mdMap.put("LrnFPort", params.getLrnFPort());
-        return this.converter.convertUplink(data, new UplinkMetaData(mdMap));
+        return convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
     }
 
 }

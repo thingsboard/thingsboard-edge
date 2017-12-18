@@ -28,33 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.integration;
+
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.transport.SessionMsgProcessor;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 05.12.17.
  */
-public class DataConstants {
+@Component
+@Data
+public class ConverterContext {
 
-    public static final String SYSTEM = "SYSTEM";
-    public static final String TENANT = "TENANT";
-    public static final String CUSTOMER = "CUSTOMER";
-    public static final String DEVICE = "DEVICE";
+    @Lazy
+    @Autowired
+    private EventService eventService;
 
-    public static final String CLIENT_SCOPE = "CLIENT_SCOPE";
-    public static final String SERVER_SCOPE = "SERVER_SCOPE";
-    public static final String SHARED_SCOPE = "SHARED_SCOPE";
+    @Lazy
+    @Autowired
+    private DiscoveryService discoveryService;
 
-    public static final String[] allScopes() {
-        return new String[]{CLIENT_SCOPE, SHARED_SCOPE, SERVER_SCOPE};
-    }
-
-    public static final String ALARM = "ALARM";
-    public static final String ERROR = "ERROR";
-    public static final String DEBUG_CONVERTER = "DEBUG_CONVERTER";
-    public static final String DEBUG_INTEGRATION = "DEBUG_INTEGRATION";
-    public static final String LC_EVENT = "LC_EVENT";
-    public static final String STATS = "STATS";
-
-    public static final String ONEWAY = "ONEWAY";
-    public static final String TWOWAY = "TWOWAY";
 }
