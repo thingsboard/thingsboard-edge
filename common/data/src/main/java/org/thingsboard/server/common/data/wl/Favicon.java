@@ -28,19 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.settings;
+package org.thingsboard.server.common.data.wl;
 
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
-public interface AdminSettingsService {
+@Data
+@EqualsAndHashCode
+public class Favicon {
 
-    AdminSettings findAdminSettingsById(AdminSettingsId adminSettingsId);
+    private String url;
+    private String type;
 
-    AdminSettings findAdminSettingsByKey(String key);
+    public Favicon() {
+    }
 
-    void deleteAdminSettingsByKey(String key);
-    
-    AdminSettings saveAdminSettings(AdminSettings adminSettings);
-    
+    public Favicon(String url) {
+        this(url, extractTypeFromDataUrl(url));
+    }
+
+    public Favicon(String url, String type) {
+        this.url = url;
+        this.type = type;
+    }
+
+    private static String extractTypeFromDataUrl(String dataUrl) {
+        String type = null;
+        if (!StringUtils.isEmpty(dataUrl)) {
+            String[] parts = dataUrl.split(";");
+            if (parts != null && parts.length > 0) {
+                String part = parts[0];
+                String[] typeParts = part.split(":");
+                if (typeParts != null && typeParts.length > 1) {
+                    type = typeParts[1];
+                }
+            }
+        }
+        return type;
+    }
+
 }

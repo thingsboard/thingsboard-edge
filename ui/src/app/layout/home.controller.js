@@ -114,12 +114,8 @@ export default function HomeController(types, loginService, userService, deviceS
     loadLogo();
 
     function loadLogo() {
-        whiteLabelingService.logoImageUrl().then((logoUrl) => {
-            vm.logoSvg = logoUrl;
-        });
-        whiteLabelingService.logoImageHeight().then((logoHeight) => {
-            vm.logoHeight = logoHeight;
-        });
+        vm.logoSvg = whiteLabelingService.logoImageUrl();
+        vm.logoHeight = whiteLabelingService.logoImageHeight();
     }
 
     function watchEntitySubtype(enableWatch) {

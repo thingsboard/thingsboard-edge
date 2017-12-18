@@ -198,8 +198,8 @@ public class GatewaySessionCtx {
         }
     }
 
-    public void onDeviceAttributesRequest(MqttPublishMessage mqttMsg) throws AdaptorException {
-        JsonElement json = validateJsonPayload(gatewaySessionId, mqttMsg.payload());
+    public void onDeviceAttributesRequest(MqttPublishMessage msg) throws AdaptorException {
+        JsonElement json = validateJsonPayload(gatewaySessionId, msg.payload());
         if (json.isJsonObject()) {
             JsonObject jsonObj = json.getAsJsonObject();
             int requestId = jsonObj.get("id").getAsInt();
@@ -225,6 +225,7 @@ public class GatewaySessionCtx {
             GatewayDeviceSessionCtx deviceSessionCtx = devices.get(deviceName);
             processor.process(new BasicToDeviceActorSessionMsg(deviceSessionCtx.getDevice(),
                     new BasicAdaptorToSessionActorMsg(deviceSessionCtx, request)));
+            ack(msg);
         } else {
             throw new JsonSyntaxException(CAN_T_PARSE_VALUE + json);
         }

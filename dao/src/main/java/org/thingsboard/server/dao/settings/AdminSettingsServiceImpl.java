@@ -62,6 +62,15 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     }
 
     @Override
+    public void deleteAdminSettingsByKey(String key) {
+        log.trace("Executing deleteAdminSettingsByKey [{}]", key);
+        AdminSettings adminSettings = findAdminSettingsByKey(key);
+        if (adminSettings != null) {
+            adminSettingsDao.removeById(adminSettings.getId().getId());
+        }
+    }
+
+    @Override
     public AdminSettings saveAdminSettings(AdminSettings adminSettings) {
         log.trace("Executing saveAdminSettings [{}]", adminSettings);
         adminSettingsValidator.validate(adminSettings);
