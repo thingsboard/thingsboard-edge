@@ -615,6 +615,16 @@ export default angular.module('thingsboard.types', [])
                     name: "event.type-stats"
                 }
             },
+            debugEventType: {
+                debugConverter: {
+                    value: "DEBUG_CONVERTER",
+                    name: "event.type-debug-converter"
+                },
+                debugIntegration: {
+                    value: "DEBUG_INTEGRATION",
+                    name: "event.type-debug-integration"
+                }
+            },
             extensionType: {
                 http: "HTTP",
                 mqtt: "MQTT",

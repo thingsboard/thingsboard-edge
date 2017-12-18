@@ -68,7 +68,8 @@
             <tb-event-table flex entity-type="vm.types.entityType.integration"
                             entity-id="vm.grid.operatingItem().id.id"
                             tenant-id="vm.grid.operatingItem().tenantId.id"
-                            default-event-type="{{vm.types.eventType.error.value}}">
+                            debug-event-types="{{vm.types.debugEventType.debugIntegration.value}}"
+                            default-event-type="{{vm.types.debugEventType.debugIntegration.value}}">
             </tb-event-table>
         </md-tab>
         <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'relation.relations' | translate }}">

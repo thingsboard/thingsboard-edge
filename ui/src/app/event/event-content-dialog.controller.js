@@ -36,7 +36,7 @@ import 'brace/theme/github';
 /* eslint-disable angular/angularelement */
 
 /*@ngInject*/
-export default function EventContentDialogController($mdDialog, content, title, showingCallback) {
+export default function EventContentDialogController($mdDialog, types, content, contentType, title, showingCallback) {
 
     var vm = this;
 
@@ -47,9 +47,16 @@ export default function EventContentDialogController($mdDialog, content, title, 
     vm.content = content;
     vm.title = title;
 
+    var mode;
+    if (contentType) {
+        mode = types.contentType[contentType].code;
+    } else {
+        mode = 'java';
+    }
+
     vm.contentOptions = {
         useWrapMode: false,
-        mode: 'java',
+        mode: mode,
         showGutter: false,
         showPrintMargin: false,
         theme: 'github',

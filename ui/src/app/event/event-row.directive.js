@@ -35,6 +35,8 @@ import eventErrorDialogTemplate from './event-content-dialog.tpl.html';
 import eventRowLcEventTemplate from './event-row-lc-event.tpl.html';
 import eventRowStatsTemplate from './event-row-stats.tpl.html';
 import eventRowErrorTemplate from './event-row-error.tpl.html';
+import eventRowDebugConverterTemplate from './event-row-debug-converter.tpl.html';
+import eventRowDebugIntegrationTemplate from './event-row-debug-integration.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -55,6 +57,12 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                 case types.eventType.error.value:
                     template = eventRowErrorTemplate;
                     break;
+                case types.debugEventType.debugConverter.value:
+                    template = eventRowDebugConverterTemplate;
+                    break;
+                case types.debugEventType.debugIntegration.value:
+                    template = eventRowDebugIntegrationTemplate;
+                    break;
             }
             return $templateCache.get(template);
         }
@@ -68,17 +76,22 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
             scope.loadTemplate();
         });
 
+        scope.types = types;
+
         scope.event = attrs.event;
 
-        scope.showContent = function($event, content, title) {
+        scope.showContent = function($event, content, title, contentType) {
             var onShowingCallback = {
                 onShowing: function(){}
+            }
+            if (!contentType) {
+                contentType = null;
             }
             $mdDialog.show({
                 controller: 'EventContentDialogController',
                 controllerAs: 'vm',
                 templateUrl: eventErrorDialogTemplate,
-                locals: {content: content, title: title, showingCallback: onShowingCallback},
+                locals: {content: content, title: title, contentType: contentType, showingCallback: onShowingCallback},
                 parent: angular.element($document[0].body),
                 fullscreen: true,
                 targetEvent: $event,
