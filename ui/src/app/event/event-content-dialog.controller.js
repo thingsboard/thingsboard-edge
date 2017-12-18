@@ -32,8 +32,11 @@ import $ from 'jquery';
 import 'brace/ext/language_tools';
 import 'brace/mode/java';
 import 'brace/theme/github';
+import beautify from 'js-beautify';
 
 /* eslint-disable angular/angularelement */
+
+const js_beautify = beautify.js;
 
 /*@ngInject*/
 export default function EventContentDialogController($mdDialog, types, content, contentType, title, showingCallback) {
@@ -50,6 +53,9 @@ export default function EventContentDialogController($mdDialog, types, content, 
     var mode;
     if (contentType) {
         mode = types.contentType[contentType].code;
+        if (contentType == types.contentType.JSON.value && vm.content) {
+            vm.content = js_beautify(vm.content, {indent_size: 4});
+        }
     } else {
         mode = 'java';
     }
