@@ -1158,7 +1158,8 @@ export default angular.module('thingsboard.locale', [])
                     "default-converter": "Default data converter",
                     "default-converter-required": "Default data converter is required.",
                     "type-ocean-connect": "OceanConnect",
-                    "type-sigfox": "SigFox"
+                    "type-sigfox": "SigFox",
+                    "type-thingpark": "ThingPark"
                 },
                 "item": {
                     "selected": "Selected"

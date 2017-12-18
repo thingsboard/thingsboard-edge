@@ -31,5 +31,5 @@
 package org.thingsboard.server.common.data.integration;
 
 public enum IntegrationType {
-    OCEANCONNECT, SIGFOX
+    OCEANCONNECT, SIGFOX, THINGPARK
 }

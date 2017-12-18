@@ -286,6 +286,11 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-sigfox",
                     value: "SIGFOX",
                     http: true
+                },
+                "THINGPARK": {
+                    name: "integration.type-thingpark",
+                    value: "THINGPARK",
+                    http: true
                 }
             },
             componentType: {
