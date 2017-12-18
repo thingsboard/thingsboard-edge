@@ -31,7 +31,6 @@
 package org.thingsboard.server.extensions.core.filter;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.msg.device.ToDeviceActorMsg;
 import org.thingsboard.server.extensions.api.rules.RuleContext;
 import org.thingsboard.server.extensions.api.rules.RuleFilter;
@@ -45,7 +44,7 @@ import javax.script.ScriptException;
 public abstract class BasicJsFilter implements RuleFilter<JsFilterConfiguration> {
 
     protected JsFilterConfiguration configuration;
-    protected NashornJsEvaluator evaluator;
+    protected NashornJsFilterEvaluator evaluator;
 
     @Override
     public void init(JsFilterConfiguration configuration) {
@@ -81,7 +80,7 @@ public abstract class BasicJsFilter implements RuleFilter<JsFilterConfiguration>
     }
 
     private void initEvaluator(JsFilterConfiguration configuration) {
-        evaluator = new NashornJsEvaluator(configuration.getFilter());
+        evaluator = new NashornJsFilterEvaluator(configuration.getFilter());
     }
 
     private void destroyEvaluator() {

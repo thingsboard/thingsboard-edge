@@ -70,7 +70,7 @@ function decodeUtf8Char (str) {
     }
 }
 
-function utf8ToBytes (string, units) {
+export function utf8ToBytes (string, units) {
     units = units || Infinity
     var codePoint
     var length = string.length

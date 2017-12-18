@@ -44,9 +44,6 @@
             <useProjectArtifact>true</useProjectArtifact>
             <unpack>true</unpack>
             <scope>runtime</scope>
-            <excludes>
-
-            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>

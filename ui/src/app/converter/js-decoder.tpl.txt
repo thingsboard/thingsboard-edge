@@ -1,0 +1,47 @@
+// Decode an uplink message from a buffer
+// payload - array of bytes
+// metadata - key/value object
+
+/** Decoder **/
+
+// decode payload to string
+var payloadStr = decodeToString(payload);
+
+// decode payload to JSON
+// var data = decodeToJson(payload);
+
+var deviceName = 'Device A';
+var deviceType = 'thermostat';
+
+// Result object with device attributes/telemetry data
+var result = {
+   deviceName: deviceName,
+   deviceType: deviceType,
+   attributes: {
+       model: 'Model A',
+       serialNumber: 'SN111',
+       integrationName: metadata['integrationName']
+   },
+   telemetry: {
+       temperature: 42,
+       humidity: 80,
+       rawData: payloadStr
+   }
+};
+
+/** Helper functions **/
+
+function decodeToString(payload) {
+   return String.fromCharCode.apply(String, payload);
+}
+
+function decodeToJson(payload) {
+   // covert payload to string.
+   var str = decodeToString(payload);
+
+   // parse string to JSON
+   var data = JSON.parse(str);
+   return data;
+}
+
+return result;

@@ -33,6 +33,8 @@
 import eventHeaderLcEventTemplate from './event-header-lc-event.tpl.html';
 import eventHeaderStatsTemplate from './event-header-stats.tpl.html';
 import eventHeaderErrorTemplate from './event-header-error.tpl.html';
+import eventHeaderDebugConverterTemplate from './event-header-debug-converter.tpl.html';
+import eventHeaderDebugIntegrationTemplate from './event-header-debug-integration.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -53,14 +55,20 @@ export default function EventHeaderDirective($compile, $templateCache, types) {
                 case types.eventType.error.value:
                     template = eventHeaderErrorTemplate;
                     break;
+                case types.debugEventType.debugConverter.value:
+                    template = eventHeaderDebugConverterTemplate;
+                    break;
+                case types.debugEventType.debugIntegration.value:
+                    template = eventHeaderDebugIntegrationTemplate;
+                    break;
             }
             return $templateCache.get(template);
-        }
+        };
 
         scope.loadTemplate = function() {
             element.html(getTemplate(attrs.eventType));
             $compile(element.contents())(scope);
-        }
+        };
 
         attrs.$observe('eventType', function() {
             scope.loadTemplate();

@@ -48,7 +48,7 @@ export default angular.module('thingsboard.utils', [thingsboardTypes])
 const varsRegex = /\$\{([^\}]*)\}/g;
 
 /*@ngInject*/
-function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $timeout, types) {
+function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $translate, $q, $timeout, types) {
 
     var predefinedFunctions = {},
         predefinedFunctionsList = [],
@@ -168,6 +168,7 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         guid: guid,
         cleanCopy: cleanCopy,
         isLocalUrl: isLocalUrl,
+        baseUrl: baseUrl,
         validateDatasources: validateDatasources,
         createKey: createKey,
         createLabelFromDatasource: createLabelFromDatasource,
@@ -175,6 +176,8 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         customTranslation: customTranslation,
         objToBase64: objToBase64,
         base64toObj: base64toObj,
+        stringToBase64: stringToBase64,
+        base64toString: base64toString,
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults
     }
@@ -424,14 +427,17 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         deferred.resolve(response);
     }
 
-    function guid() {
+    function guid(separator) {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
                 .toString(16)
                 .substring(1);
         }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
+        if (angular.isUndefined(separator) || separator == null) {
+            separator = '-';
+        }
+        return s4() + s4() + separator + s4() + separator + s4() + separator +
+            s4() + separator + s4() + s4() + s4();
     }
 
     function cleanCopy(object) {
@@ -464,6 +470,15 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         } else {
             return false;
         }
+    }
+
+    function baseUrl() {
+        var url = $location.protocol() + '://' + $location.host();
+        var port = $location.port();
+        if (port != 80 && port != 443) {
+            url += ":" + port;
+        }
+        return url;
     }
 
     function validateDatasources(datasources) {
@@ -582,6 +597,18 @@ function Utils($mdColorPalette, $rootScope, $window, $filter, $translate, $q, $t
         var json = utf8Decode(encoded);
         var obj = angular.fromJson(json);
         return obj;
+    }
+
+    function stringToBase64(value) {
+        var encoded = utf8Encode(value);
+        var b64Encoded = base64js.fromByteArray(encoded);
+        return b64Encoded;
+    }
+
+    function base64toString(b64Encoded) {
+        var encoded = base64js.toByteArray(b64Encoded);
+        var value = utf8Decode(encoded);
+        return value;
     }
 
     function groupConfigDefaults(groupConfig) {

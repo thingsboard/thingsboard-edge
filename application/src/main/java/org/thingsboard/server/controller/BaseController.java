@@ -42,8 +42,10 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
@@ -55,6 +57,7 @@ import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -62,6 +65,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -104,6 +108,12 @@ public abstract class BaseController {
 
     @Autowired
     protected AssetService assetService;
+
+    @Autowired
+    protected IntegrationService integrationService;
+
+    @Autowired
+    protected ConverterService converterService;
 
     @Autowired
     protected AlarmService alarmService;
@@ -330,6 +340,12 @@ public abstract class BaseController {
                 case ASSET:
                     checkAsset(assetService.findAssetById(new AssetId(entityId.getId())));
                     return;
+                case INTEGRATION:
+                    checkIntegration(integrationService.findIntegrationById(new IntegrationId(entityId.getId())));
+                    return;
+                case CONVERTER:
+                    checkConverter(converterService.findConverterById(new ConverterId(entityId.getId())));
+                    return;
                 case DASHBOARD:
                     checkDashboardId(new DashboardId(entityId.getId()));
                     return;
@@ -383,6 +399,42 @@ public abstract class BaseController {
         if (asset.getCustomerId() != null && !asset.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
             checkCustomerId(asset.getCustomerId());
         }
+    }
+
+    Integration checkIntegrationId(IntegrationId integrationId) throws ThingsboardException {
+        try {
+            validateId(integrationId, "Incorrect integrationId " + integrationId);
+            Integration integration = integrationService.findIntegrationById(integrationId);
+            checkIntegration(integration);
+            return integration;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected Integration checkIntegration(Integration integration) throws ThingsboardException {
+        checkNotNull(integration);
+        checkTenantId(integration.getTenantId());
+        if (integration.getDefaultConverterId() != null && !integration.getDefaultConverterId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkConverterId(integration.getDefaultConverterId());
+        }
+        return integration;
+    }
+
+    Converter checkConverterId(ConverterId converterId) throws ThingsboardException {
+        try {
+            validateId(converterId, "Incorrect converterId " + converterId);
+            Converter converter = converterService.findConverterById(converterId);
+            checkConverter(converter);
+            return converter;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkConverter(Converter converter) throws ThingsboardException {
+        checkNotNull(converter);
+        checkTenantId(converter.getTenantId());
     }
 
     Alarm checkAlarmId(AlarmId alarmId) throws ThingsboardException {

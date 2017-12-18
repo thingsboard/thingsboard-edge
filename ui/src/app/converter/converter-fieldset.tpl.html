@@ -1,0 +1,97 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-button ng-click="onExportConverter({event: $event})"
+           ng-show="!isEdit"
+           class="md-raised md-primary">{{ 'converter.export' | translate }}</md-button>
+<md-button ng-click="onDeleteConverter({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{ 'converter.delete' | translate }}</md-button>
+
+<div layout="row">
+    <md-button ngclipboard data-clipboard-action="copy"
+               ngclipboard-success="onConverterIdCopied(e)"
+               data-clipboard-text="{{converter.id.id}}" ng-show="!isEdit"
+               class="md-raised">
+        <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
+        <span translate>converter.copyId</span>
+    </md-button>
+</div>
+
+<md-content class="md-padding" layout="column">
+    <fieldset ng-disabled="loading || !isEdit">
+        <md-input-container class="md-block">
+            <label translate>converter.name</label>
+            <input required name="name" ng-model="converter.name">
+            <div ng-messages="theForm.name.$error">
+                <div translate ng-message="required">converter.name-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>converter.type</label>
+            <md-select name="type" aria-label="{{ 'converter.type' | translate }}" ng-disabled="loading || !isEdit"
+                       ng-model="converter.type" ng-change="converterTypeChanged()" required>
+                <md-option ng-repeat="type in types.converterType" ng-value="type.value">
+                    {{type.name | translate}}
+                </md-option>
+            </md-select>
+            <div ng-messages="theForm.type.$error">
+                <div translate ng-message="required">converter.type-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'converter.debug-mode' | translate }}"
+                         ng-model="converter.debugMode">{{ 'converter.debug-mode' | translate }}
+            </md-checkbox>
+        </md-input-container>
+        <section layout="column" ng-if="converter.type === types.converterType.CUSTOM.value">
+
+            <label translate class="tb-title no-padding">converter.decoder</label>
+            <tb-js-func ng-model="converter.configuration.decoder"
+                        function-name="Decoder"
+                        function-args="{{ ['payload', 'metadata'] }}"
+                        validation-args="{{ [[decoderValidationPayload, decoderMetadata]] }}">
+            </tb-js-func>
+            <div layout="row">
+                <md-button ng-show="isEdit" ng-disabled="loading"
+                           ng-click="openCustomDecoderTestDialog($event)"
+                           class="md-primary md-raised">
+                    {{ 'converter.test-decoder-fuction' | translate }}
+                </md-button>
+            </div>
+            <br/>
+
+        </section>
+        <md-input-container class="md-block">
+            <label translate>converter.description</label>
+            <textarea ng-model="converter.additionalInfo.description" rows="2"></textarea>
+        </md-input-container>
+    </fieldset>
+</md-content>

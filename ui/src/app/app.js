@@ -100,6 +100,8 @@ import thingsboardApiEntity from './api/entity.service';
 import thingsboardApiAlarm from './api/alarm.service';
 import thingsboardApiEntityGroup from './api/entity-group.service';
 import thingsboardApiWhiteLabeling from './api/white-labeling.service';
+import thingsboardApiConverter from './api/converter.service';
+import thingsboardApiIntegration from './api/integration.service';
 
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -166,6 +168,8 @@ angular.module('thingsboard', [
     thingsboardApiAlarm,
     thingsboardApiEntityGroup,
     thingsboardApiWhiteLabeling,
+    thingsboardApiConverter,
+    thingsboardApiIntegration,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

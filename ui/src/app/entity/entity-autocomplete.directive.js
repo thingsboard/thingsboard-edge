@@ -80,13 +80,27 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
 
         scope.updateView = function () {
             if (!scope.disabled) {
-                ngModelCtrl.$setViewValue(scope.entity ? scope.entity.id.id : null);
+                var entityId = null;
+                if (scope.entity) {
+                    if (scope.useFullEntityId) {
+                        entityId = scope.entity.id;
+                    } else {
+                        entityId = scope.entity.id.id;
+                    }
+                }
+                ngModelCtrl.$setViewValue(entityId);
             }
         }
 
         ngModelCtrl.$render = function () {
             if (ngModelCtrl.$viewValue) {
-                entityService.getEntity(scope.entityType, ngModelCtrl.$viewValue).then(
+                var id = null;
+                if (scope.useFullEntityId) {
+                    id = ngModelCtrl.$viewValue.id;
+                } else {
+                    id = ngModelCtrl.$viewValue;
+                }
+                entityService.getEntity(scope.entityType, id).then(
                     function success(entity) {
                         scope.entity = entity;
                     },
@@ -179,6 +193,24 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.noEntitiesMatchingText = 'alarm.no-alarms-matching';
                     scope.entityRequiredText = 'alarm.alarm-required'
                     break;
+                case types.entityType.converter:
+                    scope.selectEntityText = 'converter.select-converter';
+                    scope.entityText = 'converter.converter';
+                    scope.noEntitiesMatchingText = 'converter.no-converters-matching';
+                    scope.entityRequiredText = 'converter.converter-required'
+                    break;
+                case types.entityType.integration:
+                    scope.selectEntityText = 'integration.select-integration';
+                    scope.entityText = 'integration.integration';
+                    scope.noEntitiesMatchingText = 'integration.no-integrations-matching';
+                    scope.entityRequiredText = 'integration.integration-required'
+                    break;
+            }
+            if (scope.labelText && scope.labelText.length) {
+                scope.entityText = scope.labelText;
+            }
+            if (scope.requiredText && scope.requiredText.length) {
+                scope.entityRequiredText = scope.requiredText;
             }
             if (scope.entity && scope.entity.id.entityType != scope.entityType) {
                 scope.entity = null;
@@ -199,7 +231,10 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
             disabled:'=ngDisabled',
             entityType: '=',
             entitySubtype: '=?',
-            excludeEntityIds: '=?'
+            excludeEntityIds: '=?',
+            labelText: '=?',
+            requiredText: '=?',
+            useFullEntityId: '=?'
         }
     };
 }

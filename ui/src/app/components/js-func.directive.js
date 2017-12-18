@@ -56,12 +56,15 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
         var template = $templateCache.get(jsFuncTemplate);
         element.html(template);
 
+        scope.functionName = attrs.functionName;
         scope.functionArgs = scope.$eval(attrs.functionArgs);
         scope.validationArgs = scope.$eval(attrs.validationArgs);
         scope.resultType = attrs.resultType;
         if (!scope.resultType || scope.resultType.length === 0) {
             scope.resultType = "nocheck";
         }
+
+        scope.validationTriggerArg = attrs.validationTriggerArg;
 
         scope.functionValid = true;
 
@@ -79,11 +82,15 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
         }
 
         scope.onFullscreenChanged = function () {
+            updateEditorSize();
+        };
+
+        function updateEditorSize() {
             if (scope.js_editor) {
                 scope.js_editor.resize();
                 scope.js_editor.renderer.updateFull();
             }
-        };
+        }
 
         scope.jsEditorOptions = {
             useWrapMode: true,
@@ -212,9 +219,19 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
             }
         };
 
-        scope.$on('form-submit', function () {
-            scope.functionValid = scope.validate();
-            scope.updateValidity();
+        scope.$on('form-submit', function (event, args) {
+            if (!args || scope.validationTriggerArg && scope.validationTriggerArg == args) {
+                scope.validationArgs = scope.$eval(attrs.validationArgs);
+                scope.cleanupJsErrors();
+                scope.functionValid = true;
+                scope.updateValidity();
+                scope.functionValid = scope.validate();
+                scope.updateValidity();
+            }
+        });
+
+        scope.$on('update-ace-editor-size', function () {
+            updateEditorSize();
         });
 
         $compile(element.contents())(scope);
@@ -224,7 +241,8 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
         restrict: "E",
         require: "^ngModel",
         scope: {
-            disabled:'=ngDisabled'
+            disabled:'=ngDisabled',
+            fillHeight:'=?'
         },
         link: linker
     };

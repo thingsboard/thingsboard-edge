@@ -41,9 +41,11 @@ import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.rule.RuleService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -58,6 +60,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @Autowired
     private AssetService assetService;
+
+    @Autowired
+    private IntegrationService integrationService;
+
+    @Autowired
+    private ConverterService converterService;
 
     @Autowired
     private DeviceService deviceService;
@@ -96,6 +104,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         switch (entityId.getEntityType()) {
             case ASSET:
                 hasName = assetService.findAssetByIdAsync(new AssetId(entityId.getId()));
+                break;
+            case INTEGRATION:
+                hasName = integrationService.findIntegrationByIdAsync(new IntegrationId(entityId.getId()));
+                break;
+            case CONVERTER:
+                hasName = converterService.findConverterByIdAsync(new ConverterId(entityId.getId()));
                 break;
             case DEVICE:
                 hasName = deviceService.findDeviceByIdAsync(new DeviceId(entityId.getId()));

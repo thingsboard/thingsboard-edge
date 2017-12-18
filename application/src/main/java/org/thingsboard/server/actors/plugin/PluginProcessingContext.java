@@ -41,7 +41,9 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
@@ -308,6 +310,12 @@ public final class PluginProcessingContext implements PluginContext {
                 case TENANT:
                     validateTenant(ctx, entityId, callback);
                     return;
+                case CONVERTER:
+                    validateConverter(ctx, entityId, callback);
+                    return;
+                case INTEGRATION:
+                    validateIntegration(ctx, entityId, callback);
+                    return;
                 default:
                     //TODO: add support of other entities
                     throw new IllegalStateException("Not Implemented!");
@@ -434,6 +442,44 @@ public final class PluginProcessingContext implements PluginContext {
                     return ValidationResult.entityNotFound("Tenant with requested id wasn't found!");
                 } else if (!tenant.getId().equals(ctx.getTenantId())) {
                     return ValidationResult.accessDenied("Tenant doesn't relate to the currently authorized user!");
+                } else {
+                    return ValidationResult.ok();
+                }
+            }));
+        }
+    }
+
+    private void validateConverter(final PluginApiCallSecurityContext ctx, EntityId entityId, ValidationCallback callback) {
+        if (ctx.isCustomerUser()) {
+            callback.onSuccess(this, ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (ctx.isSystemAdmin()) {
+            callback.onSuccess(this, ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Converter> converterFuture = pluginCtx.converterService.findConverterByIdAsync(new ConverterId(entityId.getId()));
+            Futures.addCallback(converterFuture, getCallback(callback, converter -> {
+                if (converter == null) {
+                    return ValidationResult.entityNotFound("Converter with requested id wasn't found!");
+                } else if (!converter.getTenantId().equals(ctx.getTenantId())) {
+                    return ValidationResult.accessDenied("Converter doesn't belong to the current Tenant!");
+                } else {
+                    return ValidationResult.ok();
+                }
+            }));
+        }
+    }
+
+    private void validateIntegration(final PluginApiCallSecurityContext ctx, EntityId entityId, ValidationCallback callback) {
+        if (ctx.isCustomerUser()) {
+            callback.onSuccess(this, ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (ctx.isSystemAdmin()) {
+            callback.onSuccess(this, ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Integration> integrationFuture = pluginCtx.integrationService.findIntegrationByIdAsync(new IntegrationId(entityId.getId()));
+            Futures.addCallback(integrationFuture, getCallback(callback, integration -> {
+                if (integration == null) {
+                    return ValidationResult.entityNotFound("Integration with requested id wasn't found!");
+                } else if (!integration.getTenantId().equals(ctx.getTenantId())) {
+                    return ValidationResult.accessDenied("Integration doesn't belong to the current Tenant!");
                 } else {
                     return ValidationResult.ok();
                 }

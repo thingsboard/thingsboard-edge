@@ -50,6 +50,8 @@ public class DataConstants {
 
     public static final String ALARM = "ALARM";
     public static final String ERROR = "ERROR";
+    public static final String DEBUG_CONVERTER = "DEBUG_CONVERTER";
+    public static final String DEBUG_INTEGRATION = "DEBUG_INTEGRATION";
     public static final String LC_EVENT = "LC_EVENT";
     public static final String STATS = "STATS";
 

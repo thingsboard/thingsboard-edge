@@ -41,11 +41,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.plugin.PluginService;
 import org.thingsboard.server.dao.rule.RuleService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -92,6 +94,12 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private PluginService pluginService;
 
+    @Autowired
+    private IntegrationService integrationService;
+
+    @Autowired
+    private ConverterService converterService;
+
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
@@ -117,6 +125,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.DEVICE);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.CONVERTER);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), EntityType.INTEGRATION);
         }
         return savedTenant;
     }
@@ -133,6 +143,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         userService.deleteTenantAdmins(tenantId);
         ruleService.deleteRulesByTenantId(tenantId);
         pluginService.deletePluginsByTenantId(tenantId);
+        integrationService.deleteIntegrationsByTenantId(tenantId);
+        converterService.deleteConvertersByTenantId(tenantId);
         tenantDao.removeById(tenantId.getId());
         deleteEntityGroups(tenantId);
         deleteEntityRelations(tenantId);

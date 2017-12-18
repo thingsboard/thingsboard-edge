@@ -622,9 +622,9 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                 for (var id in vm.items.selections) {
                     tasks.push(vm.deleteItemFunc(id));
                 }
-                $q.all(tasks).then(function () {
-                    refreshList();
-                });
+                $q.all(tasks).then(
+                    () => { refreshList(); },
+                    () => { refreshList(); });
             },
             function () {
             });
@@ -719,10 +719,13 @@ function AddItemController($scope, $mdDialog, saveItemFunction, helpLinks) {
     }
 
     function add() {
-        saveItemFunction(vm.item).then(function success(item) {
-            vm.item = item;
-            $scope.theForm.$setPristine();
-            $mdDialog.hide();
-        });
+        $scope.$broadcast('form-submit');
+        if ($scope.theForm.$valid) {
+            saveItemFunction(vm.item).then(function success(item) {
+                vm.item = item;
+                $scope.theForm.$setPristine();
+                $mdDialog.hide();
+            });
+        }
     }
 }

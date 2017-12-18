@@ -52,19 +52,15 @@ import java.util.List;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
-public abstract class BaseAssetServiceTest extends AbstractServiceTest {
+public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
 
     private IdComparator<Asset> idComparator = new IdComparator<>();
 
     private TenantId tenantId;
 
     @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
+    public void beforeRun() {
+        tenantId = before();
     }
 
     @After
@@ -435,10 +431,10 @@ public abstract class BaseAssetServiceTest extends AbstractServiceTest {
         CustomerId customerId = customer.getId();
 
         List<Asset> assets = new ArrayList<>();
-        for (int i=0;i<278;i++) {
+        for (int i = 0; i < 278; i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
-            asset.setName("Asset"+i);
+            asset.setName("Asset" + i);
             asset.setType("default");
             asset = assetService.saveAsset(asset);
             assets.add(assetService.assignAssetToCustomer(asset.getId(), customerId));
@@ -472,7 +468,6 @@ public abstract class BaseAssetServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAssetsByTenantIdCustomerIdAndName() {
-
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer.setTenantId(tenantId);
@@ -559,7 +554,6 @@ public abstract class BaseAssetServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAssetsByTenantIdCustomerIdAndType() {
-
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer.setTenantId(tenantId);

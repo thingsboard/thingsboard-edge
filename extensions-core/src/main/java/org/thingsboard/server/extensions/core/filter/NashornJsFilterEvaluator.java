@@ -47,7 +47,7 @@ import java.util.Map;
  * @author Andrew Shvayka
  */
 @Slf4j
-public class NashornJsEvaluator {
+public class NashornJsFilterEvaluator {
 
     public static final String CLIENT_SIDE = "cs";
     public static final String SERVER_SIDE = "ss";
@@ -56,7 +56,7 @@ public class NashornJsEvaluator {
 
     private CompiledScript engine;
 
-    public NashornJsEvaluator(String script) {
+    public NashornJsFilterEvaluator(String script) {
         engine = compileScript(script);
     }
 

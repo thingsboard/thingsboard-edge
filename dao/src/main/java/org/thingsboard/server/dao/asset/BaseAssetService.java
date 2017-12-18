@@ -248,7 +248,9 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         ListenableFuture<List<EntitySubtype>> tenantAssetTypes = assetDao.findTenantAssetTypesAsync(tenantId.getId());
         return Futures.transform(tenantAssetTypes,
                 (Function<List<EntitySubtype>, List<EntitySubtype>>) assetTypes -> {
-                    assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    if (assetTypes != null) {
+                        assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    }
                     return assetTypes;
                 });
     }

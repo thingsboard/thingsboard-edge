@@ -45,18 +45,14 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 
 import java.util.concurrent.ExecutionException;
 
-public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
+public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     public static final String TEST_ALARM = "TEST_ALARM";
     private TenantId tenantId;
 
     @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
+    public void beforeRun() {
+        tenantId = before();
     }
 
     @After
