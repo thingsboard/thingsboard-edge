@@ -91,19 +91,9 @@ public class JSDataConverter extends AbstractDataConverter {
     }
 
     @Override
-    public List<UplinkData> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
+    public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         List<UplinkData> result = new ArrayList<>();
-        String src = applyJsFunction(data, metadata);
-        JsonElement element = new JsonParser().parse(src);
-        if (element.isJsonArray()) {
-            for (JsonElement uplinkJson : element.getAsJsonArray()) {
-                result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
-            }
-        } else if (element.isJsonObject()) {
-            result.add(parseUplinkData(element.getAsJsonObject()));
-        }
-
-        return result;
+        return applyJsFunction(data, metadata);
     }
 
     private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {

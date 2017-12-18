@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
@@ -49,6 +50,7 @@ import org.thingsboard.server.service.integration.ConverterContext;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -72,9 +74,18 @@ public abstract class AbstractDataConverter implements ThingsboardDataConverter 
     @Override
     public List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception {
         try {
-            List<UplinkData> result = doConvertUplink(data, metadata);
+            String rawResult = doConvertUplink(data, metadata);
+            JsonElement element = new JsonParser().parse(rawResult);
+            List<UplinkData> result = new ArrayList<>();
+            if (element.isJsonArray()) {
+                for (JsonElement uplinkJson : element.getAsJsonArray()) {
+                    result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
+                }
+            } else if (element.isJsonObject()) {
+                result.add(parseUplinkData(element.getAsJsonObject()));
+            }
             if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, result, metadata);
+                persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
             }
             return result;
         } catch (Exception e) {
@@ -85,7 +96,7 @@ public abstract class AbstractDataConverter implements ThingsboardDataConverter 
         }
     }
 
-    protected abstract List<UplinkData> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
+    protected abstract String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
     protected UplinkData parseUplinkData(JsonObject src) {
         if (!src.has("deviceName")) {
@@ -117,9 +128,9 @@ public abstract class AbstractDataConverter implements ThingsboardDataConverter 
     }
 
     private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,
-                                    List<UplinkData> uplinkDatas, UplinkMetaData metadata) {
+                                    String outMessage, UplinkMetaData metadata) {
         try {
-            persistDebug(context, "Uplink", inMessageType, inMessage, "JSON", mapper.writeValueAsBytes(uplinkDatas), metadataToJson(metadata), null);
+            persistDebug(context, "Uplink", inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
             log.warn("Failed to persist uplink debug message");
         }
