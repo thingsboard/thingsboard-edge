@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.integration.oc;
+package org.thingsboard.server.controller.integration.thingpark;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -46,20 +47,29 @@ import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
+import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
+import org.thingsboard.server.service.integration.thingpark.ThingParkIntegrationMsg;
+import org.thingsboard.server.service.integration.thingpark.ThingParkRequestParameters;
 
 import java.util.Optional;
 
 
 @RestController
-@RequestMapping("/api/v1/integrations/oceanconnect")
+@RequestMapping("/api/v1/integrations/thingpark")
 @Slf4j
-public class OceanConnectIntegrationController extends BaseIntegrationController {
+public class ThingParkIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
+            @RequestParam(value = "AS_ID", required = false) String asId,
+            @RequestParam(value = "LrnDevEui", required = false) String lrnDevEui,
+            @RequestParam(value = "LrnFPort", required = false) String lrnFPort,
+            @RequestParam(value = "LrnInfos", required = false) String lrnInfos,
+            @RequestParam(value = "Time", required = false) String time,
+            @RequestParam(value = "Token", required = false) String token,
             @RequestBody JsonNode msg
     ) {
         log.debug("[{}] Received request: {}", routingKey, msg);
@@ -72,18 +82,28 @@ public class OceanConnectIntegrationController extends BaseIntegrationController
             return result;
         }
 
-        if (integration.get().getConfiguration().getType() != IntegrationType.OCEANCONNECT) {
+        if (integration.get().getConfiguration().getType() != IntegrationType.THINGPARK) {
             result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
             return result;
         }
 
-        if (!msg.has("deviceId")) {
+        if (StringUtils.isEmpty(lrnDevEui)) {
             result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
             return result;
         }
 
-        process(integration.get(), new HttpIntegrationMsg(msg, result));
+        ThingParkRequestParameters params = ThingParkRequestParameters.builder()
+                .asId(asId)
+                .lrnDevEui(lrnDevEui)
+                .lrnFPort(lrnFPort)
+                .lrnInfos(lrnInfos)
+                .time(time)
+                .token(token)
+                .build();
+
+        process(integration.get(), new ThingParkIntegrationMsg(msg, params, result));
 
         return result;
     }
+
 }

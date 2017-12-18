@@ -28,47 +28,62 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.oc;
+package org.thingsboard.server.service.integration.thingpark;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
-import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 @Slf4j
-public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
+public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public void process(IntegrationContext context, HttpIntegrationMsg msg) {
+    public void process(IntegrationContext context, ThingParkIntegrationMsg msg) {
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(msg);
-            if (uplinkDataList != null) {
-                for (UplinkData data : uplinkDataList) {
-                    processUplinkData(context, data);
-                    log.info("[{}] Processing uplink data", data);
+            if (checkSecurity(msg)) {
+                List<UplinkData> uplinkDataList = convertToUplinkDataList(msg);
+                if (uplinkDataList != null) {
+                    for (UplinkData data : uplinkDataList) {
+                        processUplinkData(context, data);
+                        log.info("[{}] Processing uplink data", data);
+                    }
                 }
+                msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.OK));
+            } else {
+                msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.FORBIDDEN));
             }
-            msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.OK));
         } catch (Exception e) {
             msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
             log.warn("Failed to apply data converter function", e);
         }
     }
 
-    private List<UplinkData> convertToUplinkDataList(HttpIntegrationMsg msg) throws Exception {
+    private boolean checkSecurity(ThingParkIntegrationMsg msg) {
+        return true;
+//        return !StringUtils.isEmpty(msg.getParams().getAsId());
+    }
+
+    private List<UplinkData> convertToUplinkDataList(ThingParkIntegrationMsg msg) throws Exception {
         byte[] data = mapper.writeValueAsBytes(msg.getMsg());
-        return this.converter.convertUplink(data, metadata);
+        Map<String, String> mdMap = new HashMap<>(metadata.getKvMap());
+        ThingParkRequestParameters params = msg.getParams();
+        mdMap.put("LrnDevEui", params.getLrnDevEui());
+        mdMap.put("LrnFPort", params.getLrnFPort());
+        return this.converter.convertUplink(data, new UplinkMetaData(mdMap));
     }
 
 }
