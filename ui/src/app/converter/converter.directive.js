@@ -29,9 +29,6 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import {utf8ToBytes} from './../common/utf8-support';
-
-
 /* eslint-disable import/no-unresolved, import/default */
 
 import converterFieldsetTemplate from './converter-fieldset.tpl.html';
@@ -47,14 +44,6 @@ export default function ConverterDirective($compile, $templateCache, $translate,
         element.html(template);
 
         scope.types = types;
-
-        var decoderValidation = {
-            param1: 1,
-            param2: "text"
-        };
-
-        scope.decoderValidationPayload = utf8ToBytes(angular.toJson(decoderValidation));
-        scope.decoderMetadata = {};
 
         scope.converterTypeChanged = () => {
             if (scope.converter.type == types.converterType.CUSTOM.value) {
@@ -114,6 +103,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             }).then(
                 (decoder) => {
                     scope.converter.configuration.decoder = decoder;
+                    scope.theForm.$setDirty();
                 }
             );
         };
