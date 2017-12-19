@@ -94,7 +94,8 @@
             <section layout="column" ng-if="integration.type == types.integrationType.THINGPARK.value">
                 <md-input-container class="md-block">
                     <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
-                                 ng-model="integration.configuration.enableSecurity">{{ 'integration.enable-security' | translate }}
+                                 ng-model="integration.configuration.enableSecurity"
+                                 ng-change="integrationEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
                     </md-checkbox>
                 </md-input-container>
                 <md-input-container class="md-block" ng-if="integration.configuration.enableSecurity">
@@ -109,6 +110,14 @@
                     <input required name="asKey" ng-model="integration.configuration.asKey">
                     <div ng-messages="theForm.asKey.$error">
                         <div translate ng-message="required">integration.as-key-required</div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="md-block" ng-if="integration.configuration.enableSecurity">
+                    <label translate>integration.max-time-diff-in-seconds</label>
+                    <input type="number" min="0" step="1" required name="maxTimeDiffInSeconds"
+                           ng-model="integration.configuration.maxTimeDiffInSeconds">
+                    <div ng-messages="theForm.maxTimeDiffInSeconds.$error">
+                        <div translate ng-message="required">integration.max-time-diff-in-seconds-required</div>
                     </div>
                 </md-input-container>
             </section>

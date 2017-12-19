@@ -81,6 +81,13 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             }
         };
 
+        scope.integrationEnableSecurityChanged = () => {
+              if (scope.integration.configuration.enableSecurity &&
+                  !scope.integration.configuration.maxTimeDiffInSeconds) {
+                  scope.integration.configuration.maxTimeDiffInSeconds = 60;
+              }
+        };
+
         scope.onIntegrationIdCopied = function() {
             toast.showSuccess($translate.instant('integration.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
         };

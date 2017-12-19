@@ -1155,6 +1155,8 @@ export default angular.module('thingsboard.locale', [])
                     "as-id-required": "AS ID is required.",
                     "as-key": "AS Key",
                     "as-key-required": "AS Key is required.",
+                    "max-time-diff-in-seconds": "Maximum time difference (seconds)",
+                    "max-time-diff-in-seconds-required": "Maximum time difference is required.",
                     "name": "Name",
                     "name-required": "Name is required.",
                     "description": "Description",
