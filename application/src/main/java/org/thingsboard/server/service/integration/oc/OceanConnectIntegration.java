@@ -48,7 +48,7 @@ import java.util.List;
 public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
     @Override
-    protected void doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
@@ -56,7 +56,7 @@ public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegra
                 log.info("[{}] Processing uplink data", data);
             }
         }
-        msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.OK));
+        return HttpStatus.OK;
     }
 
 }

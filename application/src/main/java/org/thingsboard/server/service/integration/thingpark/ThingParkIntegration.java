@@ -30,19 +30,25 @@
  */
 package org.thingsboard.server.service.integration.thingpark;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.BaseEncoding;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
-import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -50,10 +56,28 @@ import java.util.Map;
 @Slf4j
 public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
+    private static final ThreadLocal<SimpleDateFormat> ISO8601 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+
     private final ObjectMapper mapper = new ObjectMapper();
+    private boolean securityEnabled = false;
+    private String securityAsId;
+    private String securityAsKey;
+    private long maxTimeDiffInSeconds;
 
     @Override
-    protected void doProcess(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
+    public void init(Integration dto, ThingsboardDataConverter converter) {
+        super.init(dto, converter);
+        JsonNode json = configuration.getConfiguration();
+        securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
+        if (securityEnabled) {
+            securityAsId = json.get("asId").asText();
+            securityAsKey = json.get("asKey").asText();
+            maxTimeDiffInSeconds = json.get("maxTimeDiffInSeconds").asLong();
+        }
+    }
+
+    @Override
+    protected HttpStatus doProcess(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg);
             if (uplinkDataList != null) {
@@ -62,21 +86,67 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
                     log.info("[{}] Processing uplink data", data);
                 }
             }
-            msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.OK));
+            return HttpStatus.OK;
         } else {
-            msg.getCallback().setResult(new ResponseEntity<>(HttpStatus.FORBIDDEN));
+            return HttpStatus.FORBIDDEN;
         }
     }
 
-    private boolean checkSecurity(ThingParkIntegrationMsg msg) {
+    private boolean checkSecurity(ThingParkIntegrationMsg msg) throws Exception {
+        if (securityEnabled) {
+            ThingParkRequestParameters params = msg.getParams();
+            log.trace("Validating request using following parameters: {}", params);
+
+            if (!securityAsId.equalsIgnoreCase(params.getAsId())) {
+                log.trace("Expected AS ID: {}, actual: {}", securityAsId, params.getAsId());
+                return false;
+            }
+
+            long currentTs = System.currentTimeMillis();
+            long requestTs = ISO8601.get().parse(params.getTime()).getTime();
+            if (Math.abs(currentTs - requestTs) > TimeUnit.SECONDS.toMillis(maxTimeDiffInSeconds)) {
+                log.trace("Request timestamp {} is out of sync with current server timestamp: {}", requestTs, currentTs);
+                return false;
+            }
+
+            String queryParameters = "LrnDevEui=" + params.getLrnDevEui()
+                    + "&LrnFPort=" + params.getLrnFPort()
+                    + "&LrnInfos=" + params.getLrnInfos()
+                    + "&AS_ID=" + params.getAsId()
+                    + "&Time=" + params.getTime();
+
+
+            JsonNode uplinkMsg = msg.getMsg().get("DevEUI_uplink");
+
+            String bodyElements = uplinkMsg.get("CustomerID").asText() + uplinkMsg.get("DevEUI").asText()
+                    + uplinkMsg.get("FPort").asText() + uplinkMsg.get("FCntUp").asText()
+                    + uplinkMsg.get("payload_hex").asText();
+
+            String tokenSrc = bodyElements + queryParameters + securityAsKey;
+
+            log.trace("Validating request using following raw token: {}", tokenSrc);
+
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(tokenSrc.getBytes(StandardCharsets.UTF_8));
+            byte[] digest = md.digest();
+
+            String token = BaseEncoding.base16().lowerCase().encode(digest);
+
+            if (!token.equals(params.getToken())) {
+                log.trace("Expected token: {}, actual: {}", token, params.getToken());
+                return false;
+            }
+
+        }
+
         return true;
-//        return !StringUtils.isEmpty(msg.getParams().getAsId());
     }
 
     private List<UplinkData> convertToUplinkDataList(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
         byte[] data = mapper.writeValueAsBytes(msg.getMsg());
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         ThingParkRequestParameters params = msg.getParams();
+        mdMap.put("AS_ID", params.getAsId());
         mdMap.put("LrnDevEui", params.getLrnDevEui());
         mdMap.put("LrnFPort", params.getLrnFPort());
         return convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
