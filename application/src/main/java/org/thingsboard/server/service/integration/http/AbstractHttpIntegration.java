@@ -103,7 +103,11 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> impl
         String status = "OK";
         Exception exception = null;
         try {
-            doProcess(context, msg);
+            HttpStatus httpStatus = doProcess(context, msg);
+            if (!httpStatus.is2xxSuccessful()) {
+                status = httpStatus.name();
+            }
+            msg.getCallback().setResult(new ResponseEntity<>(httpStatus));
         } catch (Exception e) {
             msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
             log.warn("Failed to apply data converter function", e);
@@ -119,7 +123,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> impl
         }
     }
 
-    protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;
+    protected abstract HttpStatus doProcess(IntegrationContext context, T msg) throws Exception;
 
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
         Device device = getOrCreateDevice(context, data);
