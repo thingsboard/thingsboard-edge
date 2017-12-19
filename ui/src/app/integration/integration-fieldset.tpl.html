@@ -87,10 +87,31 @@
                     <div translate ng-message="required">integration.base-url-required</div>
                 </div>
             </md-input-container>
-            <md-input-container class="md-block">
+            <md-input-container class="md-block" ng-if="integration.type != types.integrationType.THINGPARK.value">
                 <label translate>integration.security-key</label>
                 <input name="securityKey" ng-model="integration.configuration.securityKey">
             </md-input-container>
+            <section layout="column" ng-if="integration.type == types.integrationType.THINGPARK.value">
+                <md-input-container class="md-block">
+                    <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
+                                 ng-model="integration.configuration.enableSecurity">{{ 'integration.enable-security' | translate }}
+                    </md-checkbox>
+                </md-input-container>
+                <md-input-container class="md-block" ng-if="integration.configuration.enableSecurity">
+                    <label translate>integration.as-id</label>
+                    <input required name="asId" ng-model="integration.configuration.asId">
+                    <div ng-messages="theForm.asId.$error">
+                        <div translate ng-message="required">integration.as-id-required</div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="md-block" ng-if="integration.configuration.enableSecurity">
+                    <label translate>integration.as-key</label>
+                    <input required name="asKey" ng-model="integration.configuration.asKey">
+                    <div ng-messages="theForm.asKey.$error">
+                        <div translate ng-message="required">integration.as-key-required</div>
+                    </div>
+                </md-input-container>
+            </section>
         </fieldset>
         <div layout="row">
             <md-input-container class="md-block" flex>
