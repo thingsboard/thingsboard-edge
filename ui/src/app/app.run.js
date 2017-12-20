@@ -57,7 +57,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     }
 
     initWatchers();
-    
+
+
+    var skipStateChange = false;
+
     function initWatchers() {
         $rootScope.unauthenticatedHandle = $rootScope.$on('unauthenticated', function (event, doLogout) {
             if (doLogout) {
@@ -76,6 +79,11 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         });
 
         $rootScope.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
+
+            if (skipStateChange) {
+                skipStateChange = false;
+                return;
+            }
 
             function waitForUserLoaded() {
                 if ($rootScope.userLoadedHandle) {
@@ -149,6 +157,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             showUnauthorizedDialog();
                         }
                     } else {
+                        evt.preventDefault();
                         gotoPublicModule(to.name, params);
                     }
                 }
@@ -202,9 +211,11 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     function gotoPublicModule(name, params) {
         whiteLabelingService.loadSystemWhiteLabelingParams().then(
             () => {
+                skipStateChange = true;
                 $state.go(name, params);
             },
             () => {
+                skipStateChange = true;
                 $state.go(name, params);
             }
         );
