@@ -63,6 +63,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
     };
 
     var currentWLParams;
+    var systemWlParams;
     var userWlParams;
 
     var primaryPaletteName;
@@ -132,14 +133,22 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         }
         $http.get(url, null).then(
             (response) => {
-                currentWLParams = mergeDefaults(response.data);
-                updateImages(currentWLParams, 'system');
+                systemWlParams = mergeDefaults(response.data);
+                updateImages(systemWlParams, 'system');
+                currentWLParams = systemWlParams;
                 applyLoginThemePalettes(currentWLParams.paletteSettings);
                 $rootScope.$broadcast('whiteLabelingChanged');
                 deferred.resolve();
             },
             () => {
-                deferred.reject();
+                if (systemWlParams) {
+                    currentWLParams = systemWlParams;
+                    applyLoginThemePalettes(currentWLParams.paletteSettings);
+                    $rootScope.$broadcast('whiteLabelingChanged');
+                    deferred.resolve();
+                } else {
+                    deferred.reject();
+                }
             }
         );
         return deferred.promise;
@@ -170,7 +179,13 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
                 deferred.resolve();
             },
             () => {
-                deferred.reject();
+                if (userWlParams) {
+                    currentWLParams = userWlParams;
+                    wlChanged();
+                    deferred.resolve();
+                } else {
+                    deferred.reject();
+                }
             }
         );
         return deferred.promise;
