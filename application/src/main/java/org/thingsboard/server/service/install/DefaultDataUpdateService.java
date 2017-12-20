@@ -310,19 +310,25 @@ public class DefaultDataUpdateService implements DataUpdateService {
         if (storedWl != null) {
             if (storedWl.has("logoImageUrl")) {
                 logoImageUrl = storedWl.get("logoImageUrl").asText();
-                if (!StringUtils.isEmpty(logoImageUrl)) {
+                if (!StringUtils.isEmpty(logoImageUrl) && !"null".equals(logoImageUrl)) {
                     whiteLabelingParams.setLogoImageUrl(logoImageUrl);
                 }
             }
             if (storedWl.has("logoImageHeight")) {
-                whiteLabelingParams.setLogoImageHeight(storedWl.get("logoImageHeight").asInt());
+                int logoImageHeight = storedWl.get("logoImageHeight").asInt();
+                if (logoImageHeight > 0) {
+                    whiteLabelingParams.setLogoImageHeight(logoImageHeight);
+                }
             }
             if (storedWl.has("appTitle")) {
-                whiteLabelingParams.setAppTitle(storedWl.get("appTitle").asText());
+                String appTitle = storedWl.get("appTitle").asText();
+                if (!StringUtils.isEmpty(appTitle) && !"null".equals(appTitle)) {
+                    whiteLabelingParams.setAppTitle(appTitle);
+                }
             }
             if (storedWl.has("faviconUrl")) {
                 String faviconUrl = storedWl.get("faviconUrl").asText();
-                if (!StringUtils.isEmpty(faviconUrl)) {
+                if (!StringUtils.isEmpty(faviconUrl) && !"null".equals(faviconUrl)) {
                     String faviconType = "";
                     if (storedWl.has("faviconType")) {
                         faviconType = storedWl.get("faviconType").asText();
