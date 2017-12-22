@@ -34,13 +34,12 @@ import './custom-decoder-test.scss';
 import Split from 'split.js';
 
 import beautify from 'js-beautify';
-import {utf8ToBytes} from './../common/utf8-support';
 
 const js_beautify = beautify.js;
 
 /*@ngInject*/
 export default function CustomDecoderTestController($scope, $mdDialog, $window, $document, $timeout,
-                                                    $q, $mdUtil, $translate, toast, types, utils, onShowingCallback, decoder) {
+                                                    $q, $mdUtil, $translate, toast, types, utils, converterService, onShowingCallback, decoder) {
 
     var vm = this;
 
@@ -163,27 +162,19 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     }
 
     function updateInputContent() {
-        var inputString;
         if (vm.inputParams.payloadContentType == vm.types.contentType.BINARY.value) {
-            inputString = utils.base64toString(vm.inputParams.stringContent);
+            vm.inputParams.payload = angular.copy(vm.inputParams.stringContent);
         } else {
-            inputString = vm.inputParams.stringContent;
+            vm.inputParams.payload = utils.stringToBase64(vm.inputParams.stringContent);
         }
-        vm.inputParams.payload = utf8ToBytes(inputString);
     }
 
     function test() {
-        vm.output = '';
-        if (checkInputParamErrors()) {
-            updateInputContent();
-            $mdUtil.nextTick(() => {
-                if (checkDecoderErrors()) {
-                    var decoderFunction = new Function('payload, metadata', vm.decoder);
-                    var res = decoderFunction.apply(this, [vm.inputParams.payload, vm.inputParams.metadata]);
-                    vm.output = angular.toJson(res, true);
-                }
-            });
-        }
+        testCustomUpLink().then(
+            (output) => {
+                vm.output = angular.toJson(output, true);
+            }
+        );
     }
 
     function checkInputParamErrors() {
@@ -203,24 +194,44 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
         toast.showError(error, toastParent, 'bottom left');
     }
 
-    function checkDecoderErrors() {
-        $scope.$broadcast('form-submit', 'validateDecoder');
-        if (!$scope.theForm.decoderForm.$valid) {
-            return false;
+    function testCustomUpLink() {
+        var deferred = $q.defer();
+        if (checkInputParamErrors()) {
+            updateInputContent();
+            $mdUtil.nextTick(() => {
+                var inputParams = {
+                    payload: vm.inputParams.payload,
+                    metadata: vm.inputParams.metadata,
+                    decoder: vm.decoder
+                };
+                converterService.testCustomUpLink(inputParams).then(
+                    (result) => {
+                        if (result.error) {
+                            toast.showError(result.error);
+                            deferred.reject();
+                        } else {
+                            deferred.resolve(result.output);
+                        }
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            });
+        } else {
+            deferred.reject();
         }
-        return true;
+        return deferred.promise;
     }
+
     function cancel() {
         $mdDialog.cancel();
     }
 
     function save() {
-        updateInputContent();
-        $mdUtil.nextTick(() => {
-            if (checkDecoderErrors()) {
-                $scope.theForm.decoderForm.$setPristine();
-                $mdDialog.hide(vm.decoder);
-            }
+        testCustomUpLink().then(() => {
+            $scope.theForm.decoderForm.$setPristine();
+            $mdDialog.hide(vm.decoder);
         });
     }
 }

@@ -39,7 +39,8 @@ function ConverterService($http, $q) {
         getConverters: getConverters,
         getConverter: getConverter,
         deleteConverter: deleteConverter,
-        saveConverter: saveConverter
+        saveConverter: saveConverter,
+        testCustomUpLink: testCustomUpLink
     };
 
     return service;
@@ -93,6 +94,17 @@ function ConverterService($http, $q) {
             deferred.resolve();
         }, function fail(response) {
             deferred.reject(response.data);
+        });
+        return deferred.promise;
+    }
+
+    function testCustomUpLink(inputParams) {
+        var deferred = $q.defer();
+        var url = '/api/converter/testCustomUpLink';
+        $http.post(url, inputParams).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
         });
         return deferred.promise;
     }

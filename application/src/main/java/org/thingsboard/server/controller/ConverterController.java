@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +44,8 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.exception.ThingsboardException;
 import org.thingsboard.server.service.converter.DataConverterService;
+
+import java.util.Base64;
 
 @RestController
 @RequestMapping("/api")
@@ -110,6 +115,34 @@ public class ConverterController extends BaseController {
             checkConverterId(converterId);
             converterService.deleteConverter(converterId);
             dataConverterService.deleteConverter(converterId);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converter/testCustomUpLink", method = RequestMethod.POST)
+    @ResponseBody
+    public JsonNode testCustomUpLinkConverter(@RequestBody JsonNode inputParams) throws ThingsboardException {
+        try {
+            String payloadBase64 = inputParams.get("payload").asText();
+            byte[] payload = Base64.getDecoder().decode(payloadBase64);
+            JsonNode metadata = inputParams.get("metadata");
+            String decoder = inputParams.get("decoder").asText();
+
+            //TODO:
+
+            ObjectNode output = new ObjectMapper().createObjectNode();
+            output.put("someAttr", "It works!");
+            output.put("payloadBase64", payloadBase64);
+            output.set("metadata", metadata);
+            output.put("decoder", decoder);
+
+            ObjectNode result = new ObjectMapper().createObjectNode();
+            result.set("output", output);
+            String errorText = ""; //OK if empty
+            result.put("error", errorText);
+            return result;
         } catch (Exception e) {
             throw handleException(e);
         }
