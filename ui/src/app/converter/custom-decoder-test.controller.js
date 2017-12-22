@@ -172,7 +172,7 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     function test() {
         testCustomUpLink().then(
             (output) => {
-                vm.output = angular.toJson(output, true);
+                vm.output = js_beautify(output, {indent_size: 4});
             }
         );
     }

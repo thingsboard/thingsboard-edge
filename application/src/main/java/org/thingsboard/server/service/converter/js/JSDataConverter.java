@@ -92,7 +92,6 @@ public class JSDataConverter extends AbstractDataConverter {
 
     @Override
     public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        List<UplinkData> result = new ArrayList<>();
         return applyJsFunction(data, metadata);
     }
 

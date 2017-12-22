@@ -132,14 +132,16 @@ public class ConverterController extends BaseController {
 
             //TODO:
 
-            ObjectNode output = new ObjectMapper().createObjectNode();
-            output.put("someAttr", "It works!");
-            output.put("payloadBase64", payloadBase64);
-            output.set("metadata", metadata);
-            output.put("decoder", decoder);
+            ObjectNode outputObj = new ObjectMapper().createObjectNode();
+            outputObj.put("someAttr", "It works!");
+            outputObj.put("payloadBase64", payloadBase64);
+            outputObj.set("metadata", metadata);
+            outputObj.put("decoder", decoder);
+
+            String output = new ObjectMapper().writeValueAsString(outputObj);
 
             ObjectNode result = new ObjectMapper().createObjectNode();
-            result.set("output", output);
+            result.put("output", output);
             String errorText = ""; //OK if empty
             result.put("error", errorText);
             return result;
