@@ -135,16 +135,18 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             (response) => {
                 systemWlParams = mergeDefaults(response.data);
                 updateImages(systemWlParams, 'system');
-                currentWLParams = systemWlParams;
-                applyLoginThemePalettes(currentWLParams.paletteSettings);
-                $rootScope.$broadcast('whiteLabelingChanged');
+                if (setWlParams(systemWlParams)) {
+                    applyLoginThemePalettes(currentWLParams.paletteSettings);
+                    $rootScope.$broadcast('whiteLabelingChanged');
+                }
                 deferred.resolve();
             },
             () => {
                 if (systemWlParams) {
-                    currentWLParams = systemWlParams;
-                    applyLoginThemePalettes(currentWLParams.paletteSettings);
-                    $rootScope.$broadcast('whiteLabelingChanged');
+                    if (setWlParams(systemWlParams)) {
+                        applyLoginThemePalettes(currentWLParams.paletteSettings);
+                        $rootScope.$broadcast('whiteLabelingChanged');
+                    }
                     deferred.resolve();
                 } else {
                     deferred.reject();
@@ -174,14 +176,16 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             (response) => {
                 userWlParams = mergeDefaults(response.data);
                 updateImages(userWlParams, 'user');
-                currentWLParams = userWlParams;
-                wlChanged();
+                if (setWlParams(userWlParams)) {
+                    wlChanged();
+                }
                 deferred.resolve();
             },
             () => {
                 if (userWlParams) {
-                    currentWLParams = userWlParams;
-                    wlChanged();
+                    if (setWlParams(userWlParams)) {
+                        wlChanged();
+                    }
                     deferred.resolve();
                 } else {
                     deferred.reject();
@@ -189,6 +193,15 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             }
         );
         return deferred.promise;
+    }
+
+    function setWlParams(newWlParams) {
+        if (!angular.equals(currentWLParams, newWlParams)) {
+            currentWLParams = newWlParams;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function mergeDefaults(wlParams) {

@@ -30,43 +30,40 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.AbstractDataConverter;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 
-/**
- * Created by ashvayka on 02.12.17.
- */
-public class JSDataConverter extends AbstractDataConverter {
+import javax.script.ScriptException;
 
-    private JSUplinkEvaluator jsUplinkEvaluator;
+public class JSUplinkEvaluator {
 
-    @Override
-    public void init(Converter configuration) {
-        super.init(configuration);
-        String decoder = configuration.getConfiguration().get("decoder").asText();
-        jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+    private static final String JS_WRAPPER_PREFIX = "function decodeInternal(bytes, metadata) {\n" +
+            "    var payload = [];\n" +
+            "    for (var i = 0; i < bytes.length; i++) {\n" +
+            "        payload.push(bytes[i]);\n" +
+            "    }\n" +
+            "    return JSON.stringify(Decoder(payload, metadata));\n" +
+            "}\n" +
+            "\n" +
+            "function Decoder(payload, metadata) {\n";
+
+    private static final String JS_WRAPPER_SUFIX = "\n}";
+
+    //private final NashornJsConverterEvaluator uplinkEvaluator;
+    private final NashornJsConverterEvaluator uplinkEvaluator;
+
+    public JSUplinkEvaluator(String decoder) {
+        uplinkEvaluator = new NashornJsConverterEvaluator(
+                JS_WRAPPER_PREFIX
+                        + decoder
+                        + JS_WRAPPER_SUFIX);
     }
 
-    @Override
-    public void update(Converter configuration) {
-        destroy();
-        init(configuration);
-    }
-
-    @Override
     public void destroy() {
-        if (jsUplinkEvaluator != null) {
-            jsUplinkEvaluator.destroy();
-        }
+        uplinkEvaluator.destroy();
     }
 
-    @Override
-    public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return applyJsFunction(data, metadata);
+    public String execute(byte[] data, UplinkMetaData metadata) throws ScriptException, NoSuchMethodException {
+        return uplinkEvaluator.execute(data, metadata);
     }
 
-    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
-        return jsUplinkEvaluator.execute(data, metadata);
-    }
 }

@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,17 +46,24 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.exception.ThingsboardException;
 import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
+import org.thingsboard.server.service.converter.js.V8JSUplinkEvaluator;
 
 import java.util.Base64;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class ConverterController extends BaseController {
 
     @Autowired
     private DataConverterService dataConverterService;
 
     public static final String CONVERTER_ID = "converterId";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.GET)
@@ -130,19 +139,27 @@ public class ConverterController extends BaseController {
             JsonNode metadata = inputParams.get("metadata");
             String decoder = inputParams.get("decoder").asText();
 
-            //TODO:
+            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String,String>>(){});
+            UplinkMetaData uplinkMetaData = new UplinkMetaData("JSON", metadataMap);
 
-            ObjectNode outputObj = new ObjectMapper().createObjectNode();
-            outputObj.put("someAttr", "It works!");
-            outputObj.put("payloadBase64", payloadBase64);
-            outputObj.set("metadata", metadata);
-            outputObj.put("decoder", decoder);
-
-            String output = new ObjectMapper().writeValueAsString(outputObj);
-
-            ObjectNode result = new ObjectMapper().createObjectNode();
+            String output = "";
+            String errorText = "";
+            //JSUplinkEvaluator jsUplinkEvaluator = null;
+            V8JSUplinkEvaluator jsUplinkEvaluator = null;
+            try {
+                //jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+                jsUplinkEvaluator = new V8JSUplinkEvaluator(decoder);
+                output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
+            } catch (Exception e) {
+                log.error("Error evaluating JS UpLink Converter function", e);
+                errorText = e.getMessage();
+            } finally {
+                if (jsUplinkEvaluator != null) {
+                    jsUplinkEvaluator.destroy();
+                }
+            }
+            ObjectNode result = objectMapper.createObjectNode();
             result.put("output", output);
-            String errorText = ""; //OK if empty
             result.put("error", errorText);
             return result;
         } catch (Exception e) {

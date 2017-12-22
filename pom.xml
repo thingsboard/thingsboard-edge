@@ -94,6 +94,7 @@
         <dbunit.version>2.5.3</dbunit.version>
         <spring-test-dbunit.version>1.2.1</spring-test-dbunit.version>
         <postgresql.driver.version>9.4.1211</postgresql.driver.version>
+        <j2v8.version>4.8.0</j2v8.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*, org/thingsboard/server/extensions/core/plugin/telemetry/gen/**/*</sonar.exclusions>
     </properties>
 
@@ -699,6 +700,12 @@
                 <artifactId>grpc-stub</artifactId>
                 <version>${grpc.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.eclipsesource.j2v8</groupId>
+                <artifactId>j2v8_linux_x86_64</artifactId>
+                <version>${j2v8.version}</version>
+            </dependency>
+            <!--TODO: add other platforms -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-test</artifactId>
