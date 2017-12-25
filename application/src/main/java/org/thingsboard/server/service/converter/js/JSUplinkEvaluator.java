@@ -30,40 +30,60 @@
  */
 package org.thingsboard.server.service.converter.js;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+@Slf4j
 public class JSUplinkEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX = "function decodeInternal(bytes, metadata) {\n" +
-            "    var payload = [];\n" +
-            "    for (var i = 0; i < bytes.length; i++) {\n" +
-            "        payload.push(bytes[i]);\n" +
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(bytes, metadata) { " +
+            "    var payload = convertBytes(bytes); " +
+            "    return JSON.stringify(Decoder(payload, metadata));" +
+            "    function Decoder(payload, metadata) {";
+
+    private static final String JS_WRAPPER_SUFIX = "}" +
+            "    function convertBytes(bytes) {\n" +
+            "       var payload = [];\n" +
+            "       for (var i = 0; i < bytes.length; i++) {\n" +
+            "           payload.push(bytes[i]);\n" +
+            "       }\n" +
+            "       return payload;\n" +
             "    }\n" +
-            "    return JSON.stringify(Decoder(payload, metadata));\n" +
-            "}\n" +
-            "\n" +
-            "function Decoder(payload, metadata) {\n";
+            "\n}";
 
-    private static final String JS_WRAPPER_SUFIX = "\n}";
+    private static NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+    private static ScriptEngine engine = factory.getScriptEngine("--no-java");
 
-    //private final NashornJsConverterEvaluator uplinkEvaluator;
-    private final NashornJsConverterEvaluator uplinkEvaluator;
+    private final String functionName;
 
     public JSUplinkEvaluator(String decoder) {
-        uplinkEvaluator = new NashornJsConverterEvaluator(
-                JS_WRAPPER_PREFIX
-                        + decoder
-                        + JS_WRAPPER_SUFIX);
+        this.functionName = "decodeInternal" + this.hashCode();
+        String jsWrapperPerfix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
+        compileScript(jsWrapperPerfix
+                + decoder
+                + JS_WRAPPER_SUFIX);
     }
 
     public void destroy() {
-        uplinkEvaluator.destroy();
+        //engine = null;
     }
 
     public String execute(byte[] data, UplinkMetaData metadata) throws ScriptException, NoSuchMethodException {
-        return uplinkEvaluator.execute(data, metadata);
+        return ((Invocable)engine).invokeFunction(this.functionName, data, metadata.getKvMap()).toString();
+    }
+
+    private static void compileScript(String script) {
+        try {
+            engine.eval(script);
+        } catch (ScriptException e) {
+            log.warn("Failed to compile filter script: {}", e.getMessage(), e);
+            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
+        }
     }
 
 }
