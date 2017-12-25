@@ -60,9 +60,22 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 if (!scope.integration.configuration.metadata) {
                     scope.integration.configuration.metadata = {};
                 }
-                if (scope.integration.type && types.integrationType[scope.integration.type].http) {
-                    scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
+                if (scope.integration.type) {
+                    if (types.integrationType[scope.integration.type].http) {
+                        scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
+                    } else if (types.integrationType[scope.integration.type].mqtt) {
+                        if (!scope.integration.configuration.clientConfiguration) {
+                            scope.integration.configuration.clientConfiguration = {
+                                host: 'localhost',
+                                port: 1883,
+                                credentials: {
+                                    type: types.mqttCredentialTypes.anonymous.value
+                                }
+                            };
+                        }
+                    }
                 }
+                scope.updateValidity();
             }
         });
 
@@ -72,7 +85,83 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     scope.integration.configuration.baseUrl = utils.baseUrl();
                 }
                 scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
+            } else if (types.integrationType[scope.integration.type].mqtt) {
+                if (!scope.integration.configuration.clientConfiguration) {
+                    scope.integration.configuration.clientConfiguration = {
+                        host: 'localhost',
+                        port: 1883,
+                        credentials: {
+                            type: types.mqttCredentialTypes.anonymous.value
+                        }
+                    };
+                }
             }
+            scope.updateValidity();
+        };
+
+        scope.credentialsTypeChanged = () => {
+            var type = scope.integration.configuration.clientConfiguration.credentials.type;
+            scope.integration.configuration.clientConfiguration.credentials = {};
+            scope.integration.configuration.clientConfiguration.credentials.type = type;
+            scope.updateValidity();
+        };
+
+        scope.certFileAdded = ($file, fileType) => {
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                scope.$apply(function() {
+                    if(event.target.result) {
+                        scope.theForm.$setDirty();
+                        var addedFile = event.target.result;
+                        if (addedFile && addedFile.length > 0) {
+                            if(fileType == "caCert") {
+                                scope.integration.configuration.clientConfiguration.credentials.caCertFileName = $file.name;
+                                scope.integration.configuration.clientConfiguration.credentials.caCert = addedFile;
+                            }
+                            if(fileType == "privateKey") {
+                                scope.integration.configuration.clientConfiguration.credentials.privateKeyFileName = $file.name;
+                                scope.integration.configuration.clientConfiguration.credentials.privateKey = addedFile;
+                            }
+                            if(fileType == "Cert") {
+                                scope.integration.configuration.clientConfiguration.credentials.certFileName = $file.name;
+                                scope.integration.configuration.clientConfiguration.credentials.cert = addedFile;
+                            }
+                        }
+                        scope.updateValidity();
+                    }
+                });
+            };
+            reader.readAsText($file.file);
+        };
+
+        scope.clearCertFile = (fileType) => {
+            scope.theForm.$setDirty();
+            if(fileType == "caCert") {
+                scope.integration.configuration.clientConfiguration.credentials.caCertFileName = null;
+                scope.integration.configuration.clientConfiguration.credentials.caCert = null;
+            }
+            if(fileType == "privateKey") {
+                scope.integration.configuration.clientConfiguration.credentials.privateKeyFileName = null;
+                scope.integration.configuration.clientConfiguration.credentials.privateKey = null;
+            }
+            if(fileType == "Cert") {
+                scope.integration.configuration.clientConfiguration.credentials.certFileName = null;
+                scope.integration.configuration.clientConfiguration.credentials.cert = null;
+            }
+            scope.updateValidity();
+        };
+
+        scope.updateValidity = () => {
+            var certsValid = true;
+            if (scope.integration.type && types.integrationType[scope.integration.type].mqtt) {
+                var credentials = scope.integration.configuration.clientConfiguration.credentials;
+                if (credentials.type == types.mqttCredentialTypes.pem.value) {
+                    if (!credentials.caCert || !credentials.cert || !credentials.privateKey) {
+                        certsValid = false;
+                    }
+                }
+            }
+            scope.theForm.$setValidity('Certs', certsValid);
         };
 
         scope.integrationBaseUrlChanged = () => {
