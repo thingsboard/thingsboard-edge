@@ -53,14 +53,14 @@ public class NashornJsConverterEvaluatorTest {
 
     @Test
     public void basicTest() throws ScriptException, NoSuchMethodException {
-        NashornJsConverterEvaluator eval = create("uplinkConvertor.js");
+        JSUplinkEvaluator eval = create("uplinkConvertor.js");
         String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
         Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
     }
 
-    private NashornJsConverterEvaluator create(String scriptName) {
+    private JSUplinkEvaluator create(String scriptName) {
         InputStream src = NashornJsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new NashornJsConverterEvaluator(read(src));
+        return new JSUplinkEvaluator(read(src));
     }
 
     public static String read(InputStream input) {

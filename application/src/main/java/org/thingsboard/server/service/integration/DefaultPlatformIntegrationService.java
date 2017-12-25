@@ -39,6 +39,7 @@ import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
 import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
 
@@ -70,16 +71,20 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public ThingsboardPlatformIntegration createIntegration(Integration integration) {
+    public ThingsboardPlatformIntegration createIntegration(Integration integration) throws Exception {
         return integrationsByIdMap.computeIfAbsent(integration.getId(), i -> {
-            ThingsboardPlatformIntegration result = initIntegration(integration);
-            integrationsByRoutingKeyMap.putIfAbsent(integration.getRoutingKey(), result);
-            return result;
+            try {
+                ThingsboardPlatformIntegration result = initIntegration(integration);
+                integrationsByRoutingKeyMap.putIfAbsent(integration.getRoutingKey(), result);
+                return result;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
     @Override
-    public ThingsboardPlatformIntegration updateIntegration(Integration configuration) {
+    public ThingsboardPlatformIntegration updateIntegration(Integration configuration) throws Exception {
         ThingsboardPlatformIntegration integration = integrationsByIdMap.get(configuration.getId());
         if (integration != null) {
             integration.update(configuration, getThingsboardDataConverter(configuration));
@@ -104,7 +109,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (result == null) {
             Integration configuration = integrationService.findIntegrationById(id);
             if (configuration != null) {
-                result = createIntegration(configuration);
+                try {
+                    result = createIntegration(configuration);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return Optional.ofNullable(result);
@@ -116,23 +125,31 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (result == null) {
             Optional<Integration> configuration = integrationService.findIntegrationByRoutingKey(key);
             if (configuration.isPresent()) {
-                result = createIntegration(configuration.get());
+                try {
+                    result = createIntegration(configuration.get());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return Optional.ofNullable(result);
     }
 
-    private ThingsboardPlatformIntegration initIntegration(Integration integration) {
+    private ThingsboardPlatformIntegration initIntegration(Integration integration) throws Exception {
         ThingsboardDataConverter converter = getThingsboardDataConverter(integration);
+        ThingsboardPlatformIntegration result = createThingsboardPlatformIntegration(integration);
+        result.init(integration, converter);
+        return result;
+    }
+
+    private ThingsboardPlatformIntegration createThingsboardPlatformIntegration(Integration integration) {
         switch (integration.getType()) {
             case OCEANCONNECT:
-                OceanConnectIntegration oceanConnectIntegration = new OceanConnectIntegration();
-                oceanConnectIntegration.init(integration, converter);
-                return oceanConnectIntegration;
+                return new OceanConnectIntegration();
             case THINGPARK:
-                ThingParkIntegration thingParkIntegration = new ThingParkIntegration();
-                thingParkIntegration.init(integration, converter);
-                return thingParkIntegration;
+                return new ThingParkIntegration();
+            case MQTT:
+                return new BasicMqttIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }

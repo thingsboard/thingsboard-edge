@@ -48,7 +48,7 @@ import java.util.Optional;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = AnonymousCredentials.class, name = "anonymous"),
         @JsonSubTypes.Type(value = BasicCredentials.class, name = "basic"),
-        @JsonSubTypes.Type(value = CertPemClientCredentials.class, name = "pem")})
+        @JsonSubTypes.Type(value = CertPemClientCredentials.class, name = "cert.PEM")})
 public interface MqttClientCredentials {
 
     Optional<SslContext> initSslContext();

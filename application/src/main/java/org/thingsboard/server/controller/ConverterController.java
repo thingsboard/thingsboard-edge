@@ -48,7 +48,6 @@ import org.thingsboard.server.exception.ThingsboardException;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
-import org.thingsboard.server.service.converter.js.V8JSUplinkEvaluator;
 
 import java.util.Base64;
 import java.util.Map;
@@ -139,16 +138,15 @@ public class ConverterController extends BaseController {
             JsonNode metadata = inputParams.get("metadata");
             String decoder = inputParams.get("decoder").asText();
 
-            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String,String>>(){});
+            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+            });
             UplinkMetaData uplinkMetaData = new UplinkMetaData("JSON", metadataMap);
 
             String output = "";
             String errorText = "";
-            //JSUplinkEvaluator jsUplinkEvaluator = null;
-            V8JSUplinkEvaluator jsUplinkEvaluator = null;
+            JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
-                //jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
-                jsUplinkEvaluator = new V8JSUplinkEvaluator(decoder);
+                jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
                 output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
@@ -166,5 +164,4 @@ public class ConverterController extends BaseController {
             throw handleException(e);
         }
     }
-
 }

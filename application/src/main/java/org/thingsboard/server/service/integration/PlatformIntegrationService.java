@@ -40,9 +40,9 @@ import java.util.Optional;
  */
 public interface PlatformIntegrationService {
 
-    ThingsboardPlatformIntegration createIntegration(Integration integration);
+    ThingsboardPlatformIntegration createIntegration(Integration integration) throws Exception;
 
-    ThingsboardPlatformIntegration updateIntegration(Integration integration);
+    ThingsboardPlatformIntegration updateIntegration(Integration integration) throws Exception;
 
     void deleteIntegration(IntegrationId integration);
 
