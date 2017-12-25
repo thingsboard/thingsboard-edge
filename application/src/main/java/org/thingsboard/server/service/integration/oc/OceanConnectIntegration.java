@@ -49,6 +49,11 @@ public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegra
 
     @Override
     protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+
+        if (!msg.getMsg().has("deviceId")) {
+            return HttpStatus.BAD_REQUEST;
+        }
+
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {

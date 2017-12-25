@@ -38,7 +38,6 @@
         <version>1.4.0PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
-    <groupId>org.thingsboard</groupId>
     <artifactId>application</artifactId>
     <packaging>jar</packaging>
 
@@ -279,6 +278,14 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>nl.jk5.netty-mqtt</groupId>
+            <artifactId>netty-mqtt</artifactId>
         </dependency>
     </dependencies>
 

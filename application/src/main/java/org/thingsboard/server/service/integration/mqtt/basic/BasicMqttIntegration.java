@@ -28,8 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.mqtt.basic;
 
-public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT
+import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.mqtt.AbstractMqttIntegration;
+import org.thingsboard.server.service.integration.mqtt.BasicMqttIntegrationMsg;
+
+/**
+ * Created by ashvayka on 25.12.17.
+ */
+public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttIntegrationMsg> {
+    @Override
+    public void process(IntegrationContext context, BasicMqttIntegrationMsg msg) {
+
+    }
 }

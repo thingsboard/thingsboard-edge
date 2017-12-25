@@ -28,8 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.mqtt.credentials;
 
-public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT
+import io.netty.handler.ssl.SslContext;
+import nl.jk5.mqtt.MqttClientConfig;
+
+import java.util.Optional;
+
+/**
+ * Created by ashvayka on 23.01.17.
+ */
+public class AnonymousCredentials implements MqttClientCredentials {
+
+    @Override
+    public Optional<SslContext> initSslContext() {
+        return Optional.empty();
+    }
+
+    @Override
+    public void configure(MqttClientConfig config) {
+
+    }
 }

@@ -31,22 +31,56 @@
 package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.UplinkMetaData;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- * Created by ashvayka on 02.12.17.
+ * Created by ashvayka on 25.12.17.
  */
-public interface ThingsboardPlatformIntegration<T> {
+public abstract class AbstractIntegration<T> implements ThingsboardPlatformIntegration<T> {
 
-    Integration getConfiguration();
+    protected final ObjectMapper mapper = new ObjectMapper();
+    protected Integration configuration;
+    protected ThingsboardDataConverter converter;
+    protected UplinkMetaData metadataTemplate;
 
-    void init(Integration configuration, ThingsboardDataConverter converter) throws Exception;
+    @Override
+    public void init(Integration dto, ThingsboardDataConverter converter) throws Exception {
+        this.configuration = dto;
+        this.converter = converter;
+        Map<String, String> mdMap = new HashMap<>();
+        mdMap.put("integrationName", configuration.getName());
+        JsonNode metadata = configuration.getConfiguration().get("metadata");
+        for (Iterator<Map.Entry<String, JsonNode>> it = metadata.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> md = it.next();
+            mdMap.put(md.getKey(), md.getValue().asText());
+        }
+        this.metadataTemplate = new UplinkMetaData(getUplinkContentType(), mdMap);
+    }
 
-    void update(Integration configuration, ThingsboardDataConverter converter) throws Exception;
+    protected String getUplinkContentType() {
+        return "JSON";
+    }
 
-    void destroy();
+    @Override
+    public void update(Integration dto, ThingsboardDataConverter converter) throws Exception {
+        init(dto, converter);
+    }
 
-    void process(IntegrationContext context, T msg);
+    @Override
+    public Integration getConfiguration() {
+        return configuration;
+    }
 
+    @Override
+    public void destroy() {
+
+    }
 }

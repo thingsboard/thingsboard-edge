@@ -65,7 +65,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     private long maxTimeDiffInSeconds;
 
     @Override
-    public void init(Integration dto, ThingsboardDataConverter converter) {
+    public void init(Integration dto, ThingsboardDataConverter converter) throws Exception {
         super.init(dto, converter);
         JsonNode json = configuration.getConfiguration();
         securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();

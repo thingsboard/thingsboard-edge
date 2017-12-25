@@ -46,6 +46,7 @@ import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.ConverterContext;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
@@ -58,45 +59,7 @@ import java.util.*;
  * Created by ashvayka on 04.12.17.
  */
 @Slf4j
-public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> implements ThingsboardPlatformIntegration<T> {
-
-    protected final ObjectMapper mapper = new ObjectMapper();
-    protected Integration configuration;
-    protected ThingsboardDataConverter converter;
-    protected UplinkMetaData metadataTemplate;
-
-    @Override
-    public void init(Integration dto, ThingsboardDataConverter converter) {
-        this.configuration = dto;
-        this.converter = converter;
-        Map<String, String> mdMap = new HashMap<>();
-        mdMap.put("integrationName", configuration.getName());
-        JsonNode metadata = configuration.getConfiguration().get("metadata");
-        for (Iterator<Map.Entry<String, JsonNode>> it = metadata.fields(); it.hasNext(); ) {
-            Map.Entry<String, JsonNode> md = it.next();
-            mdMap.put(md.getKey(), md.getValue().asText());
-        }
-        this.metadataTemplate = new UplinkMetaData(getUplinkContentType(), mdMap);
-    }
-
-    protected String getUplinkContentType() {
-        return "JSON";
-    }
-
-    @Override
-    public void update(Integration dto, ThingsboardDataConverter converter) {
-        init(dto, converter);
-    }
-
-    @Override
-    public Integration getConfiguration() {
-        return configuration;
-    }
-
-    @Override
-    public void destroy() {
-
-    }
+public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> extends AbstractIntegration<T> {
 
     @Override
     public void process(IntegrationContext context, T msg) {

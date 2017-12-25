@@ -28,8 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.mqtt.credentials;
 
-public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT
+import io.netty.handler.ssl.SslContext;
+import lombok.Data;
+import nl.jk5.mqtt.MqttClientConfig;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.springframework.util.StringUtils;
+
+import java.util.Optional;
+
+/**
+ * Created by ashvayka on 23.01.17.
+ */
+@Data
+public class BasicCredentials implements MqttClientCredentials {
+
+    private String username;
+    private String password;
+
+    @Override
+    public Optional<SslContext> initSslContext() {
+        return Optional.empty();
+    }
+
+    @Override
+    public void configure(MqttClientConfig config) {
+        config.setUsername(username);
+        config.setPassword(password);
+    }
+
 }

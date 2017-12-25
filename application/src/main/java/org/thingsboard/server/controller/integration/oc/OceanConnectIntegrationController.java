@@ -77,11 +77,6 @@ public class OceanConnectIntegrationController extends BaseIntegrationController
             return result;
         }
 
-        if (!msg.has("deviceId")) {
-            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-            return result;
-        }
-
         process(integration.get(), new HttpIntegrationMsg(msg, result));
 
         return result;

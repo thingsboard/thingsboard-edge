@@ -28,8 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.mqtt.credentials;
 
-public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.netty.handler.ssl.SslContext;
+import nl.jk5.mqtt.MqttClientConfig;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+
+import java.util.Optional;
+
+/**
+ * Created by ashvayka on 23.01.17.
+ */
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AnonymousCredentials.class, name = "anonymous"),
+        @JsonSubTypes.Type(value = BasicCredentials.class, name = "basic"),
+        @JsonSubTypes.Type(value = CertPemClientCredentials.class, name = "pem")})
+public interface MqttClientCredentials {
+
+    Optional<SslContext> initSslContext();
+
+    void configure(MqttClientConfig config);
 }
