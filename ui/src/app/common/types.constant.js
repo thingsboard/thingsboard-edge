@@ -277,6 +277,11 @@ export default angular.module('thingsboard.types', [])
                 }
             },
             integrationType: {
+                "HTTP": {
+                    name: "integration.type-http",
+                    value: "HTTP",
+                    http: true
+                },
                 "OCEANCONNECT": {
                     name: "integration.type-ocean-connect",
                     value: "OCEANCONNECT",
@@ -291,6 +296,11 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-thingpark",
                     value: "THINGPARK",
                     http: true
+                },
+                "MQTT": {
+                    name: "integration.type-mqtt",
+                    value: "MQTT",
+                    mqtt: true
                 }
             },
             componentType: {

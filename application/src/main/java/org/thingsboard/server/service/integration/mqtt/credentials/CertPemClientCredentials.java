@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.mqtt.credentials;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -58,6 +59,7 @@ import java.util.Optional;
 
 @Data
 @Slf4j
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CertPemClientCredentials implements MqttClientCredentials {
 
     private static final String TLS_VERSION = "TLSv1.2";
@@ -146,8 +148,8 @@ public class CertPemClientCredentials implements MqttClientCredentials {
     private PrivateKey readPrivateKeyFile(String fileContent) throws Exception {
         RSAPrivateKey privateKey = null;
         if (fileContent != null && !fileContent.isEmpty()) {
-            fileContent = fileContent.replace("-----BEGIN PRIVATE KEY-----\n", "")
-                    .replace("-----END PRIVATE KEY-----", "")
+            fileContent = fileContent.replaceAll("^.*BEGIN.*PRIVATE KEY.*$", "")
+                    .replaceAll("^.*END.*PRIVATE KEY.*$", "")
                     .replaceAll("\\s", "");
             byte[] decoded = Base64.decodeBase64(fileContent);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
