@@ -87,11 +87,24 @@ public class IntegrationController extends BaseController {
         try {
             integration.setTenantId(getCurrentUser().getTenantId());
             boolean create = integration.getId() == null;
+            Integration old = null;
+            if (!create) {
+                old = checkNotNull(integrationService.findIntegrationById(integration.getId()));
+            }
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            if (create) {
-                platformIntegrationService.createIntegration(result);
-            } else {
-                platformIntegrationService.updateIntegration(result);
+            try {
+                if (create) {
+                    platformIntegrationService.createIntegration(result);
+                } else {
+                    platformIntegrationService.updateIntegration(result);
+                }
+            } catch (Exception e) {
+                if (create) {
+                    integrationService.deleteIntegration(result.getId());
+                } else {
+                    integrationService.saveIntegration(old);
+                    platformIntegrationService.updateIntegration(old);
+                }
             }
             return result;
         } catch (Exception e) {

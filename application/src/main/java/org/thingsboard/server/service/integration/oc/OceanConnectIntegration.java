@@ -32,9 +32,7 @@ package org.thingsboard.server.service.integration.oc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.service.converter.UplinkData;
-import org.thingsboard.server.service.integration.ConverterContext;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;

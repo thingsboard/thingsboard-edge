@@ -33,8 +33,6 @@ package org.thingsboard.server.service.integration.mqtt.credentials;
 import io.netty.handler.ssl.SslContext;
 import lombok.Data;
 import nl.jk5.mqtt.MqttClientConfig;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 

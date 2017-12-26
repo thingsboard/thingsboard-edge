@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 
@@ -41,9 +40,9 @@ public interface ThingsboardPlatformIntegration<T> {
 
     Integration getConfiguration();
 
-    void init(Integration configuration, ThingsboardDataConverter converter) throws Exception;
+    void init(IntegrationContext context, Integration configuration, ThingsboardDataConverter converter) throws Exception;
 
-    void update(Integration configuration, ThingsboardDataConverter converter) throws Exception;
+    void update(IntegrationContext context, Integration configuration, ThingsboardDataConverter converter) throws Exception;
 
     void destroy();
 

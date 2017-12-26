@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.integration;
 
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -44,9 +46,11 @@ import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
 import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -54,11 +58,16 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
+    public static EventLoopGroup EVENT_LOOP_GROUP;
+
     @Autowired
     private IntegrationService integrationService;
 
     @Autowired
     private DataConverterService dataConverterService;
+
+    @Autowired
+    protected IntegrationContext context;
 
     private ConcurrentMap<IntegrationId, ThingsboardPlatformIntegration> integrationsByIdMap;
     private ConcurrentMap<String, ThingsboardPlatformIntegration> integrationsByRoutingKeyMap;
@@ -67,7 +76,16 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public void init() {
         integrationsByIdMap = new ConcurrentHashMap<>();
         integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
+        EVENT_LOOP_GROUP = new NioEventLoopGroup();
         //TODO: init integrations maps using information from DB;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
+        integrationsByIdMap.values().forEach(ThingsboardPlatformIntegration::destroy);
+        integrationsByIdMap.clear();
+        integrationsByRoutingKeyMap.clear();
     }
 
     @Override
@@ -87,7 +105,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public ThingsboardPlatformIntegration updateIntegration(Integration configuration) throws Exception {
         ThingsboardPlatformIntegration integration = integrationsByIdMap.get(configuration.getId());
         if (integration != null) {
-            integration.update(configuration, getThingsboardDataConverter(configuration));
+            integration.update(context, configuration, getThingsboardDataConverter(configuration));
             return integration;
         } else {
             return createIntegration(configuration);
@@ -138,7 +156,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private ThingsboardPlatformIntegration initIntegration(Integration integration) throws Exception {
         ThingsboardDataConverter converter = getThingsboardDataConverter(integration);
         ThingsboardPlatformIntegration result = createThingsboardPlatformIntegration(integration);
-        result.init(integration, converter);
+        result.init(context, integration, converter);
         return result;
     }
 

@@ -30,16 +30,48 @@
  */
 package org.thingsboard.server.service.integration.mqtt.basic;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.mqtt.AbstractMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.BasicMqttIntegrationMsg;
+import org.thingsboard.server.service.integration.mqtt.MqttTopicFilter;
+
+import java.util.List;
 
 /**
  * Created by ashvayka on 25.12.17.
  */
+@Slf4j
 public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttIntegrationMsg> {
-    @Override
-    public void process(IntegrationContext context, BasicMqttIntegrationMsg msg) {
 
+    @Override
+    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+        super.init(context, dto, converter);
+
+        List<MqttTopicFilter> topics = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("topicFilters")),
+                new TypeReference<List<MqttTopicFilter>>() {
+                });
+
+        for (MqttTopicFilter topicFilter : topics) {
+            mqttClient.on(topicFilter.getFilter(), (topic, data) ->
+                    process(context, new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
+        }
     }
+
+    @Override
+    protected void doProcess(IntegrationContext context, BasicMqttIntegrationMsg msg) throws Exception {
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.toJson()), metadataTemplate);
+        if (uplinkDataList != null) {
+            for (UplinkData data : uplinkDataList) {
+                processUplinkData(context, data);
+                log.info("[{}] Processing uplink data", data);
+            }
+        }
+    }
+
 }

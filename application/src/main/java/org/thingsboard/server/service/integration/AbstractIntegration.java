@@ -30,16 +30,24 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
+import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
+import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.*;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -52,7 +60,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected UplinkMetaData metadataTemplate;
 
     @Override
-    public void init(Integration dto, ThingsboardDataConverter converter) throws Exception {
+    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
         this.configuration = dto;
         this.converter = converter;
         Map<String, String> mdMap = new HashMap<>();
@@ -70,8 +78,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void update(Integration dto, ThingsboardDataConverter converter) throws Exception {
-        init(dto, converter);
+    public void update(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+        init(context, dto, converter);
     }
 
     @Override
@@ -82,5 +90,65 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     @Override
     public void destroy() {
 
+    }
+
+    protected void processUplinkData(IntegrationContext context, UplinkData data) {
+        Device device = getOrCreateDevice(context, data);
+
+        if (data.getTelemetry() != null) {
+            AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getTelemetry());
+            context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
+        }
+
+        if (data.getAttributesUpdate() != null) {
+            AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getAttributesUpdate());
+            context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
+        }
+    }
+
+    private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
+        Optional<Device> deviceOptional = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+        Device device;
+        if (!deviceOptional.isPresent()) {
+            device = new Device();
+            device.setName(data.getDeviceName());
+            device.setType(data.getDeviceType());
+            device.setTenantId(configuration.getTenantId());
+            device = context.getDeviceService().saveDevice(device);
+        } else {
+            device = deviceOptional.get();
+        }
+        return device;
+    }
+
+    protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
+        Event event = new Event();
+        event.setTenantId(configuration.getTenantId());
+        event.setEntityId(configuration.getId());
+        event.setType(DataConstants.DEBUG_INTEGRATION);
+
+        ObjectNode node = mapper.createObjectNode()
+                .put("server", context.getDiscoveryService().getCurrentServer().getServerAddress().toString())
+                .put("type", type)
+                .put("messageType", messageType)
+                .put("message", message)
+                .put("status", status);
+
+        if (exception != null) {
+            node = node.put("error", toString(exception));
+        }
+
+        event.setBody(node);
+        context.getEventService().save(event);
+    }
+
+    private String toString(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+
+    protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+        return this.converter.convertUplink(context.getConverterContext(), data, md);
     }
 }
