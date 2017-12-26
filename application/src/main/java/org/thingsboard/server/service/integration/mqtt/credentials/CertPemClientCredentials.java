@@ -99,19 +99,25 @@ public class CertPemClientCredentials implements MqttClientCredentials {
 
         JcaPEMKeyConverter keyConverter = new JcaPEMKeyConverter().setProvider("BC");
 
-        KeyPair key;
+        PrivateKey privateKey;
         if (keyObject instanceof PEMEncryptedKeyPair) {
             PEMDecryptorProvider provider = new JcePEMDecryptorProviderBuilder().build(passwordCharArray);
-            key = keyConverter.getKeyPair(((PEMEncryptedKeyPair) keyObject).decryptKeyPair(provider));
+            KeyPair key = keyConverter.getKeyPair(((PEMEncryptedKeyPair) keyObject).decryptKeyPair(provider));
+            privateKey = key.getPrivate();
+        } else if (keyObject instanceof PEMKeyPair) {
+            KeyPair key = keyConverter.getKeyPair((PEMKeyPair) keyObject);
+            privateKey = key.getPrivate();
+        } else if (keyObject instanceof PrivateKey) {
+            privateKey = (PrivateKey)keyObject;
         } else {
-            key = keyConverter.getKeyPair((PEMKeyPair) keyObject);
+            throw new RuntimeException("Unable to get private key from object: " + keyObject.getClass());
         }
 
         KeyStore clientKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         clientKeyStore.load(null, null);
         clientKeyStore.setCertificateEntry("cert", certHolder);
         clientKeyStore.setKeyEntry("private-key",
-                key.getPrivate(),
+                privateKey,
                 passwordCharArray,
                 new Certificate[]{certHolder});
 
@@ -136,8 +142,9 @@ public class CertPemClientCredentials implements MqttClientCredentials {
     private X509Certificate readCertFile(String fileContent) throws Exception {
         X509Certificate certificate = null;
         if (fileContent != null && !fileContent.trim().isEmpty()) {
-            fileContent = fileContent.replace("-----BEGIN CERTIFICATE-----\n", "")
-                    .replace("-----END CERTIFICATE-----", "");
+            fileContent = fileContent.replace("-----BEGIN CERTIFICATE-----", "")
+                    .replace("-----END CERTIFICATE-----", "")
+                    .replaceAll("\\s", "");
             byte[] decoded = Base64.decodeBase64(fileContent);
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(decoded));
@@ -148,8 +155,8 @@ public class CertPemClientCredentials implements MqttClientCredentials {
     private PrivateKey readPrivateKeyFile(String fileContent) throws Exception {
         RSAPrivateKey privateKey = null;
         if (fileContent != null && !fileContent.isEmpty()) {
-            fileContent = fileContent.replaceAll("^.*BEGIN.*PRIVATE KEY.*$", "")
-                    .replaceAll("^.*END.*PRIVATE KEY.*$", "")
+            fileContent = fileContent.replaceAll(".*BEGIN.*PRIVATE KEY.*", "")
+                    .replaceAll(".*END.*PRIVATE KEY.*", "")
                     .replaceAll("\\s", "");
             byte[] decoded = Base64.decodeBase64(fileContent);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");

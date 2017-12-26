@@ -83,7 +83,7 @@ export default function ExtensionFormHttpDirective($compile, $templateCache, $tr
         scope.updateValidity = function () {
             if(scope.brokers.length) {
                 for(let i=0;i<scope.brokers.length;i++) {
-                    if(scope.brokers[i].credentials.type == scope.types.mqttCredentialTypes.pem.value) {
+                    if(scope.brokers[i].credentials.type == scope.types.mqttCredentialTypes['cert.PEM'].value) {
                         if(!(scope.brokers[i].credentials.caCert && scope.brokers[i].credentials.privateKey && scope.brokers[i].credentials.cert)) {
                             scope.theForm.$setValidity('cert.PEM', false);
                             break;

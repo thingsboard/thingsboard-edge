@@ -36,15 +36,15 @@
     <div flex layout="row"
          ng-repeat="keyVal in vm.kvList track by $index"
          style="max-height: 40px;" layout-align="start center">
-        <md-input-container flex md-no-float class="md-block" ng-disabled="vm.disabled"
+        <md-input-container flex md-no-float class="md-block"
                             style="margin: 10px 0px 0px 0px; max-height: 40px;">
             <input placeholder="{{ 'key-val.key' | translate }}"
-                   ng-required="true" name="key" ng-model="keyVal.key">
+                   ng-disabled="vm.disabled" ng-required="true" name="key" ng-model="keyVal.key">
         </md-input-container>
-        <md-input-container flex md-no-float class="md-block" ng-disabled="vm.disabled"
+        <md-input-container flex md-no-float class="md-block"
                             style="margin: 10px 0px 0px 0px; max-height: 40px;">
             <input placeholder="{{ 'key-val.value' | translate }}"
-                   ng-required="true" name="value" ng-model="keyVal.value">
+                   ng-disabled="vm.disabled" ng-required="true" name="value" ng-model="keyVal.value">
         </md-input-container>
         <md-button ng-show="!vm.disabled" ng-disabled="loading" class="md-icon-button md-primary"
                    ng-click="vm.removeKeyVal($index)"

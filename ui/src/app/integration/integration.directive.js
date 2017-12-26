@@ -63,6 +63,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 if (scope.integration.type) {
                     if (types.integrationType[scope.integration.type].http) {
                         scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
+                        delete scope.integration.configuration.clientConfiguration;
+                        delete scope.integration.configuration.topicFilters;
                     } else if (types.integrationType[scope.integration.type].mqtt) {
                         if (!scope.integration.configuration.clientConfiguration) {
                             scope.integration.configuration.clientConfiguration = {
@@ -72,6 +74,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                                     type: types.mqttCredentialTypes.anonymous.value
                                 }
                             };
+                        }
+                        if (!scope.integration.configuration.topicFilters) {
+                            scope.integration.configuration.topicFilters = [];
                         }
                     }
                 }
@@ -85,6 +90,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     scope.integration.configuration.baseUrl = utils.baseUrl();
                 }
                 scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
+                delete scope.integration.configuration.clientConfiguration;
+                delete scope.integration.configuration.topicFilters;
             } else if (types.integrationType[scope.integration.type].mqtt) {
                 if (!scope.integration.configuration.clientConfiguration) {
                     scope.integration.configuration.clientConfiguration = {
@@ -94,6 +101,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                             type: types.mqttCredentialTypes.anonymous.value
                         }
                     };
+                }
+                if (!scope.integration.configuration.topicFilters) {
+                    scope.integration.configuration.topicFilters = [];
                 }
             }
             scope.updateValidity();
@@ -153,15 +163,20 @@ export default function IntegrationDirective($compile, $templateCache, $translat
 
         scope.updateValidity = () => {
             var certsValid = true;
+            var topicFiltersValid = true;
             if (scope.integration.type && types.integrationType[scope.integration.type].mqtt) {
                 var credentials = scope.integration.configuration.clientConfiguration.credentials;
-                if (credentials.type == types.mqttCredentialTypes.pem.value) {
+                if (credentials.type == types.mqttCredentialTypes['cert.PEM'].value) {
                     if (!credentials.caCert || !credentials.cert || !credentials.privateKey) {
                         certsValid = false;
                     }
                 }
+                if (!scope.integration.configuration.topicFilters || !scope.integration.configuration.topicFilters.length) {
+                    topicFiltersValid = false;
+                }
             }
             scope.theForm.$setValidity('Certs', certsValid);
+            scope.theForm.$setValidity('TopicFilters', topicFiltersValid);
         };
 
         scope.integrationBaseUrlChanged = () => {
@@ -183,6 +198,28 @@ export default function IntegrationDirective($compile, $templateCache, $translat
 
         scope.onHttpEndpointCopied = function() {
             toast.showSuccess($translate.instant('integration.http-endpoint-url-copied-message'), 750, angular.element(element).parent().parent(), 'bottom left');
+        };
+
+        scope.removeTopicFilter = (index) => {
+            if (index > -1) {
+                scope.integration.configuration.topicFilters.splice(index, 1);
+                scope.theForm.$setDirty();
+                scope.updateValidity();
+            }
+        };
+
+        scope.addTopicFilter = () => {
+            if (!scope.integration.configuration.topicFilters) {
+                scope.integration.configuration.topicFilters = [];
+            }
+            scope.integration.configuration.topicFilters.push(
+                {
+                    topic: '',
+                    qos: 0
+                }
+            );
+            scope.theForm.$setDirty();
+            scope.updateValidity();
         };
 
         $compile(element.contents())(scope);

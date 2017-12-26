@@ -663,9 +663,23 @@ export default angular.module('thingsboard.types', [])
                     value: "basic",
                     name: "extension.basic"
                 },
-                pem: {
+                'cert.PEM': {
                     value: "cert.PEM",
                     name: "extension.pem"
+                }
+            },
+            mqttQoS: {
+                0: {
+                    value: 0,
+                    name: 'integration.mqtt-qos-at-most-once'
+                },
+                1: {
+                    value: 1,
+                    name: 'integration.mqtt-qos-at-least-once'
+                },
+                2: {
+                    value: 2,
+                    name: 'integration.mqtt-qos-exactly-once'
                 }
             },
             extensionOpcSecurityTypes: {
