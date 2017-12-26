@@ -30,14 +30,15 @@
  */
 package org.thingsboard.server.service.integration.mqtt;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 
 /**
- * Created by ashvayka on 04.12.17.
+ * Created by ashvayka on 25.12.17.
  */
-public interface MqttIntegrationMsg {
+@Data
+public class MqttTopicFilter {
 
-    String getTopic();
+    private String filter;
+    private int qos;
 
-    JsonNode toJson();
 }

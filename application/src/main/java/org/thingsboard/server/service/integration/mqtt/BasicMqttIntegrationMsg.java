@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.service.integration.mqtt;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.buffer.ByteBuf;
 import lombok.Data;
 
 /**
@@ -38,7 +41,19 @@ import lombok.Data;
 @Data
 public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
 
-    private String topic;
-    private byte[] payload;
+    private static ObjectMapper mapper = new ObjectMapper();
 
+    private final String topic;
+    private final byte[] payload;
+
+    public BasicMqttIntegrationMsg(String topic, ByteBuf payload) {
+        this.topic = topic;
+        this.payload = new byte[payload.readableBytes()];
+        payload.readBytes(this.payload);
+    }
+
+    @Override
+    public JsonNode toJson() {
+        return mapper.createObjectNode().put("topic", topic).put("payload", payload);
+    }
 }

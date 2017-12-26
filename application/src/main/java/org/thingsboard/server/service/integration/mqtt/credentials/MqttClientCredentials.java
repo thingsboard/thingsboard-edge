@@ -34,7 +34,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.netty.handler.ssl.SslContext;
 import nl.jk5.mqtt.MqttClientConfig;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 
 import java.util.Optional;
 

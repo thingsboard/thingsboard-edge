@@ -40,6 +40,8 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.integration.AbstractIntegration;
+import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
+import org.thingsboard.server.service.integration.IntegrationContext;
 
 import javax.net.ssl.SSLException;
 import java.util.Optional;
@@ -48,18 +50,48 @@ import java.util.Optional;
  * Created by ashvayka on 25.12.17.
  */
 @Slf4j
-public abstract class AbstractMqttIntegration<T> extends AbstractIntegration<T> {
+public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> extends AbstractIntegration<T> {
 
-    private MqttClient mqttClient;
+    protected MqttClient mqttClient;
 
     @Override
-    public void init(Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(dto, converter);
+    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+        super.init(context, dto, converter);
         MqttClientConfiguration mqttClientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 MqttClientConfiguration.class);
         mqttClient = initClient(mqttClientConfiguration);
+
     }
+
+    @Override
+    public void update(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+        if (mqttClient != null) {
+            mqttClient.disconnect();
+        }
+    }
+
+    @Override
+    public void process(IntegrationContext context, T msg) {
+        String status = "OK";
+        Exception exception = null;
+        try {
+            doProcess(context, msg);
+        } catch (Exception e) {
+            log.warn("Failed to apply data converter function", e);
+            exception = e;
+            status = "ERROR";
+        }
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
+    }
+
+    protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;
 
     private MqttClient initClient(MqttClientConfiguration configuration) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext(configuration);
@@ -72,6 +104,7 @@ public abstract class AbstractMqttIntegration<T> extends AbstractIntegration<T> 
         configuration.getCredentials().configure(config);
 
         MqttClient client = MqttClient.create();
+        client.setEventLoop(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP);
         MqttConnectResult result = client.connect(configuration.getHost(), configuration.getPort()).get();
         if (!result.isSuccess()) {
             throw new RuntimeException("Failed to connect to MQTT broker. Result code is: " + result.getReturnCode());
