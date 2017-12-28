@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.mqtt;
 
+import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
@@ -76,6 +77,13 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
+    public void destroy() {
+        if (mqttClient != null) {
+            mqttClient.disconnect();
+        }
+    }
+
+    @Override
     public void process(IntegrationContext context, T msg) {
         String status = "OK";
         Exception exception = null;
@@ -107,7 +115,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         configuration.getCredentials().configure(config);
 
-        MqttClient client = MqttClient.create();
+        MqttClient client = MqttClient.create(config);
         client.setEventLoop(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP);
         Future<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
         MqttConnectResult result;
@@ -115,11 +123,13 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
             result = connectFuture.get(configuration.getConnectTimeoutSec(), TimeUnit.SECONDS);
         } catch (TimeoutException ex) {
             connectFuture.cancel(true);
+            client.disconnect();
             String hostPort = configuration.getHost() + ":" + configuration.getPort();
             throw new RuntimeException(String.format("Failed to connect to MQTT broker at %s.", hostPort));
         }
         if (!result.isSuccess()) {
             connectFuture.cancel(true);
+            client.disconnect();
             String hostPort = configuration.getHost() + ":" + configuration.getPort();
             throw new RuntimeException(String.format("Failed to connect to MQTT broker at %s. Result code is: %s", hostPort, result.getReturnCode()));
         }
