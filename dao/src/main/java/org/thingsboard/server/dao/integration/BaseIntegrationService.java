@@ -105,6 +105,12 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    public List<Integration> findAllIntegrations() {
+        log.trace("Executing findAllIntegrations");
+        return integrationDao.find();
+    }
+
+    @Override
     public List<Integration> findIntegrationsByConverterId(ConverterId converterId) {
         log.trace("Executing findIntegrationsByConverterId [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);

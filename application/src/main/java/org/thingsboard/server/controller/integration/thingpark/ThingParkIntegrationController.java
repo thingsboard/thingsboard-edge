@@ -51,6 +51,7 @@ import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration
 import org.thingsboard.server.service.integration.thingpark.ThingParkIntegrationMsg;
 import org.thingsboard.server.service.integration.thingpark.ThingParkRequestParameters;
 
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -70,7 +71,8 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
             @RequestParam(value = "LrnInfos", required = false) String lrnInfos,
             @RequestParam(value = "Time", required = false) String time,
             @RequestParam(value = "Token", required = false) String token,
-            @RequestBody JsonNode msg
+            @RequestBody JsonNode msg,
+            @RequestHeader Map<String, String> requestHeaders
     ) {
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
@@ -96,7 +98,7 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
                 .token(token)
                 .build();
 
-        process(integration.get(), new ThingParkIntegrationMsg(msg, params, result));
+        process(integration.get(), new ThingParkIntegrationMsg(requestHeaders, msg, params, result));
 
         return result;
     }

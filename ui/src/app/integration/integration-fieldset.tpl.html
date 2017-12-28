@@ -158,6 +158,16 @@
                         <div translate ng-message="max">integration.port-range</div>
                     </div>
                 </md-input-container>
+                <md-input-container flex="40" class="md-block">
+                    <label translate>integration.connect-timeout</label>
+                    <input type="number" step="1" min="1" max="200" required
+                           name="connectTimeoutSec" ng-model="integration.configuration.clientConfiguration.connectTimeoutSec">
+                    <div ng-messages="theForm.connectTimeoutSec.$error">
+                        <div translate ng-message="required">integration.connect-timeout-required</div>
+                        <div translate ng-message="min">integration.connect-timeout-range</div>
+                        <div translate ng-message="max">integration.connect-timeout-range</div>
+                    </div>
+                </md-input-container>
             </div>
             <md-input-container class="md-block">
                 <label translate>integration.client-id</label>
@@ -309,7 +319,7 @@
                                 <md-input-container flex md-no-float class="md-block"
                                                     style="margin: 10px 0px 0px 0px; max-height: 40px;">
                                     <input placeholder="{{ 'integration.topic' | translate }}" ng-disabled="loading || !isEdit"
-                                           ng-required="true" name="topicFilterTopic" ng-model="topicFilter.topic">
+                                           ng-required="true" name="topicFilterTopic" ng-model="topicFilter.filter">
                                 </md-input-container>
                                 <md-input-container flex md-no-float class="md-block"
                                                     style="margin: 4px 0px 0px 0px; max-height: 40px;">

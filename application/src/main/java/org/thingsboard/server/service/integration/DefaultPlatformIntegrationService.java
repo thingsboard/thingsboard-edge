@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -41,12 +42,14 @@ import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
 import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -55,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ashvayka on 02.12.17.
  */
+@Slf4j
 @Service
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
@@ -77,7 +81,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         integrationsByIdMap = new ConcurrentHashMap<>();
         integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
-        //TODO: init integrations maps using information from DB;
+        List<Integration> allIntegrations = integrationService.findAllIntegrations();
+        allIntegrations.forEach( integration -> {
+            try {
+                initIntegration(integration);
+            } catch (Exception e) {
+                log.error(String.format("Unable to initialize integration \"%s\"", integration.getName()), e);
+            }
+        });
     }
 
     @PreDestroy
@@ -96,7 +107,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 integrationsByRoutingKeyMap.putIfAbsent(integration.getRoutingKey(), result);
                 return result;
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw handleException(e);
             }
         });
     }
@@ -130,7 +141,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 try {
                     result = createIntegration(configuration);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw handleException(e);
                 }
             }
         }
@@ -146,7 +157,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 try {
                     result = createIntegration(configuration.get());
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw handleException(e);
                 }
             }
         }
@@ -162,6 +173,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private ThingsboardPlatformIntegration createThingsboardPlatformIntegration(Integration integration) {
         switch (integration.getType()) {
+            case HTTP:
+                return new BasicHttpIntegration();
             case OCEANCONNECT:
                 return new OceanConnectIntegration();
             case THINGPARK:
@@ -176,5 +189,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private ThingsboardDataConverter getThingsboardDataConverter(Integration integration) {
         return dataConverterService.getConverterById(integration.getDefaultConverterId())
                 .orElseThrow(() -> new ThingsboardRuntimeException("Converter not found!", ThingsboardErrorCode.ITEM_NOT_FOUND));
+    }
+
+    RuntimeException handleException(Exception e) {
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException)e;
+        } else {
+            throw new RuntimeException(e);
+        }
     }
 }

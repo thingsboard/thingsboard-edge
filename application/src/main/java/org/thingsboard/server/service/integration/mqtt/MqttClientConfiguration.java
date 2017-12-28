@@ -41,6 +41,7 @@ public class MqttClientConfiguration {
 
     private String host;
     private int port;
+    private int connectTimeoutSec;
     private String clientId;
 
     private boolean ssl;

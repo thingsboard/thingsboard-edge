@@ -37,6 +37,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
+import java.util.Map;
+
 /**
  * Created by ashvayka on 18.12.17.
  */
@@ -46,8 +48,9 @@ public class ThingParkIntegrationMsg extends HttpIntegrationMsg {
 
     private final ThingParkRequestParameters params;
 
-    public ThingParkIntegrationMsg(JsonNode msg, ThingParkRequestParameters params, DeferredResult<ResponseEntity> callback) {
-        super(msg, callback);
+    public ThingParkIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, ThingParkRequestParameters params,
+                                   DeferredResult<ResponseEntity> callback) {
+        super(requestHeaders, msg, callback);
         this.params = params;
     }
 

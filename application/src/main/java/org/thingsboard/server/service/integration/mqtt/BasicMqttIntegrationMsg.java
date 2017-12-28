@@ -32,8 +32,11 @@ package org.thingsboard.server.service.integration.mqtt;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
+
+import java.io.IOException;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -54,6 +57,17 @@ public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
 
     @Override
     public JsonNode toJson() {
-        return mapper.createObjectNode().put("topic", topic).put("payload", payload);
+        ObjectNode json = mapper.createObjectNode().put("topic", topic);
+        JsonNode payloadJson = null;
+        try {
+            payloadJson = mapper.readTree(payload);
+        } catch (IOException e) {
+        }
+        if (payloadJson != null) {
+            json.set("payload", payloadJson);
+        } else {
+            json.put("payload", payload);
+        }
+        return json;
     }
 }

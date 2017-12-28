@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration.mqtt;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import nl.jk5.mqtt.MqttClient;
 import nl.jk5.mqtt.MqttClientConfig;
@@ -45,6 +46,8 @@ import org.thingsboard.server.service.integration.IntegrationContext;
 
 import javax.net.ssl.SSLException;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -69,6 +72,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         if (mqttClient != null) {
             mqttClient.disconnect();
         }
+        init(context, dto, converter);
     }
 
     @Override
@@ -105,9 +109,19 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         MqttClient client = MqttClient.create();
         client.setEventLoop(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP);
-        MqttConnectResult result = client.connect(configuration.getHost(), configuration.getPort()).get();
+        Future<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
+        MqttConnectResult result;
+        try {
+            result = connectFuture.get(configuration.getConnectTimeoutSec(), TimeUnit.SECONDS);
+        } catch (TimeoutException ex) {
+            connectFuture.cancel(true);
+            String hostPort = configuration.getHost() + ":" + configuration.getPort();
+            throw new RuntimeException(String.format("Failed to connect to MQTT broker at %s.", hostPort));
+        }
         if (!result.isSuccess()) {
-            throw new RuntimeException("Failed to connect to MQTT broker. Result code is: " + result.getReturnCode());
+            connectFuture.cancel(true);
+            String hostPort = configuration.getHost() + ":" + configuration.getPort();
+            throw new RuntimeException(String.format("Failed to connect to MQTT broker at %s. Result code is: %s", hostPort, result.getReturnCode()));
         }
         return client;
     }

@@ -28,55 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.mqtt.basic;
+package org.thingsboard.server.service.integration.http.basic;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.springframework.http.HttpStatus;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
-import org.thingsboard.server.service.integration.mqtt.AbstractMqttIntegration;
-import org.thingsboard.server.service.integration.mqtt.BasicMqttIntegrationMsg;
-import org.thingsboard.server.service.integration.mqtt.MqttTopicFilter;
+import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by ashvayka on 25.12.17.
- */
 @Slf4j
-public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttIntegrationMsg> {
+public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
-
-        List<MqttTopicFilter> topics = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("topicFilters")),
-                new TypeReference<List<MqttTopicFilter>>() {
-                });
-
-        for (MqttTopicFilter topicFilter : topics) {
-            mqttClient.on(topicFilter.getFilter(), (topic, data) ->
-                    process(context, new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
-        }
-    }
-
-    @Override
-    protected void doProcess(IntegrationContext context, BasicMqttIntegrationMsg msg) throws Exception {
+    protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+        byte[] data = mapper.writeValueAsBytes(msg.getMsg());
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        mdMap.put("topic", msg.getTopic());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), mdMap));
+        msg.getRequestHeaders().forEach(
+                (header, value) -> {
+                    mdMap.put("header:"+header, value);
+                }
+        );
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
-            for (UplinkData data : uplinkDataList) {
-                processUplinkData(context, data);
-                log.info("[{}] Processing uplink data", data);
+            for (UplinkData uplinkData : uplinkDataList) {
+                processUplinkData(context, uplinkData);
+                log.info("[{}] Processing uplink data", uplinkData);
             }
         }
+        return HttpStatus.OK;
     }
-
 }

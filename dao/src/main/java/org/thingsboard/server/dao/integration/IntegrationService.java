@@ -51,6 +51,8 @@ public interface IntegrationService {
 
     Optional<Integration> findIntegrationByRoutingKey(String routingKey);
 
+    List<Integration> findAllIntegrations();
+
     List<Integration> findIntegrationsByConverterId(ConverterId converterId);
 
     TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink);

@@ -69,7 +69,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                         if (!scope.integration.configuration.clientConfiguration) {
                             scope.integration.configuration.clientConfiguration = {
                                 host: 'localhost',
-                                port: 1883,
+                                port: 11883,
+                                connectTimeoutSec: 10,
                                 credentials: {
                                     type: types.mqttCredentialTypes.anonymous.value
                                 }
@@ -96,7 +97,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 if (!scope.integration.configuration.clientConfiguration) {
                     scope.integration.configuration.clientConfiguration = {
                         host: 'localhost',
-                        port: 1883,
+                        port: 11883,
+                        connectTimeoutSec: 10,
                         credentials: {
                             type: types.mqttCredentialTypes.anonymous.value
                         }
@@ -214,7 +216,7 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             }
             scope.integration.configuration.topicFilters.push(
                 {
-                    topic: '',
+                    filter: '',
                     qos: 0
                 }
             );

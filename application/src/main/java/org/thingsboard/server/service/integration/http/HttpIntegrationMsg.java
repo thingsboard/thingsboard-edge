@@ -36,6 +36,8 @@ import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.Map;
+
 /**
  * Created by ashvayka on 04.12.17.
  */
@@ -43,6 +45,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 @AllArgsConstructor
 public class HttpIntegrationMsg {
 
+    private final Map<String, String> requestHeaders;
     private final JsonNode msg;
     private final DeferredResult<ResponseEntity> callback;
 

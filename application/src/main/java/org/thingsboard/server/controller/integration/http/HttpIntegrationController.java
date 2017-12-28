@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.integration.oc;
+package org.thingsboard.server.controller.integration.http;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,9 +52,9 @@ import java.util.Optional;
 
 
 @RestController
-@RequestMapping("/api/v1/integrations/oceanconnect")
+@RequestMapping("/api/v1/integrations/http")
 @Slf4j
-public class OceanConnectIntegrationController extends BaseIntegrationController {
+public class HttpIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}")
@@ -74,7 +74,7 @@ public class OceanConnectIntegrationController extends BaseIntegrationController
             return result;
         }
 
-        if (integration.get().getConfiguration().getType() != IntegrationType.OCEANCONNECT) {
+        if (integration.get().getConfiguration().getType() != IntegrationType.HTTP) {
             result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
             return result;
         }
