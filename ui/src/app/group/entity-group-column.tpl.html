@@ -78,7 +78,7 @@
         </md-checkbox>
     </div>
     <span ng-if="vm.readOnly" style="padding-left: 5px; min-width: 40px; min-height: 40px;">&nbsp</span>
-    <md-button ng-disabled="loading" class="md-icon-button md-primary"
+    <md-button ng-disabled="$root.loading" class="md-icon-button md-primary"
                style="min-width: 40px;"
                ng-click="vm.openColumn($event)"
                aria-label="{{ (vm.readOnly ? 'action.view' : 'action.edit') | translate }}">
@@ -97,7 +97,7 @@
             edit
         </md-icon>
     </md-button>
-    <md-button ng-if="!vm.readOnly" ng-disabled="loading" class="md-icon-button md-primary"
+    <md-button ng-if="!vm.readOnly" ng-disabled="$root.loading" class="md-icon-button md-primary"
                style="min-width: 40px;"
                ng-click="vm.onRemoveColumn({event: $event})"
                aria-label="{{ 'action.remove' | translate }}">

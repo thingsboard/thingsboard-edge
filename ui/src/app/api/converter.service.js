@@ -45,7 +45,7 @@ function ConverterService($http, $q) {
 
     return service;
 
-    function getConverters(pageLink) {
+    function getConverters(pageLink, config) {
         var deferred = $q.defer();
         var url = '/api/converters?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
@@ -57,7 +57,7 @@ function ConverterService($http, $q) {
         if (angular.isDefined(pageLink.textOffset)) {
             url += '&textOffset=' + pageLink.textOffset;
         }
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -65,10 +65,10 @@ function ConverterService($http, $q) {
         return deferred.promise;
     }
 
-    function getConverter(converterId) {
+    function getConverter(converterId, config) {
         var deferred = $q.defer();
         var url = '/api/converter/' + converterId;
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {
             deferred.reject(response.data);

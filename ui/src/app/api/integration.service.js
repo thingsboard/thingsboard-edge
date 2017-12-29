@@ -45,7 +45,7 @@ function IntegrationService($http, $q) {
 
     return service;
 
-    function getIntegrations(pageLink) {
+    function getIntegrations(pageLink, config) {
         var deferred = $q.defer();
         var url = '/api/integrations?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
@@ -57,7 +57,7 @@ function IntegrationService($http, $q) {
         if (angular.isDefined(pageLink.textOffset)) {
             url += '&textOffset=' + pageLink.textOffset;
         }
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -65,10 +65,10 @@ function IntegrationService($http, $q) {
         return deferred.promise;
     }
 
-    function getIntegration(integrationId) {
+    function getIntegration(integrationId, config) {
         var deferred = $q.defer();
         var url = '/api/integration/' + integrationId;
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {
             deferred.reject(response.data);

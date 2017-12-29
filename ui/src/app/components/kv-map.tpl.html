@@ -46,7 +46,7 @@
             <input placeholder="{{ 'key-val.value' | translate }}"
                    ng-disabled="vm.disabled" ng-required="true" name="value" ng-model="keyVal.value">
         </md-input-container>
-        <md-button ng-show="!vm.disabled" ng-disabled="loading" class="md-icon-button md-primary"
+        <md-button ng-show="!vm.disabled" ng-disabled="$root.loading" class="md-icon-button md-primary"
                    ng-click="vm.removeKeyVal($index)"
                    aria-label="{{ 'action.remove' | translate }}">
             <md-tooltip md-direction="top">
@@ -62,7 +62,7 @@
           layout-align="center center" ng-class="{'disabled': vm.disabled}"
           class="no-data-found" translate>key-val.no-data</span>
     <div>
-        <md-button ng-show="!vm.disabled" ng-disabled="loading" class="md-primary md-raised"
+        <md-button ng-show="!vm.disabled" ng-disabled="$root.loading" class="md-primary md-raised"
                    ng-click="vm.addKeyVal()"
                    aria-label="{{ 'action.add' | translate }}">
             <md-tooltip md-direction="top">

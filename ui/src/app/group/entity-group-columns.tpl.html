@@ -85,7 +85,7 @@
         </div>
     </div>
     <div ng-if="vm.isEdit && !vm.isReadOnly" flex layout="row" layout-align="start center">
-        <md-button ng-disabled="loading" class="md-primary md-raised"
+        <md-button ng-disabled="$root.loading" class="md-primary md-raised"
                    ng-click="vm.addColumn($event)" aria-label="{{ 'action.add' | translate }}">
             <md-tooltip md-direction="top">
                 {{ 'entity-group.add-column' | translate }}

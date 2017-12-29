@@ -46,7 +46,7 @@
 </div>
 
 <md-content class="md-padding" layout="column">
-    <fieldset ng-disabled="loading || !isEdit">
+    <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>converter.name</label>
             <input required name="name" ng-model="converter.name">
@@ -56,7 +56,7 @@
         </md-input-container>
         <md-input-container class="md-block">
             <label translate>converter.type</label>
-            <md-select name="type" aria-label="{{ 'converter.type' | translate }}" ng-disabled="loading || !isEdit"
+            <md-select name="type" aria-label="{{ 'converter.type' | translate }}" ng-disabled="$root.loading || !isEdit"
                        ng-model="converter.type" ng-change="converterTypeChanged()" required>
                 <md-option ng-repeat="type in types.converterType" ng-value="type.value">
                     {{type.name | translate}}
@@ -67,7 +67,7 @@
             </div>
         </md-input-container>
         <md-input-container class="md-block">
-            <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'converter.debug-mode' | translate }}"
+            <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'converter.debug-mode' | translate }}"
                          ng-model="converter.debugMode">{{ 'converter.debug-mode' | translate }}
             </md-checkbox>
         </md-input-container>
@@ -79,7 +79,7 @@
                         no-validate="true">
             </tb-js-func>
             <div layout="row">
-                <md-button ng-show="isEdit" ng-disabled="loading"
+                <md-button ng-show="isEdit" ng-disabled="$root.loading"
                            ng-click="openCustomDecoderTestDialog($event)"
                            class="md-primary md-raised">
                     {{ 'converter.test-decoder-fuction' | translate }}

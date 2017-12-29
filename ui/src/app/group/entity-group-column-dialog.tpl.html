@@ -42,15 +42,15 @@
                 </md-button>
             </div>
         </md-toolbar>
-        <md-progress-linear class="md-warn" md-mode="indeterminate" ng-disabled="!loading" ng-show="loading"></md-progress-linear>
-        <span style="min-height: 5px;" flex="" ng-show="!loading"></span>
+        <md-progress-linear class="md-warn" md-mode="indeterminate" ng-disabled="!$root.loading" ng-show="$root.loading"></md-progress-linear>
+        <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
         <md-dialog-content>
             <div class="md-dialog-content">
                 <md-content class="md-padding" layout="column">
-                    <fieldset ng-disabled="loading || vm.readOnly" layout="column">
+                    <fieldset ng-disabled="$root.loading || vm.readOnly" layout="column">
                         <md-input-container class="md-block">
                             <label translate>entity-group.column-type</label>
-                            <md-select ng-disabled="loading || vm.readOnly" required name="columnType"
+                            <md-select ng-disabled="$root.loading || vm.readOnly" required name="columnType"
                                        ng-model="vm.column.type" aria-label="{{ 'entity-group.column-type' | translate }}">
                                 <md-option ng-repeat="type in vm.columnTypes" ng-value="type.value">
                                     {{type.name | translate}}
@@ -62,7 +62,7 @@
                         </md-input-container>
                         <md-input-container class="md-block" ng-if="vm.column.type == vm.columnTypes.entityField.value">
                             <label translate>entity-group.column-value</label>
-                            <md-select flex ng-disabled="loading || vm.readOnly" required name="columnKey"
+                            <md-select flex ng-disabled="$root.loading || vm.readOnly" required name="columnKey"
                                        ng-model="vm.column.key" aria-label="{{ 'entity-group.column-value' | translate }}">
                                 <md-option ng-repeat="field in vm.entityField" ng-value="field.value">
                                     {{field.name | translate}}
@@ -76,7 +76,7 @@
                             <label translate>entity-group.column-value</label>
                             <input required name="columnKeyName"
                                    placeholder="{{ 'entity-group.column-value' | translate }}"
-                                   ng-disabled="loading || vm.readOnly"
+                                   ng-disabled="$root.loading || vm.readOnly"
                                    ng-model="vm.column.key"
                                    aria-label="{{ 'entity-group.column-value' | translate }}">
                             <div ng-messages="theForm.columnKeyName.$error">
@@ -87,13 +87,13 @@
                             <label translate>entity-group.column-title</label>
                             <input name="columnTitle"
                                    placeholder="{{ 'entity-group.column-title' | translate }}"
-                                   ng-disabled="loading || vm.readOnly"
+                                   ng-disabled="$root.loading || vm.readOnly"
                                    ng-model="vm.column.title"
                                    aria-label="{{ 'entity-group.column-title' | translate }}">
                         </md-input-container>
                         <md-input-container class="md-block">
                             <label translate>entity-group.default-sort-order</label>
-                            <md-select ng-disabled="loading || vm.readOnly" required name="columnSortOrder"
+                            <md-select ng-disabled="$root.loading || vm.readOnly" required name="columnSortOrder"
                                        ng-change="vm.onDefaultSortOrderChanged({event: $event})"
                                        ng-model="vm.column.sortOrder" aria-label="{{ 'entity-group.default-sort-order' | translate }}">
                                 <md-option ng-repeat="type in vm.sortOrder" ng-value="type.value">
@@ -104,28 +104,28 @@
                                 <div translate ng-message="required">entity-group.default-sort-order-required</div>
                             </div>
                         </md-input-container>
-                        <md-checkbox ng-disabled="loading || vm.readOnly"
+                        <md-checkbox ng-disabled="$root.loading || vm.readOnly"
                                      aria-label="{{ 'entity-group.hide-in-mobile-view' | translate }}"
                                      ng-model="vm.column.mobileHide">
                             {{ 'entity-group.hide-in-mobile-view' | translate }}
                         </md-checkbox>
-                        <md-checkbox ng-disabled="loading || vm.readOnly"
+                        <md-checkbox ng-disabled="$root.loading || vm.readOnly"
                                      aria-label="{{ 'entity-group.use-cell-style-function' | translate }}"
                                      ng-model="vm.column.useCellStyleFunction">
                             {{ 'entity-group.use-cell-style-function' | translate }}
                         </md-checkbox>
                         <tb-js-func ng-model="vm.column.cellStyleFunction"
-                                    ng-disabled="loading || vm.readOnly || !vm.column.useCellStyleFunction"
+                                    ng-disabled="$root.loading || vm.readOnly || !vm.column.useCellStyleFunction"
                                     function-args="{{ ['value', 'entity'] }}"
                                     validation-args="{{ [] }}">
                         </tb-js-func>
-                        <md-checkbox ng-disabled="loading || vm.readOnly"
+                        <md-checkbox ng-disabled="$root.loading || vm.readOnly"
                                      aria-label="{{ 'entity-group.use-cell-content-function' | translate }}"
                                      ng-model="vm.column.useCellContentFunction">
                             {{ 'entity-group.use-cell-content-function' | translate }}
                         </md-checkbox>
                         <tb-js-func ng-model="vm.column.cellContentFunction"
-                                    ng-disabled="loading || vm.readOnly || !vm.column.useCellContentFunction"
+                                    ng-disabled="$root.loading || vm.readOnly || !vm.column.useCellContentFunction"
                                     function-args="{{ ['value', 'entity', '$filter'] }}"
                                     validation-args="{{ [] }}">
                         </tb-js-func>
@@ -135,11 +135,11 @@
         </md-dialog-content>
         <md-dialog-actions layout="row">
             <span flex></span>
-            <md-button ng-if="!vm.readOnly" ng-disabled="loading || theForm.$invalid || !theForm.$dirty" type="submit"
+            <md-button ng-if="!vm.readOnly" ng-disabled="$root.loading || theForm.$invalid || !theForm.$dirty" type="submit"
                        class="md-raised md-primary">
                 {{ 'action.save' | translate }}
             </md-button>
-            <md-button ng-disabled="loading" ng-click="vm.cancel()" style="margin-right:20px;">
+            <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">
                 {{ (vm.readOnly ? 'action.close' : 'action.cancel') | translate }}
             </md-button>
         </md-dialog-actions>

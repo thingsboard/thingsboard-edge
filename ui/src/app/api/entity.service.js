@@ -95,10 +95,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 $log.error('Get Alarm Entity is not implemented!');
                 break;
             case types.entityType.converter:
-                promise = converterService.getConverter(entityId);
+                promise = converterService.getConverter(entityId, config);
                 break;
             case types.entityType.integration:
-                promise = integrationService.getIntegration(entityId);
+                promise = integrationService.getIntegration(entityId, config);
                 break;
         }
         return promise;
@@ -249,13 +249,16 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 $log.error('Get Alarm Entity is not implemented!');
                 break;
             case types.entityType.entityGroup:
-                promise = getEntitiesByIdsPromise(entityGroupService.getEntityGroup, entityIds);
+                promise = getEntitiesByIdsPromise(
+                    (id) => entityGroupService.getEntityGroup(id, true, config), entityIds);
                 break;
             case types.entityType.converter:
-                promise = getEntitiesByIdsPromise(converterService.getConverter, entityIds);
+                promise = getEntitiesByIdsPromise(
+                    (id) => converterService.getConverter(id, config), entityIds);
                 break;
             case types.entityType.integration:
-                promise = getEntitiesByIdsPromise(integrationService.getIntegration, entityIds);
+                promise = getEntitiesByIdsPromise(
+                    (id) => integrationService.getIntegration(id, config), entityIds);
                 break;
         }
         return promise;
@@ -387,10 +390,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
                 break;
             case types.entityType.converter:
-                promise = converterService.getConverters(pageLink);
+                promise = converterService.getConverters(pageLink, config);
                 break;
             case types.entityType.integration:
-                promise = integrationService.getIntegrations(pageLink);
+                promise = integrationService.getIntegrations(pageLink, config);
                 break;
         }
         return promise;
@@ -620,7 +623,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 } else if (!result.stateEntity) {
                     entityGroup = filter.entityGroup;
                 }
-                getEntityGroupEntities(entityGroup, maxItems).then(
+                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true}).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -666,7 +669,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
 
             case types.aliasFilterType.entityGroupList.value:
-                getEntities(types.entityType.entityGroup, filter.entityGroupList).then(
+                getEntities(types.entityType.entityGroup, filter.entityGroupList, {ignoreLoading: true}).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -681,7 +684,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 );
                 break;
             case types.aliasFilterType.entityGroupName.value:
-                getEntitiesByNameFilter(types.entityType.entityGroup, filter.entityNameFilter, maxItems, null, filter.groupType).then(
+                getEntitiesByNameFilter(types.entityType.entityGroup, filter.entityNameFilter, maxItems, {ignoreLoading: true}, filter.groupType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);

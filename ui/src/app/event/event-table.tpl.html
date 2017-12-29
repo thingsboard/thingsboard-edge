@@ -41,7 +41,7 @@
             </md-select>
         </md-input-container>
         <tb-timewindow flex ng-model="timewindow" history-only as-button="true"></tb-timewindow>
-        <md-button ng-disabled="loading()"
+        <md-button ng-disabled="$root.loading"
                    class="md-icon-button" ng-click="reload()">
             <md-icon>refresh</md-icon>
             <md-tooltip md-direction="top">
