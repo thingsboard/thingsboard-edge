@@ -40,6 +40,10 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
+import org.thingsboard.server.service.cluster.discovery.ServerInstance;
+import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
@@ -49,8 +53,9 @@ import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +65,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService implements PlatformIntegrationService, DiscoveryServiceListener {
 
     public static EventLoopGroup EVENT_LOOP_GROUP;
 
@@ -73,6 +78,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     protected IntegrationContext context;
 
+    @Autowired
+    private DiscoveryService discoveryService;
+
+    @Autowired
+    private ClusterRoutingService clusterRoutingService;
+
     private ConcurrentMap<IntegrationId, ThingsboardPlatformIntegration> integrationsByIdMap;
     private ConcurrentMap<String, ThingsboardPlatformIntegration> integrationsByRoutingKeyMap;
 
@@ -81,14 +92,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         integrationsByIdMap = new ConcurrentHashMap<>();
         integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
-        List<Integration> allIntegrations = integrationService.findAllIntegrations();
-        allIntegrations.forEach( integration -> {
-            try {
-                initIntegration(integration);
-            } catch (Exception e) {
-                log.error(String.format("Unable to initialize integration \"%s\"", integration.getName()), e);
-            }
-        });
+        discoveryService.addListener(this);
+        refreshAllIntegrations();
     }
 
     @PreDestroy
@@ -191,11 +196,46 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 .orElseThrow(() -> new ThingsboardRuntimeException("Converter not found!", ThingsboardErrorCode.ITEM_NOT_FOUND));
     }
 
-    RuntimeException handleException(Exception e) {
+    private RuntimeException handleException(Exception e) {
         if (e instanceof RuntimeException) {
-            throw (RuntimeException)e;
+            throw (RuntimeException) e;
         } else {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void onServerAdded(ServerInstance server) {
+        refreshAllIntegrations();
+    }
+
+    @Override
+    public void onServerUpdated(ServerInstance server) {
+        refreshAllIntegrations();
+    }
+
+    @Override
+    public void onServerRemoved(ServerInstance server) {
+        refreshAllIntegrations();
+    }
+
+    private void refreshAllIntegrations() {
+        Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
+        for (IntegrationId integrationId : currentIntegrationIds) {
+            if (clusterRoutingService.resolveById(integrationId).isPresent()) {
+                deleteIntegration(integrationId);
+            }
+        }
+        integrationService.findAllIntegrations().forEach(configuration -> {
+            try {
+                //Initialize the integration that belongs to current node only
+                if (!clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
+                    createIntegration(configuration);
+                }
+            } catch (Exception e) {
+                log.error("[{}] Unable to initialize integration {}", configuration.getId(), configuration.getName(), e);
+            }
+        });
+    }
+
 }
