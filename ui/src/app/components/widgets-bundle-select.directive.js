@@ -63,7 +63,7 @@ function WidgetsBundleSelect($compile, $templateCache, widgetService, types) {
             }
         }
 
-        widgetsBundleFetchFunction().then(
+        widgetsBundleFetchFunction({ignoreLoading: true}).then(
             function success(widgetsBundles) {
                 scope.widgetsBundles = widgetsBundles;
                 if (scope.selectFirstBundle) {

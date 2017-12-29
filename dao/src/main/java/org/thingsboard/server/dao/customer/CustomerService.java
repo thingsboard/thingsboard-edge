@@ -42,20 +42,24 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import java.util.Optional;
+
 public interface CustomerService {
 
     Customer findCustomerById(CustomerId customerId);
 
+    Optional<Customer> findCustomerByTenantIdAndTitle(TenantId tenantId, String title);
+
     ListenableFuture<Customer> findCustomerByIdAsync(CustomerId customerId);
 
     Customer saveCustomer(Customer customer);
-    
+
     void deleteCustomer(CustomerId customerId);
 
     Customer findOrCreatePublicCustomer(TenantId tenantId);
 
     TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);
-    
+
     void deleteCustomersByTenantId(TenantId tenantId);
 
     EntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId);

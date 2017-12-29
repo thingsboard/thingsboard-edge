@@ -62,11 +62,11 @@ function RuleService($http, $q, $rootScope, $filter, types, utils) {
         tenantRules = undefined;
     }
 
-    function loadRulesCache() {
+    function loadRulesCache(config) {
         var deferred = $q.defer();
         if (!allRules) {
             var url = '/api/rules';
-            $http.get(url, null).then(function success(response) {
+            $http.get(url, config).then(function success(response) {
                 allRules = response.data;
                 systemRules = [];
                 tenantRules = [];
@@ -115,9 +115,9 @@ function RuleService($http, $q, $rootScope, $filter, types, utils) {
         return deferred.promise;
     }
 
-    function getAllRules(pageLink) {
+    function getAllRules(pageLink, config) {
         var deferred = $q.defer();
-        loadRulesCache().then(
+        loadRulesCache(config).then(
             function success() {
                 utils.filterSearchTextEntities(allRules, 'name', pageLink, deferred);
             },
@@ -139,10 +139,10 @@ function RuleService($http, $q, $rootScope, $filter, types, utils) {
         return deferred.promise;
     }
 
-    function getRule(ruleId) {
+    function getRule(ruleId, config) {
         var deferred = $q.defer();
         var url = '/api/rule/' + ruleId;
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {
             deferred.reject(response.data);
