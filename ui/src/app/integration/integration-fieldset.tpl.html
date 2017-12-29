@@ -43,7 +43,7 @@
 </div>
 
 <md-content class="md-padding tb-integration-form" layout="column">
-    <fieldset ng-disabled="loading || !isEdit">
+    <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>integration.name</label>
             <input required name="name" ng-model="integration.name">
@@ -53,7 +53,7 @@
         </md-input-container>
         <md-input-container class="md-block">
             <label translate>integration.type</label>
-            <md-select name="type" aria-label="{{ 'integration.type' | translate }}" ng-disabled="loading || !isEdit"
+            <md-select name="type" aria-label="{{ 'integration.type' | translate }}" ng-disabled="$root.loading || !isEdit"
                        ng-model="integration.type" ng-change="integrationTypeChanged()" required>
                 <md-option ng-repeat="type in types.integrationType" ng-value="type.value">
                     {{type.name | translate}}
@@ -64,12 +64,12 @@
             </div>
         </md-input-container>
         <md-input-container class="md-block">
-            <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'integration.debug-mode' | translate }}"
+            <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.debug-mode' | translate }}"
                          ng-model="integration.debugMode">{{ 'integration.debug-mode' | translate }}
             </md-checkbox>
         </md-input-container>
         <tb-entity-autocomplete the-form="theForm"
-                                ng-disabled="loading || !isEdit"
+                                ng-disabled="$root.loading || !isEdit"
                                 tb-required="true"
                                 entity-type="types.entityType.converter"
                                 ng-model="integration.defaultConverterId"
@@ -79,7 +79,7 @@
         </tb-entity-autocomplete>
     </fieldset>
     <section layout="column" ng-if="types.integrationType[integration.type].http">
-        <fieldset ng-disabled="loading || !isEdit">
+        <fieldset ng-disabled="$root.loading || !isEdit">
             <md-input-container class="md-block">
                 <label translate>integration.base-url</label>
                 <input required name="baseUrl" ng-model="integration.configuration.baseUrl" ng-change="integrationBaseUrlChanged()">
@@ -93,7 +93,7 @@
             </md-input-container>
             <section layout="column" ng-if="integration.type == types.integrationType.THINGPARK.value">
                 <md-input-container class="md-block">
-                    <md-checkbox ng-disabled="loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
+                    <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
                                  ng-model="integration.configuration.enableSecurity"
                                  ng-change="integrationEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
                     </md-checkbox>
@@ -138,8 +138,8 @@
             </md-button>
         </div>
     </section>
-    <section layout="column" ng-if="types.integrationType[integration.type].mqtt">
-        <fieldset ng-disabled="loading || !isEdit">
+    <section layout="column" ng-if="integration.type == types.integrationType.MQTT.value">
+        <fieldset ng-disabled="$root.loading || !isEdit">
             <div flex layout="column" layout-gt-sm="row">
                 <md-input-container flex="60" class="md-block">
                     <label translate>integration.host</label>
@@ -173,12 +173,12 @@
                 <label translate>integration.client-id</label>
                 <input name="clientId" ng-model="integration.configuration.clientConfiguration.clientId">
             </md-input-container>
-            <md-checkbox ng-disabled="loading || !isEdit"
+            <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.enable-ssl' | translate }}"
                          ng-model="integration.configuration.clientConfiguration.ssl">
                 {{ 'integration.enable-ssl' | translate }}
             </md-checkbox>
-            <md-expansion-panel-group class="tb-credentials-panel-group" ng-class="{'disabled': loading || !isEdit}" md-component-id="credentialsPanelGroup">
+            <md-expansion-panel-group class="tb-credentials-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="credentialsPanelGroup">
                 <md-expansion-panel md-component-id="credentialsPanel">
                     <md-expansion-panel-collapsed>
                         <div class="tb-panel-title">{{ 'integration.credentials' | translate }}</div>
@@ -198,7 +198,7 @@
                                 <md-input-container class="md-block">
                                     <label translate>integration.credentials-type</label>
                                     <md-select required name="credentialsType" ng-model="integration.configuration.clientConfiguration.credentials.type"
-                                               ng-disabled="loading || !isEdit" ng-change="credentialsTypeChanged()">
+                                               ng-disabled="$root.loading || !isEdit" ng-change="credentialsTypeChanged()">
                                         <md-option ng-repeat="(credentialsType, credentialsValue) in types.mqttCredentialTypes" ng-value="credentialsValue.value">
                                             {{credentialsValue.name | translate}}
                                         </md-option>
@@ -298,7 +298,109 @@
                     </md-expansion-panel-expanded>
                 </md-expansion-panel>
             </md-expansion-panel-group>
-            <md-expansion-panel-group class="tb-topic-filters-panel-group" ng-class="{'disabled': loading || !isEdit}" md-component-id="topicFiltersPanelGroup">
+        </fieldset>
+    </section>
+    <section layout="column" ng-if="integration.type == types.integrationType.AWS_IOT.value">
+        <fieldset ng-disabled="$root.loading || !isEdit">
+            <div flex layout="column" layout-gt-sm="row">
+                <md-input-container flex="60" class="md-block">
+                    <label translate>integration.aws-iot-endpoint</label>
+                    <input required name="host" ng-model="integration.configuration.clientConfiguration.host">
+                    <div ng-messages="theForm.host.$error">
+                        <div translate ng-message="required">integration.aws-iot-endpoint-required</div>
+                    </div>
+                </md-input-container>
+                <md-input-container flex="40" class="md-block">
+                    <label translate>integration.connect-timeout</label>
+                    <input type="number" step="1" min="1" max="200" required
+                           name="connectTimeoutSec" ng-model="integration.configuration.clientConfiguration.connectTimeoutSec">
+                    <div ng-messages="theForm.connectTimeoutSec.$error">
+                        <div translate ng-message="required">integration.connect-timeout-required</div>
+                        <div translate ng-message="min">integration.connect-timeout-range</div>
+                        <div translate ng-message="max">integration.connect-timeout-range</div>
+                    </div>
+                </md-input-container>
+            </div>
+            <md-input-container class="md-block">
+                <label translate>integration.client-id</label>
+                <input name="clientId" ng-model="integration.configuration.clientConfiguration.clientId">
+            </md-input-container>
+            <div class="tb-panel-title">{{ 'integration.aws-iot-credentials' | translate }}</div>
+            <section flex layout="column"
+                     class="dropdown-section">
+                <div class="tb-container" ng-class="integration.configuration.clientConfiguration.credentials.caCertFileName ? 'ng-valid' : 'ng-invalid'">
+                    <label class="tb-label" translate>integration.ca-cert</label>
+                    <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'caCert')" class="tb-file-select-container">
+                        <div class="tb-file-clear-container">
+                            <md-button ng-click="clearCertFile('caCert')" class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                <md-tooltip md-direction="top">
+                                    {{ 'action.remove' | translate }}
+                                </md-tooltip>
+                                <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                            </md-button>
+                        </div>
+                        <div class="alert tb-flow-drop" flow-drop>
+                            <label for="awsCaCertSelect" translate>integration.drop-file</label>
+                            <input class="file-input" flow-btn id="awsCaCertSelect">
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-messages">
+                    <div ng-if="!integration.configuration.clientConfiguration.credentials.caCertFileName" class="tb-error-message" translate>integration.no-file</div>
+                    <div ng-if="integration.configuration.clientConfiguration.credentials.caCertFileName">{{integration.configuration.clientConfiguration.credentials.caCertFileName}}</div>
+                </div>
+                <div class="tb-container" ng-class="integration.configuration.clientConfiguration.credentials.certFileName ? 'ng-valid' : 'ng-invalid'">
+                    <label class="tb-label" translate>integration.cert</label>
+                    <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'Cert')" class="tb-file-select-container">
+                        <div class="tb-file-clear-container">
+                            <md-button ng-click="clearCertFile('Cert')" class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                <md-tooltip md-direction="top">
+                                    {{ 'action.remove' | translate }}
+                                </md-tooltip>
+                                <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                            </md-button>
+                        </div>
+                        <div class="alert tb-flow-drop" flow-drop>
+                            <label for="awsCertSelect" translate>integration.drop-file</label>
+                            <input class="file-input" flow-btn id="awsCertSelect">
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-messages">
+                    <div ng-if="!integration.configuration.clientConfiguration.credentials.certFileName" class="tb-error-message" translate>integration.no-file</div>
+                    <div ng-if="integration.configuration.clientConfiguration.credentials.certFileName">{{integration.configuration.clientConfiguration.credentials.certFileName}}</div>
+                </div>
+                <div class="tb-container" ng-class="integration.configuration.clientConfiguration.credentials.privateKeyFileName ? 'ng-valid' : 'ng-invalid'">
+                    <label class="tb-label" translate>integration.private-key</label>
+                    <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'privateKey')" class="tb-file-select-container">
+                        <div class="tb-file-clear-container">
+                            <md-button ng-click="clearCertFile('privateKey')" class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                <md-tooltip md-direction="top">
+                                    {{ 'action.remove' | translate }}
+                                </md-tooltip>
+                                <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                            </md-button>
+                        </div>
+                        <div class="alert tb-flow-drop" flow-drop>
+                            <label for="awsPrivateKeySelect" translate>integration.drop-file</label>
+                            <input class="file-input" flow-btn id="awsPrivateKeySelect">
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-messages">
+                    <div ng-if="!integration.configuration.clientConfiguration.credentials.privateKeyFileName" class="tb-error-message" translate>integration.no-file</div>
+                    <div ng-if="integration.configuration.clientConfiguration.credentials.privateKeyFileName">{{integration.configuration.clientConfiguration.credentials.privateKeyFileName}}</div>
+                </div>
+                <md-input-container class="md-block">
+                    <label translate>integration.private-key-password</label>
+                    <input type="password" name="privateKeyPassword" ng-model="integration.configuration.clientConfiguration.credentials.password">
+                </md-input-container>
+            </section>
+        </fieldset>
+    </section>
+    <section layout="column" ng-if="types.integrationType[integration.type].mqtt">
+        <fieldset ng-disabled="$root.loading || !isEdit">
+            <md-expansion-panel-group class="tb-topic-filters-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="topicFiltersPanelGroup">
                 <md-expansion-panel md-component-id="topicFiltersPanel">
                     <md-expansion-panel-collapsed>
                         <div class="tb-panel-title">{{ 'integration.topic-filters' | translate }}</div>
@@ -318,19 +420,19 @@
                                  style="max-height: 40px;" layout-align="start center">
                                 <md-input-container flex md-no-float class="md-block"
                                                     style="margin: 10px 0px 0px 0px; max-height: 40px;">
-                                    <input placeholder="{{ 'integration.topic' | translate }}" ng-disabled="loading || !isEdit"
+                                    <input placeholder="{{ 'integration.topic' | translate }}" ng-disabled="$root.loading || !isEdit"
                                            ng-required="true" name="topicFilterTopic" ng-model="topicFilter.filter">
                                 </md-input-container>
                                 <md-input-container flex md-no-float class="md-block"
                                                     style="margin: 4px 0px 0px 0px; max-height: 40px;">
                                     <md-select placeholder="{{ 'integration.mqtt-qos' | translate }}"
-                                               ng-disabled="loading || !isEdit" ng-required="true"  name="topicFilterQoS" ng-model="topicFilter.qos">
+                                               ng-disabled="$root.loading || !isEdit" ng-required="true"  name="topicFilterQoS" ng-model="topicFilter.qos">
                                         <md-option ng-repeat="mqttQoS in types.mqttQoS" ng-value="mqttQoS.value">
                                             {{mqttQoS.name | translate}}
                                         </md-option>
                                     </md-select>
                                 </md-input-container>
-                                <md-button ng-show="!(loading || !isEdit)" ng-disabled="loading" class="md-icon-button md-primary"
+                                <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading" class="md-icon-button md-primary"
                                            ng-click="removeTopicFilter($index)"
                                            aria-label="{{ 'action.remove' | translate }}">
                                     <md-tooltip md-direction="top">
@@ -343,10 +445,10 @@
                                 </md-button>
                             </div>
                             <span ng-show="!integration.configuration.topicFilters.length"
-                                  layout-align="center center" ng-class="{'disabled': loading || !isEdit}"
+                                  layout-align="center center" ng-class="{'disabled': $root.loading || !isEdit}"
                                   class="no-data-found" translate>integration.add-topic-filter-prompt</span>
                             <div>
-                                <md-button ng-show="!(loading || !isEdit)" ng-disabled="loading" class="md-primary md-raised"
+                                <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading" class="md-primary md-raised"
                                            ng-click="addTopicFilter()"
                                            aria-label="{{ 'action.add' | translate }}">
                                     <md-tooltip md-direction="top">
@@ -361,12 +463,12 @@
             </md-expansion-panel-group>
         </fieldset>
     </section>
-    <fieldset ng-disabled="loading || !isEdit">
+    <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>integration.description</label>
             <textarea ng-model="integration.additionalInfo.description" rows="2"></textarea>
         </md-input-container>
-        <md-expansion-panel-group class="tb-metadata-panel-group" ng-class="{'disabled': loading || !isEdit}" md-component-id="metadataPanelGroup">
+        <md-expansion-panel-group class="tb-metadata-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="metadataPanelGroup">
             <md-expansion-panel md-component-id="{{metadataPanelId}}">
                 <md-expansion-panel-collapsed>
                     <div class="tb-panel-title">{{ 'integration.metadata' | translate }}</div>
@@ -380,7 +482,7 @@
                         <md-expansion-panel-icon></md-expansion-panel-icon>
                     </md-expansion-panel-header>
                     <md-expansion-panel-content>
-                        <tb-key-val-map title-text="integration.metadata" ng-disabled="loading || !isEdit"
+                        <tb-key-val-map title-text="integration.metadata" ng-disabled="$root.loading || !isEdit"
                                    key-val-map="integration.configuration.metadata"></tb-key-val-map>
                     </md-expansion-panel-content>
                 </md-expansion-panel-expanded>

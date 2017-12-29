@@ -1198,6 +1198,9 @@ export default angular.module('thingsboard.locale', [])
                     "mqtt-qos-at-most-once": "At most once",
                     "mqtt-qos-at-least-once": "At least once",
                     "mqtt-qos-exactly-once": "Exactly once",
+                    "aws-iot-endpoint": "AWS IoT Endpoint",
+                    "aws-iot-endpoint-required": "AWS IoT Endpoint is required.",
+                    "aws-iot-credentials": "AWS IoT Credentials",
                     "metadata": "Metadata",
                     "type": "Type",
                     "type-required": "Type is required.",
@@ -1207,7 +1210,8 @@ export default angular.module('thingsboard.locale', [])
                     "type-ocean-connect": "OceanConnect",
                     "type-sigfox": "SigFox",
                     "type-thingpark": "ThingPark",
-                    "type-mqtt": "MQTT"
+                    "type-mqtt": "MQTT",
+                    "type-aws-iot": "AWS IoT"
                 },
                 "item": {
                     "selected": "Selected"

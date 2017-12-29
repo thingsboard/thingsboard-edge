@@ -62,23 +62,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 }
                 if (scope.integration.type) {
                     if (types.integrationType[scope.integration.type].http) {
-                        scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
-                        delete scope.integration.configuration.clientConfiguration;
-                        delete scope.integration.configuration.topicFilters;
+                        setupHttpConfiguration(scope.integration);
                     } else if (types.integrationType[scope.integration.type].mqtt) {
-                        if (!scope.integration.configuration.clientConfiguration) {
-                            scope.integration.configuration.clientConfiguration = {
-                                host: 'localhost',
-                                port: 11883,
-                                connectTimeoutSec: 10,
-                                credentials: {
-                                    type: types.mqttCredentialTypes.anonymous.value
-                                }
-                            };
-                        }
-                        if (!scope.integration.configuration.topicFilters) {
-                            scope.integration.configuration.topicFilters = [];
-                        }
+                        setupMqttConfiguration(scope.integration);
                     }
                 }
                 scope.updateValidity();
@@ -90,26 +76,43 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 if (!scope.integration.id && !scope.integration.configuration.baseUrl) {
                     scope.integration.configuration.baseUrl = utils.baseUrl();
                 }
-                scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
-                delete scope.integration.configuration.clientConfiguration;
-                delete scope.integration.configuration.topicFilters;
+                setupHttpConfiguration(scope.integration);
             } else if (types.integrationType[scope.integration.type].mqtt) {
-                if (!scope.integration.configuration.clientConfiguration) {
-                    scope.integration.configuration.clientConfiguration = {
-                        host: 'localhost',
-                        port: 11883,
-                        connectTimeoutSec: 10,
-                        credentials: {
-                            type: types.mqttCredentialTypes.anonymous.value
-                        }
-                    };
-                }
-                if (!scope.integration.configuration.topicFilters) {
-                    scope.integration.configuration.topicFilters = [];
-                }
+                setupMqttConfiguration(scope.integration);
             }
             scope.updateValidity();
         };
+
+        function setupHttpConfiguration(integration) {
+            scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(integration);
+            delete integration.configuration.clientConfiguration;
+            delete integration.configuration.topicFilters;
+        }
+
+        function setupMqttConfiguration(integration) {
+            if (!integration.configuration.clientConfiguration) {
+                integration.configuration.clientConfiguration = {
+                    connectTimeoutSec: 10,
+                    credentials: {
+                    }
+                };
+                if (integration.type == types.integrationType.AWS_IOT.value) {
+                    integration.configuration.clientConfiguration.host = '';
+                } else {
+                    integration.configuration.clientConfiguration.host = 'localhost';
+                    integration.configuration.clientConfiguration.port = 11883;
+                    integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.anonymous.value;
+                }
+            }
+            if (!integration.configuration.topicFilters) {
+                integration.configuration.topicFilters = [];
+            }
+            if (integration.type == types.integrationType.AWS_IOT.value) {
+                integration.configuration.clientConfiguration.port = 8883;
+                integration.configuration.clientConfiguration.ssl = true;
+                integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes['cert.PEM'].value;
+            }
+        }
 
         scope.credentialsTypeChanged = () => {
             var type = scope.integration.configuration.clientConfiguration.credentials.type;

@@ -64,8 +64,11 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         MqttClientConfiguration mqttClientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 MqttClientConfiguration.class);
+        setupConfiguration(mqttClientConfiguration);
         mqttClient = initClient(mqttClientConfiguration);
+    }
 
+    protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
     }
 
     @Override

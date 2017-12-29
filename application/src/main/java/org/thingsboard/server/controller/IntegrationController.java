@@ -101,7 +101,7 @@ public class IntegrationController extends BaseController {
                 }
             } catch (Exception e) {
                 if (create) {
-                    integrationService.deleteIntegration(result.getId());
+                    integrationService.deleteIntegration(result.getId()); e.printStackTrace();
                 } else {
                     integrationService.saveIntegration(old);
                     platformIntegrationService.updateIntegration(old);

@@ -31,5 +31,5 @@
 package org.thingsboard.server.common.data.integration;
 
 public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT
+    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT, AWS_IOT
 }

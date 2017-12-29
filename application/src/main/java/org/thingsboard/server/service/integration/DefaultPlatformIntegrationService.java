@@ -47,6 +47,7 @@ import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
 import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
@@ -186,6 +187,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new ThingParkIntegration();
             case MQTT:
                 return new BasicMqttIntegration();
+            case AWS_IOT:
+                return new AwsIotIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }

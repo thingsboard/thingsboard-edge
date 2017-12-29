@@ -301,6 +301,11 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-mqtt",
                     value: "MQTT",
                     mqtt: true
+                },
+                "AWS_IOT": {
+                    name: "integration.type-aws-iot",
+                    value: "AWS_IOT",
+                    mqtt: true
                 }
             },
             componentType: {
