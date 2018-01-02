@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.service.integration.http.basic;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
@@ -39,28 +42,66 @@ import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
+    private boolean securityEnabled = false;
+    private Map<String, String> headersFilter = new HashMap<>();
+
     @Override
-    protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
-        byte[] data = mapper.writeValueAsBytes(msg.getMsg());
-        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        msg.getRequestHeaders().forEach(
-                (header, value) -> {
-                    mdMap.put("header:"+header, value);
-                }
-        );
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
-        if (uplinkDataList != null) {
-            for (UplinkData uplinkData : uplinkDataList) {
-                processUplinkData(context, uplinkData);
-                log.info("[{}] Processing uplink data", uplinkData);
+    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+        super.init(context, dto, converter);
+        JsonNode json = configuration.getConfiguration();
+        securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
+        if (securityEnabled && json.has("headersFilter")) {
+            JsonNode headersFilterNode = json.get("headersFilter");
+            for (Iterator<Map.Entry<String, JsonNode>> it = headersFilterNode.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> headerFilter = it.next();
+                headersFilter.put(headerFilter.getKey(), headerFilter.getValue().asText());
             }
         }
-        return HttpStatus.OK;
     }
+
+    @Override
+    protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+        if (checkSecurity(msg)) {
+            byte[] data = mapper.writeValueAsBytes(msg.getMsg());
+            Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+            msg.getRequestHeaders().forEach(
+                    (header, value) -> {
+                        mdMap.put("header:" + header, value);
+                    }
+            );
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
+            if (uplinkDataList != null) {
+                for (UplinkData uplinkData : uplinkDataList) {
+                    processUplinkData(context, uplinkData);
+                    log.info("[{}] Processing uplink data", uplinkData);
+                }
+            }
+            return HttpStatus.OK;
+        } else {
+            return HttpStatus.FORBIDDEN;
+        }
+    }
+
+    private boolean checkSecurity(HttpIntegrationMsg msg) throws Exception {
+        if (securityEnabled) {
+            Map<String, String> requestHeaders = msg.getRequestHeaders();
+            log.trace("Validating request using the following request headers: {}", requestHeaders);
+            for (Map.Entry<String,String> headerFilter : headersFilter.entrySet()) {
+                String value = requestHeaders.get(headerFilter.getKey().toLowerCase());
+                if (value == null || !value.equals(headerFilter.getValue())) {
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
+
 }

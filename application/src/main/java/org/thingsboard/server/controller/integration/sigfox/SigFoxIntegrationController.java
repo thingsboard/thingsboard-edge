@@ -28,30 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.thingpark;
+package org.thingsboard.server.controller.integration.sigfox;
+
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.controller.integration.BaseIntegrationController;
+import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * Created by ashvayka on 18.12.17.
- */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class ThingParkIntegrationMsg extends HttpIntegrationMsg {
 
-    private final ThingParkRequestParameters params;
+@RestController
+@RequestMapping("/api/v1/integrations/sigfox")
+@Slf4j
+public class SigFoxIntegrationController extends BaseIntegrationController {
 
-    public ThingParkIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, ThingParkRequestParameters params,
-                                   DeferredResult<ResponseEntity> callback) {
-        super(requestHeaders, msg, callback);
-        this.params = params;
+    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = "/{routingKey}")
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> processRequest(
+            @PathVariable("routingKey") String routingKey,
+            @RequestBody JsonNode msg,
+            @RequestHeader Map<String, String> requestHeaders
+    ) {
+        log.debug("[{}] Received request: {}", routingKey, msg);
+        DeferredResult<ResponseEntity> result = new DeferredResult<>();
+
+        Optional<ThingsboardPlatformIntegration> integration = integrationService.getIntegrationByRoutingKey(routingKey);
+
+        if (!integration.isPresent()) {
+            result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            return result;
+        }
+
+        if (integration.get().getConfiguration().getType() != IntegrationType.SIGFOX) {
+            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            return result;
+        }
+
+        process(integration.get(), new HttpIntegrationMsg(requestHeaders, msg, result));
+
+        return result;
     }
-
 }

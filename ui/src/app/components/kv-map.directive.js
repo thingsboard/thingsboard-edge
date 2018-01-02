@@ -48,7 +48,10 @@ function KeyValMap() {
         scope: true,
         bindToController: {
             disabled:'=ngDisabled',
-            titleText: '@',
+            titleText: '@?',
+            keyPlaceholderText: '@?',
+            valuePlaceholderText: '@?',
+            noDataText: '@?',
             keyValMap: '='
         },
         controller: KeyValMapController,

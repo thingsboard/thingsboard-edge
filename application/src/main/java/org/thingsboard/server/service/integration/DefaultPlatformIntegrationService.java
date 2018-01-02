@@ -47,10 +47,11 @@ import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.server.service.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
-import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
-import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
+import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
+import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -181,6 +182,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         switch (integration.getType()) {
             case HTTP:
                 return new BasicHttpIntegration();
+            case SIGFOX:
+                return new SigFoxIntegration();
             case OCEANCONNECT:
                 return new OceanConnectIntegration();
             case THINGPARK:

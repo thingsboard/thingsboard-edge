@@ -28,68 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.server.service.integration.http.sigfox;
 
-@import '../../scss/constants';
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 
-.tb-metadata-panel-group, .tb-credentials-panel-group, .tb-topic-filters-panel-group, .tb-headers-filter-panel-group {
-  .tb-panel-title {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    min-width: 90px;
-    @media (min-width: $layout-breakpoint-sm) {
-      min-width: 180px;
+public class SigFoxIntegration extends BasicHttpIntegration {
+
+    @Override
+    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+        super.init(context, dto, converter);
     }
-  }
-  .tb-panel-prompt {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  &.disabled {
-    .tb-panel-title, .tb-panel-prompt {
-      color: rgba(0, 0, 0, 0.38);
-    }
-  }
-  md-icon.md-expansion-panel-icon {
-    margin-right: 0px;
-  }
-}
 
-.tb-header-filters-panel-group {
-  padding-bottom: 15px;
-}
-
-.tb-topic-filters-panel-group {
-  .tb-panel-prompt {
-    color: rgb(221,44,0);
-  }
-}
-
-.tb-integration-form {
-  .tb-container {
-    width:100%;
-  }
-  .dropdown-messages {
-    .tb-error-message {
-      padding: 5px 0 0 0;
-    }
-  }
-  .dropdown-section {
-  }
-}
-
-.tb-topic-filters-panel-group {
-  span.no-data-found {
-    position: relative;
-    height: 40px;
-    text-transform: uppercase;
-    display: flex;
-    &.disabled {
-      color: rgba(0,0,0,0.38);
-    }
-  }
 }

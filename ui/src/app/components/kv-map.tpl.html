@@ -38,12 +38,12 @@
          style="max-height: 40px;" layout-align="start center">
         <md-input-container flex md-no-float class="md-block"
                             style="margin: 10px 0px 0px 0px; max-height: 40px;">
-            <input placeholder="{{ 'key-val.key' | translate }}"
+            <input placeholder="{{ (vm.keyPlaceholderText ? vm.keyPlaceholderText : 'key-val.key') | translate }}"
                    ng-disabled="vm.disabled" ng-required="true" name="key" ng-model="keyVal.key">
         </md-input-container>
         <md-input-container flex md-no-float class="md-block"
                             style="margin: 10px 0px 0px 0px; max-height: 40px;">
-            <input placeholder="{{ 'key-val.value' | translate }}"
+            <input placeholder="{{ (vm.valuePlaceholderText ? vm.valuePlaceholderText : 'key-val.value') | translate }}"
                    ng-disabled="vm.disabled" ng-required="true" name="value" ng-model="keyVal.value">
         </md-input-container>
         <md-button ng-show="!vm.disabled" ng-disabled="$root.loading" class="md-icon-button md-primary"
@@ -60,7 +60,7 @@
     </div>
     <span ng-show="!vm.kvList.length"
           layout-align="center center" ng-class="{'disabled': vm.disabled}"
-          class="no-data-found" translate>key-val.no-data</span>
+          class="no-data-found" translate>{{vm.noDataText ? vm.noDataText : 'key-val.no-data'}}</span>
     <div>
         <md-button ng-show="!vm.disabled" ng-disabled="$root.loading" class="md-primary md-raised"
                    ng-click="vm.addKeyVal()"

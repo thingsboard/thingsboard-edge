@@ -33,23 +33,15 @@ package org.thingsboard.server.controller.integration.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.controller.BaseController;
 import org.thingsboard.server.controller.integration.BaseIntegrationController;
-import org.thingsboard.server.service.integration.IntegrationContext;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
-import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
-import org.thingsboard.server.service.integration.oc.OceanConnectIntegration;
-import org.thingsboard.server.service.integration.thingpark.ThingParkIntegration;
-import org.thingsboard.server.service.integration.thingpark.ThingParkIntegrationMsg;
-import org.thingsboard.server.service.integration.thingpark.ThingParkRequestParameters;
+import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegrationMsg;
+import org.thingsboard.server.service.integration.http.thingpark.ThingParkRequestParameters;
 
 import java.util.Map;
 import java.util.Optional;

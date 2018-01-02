@@ -87,15 +87,42 @@
                     <div translate ng-message="required">integration.base-url-required</div>
                 </div>
             </md-input-container>
-            <md-input-container class="md-block" ng-if="integration.type != types.integrationType.THINGPARK.value">
-                <label translate>integration.security-key</label>
-                <input name="securityKey" ng-model="integration.configuration.securityKey">
-            </md-input-container>
+            <section layout="column" ng-if="integration.type == types.integrationType.HTTP.value ||
+                                            integration.type == types.integrationType.SIGFOX.value">
+                <md-input-container class="md-block">
+                    <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
+                                 ng-model="integration.configuration.enableSecurity"
+                                 ng-change="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
+                    </md-checkbox>
+                </md-input-container>
+                <md-expansion-panel-group ng-if="integration.configuration.enableSecurity"
+                                          class="tb-header-filters-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="headersFilterPanelGroup">
+                    <md-expansion-panel md-component-id="{{headersFilterPanelId}}">
+                        <md-expansion-panel-collapsed>
+                            <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
+                            <span flex></span>
+                            <md-expansion-panel-icon></md-expansion-panel-icon>
+                        </md-expansion-panel-collapsed>
+                        <md-expansion-panel-expanded>
+                            <md-expansion-panel-header ng-click="$mdExpansionPanel(headersFilterPanelId).collapse()">
+                                <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
+                                <span flex></span>
+                                <md-expansion-panel-icon></md-expansion-panel-icon>
+                            </md-expansion-panel-header>
+                            <md-expansion-panel-content>
+                                <tb-key-val-map no-data-text="integration.no-headers-filter" key-placeholder-text="integration.header"
+                                                ng-disabled="$root.loading || !isEdit"
+                                                key-val-map="integration.configuration.headersFilter"></tb-key-val-map>
+                            </md-expansion-panel-content>
+                        </md-expansion-panel-expanded>
+                    </md-expansion-panel>
+                </md-expansion-panel-group>
+            </section>
             <section layout="column" ng-if="integration.type == types.integrationType.THINGPARK.value">
                 <md-input-container class="md-block">
                     <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
                                  ng-model="integration.configuration.enableSecurity"
-                                 ng-change="integrationEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
+                                 ng-change="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
                     </md-checkbox>
                 </md-input-container>
                 <md-input-container class="md-block" ng-if="integration.configuration.enableSecurity">

@@ -44,6 +44,7 @@ export default function IntegrationDirective($compile, $templateCache, $translat
         element.html(template);
 
         scope.metadataPanelId = (Math.random()*1000).toFixed(0);
+        scope.headersFilterPanelId = (Math.random()*1000).toFixed(0);
         scope.$mdExpansionPanel = $mdExpansionPanel;
         scope.types = types;
 
@@ -190,7 +191,16 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             }
         };
 
-        scope.integrationEnableSecurityChanged = () => {
+        scope.httpEnableSecurityChanged = () => {
+            if (scope.integration.configuration.enableSecurity &&
+                !scope.integration.configuration.headersFilter) {
+                scope.integration.configuration.headersFilter = {};
+            } else if (!scope.integration.configuration.enableSecurity) {
+                delete scope.integration.configuration.headersFilter;
+            }
+        };
+
+        scope.thingparkEnableSecurityChanged = () => {
               if (scope.integration.configuration.enableSecurity &&
                   !scope.integration.configuration.maxTimeDiffInSeconds) {
                   scope.integration.configuration.maxTimeDiffInSeconds = 60;

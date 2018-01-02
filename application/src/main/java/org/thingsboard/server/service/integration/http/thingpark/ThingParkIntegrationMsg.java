@@ -28,23 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.thingpark;
+package org.thingsboard.server.service.integration.http.thingpark;
 
-import lombok.Builder;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
+
+import java.util.Map;
 
 /**
  * Created by ashvayka on 18.12.17.
  */
 @Data
-@Builder
-public class ThingParkRequestParameters {
+@EqualsAndHashCode(callSuper = true)
+public class ThingParkIntegrationMsg extends HttpIntegrationMsg {
 
-    private String asId;
-    private String lrnDevEui;
-    private String lrnFPort;
-    private String lrnInfos;
-    private String time;
-    private String token;
+    private final ThingParkRequestParameters params;
+
+    public ThingParkIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, ThingParkRequestParameters params,
+                                   DeferredResult<ResponseEntity> callback) {
+        super(requestHeaders, msg, callback);
+        this.params = params;
+    }
 
 }
