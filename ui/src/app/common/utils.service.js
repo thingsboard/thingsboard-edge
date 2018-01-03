@@ -148,6 +148,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         defaultAlarmDataKeys.push(dataKey);
     }
 
+    var imageAspectMap = {};
+
     var service = {
         getDefaultDatasource: getDefaultDatasource,
         generateObjectFromJsonSchema: generateObjectFromJsonSchema,
@@ -179,7 +181,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         stringToBase64: stringToBase64,
         base64toString: base64toString,
         groupConfigDefaults: groupConfigDefaults,
-        groupSettingsDefaults: groupSettingsDefaults
+        groupSettingsDefaults: groupSettingsDefaults,
+        loadImageAspect: loadImageAspect
     }
 
     return service;
@@ -204,7 +207,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         } else {
             $timeout(function() {
                 var codepointsArray = materialIconsCodepoints.split("\n");
-                codepointsArray.forEach(function (codepoint) {
+               codepointsArray.forEach(function (codepoint) {
                     if (codepoint && codepoint.length) {
                         var values = codepoint.split(' ');
                         if (values && values.length == 2) {
@@ -706,4 +709,35 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         }
         return settings;
     }
+
+    function loadImageAspect(imageUrl) {
+        var deferred = $q.defer();
+        if (imageUrl && imageUrl.length) {
+            var urlHashCode = hashCode(imageUrl);
+            var aspect = imageAspectMap[urlHashCode];
+            if (angular.isUndefined(aspect)) {
+                var testImage = document.createElement('img'); // eslint-disable-line
+                testImage.style.visibility = 'hidden';
+                testImage.onload = function() {
+                    aspect = testImage.width / testImage.height;
+                    document.body.removeChild(testImage); //eslint-disable-line
+                    imageAspectMap[urlHashCode] = aspect;
+                    deferred.resolve(aspect);
+                };
+                testImage.onerror = function() {
+                    aspect = 0;
+                    imageAspectMap[urlHashCode] = aspect;
+                    deferred.resolve(aspect);
+                };
+                document.body.appendChild(testImage); //eslint-disable-line
+                testImage.src = imageUrl;
+            } else {
+                deferred.resolve(aspect);
+            }
+        } else {
+            deferred.resolve(0);
+        }
+        return deferred.promise;
+    }
+
 }
