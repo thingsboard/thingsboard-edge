@@ -1204,6 +1204,11 @@ export default angular.module('thingsboard.locale', [])
                     "aws-iot-endpoint": "AWS IoT Endpoint",
                     "aws-iot-endpoint-required": "AWS IoT Endpoint is required.",
                     "aws-iot-credentials": "AWS IoT Credentials",
+                    "application-credentials": "Application Credentials",
+                    "api-key": "API Key",
+                    "api-key-required": "API Key is required.",
+                    "auth-token": "Authentication Token",
+                    "auth-token-required": "Authentication Token is required.",
                     "metadata": "Metadata",
                     "type": "Type",
                     "type-required": "Type is required.",
@@ -1214,7 +1219,8 @@ export default angular.module('thingsboard.locale', [])
                     "type-sigfox": "SigFox",
                     "type-thingpark": "ThingPark",
                     "type-mqtt": "MQTT",
-                    "type-aws-iot": "AWS IoT"
+                    "type-aws-iot": "AWS IoT",
+                    "type-ibm-watson-iot": "IBM Watson IoT"
                 },
                 "item": {
                     "selected": "Selected"

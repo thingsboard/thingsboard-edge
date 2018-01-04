@@ -52,6 +52,7 @@ import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegration;
+import org.thingsboard.server.service.integration.mqtt.ibm.IbmWatsonIotIntegration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -192,6 +193,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new BasicMqttIntegration();
             case AWS_IOT:
                 return new AwsIotIntegration();
+            case IBM_WATSON_IOT:
+                return new IbmWatsonIotIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }

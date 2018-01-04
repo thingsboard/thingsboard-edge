@@ -425,6 +425,35 @@
             </section>
         </fieldset>
     </section>
+    <section layout="column" ng-if="integration.type == types.integrationType.IBM_WATSON_IOT.value">
+        <fieldset ng-disabled="$root.loading || !isEdit">
+            <md-input-container class="md-block">
+                <label translate>integration.connect-timeout</label>
+                <input type="number" step="1" min="1" max="200" required
+                       name="connectTimeoutSec" ng-model="integration.configuration.clientConfiguration.connectTimeoutSec">
+                <div ng-messages="theForm.connectTimeoutSec.$error">
+                    <div translate ng-message="required">integration.connect-timeout-required</div>
+                    <div translate ng-message="min">integration.connect-timeout-range</div>
+                    <div translate ng-message="max">integration.connect-timeout-range</div>
+                </div>
+            </md-input-container>
+            <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.application-credentials' | translate }}</div>
+            <md-input-container class="md-block">
+                <label translate>integration.api-key</label>
+                <input required name="apiKey" ng-model="integration.configuration.clientConfiguration.credentials.username">
+                <div ng-messages="theForm.apiKey.$error">
+                    <div translate ng-message="required">integration.api-key-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.auth-token</label>
+                <input type="password" required name="authToken" ng-model="integration.configuration.clientConfiguration.credentials.password">
+                <div ng-messages="theForm.authToken.$error">
+                    <div translate ng-message="required">integration.auth-token-required</div>
+                </div>
+            </md-input-container>
+        </fieldset>
+    </section>
     <section layout="column" ng-if="types.integrationType[integration.type].mqtt">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <md-expansion-panel-group class="tb-topic-filters-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="topicFiltersPanelGroup">

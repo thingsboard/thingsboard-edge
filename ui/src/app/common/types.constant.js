@@ -306,6 +306,11 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-aws-iot",
                     value: "AWS_IOT",
                     mqtt: true
+                },
+                "IBM_WATSON_IOT": {
+                    name: "integration.type-ibm-watson-iot",
+                    value: "IBM_WATSON_IOT",
+                    mqtt: true
                 }
             },
             componentType: {

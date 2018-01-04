@@ -97,7 +97,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     credentials: {
                     }
                 };
-                if (integration.type == types.integrationType.AWS_IOT.value) {
+                if (integration.type == types.integrationType.AWS_IOT.value ||
+                    integration.type == types.integrationType.IBM_WATSON_IOT.value) {
                     integration.configuration.clientConfiguration.host = '';
                 } else {
                     integration.configuration.clientConfiguration.host = 'localhost';
@@ -107,11 +108,22 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             }
             if (!integration.configuration.topicFilters) {
                 integration.configuration.topicFilters = [];
+                if (integration.type == types.integrationType.IBM_WATSON_IOT.value) {
+                    integration.configuration.topicFilters.push({
+                        filter: 'iot-2/type/+/id/+/evt/+/fmt/+',
+                        qos: 0
+                    });
+                }
             }
             if (integration.type == types.integrationType.AWS_IOT.value) {
                 integration.configuration.clientConfiguration.port = 8883;
                 integration.configuration.clientConfiguration.ssl = true;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes['cert.PEM'].value;
+            }
+            if (integration.type == types.integrationType.IBM_WATSON_IOT.value) {
+                integration.configuration.clientConfiguration.port = 1883;
+                integration.configuration.clientConfiguration.ssl = false;
+                integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
             }
         }
 
