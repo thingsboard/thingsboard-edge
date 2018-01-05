@@ -37,6 +37,8 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
@@ -115,6 +117,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             device.setType(data.getDeviceType());
             device.setTenantId(configuration.getTenantId());
             device = context.getDeviceService().saveDevice(device);
+            EntityRelation relation = new EntityRelation();
+            relation.setFrom(configuration.getId());
+            relation.setTo(device.getId());
+            relation.setTypeGroup(RelationTypeGroup.COMMON);
+            relation.setType(EntityRelation.CONTAINS_TYPE);
+            context.getRelationService().saveRelation(relation);
         } else {
             device = deviceOptional.get();
         }

@@ -1209,6 +1209,15 @@ export default angular.module('thingsboard.locale', [])
                     "api-key-required": "API Key is required.",
                     "auth-token": "Authentication Token",
                     "auth-token-required": "Authentication Token is required.",
+                    "connection-parameters": "Connection parameters",
+                    "service-bus-namespace-name": "Service Bus Namespace Name",
+                    "service-bus-namespace-name-required": "Service Bus Namespace Name is required.",
+                    "event-hub-name": "Event Hub Name",
+                    "event-hub-name-required": "Event Hub Name is required.",
+                    "sas-key-name": "SAS Key Name",
+                    "sas-key-name-required": "SAS Key Name is required.",
+                    "sas-key": "SAS Key",
+                    "sas-key-required": "SAS Key is required.",
                     "metadata": "Metadata",
                     "type": "Type",
                     "type-required": "Type is required.",
@@ -1220,7 +1229,8 @@ export default angular.module('thingsboard.locale', [])
                     "type-thingpark": "ThingPark",
                     "type-mqtt": "MQTT",
                     "type-aws-iot": "AWS IoT",
-                    "type-ibm-watson-iot": "IBM Watson IoT"
+                    "type-ibm-watson-iot": "IBM Watson IoT",
+                    "type-azure-event-hub": "Azure Event Hub"
                 },
                 "item": {
                     "selected": "Selected"

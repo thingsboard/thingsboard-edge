@@ -311,6 +311,10 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-ibm-watson-iot",
                     value: "IBM_WATSON_IOT",
                     mqtt: true
+                },
+                "AZURE_EVENT_HUB": {
+                    name: "integration.type-azure-event-hub",
+                    value: "AZURE_EVENT_HUB"
                 }
             },
             componentType: {

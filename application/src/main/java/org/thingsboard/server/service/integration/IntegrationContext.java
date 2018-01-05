@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.transport.SessionMsgProcessor;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 
 /**
@@ -54,6 +55,10 @@ public class IntegrationContext {
     @Lazy
     @Autowired
     private DeviceService deviceService;
+
+    @Lazy
+    @Autowired
+    private RelationService relationService;
 
     @Lazy
     @Autowired

@@ -279,6 +279,10 @@
             <groupId>nl.jk5.netty-mqtt</groupId>
             <artifactId>netty-mqtt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-eventhubs</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

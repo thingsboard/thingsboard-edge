@@ -28,8 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.azure;
 
-public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT, AWS_IOT, IBM_WATSON_IOT, AZURE_EVENT_HUB
+import lombok.Data;
+
+@Data
+public class AzureEventHubClientConfiguration {
+
+    private String namespaceName;
+    private String eventHubName;
+    private String sasKeyName;
+    private String sasKey;
+
+    private int connectTimeoutSec;
+
 }

@@ -519,6 +519,49 @@
             </md-expansion-panel-group>
         </fieldset>
     </section>
+    <section layout="column" ng-if="integration.type == types.integrationType.AZURE_EVENT_HUB.value">
+        <fieldset ng-disabled="$root.loading || !isEdit">
+            <md-input-container class="md-block">
+                <label translate>integration.connect-timeout</label>
+                <input type="number" step="1" min="1" max="200" required
+                       name="connectTimeoutSec" ng-model="integration.configuration.clientConfiguration.connectTimeoutSec">
+                <div ng-messages="theForm.connectTimeoutSec.$error">
+                    <div translate ng-message="required">integration.connect-timeout-required</div>
+                    <div translate ng-message="min">integration.connect-timeout-range</div>
+                    <div translate ng-message="max">integration.connect-timeout-range</div>
+                </div>
+            </md-input-container>
+            <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.connection-parameters' | translate }}</div>
+            <md-input-container class="md-block">
+                <label translate>integration.service-bus-namespace-name</label>
+                <input required name="namespaceName" ng-model="integration.configuration.clientConfiguration.namespaceName">
+                <div ng-messages="theForm.namespaceName.$error">
+                    <div translate ng-message="required">integration.service-bus-namespace-name-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.event-hub-name</label>
+                <input required name="eventHubName" ng-model="integration.configuration.clientConfiguration.eventHubName">
+                <div ng-messages="theForm.eventHubName.$error">
+                    <div translate ng-message="required">integration.event-hub-name-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.sas-key-name</label>
+                <input required name="sasKeyName" ng-model="integration.configuration.clientConfiguration.sasKeyName">
+                <div ng-messages="theForm.sasKeyName.$error">
+                    <div translate ng-message="required">integration.sas-key-name-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.sas-key</label>
+                <input type="password" required name="sasKey" ng-model="integration.configuration.clientConfiguration.sasKey">
+                <div ng-messages="theForm.sasKey.$error">
+                    <div translate ng-message="required">integration.sas-key-required</div>
+                </div>
+            </md-input-container>
+        </fieldset>
+    </section>
     <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>integration.description</label>

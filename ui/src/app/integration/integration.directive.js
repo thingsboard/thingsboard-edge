@@ -66,6 +66,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                         setupHttpConfiguration(scope.integration);
                     } else if (types.integrationType[scope.integration.type].mqtt) {
                         setupMqttConfiguration(scope.integration);
+                    } else if (scope.integration.type == types.integrationType.AZURE_EVENT_HUB.value) {
+                        setupAzureEventHubConfiguration(scope.integration);
                     }
                 }
                 scope.updateValidity();
@@ -73,6 +75,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
         });
 
         scope.integrationTypeChanged = () => {
+            scope.integration.configuration = {
+                metadata: {}
+            };
             if (types.integrationType[scope.integration.type].http) {
                 if (!scope.integration.id && !scope.integration.configuration.baseUrl) {
                     scope.integration.configuration.baseUrl = utils.baseUrl();
@@ -80,14 +85,14 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 setupHttpConfiguration(scope.integration);
             } else if (types.integrationType[scope.integration.type].mqtt) {
                 setupMqttConfiguration(scope.integration);
+            } else if (scope.integration.type == types.integrationType.AZURE_EVENT_HUB.value) {
+                setupAzureEventHubConfiguration(scope.integration);
             }
             scope.updateValidity();
         };
 
         function setupHttpConfiguration(integration) {
             scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(integration);
-            delete integration.configuration.clientConfiguration;
-            delete integration.configuration.topicFilters;
         }
 
         function setupMqttConfiguration(integration) {
@@ -124,6 +129,18 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 integration.configuration.clientConfiguration.port = 1883;
                 integration.configuration.clientConfiguration.ssl = false;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
+            }
+        }
+
+        function setupAzureEventHubConfiguration(integration) {
+            if (!integration.configuration.clientConfiguration) {
+                integration.configuration.clientConfiguration = {
+                    connectTimeoutSec: 10,
+                    namespaceName: '',
+                    eventHubName: '',
+                    sasKeyName: '',
+                    sasKey: ''
+                };
             }
         }
 
