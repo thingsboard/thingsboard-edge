@@ -60,6 +60,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected Integration configuration;
     protected ThingsboardDataConverter converter;
     protected UplinkMetaData metadataTemplate;
+    protected IntegrationStatistics integrationStatistics;
 
     @Override
     public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
@@ -73,6 +74,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             mdMap.put(md.getKey(), md.getValue().asText());
         }
         this.metadataTemplate = new UplinkMetaData(getUplinkContentType(), mdMap);
+        this.integrationStatistics = new IntegrationStatistics();
     }
 
     protected String getUplinkContentType() {
@@ -92,6 +94,13 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     @Override
     public void destroy() {
 
+    }
+
+    @Override
+    public IntegrationStatistics popStatistics() {
+        IntegrationStatistics statistics = this.integrationStatistics;
+        this.integrationStatistics = new IntegrationStatistics();
+        return statistics;
     }
 
     protected void processUplinkData(IntegrationContext context, UplinkData data) {

@@ -28,26 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 package org.thingsboard.server.service.integration;
 
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import lombok.ToString;
 
-/**
- * Created by ashvayka on 02.12.17.
- */
-public interface ThingsboardPlatformIntegration<T> {
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
-    Integration getConfiguration();
+@ToString
+public class IntegrationStatistics {
 
-    void init(IntegrationContext context, Integration configuration, ThingsboardDataConverter converter) throws Exception;
+    private AtomicLong messagesProcessed;
+    private AtomicLong errorsOccurred;
 
-    void update(IntegrationContext context, Integration configuration, ThingsboardDataConverter converter) throws Exception;
+    public IntegrationStatistics() {
+        messagesProcessed = new AtomicLong(0);
+        errorsOccurred = new AtomicLong(0);
+    }
 
-    void destroy();
+    public void incMessagesProcessed() {
+        messagesProcessed.incrementAndGet();
+    }
 
-    void process(IntegrationContext context, T msg);
+    public void incErrorsOccurred() {
+        errorsOccurred.incrementAndGet();
+    }
 
-    IntegrationStatistics popStatistics();
+    public long getMessagesProcessed() {
+        return messagesProcessed.get();
+    }
+
+    public long getErrorsOccurred() {
+        return errorsOccurred.get();
+    }
 
 }

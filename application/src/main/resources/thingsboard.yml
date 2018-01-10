@@ -204,6 +204,13 @@ actors:
     enabled: "${ACTORS_STATISTICS_ENABLED:true}"
     persist_frequency: "${ACTORS_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
+# Platform integrations parameters
+integrations:
+  statistics:
+    # Enable/disable integrations statistics
+    enabled: "${INTEGRATIONS_STATISTICS_ENABLED:true}"
+    persist_frequency: "${INTEGRATIONS_STATISTICS_PERSIST_FREQUENCY:3600000}"
+
 # Cache parameters
 cache:
   # Enable/disable cache functionality.

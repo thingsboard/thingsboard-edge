@@ -30,13 +30,22 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.actors.stats.StatsPersistMsg;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
@@ -60,9 +69,7 @@ import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -72,6 +79,8 @@ import java.util.concurrent.TimeUnit;
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService, DiscoveryServiceListener {
 
     public static EventLoopGroup EVENT_LOOP_GROUP;
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private IntegrationService integrationService;
@@ -88,6 +97,17 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private ClusterRoutingService clusterRoutingService;
 
+    @Autowired
+    private EventService eventService;
+
+    @Value("${integrations.statistics.enabled}")
+    private boolean statisticsEnabled;
+
+    @Value("${integrations.statistics.persist_frequency}")
+    private long statisticsPersistFrequency;
+
+    private ScheduledExecutorService statisticsExecutorService;
+
     private ConcurrentMap<IntegrationId, ThingsboardPlatformIntegration> integrationsByIdMap;
     private ConcurrentMap<String, ThingsboardPlatformIntegration> integrationsByRoutingKeyMap;
 
@@ -98,10 +118,18 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
         discoveryService.addListener(this);
         refreshAllIntegrations();
+        if (statisticsEnabled) {
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
+            statisticsExecutorService.scheduleAtFixedRate(() -> persistStatistics(),
+                    statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
+        }
     }
 
     @PreDestroy
     public void destroy() {
+        if (statisticsEnabled) {
+            statisticsExecutorService.shutdown();
+        }
         EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
         integrationsByIdMap.values().forEach(ThingsboardPlatformIntegration::destroy);
         integrationsByIdMap.clear();
@@ -171,6 +199,27 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             }
         }
         return Optional.ofNullable(result);
+    }
+
+    private void persistStatistics() {
+        ServerAddress serverAddress = discoveryService.getCurrentServer().getServerAddress();
+        integrationsByIdMap.forEach((id, integration) -> {
+            IntegrationStatistics statistics = integration.popStatistics();
+            try {
+                Event event = new Event();
+                event.setEntityId(id);
+                event.setTenantId(integration.getConfiguration().getTenantId());
+                event.setType(DataConstants.STATS);
+                event.setBody(toBodyJson(serverAddress, statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+                eventService.save(event);
+            } catch (Exception e) {
+                log.warn("[{}] Failed to persist statistics: {}", id, statistics, e);
+            }
+        });
+    }
+
+    private JsonNode toBodyJson(ServerAddress server, long messagesProcessed, long errorsOccurred) {
+        return mapper.createObjectNode().put("server", server.toString()).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
     }
 
     private ThingsboardPlatformIntegration initIntegration(Integration integration) throws Exception {
