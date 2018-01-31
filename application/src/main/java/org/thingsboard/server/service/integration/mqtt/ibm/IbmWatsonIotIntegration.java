@@ -30,22 +30,30 @@
  */
 package org.thingsboard.server.service.integration.mqtt.ibm;
 
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.service.converter.ThingsboardDataConverter;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.credentials.BasicCredentials;
-import org.thingsboard.server.service.integration.mqtt.credentials.CertPemClientCredentials;
 import org.thingsboard.server.service.integration.mqtt.credentials.MqttClientCredentials;
+
+import javax.net.ssl.SSLException;
+import java.io.File;
+import java.security.Security;
+import java.util.Optional;
 
 @Slf4j
 public class IbmWatsonIotIntegration extends BasicMqttIntegration {
 
-    private static final String IBM_WATSON_IOT_ENPOINT = "messaging.internetofthings.ibmcloud.com";
+    private static final String IBM_WATSON_IOT_ENDPOINT = "messaging.internetofthings.ibmcloud.com";
 
     @Override
     public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
@@ -71,9 +79,24 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
         }
         String organizationId = parts[1];
 
-        mqttClientConfiguration.setHost(organizationId + "." + IBM_WATSON_IOT_ENPOINT);
-        mqttClientConfiguration.setPort(1883);
+        mqttClientConfiguration.setHost(organizationId + "." + IBM_WATSON_IOT_ENDPOINT);
+        mqttClientConfiguration.setPort(8883);
         mqttClientConfiguration.setClientId("a:" + organizationId + ":" + RandomStringUtils.randomAlphanumeric(10));
+    }
+
+    @Override
+    protected Optional<SslContext> initSslContext(MqttClientConfiguration configuration) throws SSLException {
+        try {
+            Security.addProvider(new BouncyCastleProvider());
+            return Optional.of(SslContextBuilder.forClient()
+                    .keyManager(null)
+                    .trustManager((File)null)
+                    .clientAuth(ClientAuth.NONE)
+                    .build());
+        } catch (Exception e) {
+            log.error("Creating TLS factory failed!", e);
+            throw new RuntimeException("Creating TLS factory failed!", e);
+        }
     }
 
 }

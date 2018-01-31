@@ -44,7 +44,7 @@ export function IntegrationCardController(types) {
 }
 
 /*@ngInject*/
-export function IntegrationController(integrationService, $state, $stateParams, $translate, types) {
+export function IntegrationController(integrationService, $state, $stateParams, $translate, types, helpLinks) {
 
     var integrationActionsList = [
         {
@@ -63,6 +63,8 @@ export function IntegrationController(integrationService, $state, $stateParams, 
     var vm = this;
 
     vm.types = types;
+
+    vm.helpLinkIdForIntegration = helpLinkIdForIntegration;
 
     vm.integrationGridConfig = {
 
@@ -109,6 +111,10 @@ export function IntegrationController(integrationService, $state, $stateParams, 
 
     if (angular.isDefined($stateParams.topIndex) && $stateParams.topIndex > 0) {
         vm.integrationGridConfig.topIndex = $stateParams.topIndex;
+    }
+
+    function helpLinkIdForIntegration() {
+        return helpLinks.getIntegrationLink(vm.grid.operatingItem());
     }
 
     function deleteIntegrationTitle(integration) {

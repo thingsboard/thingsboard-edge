@@ -60,6 +60,17 @@ var pluginActionsClazzHelpLinkMap = {
     'org.thingsboard.server.extensions.rest.action.RestApiCallPluginAction': 'pluginActionRestApiCall'
 };
 
+var integrationTypeHelpLinkMap = {
+    'HTTP': 'integrationHttp',
+    'OCEANCONNECT': 'integrationOceanConnect',
+    'SIGFOX': 'integrationSigFox',
+    'THINGPARK': 'integrationThingPark',
+    'MQTT': 'integrationMqtt',
+    'AWS_IOT': 'integrationAwsIoT',
+    'IBM_WATSON_IOT': 'integrationIbmWatsonIoT',
+    'AZURE_EVENT_HUB': 'integrationAzureEventHub'
+};
+
 var helpBaseUrl = "https://thingsboard.io";
 
 export default angular.module('thingsboard.help', [])
@@ -105,6 +116,17 @@ export default angular.module('thingsboard.help', [])
                 widgetsConfigRpc: helpBaseUrl +  "/docs/user-guide/ui/dashboards#rpc",
                 widgetsConfigAlarm: helpBaseUrl +  "/docs/user-guide/ui/dashboards#alarm",
                 widgetsConfigStatic: helpBaseUrl +  "/docs/user-guide/ui/dashboards#static",
+                converters: helpBaseUrl +  "/docs/user-guide/integrations/#data-converters",
+                integrations: helpBaseUrl +  "/docs/user-guide/integrations",
+                integrationHttp: helpBaseUrl +  "/docs/user-guide/integrations/http",
+                integrationOceanConnect: helpBaseUrl +  "/docs/user-guide/integrations/ocean-connect",
+                integrationSigFox: helpBaseUrl +  "/docs/user-guide/integrations/sigfox",
+                integrationThingPark: helpBaseUrl +  "/docs/user-guide/integrations/thingpark",
+                integrationMqtt: helpBaseUrl +  "/docs/user-guide/integrations/mqtt",
+                integrationAwsIoT: helpBaseUrl +  "/docs/user-guide/integrations/aws-iot",
+                integrationIbmWatsonIoT: helpBaseUrl +  "/docs/user-guide/integrations/ibm-watson-iot",
+                integrationAzureEventHub: helpBaseUrl +  "/docs/user-guide/integrations/azure-event-hub",
+                whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
             },
             getPluginLink: function(plugin) {
                 var link = 'plugins';
@@ -138,6 +160,15 @@ export default angular.module('thingsboard.help', [])
                 if (pluginAction && pluginAction.clazz) {
                     if (pluginActionsClazzHelpLinkMap[pluginAction.clazz]) {
                         link = pluginActionsClazzHelpLinkMap[pluginAction.clazz];
+                    }
+                }
+                return link;
+            },
+            getIntegrationLink: function(integration) {
+                var link = 'integrations';
+                if (integration && integration.type) {
+                    if (integrationTypeHelpLinkMap[integration.type]) {
+                        link = integrationTypeHelpLinkMap[integration.type];
                     }
                 }
                 return link;
