@@ -146,7 +146,7 @@ public class TelemetryWebsocketMsgHandler extends DefaultWebsocketMsgHandler {
                 keys.forEach(key -> subState.put(key, 0L));
                 attributesData.forEach(v -> subState.put(v.getKey(), v.getTs()));
 
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.ATTRIBUTES, false, subState);
+                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.ATTRIBUTES, false, subState, cmd.getScope());
                 subscriptionManager.addLocalWsSubscription(ctx, sessionId, entityId, sub);
             }
 
@@ -183,7 +183,7 @@ public class TelemetryWebsocketMsgHandler extends DefaultWebsocketMsgHandler {
                 Map<String, Long> subState = new HashMap<>(attributesData.size());
                 attributesData.forEach(v -> subState.put(v.getKey(), v.getTs()));
 
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.ATTRIBUTES, true, subState);
+                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.ATTRIBUTES, true, subState, cmd.getScope());
                 subscriptionManager.addLocalWsSubscription(ctx, sessionId, entityId, sub);
             }
 
@@ -249,7 +249,7 @@ public class TelemetryWebsocketMsgHandler extends DefaultWebsocketMsgHandler {
                 sendWsMsg(ctx, sessionRef, new SubscriptionUpdate(cmd.getCmdId(), data));
                 Map<String, Long> subState = new HashMap<>(data.size());
                 data.forEach(v -> subState.put(v.getKey(), v.getTs()));
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.TIMESERIES, true, subState);
+                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.TIMESERIES, true, subState, cmd.getScope());
                 subscriptionManager.addLocalWsSubscription(ctx, sessionId, entityId, sub);
             }
 
@@ -277,7 +277,7 @@ public class TelemetryWebsocketMsgHandler extends DefaultWebsocketMsgHandler {
                 Map<String, Long> subState = new HashMap<>(keys.size());
                 keys.forEach(key -> subState.put(key, startTs));
                 data.forEach(v -> subState.put(v.getKey(), v.getTs()));
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.TIMESERIES, false, subState);
+                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), entityId, SubscriptionType.TIMESERIES, false, subState, cmd.getScope());
                 subscriptionManager.addLocalWsSubscription(ctx, sessionId, entityId, sub);
             }
 
