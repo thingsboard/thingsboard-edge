@@ -127,6 +127,7 @@ export default angular.module('thingsboard.help', [])
                 integrationIbmWatsonIoT: helpBaseUrl +  "/docs/user-guide/integrations/ibm-watson-iot",
                 integrationAzureEventHub: helpBaseUrl +  "/docs/user-guide/integrations/azure-event-hub",
                 whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
+                entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
             },
             getPluginLink: function(plugin) {
                 var link = 'plugins';
