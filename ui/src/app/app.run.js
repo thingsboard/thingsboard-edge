@@ -36,7 +36,13 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                                whiteLabelingService, loginService, userService, $translate) {
 
     $window.Flow = Flow;
-    var frame = $window.frameElement;
+    var frame = null;
+    try {
+        frame = $window.frameElement;
+    } catch(e) {
+        // ie11 fix
+    }
+
     var unauthorizedDialog = null;
     var forbiddenDialog = null;
 
