@@ -52,7 +52,7 @@ import java.util.Optional;
 public class HttpIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}")
+    @RequestMapping(value = "/{routingKey}", method = {RequestMethod.POST})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
@@ -78,4 +78,28 @@ public class HttpIntegrationController extends BaseIntegrationController {
 
         return result;
     }
+
+    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey) {
+        log.debug("[{}] Received status check request", routingKey);
+        DeferredResult<ResponseEntity> result = new DeferredResult<>();
+
+        Optional<ThingsboardPlatformIntegration> integration = integrationService.getIntegrationByRoutingKey(routingKey);
+
+        if (!integration.isPresent()) {
+            result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            return result;
+        }
+
+        if (integration.get().getConfiguration().getType() != IntegrationType.HTTP) {
+            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            return result;
+        }
+
+        result.setResult(new ResponseEntity<>(HttpStatus.OK));
+        return result;
+    }
+
 }
