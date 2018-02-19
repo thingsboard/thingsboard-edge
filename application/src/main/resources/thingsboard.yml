@@ -92,6 +92,8 @@ http:
 
 # MQTT server parameters
 mqtt:
+  # Enable/disable mqtt transport protocol.
+  enabled: "${MQTT_ENABLED:true}"
   bind_address: "${MQTT_BIND_ADDRESS:0.0.0.0}"
   bind_port: "${MQTT_BIND_PORT:1883}"
   adaptor: "${MQTT_ADAPTOR_NAME:JsonMqttAdaptor}"
@@ -117,10 +119,33 @@ mqtt:
 
 # CoAP server parameters
 coap:
+  # Enable/disable coap transport protocol.
+  enabled: "${COAP_ENABLED:true}"
   bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
   bind_port: "${COAP_BIND_PORT:5683}"
   adaptor:  "${COAP_ADAPTOR_NAME:JsonCoapAdaptor}"
   timeout: "${COAP_TIMEOUT:10000}"
+
+#Quota parameters
+quota:
+  host:
+    # Max allowed number of API requests in interval for single host
+    limit: "${QUOTA_HOST_LIMIT:10000}"
+    # Interval duration
+    intervalMs: "${QUOTA_HOST_INTERVAL_MS:60000}"
+    # Maximum silence duration for host after which Host removed from QuotaService. Must be bigger than intervalMs
+    ttlMs: "${QUOTA_HOST_TTL_MS:60000}"
+    # Interval for scheduled task that cleans expired records. TTL is used for expiring
+    cleanPeriodMs: "${QUOTA_HOST_CLEAN_PERIOD_MS:300000}"
+    # Enable Host API Limits
+    enabled: "${QUOTA_HOST_ENABLED:false}"
+    # Array of whitelist hosts
+    whitelist: "${QUOTA_HOST_WHITELIST:localhost,127.0.0.1}"
+    # Array of blacklist hosts
+    blacklist: "${QUOTA_HOST_BLACKLIST:}"
+  log:
+    topSize: 10
+    intervalMin: 2
 
 database:
   type: "${DATABASE_TYPE:sql}" # cassandra OR sql
@@ -229,6 +254,18 @@ cache:
       # FREE_HEAP_PERCENTAGE: Minimum free heap size percentage for each JVM.
       policy: "${CACHE_DEVICE_CREDENTIAL_MAX_SIZE_POLICY:PER_NODE}"
       size: "${CACHE_DEVICE_CREDENTIAL_MAX_SIZE_SIZE:1000000}"
+
+caching:
+  specs:
+    relations:
+      timeToLiveInMinutes: 1440
+      maxSize: 100000
+    deviceCredentials:
+      timeToLiveInMinutes: 1440
+      maxSize: 100000
+    devices:
+      timeToLiveInMinutes: 1440
+      maxSize: 100000
 
 # Check new version updates parameters
 updates:

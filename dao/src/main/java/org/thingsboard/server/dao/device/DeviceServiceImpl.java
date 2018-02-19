@@ -37,6 +37,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.*;
@@ -52,13 +56,13 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -73,6 +77,7 @@ import java.util.function.BiFunction;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.*;
@@ -100,6 +105,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     @Autowired
     private EntityService entityService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
     public Device findDeviceById(DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
@@ -114,18 +122,16 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return deviceDao.findByIdAsync(deviceId.getId());
     }
 
+    @Cacheable(cacheNames = DEVICE_CACHE, key = "{#tenantId, #name}")
     @Override
-    public Optional<Device> findDeviceByTenantIdAndName(TenantId tenantId, String name) {
+    public Device findDeviceByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findDeviceByTenantIdAndName [{}][{}]", tenantId, name);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Optional<Device> deviceOpt = deviceDao.findDeviceByTenantIdAndName(tenantId.getId(), name);
-        if (deviceOpt.isPresent()) {
-            return Optional.of(deviceOpt.get());
-        } else {
-            return Optional.empty();
-        }
+        return deviceOpt.orElse(null);
     }
 
+    @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
     @Override
     public Device saveDevice(Device device) {
         log.trace("Executing saveDevice [{}]", device);
@@ -159,12 +165,18 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     @Override
     public void deleteDevice(DeviceId deviceId) {
         log.trace("Executing deleteDevice [{}]", deviceId);
+        Cache cache = cacheManager.getCache(DEVICE_CACHE);
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
         DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(deviceId);
         if (deviceCredentials != null) {
             deviceCredentialsService.deleteDeviceCredentials(deviceCredentials);
         }
         deleteEntityRelations(deviceId);
+        Device device = deviceDao.findById(deviceId.getId());
+        List<Object> list = new ArrayList<>();
+        list.add(device.getTenantId());
+        list.add(device.getName());
+        cache.evict(list);
         deviceDao.removeById(deviceId.getId());
     }
 
@@ -220,7 +232,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices =  deviceDao.findDevicesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
+        List<Device> devices = deviceDao.findDevicesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
         return new TextPageData<>(devices, pageLink);
     }
 
@@ -274,10 +286,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         ListenableFuture<List<EntitySubtype>> tenantDeviceTypes = deviceDao.findTenantDeviceTypesAsync(tenantId.getId());
         return Futures.transform(tenantDeviceTypes,
-            (Function<List<EntitySubtype>, List<EntitySubtype>>) deviceTypes -> {
-                deviceTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                return deviceTypes;
-        });
+                (Function<List<EntitySubtype>, List<EntitySubtype>>) deviceTypes -> {
+                    deviceTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    return deviceTypes;
+                });
     }
 
     @Override

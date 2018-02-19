@@ -38,6 +38,8 @@ import java.lang.reflect.Method;
 
 public class PreviousDeviceCredentialsIdKeyGenerator implements KeyGenerator {
 
+    private static final String NOT_VALID_DEVICE = "notValidDeviceCredentialsId";
+
     @Override
     public Object generate(Object o, Method method, Object... objects) {
         DeviceCredentialsService deviceCredentialsService = (DeviceCredentialsService) o;
@@ -48,6 +50,6 @@ public class PreviousDeviceCredentialsIdKeyGenerator implements KeyGenerator {
                 return oldDeviceCredentials.getCredentialsId();
             }
         }
-        return null;
+        return NOT_VALID_DEVICE;
     }
 }

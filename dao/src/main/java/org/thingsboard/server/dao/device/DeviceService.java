@@ -53,7 +53,7 @@ public interface DeviceService {
 
     ListenableFuture<Device> findDeviceByIdAsync(DeviceId deviceId);
 
-    Optional<Device> findDeviceByTenantIdAndName(TenantId tenantId, String name);
+    Device findDeviceByTenantIdAndName(TenantId tenantId, String name);
 
     Device saveDevice(Device device);
 
