@@ -118,9 +118,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
-        Optional<Device> deviceOptional = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
-        Device device;
-        if (!deviceOptional.isPresent()) {
+        Device device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+        if (device == null) {
             device = new Device();
             device.setName(data.getDeviceName());
             device.setType(data.getDeviceType());
@@ -132,8 +131,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             relation.setTypeGroup(RelationTypeGroup.COMMON);
             relation.setType(EntityRelation.CONTAINS_TYPE);
             context.getRelationService().saveRelation(relation);
-        } else {
-            device = deviceOptional.get();
         }
         return device;
     }
