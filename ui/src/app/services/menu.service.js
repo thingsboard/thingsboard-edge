@@ -235,7 +235,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'admin.mail-templates',
                                         icon: 'format_shapes',
                                         state: 'home.settings.mail-template'
-                                    },
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'white-labeling.white-labeling',
+                                places: [
                                     {
                                         name: 'white-labeling.white-labeling',
                                         icon: 'format_paint',
