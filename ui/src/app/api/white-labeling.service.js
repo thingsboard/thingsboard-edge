@@ -63,6 +63,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
     };
 
     var currentWLParams;
+    var currentLoginWLParams;
     var systemWlParams;
     var userWlParams;
 
@@ -135,16 +136,16 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             (response) => {
                 systemWlParams = mergeDefaults(response.data);
                 updateImages(systemWlParams, 'system');
-                if (setWlParams(systemWlParams)) {
-                    applyLoginThemePalettes(currentWLParams.paletteSettings);
+                if (setLoginWlParams(systemWlParams)) {
+                    applyLoginThemePalettes(currentLoginWLParams.paletteSettings);
                     $rootScope.$broadcast('whiteLabelingChanged');
                 }
                 deferred.resolve();
             },
             () => {
                 if (systemWlParams) {
-                    if (setWlParams(systemWlParams)) {
-                        applyLoginThemePalettes(currentWLParams.paletteSettings);
+                    if (setLoginWlParams(systemWlParams)) {
+                        applyLoginThemePalettes(currentLoginWLParams.paletteSettings);
                         $rootScope.$broadcast('whiteLabelingChanged');
                     }
                     deferred.resolve();
@@ -195,6 +196,15 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         return deferred.promise;
     }
 
+    function setLoginWlParams(newWlParams) {
+        if (!angular.equals(currentLoginWLParams, newWlParams)) {
+            currentLoginWLParams = newWlParams;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     function setWlParams(newWlParams) {
         if (!angular.equals(currentWLParams, newWlParams)) {
             currentWLParams = newWlParams;
@@ -203,6 +213,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             return false;
         }
     }
+
 
     function mergeDefaults(wlParams) {
         if (!wlParams) {
