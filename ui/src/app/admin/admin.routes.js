@@ -101,10 +101,31 @@ export default function AdminRoutes($stateProvider) {
                 }
             },
             data: {
-                pageTitle: 'white-labeling.white-labeling'
+                pageTitle: 'white-labeling.white-labeling',
+                isLoginWl: false
             },
             ncyBreadcrumb: {
                 label: '{"icon": "format_paint", "label": "white-labeling.white-labeling"}'
             }
+        })
+        .state('home.settings.loginWhiteLabel', {
+            url: '/loginWhiteLabel',
+            module: 'private',
+            auth: ['SYS_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: whiteLabelingTemplate,
+                    controllerAs: 'vm',
+                    controller: 'WhiteLabelingController'
+                }
+            },
+            data: {
+                pageTitle: 'white-labeling.login-white-labeling',
+                isLoginWl: true
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "format_paint", "label": "white-labeling.login-white-labeling"}'
+            }
         });
+
 }

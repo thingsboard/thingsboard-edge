@@ -34,7 +34,7 @@
     <md-card flex-gt-sm="60" flex="100" style="height: 100%;">
         <md-card-title>
             <md-card-title-text layout="row">
-                <span translate class="md-headline">white-labeling.white-labeling</span>
+                <span class="md-headline">{{(vm.isLoginWl ? 'white-labeling.login-white-labeling' : 'white-labeling.white-labeling') | translate}}</span>
                 <span flex></span>
                 <div id="help-container"></div>
             </md-card-title-text>
@@ -148,8 +148,21 @@
                                        class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
                         </div>
                     </div>
+                    <md-checkbox ng-if="vm.isLoginWl" ng-disabled="$root.loading"
+                                 aria-label="{{ 'white-labeling.dark-foreground' | translate }}" ng-model="vm.whiteLabelingParams.darkForeground">{{ 'white-labeling.dark-foreground' | translate }}</md-checkbox>
+                    <div ng-if="vm.isLoginWl" flex md-color-picker
+                         ng-required="false"
+                         ng-model="vm.whiteLabelingParams.pageBackgroundColor"
+                         label="{{ 'white-labeling.page-background-color' | translate }}"
+                         icon="format_color_fill"
+                         default="#999"
+                         md-color-clear-button="true"
+                         open-on-input="true"
+                         md-color-generic-palette="false"
+                         md-color-history="false">
+                    </div>
                     <div layout="row" layout-align="end center" width="100%" layout-wrap>
-                        <md-button ng-disabled="$root.loading || vm.whiteLabelForm.$invalid" ng-click="vm.preview()" class="md-raised">{{'white-labeling.preview' | translate}}</md-button>
+                        <md-button ng-if="!vm.isLoginWl" ng-disabled="$root.loading || vm.whiteLabelForm.$invalid" ng-click="vm.preview()" class="md-raised">{{'white-labeling.preview' | translate}}</md-button>
                         <md-button ng-disabled="$root.loading || vm.whiteLabelForm.$invalid || !vm.whiteLabelForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
                     </div>
                 </fieldset>

@@ -45,10 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.wl.Favicon;
-import org.thingsboard.server.common.data.wl.Palette;
-import org.thingsboard.server.common.data.wl.PaletteSettings;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.*;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -67,6 +64,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final String LOGIN_WHITE_LABEL_PARAMS = "loginWhiteLabelParams";
+
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
 
     @Autowired
@@ -74,6 +73,16 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Autowired
     private AttributesService attributesService;
+
+    @Override
+    public LoginWhiteLabelingParams getLoginWhiteLabelingParams() {
+        AdminSettings loginWhiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(LOGIN_WHITE_LABEL_PARAMS);
+        String json = null;
+        if (loginWhiteLabelParamsSettings != null) {
+            json = loginWhiteLabelParamsSettings.getJsonValue().get("value").asText();
+        }
+        return constructLoginWlParams(json);
+    }
 
     @Override
     public WhiteLabelingParams getSystemWhiteLabelingParams() {
@@ -98,6 +107,14 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     @Override
     public WhiteLabelingParams getMergedSystemWhiteLabelingParams(String logoImageChecksum, String faviconChecksum) {
         WhiteLabelingParams result = getSystemWhiteLabelingParams();
+        result.prepareImages(logoImageChecksum, faviconChecksum);
+        return result;
+    }
+
+    @Override
+    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String logoImageChecksum, String faviconChecksum) {
+        LoginWhiteLabelingParams result = getLoginWhiteLabelingParams();
+        result.merge(getSystemWhiteLabelingParams());
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
@@ -141,6 +158,28 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
+    public LoginWhiteLabelingParams saveLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams) {
+        loginWhiteLabelingParams = prepareChecksums(loginWhiteLabelingParams);
+        AdminSettings loginWhiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(LOGIN_WHITE_LABEL_PARAMS);
+        if (loginWhiteLabelParamsSettings == null) {
+            loginWhiteLabelParamsSettings = new AdminSettings();
+            loginWhiteLabelParamsSettings.setKey(LOGIN_WHITE_LABEL_PARAMS);
+            ObjectNode node = objectMapper.createObjectNode();
+            loginWhiteLabelParamsSettings.setJsonValue(node);
+        }
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(loginWhiteLabelingParams);
+        } catch (JsonProcessingException e) {
+            log.error("Unable to convert Login White Labeling Params to JSON!", e);
+            throw new IncorrectParameterException("Unable to convert Login White Labeling Params to JSON!");
+        }
+        ((ObjectNode)loginWhiteLabelParamsSettings.getJsonValue()).put("value", json);
+        adminSettingsService.saveAdminSettings(loginWhiteLabelParamsSettings);
+        return getLoginWhiteLabelingParams();
+    }
+
+    @Override
     public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         whiteLabelingParams = prepareChecksums(whiteLabelingParams);
         saveEntityWhiteLabelParams(tenantId, whiteLabelingParams);
@@ -168,6 +207,22 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     public WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         return whiteLabelingParams.merge(getTenantWhiteLabelingParams(tenantId)).
                 merge(getSystemWhiteLabelingParams());
+    }
+
+    private LoginWhiteLabelingParams constructLoginWlParams(String json) {
+        LoginWhiteLabelingParams result = null;
+        if (!StringUtils.isEmpty(json)) {
+            try {
+                result = objectMapper.readValue(json, LoginWhiteLabelingParams.class);
+            } catch (IOException e) {
+                log.error("Unable to read Login White Labeling Params from JSON!", e);
+                throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
+            }
+        }
+        if (result == null) {
+            result = new LoginWhiteLabelingParams();
+        }
+        return result;
     }
 
     private WhiteLabelingParams constructWlParams(String json) {
@@ -230,13 +285,13 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
     }
 
-    private WhiteLabelingParams prepareChecksums(WhiteLabelingParams whiteLabelingParams) {
-        String lohoImageChecksum = "";
+    private <T extends WhiteLabelingParams> T prepareChecksums(T whiteLabelingParams) {
+        String logoImageChecksum = "";
         String logoImageUrl = whiteLabelingParams.getLogoImageUrl();
         if (!StringUtils.isEmpty(logoImageUrl)) {
-            lohoImageChecksum = calculateSha1Checksum(logoImageUrl);
+            logoImageChecksum = calculateSha1Checksum(logoImageUrl);
         }
-        whiteLabelingParams.setLogoImageChecksum(lohoImageChecksum);
+        whiteLabelingParams.setLogoImageChecksum(logoImageChecksum);
         String faviconChecksum = "";
         if (whiteLabelingParams.getFavicon() != null && !StringUtils.isEmpty(whiteLabelingParams.getFavicon().getUrl())) {
             faviconChecksum = calculateSha1Checksum(whiteLabelingParams.getFavicon().getUrl());

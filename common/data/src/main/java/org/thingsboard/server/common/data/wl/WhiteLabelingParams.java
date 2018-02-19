@@ -38,13 +38,13 @@ import org.apache.commons.lang3.StringUtils;
 @EqualsAndHashCode
 public class WhiteLabelingParams {
 
-    private String logoImageUrl;
-    private String logoImageChecksum;
-    private Integer logoImageHeight;
-    private String appTitle;
-    private Favicon favicon;
-    private String faviconChecksum;
-    private PaletteSettings paletteSettings;
+    protected String logoImageUrl;
+    protected String logoImageChecksum;
+    protected Integer logoImageHeight;
+    protected String appTitle;
+    protected Favicon favicon;
+    protected String faviconChecksum;
+    protected PaletteSettings paletteSettings;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {

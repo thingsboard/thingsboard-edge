@@ -41,9 +41,11 @@ const maxFaviconSize = 262144;
 const maxLogoSize = 4194304;
 
 /*@ngInject*/
-export default function WhiteLabelingController(userService, $scope, $mdDialog, $document, $q,
+export default function WhiteLabelingController($state, userService, $scope, $mdDialog, $document, $q,
                                                 $translate, toast, whiteLabelingService, $mdTheming, $filter) {
     var vm = this;
+
+    vm.isLoginWl = $state.current.data.isLoginWl;
 
     vm.maxFaviconSizeKb = maxFaviconSize / 1024;
     vm.maxLogoSizeKb = maxLogoSize / 1024;
@@ -116,7 +118,8 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
     loadWhiteLabelingParams();
 
     function loadWhiteLabelingParams() {
-        whiteLabelingService.getCurrentWhiteLabelParams().then(
+        var loadWlPromise = vm.isLoginWl ? whiteLabelingService.getCurrentLoginWhiteLabelParams() : whiteLabelingService.getCurrentWhiteLabelParams();
+        loadWlPromise.then(
             (whiteLabelingParams) => {
                 vm.whiteLabelingParams = whiteLabelingParams;
                 if (!vm.whiteLabelingParams.paletteSettings) {
@@ -217,7 +220,9 @@ export default function WhiteLabelingController(userService, $scope, $mdDialog, 
     }
 
     function save() {
-        whiteLabelingService.saveWhiteLabelParams(vm.whiteLabelingParams).then(() => {
+        var savePromise = vm.isLoginWl ? whiteLabelingService.saveLoginWhiteLabelParams(vm.whiteLabelingParams) :
+                        whiteLabelingService.saveWhiteLabelParams(vm.whiteLabelingParams);
+        savePromise.then(() => {
             vm.whiteLabelForm.$setPristine();
         });
     }

@@ -215,7 +215,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     }
 
     function gotoPublicModule(name, params) {
-        whiteLabelingService.loadSystemWhiteLabelingParams().then(
+        whiteLabelingService.loadLoginWhiteLabelingParams().then(
             () => {
                 skipStateChange = true;
                 $state.go(name, params);

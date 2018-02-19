@@ -1703,6 +1703,7 @@ export default angular.module('thingsboard.locale', [])
                 },
                 "white-labeling": {
                     "white-labeling": "White Labeling",
+                    "login-white-labeling": "Login White Labeling",
                     "preview": "Preview",
                     "app-title": "Application title",
                     "favicon": "Website icon",
@@ -1727,7 +1728,9 @@ export default angular.module('thingsboard.locale', [])
                     "secondary-background": "Secondary background",
                     "hue1": "HUE 1",
                     "hue2": "HUE 2",
-                    "hue3": "HUE 3"
+                    "hue3": "HUE 3",
+                    "page-background-color": "Page background color",
+                    "dark-foreground": "Dark foreground"
                 },
                 "icon": {
                     "icon": "Icon",

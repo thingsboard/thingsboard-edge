@@ -32,11 +32,14 @@ package org.thingsboard.server.dao.wl;
 
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 public interface WhiteLabelingService {
 
     WhiteLabelingParams getSystemWhiteLabelingParams();
+
+    LoginWhiteLabelingParams getLoginWhiteLabelingParams();
 
     WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId);
 
@@ -44,11 +47,15 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams getMergedSystemWhiteLabelingParams(String logoImageChecksum, String faviconChecksum);
 
+    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String logoImageChecksum, String faviconChecksum);
+
     WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
 
     WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
 
     WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
+
+    LoginWhiteLabelingParams saveLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams);
 
     WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 

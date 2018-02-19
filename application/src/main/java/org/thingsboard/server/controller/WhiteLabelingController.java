@@ -35,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.ThingsboardException;
@@ -70,13 +71,13 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/noauth/whiteLabel/systemWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public WhiteLabelingParams getSystemWhiteLabelParams(
+    public LoginWhiteLabelingParams getLoginWhiteLabelParams(
             @RequestParam(required = false) String logoImageChecksum,
             @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
         try {
-            return whiteLabelingService.getMergedSystemWhiteLabelingParams(logoImageChecksum, faviconChecksum);
+            return whiteLabelingService.getMergedLoginWhiteLabelingParams(logoImageChecksum, faviconChecksum);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -102,6 +103,17 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/whiteLabel/currentLoginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public LoginWhiteLabelingParams getCurrentLoginWhiteLabelParams() throws ThingsboardException {
+        try {
+            return whiteLabelingService.getLoginWhiteLabelingParams();
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
@@ -117,6 +129,17 @@ public class WhiteLabelingController extends BaseController {
                 savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getCurrentUser().getCustomerId(), whiteLabelingParams);
             }
             return savedWhiteLabelingParams;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/whiteLabel/loginWhiteLabelParams", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public LoginWhiteLabelingParams saveLoginWhiteLabelParams(@RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws ThingsboardException {
+        try {
+            return whiteLabelingService.saveLoginWhiteLabelingParams(loginWhiteLabelingParams);
         } catch (Exception e) {
             throw handleException(e);
         }
