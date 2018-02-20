@@ -63,7 +63,7 @@ public class WhiteLabelingParams {
         }
         if (this.paletteSettings == null) {
             this.paletteSettings = otherWlParams.paletteSettings;
-        } else {
+        } else if (otherWlParams.paletteSettings != null) {
             this.paletteSettings.merge(otherWlParams.paletteSettings);
         }
         return this;
