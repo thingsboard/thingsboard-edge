@@ -38,7 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBased<DeviceId> implements HasName {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements HasName {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -46,7 +46,6 @@ public class Device extends SearchTextBased<DeviceId> implements HasName {
     private CustomerId customerId;
     private String name;
     private String type;
-    private transient JsonNode additionalInfo;
 
     public Device() {
         super();
@@ -62,7 +61,6 @@ public class Device extends SearchTextBased<DeviceId> implements HasName {
         this.customerId = device.getCustomerId();
         this.name = device.getName();
         this.type = device.getType();
-        this.additionalInfo = device.getAdditionalInfo();
     }
 
     public TenantId getTenantId() {
@@ -98,14 +96,6 @@ public class Device extends SearchTextBased<DeviceId> implements HasName {
         this.type = type;
     }
 
-    public JsonNode getAdditionalInfo() {
-        return additionalInfo;
-    }
-
-    public void setAdditionalInfo(JsonNode additionalInfo) {
-        this.additionalInfo = additionalInfo;
-    }
-    
     @Override
     public String getSearchText() {
         return getName();
@@ -123,7 +113,7 @@ public class Device extends SearchTextBased<DeviceId> implements HasName {
         builder.append(", type=");
         builder.append(type);
         builder.append(", additionalInfo=");
-        builder.append(additionalInfo);
+        builder.append(getAdditionalInfo());
         builder.append(", createdTime=");
         builder.append(createdTime);
         builder.append(", id=");

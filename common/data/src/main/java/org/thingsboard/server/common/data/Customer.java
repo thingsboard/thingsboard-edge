@@ -44,8 +44,7 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
     
     private String title;
     private TenantId tenantId;
-    private transient JsonNode additionalInfo;
-    
+
     public Customer() {
         super();
     }
@@ -58,7 +57,6 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
         super(customer);
         this.tenantId = customer.getTenantId();
         this.title = customer.getTitle();
-        this.additionalInfo = customer.getAdditionalInfo();
     }
 
     public TenantId getTenantId() {
@@ -80,7 +78,7 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
     @JsonIgnore
     public boolean isPublic() {
         if (getAdditionalInfo() != null && getAdditionalInfo().has("isPublic")) {
-            return additionalInfo.get("isPublic").asBoolean();
+            return getAdditionalInfo().get("isPublic").asBoolean();
         }
 
         return false;
@@ -92,14 +90,6 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
         return title;
     }
 
-    public JsonNode getAdditionalInfo() {
-        return additionalInfo;
-    }
-
-    public void setAdditionalInfo(JsonNode additionalInfo) {
-        this.additionalInfo = additionalInfo;
-    }
-    
     @Override
     public String getSearchText() {
         return getTitle();
@@ -109,7 +99,6 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + ((additionalInfo == null) ? 0 : additionalInfo.hashCode());
         result = prime * result + ((tenantId == null) ? 0 : tenantId.hashCode());
         result = prime * result + ((title == null) ? 0 : title.hashCode());
         return result;
@@ -124,11 +113,6 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
         if (getClass() != obj.getClass())
             return false;
         Customer other = (Customer) obj;
-        if (additionalInfo == null) {
-            if (other.additionalInfo != null)
-                return false;
-        } else if (!additionalInfo.equals(other.additionalInfo))
-            return false;
         if (tenantId == null) {
             if (other.tenantId != null)
                 return false;
@@ -150,7 +134,7 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
         builder.append(", tenantId=");
         builder.append(tenantId);
         builder.append(", additionalInfo=");
-        builder.append(additionalInfo);
+        builder.append(getAdditionalInfo());
         builder.append(", country=");
         builder.append(country);
         builder.append(", state=");

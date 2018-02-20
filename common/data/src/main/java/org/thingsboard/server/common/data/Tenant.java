@@ -43,8 +43,7 @@ public class Tenant extends ContactBased<TenantId> implements HasName {
     
     private String title;
     private String region;
-    private transient JsonNode additionalInfo;
-    
+
     public Tenant() {
         super();
     }
@@ -57,7 +56,6 @@ public class Tenant extends ContactBased<TenantId> implements HasName {
         super(tenant);
         this.title = tenant.getTitle();
         this.region = tenant.getRegion();
-        this.additionalInfo = tenant.getAdditionalInfo();
     }
 
     public String getTitle() {
@@ -82,14 +80,6 @@ public class Tenant extends ContactBased<TenantId> implements HasName {
         this.region = region;
     }
 
-    public JsonNode getAdditionalInfo() {
-        return additionalInfo;
-    }
-
-    public void setAdditionalInfo(JsonNode additionalInfo) {
-        this.additionalInfo = additionalInfo;
-    }
-    
     @Override
     public String getSearchText() {
         return getTitle();
@@ -103,7 +93,7 @@ public class Tenant extends ContactBased<TenantId> implements HasName {
         builder.append(", region=");
         builder.append(region);
         builder.append(", additionalInfo=");
-        builder.append(additionalInfo);
+        builder.append(getAdditionalInfo());
         builder.append(", country=");
         builder.append(country);
         builder.append(", state=");
