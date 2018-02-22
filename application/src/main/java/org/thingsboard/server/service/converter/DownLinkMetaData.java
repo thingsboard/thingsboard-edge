@@ -28,11 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.converter;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String DOWNLINK_CACHE = "downlink";
+import lombok.Data;
+
+import java.util.Map;
+
+/**
+ * Created by ashvayka on 04.12.17.
+ */
+@Data
+public class DownLinkMetaData {
+
+    private final Map<String, String> kvMap;
+
 }

@@ -28,11 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.converter;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String DOWNLINK_CACHE = "downlink";
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.msg.core.GetAttributesRequest;
+import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
+import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
+
+import java.util.Map;
+
+/**
+ * Created by ashvayka on 04.12.17.
+ */
+@Data
+@Builder
+public class DownlinkData {
+
+    private final DeviceId deviceId;
+    private final String deviceName;
+    private final String deviceType;
+
+    private final String contentType;
+    private final byte[] data;
+    private final Map<String, String> metadata;
+
 }

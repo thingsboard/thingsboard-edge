@@ -28,11 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.integration.msg;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String DOWNLINK_CACHE = "downlink";
+import lombok.Data;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKey;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.extensions.api.plugins.msg.ToDeviceRpcRequestBody;
+
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+/**
+ * Created by ashvayka on 22.02.18.
+ */
+@Data
+public class RPCCallIntegrationMsg implements ToDeviceIntegrationMsg {
+
+    private final TenantId tenantId;
+    private final IntegrationId integrationId;
+    private final DeviceId deviceId;
+    private final String deviceName;
+    private final String deviceType;
+
+    //For now RPC calls via integrations are always one-way
+    private final UUID id;
+    private final long expirationTime;
+    private final ToDeviceRpcRequestBody body;
+
 }

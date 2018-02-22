@@ -28,11 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.integration.downlink;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String DOWNLINK_CACHE = "downlink";
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+
+/**
+ * Created by ashvayka on 22.02.18.
+ */
+public interface DownlinkService {
+
+    DownLinkMsg get(IntegrationId integrationId, DeviceId deviceId);
+
+    DownLinkMsg put(RPCCallIntegrationMsg msg);
+
+    DownLinkMsg put(SharedAttributesUpdateIntegrationMsg msg);
+
+    void remove(IntegrationId integrationId, DeviceId deviceId);
+
 }

@@ -34,8 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.io.BaseEncoding;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.TBDataConverter;
+import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
@@ -76,7 +75,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     @Override
-    protected HttpStatus doProcess(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg);
             if (uplinkDataList != null) {
@@ -85,9 +84,9 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
                     log.info("[{}] Processing uplink data", data);
                 }
             }
-            return HttpStatus.OK;
+            return fromStatus(HttpStatus.OK);
         } else {
-            return HttpStatus.FORBIDDEN;
+            return fromStatus(HttpStatus.FORBIDDEN);
         }
     }
 

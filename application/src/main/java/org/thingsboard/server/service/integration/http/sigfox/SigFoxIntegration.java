@@ -30,14 +30,94 @@
  */
 package org.thingsboard.server.service.integration.http.sigfox;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.ToDeviceIntegrationMsg;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
 public class SigFoxIntegration extends BasicHttpIntegration {
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+    }
+
+    @Override
+    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+        if (checkSecurity(msg)) {
+            Map<Device, UplinkData> result = processUplinkData(context, msg);
+            if (result.isEmpty()) {
+                return fromStatus(HttpStatus.NO_CONTENT);
+            } else if (result.size() > 1) {
+                return fromStatus(HttpStatus.BAD_REQUEST);
+            } else {
+                return processDownLinkData(context, result);
+            }
+        } else {
+            return fromStatus(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    protected ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> data) throws Exception {
+        if (downlinkConverter != null) {
+            List<DownLinkMsg> downLinkMsgs = new ArrayList<>();
+            for (Device device : data.keySet()) {
+                DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
+                if (pending != null) {
+                    downLinkMsgs.add(pending);
+                }
+            }
+
+            if (!downLinkMsgs.isEmpty()) {
+                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), downLinkMsgs, new DownLinkMetaData(Collections.emptyMap()));
+                //TODO
+            }
+        }
+
+        return fromStatus(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
+        logUpdate(context, "SharedAttributeUpdate", msg);
+        if (downlinkConverter != null) {
+            context.getDownlinkService().put(msg);
+        }
+    }
+
+    @Override
+    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
+        logUpdate(context, "RPCCall", msg);
+        if (downlinkConverter != null) {
+            context.getDownlinkService().put(msg);
+        }
+    }
+
+    private <T extends ToDeviceIntegrationMsg> void logUpdate(IntegrationContext context, String updateType, T msg) {
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, "Downlink", updateType, mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
     }
 
 }

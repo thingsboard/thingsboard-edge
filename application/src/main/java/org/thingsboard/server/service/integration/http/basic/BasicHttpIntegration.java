@@ -33,6 +33,8 @@ package org.thingsboard.server.service.integration.http.basic;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
@@ -40,10 +42,7 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
@@ -66,33 +65,42 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     }
 
     @Override
-    protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
-            byte[] data = mapper.writeValueAsBytes(msg.getMsg());
-            Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-            msg.getRequestHeaders().forEach(
-                    (header, value) -> {
-                        mdMap.put("header:" + header, value);
-                    }
-            );
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
-            if (uplinkDataList != null) {
-                for (UplinkData uplinkData : uplinkDataList) {
-                    processUplinkData(context, uplinkData);
-                    log.info("[{}] Processing uplink data", uplinkData);
-                }
-            }
-            return HttpStatus.OK;
+            processUplinkData(context, msg);
+            return new ResponseEntity<>(HttpStatus.OK);
         } else {
-            return HttpStatus.FORBIDDEN;
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
-    private boolean checkSecurity(HttpIntegrationMsg msg) throws Exception {
+    protected Map<Device, UplinkData> processUplinkData(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+        byte[] data = mapper.writeValueAsBytes(msg.getMsg());
+        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+        msg.getRequestHeaders().forEach(
+                (header, value) -> {
+                    mdMap.put("header:" + header, value);
+                }
+        );
+
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
+        if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
+            Map<Device, UplinkData> result = new HashMap<>();
+            for (UplinkData uplinkData : uplinkDataList) {
+                result.put(processUplinkData(context, uplinkData), uplinkData);
+                log.info("[{}] Processing uplink data", uplinkData);
+            }
+            return result;
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    protected boolean checkSecurity(HttpIntegrationMsg msg) throws Exception {
         if (securityEnabled) {
             Map<String, String> requestHeaders = msg.getRequestHeaders();
             log.trace("Validating request using the following request headers: {}", requestHeaders);
-            for (Map.Entry<String,String> headerFilter : headersFilter.entrySet()) {
+            for (Map.Entry<String, String> headerFilter : headersFilter.entrySet()) {
                 String value = requestHeaders.get(headerFilter.getKey().toLowerCase());
                 if (value == null || !value.equals(headerFilter.getValue())) {
                     return false;

@@ -31,11 +31,9 @@
 package org.thingsboard.server.service.converter.js;
 
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.AbstractUplinkDataConverter;
-import org.thingsboard.server.service.converter.UplinkData;
-import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.converter.*;
 import org.thingsboard.server.service.integration.ConverterContext;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 
 import java.util.List;
 
@@ -60,7 +58,7 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
     }
 
     @Override
-    public List<UplinkData> convertDownlink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception {
+    public List<DownlinkData> convertDownLink(ConverterContext context, List<DownLinkMsg> downLinkMsgs, DownLinkMetaData metadata) throws Exception {
         return null;
     }
 }

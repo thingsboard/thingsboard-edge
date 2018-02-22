@@ -33,8 +33,6 @@ package org.thingsboard.server.service.integration.mqtt.basic;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.TBDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;

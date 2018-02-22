@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.converter;
 
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.service.integration.ConverterContext;
 
 import java.util.List;

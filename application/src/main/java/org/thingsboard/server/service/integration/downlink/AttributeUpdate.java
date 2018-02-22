@@ -28,11 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.integration.downlink;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String DOWNLINK_CACHE = "downlink";
+import lombok.AllArgsConstructor;
+
+import java.io.Serializable;
+
+/**
+ * Created by ashvayka on 22.02.18.
+ */
+@AllArgsConstructor
+public class AttributeUpdate implements Serializable {
+
+    private long lastUpdateTs;
+    private String value;
+
 }
+

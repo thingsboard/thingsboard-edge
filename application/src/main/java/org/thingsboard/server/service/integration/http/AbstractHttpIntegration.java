@@ -47,11 +47,11 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         String status = "OK";
         Exception exception = null;
         try {
-            HttpStatus httpStatus = doProcess(context, msg);
-            if (!httpStatus.is2xxSuccessful()) {
-                status = httpStatus.name();
+            ResponseEntity httpResponse = doProcess(context, msg);
+            if (!httpResponse.getStatusCode().is2xxSuccessful()) {
+                status = httpResponse.getStatusCode().name();
             }
-            msg.getCallback().setResult(new ResponseEntity<>(httpStatus));
+            msg.getCallback().setResult(httpResponse);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
@@ -71,7 +71,10 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
     }
 
-    protected abstract HttpStatus doProcess(IntegrationContext context, T msg) throws Exception;
+    protected abstract ResponseEntity doProcess(IntegrationContext context, T msg) throws Exception;
 
+    protected static ResponseEntity fromStatus(HttpStatus status) {
+        return new ResponseEntity<>(status);
+    }
 
 }

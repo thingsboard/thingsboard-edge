@@ -33,6 +33,7 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
@@ -47,6 +48,8 @@ import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -58,6 +61,7 @@ import java.util.Map;
 /**
  * Created by ashvayka on 25.12.17.
  */
+@Slf4j
 public abstract class AbstractIntegration<T> implements ThingsboardPlatformIntegration<T> {
 
     protected final ObjectMapper mapper = new ObjectMapper();
@@ -103,13 +107,21 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
+    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
+    }
+
+    @Override
+    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
+    }
+
+    @Override
     public IntegrationStatistics popStatistics() {
         IntegrationStatistics statistics = this.integrationStatistics;
         this.integrationStatistics = new IntegrationStatistics();
         return statistics;
     }
 
-    protected void processUplinkData(IntegrationContext context, UplinkData data) {
+    protected Device processUplinkData(IntegrationContext context, UplinkData data) {
         Device device = getOrCreateDevice(context, data);
 
         if (data.getTelemetry() != null) {
@@ -121,6 +133,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getAttributesUpdate());
             context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
         }
+
+        return device;
     }
 
     private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
