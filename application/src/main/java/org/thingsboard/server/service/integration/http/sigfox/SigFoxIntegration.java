@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.http.sigfox;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,10 +47,11 @@ import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.ToDeviceIntegrationMsg;
 
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 @Slf4j
 public class SigFoxIntegration extends BasicHttpIntegration {
@@ -68,26 +70,31 @@ public class SigFoxIntegration extends BasicHttpIntegration {
             } else if (result.size() > 1) {
                 return fromStatus(HttpStatus.BAD_REQUEST);
             } else {
-                return processDownLinkData(context, result);
+                Entry<Device, UplinkData> entry = result.entrySet().stream().findFirst().get();
+                String deviceIdAttributeName = metadataTemplate.getKvMap().getOrDefault("SigFoxDeviceIdAttributeName", "device");
+                String sigFoxDeviceId = msg.getMsg().get(deviceIdAttributeName).asText();
+                return processDownLinkData(context, entry.getKey(), entry.getValue(), sigFoxDeviceId);
             }
         } else {
             return fromStatus(HttpStatus.FORBIDDEN);
         }
     }
 
-    protected ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> data) throws Exception {
+    protected ResponseEntity processDownLinkData(IntegrationContext context, Device device, UplinkData uplink, String sigFoxDeviceId) throws Exception {
         if (downlinkConverter != null) {
-            List<DownLinkMsg> downLinkMsgs = new ArrayList<>();
-            for (Device device : data.keySet()) {
-                DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
-                if (pending != null) {
-                    downLinkMsgs.add(pending);
+            DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
+            if (pending != null) {
+                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(pending), new DownLinkMetaData(Collections.emptyMap()));
+                if (result.size() == 0 || result.size() > 1) {
+                    fromStatus(HttpStatus.NO_CONTENT);
+                } else {
+                    DownlinkData downlink = result.get(0);
+                    ObjectNode json = mapper.createObjectNode();
+                    json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
+                    ResponseEntity response = new ResponseEntity(json, HttpStatus.OK);
+                    response.getHeaders().add("Content-Type", "application/json");
+                    return response;
                 }
-            }
-
-            if (!downLinkMsgs.isEmpty()) {
-                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), downLinkMsgs, new DownLinkMetaData(Collections.emptyMap()));
-                //TODO
             }
         }
 
