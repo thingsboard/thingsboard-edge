@@ -36,7 +36,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -88,8 +90,16 @@ public class AssetController extends BaseController {
                     checkCustomerId(asset.getCustomerId());
                 }
             }
-            return checkNotNull(assetService.saveAsset(asset));
+            Asset savedAsset  = checkNotNull(assetService.saveAsset(asset));
+
+            logEntityAction(savedAsset.getId(), savedAsset,
+                    savedAsset.getCustomerId(),
+                    asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            return  savedAsset;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.ASSET), asset,
+                    null, asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -101,9 +111,18 @@ public class AssetController extends BaseController {
         checkParameter(ASSET_ID, strAssetId);
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
-            checkAssetId(assetId);
+            Asset asset = checkAssetId(assetId);
             assetService.deleteAsset(assetId);
+
+            logEntityAction(assetId, asset,
+                    asset.getCustomerId(),
+                    ActionType.DELETED, null, strAssetId);
+
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.ASSET),
+                    null,
+                    null,
+                    ActionType.DELETED, e, strAssetId);
             throw handleException(e);
         }
     }
@@ -117,13 +136,24 @@ public class AssetController extends BaseController {
         checkParameter(ASSET_ID, strAssetId);
         try {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId);
+            Customer customer = checkCustomerId(customerId);
 
             AssetId assetId = new AssetId(toUUID(strAssetId));
             checkAssetId(assetId);
 
-            return checkNotNull(assetService.assignAssetToCustomer(assetId, customerId));
+            Asset savedAsset = checkNotNull(assetService.assignAssetToCustomer(assetId, customerId));
+
+            logEntityAction(assetId, savedAsset,
+                    savedAsset.getCustomerId(),
+                    ActionType.ASSIGNED_TO_CUSTOMER, null, strAssetId, strCustomerId, customer.getName());
+
+            return  savedAsset;
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ASSET), null,
+                    null,
+                    ActionType.ASSIGNED_TO_CUSTOMER, e, strAssetId, strCustomerId);
+
             throw handleException(e);
         }
     }
@@ -135,9 +165,28 @@ public class AssetController extends BaseController {
         checkParameter(ASSET_ID, strAssetId);
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
-            checkAssetId(assetId);
-            return checkNotNull(assetService.unassignAssetFromCustomer(assetId));
+            Asset asset = checkAssetId(assetId);
+            String customerId = "";
+            String customerName = "";
+            if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
+                Customer customer = checkCustomerId(asset.getCustomerId());
+                customerId = customer.getId().toString();
+                customerName = customer.getName();
+            }
+
+            Asset savedAsset = checkNotNull(assetService.unassignAssetFromCustomer(assetId));
+
+            logEntityAction(assetId, asset,
+                    asset.getCustomerId(),
+                    ActionType.UNASSIGNED_FROM_CUSTOMER, null, strAssetId, customerId, customerName);
+
+            return savedAsset;
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ASSET), null,
+                    null,
+                    ActionType.UNASSIGNED_FROM_CUSTOMER, e, strAssetId);
+
             throw handleException(e);
         }
     }
@@ -151,8 +200,19 @@ public class AssetController extends BaseController {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             Asset asset = checkAssetId(assetId);
             Customer publicCustomer = customerService.findOrCreatePublicCustomer(asset.getTenantId());
-            return checkNotNull(assetService.assignAssetToCustomer(assetId, publicCustomer.getId()));
+            Asset savedAsset = checkNotNull(assetService.assignAssetToCustomer(assetId, publicCustomer.getId()));
+
+            logEntityAction(assetId, savedAsset,
+                    savedAsset.getCustomerId(),
+                    ActionType.ASSIGNED_TO_CUSTOMER, null, strAssetId, publicCustomer.getId().toString(), publicCustomer.getName());
+
+            return savedAsset;
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ASSET), null,
+                    null,
+                    ActionType.ASSIGNED_TO_CUSTOMER, e, strAssetId);
+
             throw handleException(e);
         }
     }

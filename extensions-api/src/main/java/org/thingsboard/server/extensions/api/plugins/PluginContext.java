@@ -39,9 +39,7 @@ import org.thingsboard.server.common.data.kv.TsKvQuery;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.extensions.api.plugins.msg.PluginToRuleMsg;
-import org.thingsboard.server.extensions.api.plugins.msg.TimeoutMsg;
-import org.thingsboard.server.extensions.api.plugins.msg.ToDeviceRpcRequest;
+import org.thingsboard.server.extensions.api.plugins.msg.*;
 import org.thingsboard.server.extensions.api.plugins.rpc.RpcMsg;
 import org.thingsboard.server.extensions.api.plugins.ws.PluginWebsocketSessionRef;
 import org.thingsboard.server.extensions.api.plugins.ws.msg.PluginWebsocketMsg;
@@ -75,6 +73,7 @@ public interface PluginContext {
 
     void scheduleTimeoutMsg(TimeoutMsg<?> timeoutMsg);
 
+    void logRpcRequest(PluginApiCallSecurityContext ctx, DeviceId deviceId, ToDeviceRpcRequestBody body, boolean oneWay, Optional<RpcError> rpcError, Exception e);
 
     /*
         Websocket API
@@ -110,6 +109,12 @@ public interface PluginContext {
     /*
         Attributes API
      */
+
+    void logAttributesUpdated(PluginApiCallSecurityContext ctx, EntityId entityId, String attributeType, List<AttributeKvEntry> attributes, Exception e);
+
+    void logAttributesDeleted(PluginApiCallSecurityContext ctx, EntityId entityId, String attributeType, List<String> keys, Exception e);
+
+    void logAttributesRead(PluginApiCallSecurityContext ctx, EntityId entityId, String attributeType, List<String> keys, Exception e);
 
     void saveAttributes(TenantId tenantId, EntityId entityId, String attributeType, List<AttributeKvEntry> attributes, PluginCallback<Void> callback);
 

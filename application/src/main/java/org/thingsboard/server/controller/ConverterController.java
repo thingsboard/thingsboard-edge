@@ -39,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -90,8 +92,15 @@ public class ConverterController extends BaseController {
             } else {
                 dataConverterService.updateConverter(result);
             }
+
+            logEntityAction(result.getId(), result,
+                    null,
+                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
             return result;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.CONVERTER), converter,
+                    null, converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -120,10 +129,21 @@ public class ConverterController extends BaseController {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            checkConverterId(converterId);
+            Converter converter = checkConverterId(converterId);
             converterService.deleteConverter(converterId);
             dataConverterService.deleteConverter(converterId);
+
+            logEntityAction(converterId, converter,
+                    null,
+                    ActionType.DELETED, null, strConverterId);
+
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.CONVERTER),
+                    null,
+                    null,
+                    ActionType.DELETED, e, strConverterId);
+
             throw handleException(e);
         }
     }
