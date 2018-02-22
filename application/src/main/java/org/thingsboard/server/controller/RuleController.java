@@ -33,6 +33,8 @@ package org.thingsboard.server.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.RuleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -88,8 +90,17 @@ public class RuleController extends BaseController {
             RuleMetaData rule = checkNotNull(ruleService.saveRule(source));
             actorService.onRuleStateChange(rule.getTenantId(), rule.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+            logEntityAction(rule.getId(), rule,
+                    null,
+                    created ? ActionType.ADDED : ActionType.UPDATED, null);
+
             return rule;
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE), source,
+                    null, source.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+
             throw handleException(e);
         }
     }
@@ -104,7 +115,18 @@ public class RuleController extends BaseController {
             RuleMetaData rule = checkRule(ruleService.findRuleById(ruleId));
             ruleService.activateRuleById(ruleId);
             actorService.onRuleStateChange(rule.getTenantId(), rule.getId(), ComponentLifecycleEvent.ACTIVATED);
+
+            logEntityAction(rule.getId(), rule,
+                    null,
+                    ActionType.ACTIVATED, null, strRuleId);
+
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE),
+                    null,
+                    null,
+                    ActionType.ACTIVATED, e, strRuleId);
+
             throw handleException(e);
         }
     }
@@ -119,7 +141,18 @@ public class RuleController extends BaseController {
             RuleMetaData rule = checkRule(ruleService.findRuleById(ruleId));
             ruleService.suspendRuleById(ruleId);
             actorService.onRuleStateChange(rule.getTenantId(), rule.getId(), ComponentLifecycleEvent.SUSPENDED);
+
+            logEntityAction(rule.getId(), rule,
+                    null,
+                    ActionType.SUSPENDED, null, strRuleId);
+
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE),
+                    null,
+                    null,
+                    ActionType.SUSPENDED, e, strRuleId);
+
             throw handleException(e);
         }
     }
@@ -202,7 +235,18 @@ public class RuleController extends BaseController {
             RuleMetaData rule = checkRule(ruleService.findRuleById(ruleId));
             ruleService.deleteRuleById(ruleId);
             actorService.onRuleStateChange(rule.getTenantId(), rule.getId(), ComponentLifecycleEvent.DELETED);
+
+            logEntityAction(ruleId, rule,
+                    null,
+                    ActionType.DELETED, null, strRuleId);
+
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE),
+                    null,
+                    null,
+                    ActionType.DELETED, e, strRuleId);
+
             throw handleException(e);
         }
     }

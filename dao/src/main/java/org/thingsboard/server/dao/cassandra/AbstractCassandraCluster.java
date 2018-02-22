@@ -35,9 +35,6 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.core.ProtocolOptions.Compression;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +48,6 @@ import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-@Data
 public abstract class AbstractCassandraCluster {
 
     private static final String COMMA = ",";
@@ -92,7 +88,7 @@ public abstract class AbstractCassandraCluster {
     private Cluster cluster;
     private Cluster.Builder clusterBuilder;
 
-    @Getter(AccessLevel.NONE) private Session session;
+    private Session session;
 
     private MappingManager mappingManager;
 
@@ -128,6 +124,10 @@ public abstract class AbstractCassandraCluster {
         if (!isInstall()) {
             initSession();
         }
+    }
+
+    public Cluster getCluster() {
+        return cluster;
     }
 
     public Session getSession() {
