@@ -37,11 +37,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -76,8 +74,17 @@ public class EntityGroupController extends BaseController {
     public EntityGroup saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
         try {
             checkEntityGroupType(entityGroup.getType());
-            return checkNotNull(entityGroupService.saveEntityGroup(getCurrentUser().getTenantId(), entityGroup));
+
+            EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getCurrentUser().getTenantId(), entityGroup));
+
+            logEntityAction(savedEntityGroup.getId(), savedEntityGroup,
+                    null,
+                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            return savedEntityGroup;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.ENTITY_GROUP), entityGroup,
+                    null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -95,7 +102,18 @@ public class EntityGroupController extends BaseController {
                         "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
             }
             entityGroupService.deleteEntityGroup(entityGroupId);
+
+            logEntityAction(entityGroupId, entityGroup,
+                    null,
+                    ActionType.DELETED, null, strEntityGroupId);
+
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ENTITY_GROUP),
+                    null,
+                    null,
+                    ActionType.DELETED, e, strEntityGroupId);
+
             throw handleException(e);
         }
     }
@@ -121,9 +139,10 @@ public class EntityGroupController extends BaseController {
                                          @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
+        EntityGroup entityGroup = null;
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
+            entityGroup = checkEntityGroupId(entityGroupId);
             if (entityGroup.isGroupAll()) {
                 throw new ThingsboardException("Unable to add entities to entity group: " +
                         "Addition to entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
@@ -135,7 +154,21 @@ public class EntityGroupController extends BaseController {
                 entityIds.add(entityId);
             }
             entityGroupService.addEntitiesToEntityGroup(entityGroupId, entityIds);
+            for (EntityId entityId : entityIds) {
+                logEntityAction((UUIDBased & EntityId)entityId, null,
+                        null,
+                        ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
+            }
         } catch (Exception e) {
+            if (entityGroup != null) {
+                EntityType entityType = entityGroup.getType();
+                String groupName = entityGroup.getName();
+                for (String strEntityId : strEntityIds) {
+                    logEntityAction(emptyId(entityType), null,
+                            null,
+                            ActionType.ADDED_TO_ENTITY_GROUP, e, strEntityId, strEntityGroupId, groupName);
+                }
+            }
             throw handleException(e);
         }
     }
@@ -147,9 +180,10 @@ public class EntityGroupController extends BaseController {
                                               @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
+        EntityGroup entityGroup = null;
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
+            entityGroup = checkEntityGroupId(entityGroupId);
             if (entityGroup.isGroupAll()) {
                 throw new ThingsboardException("Unable to remove entities from entity group: " +
                         "Removal from entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
@@ -161,7 +195,21 @@ public class EntityGroupController extends BaseController {
                 entityIds.add(entityId);
             }
             entityGroupService.removeEntitiesFromEntityGroup(entityGroupId, entityIds);
+            for (EntityId entityId : entityIds) {
+                logEntityAction((UUIDBased & EntityId)entityId, null,
+                        null,
+                        ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
+            }
         } catch (Exception e) {
+            if (entityGroup != null) {
+                EntityType entityType = entityGroup.getType();
+                String groupName = entityGroup.getName();
+                for (String strEntityId : strEntityIds) {
+                    logEntityAction(emptyId(entityType), null,
+                            null,
+                            ActionType.REMOVED_FROM_ENTITY_GROUP, e, strEntityId, strEntityGroupId, groupName);
+                }
+            }
             throw handleException(e);
         }
     }

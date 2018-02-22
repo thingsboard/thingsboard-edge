@@ -34,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -108,8 +110,15 @@ public class IntegrationController extends BaseController {
                 }
                 throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
+
+            logEntityAction(result.getId(), result,
+                    null,
+                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
             return result;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.INTEGRATION), integration,
+                    null, integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -139,10 +148,21 @@ public class IntegrationController extends BaseController {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            checkIntegrationId(integrationId);
+            Integration integration = checkIntegrationId(integrationId);
             integrationService.deleteIntegration(integrationId);
             platformIntegrationService.deleteIntegration(integrationId);
+
+            logEntityAction(integrationId, integration,
+                    null,
+                    ActionType.DELETED, null, strIntegrationId);
+
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.INTEGRATION),
+                    null,
+                    null,
+                    ActionType.DELETED, e, strIntegrationId);
+
             throw handleException(e);
         }
     }

@@ -69,6 +69,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         refreshJwtToken: refreshJwtToken,
         refreshTokenPending: refreshTokenPending,
         updateAuthorizationHeader: updateAuthorizationHeader,
+        setAuthorizationRequestHeader: setAuthorizationRequestHeader,
         gotoDefaultPlace: gotoDefaultPlace,
         forceDefaultPlace: forceDefaultPlace,
         updateLastPublicDashboardId: updateLastPublicDashboardId,
@@ -390,6 +391,14 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         var jwtToken = store.get('jwt_token');
         if (jwtToken) {
             headers['X-Authorization'] = 'Bearer ' + jwtToken;
+        }
+        return jwtToken;
+    }
+
+    function setAuthorizationRequestHeader(request) {
+        var jwtToken = store.get('jwt_token');
+        if (jwtToken) {
+            request.setRequestHeader('X-Authorization', 'Bearer ' + jwtToken);
         }
         return jwtToken;
     }

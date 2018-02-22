@@ -53,7 +53,7 @@ export default function EntityDetailsSidenav() {
 }
 
 /*@ngInject*/
-function EntityDetailsSidenavController($scope, $window, types, entityService, helpLinks) {
+function EntityDetailsSidenavController($scope, $window, types, userService, entityService, helpLinks) {
 
     var vm = this;
 
@@ -72,6 +72,7 @@ function EntityDetailsSidenavController($scope, $window, types, entityService, h
     vm.saveEntity = saveEntity;
     vm.entityHelpLinkId = entityHelpLinkId;
     vm.triggerResize = triggerResize;
+    vm.isTenantAdmin = isTenantAdmin;
 
     $scope.$watch('vm.entityId', function(newVal, prevVal) {
         if (vm.entityId && !angular.equals(newVal, prevVal)) {
@@ -134,6 +135,10 @@ function EntityDetailsSidenavController($scope, $window, types, entityService, h
     function triggerResize() {
         var w = angular.element($window);
         w.triggerHandler('resize');
+    }
+
+    function isTenantAdmin() {
+        return userService.getAuthority() == 'TENANT_ADMIN';
     }
 
 }

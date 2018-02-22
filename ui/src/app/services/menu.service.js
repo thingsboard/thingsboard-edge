@@ -326,6 +326,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     icon: 'format_paint'
                                 }
                             ]
+                        },
+                        {
+                            name: 'audit-log.audit-logs',
+                            type: 'link',
+                            state: 'home.auditLogs',
+                            icon: 'track_changes'
                         }];
 
                     homeSections =
@@ -429,6 +435,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'white-labeling.white-labeling',
                                         icon: 'format_paint',
                                         state: 'home.settings.whiteLabel'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'audit-log.audit',
+                                places: [
+                                    {
+                                        name: 'audit-log.audit-logs',
+                                        icon: 'track_changes',
+                                        state: 'home.auditLogs'
                                     }
                                 ]
                             }];

@@ -33,15 +33,14 @@ package org.thingsboard.server.actors.plugin;
 import akka.actor.ActorRef;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.PluginId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.controller.plugin.PluginWebSocketMsgEndpoint;
-import org.thingsboard.server.common.data.id.PluginId;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -82,6 +81,7 @@ public final class SharedPluginProcessingContext {
     final RelationService relationService;
     final ConverterService converterService;
     final IntegrationService integrationService;
+    final AuditLogService auditLogService;
     final PluginId pluginId;
     final TenantId tenantId;
 
@@ -107,6 +107,7 @@ public final class SharedPluginProcessingContext {
         this.relationService = sysContext.getRelationService();
         this.converterService = sysContext.getConverterService();
         this.integrationService = sysContext.getIntegrationService();
+        this.auditLogService = sysContext.getAuditLogService();
     }
 
     public PluginId getPluginId() {
