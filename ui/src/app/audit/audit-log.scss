@@ -35,6 +35,9 @@
   }
   .tb-audit-log-toolbar {
     font-size: 20px;
+    input {
+      font-size: 20px;
+    }
   }
   md-input-container.tb-audit-log-search-input {
     .md-errors-spacer {
