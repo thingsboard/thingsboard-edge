@@ -34,10 +34,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.mqtt.AbstractMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.service.integration.mqtt.MqttTopicFilter;
@@ -53,8 +54,8 @@ import java.util.Map;
 public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttIntegrationMsg> {
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
 
         List<MqttTopicFilter> topics = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("topicFilters")),
                 new TypeReference<List<MqttTopicFilter>>() {
@@ -62,7 +63,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
         for (MqttTopicFilter topicFilter : topics) {
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
-                    process(context, new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
+                    process(params.getContext(), new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
     }
 

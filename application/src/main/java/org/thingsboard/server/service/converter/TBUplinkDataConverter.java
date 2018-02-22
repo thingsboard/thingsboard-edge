@@ -30,47 +30,16 @@
  */
 package org.thingsboard.server.service.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.service.integration.ConverterContext;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by ashvayka on 18.12.17.
+ * Created by ashvayka on 02.12.17.
  */
-@Slf4j
-public abstract class AbstractDataConverter implements TBDataConverter {
+public interface TBUplinkDataConverter extends TBDataConverter {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
-    protected Converter configuration;
+    List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception;
 
-    @Override
-    public void init(Converter configuration) {
-        this.configuration = configuration;
-    }
-
-    protected String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
 }

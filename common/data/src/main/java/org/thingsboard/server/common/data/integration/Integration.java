@@ -46,6 +46,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
 
     private TenantId tenantId;
     private ConverterId defaultConverterId;
+    private ConverterId downlinkConverterId;
     private String name;
     private String routingKey;
     private IntegrationType type;
@@ -65,6 +66,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         super(integration);
         this.tenantId = integration.getTenantId();
         this.defaultConverterId = integration.getDefaultConverterId();
+        this.downlinkConverterId = integration.getDownlinkConverterId();
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
@@ -87,6 +89,14 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
 
     public void setDefaultConverterId(ConverterId defaultConverterId) {
         this.defaultConverterId = defaultConverterId;
+    }
+
+    public ConverterId getDownlinkConverterId() {
+        return downlinkConverterId;
+    }
+
+    public void setDownlinkConverterId(ConverterId downlinkConverterId) {
+        this.downlinkConverterId = downlinkConverterId;
     }
 
     public String getRoutingKey() {

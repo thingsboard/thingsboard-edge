@@ -30,16 +30,14 @@
  */
 package org.thingsboard.server.service.integration.http.sigfox;
 
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
-import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 
 public class SigFoxIntegration extends BasicHttpIntegration {
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
     }
 
 }

@@ -42,14 +42,18 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
+import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -58,14 +62,16 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected final ObjectMapper mapper = new ObjectMapper();
     protected Integration configuration;
-    protected ThingsboardDataConverter converter;
+    protected TBUplinkDataConverter uplinkConverter;
+    protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        this.configuration = dto;
-        this.converter = converter;
+    public void init(TbIntegrationInitParams params) throws Exception {
+        this.configuration = params.getConfiguration();
+        this.uplinkConverter = params.getUplinkConverter();
+        this.downlinkConverter = params.getDownlinkConverter();
         Map<String, String> mdMap = new HashMap<>();
         mdMap.put("integrationName", configuration.getName());
         JsonNode metadata = configuration.getConfiguration().get("metadata");
@@ -82,8 +88,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void update(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        init(context, dto, converter);
+    public void update(TbIntegrationInitParams params) throws Exception {
+        init(params);
     }
 
     @Override
@@ -163,6 +169,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
-        return this.converter.convertUplink(context.getConverterContext(), data, md);
+        return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
     }
 }

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.integration.mqtt;
 
-import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
@@ -40,10 +39,11 @@ import nl.jk5.mqtt.MqttClientConfig;
 import nl.jk5.mqtt.MqttConnectResult;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDataConverter;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
 import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 
 import javax.net.ssl.SSLException;
 import java.util.Optional;
@@ -59,8 +59,8 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     protected MqttClient mqttClient;
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
         MqttClientConfiguration mqttClientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 MqttClientConfiguration.class);
@@ -72,11 +72,11 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
-    public void update(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+    public void update(TbIntegrationInitParams params) throws Exception {
         if (mqttClient != null) {
             mqttClient.disconnect();
         }
-        init(context, dto, converter);
+        init(params);
     }
 
     @Override

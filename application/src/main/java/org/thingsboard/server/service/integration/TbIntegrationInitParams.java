@@ -28,49 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.converter;
+package org.thingsboard.server.service.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
-import org.thingsboard.server.service.integration.ConverterContext;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.transport.SessionMsgProcessor;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
+import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
+import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 
 /**
- * Created by ashvayka on 18.12.17.
+ * Created by ashvayka on 05.12.17.
  */
-@Slf4j
-public abstract class AbstractDataConverter implements TBDataConverter {
+@Data
+@AllArgsConstructor
+public class TbIntegrationInitParams {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
-    protected Converter configuration;
+    private IntegrationContext context;
 
-    @Override
-    public void init(Converter configuration) {
-        this.configuration = configuration;
-    }
+    private Integration configuration;
 
-    protected String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
+    private TBUplinkDataConverter uplinkConverter;
+
+    private TBDownlinkDataConverter downlinkConverter;
+
 }

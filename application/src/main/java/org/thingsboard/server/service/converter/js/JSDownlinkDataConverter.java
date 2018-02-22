@@ -31,21 +31,22 @@
 package org.thingsboard.server.service.converter.js;
 
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.AbstractDataConverter;
+import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
+import org.thingsboard.server.service.converter.AbstractUplinkDataConverter;
+import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.ConverterContext;
+
+import java.util.List;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
-public class JSDataConverter extends AbstractDataConverter {
-
-    private JSUplinkEvaluator jsUplinkEvaluator;
+public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
-        String decoder = configuration.getConfiguration().get("decoder").asText();
-        jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
     }
 
     @Override
@@ -56,17 +57,10 @@ public class JSDataConverter extends AbstractDataConverter {
 
     @Override
     public void destroy() {
-        if (jsUplinkEvaluator != null) {
-            jsUplinkEvaluator.destroy();
-        }
     }
 
     @Override
-    public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return applyJsFunction(data, metadata);
-    }
-
-    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
-        return jsUplinkEvaluator.execute(data, metadata);
+    public List<UplinkData> convertDownlink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception {
+        return null;
     }
 }

@@ -290,6 +290,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.integration (
     tenant_id timeuuid,
     name text,
     converter_id timeuuid,
+    downlink_converter_id timeuuid,
     type text,
     routing_key text,
     search_text text,

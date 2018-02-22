@@ -36,6 +36,7 @@ import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -52,9 +53,8 @@ import java.util.UUID;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_PROPERTY;
 
+@Data
 @Table(name = INTEGRATION_COLUMN_FAMILY_NAME)
-@EqualsAndHashCode
-@ToString
 public class IntegrationEntity implements SearchTextEntity<Integration> {
 
     @PartitionKey
@@ -67,6 +67,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
 
     @Column(name = INTEGRATION_CONVERTER_ID_PROPERTY)
     private UUID converterId;
+
+    @Column(name = INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY)
+    private UUID downlinkConverterId;
 
     @Column(name = INTEGRATION_TYPE_PROPERTY, codec = IntegrationTypeCodec.class)
     private IntegrationType type;
@@ -103,6 +106,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         if (integration.getDefaultConverterId() != null) {
             this.converterId = integration.getDefaultConverterId().getId();
         }
+        if (integration.getDownlinkConverterId() != null) {
+            this.downlinkConverterId = integration.getDownlinkConverterId().getId();
+        }
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
@@ -112,91 +118,8 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
     }
 
     @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public UUID getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(UUID tenantId) {
-        this.tenantId = tenantId;
-    }
-
-    public UUID getConverterId() {
-        return converterId;
-    }
-
-    public void setConverterId(UUID converterId) {
-        this.converterId = converterId;
-    }
-
-    public IntegrationType getType() {
-        return type;
-    }
-
-    public void setType(IntegrationType type) {
-        this.type = type;
-    }
-
-    public String getRoutingKey() {
-        return routingKey;
-    }
-
-    public void setRoutingKey(String routingKey) {
-        this.routingKey = routingKey;
-    }
-
-    public boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public void setDebugMode(boolean debugMode) {
-        this.debugMode = debugMode;
-    }
-
-    public JsonNode getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(JsonNode configuration) {
-        this.configuration = configuration;
-    }
-
-    public JsonNode getAdditionalInfo() {
-        return additionalInfo;
-    }
-
-    public void setAdditionalInfo(JsonNode additionalInfo) {
-        this.additionalInfo = additionalInfo;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
     public String getSearchTextSource() {
         return getName();
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override
@@ -208,6 +131,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         }
         if (converterId != null) {
             integration.setDefaultConverterId(new ConverterId(converterId));
+        }
+        if (downlinkConverterId != null) {
+            integration.setDownlinkConverterId(new ConverterId(downlinkConverterId));
         }
         integration.setName(name);
         integration.setRoutingKey(routingKey);

@@ -31,15 +31,15 @@
 package org.thingsboard.server.service.integration.http.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 
 import java.nio.charset.StandardCharsets;
@@ -64,8 +64,8 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     private long maxTimeDiffInSeconds;
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
         JsonNode json = configuration.getConfiguration();
         securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
         if (securityEnabled) {

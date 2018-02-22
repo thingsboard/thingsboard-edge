@@ -33,11 +33,12 @@ package org.thingsboard.server.service.integration.azure;
 import com.microsoft.azure.eventhubs.*;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -57,9 +58,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private Future receiverFuture;
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
-        this.context = context;
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
+        this.context = params.getContext();
         AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 AzureEventHubClientConfiguration.class);
@@ -77,9 +78,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void update(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
+    public void update(TbIntegrationInitParams params) throws Exception {
         destroy();
-        init(context, dto, converter);
+        init(params);
     }
 
     @Override

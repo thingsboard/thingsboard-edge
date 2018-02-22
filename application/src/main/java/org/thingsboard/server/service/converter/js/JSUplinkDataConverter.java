@@ -28,49 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.converter;
+package org.thingsboard.server.service.converter.js;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
-import org.thingsboard.server.service.integration.ConverterContext;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.thingsboard.server.service.converter.AbstractUplinkDataConverter;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 
 /**
- * Created by ashvayka on 18.12.17.
+ * Created by ashvayka on 02.12.17.
  */
-@Slf4j
-public abstract class AbstractDataConverter implements TBDataConverter {
+public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
-    protected Converter configuration;
+    private JSUplinkEvaluator jsUplinkEvaluator;
 
     @Override
     public void init(Converter configuration) {
-        this.configuration = configuration;
+        super.init(configuration);
+        String decoder = configuration.getConfiguration().get("decoder").asText();
+        jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
     }
 
-    protected String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+    @Override
+    public void update(Converter configuration) {
+        destroy();
+        init(configuration);
+    }
+
+    @Override
+    public void destroy() {
+        if (jsUplinkEvaluator != null) {
+            jsUplinkEvaluator.destroy();
+        }
+    }
+
+    @Override
+    public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
+        return applyJsFunction(data, metadata);
+    }
+
+    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
+        return jsUplinkEvaluator.execute(data, metadata);
     }
 }
