@@ -342,7 +342,7 @@ audit_log:
       "customer": "${AUDIT_LOG_MASK_CUSTOMER:W}"
       "user": "${AUDIT_LOG_MASK_USER:W}"
       "rule": "${AUDIT_LOG_MASK_RULE:W}"
-      "plugin": "${AUDIT_LOG_MASK_PLUGIN:W}",
-      "integration": "${AUDIT_LOG_MASK_INTEGRATION:W}",
-      "converter": "${AUDIT_LOG_MASK_CONVERTER:W}",
+      "plugin": "${AUDIT_LOG_MASK_PLUGIN:W}"
+      "integration": "${AUDIT_LOG_MASK_INTEGRATION:W}"
+      "converter": "${AUDIT_LOG_MASK_CONVERTER:W}"
       "entity_group": "${AUDIT_LOG_MASK_ENTITY_GROUP:W}"

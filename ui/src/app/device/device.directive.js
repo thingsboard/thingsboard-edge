@@ -75,7 +75,7 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
                         var credentialsId = credentials.credentialsId;
                         clipboardService.copyToClipboard(trigger, credentialsId).then(
                             () => {
-                                toast.showSuccess($translate.instant('device.accessTokenCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+                                toast.showSuccess($translate.instant('device.accessTokenCopiedMessage'), 750, angular.element(element).closest("md-tab-content"), 'bottom left');
                             }
                         );
                     }

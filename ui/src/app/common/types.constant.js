@@ -210,6 +210,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ATTRIBUTES_READ": {
                     name: "audit-log.type-attributes-read"
+                },
+                "ADDED_TO_ENTITY_GROUP": {
+                    name: "audit-log.type-added-to-entity-group"
+                },
+                "REMOVED_FROM_ENTITY_GROUP": {
+                    name: "audit-log.type-removed-from-entity-group"
                 }
             },
             auditLogActionStatus: {

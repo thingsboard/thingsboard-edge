@@ -352,6 +352,8 @@ export default angular.module('thingsboard.locale', [])
                     "type-suspended": "Suspended",
                     "type-credentials-read": "Credentials read",
                     "type-attributes-read": "Attributes read",
+                    "type-added-to-entity-group": "Added to group",
+                    "type-removed-from-entity-group": "Removed from group",
                     "status-success": "Success",
                     "status-failure": "Failure",
                     "audit-log-details": "Audit log details",
