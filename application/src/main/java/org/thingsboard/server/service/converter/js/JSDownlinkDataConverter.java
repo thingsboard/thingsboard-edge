@@ -42,9 +42,13 @@ import java.util.List;
  */
 public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
+    private JSDownlinkEvaluator jsDownlinkEvaluator;
+
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
+        String encoder = configuration.getConfiguration().get("encoder").asText();
+        jsDownlinkEvaluator = new JSDownlinkEvaluator(encoder);
     }
 
     @Override
@@ -55,10 +59,18 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
     @Override
     public void destroy() {
+        if (jsDownlinkEvaluator != null) {
+            jsDownlinkEvaluator.destroy();
+        }
     }
 
+
     @Override
-    public List<DownlinkData> convertDownLink(ConverterContext context, List<DownLinkMsg> downLinkMsgs, DownLinkMetaData metadata) throws Exception {
-        return null;
+    protected String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception {
+        return applyJsFunction(payload, metadata);
+    }
+
+    private String applyJsFunction(String payload, DownLinkMetaData metadata) throws Exception {
+        return jsDownlinkEvaluator.execute(payload, metadata);
     }
 }

@@ -31,5 +31,5 @@
 package org.thingsboard.server.common.data.converter;
 
 public enum ConverterType {
-    GENERIC, CUSTOM, DOWNLINK
+    UPLINK, DOWNLINK
 }

@@ -39,14 +39,14 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 @Slf4j
-public class JSUplinkEvaluator {
+public class JSUplinkEvaluator extends AbstractJSEvaluator {
 
     private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(bytes, metadata) { " +
             "    var payload = convertBytes(bytes); " +
             "    return JSON.stringify(Decoder(payload, metadata));" +
             "    function Decoder(payload, metadata) {";
 
-    private static final String JS_WRAPPER_SUFIX = "}" +
+    private static final String JS_WRAPPER_SUFFIX = "}" +
             "    function convertBytes(bytes) {\n" +
             "       var payload = [];\n" +
             "       for (var i = 0; i < bytes.length; i++) {\n" +
@@ -56,17 +56,14 @@ public class JSUplinkEvaluator {
             "    }\n" +
             "\n}";
 
-    private static NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-    private static ScriptEngine engine = factory.getScriptEngine("--no-java");
-
     private final String functionName;
 
     public JSUplinkEvaluator(String decoder) {
         this.functionName = "decodeInternal" + this.hashCode();
-        String jsWrapperPerfix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
-        compileScript(jsWrapperPerfix
+        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
+        compileScript(jsWrapperPrefix
                 + decoder
-                + JS_WRAPPER_SUFIX);
+                + JS_WRAPPER_SUFFIX);
     }
 
     public void destroy() {
@@ -75,15 +72,6 @@ public class JSUplinkEvaluator {
 
     public String execute(byte[] data, UplinkMetaData metadata) throws ScriptException, NoSuchMethodException {
         return ((Invocable)engine).invokeFunction(this.functionName, data, metadata.getKvMap()).toString();
-    }
-
-    private static void compileScript(String script) {
-        try {
-            engine.eval(script);
-        } catch (ScriptException e) {
-            log.warn("Failed to compile filter script: {}", e.getMessage(), e);
-            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
-        }
     }
 
 }

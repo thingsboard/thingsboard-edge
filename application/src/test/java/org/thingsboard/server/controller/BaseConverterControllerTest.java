@@ -94,7 +94,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     public void testSaveConverter() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
@@ -115,7 +115,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     public void testFindConverterById() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
@@ -127,7 +127,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     public void testDeleteConverter() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
@@ -150,7 +150,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     @Test
     public void testSaveConverterWithEmptyName() throws Exception {
         Converter converter = new Converter();
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         doPost("/api/converter", converter)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Converter name should be specified")));
@@ -162,7 +162,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         for (int i = 0; i < 178; i++) {
             Converter converter = new Converter();
             converter.setName("Converter" + i);
-            converter.setType(ConverterType.CUSTOM);
+            converter.setType(ConverterType.UPLINK);
             converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
@@ -195,7 +195,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
-            converter.setType(ConverterType.CUSTOM);
+            converter.setType(ConverterType.UPLINK);
             converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
@@ -207,7 +207,7 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
-            converter.setType(ConverterType.CUSTOM);
+            converter.setType(ConverterType.UPLINK);
             converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters1.add(doPost("/api/converter", converter, Converter.class));
         }

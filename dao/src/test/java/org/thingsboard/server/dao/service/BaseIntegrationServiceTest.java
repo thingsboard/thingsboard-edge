@@ -80,7 +80,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         return converterService.saveConverter(converter);
     }

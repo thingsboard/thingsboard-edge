@@ -108,7 +108,7 @@ public class DefaultDataConverterService implements DataConverterService {
 
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
-            case CUSTOM:
+            case UPLINK:
                 JSUplinkDataConverter uplink = new JSUplinkDataConverter();
                 uplink.init(converter);
                 return uplink;

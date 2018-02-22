@@ -28,22 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.downlink;
+package org.thingsboard.server.service.converter.js;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Created by ashvayka on 22.02.18.
- */
-@AllArgsConstructor
-@Data
-public class AttributeUpdate implements Serializable {
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
-    private long lastUpdateTs;
-    private String value;
+@Slf4j
+public class JSDownlinkEvaluator extends AbstractJSEvaluator {
+
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(jsonStr, metadata) { " +
+            "    var payload = JSON.parse(jsonStr); " +
+            "    return JSON.stringify(Encoder(payload, metadata));" +
+            "    function Encoder(payload, metadata) {";
+
+    private static final String JS_WRAPPER_SUFFIX = "}\n}";
+
+    private final String functionName;
+
+    public JSDownlinkEvaluator(String encoder) {
+        this.functionName = "encodeInternal" + this.hashCode();
+        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
+        compileScript(jsWrapperPrefix
+                + encoder
+                + JS_WRAPPER_SUFFIX);
+    }
+
+    public void destroy() {
+        //engine = null;
+    }
+
+    public String execute(String payload, DownLinkMetaData metadata) throws ScriptException, NoSuchMethodException, JsonProcessingException {
+        return ((Invocable)engine).invokeFunction(this.functionName, payload, metadata.getKvMap()).toString();
+    }
 
 }
-

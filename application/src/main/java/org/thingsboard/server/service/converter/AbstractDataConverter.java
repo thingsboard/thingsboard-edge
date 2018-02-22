@@ -73,4 +73,43 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         e.printStackTrace(new PrintWriter(sw));
         return sw.toString();
     }
+
+    private String convertToString(String messageType, byte[] message) {
+        if (message == null) {
+            return null;
+        }
+        switch (messageType) {
+            case "JSON":
+            case "TEXT":
+                return new String(message, StandardCharsets.UTF_8);
+            case "BINARY":
+                return Base64Utils.encodeToString(message);
+            default:
+                throw new RuntimeException("Message type: " + messageType + " is not supported!");
+        }
+    }
+
+    protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
+                              String outMessageType, byte[] outMessage, String metadata, Exception exception) {
+        Event event = new Event();
+        event.setTenantId(configuration.getTenantId());
+        event.setEntityId(configuration.getId());
+        event.setType(DataConstants.DEBUG_CONVERTER);
+
+        ObjectNode node = mapper.createObjectNode()
+                .put("server", context.getDiscoveryService().getCurrentServer().getServerAddress().toString())
+                .put("type", type)
+                .put("inMessageType", inMessageType)
+                .put("in", convertToString(inMessageType, inMessage))
+                .put("outMessageType", outMessageType)
+                .put("out", convertToString(outMessageType, outMessage))
+                .put("metadata", metadata);
+
+        if (exception != null) {
+            node = node.put("error", toString(exception));
+        }
+
+        event.setBody(node);
+        context.getEventService().save(event);
+    }
 }

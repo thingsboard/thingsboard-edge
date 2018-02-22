@@ -74,7 +74,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
 
@@ -97,7 +97,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testSaveConverterWithEmptyName() {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converterService.saveConverter(converter);
     }
 
@@ -105,7 +105,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testSaveConverterWithEmptyTenant() {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converterService.saveConverter(converter);
     }
 
@@ -113,7 +113,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
     public void testSaveConverterWithInvalidTenant() {
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setTenantId(new TenantId(UUIDs.timeBased()));
         converterService.saveConverter(converter);
     }
@@ -123,7 +123,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
         Converter foundConverter = converterService.findConverterById(savedConverter.getId());
@@ -137,7 +137,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
         Converter foundConverter = converterService.findConverterById(savedConverter.getId());
@@ -160,7 +160,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
             Converter converter = new Converter();
             converter.setTenantId(tenantId);
             converter.setName("Converter" + i);
-            converter.setType(ConverterType.CUSTOM);
+            converter.setType(ConverterType.UPLINK);
             converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(converterService.saveConverter(converter));
         }

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.downlink;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
@@ -82,6 +83,7 @@ public class DownLinkMsg implements Serializable {
         return result;
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
         return deletedAttributes.isEmpty() && updatedAttributes.isEmpty() && rpcCalls.isEmpty();
     }

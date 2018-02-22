@@ -30,44 +30,24 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.thingsboard.server.service.converter.UplinkMetaData;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.stream.Collectors;
 
-/**
- * Created by ashvayka on 04.12.17.
- */
-@RunWith(MockitoJUnitRunner.class)
-public class NashornJsConverterEvaluatorTest {
+@Slf4j
+public abstract class AbstractJSEvaluator {
 
+    protected static NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+    protected static ScriptEngine engine = factory.getScriptEngine("--no-java");
 
-    @Test
-    public void basicTest() throws ScriptException, NoSuchMethodException {
-        JSUplinkEvaluator eval = create("uplinkConvertor.js");
-        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
-        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
-    }
-
-    private JSUplinkEvaluator create(String scriptName) {
-        InputStream src = NashornJsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSUplinkEvaluator(read(src));
-    }
-
-    public static String read(InputStream input) {
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
-            return buffer.lines().collect(Collectors.joining(System.lineSeparator()));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    protected static void compileScript(String script) {
+        try {
+            engine.eval(script);
+        } catch (ScriptException e) {
+            log.warn("Failed to compile filter script: {}", e.getMessage(), e);
+            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
         }
     }
 

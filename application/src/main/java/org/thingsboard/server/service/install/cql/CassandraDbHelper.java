@@ -69,6 +69,28 @@ public class CassandraDbHelper {
         }
     }
 
+    public static List<String[]> loadData(KeyspaceMetadata ks, Session session, String cfName, String statement, String[] columns) throws Exception {
+        List<String[]> result = new ArrayList<>();
+        if (ks.getTable(cfName) != null) {
+            Statement stmt = new SimpleStatement(statement);
+            stmt.setFetchSize(1000);
+            ResultSet rs = session.execute(stmt);
+            Iterator<Row> iter = rs.iterator();
+            while (iter.hasNext()) {
+                Row row = iter.next();
+                if (row != null) {
+                    String[] values = new String[columns.length];
+                    for (int i=0;i<columns.length;i++) {
+                        String column = columns[i];
+                        values[i] = getColumnValue(column, "", row);
+                    }
+                    result.add(values);
+                }
+            }
+        }
+        return result;
+    }
+
     public static void appendToEndOfLine(Path targetDumpFile, String toAppend) throws Exception {
         Path tmp = Files.createTempFile(null, null);
         try (CSVParser csvParser = new CSVParser(Files.newBufferedReader(targetDumpFile), CSV_DUMP_FORMAT)) {
@@ -101,7 +123,6 @@ public class CassandraDbHelper {
             });
         }
     }
-
 
     private static void dumpRow(Row row, String[] columns, String[] defaultValues, CSVPrinter csvPrinter) throws Exception {
         List<String> record = new ArrayList<>();
