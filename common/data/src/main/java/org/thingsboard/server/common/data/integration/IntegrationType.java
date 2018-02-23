@@ -31,5 +31,16 @@
 package org.thingsboard.server.common.data.integration;
 
 public enum IntegrationType {
-    OCEANCONNECT, SIGFOX, THINGPARK, HTTP, MQTT, AWS_IOT, IBM_WATSON_IOT, AZURE_EVENT_HUB
+    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), AZURE_EVENT_HUB(true);
+
+    //Identifies if the Integration instance is one per cluster.
+    private final boolean singleton;
+
+    IntegrationType(boolean singleton) {
+        this.singleton = singleton;
+    }
+
+    public boolean isSingleton() {
+        return singleton;
+    }
 }
