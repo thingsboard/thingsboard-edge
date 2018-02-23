@@ -61,7 +61,7 @@ public class DefaultDownlinkService implements DownlinkService {
     @Autowired
     private CacheManager cacheManager;
 
-    @Cacheable(cacheNames = DEVICE_CACHE, key = "{#integrationId, #deviceId}")
+    @Cacheable(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #deviceId}")
     @Override
     public DownLinkMsg get(IntegrationId integrationId, DeviceId deviceId) {
         return null;
@@ -84,7 +84,7 @@ public class DefaultDownlinkService implements DownlinkService {
     }
 
     private <T extends ToDeviceIntegrationMsg> DownLinkMsg getAndMerge(T msg, Function<T, DownLinkMsg> from, BiFunction<DownLinkMsg, T, DownLinkMsg> merge) {
-        Cache cache = cacheManager.getCache(DEVICE_CACHE);
+        Cache cache = cacheManager.getCache(DOWNLINK_CACHE);
         List<Object> key = new ArrayList<>();
         key.add(msg.getIntegrationId());
         key.add(msg.getDeviceId());

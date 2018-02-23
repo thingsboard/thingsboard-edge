@@ -44,9 +44,6 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.ToDeviceIntegrationMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -81,53 +78,26 @@ public class SigFoxIntegration extends BasicHttpIntegration {
         }
     }
 
-    protected ResponseEntity processDownLinkData(IntegrationContext context, Device device, UplinkData uplink, String sigFoxDeviceId) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, Device device, UplinkData uplink, String sigFoxDeviceId) throws Exception {
         if (downlinkConverter != null) {
             DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
             if (pending != null) {
                 List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(pending), new DownLinkMetaData(Collections.emptyMap()));
-                if (result.size() == 0 || result.size() > 1) {
-                    fromStatus(HttpStatus.NO_CONTENT);
-                } else {
+                context.getDownlinkService().remove(configuration.getId(), device.getId());
+                if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);
                     ObjectNode json = mapper.createObjectNode();
                     json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
                     HttpHeaders responseHeaders = new HttpHeaders();
                     responseHeaders.add("Content-Type", "application/json");
                     ResponseEntity response = new ResponseEntity(json, responseHeaders, HttpStatus.OK);
+                    logDownlink(context, "Downlink", response);
                     return response;
                 }
             }
         }
 
         return fromStatus(HttpStatus.NO_CONTENT);
-    }
-
-    @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-        logUpdate(context, "SharedAttributeUpdate", msg);
-        if (downlinkConverter != null) {
-            context.getDownlinkService().put(msg);
-        }
-    }
-
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
-        logUpdate(context, "RPCCall", msg);
-        if (downlinkConverter != null) {
-            context.getDownlinkService().put(msg);
-        }
-    }
-
-    private <T extends ToDeviceIntegrationMsg> void logUpdate(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            //TODO: log updateType
-            try {
-                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
     }
 
 }

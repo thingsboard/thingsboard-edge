@@ -31,17 +31,25 @@
 package org.thingsboard.server.service.integration.http.basic;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
@@ -67,10 +75,72 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     @Override
     protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
-            processUplinkData(context, msg);
+            Map<Device, UplinkData> result = processUplinkData(context, msg);
+            if (result.isEmpty()) {
+                return fromStatus(HttpStatus.NO_CONTENT);
+            } else {
+
+            }
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @Override
+    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
+        logDownlink(context, "SharedAttributeUpdate", msg);
+        if (downlinkConverter != null) {
+            context.getDownlinkService().put(msg);
+        }
+    }
+
+    @Override
+    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
+        logDownlink(context, "RPCCall", msg);
+        if (downlinkConverter != null) {
+            context.getDownlinkService().put(msg);
+        }
+    }
+
+    private ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> uplinkData) throws Exception {
+        if (downlinkConverter != null) {
+            List<DownLinkMsg> pendingDownlinks = new ArrayList<>();
+            for (Device device : uplinkData.keySet()) {
+                DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
+                if (pending != null) {
+                    pendingDownlinks.add(pending);
+                }
+            }
+
+            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pendingDownlinks, new DownLinkMetaData(Collections.emptyMap()));
+
+            for (Device device : uplinkData.keySet()) {
+                context.getDownlinkService().remove(configuration.getId(), device.getId());
+            }
+
+            if (result.size() == 1 && !result.get(0).isEmpty()) {
+//                DownlinkData downlink = result.get(0);
+//                ObjectNode json = mapper.createObjectNode();
+//                json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
+//                HttpHeaders responseHeaders = new HttpHeaders();
+//                responseHeaders.add("Content-Type", "application/json");
+//                ResponseEntity response = new ResponseEntity(json, responseHeaders, HttpStatus.OK);
+//                logDownlink(context, "Downlink", response);
+//                return response;
+            }
+        }
+
+        return fromStatus(HttpStatus.NO_CONTENT);
+    }
+
+    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
         }
     }
 

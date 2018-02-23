@@ -7,8 +7,8 @@
 var data = {};
 
 // Process updated attributes
-data.temp = payload.updatedAttributes.temperature.value;
-data.hum = payload.updatedAttributes.humidity.value;
+data.tempFreq = payload.updatedAttributes.temperatureUploadFrequency.value;
+data.humFreq = payload.updatedAttributes.humidityUploadFrequency.value;
 
 // Process deleted attributes
 if (payload.deletedAttributes.length) {

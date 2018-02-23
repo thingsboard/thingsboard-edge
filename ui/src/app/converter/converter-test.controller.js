@@ -65,19 +65,19 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
                 "entityType":"DEVICE",
                 "id":"00000000-0000-0000-0000-000000000000"
             },
-            "deviceName":"sensor-a",
+            "deviceName":"sensorA",
             "deviceType":"temp-sensor",
             "deletedAttributes":[
-                "latitude"
+                "moistureUploadFrequency"
             ],
             "updatedAttributes":{
-                "temperature":{
+                "temperatureUploadFrequency":{
                     "lastUpdateTs":1519376381160,
-                    "value":"33"
+                    "value":"60"
                 },
-                "humidity":{
+                "humidityUploadFrequency":{
                     "lastUpdateTs":1519376381160,
-                    "value":"78"
+                    "value":"30"
                 }
             },
             "rpcCalls":[

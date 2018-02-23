@@ -54,4 +54,8 @@ public class DownlinkData {
     private final byte[] data;
     private final Map<String, String> metadata;
 
+    public boolean isEmpty() {
+        return data == null || data.length == 0;
+    }
+
 }
