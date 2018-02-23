@@ -51,10 +51,12 @@ import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateInte
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Map.Entry;
 
 @Slf4j
 public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
+    public static final String HEADER = "Header:";
     private boolean securityEnabled = false;
     private Map<String, String> headersFilter = new HashMap<>();
 
@@ -79,9 +81,8 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
             if (result.isEmpty()) {
                 return fromStatus(HttpStatus.NO_CONTENT);
             } else {
-
+                return processDownLinkData(context, result);
             }
-            return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
@@ -126,18 +127,61 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
             }
 
             if (result.size() == 1 && !result.get(0).isEmpty()) {
-//                DownlinkData downlink = result.get(0);
-//                ObjectNode json = mapper.createObjectNode();
-//                json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
-//                HttpHeaders responseHeaders = new HttpHeaders();
-//                responseHeaders.add("Content-Type", "application/json");
-//                ResponseEntity response = new ResponseEntity(json, responseHeaders, HttpStatus.OK);
-//                logDownlink(context, "Downlink", response);
-//                return response;
+                DownlinkData downlink = result.get(0);
+                ResponseEntity response = null;
+                switch (downlink.getContentType()) {
+                    case "JSON":
+                        response = convertJson(downlink);
+                        break;
+                    case "TEXT":
+                        response = convertText(downlink);
+                        break;
+                    case "BINARY":
+                        response = convertBinary(downlink);
+                        break;
+                    default:
+                        throw new RuntimeException("Not supported content type: " + downlink.getContentType());
+                }
+                logDownlink(context, "Downlink", response);
+                return response;
             }
         }
 
         return fromStatus(HttpStatus.NO_CONTENT);
+    }
+
+    private ResponseEntity convertJson(DownlinkData downlink) {
+        HttpHeaders responseHeaders = getHttpHeaders(downlink, "application/json");
+        return new ResponseEntity(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
+    }
+
+    private ResponseEntity convertText(DownlinkData downlink) {
+        HttpHeaders responseHeaders = getHttpHeaders(downlink, "text/plain");
+        return new ResponseEntity(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
+    }
+
+    private ResponseEntity convertBinary(DownlinkData downlink) {
+        HttpHeaders responseHeaders = getHttpHeaders(downlink, "application/octet-stream");
+        return new ResponseEntity(downlink.getData(), responseHeaders, HttpStatus.OK);
+    }
+
+    private HttpHeaders getHttpHeaders(DownlinkData downlink, String defaultContentType) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+
+        boolean contentTypePresent = false;
+        for (Entry<String, String> kv : downlink.getMetadata().entrySet()) {
+            if (kv.getKey().startsWith(HEADER)) {
+                String headerName = kv.getKey().substring(HEADER.length());
+                responseHeaders.add(headerName, kv.getValue());
+                if (headerName.equalsIgnoreCase("Content-Type")) {
+                    contentTypePresent = true;
+                }
+            }
+        }
+        if (!contentTypePresent) {
+            responseHeaders.add("Content-Type", defaultContentType);
+        }
+        return responseHeaders;
     }
 
     protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
@@ -155,7 +199,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         msg.getRequestHeaders().forEach(
                 (header, value) -> {
-                    mdMap.put("header:" + header, value);
+                    mdMap.put("Header:" + header, value);
                 }
         );
 
