@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration.http.sigfox;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
@@ -91,8 +92,9 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                     DownlinkData downlink = result.get(0);
                     ObjectNode json = mapper.createObjectNode();
                     json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
-                    ResponseEntity response = new ResponseEntity(json, HttpStatus.OK);
-                    response.getHeaders().add("Content-Type", "application/json");
+                    HttpHeaders responseHeaders = new HttpHeaders();
+                    responseHeaders.add("Content-Type", "application/json");
+                    ResponseEntity response = new ResponseEntity(json, responseHeaders, HttpStatus.OK);
                     return response;
                 }
             }
@@ -119,8 +121,9 @@ public class SigFoxIntegration extends BasicHttpIntegration {
 
     private <T extends ToDeviceIntegrationMsg> void logUpdate(IntegrationContext context, String updateType, T msg) {
         if (configuration.isDebugMode()) {
+            //TODO: log updateType
             try {
-                persistDebug(context, "Downlink", updateType, mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
