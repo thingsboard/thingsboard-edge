@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.msg;
 
+import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -44,6 +45,7 @@ import java.util.Set;
  * Created by ashvayka on 22.02.18.
  */
 @Data
+@Builder
 public class SharedAttributesUpdateIntegrationMsg implements ToDeviceIntegrationMsg {
 
     private final TenantId tenantId;

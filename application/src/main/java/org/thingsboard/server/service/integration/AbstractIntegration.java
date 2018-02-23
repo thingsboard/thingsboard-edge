@@ -149,7 +149,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             relation.setFrom(configuration.getId());
             relation.setTo(device.getId());
             relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.CONTAINS_TYPE);
+            relation.setType(EntityRelation.INTEGRATION_TYPE);
             context.getRelationService().saveRelation(relation);
         }
         return device;

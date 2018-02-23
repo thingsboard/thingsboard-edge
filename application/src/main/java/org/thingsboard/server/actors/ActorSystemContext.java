@@ -70,6 +70,7 @@ import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -142,6 +143,9 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter @Setter private PluginWebSocketMsgEndpoint wsMsgEndpoint;
+
+    @Autowired
+    @Getter private PlatformIntegrationService platformIntegrationService;
 
     @Value("${actors.session.sync.timeout}")
     @Getter private long syncSessionTimeout;

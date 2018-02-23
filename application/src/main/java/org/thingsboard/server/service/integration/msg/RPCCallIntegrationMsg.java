@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.msg;
 
+import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -46,6 +47,7 @@ import java.util.UUID;
  * Created by ashvayka on 22.02.18.
  */
 @Data
+@Builder
 public class RPCCallIntegrationMsg implements ToDeviceIntegrationMsg {
 
     private final TenantId tenantId;

@@ -40,7 +40,9 @@ import org.thingsboard.server.extensions.api.plugins.msg.ToDeviceRpcRequestPlugi
 import org.thingsboard.server.extensions.api.plugins.msg.ToPluginRpcResponseDeviceMsg;
 import org.thingsboard.server.extensions.api.plugins.rpc.PluginRpcMsg;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.service.integration.msg.IntegrationMsg;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -62,7 +64,10 @@ public interface ClusterRpcService {
 
     void tell(PluginRpcMsg toForward);
 
+    void tell(ServerAddress serverAddress, IntegrationMsg msg);
+
     void broadcast(ToAllNodesMsg msg);
 
     void onSessionCreated(UUID msgUid, StreamObserver<ClusterAPIProtos.ToRpcServerMessage> inputStream);
+
 }
