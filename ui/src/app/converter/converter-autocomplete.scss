@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -28,18 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-import ConverterRoutes from './converter.routes';
-import {ConverterController, ConverterCardController} from './converter.controller';
-import ConverterTestController from './converter-test.controller';
-import ConverterDirective from './converter.directive';
-import ConverterAutocomplete from './converter-autocomplete.directive';
-
-export default angular.module('thingsboard.converter', [])
-    .config(ConverterRoutes)
-    .controller('ConverterController', ConverterController)
-    .controller('ConverterCardController', ConverterCardController)
-    .controller('ConverterTestController', ConverterTestController)
-    .directive('tbConverter', ConverterDirective)
-    .directive('tbConverterAutocomplete', ConverterAutocomplete)
-    .name;
+.tb-converter-autocomplete {
+  .tb-entity-item {
+    display: block;
+    height: 48px;
+  }
+  li {
+    height: auto !important;
+    white-space: normal !important;
+  }
+}

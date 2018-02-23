@@ -46,6 +46,7 @@ import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.downlink.AttributeUpdate;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
+import org.thingsboard.server.service.integration.downlink.RPCCall;
 
 import javax.script.ScriptException;
 import java.io.BufferedReader;
@@ -54,6 +55,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -77,8 +79,19 @@ public class JsConverterEvaluatorTest {
 
         DownLinkMsg downLinkMsg = new DownLinkMsg(new DeviceId(UUIDBased.EMPTY), "Sensor A", "temp-sensor");
         downLinkMsg.getUpdatedAttributes().put("temperature", new AttributeUpdate(System.currentTimeMillis(), "33"));
+        downLinkMsg.getUpdatedAttributes().put("humidity", new AttributeUpdate(System.currentTimeMillis(), "78"));
+        downLinkMsg.getDeletedAttributes().add("latitude");
+
+        RPCCall rpcCall = new RPCCall();
+        rpcCall.setId(UUID.randomUUID());
+        rpcCall.setExpirationTime(System.currentTimeMillis() + 24 * 60 * 1000);
+        rpcCall.setMethod("updateState");
+        rpcCall.setParams("{\"status\": \"ACTIVE\"}");
+
+        downLinkMsg.getRpcCalls().add(rpcCall);
 
         String downlinkPayload = mapper.writeValueAsString(downLinkMsg);
+
         String result = eval.execute(downlinkPayload, new DownLinkMetaData(Collections.singletonMap("topicPrefix", "sensor")));
         JsonElement element = new JsonParser().parse(result);
         Assert.assertTrue(element.isJsonObject());

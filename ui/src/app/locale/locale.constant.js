@@ -416,7 +416,9 @@ export default angular.module('thingsboard.locale', [])
                     "decoder": "Decoder",
                     "encoder": "Encoder",
                     "test-decoder-fuction": "Test decoder function",
-                    "custom-decoder-input-params": "Decoder input parameters",
+                    "test-encoder-fuction": "Test encoder function",
+                    "decoder-input-params": "Decoder input parameters",
+                    "encoder-input-params": "Encoder input parameters",
                     "payload": "Payload",
                     "payload-content-type": "Payload content type",
                     "payload-content": "Payload content",
@@ -432,8 +434,8 @@ export default angular.module('thingsboard.locale', [])
                     "invalid-converter-file-error": "Unable to import converter: Invalid converter data structure.",
                     "type": "Type",
                     "type-required": "Type is required.",
-                    "type-generic": "Generic",
-                    "type-custom": "Custom"
+                    "type-uplink": "Uplink",
+                    "type-downlink": "Downlink"
                 },
                 "content-type": {
                     "json": "Json",
@@ -1255,8 +1257,9 @@ export default angular.module('thingsboard.locale', [])
                     "metadata": "Metadata",
                     "type": "Type",
                     "type-required": "Type is required.",
-                    "default-converter": "Default data converter",
-                    "default-converter-required": "Default data converter is required.",
+                    "uplink-converter": "Uplink data converter",
+                    "uplink-converter-required": "Uplink data converter is required.",
+                    "downlink-converter": "Downlink data converter",
                     "type-http": "HTTP",
                     "type-ocean-connect": "OceanConnect",
                     "type-sigfox": "SigFox",

@@ -63,5 +63,3 @@ CREATE TABLE IF NOT EXISTS integration (
 );
 
 ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);
-
-ALTER TABLE integration ADD COLUMN downlink_converter_id varchar(31);

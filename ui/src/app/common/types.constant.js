@@ -313,13 +313,15 @@ export default angular.module('thingsboard.types', [])
                 alarm: "alarm"
             },
             converterType: {
-                /*"GENERIC": {
-                    name: "converter.type-generic",
-                    value: "GENERIC"
-                },*/
-                "CUSTOM": {
-                    name: "converter.type-custom",
-                    value: "CUSTOM"
+                "UPLINK": {
+                    uplink: true,
+                    name: "converter.type-uplink",
+                    value: "UPLINK"
+                },
+                "DOWNLINK": {
+                    downlink: true,
+                    name: "converter.type-downlink",
+                    value: "DOWNLINK"
                 }
             },
             contentType: {

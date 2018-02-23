@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import './custom-decoder-test.scss';
+import './converter-test.scss';
 
 import Split from 'split.js';
 
@@ -38,22 +38,67 @@ import beautify from 'js-beautify';
 const js_beautify = beautify.js;
 
 /*@ngInject*/
-export default function CustomDecoderTestController($scope, $mdDialog, $window, $document, $timeout,
-                                                    $q, $mdUtil, $translate, toast, types, utils, converterService, onShowingCallback, decoder) {
+export default function ConverterTestController($scope, $mdDialog, $window, $document, $timeout,
+                                                    $q, $mdUtil, $translate, toast, types, utils,
+                                                    converterService, onShowingCallback, isDecoder, funcBody) {
 
     var vm = this;
 
     vm.types = types;
-    vm.decoder = decoder;
+    vm.isDecoder = isDecoder;
+    vm.funcBody = funcBody;
 
-    vm.inputParams = {
-        payloadContentType: types.contentType.JSON.value,
-        stringContent: js_beautify(angular.toJson({devName: "devA", param1: 1, param2: "test"}), {indent_size: 4}),
-        metadata: {
-            integrationName: 'Test integration'
-        },
-        payload: null
-    };
+    if (vm.isDecoder) {
+        vm.inputParams = {
+            payloadContentType: types.contentType.JSON.value,
+            stringContent: js_beautify(angular.toJson({devName: "devA", param1: 1, param2: "test"}), {indent_size: 4}),
+            metadata: {
+                integrationName: 'Test integration'
+            },
+            payload: null
+        };
+    } else {
+
+        var downlinkPayload =
+        {
+            "deviceId":{
+                "entityType":"DEVICE",
+                "id":"00000000-0000-0000-0000-000000000000"
+            },
+            "deviceName":"sensor-a",
+            "deviceType":"temp-sensor",
+            "deletedAttributes":[
+                "latitude"
+            ],
+            "updatedAttributes":{
+                "temperature":{
+                    "lastUpdateTs":1519376381160,
+                    "value":"33"
+                },
+                "humidity":{
+                    "lastUpdateTs":1519376381160,
+                    "value":"78"
+                }
+            },
+            "rpcCalls":[
+                {
+                    "id":"dfdba31a-c7c3-4ef6-abb1-00182574aa6d",
+                    "expirationTime":1519377821165,
+                    "method":"updateState",
+                    "params":"{\"status\": \"ACTIVE\"}"
+                }
+            ]
+        };
+
+        vm.inputParams = {
+            payloadContentType: types.contentType.JSON.value,
+            stringContent: js_beautify(angular.toJson(downlinkPayload), {indent_size: 4}),
+            metadata: {
+                integrationName: 'Test integration'
+            },
+            payload: null
+        };
+    }
 
     vm.output = '';
 
@@ -61,17 +106,19 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     vm.save = save;
     vm.cancel = cancel;
 
-    $scope.$watch('vm.inputParams.payloadContentType', (newVal, prevVal) => {
-        if (newVal && !angular.equals(newVal, prevVal)) {
-            if (prevVal && prevVal == vm.types.contentType.BINARY.value) {
-                vm.inputParams.stringContent = convertContent(vm.inputParams.stringContent, newVal);
-            } else if (newVal == vm.types.contentType.BINARY.value) {
-                vm.inputParams.stringContent = utils.stringToBase64(vm.inputParams.stringContent);
-            } else if (newVal == vm.types.contentType.JSON.value) {
-                vm.inputParams.stringContent = js_beautify(vm.inputParams.stringContent, {indent_size: 4});
+    if (vm.isDecoder) {
+        $scope.$watch('vm.inputParams.payloadContentType', (newVal, prevVal) => {
+            if (newVal && !angular.equals(newVal, prevVal)) {
+                if (prevVal && prevVal == vm.types.contentType.BINARY.value) {
+                    vm.inputParams.stringContent = convertContent(vm.inputParams.stringContent, newVal);
+                } else if (newVal == vm.types.contentType.BINARY.value) {
+                    vm.inputParams.stringContent = utils.stringToBase64(vm.inputParams.stringContent);
+                } else if (newVal == vm.types.contentType.JSON.value) {
+                    vm.inputParams.stringContent = js_beautify(vm.inputParams.stringContent, {indent_size: 4});
+                }
             }
-        }
-    });
+        })
+    }
 
     $scope.$watch('theForm.metadataForm.$dirty', (newVal) => {
         if (newVal) {
@@ -80,14 +127,14 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     });
 
     onShowingCallback.onShowed = () => {
-        vm.decoderTestDialogElement = angular.element('.tb-custom-decoder-test-dialog');
-        var w = vm.decoderTestDialogElement.width();
+        vm.converterTestDialogElement = angular.element('.tb-converter-test-dialog');
+        var w = vm.converterTestDialogElement.width();
         if (w > 0) {
             initSplitLayout();
         } else {
             $scope.$watch(
                 function () {
-                    return vm.decoderTestDialogElement[0].offsetWidth || parseInt(vm.decoderTestDialogElement.css('width'), 10);
+                    return vm.converterTestDialogElement[0].offsetWidth || parseInt(vm.converterTestDialogElement.css('width'), 10);
                 },
                 function (newSize) {
                     if (newSize > 0) {
@@ -104,7 +151,7 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
 
     function initSplitLayout() {
         if (!vm.layoutInited) {
-            Split([angular.element('#top_panel', vm.decoderTestDialogElement)[0], angular.element('#bottom_panel', vm.decoderTestDialogElement)[0]], {
+            Split([angular.element('#top_panel', vm.converterTestDialogElement)[0], angular.element('#bottom_panel', vm.converterTestDialogElement)[0]], {
                 sizes: [35, 65],
                 gutterSize: 8,
                 cursor: 'row-resize',
@@ -114,7 +161,7 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
                 }
             });
 
-            Split([angular.element('#top_left_panel', vm.decoderTestDialogElement)[0], angular.element('#top_right_panel', vm.decoderTestDialogElement)[0]], {
+            Split([angular.element('#top_left_panel', vm.converterTestDialogElement)[0], angular.element('#top_right_panel', vm.converterTestDialogElement)[0]], {
                 sizes: [50, 50],
                 gutterSize: 8,
                 cursor: 'col-resize',
@@ -123,7 +170,7 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
                 }
             });
 
-            Split([angular.element('#bottom_left_panel', vm.decoderTestDialogElement)[0], angular.element('#bottom_right_panel', vm.decoderTestDialogElement)[0]], {
+            Split([angular.element('#bottom_left_panel', vm.converterTestDialogElement)[0], angular.element('#bottom_right_panel', vm.converterTestDialogElement)[0]], {
                 sizes: [50, 50],
                 gutterSize: 8,
                 cursor: 'col-resize',
@@ -162,15 +209,19 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     }
 
     function updateInputContent() {
-        if (vm.inputParams.payloadContentType == vm.types.contentType.BINARY.value) {
-            vm.inputParams.payload = angular.copy(vm.inputParams.stringContent);
+        if (vm.isDecoder) {
+            if (vm.inputParams.payloadContentType == vm.types.contentType.BINARY.value) {
+                vm.inputParams.payload = angular.copy(vm.inputParams.stringContent);
+            } else {
+                vm.inputParams.payload = utils.stringToBase64(vm.inputParams.stringContent);
+            }
         } else {
-            vm.inputParams.payload = utils.stringToBase64(vm.inputParams.stringContent);
+            vm.inputParams.payload = angular.copy(vm.inputParams.stringContent);
         }
     }
 
     function test() {
-        testCustomUpLink().then(
+        testConverter().then(
             (output) => {
                 vm.output = js_beautify(output, {indent_size: 4});
             }
@@ -190,21 +241,27 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     }
 
     function showMetadataError(error) {
-        var toastParent = angular.element('#metadata-panel', vm.decoderTestDialogElement);
+        var toastParent = angular.element('#metadata-panel', vm.converterTestDialogElement);
         toast.showError(error, toastParent, 'bottom left');
     }
 
-    function testCustomUpLink() {
+    function testConverter() {
         var deferred = $q.defer();
         if (checkInputParamErrors()) {
             updateInputContent();
             $mdUtil.nextTick(() => {
                 var inputParams = {
                     payload: vm.inputParams.payload,
-                    metadata: vm.inputParams.metadata,
-                    decoder: vm.decoder
+                    metadata: vm.inputParams.metadata
                 };
-                converterService.testCustomUpLink(inputParams).then(
+                if (vm.isDecoder) {
+                    inputParams.decoder = vm.funcBody;
+                } else {
+                    inputParams.encoder = vm.funcBody;
+                }
+                var testPromise = vm.isDecoder ? converterService.testUpLink(inputParams) :
+                    converterService.testDownLink(inputParams);
+                testPromise.then(
                     (result) => {
                         if (result.error) {
                             toast.showError(result.error);
@@ -229,9 +286,9 @@ export default function CustomDecoderTestController($scope, $mdDialog, $window, 
     }
 
     function save() {
-        testCustomUpLink().then(() => {
-            $scope.theForm.decoderForm.$setPristine();
-            $mdDialog.hide(vm.decoder);
+        testConverter().then(() => {
+            $scope.theForm.funcBodyForm.$setPristine();
+            $mdDialog.hide(vm.funcBody);
         });
     }
 }

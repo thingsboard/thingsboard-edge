@@ -105,7 +105,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
             this.converterId = UUIDConverter.fromTimeUUID(integration.getDefaultConverterId().getId());
         }
         if (integration.getDownlinkConverterId() != null) {
-            this.converterId = UUIDConverter.fromTimeUUID(integration.getDownlinkConverterId().getId());
+            this.downlinkConverterId = UUIDConverter.fromTimeUUID(integration.getDownlinkConverterId().getId());
         }
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();

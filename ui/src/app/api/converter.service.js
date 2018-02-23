@@ -40,7 +40,8 @@ function ConverterService($http, $q) {
         getConverter: getConverter,
         deleteConverter: deleteConverter,
         saveConverter: saveConverter,
-        testCustomUpLink: testCustomUpLink
+        testUpLink: testUpLink,
+        testDownLink: testDownLink
     };
 
     return service;
@@ -98,9 +99,20 @@ function ConverterService($http, $q) {
         return deferred.promise;
     }
 
-    function testCustomUpLink(inputParams) {
+    function testUpLink(inputParams) {
         var deferred = $q.defer();
-        var url = '/api/converter/testCustomUpLink';
+        var url = '/api/converter/testUpLink';
+        $http.post(url, inputParams).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function testDownLink(inputParams) {
+        var deferred = $q.defer();
+        var url = '/api/converter/testDownLink';
         $http.post(url, inputParams).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {

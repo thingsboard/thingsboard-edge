@@ -432,8 +432,13 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         if (!types.converterType[converter.type]) {
             return false;
         }
-        if (converter.type == types.converterType.CUSTOM.value) {
+        if (converter.type == types.converterType.UPLINK.value) {
             if (!converter.configuration.decoder || !converter.configuration.decoder.length) {
+                return false;
+            }
+        }
+        if (converter.type == types.converterType.DOWNLINK.value) {
+            if (!converter.configuration.encoder || !converter.configuration.encoder.length) {
                 return false;
             }
         }
