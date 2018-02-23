@@ -104,7 +104,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         }
     }
 
-    private ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> uplinkData) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> uplinkData, HttpIntegrationMsg msg) throws Exception {
         if (downlinkConverter != null) {
             List<DownLinkMsg> pendingDownlinks = new ArrayList<>();
             for (Device device : uplinkData.keySet()) {
@@ -113,8 +113,14 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
                     pendingDownlinks.add(pending);
                 }
             }
+            Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+            msg.getRequestHeaders().forEach(
+                    (header, value) -> {
+                        mdMap.put("header:" + header, value);
+                    }
+            );
 
-            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pendingDownlinks, new DownLinkMetaData(Collections.emptyMap()));
+            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pendingDownlinks, new DownLinkMetaData(mdMap));
 
             for (Device device : uplinkData.keySet()) {
                 context.getDownlinkService().remove(configuration.getId(), device.getId());

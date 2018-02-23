@@ -47,6 +47,7 @@ import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegratio
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,18 +72,24 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                 Entry<Device, UplinkData> entry = result.entrySet().stream().findFirst().get();
                 String deviceIdAttributeName = metadataTemplate.getKvMap().getOrDefault("SigFoxDeviceIdAttributeName", "device");
                 String sigFoxDeviceId = msg.getMsg().get(deviceIdAttributeName).asText();
-                return processDownLinkData(context, entry.getKey(), entry.getValue(), sigFoxDeviceId);
+                return processDownLinkData(context, entry.getKey(), msg, sigFoxDeviceId);
             }
         } else {
             return fromStatus(HttpStatus.FORBIDDEN);
         }
     }
 
-    private ResponseEntity processDownLinkData(IntegrationContext context, Device device, UplinkData uplink, String sigFoxDeviceId) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, Device device, HttpIntegrationMsg msg, String sigFoxDeviceId) throws Exception {
         if (downlinkConverter != null) {
             DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
             if (pending != null) {
-                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(pending), new DownLinkMetaData(Collections.emptyMap()));
+                Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+                msg.getRequestHeaders().forEach(
+                        (header, value) -> {
+                            mdMap.put("header:" + header, value);
+                        }
+                );
+                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(pending), new DownLinkMetaData(mdMap));
                 context.getDownlinkService().remove(configuration.getId(), device.getId());
                 if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);
