@@ -44,6 +44,9 @@ import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
 import javax.net.ssl.SSLException;
 import java.util.Optional;
@@ -110,6 +113,42 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         }
     }
 
+    @Override
+    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
+        logDownlink(context, "SharedAttributeUpdate", msg);
+        if (downlinkConverter != null) {
+            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
+            processDownLinkMsg(context, downLinkMsg);
+        }
+    }
+
+    @Override
+    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
+        logDownlink(context, "RPCCall", msg);
+        if (downlinkConverter != null) {
+            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
+            processDownLinkMsg(context, downLinkMsg);
+        }
+    }
+
+    protected void processDownLinkMsg(IntegrationContext context, DownLinkMsg msg) {
+        String status = "OK";
+        Exception exception = null;
+        try {
+            doProcessDownLinkMsg(context, msg);
+            integrationStatistics.incMessagesProcessed();
+        } catch (Exception e) {
+            log.warn("Failed to process downLink message", e);
+            exception = e;
+            status = "ERROR";
+        }
+        if (!status.equals("OK")) {
+            integrationStatistics.incErrorsOccurred();
+        }
+    }
+
+    protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception;
+
     protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;
 
     private MqttClient initClient(MqttClientConfiguration configuration) throws Exception {
@@ -150,4 +189,16 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         }
         return result;
     }
+
+    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
+    }
+
+
 }
