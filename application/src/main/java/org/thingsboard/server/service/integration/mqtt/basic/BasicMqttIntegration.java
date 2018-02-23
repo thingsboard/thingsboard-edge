@@ -59,7 +59,7 @@ import java.util.*;
 @Slf4j
 public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttIntegrationMsg> {
 
-    private String downlinkTopicPattern = "${topic}";
+    protected String downlinkTopicPattern = "${topic}";
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -99,7 +99,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             for (DownlinkData data : topicEntry.getValue()) {
                 String topic = topicEntry.getKey();
                 logMqttDownlink(context, topic, data);
-                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()));
+                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE);
             }
         }
         return !topicToDataMap.isEmpty();
@@ -123,7 +123,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             String result = downlinkTopicPattern;
             for (Map.Entry<String,String> mdEntry : md.entrySet()) {
                 String key = "${"+mdEntry.getKey()+"}";
-                result = result.replaceAll(key, mdEntry.getValue());
+                result = result.replace(key, mdEntry.getValue());
             }
             return result;
         }

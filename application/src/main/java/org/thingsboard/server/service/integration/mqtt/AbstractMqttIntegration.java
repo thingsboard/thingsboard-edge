@@ -135,8 +135,9 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         String status = "OK";
         Exception exception = null;
         try {
-            doProcessDownLinkMsg(context, msg);
-            integrationStatistics.incMessagesProcessed();
+            if (doProcessDownLinkMsg(context, msg)) {
+                integrationStatistics.incMessagesProcessed();
+            }
         } catch (Exception e) {
             log.warn("Failed to process downLink message", e);
             exception = e;
@@ -144,6 +145,13 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         }
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
+            if (configuration.isDebugMode()) {
+                try {
+                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
+                } catch (Exception e) {
+                    log.warn("Failed to persist debug message", e);
+                }
+            }
         }
     }
 
