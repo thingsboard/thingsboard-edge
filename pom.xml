@@ -98,6 +98,7 @@
         <postgresql.driver.version>9.4.1211</postgresql.driver.version>
         <netty-mqtt-client.version>2.0.0TB</netty-mqtt-client.version>
         <azure-eventhubs.version>0.15.1</azure-eventhubs.version>
+        <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*, org/thingsboard/server/extensions/core/plugin/telemetry/gen/**/*</sonar.exclusions>
     </properties>
 
@@ -848,6 +849,11 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-eventhubs</artifactId>
                 <version>${azure-eventhubs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure.sdk.iot</groupId>
+                <artifactId>iot-service-client</artifactId>
+                <version>${azure-iot-service-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

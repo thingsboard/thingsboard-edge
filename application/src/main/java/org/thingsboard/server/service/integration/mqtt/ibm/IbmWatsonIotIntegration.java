@@ -61,6 +61,11 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
     }
 
     @Override
+    protected String getDownlinkTopicPattern() {
+        return IBM_WATSON_IOT_COMMANDS_TOPIC;
+    }
+
+    @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof BasicCredentials)) {

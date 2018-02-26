@@ -525,6 +525,16 @@
                     </md-expansion-panel-expanded>
                 </md-expansion-panel>
             </md-expansion-panel-group>
+            <div style="height: 30px;"></div>
+            <md-input-container class="md-block">
+                <label translate>integration.downlink-topic-pattern</label>
+                <input required name="downlinkTopicPattern"
+                       ng-readonly="integration.type == types.integrationType.IBM_WATSON_IOT.value"
+                       ng-model="integration.configuration.downlinkTopicPattern">
+                <div ng-messages="theForm.downlinkTopicPattern.$error">
+                    <div translate ng-message="required">integration.downlink-topic-pattern-required</div>
+                </div>
+            </md-input-container>
         </fieldset>
     </section>
     <section layout="column" ng-if="integration.type == types.integrationType.AZURE_EVENT_HUB.value">
@@ -567,6 +577,10 @@
                 <div ng-messages="theForm.sasKey.$error">
                     <div translate ng-message="required">integration.sas-key-required</div>
                 </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.iot-hub-name</label>
+                <input name="iotHubName" ng-model="integration.configuration.clientConfiguration.iotHubName">
             </md-input-container>
         </fieldset>
     </section>

@@ -38,6 +38,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.UplinkData;
@@ -61,6 +62,8 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
     protected String downlinkTopicPattern = "${topic}";
 
+    private static final String DEFAULT_DOWNLINK_TOPIC_PATTERN = "${topic}";
+
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
@@ -73,10 +76,18 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
                     process(params.getContext(), new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
+        this.downlinkTopicPattern = getDownlinkTopicPattern();
+    }
 
+    protected String getDownlinkTopicPattern() {
+        String downlinkTopicPattern = null;
         if (configuration.getConfiguration().has("downlinkTopicPattern")) {
-            this.downlinkTopicPattern = configuration.getConfiguration().get("downlinkTopicPattern").asText();
+            downlinkTopicPattern = configuration.getConfiguration().get("downlinkTopicPattern").asText();
         }
+        if (StringUtils.isEmpty(downlinkTopicPattern)) {
+            downlinkTopicPattern = DEFAULT_DOWNLINK_TOPIC_PATTERN;
+        }
+        return downlinkTopicPattern;
     }
 
     @Override
