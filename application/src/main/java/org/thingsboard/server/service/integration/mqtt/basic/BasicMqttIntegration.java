@@ -87,7 +87,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);
-                log.info("[{}] Processing uplink data", data);
+                log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
             }
         }
     }
