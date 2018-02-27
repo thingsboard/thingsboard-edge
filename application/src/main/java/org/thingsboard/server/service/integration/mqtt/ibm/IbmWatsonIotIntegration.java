@@ -52,10 +52,17 @@ import java.util.Optional;
 public class IbmWatsonIotIntegration extends BasicMqttIntegration {
 
     private static final String IBM_WATSON_IOT_ENDPOINT = "messaging.internetofthings.ibmcloud.com";
+    private static final String IBM_WATSON_IOT_COMMANDS_TOPIC = "iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}";
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        this.downlinkTopicPattern = IBM_WATSON_IOT_COMMANDS_TOPIC;
+    }
+
+    @Override
+    protected String getDownlinkTopicPattern() {
+        return IBM_WATSON_IOT_COMMANDS_TOPIC;
     }
 
     @Override

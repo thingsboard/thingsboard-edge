@@ -120,14 +120,18 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     });
                 }
             }
+            if (!integration.configuration.downlinkTopicPattern) {
+                integration.configuration.downlinkTopicPattern = "${topic}";
+            }
             if (integration.type == types.integrationType.AWS_IOT.value) {
                 integration.configuration.clientConfiguration.port = 8883;
                 integration.configuration.clientConfiguration.ssl = true;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes['cert.PEM'].value;
             }
             if (integration.type == types.integrationType.IBM_WATSON_IOT.value) {
-                integration.configuration.clientConfiguration.port = 1883;
-                integration.configuration.clientConfiguration.ssl = false;
+                integration.configuration.downlinkTopicPattern = "iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}";
+                integration.configuration.clientConfiguration.port = 8883;
+                integration.configuration.clientConfiguration.ssl = true;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
             }
         }
@@ -139,7 +143,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     namespaceName: '',
                     eventHubName: '',
                     sasKeyName: '',
-                    sasKey: ''
+                    sasKey: '',
+                    iotHubName: ''
                 };
             }
         }

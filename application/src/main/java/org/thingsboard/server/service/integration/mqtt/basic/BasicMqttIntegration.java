@@ -38,6 +38,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.UplinkData;
@@ -59,7 +60,9 @@ import java.util.*;
 @Slf4j
 public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttIntegrationMsg> {
 
-    private String downlinkTopicPattern = "${topic}";
+    protected String downlinkTopicPattern = "${topic}";
+
+    private static final String DEFAULT_DOWNLINK_TOPIC_PATTERN = "${topic}";
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -73,10 +76,18 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
                     process(params.getContext(), new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
+        this.downlinkTopicPattern = getDownlinkTopicPattern();
+    }
 
+    protected String getDownlinkTopicPattern() {
+        String downlinkTopicPattern = null;
         if (configuration.getConfiguration().has("downlinkTopicPattern")) {
-            this.downlinkTopicPattern = configuration.getConfiguration().get("downlinkTopicPattern").asText();
+            downlinkTopicPattern = configuration.getConfiguration().get("downlinkTopicPattern").asText();
         }
+        if (StringUtils.isEmpty(downlinkTopicPattern)) {
+            downlinkTopicPattern = DEFAULT_DOWNLINK_TOPIC_PATTERN;
+        }
+        return downlinkTopicPattern;
     }
 
     @Override
@@ -99,7 +110,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             for (DownlinkData data : topicEntry.getValue()) {
                 String topic = topicEntry.getKey();
                 logMqttDownlink(context, topic, data);
-                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()));
+                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE);
             }
         }
         return !topicToDataMap.isEmpty();
@@ -123,7 +134,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             String result = downlinkTopicPattern;
             for (Map.Entry<String,String> mdEntry : md.entrySet()) {
                 String key = "${"+mdEntry.getKey()+"}";
-                result = result.replaceAll(key, mdEntry.getValue());
+                result = result.replace(key, mdEntry.getValue());
             }
             return result;
         }

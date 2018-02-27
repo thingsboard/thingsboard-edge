@@ -81,7 +81,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
             if (result.isEmpty()) {
                 return fromStatus(HttpStatus.NO_CONTENT);
             } else {
-                return processDownLinkData(context, result);
+                return processDownLinkData(context, result, msg);
             }
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
