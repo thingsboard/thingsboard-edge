@@ -68,15 +68,23 @@
                          ng-model="integration.debugMode">{{ 'integration.debug-mode' | translate }}
             </md-checkbox>
         </md-input-container>
-        <tb-entity-autocomplete the-form="theForm"
+        <tb-converter-autocomplete the-form="theForm"
                                 ng-disabled="$root.loading || !isEdit"
                                 tb-required="true"
-                                entity-type="types.entityType.converter"
+                                converter-type="types.converterType.UPLINK.value"
                                 ng-model="integration.defaultConverterId"
-                                label-text="'integration.default-converter'"
-                                required-text="'integration.default-converter-required'"
+                                label-text="'integration.uplink-converter'"
+                                required-text="'integration.uplink-converter-required'"
                                 use-full-entity-id="true">
-        </tb-entity-autocomplete>
+        </tb-converter-autocomplete>
+        <tb-converter-autocomplete the-form="theForm"
+                                   ng-disabled="$root.loading || !isEdit"
+                                   tb-required="false"
+                                   converter-type="types.converterType.DOWNLINK.value"
+                                   ng-model="integration.downlinkConverterId"
+                                   label-text="'integration.downlink-converter'"
+                                   use-full-entity-id="true">
+        </tb-converter-autocomplete>
     </fieldset>
     <section layout="column" ng-if="types.integrationType[integration.type].http">
         <fieldset ng-disabled="$root.loading || !isEdit">
@@ -517,6 +525,16 @@
                     </md-expansion-panel-expanded>
                 </md-expansion-panel>
             </md-expansion-panel-group>
+            <div style="height: 30px;"></div>
+            <md-input-container class="md-block">
+                <label translate>integration.downlink-topic-pattern</label>
+                <input required name="downlinkTopicPattern"
+                       ng-readonly="integration.type == types.integrationType.IBM_WATSON_IOT.value"
+                       ng-model="integration.configuration.downlinkTopicPattern">
+                <div ng-messages="theForm.downlinkTopicPattern.$error">
+                    <div translate ng-message="required">integration.downlink-topic-pattern-required</div>
+                </div>
+            </md-input-container>
         </fieldset>
     </section>
     <section layout="column" ng-if="integration.type == types.integrationType.AZURE_EVENT_HUB.value">
@@ -559,6 +577,10 @@
                 <div ng-messages="theForm.sasKey.$error">
                     <div translate ng-message="required">integration.sas-key-required</div>
                 </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.iot-hub-name</label>
+                <input name="iotHubName" ng-model="integration.configuration.clientConfiguration.iotHubName">
             </md-input-container>
         </fieldset>
     </section>

@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.install;
 
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,11 +57,15 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
     private static final String SCHEMA_UPDATE_CQL = "schema_update.cql";
     public static final String DEVICE = "device";
+    public static final String ID = "id";
     public static final String TENANT_ID = "tenant_id";
     public static final String CUSTOMER_ID = "customer_id";
     public static final String SEARCH_TEXT = "search_text";
     public static final String ADDITIONAL_INFO = "additional_info";
     public static final String ASSET = "asset";
+
+    public static final String CONVERTER = "converter";
+    public static final String INTEGRATION = "integration";
 
     @Value("${install.data_dir}")
     private String dataDir;
@@ -76,7 +82,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
         switch (fromVersion) {
             case "1.2.3":
 
-                log.info("Upgrading Cassandara DataBase from version {} to 1.3.0 ...", fromVersion);
+                log.info("Upgrading Cassandra DataBase from version {} to 1.3.0 ...", fromVersion);
 
                 //Dump devices, assets and relations
 
@@ -183,7 +189,31 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Updating schema ...");
                 schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.4.0pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
+
+                String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
+                try {
+                    cluster.getSession().execute(updateIntegrationTableStmt);
+                } catch (InvalidQueryException e) {}
+
                 log.info("Schema updated.");
+
+                log.info("Updating converters ...");
+
+                ks = cluster.getCluster().getMetadata().getKeyspace(cluster.getKeyspaceName());
+
+                String customConvertersStatement =
+                        "select "+ID+", "+TENANT_ID+" from "+CONVERTER+" where type = 'CUSTOM' ALLOW FILTERING";
+
+                List<String[]> convertersToUpdate =
+                        CassandraDbHelper.loadData(ks, cluster.getSession(), CONVERTER, customConvertersStatement, new String[]{ID, TENANT_ID});
+
+                for (String[] converterToUpdate : convertersToUpdate) {
+                    String statement = String.format("update "+CONVERTER+" set type = 'UPLINK' where "+ID+" = %s and "+TENANT_ID+" = %s", converterToUpdate[0], converterToUpdate[1]);
+                    cluster.getSession().execute(statement);
+                }
+
+
+                log.info("Converters updated.");
                 break;
             default:
                 throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);

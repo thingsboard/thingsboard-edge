@@ -34,12 +34,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.actors.stats.StatsPersistMsg;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -53,8 +52,10 @@ import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
+import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
+import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
@@ -63,6 +64,9 @@ import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegr
 import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.ibm.IbmWatsonIotIntegration;
+import org.thingsboard.server.service.integration.msg.IntegrationMsg;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -100,6 +104,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    @Lazy
+    private ClusterRpcService clusterRpcService;
+
+
     @Value("${integrations.statistics.enabled}")
     private boolean statisticsEnabled;
 
@@ -120,7 +129,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         refreshAllIntegrations();
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
-            statisticsExecutorService.scheduleAtFixedRate(() -> persistStatistics(),
+            statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics,
                     statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
     }
@@ -153,7 +162,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public ThingsboardPlatformIntegration updateIntegration(Integration configuration) throws Exception {
         ThingsboardPlatformIntegration integration = integrationsByIdMap.get(configuration.getId());
         if (integration != null) {
-            integration.update(context, configuration, getThingsboardDataConverter(configuration));
+            integration.update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
             return integration;
         } else {
             return createIntegration(configuration);
@@ -201,6 +210,37 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return Optional.ofNullable(result);
     }
 
+    @Override
+    public void onMsg(IntegrationMsg msg) {
+        try {
+            IntegrationId integrationId = msg.getIntegrationId();
+            ThingsboardPlatformIntegration integration = integrationsByIdMap.get(integrationId);
+            if (integration == null) {
+                Optional<ServerAddress> server = clusterRoutingService.resolveById(integrationId);
+                if (server.isPresent()) {
+                    clusterRpcService.tell(server.get(), msg);
+                } else {
+                    Integration configuration = integrationService.findIntegrationById(integrationId);
+                    onMsg(createIntegration(configuration), msg);
+                }
+            } else {
+                onMsg(integration, msg);
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private void onMsg(ThingsboardPlatformIntegration integration, IntegrationMsg msg) {
+        if (msg instanceof SharedAttributesUpdateIntegrationMsg) {
+            integration.onSharedAttributeUpdate(context, (SharedAttributesUpdateIntegrationMsg) msg);
+        } else if (msg instanceof RPCCallIntegrationMsg) {
+            integration.onRPCCall(context, (RPCCallIntegrationMsg) msg);
+        } else {
+            log.warn("[{}] Unknown message: {}", integration.getConfiguration().getId(), msg);
+        }
+    }
+
     private void persistStatistics() {
         ServerAddress serverAddress = discoveryService.getCurrentServer().getServerAddress();
         integrationsByIdMap.forEach((id, integration) -> {
@@ -223,9 +263,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     private ThingsboardPlatformIntegration initIntegration(Integration integration) throws Exception {
-        ThingsboardDataConverter converter = getThingsboardDataConverter(integration);
         ThingsboardPlatformIntegration result = createThingsboardPlatformIntegration(integration);
-        result.init(context, integration, converter);
+        result.init(new TbIntegrationInitParams(context, integration, getUplinkDataConverter(integration), getDownlinkDataConverter(integration)));
         return result;
     }
 
@@ -252,9 +291,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private ThingsboardDataConverter getThingsboardDataConverter(Integration integration) {
-        return dataConverterService.getConverterById(integration.getDefaultConverterId())
+    private TBUplinkDataConverter getUplinkDataConverter(Integration integration) {
+        return dataConverterService.getUplinkConverterById(integration.getDefaultConverterId())
                 .orElseThrow(() -> new ThingsboardRuntimeException("Converter not found!", ThingsboardErrorCode.ITEM_NOT_FOUND));
+    }
+
+    private TBDownlinkDataConverter getDownlinkDataConverter(Integration integration) {
+        return dataConverterService.getDownlinkConverterById(integration.getDownlinkConverterId())
+                .orElse(null);
     }
 
     private RuntimeException handleException(Exception e) {
@@ -284,7 +328,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
             if (clusterRoutingService.resolveById(integrationId).isPresent()) {
-                deleteIntegration(integrationId);
+                if (integrationsByIdMap.get(integrationId).getConfiguration().getType().isSingleton()) {
+                    deleteIntegration(integrationId);
+                }
             }
         }
         integrationService.findAllIntegrations().forEach(configuration -> {

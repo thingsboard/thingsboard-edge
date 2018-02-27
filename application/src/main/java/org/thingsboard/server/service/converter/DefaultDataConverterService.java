@@ -35,14 +35,13 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.service.converter.js.JSDataConverter;
+import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
+import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -53,22 +52,22 @@ public class DefaultDataConverterService implements DataConverterService {
     @Autowired
     private ConverterService converterService;
 
-    private final ConcurrentMap<ConverterId, ThingsboardDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
     @PreDestroy
     public void destroy() {
-        convertersByIdMap.values().forEach(ThingsboardDataConverter::destroy);
+        convertersByIdMap.values().forEach(TBDataConverter::destroy);
     }
 
     @Override
-    public ThingsboardDataConverter createConverter(Converter converter) {
+    public TBDataConverter createConverter(Converter converter) {
         // TODO: This still may cause converter to initialize multiple times, even if one converter will be in the map. Need to improve this later.
         return convertersByIdMap.computeIfAbsent(converter.getId(), c -> initConverter(converter));
     }
 
     @Override
-    public ThingsboardDataConverter updateConverter(Converter configuration) {
-        ThingsboardDataConverter converter = convertersByIdMap.get(configuration.getId());
+    public TBDataConverter updateConverter(Converter configuration) {
+        TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);
             return converter;
@@ -79,30 +78,44 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Override
     public void deleteConverter(ConverterId converterId) {
-        ThingsboardDataConverter converter = convertersByIdMap.remove(converterId);
+        TBDataConverter converter = convertersByIdMap.remove(converterId);
         if (converter != null) {
             converter.destroy();
         }
     }
 
     @Override
-    public Optional<ThingsboardDataConverter> getConverterById(ConverterId converterId) {
-        ThingsboardDataConverter converter = convertersByIdMap.get(converterId);
+    public Optional<TBUplinkDataConverter> getUplinkConverterById(ConverterId converterId) {
+        return Optional.of((TBUplinkDataConverter) getConverterById(converterId));
+    }
+
+    @Override
+    public Optional<TBDownlinkDataConverter> getDownlinkConverterById(ConverterId converterId) {
+        return Optional.ofNullable((TBDownlinkDataConverter) getConverterById(converterId));
+    }
+
+    private TBDataConverter getConverterById(ConverterId converterId) {
+        if (converterId == null) return null;
+        TBDataConverter converter = convertersByIdMap.get(converterId);
         if (converter == null) {
             Converter configuration = converterService.findConverterById(converterId);
             if (configuration != null) {
                 converter = createConverter(configuration);
             }
         }
-        return Optional.ofNullable(converter);
+        return converter;
     }
 
-    private ThingsboardDataConverter initConverter(Converter converter) {
+    private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
-            case CUSTOM:
-                JSDataConverter result = new JSDataConverter();
-                result.init(converter);
-                return result;
+            case UPLINK:
+                JSUplinkDataConverter uplink = new JSUplinkDataConverter();
+                uplink.init(converter);
+                return uplink;
+            case DOWNLINK:
+                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter();
+                downlink.init(converter);
+                return downlink;
             default:
                 throw new RuntimeException("Not Implemented!");
         }

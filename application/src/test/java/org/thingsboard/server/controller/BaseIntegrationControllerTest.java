@@ -93,7 +93,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Converter converter = new Converter();
         converter.setName("My converter");
-        converter.setType(ConverterType.CUSTOM);
+        converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         savedConverter = doPost("/api/converter", converter, Converter.class);
     }

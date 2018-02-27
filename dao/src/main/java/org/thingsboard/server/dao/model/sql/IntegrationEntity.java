@@ -66,6 +66,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = INTEGRATION_CONVERTER_ID_PROPERTY)
     private String converterId;
 
+    @Column(name = INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY)
+    private String downlinkConverterId;
+
     @Column(name = INTEGRATION_ROUTING_KEY_PROPERTY)
     private String routingKey;
 
@@ -101,6 +104,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         if (integration.getDefaultConverterId() != null) {
             this.converterId = UUIDConverter.fromTimeUUID(integration.getDefaultConverterId().getId());
         }
+        if (integration.getDownlinkConverterId() != null) {
+            this.downlinkConverterId = UUIDConverter.fromTimeUUID(integration.getDownlinkConverterId().getId());
+        }
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
@@ -132,6 +138,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         }
         if (converterId != null) {
             integration.setDefaultConverterId(new ConverterId(UUIDConverter.fromString(converterId)));
+        }
+        if (downlinkConverterId != null) {
+            integration.setDownlinkConverterId(new ConverterId(UUIDConverter.fromString(downlinkConverterId)));
         }
         integration.setName(name);
         integration.setRoutingKey(routingKey);

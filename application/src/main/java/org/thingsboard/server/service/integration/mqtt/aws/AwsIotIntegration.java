@@ -33,8 +33,9 @@ package org.thingsboard.server.service.integration.mqtt.aws;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDataConverter;
 import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.credentials.CertPemClientCredentials;
@@ -44,8 +45,8 @@ import org.thingsboard.server.service.integration.mqtt.credentials.MqttClientCre
 public class AwsIotIntegration extends BasicMqttIntegration {
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
     }
 
     @Override

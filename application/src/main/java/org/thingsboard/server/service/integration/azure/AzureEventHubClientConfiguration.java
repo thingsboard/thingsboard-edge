@@ -39,6 +39,7 @@ public class AzureEventHubClientConfiguration {
     private String eventHubName;
     private String sasKeyName;
     private String sasKey;
+    private String iotHubName;
 
     private int connectTimeoutSec;
 

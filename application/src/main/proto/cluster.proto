@@ -71,6 +71,10 @@ message ToAllNodesRpcMessage {
   bytes data = 1;
 }
 
+message ToIntegrationMessage {
+  bytes data = 1;
+}
+
 message ConnectRpcMessage {
   ServerAddress serverAddress = 1;
 }
@@ -104,6 +108,7 @@ message ToRpcServerMessage {
   ToAllNodesRpcMessage toAllNodesRpcMsg = 6;
   ToDeviceRpcRequestRpcMessage toDeviceRpcRequestRpcMsg = 7;
   ToPluginRpcResponseRpcMessage toPluginRpcResponseRpcMsg = 8;
+  ToIntegrationMessage toIntegrationMsg = 9;
 }
 
 service ClusterRpcService {

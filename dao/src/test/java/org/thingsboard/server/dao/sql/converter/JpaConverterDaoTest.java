@@ -61,7 +61,7 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         for (int i = 0; i < 60; i++) {
             UUID converterId = UUIDs.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
-            saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.CUSTOM);
+            saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.UPLINK);
         }
         assertEquals(60, converterDao.find().size());
 
@@ -85,8 +85,8 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         UUID tenantId1 = UUIDs.timeBased();
         UUID tenantId2 = UUIDs.timeBased();
         String name = "TEST_CONVERTER";
-        saveConverter(converterId1, tenantId1, name, ConverterType.CUSTOM);
-        saveConverter(converterId2, tenantId2, name, ConverterType.CUSTOM);
+        saveConverter(converterId1, tenantId1, name, ConverterType.UPLINK);
+        saveConverter(converterId2, tenantId2, name, ConverterType.UPLINK);
 
         Optional<Converter> converterOpt1 = converterDao.findConverterByTenantIdAndName(tenantId2, name);
         assertTrue("Optional expected to be non-empty", converterOpt1.isPresent());

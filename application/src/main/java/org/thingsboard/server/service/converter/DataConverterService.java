@@ -40,12 +40,14 @@ import java.util.Optional;
  */
 public interface DataConverterService {
 
-    ThingsboardDataConverter createConverter(Converter converter);
+    TBDataConverter createConverter(Converter converter);
 
-    ThingsboardDataConverter updateConverter(Converter converter);
+    TBDataConverter updateConverter(Converter converter);
 
     void deleteConverter(ConverterId converterId);
 
-    Optional<ThingsboardDataConverter> getConverterById(ConverterId converterId);
+    Optional<TBUplinkDataConverter> getUplinkConverterById(ConverterId converterId);
+
+    Optional<TBDownlinkDataConverter> getDownlinkConverterById(ConverterId converterId);
 
 }

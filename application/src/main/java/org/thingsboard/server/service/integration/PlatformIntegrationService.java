@@ -32,6 +32,9 @@ package org.thingsboard.server.service.integration;
 
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.integration.msg.IntegrationMsg;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
 import java.util.Optional;
 
@@ -49,5 +52,7 @@ public interface PlatformIntegrationService {
     Optional<ThingsboardPlatformIntegration> getIntegrationById(IntegrationId id);
 
     Optional<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
+
+    void onMsg(IntegrationMsg msg);
 
 }

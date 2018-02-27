@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS integration (
     debug_mode boolean,
     name varchar(255),
     converter_id varchar(31),
+    downlink_converter_id varchar(31),
     routing_key varchar(255),
     search_text varchar(255),
     tenant_id varchar(31),

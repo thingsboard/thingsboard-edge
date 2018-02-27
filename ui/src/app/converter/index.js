@@ -31,13 +31,15 @@
 
 import ConverterRoutes from './converter.routes';
 import {ConverterController, ConverterCardController} from './converter.controller';
-import CustomDecoderTestController from './custom-decoder-test.controller';
+import ConverterTestController from './converter-test.controller';
 import ConverterDirective from './converter.directive';
+import ConverterAutocomplete from './converter-autocomplete.directive';
 
 export default angular.module('thingsboard.converter', [])
     .config(ConverterRoutes)
     .controller('ConverterController', ConverterController)
     .controller('ConverterCardController', ConverterCardController)
-    .controller('CustomDecoderTestController', CustomDecoderTestController)
+    .controller('ConverterTestController', ConverterTestController)
     .directive('tbConverter', ConverterDirective)
+    .directive('tbConverterAutocomplete', ConverterAutocomplete)
     .name;

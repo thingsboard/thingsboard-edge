@@ -37,9 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
-import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.credentials.BasicCredentials;
@@ -54,10 +52,17 @@ import java.util.Optional;
 public class IbmWatsonIotIntegration extends BasicMqttIntegration {
 
     private static final String IBM_WATSON_IOT_ENDPOINT = "messaging.internetofthings.ibmcloud.com";
+    private static final String IBM_WATSON_IOT_COMMANDS_TOPIC = "iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}";
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        super.init(context, dto, converter);
+    public void init(TbIntegrationInitParams params) throws Exception {
+        super.init(params);
+        this.downlinkTopicPattern = IBM_WATSON_IOT_COMMANDS_TOPIC;
+    }
+
+    @Override
+    protected String getDownlinkTopicPattern() {
+        return IBM_WATSON_IOT_COMMANDS_TOPIC;
     }
 
     @Override
@@ -66,7 +71,7 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
         if (credentials == null || !(credentials instanceof BasicCredentials)) {
             throw new RuntimeException("Can't setup IBM Watson IoT integration without Application Credentials!");
         }
-        BasicCredentials basicCredentials = (BasicCredentials)credentials;
+        BasicCredentials basicCredentials = (BasicCredentials) credentials;
         if (StringUtils.isEmpty(basicCredentials.getUsername()) ||
                 StringUtils.isEmpty(basicCredentials.getPassword())) {
             throw new RuntimeException("Can't setup IBM Watson IoT integration. Required IBM Watson IoT Application Credentials values are missing!");
@@ -90,7 +95,7 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
             Security.addProvider(new BouncyCastleProvider());
             return Optional.of(SslContextBuilder.forClient()
                     .keyManager(null)
-                    .trustManager((File)null)
+                    .trustManager((File) null)
                     .clientAuth(ClientAuth.NONE)
                     .build());
         } catch (Exception e) {

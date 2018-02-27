@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration.http.oc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
@@ -46,10 +47,10 @@ import java.util.List;
 public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
     @Override
-    protected HttpStatus doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
 
         if (!msg.getMsg().has("deviceId")) {
-            return HttpStatus.BAD_REQUEST;
+            return fromStatus(HttpStatus.BAD_REQUEST);
         }
 
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
@@ -59,7 +60,7 @@ public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegra
                 log.info("[{}] Processing uplink data", data);
             }
         }
-        return HttpStatus.OK;
+        return fromStatus(HttpStatus.OK);
     }
 
 }

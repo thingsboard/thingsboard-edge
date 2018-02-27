@@ -40,6 +40,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
+import org.thingsboard.server.service.integration.downlink.DownlinkService;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -74,5 +75,9 @@ public class IntegrationContext {
     @Lazy
     @Autowired
     private ConverterContext converterContext;
+
+    @Lazy
+    @Autowired
+    private DownlinkService downlinkService;
 
 }

@@ -30,11 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-dialog class="tb-custom-decoder-test-dialog" aria-label="{{ 'converter.test-decoder-fuction' | translate }}" style="width: 800px;">
+<md-dialog class="tb-converter-test-dialog"
+           aria-label="{{ (vm.isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}" style="width: 800px;">
     <form flex name="theForm" ng-submit="vm.save()">
         <md-toolbar>
             <div class="md-toolbar-tools">
-                <h2 translate>converter.test-decoder-fuction</h2>
+                <h2>{{ (vm.isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}</h2>
                 <span flex></span>
                 <md-button class="md-icon-button" ng-click="vm.cancel()">
                     <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
@@ -51,7 +52,7 @@
                             </div>
                             <ng-form name="payloadForm">
                                 <div layout="column" style="height: 100%;">
-                                    <div layout="row">
+                                    <div layout="row" ng-if="vm.isDecoder">
                                         <md-input-container class="md-block" style="margin-bottom: 0px; min-width: 200px;">
                                             <label translate>converter.payload-content-type</label>
                                             <md-select name="payloadContentType" aria-label="{{ 'converter.payload-content-type' | translate }}"
@@ -90,14 +91,14 @@
                     <div id="bottom_left_panel" class="tb-split tb-content">
                         <div class="tb-resize-container">
                             <div class="tb-editor-area-title-panel">
-                                <label translate>converter.decoder</label>
+                                <label>{{ (vm.isDecoder ? 'converter.decoder' : 'converter.encoder') | translate }}</label>
                             </div>
-                            <ng-form name="decoderForm">
-                                <tb-js-func id="decoderInput" ng-model="vm.decoder"
-                                            function-name="Decoder"
+                            <ng-form name="funcBodyForm">
+                                <tb-js-func id="funcBodyInput" ng-model="vm.funcBody"
+                                            function-name="{{vm.isDecoder ? 'Decoder' : 'Encoder'}}"
                                             function-args="{{ ['payload', 'metadata'] }}"
                                             validation-args="{{ [[vm.inputParams.payload, vm.inputParams.metadata]] }}"
-                                            validation-trigger-arg="validateDecoder"
+                                            validation-trigger-arg="validateFuncBody"
                                             result-type="object"
                                             fill-height="true">
                                 </tb-js-func>
@@ -126,7 +127,7 @@
                 {{ 'converter.test' | translate }}
             </md-button>
             <span flex></span>
-            <md-button ng-disabled="$root.loading || theForm.decoderForm.$invalid || !theForm.decoderForm.$dirty" type="submit" class="md-raised md-primary">
+            <md-button ng-disabled="$root.loading || theForm.funcBodyForm.$invalid || !theForm.funcBodyForm.$dirty" type="submit" class="md-raised md-primary">
                 {{ 'action.save' | translate }}
             </md-button>
             <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ 'action.cancel' | translate }}</md-button>

@@ -1,0 +1,47 @@
+// Encode downlink data from incoming downlink message
+// payload - downlink message json
+// metadata - key/value object
+
+/** Encoder **/
+
+var data = {};
+
+// Process updated attributes
+data.tempFreq = payload.updatedAttributes.temperatureUploadFrequency.value;
+data.humFreq = payload.updatedAttributes.humidityUploadFrequency.value;
+
+// Process deleted attributes
+if (payload.deletedAttributes.length) {
+    data.removed = payload.deletedAttributes;
+}
+
+// Process RPC calls
+if (payload.rpcCalls.length) {
+    data.commands = [];
+    for (var i = 0; i < payload.rpcCalls.length; i++) {
+        var rpcCall = payload.rpcCalls[i];
+        var command = {
+            type: rpcCall.method,
+            args: JSON.parse(rpcCall.params)
+        };
+        data.commands.push(command);
+    }
+}
+
+// Result object with encoded downlink payload
+var result = {
+
+    // downlink data content type: JSON, TEXT or BINARY (base64 format)
+    contentType: "JSON",
+
+    // downlink data
+    data: JSON.stringify(data),
+
+    // Optional metadata object presented in key/value format
+    metadata: {
+            topic: payload.deviceType+'/'+payload.deviceName+'/upload'
+    }
+
+};
+
+return result;

@@ -60,6 +60,7 @@ import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
+import org.thingsboard.server.service.integration.msg.IntegrationMsg;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -174,6 +175,13 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
     }
 
     @Override
+    public void tell(ServerAddress serverAddress, IntegrationMsg toForward) {
+        ClusterAPIProtos.ToRpcServerMessage msg = ClusterAPIProtos.ToRpcServerMessage.newBuilder()
+                .setToIntegrationMsg(toProtoMsg(toForward)).build();
+        tell(serverAddress, msg);
+    }
+
+    @Override
     public void tell(PluginRpcMsg toForward) {
         ClusterAPIProtos.ToRpcServerMessage msg = ClusterAPIProtos.ToRpcServerMessage.newBuilder()
                 .setToPluginRpcMsg(toProtoMsg(toForward)).build();
@@ -207,6 +215,12 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
 
     private static ClusterAPIProtos.ToDeviceActorRpcMessage toProtoMsg(ToDeviceActorMsg msg) {
         return ClusterAPIProtos.ToDeviceActorRpcMessage.newBuilder().setData(
+                ByteString.copyFrom(SerializationUtils.serialize(msg))
+        ).build();
+    }
+
+    private ClusterAPIProtos.ToIntegrationMessage toProtoMsg(IntegrationMsg msg) {
+        return ClusterAPIProtos.ToIntegrationMessage.newBuilder().setData(
                 ByteString.copyFrom(SerializationUtils.serialize(msg))
         ).build();
     }

@@ -28,45 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.converter.js;
+package org.thingsboard.server.service.converter;
 
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.AbstractDataConverter;
-import org.thingsboard.server.service.converter.UplinkMetaData;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.msg.core.GetAttributesRequest;
+import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
+import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
+
+import java.util.Map;
 
 /**
- * Created by ashvayka on 02.12.17.
+ * Created by ashvayka on 04.12.17.
  */
-public class JSDataConverter extends AbstractDataConverter {
+@Data
+@Builder
+public class DownlinkData {
 
-    private JSUplinkEvaluator jsUplinkEvaluator;
+    private final DeviceId deviceId;
+    private final String deviceName;
+    private final String deviceType;
 
-    @Override
-    public void init(Converter configuration) {
-        super.init(configuration);
-        String decoder = configuration.getConfiguration().get("decoder").asText();
-        jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+    private final String contentType;
+    private final byte[] data;
+    private final Map<String, String> metadata;
+
+    public boolean isEmpty() {
+        return data == null || data.length == 0;
     }
 
-    @Override
-    public void update(Converter configuration) {
-        destroy();
-        init(configuration);
-    }
-
-    @Override
-    public void destroy() {
-        if (jsUplinkEvaluator != null) {
-            jsUplinkEvaluator.destroy();
-        }
-    }
-
-    @Override
-    public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return applyJsFunction(data, metadata);
-    }
-
-    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
-        return jsUplinkEvaluator.execute(data, metadata);
-    }
 }

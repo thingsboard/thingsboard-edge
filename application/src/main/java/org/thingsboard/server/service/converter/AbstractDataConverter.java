@@ -58,12 +58,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by ashvayka on 18.12.17.
  */
 @Slf4j
-public abstract class AbstractDataConverter implements ThingsboardDataConverter {
+public abstract class AbstractDataConverter implements TBDataConverter {
 
     protected final ObjectMapper mapper = new ObjectMapper();
-    private final AtomicInteger telemetryIdSeq = new AtomicInteger();
-    private final AtomicInteger attrRequestIdSeq = new AtomicInteger();
-
     protected Converter configuration;
 
     @Override
@@ -71,84 +68,28 @@ public abstract class AbstractDataConverter implements ThingsboardDataConverter 
         this.configuration = configuration;
     }
 
-    @Override
-    public List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception {
-        try {
-            String rawResult = doConvertUplink(data, metadata);
-            JsonElement element = new JsonParser().parse(rawResult);
-            List<UplinkData> result = new ArrayList<>();
-            if (element.isJsonArray()) {
-                for (JsonElement uplinkJson : element.getAsJsonArray()) {
-                    result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
-                }
-            } else if (element.isJsonObject()) {
-                result.add(parseUplinkData(element.getAsJsonObject()));
-            }
-            if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
-            }
-            return result;
-        } catch (Exception e) {
-            if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, metadata, e);
-            }
-            throw e;
+    protected String toString(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+
+    private String convertToString(String messageType, byte[] message) {
+        if (message == null) {
+            return null;
+        }
+        switch (messageType) {
+            case "JSON":
+            case "TEXT":
+                return new String(message, StandardCharsets.UTF_8);
+            case "BINARY":
+                return Base64Utils.encodeToString(message);
+            default:
+                throw new RuntimeException("Message type: " + messageType + " is not supported!");
         }
     }
 
-    protected abstract String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
-
-    protected UplinkData parseUplinkData(JsonObject src) {
-        if (!src.has("deviceName")) {
-            throw new JsonParseException("Device name is not set!");
-        } else if (!src.has("deviceType")) {
-            throw new JsonParseException("Device type is not set!");
-        }
-        UplinkData.UplinkDataBuilder builder = UplinkData.builder();
-        builder.deviceName(src.get("deviceName").getAsString());
-        builder.deviceType(src.get("deviceType").getAsString());
-        if (src.has("telemetry")) {
-            builder.telemetry(parseTelemetry(src.get("telemetry")));
-        }
-        if (src.has("attributes")) {
-            builder.attributesUpdate(parseAttributesUpdate(src.get("attributes")));
-        }
-
-        //TODO: add support of attribute requests and client-side RPC.
-
-        return builder.build();
-    }
-
-    private TelemetryUploadRequest parseTelemetry(JsonElement src) {
-        return JsonConverter.convertToTelemetry(src, telemetryIdSeq.getAndIncrement());
-    }
-
-    private UpdateAttributesRequest parseAttributesUpdate(JsonElement src) {
-        return JsonConverter.convertToAttributes(src, attrRequestIdSeq.getAndIncrement());
-    }
-
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,
-                                    String outMessage, UplinkMetaData metadata) {
-        try {
-            persistDebug(context, "Uplink", inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to persist uplink debug message");
-        }
-    }
-
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, UplinkMetaData metadata, Exception e) {
-        try {
-            persistDebug(context, "Uplink", inMessageType, inMessage, null, null, metadataToJson(metadata), e);
-        } catch (JsonProcessingException ex) {
-            log.warn("Failed to persist uplink debug message", ex);
-        }
-    }
-
-    private String metadataToJson(UplinkMetaData metaData) throws JsonProcessingException {
-        return mapper.writeValueAsString(metaData.getKvMap());
-    }
-
-    private void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
+    protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                               String outMessageType, byte[] outMessage, String metadata, Exception exception) {
         Event event = new Event();
         event.setTenantId(configuration.getTenantId());
@@ -171,26 +112,4 @@ public abstract class AbstractDataConverter implements ThingsboardDataConverter 
         event.setBody(node);
         context.getEventService().save(event);
     }
-
-    private String convertToString(String messageType, byte[] message) {
-        if (message == null) {
-            return null;
-        }
-        switch (messageType) {
-            case "JSON":
-            case "TEXT":
-                return new String(message, StandardCharsets.UTF_8);
-            case "BINARY":
-                return Base64Utils.encodeToString(message);
-            default:
-                throw new RuntimeException("Message type: " + messageType + " is not supported!");
-        }
-    }
-
-    private String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
-
 }

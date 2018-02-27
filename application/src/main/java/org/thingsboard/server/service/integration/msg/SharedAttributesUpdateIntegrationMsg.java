@@ -28,47 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.converter.js;
+package org.thingsboard.server.service.integration.msg;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.thingsboard.server.service.converter.UplinkMetaData;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKey;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 
-import javax.script.ScriptException;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Set;
 
 /**
- * Created by ashvayka on 04.12.17.
+ * Created by ashvayka on 22.02.18.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class NashornJsConverterEvaluatorTest {
+@Data
+@Builder
+public class SharedAttributesUpdateIntegrationMsg implements ToDeviceIntegrationMsg {
 
-
-    @Test
-    public void basicTest() throws ScriptException, NoSuchMethodException {
-        JSUplinkEvaluator eval = create("uplinkConvertor.js");
-        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
-        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
-    }
-
-    private JSUplinkEvaluator create(String scriptName) {
-        InputStream src = NashornJsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSUplinkEvaluator(read(src));
-    }
-
-    public static String read(InputStream input) {
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
-            return buffer.lines().collect(Collectors.joining(System.lineSeparator()));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private final TenantId tenantId;
+    private final IntegrationId integrationId;
+    private final DeviceId deviceId;
+    private final String deviceName;
+    private final String deviceType;
+    private final Set<AttributeKey> deletedKeys;
+    private final List<AttributeKvEntry> updatedValues;
 
 }

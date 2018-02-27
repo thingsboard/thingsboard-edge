@@ -33,6 +33,7 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
@@ -42,30 +43,39 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
-import org.thingsboard.server.service.converter.ThingsboardDataConverter;
+import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
+import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by ashvayka on 25.12.17.
  */
+@Slf4j
 public abstract class AbstractIntegration<T> implements ThingsboardPlatformIntegration<T> {
 
     protected final ObjectMapper mapper = new ObjectMapper();
     protected Integration configuration;
-    protected ThingsboardDataConverter converter;
+    protected TBUplinkDataConverter uplinkConverter;
+    protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
 
     @Override
-    public void init(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        this.configuration = dto;
-        this.converter = converter;
+    public void init(TbIntegrationInitParams params) throws Exception {
+        this.configuration = params.getConfiguration();
+        this.uplinkConverter = params.getUplinkConverter();
+        this.downlinkConverter = params.getDownlinkConverter();
         Map<String, String> mdMap = new HashMap<>();
         mdMap.put("integrationName", configuration.getName());
         JsonNode metadata = configuration.getConfiguration().get("metadata");
@@ -82,8 +92,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void update(IntegrationContext context, Integration dto, ThingsboardDataConverter converter) throws Exception {
-        init(context, dto, converter);
+    public void update(TbIntegrationInitParams params) throws Exception {
+        init(params);
     }
 
     @Override
@@ -97,13 +107,21 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
+    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
+    }
+
+    @Override
+    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
+    }
+
+    @Override
     public IntegrationStatistics popStatistics() {
         IntegrationStatistics statistics = this.integrationStatistics;
         this.integrationStatistics = new IntegrationStatistics();
         return statistics;
     }
 
-    protected void processUplinkData(IntegrationContext context, UplinkData data) {
+    protected Device processUplinkData(IntegrationContext context, UplinkData data) {
         Device device = getOrCreateDevice(context, data);
 
         if (data.getTelemetry() != null) {
@@ -115,6 +133,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getAttributesUpdate());
             context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
         }
+
+        return device;
     }
 
     private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
@@ -129,7 +149,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             relation.setFrom(configuration.getId());
             relation.setTo(device.getId());
             relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.CONTAINS_TYPE);
+            relation.setType(EntityRelation.INTEGRATION_TYPE);
             context.getRelationService().saveRelation(relation);
         }
         return device;
@@ -163,6 +183,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
-        return this.converter.convertUplink(context.getConverterContext(), data, md);
+        return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
     }
 }

@@ -32,8 +32,9 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import converterFieldsetTemplate from './converter-fieldset.tpl.html';
-import customDecoderTestTemplate from './custom-decoder-test.tpl.html';
+import converterTestTemplate from './converter-test.tpl.html';
 import jsDecoderTemplate from './js-decoder.tpl.txt';
+import jsEncoderTemplate from './js-encoder.tpl.txt';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -46,20 +47,21 @@ export default function ConverterDirective($compile, $templateCache, $translate,
         scope.types = types;
 
         scope.converterTypeChanged = () => {
-            if (scope.converter.type == types.converterType.CUSTOM.value) {
+            if (scope.converter.type) {
                 if (!scope.converter.configuration) {
                     scope.converter.configuration = {};
                 }
-                if (!scope.converter.configuration.decoder || !scope.converter.configuration.decoder.length) {
-                    scope.converter.configuration.decoder = jsDecoderTemplate;
+                if (scope.converter.type == types.converterType.UPLINK.value) {
+                    delete scope.converter.configuration.encoder;
+                    if (!scope.converter.configuration.decoder || !scope.converter.configuration.decoder.length) {
+                        scope.converter.configuration.decoder = jsDecoderTemplate;
+                    }
+                } else if (scope.converter.type == types.converterType.DOWNLINK.value) {
+                    delete scope.converter.configuration.decoder;
+                    if (!scope.converter.configuration.encoder || !scope.converter.configuration.encoder.length) {
+                        scope.converter.configuration.encoder = jsEncoderTemplate;
+                    }
                 }
-                /*if (!scope.converter.configuration.encoder || !scope.converter.configuration.encoder.length) {
-                    scope.converter.configuration.encoder = '// Encode downlink messages sent as\n'+
-                        '// object to an array or buffer of bytes.\n'+
-                        'var bytes = [];\n\n'+
-                        '// if (port === 1) bytes[0] = object.led ? 1 : 0;\n\n'+
-                        'return bytes;\n';
-                }*/
             }
         }
 
@@ -70,28 +72,34 @@ export default function ConverterDirective($compile, $templateCache, $translate,
         scope.$watch('converter', function(newVal) {
             if (newVal) {
                 if (!scope.converter.id) {
-                    scope.converter.type = types.converterType.CUSTOM.value;
+                    scope.converter.type = types.converterType.UPLINK.value;
                     scope.converterTypeChanged();
                 }
             }
         });
 
-        scope.openCustomDecoderTestDialog = function ($event) {
+        scope.openConverterTestDialog = function ($event, isDecoder) {
             if ($event) {
                 $event.stopPropagation();
             }
-            var decoder = angular.copy(scope.converter.configuration.decoder);
+            var funcBody;
+            if (isDecoder) {
+                funcBody = angular.copy(scope.converter.configuration.decoder);
+            } else {
+                funcBody = angular.copy(scope.converter.configuration.encoder);
+            }
             var onShowingCallback = {
                 onShowed: () => {
                 }
             };
             $mdDialog.show({
-                controller: 'CustomDecoderTestController',
+                controller: 'ConverterTestController',
                 controllerAs: 'vm',
-                templateUrl: customDecoderTestTemplate,
+                templateUrl: converterTestTemplate,
                 parent: angular.element($document[0].body),
                 locals: {
-                    decoder: decoder,
+                    isDecoder: isDecoder,
+                    funcBody: funcBody,
                     onShowingCallback: onShowingCallback
                 },
                 fullscreen: true,
@@ -101,8 +109,12 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     onShowingCallback.onShowed();
                 }
             }).then(
-                (decoder) => {
-                    scope.converter.configuration.decoder = decoder;
+                (funcBody) => {
+                    if (isDecoder) {
+                        scope.converter.configuration.decoder = funcBody;
+                    } else {
+                        scope.converter.configuration.encoder = funcBody;
+                    }
                     scope.theForm.$setDirty();
                 }
             );

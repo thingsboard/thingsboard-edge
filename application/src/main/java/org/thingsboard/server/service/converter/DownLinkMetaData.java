@@ -30,23 +30,16 @@
  */
 package org.thingsboard.server.service.converter;
 
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.integration.ConverterContext;
-import org.thingsboard.server.service.integration.IntegrationContext;
+import lombok.Data;
 
-import java.util.List;
+import java.util.Map;
 
 /**
- * Created by ashvayka on 02.12.17.
+ * Created by ashvayka on 04.12.17.
  */
-public interface ThingsboardDataConverter {
+@Data
+public class DownLinkMetaData {
 
-    void init(Converter configuration);
-
-    void update(Converter configuration);
-
-    void destroy();
-
-    List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception;
+    private final Map<String, String> kvMap;
 
 }
