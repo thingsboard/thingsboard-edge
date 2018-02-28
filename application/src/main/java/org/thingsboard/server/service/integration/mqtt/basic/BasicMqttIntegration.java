@@ -154,15 +154,4 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         }
     }
 
-    private JsonNode getDownlinkPayloadJson(DownlinkData data) throws IOException {
-        String contentType = data.getContentType();
-        if ("JSON".equals(contentType)) {
-            return mapper.readTree(data.getData());
-        } else if ("TEXT".equals(contentType)) {
-            return new TextNode(new String(data.getData(), StandardCharsets.UTF_8));
-        } else { //BINARY
-            return new TextNode(Base64Utils.encodeToString(data.getData()));
-        }
-    }
-
 }

@@ -93,6 +93,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
 
         function setupHttpConfiguration(integration) {
             scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(integration);
+            if (scope.integration.type == types.integrationType.THINGPARK.value) {
+                integration.configuration.downlinkUrl = 'https://api.thingpark.com/thingpark/lrc/rest/downlink';
+            }
         }
 
         function setupMqttConfiguration(integration) {
