@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -35,15 +35,24 @@ import com.google.common.io.BaseEncoding;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.Netty4ClientHttpRequestFactory;
+import org.springframework.web.client.AsyncRestTemplate;
+import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
+import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,11 +65,13 @@ import java.util.concurrent.TimeUnit;
 public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
     private static final ThreadLocal<SimpleDateFormat> ISO8601 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-
+    private static final String DEFAULT_DOWNLINK_URL = "https://api.thingpark.com/thingpark/lrc/rest/downlink";
     private boolean securityEnabled = false;
     private String securityAsId;
     private String securityAsKey;
     private long maxTimeDiffInSeconds;
+    private AsyncRestTemplate httpClient;
+    private String downlinkUrl;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -71,6 +82,10 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
             securityAsId = json.get("asId").asText();
             securityAsKey = json.get("asKey").asText();
             maxTimeDiffInSeconds = json.get("maxTimeDiffInSeconds").asLong();
+        }
+        if (downlinkConverter != null) {
+            downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
+            httpClient = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP));
         }
     }
 
@@ -88,6 +103,56 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         } else {
             return fromStatus(HttpStatus.FORBIDDEN);
         }
+    }
+
+    @Override
+    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
+        logDownlink(context, "SharedAttributeUpdate", msg);
+        if (downlinkConverter != null) {
+            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
+            processDownLinkMsg(context, downLinkMsg);
+        }
+    }
+
+    @Override
+    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
+        logDownlink(context, "RPCCall", msg);
+        if (downlinkConverter != null) {
+            processDownLinkMsg(context, DownLinkMsg.from(msg));
+        }
+    }
+
+    private void processDownLinkMsg(IntegrationContext context, DownLinkMsg msg) {
+        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+        String status = "OK";
+        Exception exception = null;
+        try {
+            List<DownlinkData> result = downlinkConverter.convertDownLink(
+                    context.getConverterContext(),
+                    Collections.singletonList(msg),
+                    new DownLinkMetaData(mdMap));
+            if (!result.isEmpty()) {
+                for (DownlinkData downlink : result) {
+                    if (downlink.isEmpty()) {
+                        continue;
+                    }
+                    Map<String, String> metadata = downlink.getMetadata();
+                    if (!metadata.containsKey("DevEUI")) {
+                        throw new RuntimeException("DevEUI is missing in the downlink metadata!");
+                    }
+                    if (!metadata.containsKey("FPort")) {
+                        throw new RuntimeException("FPort is missing in the downlink metadata!");
+                    }
+
+
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process downLink message", e);
+            exception = e;
+            status = "ERROR";
+        }
+        reportDownlinkError(context, msg, status, exception);
     }
 
     private boolean checkSecurity(ThingParkIntegrationMsg msg) throws Exception {
@@ -134,7 +199,6 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
                 log.trace("Expected token: {}, actual: {}", token, params.getToken());
                 return false;
             }
-
         }
 
         return true;

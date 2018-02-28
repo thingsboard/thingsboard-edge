@@ -184,16 +184,6 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         return responseHeaders;
     }
 
-    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
-    }
-
     protected Map<Device, UplinkData> processUplinkData(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         byte[] data = mapper.writeValueAsBytes(msg.getMsg());
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());

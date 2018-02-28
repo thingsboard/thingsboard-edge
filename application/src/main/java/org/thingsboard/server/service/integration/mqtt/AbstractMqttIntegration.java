@@ -143,16 +143,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-            if (configuration.isDebugMode()) {
-                try {
-                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
-                } catch (Exception e) {
-                    log.warn("Failed to persist debug message", e);
-                }
-            }
-        }
+        reportDownlinkError(context, msg, status, exception);
     }
 
     protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception;

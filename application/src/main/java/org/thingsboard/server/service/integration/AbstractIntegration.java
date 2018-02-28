@@ -47,6 +47,7 @@ import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
 import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
 import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
@@ -185,4 +186,18 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
     }
+
+    protected void reportDownlinkError(IntegrationContext context, DownLinkMsg msg, String status, Exception exception) {
+        if (!status.equals("OK")) {
+            integrationStatistics.incErrorsOccurred();
+            if (configuration.isDebugMode()) {
+                try {
+                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
+                } catch (Exception e) {
+                    log.warn("Failed to persist debug message", e);
+                }
+            }
+        }
+    }
+
 }
