@@ -100,6 +100,7 @@
         <azure-eventhubs.version>0.15.1</azure-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*, org/thingsboard/server/extensions/core/plugin/telemetry/gen/**/*</sonar.exclusions>
+        <elasticsearch.version>5.0.2</elasticsearch.version>
     </properties>
 
     <modules>
@@ -854,6 +855,11 @@
                 <groupId>com.microsoft.azure.sdk.iot</groupId>
                 <artifactId>iot-service-client</artifactId>
                 <version>${azure-iot-service-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>rest</artifactId>
+                <version>${elasticsearch.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

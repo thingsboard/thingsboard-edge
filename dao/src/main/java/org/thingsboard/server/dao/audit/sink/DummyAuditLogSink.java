@@ -28,48 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.audit;
+package org.thingsboard.server.dao.audit.sink;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.audit.ActionType;
+import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.audit.AuditLog;
-import org.thingsboard.server.common.data.id.*;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 
-import java.util.List;
-
-@Service
-@ConditionalOnProperty(prefix = "audit_log", value = "enabled", havingValue = "false")
-public class DummyAuditLogServiceImpl implements AuditLogService {
+@Component
+@ConditionalOnProperty(prefix = "audit_log.sink", value = "type", havingValue = "none")
+public class DummyAuditLogSink implements AuditLogSink {
 
     @Override
-    public TimePageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
-        return new TimePageData<>(null, pageLink);
+    public void logAction(AuditLog auditLogEntry) {
     }
-
-    @Override
-    public TimePageData<AuditLog> findAuditLogsByTenantIdAndUserId(TenantId tenantId, UserId userId, TimePageLink pageLink) {
-        return new TimePageData<>(null, pageLink);
-    }
-
-    @Override
-    public TimePageData<AuditLog> findAuditLogsByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, TimePageLink pageLink) {
-        return new TimePageData<>(null, pageLink);
-    }
-
-    @Override
-    public TimePageData<AuditLog> findAuditLogsByTenantId(TenantId tenantId, TimePageLink pageLink) {
-        return new TimePageData<>(null, pageLink);
-    }
-
-    @Override
-    public <E extends BaseData<I> & HasName, I extends UUIDBased & EntityId> ListenableFuture<List<Void>> logEntityAction(TenantId tenantId, CustomerId customerId, UserId userId, String userName, I entityId, E entity, ActionType actionType, Exception e, Object... additionalInfo) {
-        return null;
-    }
-
 }
