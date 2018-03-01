@@ -556,6 +556,9 @@ export default angular.module('thingsboard.types', [])
                     helpId: 'integrations'
                 }
             },
+            aliasEntityType: {
+                current_customer: "CURRENT_CUSTOMER"
+            },
             entityTypeTranslations: {
                 "DEVICE": {
                     type: 'entity.type-device',
@@ -680,6 +683,10 @@ export default angular.module('thingsboard.types', [])
                     nameStartsWith: 'entity.integration-name-starts-with',
                     details: 'integration.integration-details',
                     add: 'integration.add'
+                },
+                "CURRENT_CUSTOMER": {
+                    type: 'entity.type-current-customer',
+                    list: 'entity.type-current-customer'
                 }
             },
             entitySearchDirection: {

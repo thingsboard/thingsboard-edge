@@ -371,9 +371,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.dashboard:
                 if (user.authority === 'CUSTOMER_USER') {
-                    promise = dashboardService.getCustomerDashboards(customerId, pageLink, false, config);
+                    promise = dashboardService.getCustomerDashboards(customerId, pageLink, config);
                 } else {
-                    promise = dashboardService.getTenantDashboards(pageLink, false, config);
+                    promise = dashboardService.getTenantDashboards(pageLink, config);
                 }
                 break;
             case types.entityType.user:
@@ -569,6 +569,21 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
+    function resolveAliasEntityId(entityType, id) {
+        var entityId = {
+            entityType: entityType,
+            id: id
+        };
+        if (entityType == types.aliasEntityType.current_customer) {
+            var user = userService.getCurrentUser();
+            entityId.entityType = types.entityType.customer;
+            if (user.authority === 'CUSTOMER_USER') {
+                entityId.id = user.customerId;
+            }
+        }
+        return entityId;
+    }
+
     function getStateEntityId(filter, stateParams) {
         var entityId = null;
         if (stateParams) {
@@ -590,6 +605,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityId = filter.defaultStateEntity;
             }
         }
+        if (entityId) {
+            entityId = resolveAliasEntityId(entityId.entityType, entityId.id);
+        }
         return entityId;
     }
 
@@ -605,7 +623,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         var stateEntityId = getStateEntityId(filter, stateParams);
         switch (filter.type) {
             case types.aliasFilterType.singleEntity.value:
-                getEntity(filter.singleEntity.entityType, filter.singleEntity.id, {ignoreLoading: true}).then(
+                var aliasEntityId = resolveAliasEntityId(filter.singleEntity.entityType, filter.singleEntity.id);
+                getEntity(aliasEntityId.entityType, aliasEntityId.id, {ignoreLoading: true}).then(
                     function success(entity) {
                         result.entities = entitiesToEntitiesInfo([entity]);
                         deferred.resolve(result);
@@ -756,10 +775,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     rootEntityId = filter.rootEntity.id;
                 }
                 if (rootEntityType && rootEntityId) {
+                    var relationQueryRootEntityId = resolveAliasEntityId(rootEntityType, rootEntityId);
                     var searchQuery = {
                         parameters: {
-                            rootId: rootEntityId,
-                            rootType: rootEntityType,
+                            rootId: relationQueryRootEntityId.id,
+                            rootType: relationQueryRootEntityId.entityType,
                             direction: filter.direction
                         },
                         filters: filter.filters
@@ -797,10 +817,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     rootEntityId = filter.rootEntity.id;
                 }
                 if (rootEntityType && rootEntityId) {
+                    var searchQueryRootEntityId = resolveAliasEntityId(rootEntityType, rootEntityId);
                     searchQuery = {
                         parameters: {
-                            rootId: rootEntityId,
-                            rootType: rootEntityType,
+                            rootId: searchQueryRootEntityId.id,
+                            rootType: searchQueryRootEntityId.entityType,
                             direction: filter.direction
                         },
                         relationType: filter.relationType
@@ -947,7 +968,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return result;
     }
 
-    function prepareAllowedEntityTypesList(allowedEntityTypes) {
+    function prepareAllowedEntityTypesList(allowedEntityTypes, useAliasEntityTypes) {
         var authority = userService.getAuthority();
         var entityTypes = {};
         switch(authority) {
@@ -966,12 +987,18 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.dashboard = types.entityType.dashboard;
                 entityTypes.converter = types.entityType.converter;
                 entityTypes.integration = types.entityType.integration;
+                if (useAliasEntityTypes) {
+                    entityTypes.current_customer = types.aliasEntityType.current_customer;
+                }
                 break;
             case 'CUSTOMER_USER':
                 entityTypes.device = types.entityType.device;
                 entityTypes.asset = types.entityType.asset;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
+                if (useAliasEntityTypes) {
+                    entityTypes.current_customer = types.aliasEntityType.current_customer;
+                }
                 break;
         }
 

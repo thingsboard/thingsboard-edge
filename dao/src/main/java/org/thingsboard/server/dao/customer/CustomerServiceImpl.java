@@ -120,6 +120,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (customer.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId());
         }
+        dashboardService.updateCustomerDashboards(savedCustomer.getId());
         return savedCustomer;
     }
 
@@ -131,7 +132,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (customer == null) {
             throw new IncorrectParameterException("Unable to delete non-existent customer.");
         }
-        dashboardService.unassignCustomerDashboards(customer.getTenantId(), customerId);
+        dashboardService.unassignCustomerDashboards(customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
