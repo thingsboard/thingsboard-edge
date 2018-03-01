@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -38,15 +39,16 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.service.integration.ConverterContext;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by ashvayka on 18.12.17.
@@ -54,10 +56,34 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractDownlinkDataConverter extends AbstractDataConverter implements TBDownlinkDataConverter {
 
+    private Map<String, Set<String>> fetchAttributesMap = new HashMap<>();
+
+    @Override
+    public void init(Converter configuration) {
+        super.init(configuration);
+        JsonNode fetchAttributes = configuration.getConfiguration().get("fetchAttributes");
+        for (String scope : DataConstants.allScopes()) {
+            fetchAttributesMap.put(scope, parseAttributeKeys(scope, fetchAttributes));
+        }
+    }
+
+    private Set<String> parseAttributeKeys(String scope, JsonNode fetchAttributes) {
+        Set<String> attributeKeysList = new HashSet<>();
+        JsonNode attributeKeys = fetchAttributes != null ? fetchAttributes.get(scope) : null;
+        if (attributeKeys != null && attributeKeys.isArray()) {
+            ArrayNode attributeKeysArray = (ArrayNode)attributeKeys;
+            for (JsonNode keyJson : attributeKeysArray) {
+                attributeKeysList.add(keyJson.asText());
+            }
+        }
+        return attributeKeysList;
+    }
+
     @Override
     public List<DownlinkData> convertDownLink(ConverterContext context, List<DownLinkMsg> downLinkMsgs, DownLinkMetaData metadata) throws Exception {
         List<String> rawPayloads = new ArrayList<>();
         for (DownLinkMsg downLinkMsg : downLinkMsgs) {
+            fetchAttributes(context, downLinkMsg);
             String payload = mapper.writeValueAsString(downLinkMsg);
             rawPayloads.add(payload);
         }
@@ -90,6 +116,18 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
             }
             throw e;
         }
+    }
+
+    private void fetchAttributes(ConverterContext context, DownLinkMsg downLinkMsg) throws Exception {
+            DeviceId deviceId = downLinkMsg.getDeviceId();
+            for (Map.Entry<String, Set<String>> attrScopeEntry : fetchAttributesMap.entrySet()) {
+                if (!attrScopeEntry.getValue().isEmpty()) {
+                    List<AttributeKvEntry> attributes = context.getAttributesService().find(deviceId, attrScopeEntry.getKey(), attrScopeEntry.getValue()).get();
+                    for (AttributeKvEntry attribute : attributes) {
+                        downLinkMsg.addCurrentAttribute(attrScopeEntry.getKey(), attribute.getKey(), attribute.getValueAsString());
+                    }
+                }
+            }
     }
 
     protected abstract String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception;

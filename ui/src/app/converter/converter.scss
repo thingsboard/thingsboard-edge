@@ -28,33 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
+@import '../../scss/constants';
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Component
-@Data
-public class ConverterContext {
-
-    @Lazy
-    @Autowired
-    private EventService eventService;
-
-    @Lazy
-    @Autowired
-    private DiscoveryService discoveryService;
-
-    @Lazy
-    @Autowired
-    private AttributesService attributesService;
-
+.tb-fetch-device-attributes-panel-group {
+  .tb-panel-title {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    min-width: 90px;
+    @media (min-width: $layout-breakpoint-sm) {
+      min-width: 180px;
+    }
+  }
+  &.disabled {
+    .tb-panel-title, .tb-panel-prompt {
+      color: rgba(0, 0, 0, 0.38);
+    }
+  }
+  md-icon.md-expansion-panel-icon {
+    margin-right: 0px;
+  }
 }

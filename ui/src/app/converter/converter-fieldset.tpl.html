@@ -88,6 +88,43 @@
             <br/>
         </section>
         <section layout="column" ng-if="converter.type === types.converterType.DOWNLINK.value">
+            <md-expansion-panel-group class="tb-fetch-device-attributes-panel-group" ng-class="{'disabled': $root.loading || !isEdit}"
+                                      md-component-id="fetchDeviceAttributesPanelGroup">
+                <md-expansion-panel md-component-id="{{fetchDeviceAttributesPanelId}}">
+                    <md-expansion-panel-collapsed>
+                        <div class="tb-panel-title">{{ 'converter.fetch-device-attributes' | translate }}</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-collapsed>
+                    <md-expansion-panel-expanded>
+                        <md-expansion-panel-header ng-click="$mdExpansionPanel(fetchDeviceAttributesPanelId).collapse()">
+                            <div class="tb-panel-title">{{ 'converter.fetch-device-attributes' | translate }}</div>
+                            <span flex></span>
+                            <md-expansion-panel-icon></md-expansion-panel-icon>
+                        </md-expansion-panel-header>
+                        <md-expansion-panel-content>
+                            <label translate class="tb-title">attribute.scope-server</label>
+                            <md-chips placeholder="{{'converter.enter-attribute-key' | translate }}"
+                                      ng-model="converter.configuration.fetchAttributes[types.attributesScope.server.value]"
+                                      ng-readonly="$root.loading || !isEdit" md-removable="true">
+                            </md-chips>
+                            <div style="height: 15px;"></div>
+                            <label translate class="tb-title">attribute.scope-shared</label>
+                            <md-chips placeholder="{{'converter.enter-attribute-key' | translate }}"
+                                      ng-model="converter.configuration.fetchAttributes[types.attributesScope.shared.value]"
+                                      ng-readonly="$root.loading || !isEdit" md-removable="true">
+                            </md-chips>
+                            <div style="height: 15px;"></div>
+                            <label translate class="tb-title">attribute.scope-client</label>
+                            <md-chips placeholder="{{'converter.enter-attribute-key' | translate }}"
+                                      ng-model="converter.configuration.fetchAttributes[types.attributesScope.client.value]"
+                                      ng-readonly="$root.loading || !isEdit" md-removable="true">
+                            </md-chips>
+                        </md-expansion-panel-content>
+                    </md-expansion-panel-expanded>
+                </md-expansion-panel>
+            </md-expansion-panel-group>
+            <div style="height: 30px;"></div>
             <label translate class="tb-title no-padding">converter.encoder</label>
             <tb-js-func ng-model="converter.configuration.encoder"
                         function-name="Encoder"

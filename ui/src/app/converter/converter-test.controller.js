@@ -67,6 +67,16 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
             },
             "deviceName":"sensorA",
             "deviceType":"temp-sensor",
+            "currentAttributes":{
+                "server": {
+                    "serialNumber": "SN111",
+                    "model": "Model A"
+                },
+                "shared": {
+                },
+                "client": {
+                }
+            },
             "deletedAttributes":[
                 "moistureUploadFrequency"
             ],

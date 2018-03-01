@@ -413,6 +413,8 @@ export default angular.module('thingsboard.locale', [])
                     "name": "Name",
                     "name-required": "Name is required.",
                     "description": "Description",
+                    "fetch-device-attributes": "Fetch device attributes",
+                    "enter-attribute-key": "Enter attribute key...",
                     "decoder": "Decoder",
                     "encoder": "Encoder",
                     "test-decoder-fuction": "Test decoder function",

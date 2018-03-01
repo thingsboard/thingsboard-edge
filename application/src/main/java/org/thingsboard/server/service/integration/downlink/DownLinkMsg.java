@@ -32,6 +32,8 @@ package org.thingsboard.server.service.integration.downlink;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
@@ -49,6 +51,7 @@ public class DownLinkMsg implements Serializable {
     private final String deviceName;
     private final String deviceType;
 
+    private Map<String, Map<String,String>> currentAttributes = new HashMap<>();
     private Set<String> deletedAttributes = new HashSet<>();
     private Map<String, AttributeUpdate> updatedAttributes = new HashMap<>();
     private List<RPCCall> rpcCalls = new LinkedList<>();
@@ -81,6 +84,20 @@ public class DownLinkMsg implements Serializable {
         }
 
         return result;
+    }
+
+    public void addCurrentAttribute(String scope, String key, String value) {
+        String scopeKey = "";
+        if (DataConstants.SERVER_SCOPE.equals(scope)) {
+            scopeKey = "server";
+        } else if (DataConstants.SHARED_SCOPE.equals(scope)) {
+            scopeKey = "shared";
+        } else if (DataConstants.CLIENT_SCOPE.equals(scope)) {
+            scopeKey = "client";
+        }
+        if (!StringUtils.isEmpty(scopeKey)) {
+            currentAttributes.computeIfAbsent(scopeKey, k -> new HashMap<>()).put(key, value);
+        }
     }
 
     @JsonIgnore

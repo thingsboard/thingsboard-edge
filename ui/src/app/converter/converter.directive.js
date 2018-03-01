@@ -38,12 +38,16 @@ import jsEncoderTemplate from './js-encoder.tpl.txt';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+import './converter.scss';
+
 /*@ngInject*/
-export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, toast, types) {
+export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, $mdExpansionPanel, toast, types) {
     var linker = function (scope, element) {
         var template = $templateCache.get(converterFieldsetTemplate);
         element.html(template);
 
+        scope.fetchDeviceAttributesPanelId = (Math.random()*1000).toFixed(0);
+        scope.$mdExpansionPanel = $mdExpansionPanel;
         scope.types = types;
 
         scope.converterTypeChanged = () => {
@@ -53,6 +57,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                 }
                 if (scope.converter.type == types.converterType.UPLINK.value) {
                     delete scope.converter.configuration.encoder;
+                    delete scope.converter.configuration.fetchAttributes;
                     if (!scope.converter.configuration.decoder || !scope.converter.configuration.decoder.length) {
                         scope.converter.configuration.decoder = jsDecoderTemplate;
                     }
@@ -60,6 +65,15 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     delete scope.converter.configuration.decoder;
                     if (!scope.converter.configuration.encoder || !scope.converter.configuration.encoder.length) {
                         scope.converter.configuration.encoder = jsEncoderTemplate;
+                    }
+                    if (!scope.converter.configuration.fetchAttributes) {
+                        scope.converter.configuration.fetchAttributes = {};
+                    }
+                    for (var attrScope in types.attributesScope) {
+                        var scopeValue = types.attributesScope[attrScope].value;
+                        if (!scope.converter.configuration.fetchAttributes[scopeValue]) {
+                            scope.converter.configuration.fetchAttributes[scopeValue] = [];
+                        }
                     }
                 }
             }
@@ -73,8 +87,8 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             if (newVal) {
                 if (!scope.converter.id) {
                     scope.converter.type = types.converterType.UPLINK.value;
-                    scope.converterTypeChanged();
                 }
+                scope.converterTypeChanged();
             }
         });
 

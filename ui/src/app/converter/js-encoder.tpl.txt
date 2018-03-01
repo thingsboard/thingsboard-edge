@@ -15,6 +15,10 @@ if (payload.deletedAttributes.length) {
     data.removed = payload.deletedAttributes;
 }
 
+// Process current attributes
+// SERVER scope attributes (can be also 'shared' or 'client')
+data.devSerialNumber = payload.currentAttributes.server.serialNumber;
+
 // Process RPC calls
 if (payload.rpcCalls.length) {
     data.commands = [];
