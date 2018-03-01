@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.service.integration.ConverterContext;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
@@ -119,15 +118,15 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
     }
 
     private void fetchAttributes(ConverterContext context, DownLinkMsg downLinkMsg) throws Exception {
-            DeviceId deviceId = downLinkMsg.getDeviceId();
-            for (Map.Entry<String, Set<String>> attrScopeEntry : fetchAttributesMap.entrySet()) {
-                if (!attrScopeEntry.getValue().isEmpty()) {
-                    List<AttributeKvEntry> attributes = context.getAttributesService().find(deviceId, attrScopeEntry.getKey(), attrScopeEntry.getValue()).get();
-                    for (AttributeKvEntry attribute : attributes) {
-                        downLinkMsg.addCurrentAttribute(attrScopeEntry.getKey(), attribute.getKey(), attribute.getValueAsString());
-                    }
+        for (Map.Entry<String, Set<String>> attrScopeEntry : fetchAttributesMap.entrySet()) {
+            if (!attrScopeEntry.getValue().isEmpty()) {
+                List<AttributeKvEntry> attributes = context.getAttributesService().find(downLinkMsg.getDeviceId(),
+                        attrScopeEntry.getKey(), attrScopeEntry.getValue()).get();
+                for (AttributeKvEntry attribute : attributes) {
+                    downLinkMsg.addCurrentAttribute(attrScopeEntry.getKey(), attribute.getKey(), attribute.getValueAsString());
                 }
             }
+        }
     }
 
     protected abstract String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception;
