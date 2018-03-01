@@ -121,7 +121,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                     conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (SQLSyntaxErrorException e) {}
+                    } catch (Exception e) {}
                     conn.createStatement().execute("update converter set type = 'UPLINK' where type = 'CUSTOM'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                 }
                 log.info("Schema updated.");
