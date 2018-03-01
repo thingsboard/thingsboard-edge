@@ -52,6 +52,11 @@ public class DownLinkMsg implements Serializable {
     private final String deviceType;
 
     private Map<String, Map<String,String>> currentAttributes = new HashMap<>();
+    {
+        currentAttributes.put("server", new HashMap<>());
+        currentAttributes.put("shared", new HashMap<>());
+        currentAttributes.put("client", new HashMap<>());
+    }
     private Set<String> deletedAttributes = new HashSet<>();
     private Map<String, AttributeUpdate> updatedAttributes = new HashMap<>();
     private List<RPCCall> rpcCalls = new LinkedList<>();
@@ -96,7 +101,7 @@ public class DownLinkMsg implements Serializable {
             scopeKey = "client";
         }
         if (!StringUtils.isEmpty(scopeKey)) {
-            currentAttributes.computeIfAbsent(scopeKey, k -> new HashMap<>()).put(key, value);
+            currentAttributes.get(scopeKey).put(key, value);
         }
     }
 
