@@ -55,20 +55,33 @@ public class TwilioSmsMessageHandler implements RuleMsgHandler {
     @Override
     public void process(PluginContext ctx, TenantId tenantId, RuleId ruleId, RuleToPluginMsg<?> msg) throws RuleException {
         if (msg instanceof TwilioSmsActionMsg) {
-            TwilioSmsActionPayload payload = ((TwilioSmsActionMsg) msg).getPayload();
-            for (String numberTo: payload.getNumbersTo()) {
-                Message message = Message.creator(
-                        new PhoneNumber(numberTo),
-                        new PhoneNumber(payload.getNumberFrom()),
-                        payload.getMsgBody()
-                ).create();
-                log.debug("SMS Message sent. ID: " + message.getSid());
+            try {
+                TwilioSmsActionPayload payload = ((TwilioSmsActionMsg) msg).getPayload();
+                try {
+                    for (String numberTo : payload.getNumbersTo()) {
+                        Message message = Message.creator(
+                                new PhoneNumber(numberTo),
+                                new PhoneNumber(payload.getNumberFrom()),
+                                payload.getMsgBody()
+                        ).create();
+                        log.debug("SMS Message sent. ID: " + message.getSid());
+                    }
+                } catch (Exception e) {
+                    log.warn("[{}] Failed to send SMS to Twilio service", ctx.getPluginId(), e);
+                    ctx.persistError("Failed to send SMS to Twilio service", e);
+                    if (payload.isSync()) {
+                        ctx.reply(new ResponsePluginToRuleMsg(msg.getUid(), tenantId, ruleId,
+                                BasicStatusCodeResponse.onError(payload.getMsgType(), payload.getRequestId(), e)));
+                    }
+                }
+
+                if (payload.isSync()) {
+                    ctx.reply(new ResponsePluginToRuleMsg(msg.getUid(), tenantId, ruleId,
+                            BasicStatusCodeResponse.onSuccess(payload.getMsgType(), payload.getRequestId())));
+                }
+            } catch (Exception e) {
+                throw new RuleException(e.getMessage(), e);
             }
-            if (payload.isSync()) {
-                ctx.reply(new ResponsePluginToRuleMsg(msg.getUid(), tenantId, ruleId,
-                        BasicStatusCodeResponse.onSuccess(payload.getMsgType(), payload.getRequestId())));
-            }
-            return;
         }
         throw new RuleException("Unsupported message type " + msg.getClass().getName() + "!");
     }
