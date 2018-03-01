@@ -128,6 +128,10 @@
             </section>
             <section layout="column" ng-if="integration.type == types.integrationType.THINGPARK.value">
                 <md-input-container class="md-block">
+                    <label translate>integration.downlink-url</label>
+                    <input name="asKey" ng-model="integration.configuration.downlinkUrl">
+                </md-input-container>
+                <md-input-container class="md-block">
                     <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
                                  ng-model="integration.configuration.enableSecurity"
                                  ng-change="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}

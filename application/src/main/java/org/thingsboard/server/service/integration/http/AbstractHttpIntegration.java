@@ -71,6 +71,16 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
     }
 
+    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
+    }
+
     protected abstract ResponseEntity doProcess(IntegrationContext context, T msg) throws Exception;
 
     protected static ResponseEntity fromStatus(HttpStatus status) {

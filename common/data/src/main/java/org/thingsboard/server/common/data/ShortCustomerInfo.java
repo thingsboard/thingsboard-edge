@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -28,49 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/* eslint-disable import/no-unresolved, import/default */
+package org.thingsboard.server.common.data;
 
-import dashboardFieldsetTemplate from './dashboard-fieldset.tpl.html';
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.id.CustomerId;
 
-/* eslint-enable import/no-unresolved, import/default */
+/**
+ * Created by igor on 2/27/18.
+ */
 
-/*@ngInject*/
-export default function DashboardDirective($compile, $templateCache, $translate, types, toast, dashboardService) {
-    var linker = function (scope, element) {
-        var template = $templateCache.get(dashboardFieldsetTemplate);
-        element.html(template);
-        scope.publicLink = null;
-        scope.$watch('dashboard', function(newVal) {
-            if (newVal) {
-                if (scope.dashboard.publicCustomerId) {
-                    scope.publicLink = dashboardService.getPublicDashboardLink(scope.dashboard);
-                } else {
-                    scope.publicLink = null;
-                }
-            }
-        });
+@AllArgsConstructor
+public class ShortCustomerInfo {
 
-        scope.onPublicLinkCopied = function() {
-            toast.showSuccess($translate.instant('dashboard.public-link-copied-message'), 750, angular.element(element).parent().parent(), 'bottom left');
-        };
+    @Getter @Setter
+    private CustomerId customerId;
 
-        $compile(element.contents())(scope);
+    @Getter @Setter
+    private String title;
+
+    @Getter @Setter
+    private boolean isPublic;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ShortCustomerInfo that = (ShortCustomerInfo) o;
+
+        return customerId.equals(that.customerId);
+
     }
-    return {
-        restrict: "E",
-        link: linker,
-        scope: {
-            dashboard: '=',
-            isEdit: '=',
-            customerId: '=',
-            dashboardScope: '=',
-            theForm: '=',
-            onMakePublic: '&',
-            onMakePrivate: '&',
-            onManageAssignedCustomers: '&',
-            onUnassignFromCustomer: '&',
-            onExportDashboard: '&',
-            onDeleteDashboard: '&'
-        }
-    };
+
+    @Override
+    public int hashCode() {
+        return customerId.hashCode();
+    }
 }

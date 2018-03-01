@@ -84,6 +84,11 @@ public class Customer extends ContactBased<CustomerId> implements HasName {
         return false;
     }
 
+    @JsonIgnore
+    public ShortCustomerInfo toShortCustomerInfo() {
+        return new ShortCustomerInfo(id, title, isPublic());
+    }
+
     @Override
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {

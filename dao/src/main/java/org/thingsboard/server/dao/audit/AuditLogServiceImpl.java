@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.audit.sink.AuditLogSink;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -83,6 +84,9 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private AuditLogSink auditLogSink;
 
     @Override
     public TimePageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
@@ -326,6 +330,9 @@ public class AuditLogServiceImpl implements AuditLogService {
         futures.add(auditLogDao.saveByTenantIdAndEntityId(auditLogEntry));
         futures.add(auditLogDao.saveByTenantIdAndCustomerId(auditLogEntry));
         futures.add(auditLogDao.saveByTenantIdAndUserId(auditLogEntry));
+
+        auditLogSink.logAction(auditLogEntry);
+
         return Futures.allAsList(futures);
     }
 

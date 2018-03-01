@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -28,49 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/* eslint-disable import/no-unresolved, import/default */
+package org.thingsboard.server.dao.service;
 
-import dashboardFieldsetTemplate from './dashboard-fieldset.tpl.html';
+import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
-/* eslint-enable import/no-unresolved, import/default */
+import java.sql.Time;
+import java.util.List;
+import java.util.UUID;
 
-/*@ngInject*/
-export default function DashboardDirective($compile, $templateCache, $translate, types, toast, dashboardService) {
-    var linker = function (scope, element) {
-        var template = $templateCache.get(dashboardFieldsetTemplate);
-        element.html(template);
-        scope.publicLink = null;
-        scope.$watch('dashboard', function(newVal) {
-            if (newVal) {
-                if (scope.dashboard.publicCustomerId) {
-                    scope.publicLink = dashboardService.getPublicDashboardLink(scope.dashboard);
-                } else {
-                    scope.publicLink = null;
-                }
+public abstract class TimePaginatedRemover<I, D extends IdBased<?>> {
+
+    private static final int DEFAULT_LIMIT = 100;
+
+    public void removeEntities(I id) {
+        TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
+        boolean hasNext = true;
+        while (hasNext) {
+            List<D> entities = findEntities(id, pageLink);
+            for (D entity : entities) {
+                removeEntity(entity);
             }
-        });
-
-        scope.onPublicLinkCopied = function() {
-            toast.showSuccess($translate.instant('dashboard.public-link-copied-message'), 750, angular.element(element).parent().parent(), 'bottom left');
-        };
-
-        $compile(element.contents())(scope);
-    }
-    return {
-        restrict: "E",
-        link: linker,
-        scope: {
-            dashboard: '=',
-            isEdit: '=',
-            customerId: '=',
-            dashboardScope: '=',
-            theForm: '=',
-            onMakePublic: '&',
-            onMakePrivate: '&',
-            onManageAssignedCustomers: '&',
-            onUnassignFromCustomer: '&',
-            onExportDashboard: '&',
-            onDeleteDashboard: '&'
+            hasNext = entities.size() == pageLink.getLimit();
+            if (hasNext) {
+                int index = entities.size() - 1;
+                UUID idOffset = entities.get(index).getUuidId();
+                pageLink.setIdOffset(idOffset);
+            }
         }
-    };
+    }
+
+    protected abstract List<D> findEntities(I id, TimePageLink pageLink);
+
+    protected abstract void removeEntity(D entity);
+
 }

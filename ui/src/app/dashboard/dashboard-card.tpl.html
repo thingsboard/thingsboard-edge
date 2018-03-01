@@ -30,6 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-small" ng-show="vm.isAssignedToCustomer()">{{'dashboard.assignedToCustomer' | translate}} '{{vm.item.assignedCustomer.title}}'</div>
-<div class="tb-small" ng-show="vm.isPublic()">{{'dashboard.public' | translate}}</div>
+<div class="tb-small tb-dashboard-assigned-customers" ng-show="vm.parentCtl.dashboardsScope === 'tenant' && vm.item.assignedCustomersText">{{'dashboard.assignedToCustomers' | translate}}: '{{vm.item.assignedCustomersText}}'</div>
+<div class="tb-small" ng-show="vm.parentCtl.dashboardsScope === 'tenant' && vm.item.publicCustomerId">{{'dashboard.public' | translate}}</div>
 

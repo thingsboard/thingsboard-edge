@@ -139,8 +139,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (statisticsEnabled) {
             statisticsExecutorService.shutdown();
         }
-        EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
         integrationsByIdMap.values().forEach(ThingsboardPlatformIntegration::destroy);
+        EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
         integrationsByIdMap.clear();
         integrationsByRoutingKeyMap.clear();
     }

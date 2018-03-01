@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
@@ -28,49 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/* eslint-disable import/no-unresolved, import/default */
+package org.thingsboard.server.dao.audit.sink;
 
-import dashboardFieldsetTemplate from './dashboard-fieldset.tpl.html';
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.audit.AuditLog;
 
-/* eslint-enable import/no-unresolved, import/default */
+@Component
+@ConditionalOnProperty(prefix = "audit_log.sink", value = "type", havingValue = "none")
+public class DummyAuditLogSink implements AuditLogSink {
 
-/*@ngInject*/
-export default function DashboardDirective($compile, $templateCache, $translate, types, toast, dashboardService) {
-    var linker = function (scope, element) {
-        var template = $templateCache.get(dashboardFieldsetTemplate);
-        element.html(template);
-        scope.publicLink = null;
-        scope.$watch('dashboard', function(newVal) {
-            if (newVal) {
-                if (scope.dashboard.publicCustomerId) {
-                    scope.publicLink = dashboardService.getPublicDashboardLink(scope.dashboard);
-                } else {
-                    scope.publicLink = null;
-                }
-            }
-        });
-
-        scope.onPublicLinkCopied = function() {
-            toast.showSuccess($translate.instant('dashboard.public-link-copied-message'), 750, angular.element(element).parent().parent(), 'bottom left');
-        };
-
-        $compile(element.contents())(scope);
+    @Override
+    public void logAction(AuditLog auditLogEntry) {
     }
-    return {
-        restrict: "E",
-        link: linker,
-        scope: {
-            dashboard: '=',
-            isEdit: '=',
-            customerId: '=',
-            dashboardScope: '=',
-            theForm: '=',
-            onMakePublic: '&',
-            onMakePrivate: '&',
-            onManageAssignedCustomers: '&',
-            onUnassignFromCustomer: '&',
-            onExportDashboard: '&',
-            onDeleteDashboard: '&'
-        }
-    };
 }
