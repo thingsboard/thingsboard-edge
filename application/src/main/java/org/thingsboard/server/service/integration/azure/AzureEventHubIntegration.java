@@ -203,16 +203,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-            if (configuration.isDebugMode()) {
-                try {
-                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
-                } catch (Exception e) {
-                    log.warn("Failed to persist debug message", e);
-                }
-            }
-        }
+        reportDownlinkError(context, msg, status, exception);
     }
 
     private void doProcess(IntegrationContext context, AzureEventHubIntegrationMsg msg) throws Exception {
@@ -298,7 +289,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         CompletableFuture<Void> serviceClientFuture = serviceClient.openAsync();
         try {
             serviceClientFuture.get(clientConfiguration.getConnectTimeoutSec(), TimeUnit.SECONDS);
-        }  catch (TimeoutException ex) {
+        } catch (TimeoutException ex) {
             serviceClientFuture.cancel(true);
             throw new RuntimeException(String.format("Failed to connect to the IoT Hub %s within specified timeout.",
                     clientConfiguration.getIotHubName()));

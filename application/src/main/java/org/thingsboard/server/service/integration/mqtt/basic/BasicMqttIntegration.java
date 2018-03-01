@@ -98,7 +98,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);
-                log.info("[{}] Processing uplink data", data);
+                log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
             }
         }
     }
@@ -151,17 +151,6 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
-        }
-    }
-
-    private JsonNode getDownlinkPayloadJson(DownlinkData data) throws IOException {
-        String contentType = data.getContentType();
-        if ("JSON".equals(contentType)) {
-            return mapper.readTree(data.getData());
-        } else if ("TEXT".equals(contentType)) {
-            return new TextNode(new String(data.getData(), StandardCharsets.UTF_8));
-        } else { //BINARY
-            return new TextNode(Base64Utils.encodeToString(data.getData()));
         }
     }
 

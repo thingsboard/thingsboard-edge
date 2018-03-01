@@ -1202,6 +1202,7 @@ export default angular.module('thingsboard.locale', [])
                     "headers-filter": "Headers filter",
                     "header": "Header",
                     "no-headers-filter": "No headers filter",
+                    "downlink-url": "Downlink URL",
                     "as-id": "AS ID",
                     "as-id-required": "AS ID is required.",
                     "as-key": "AS Key",

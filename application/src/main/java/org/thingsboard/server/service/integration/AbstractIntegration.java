@@ -33,7 +33,9 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
@@ -43,16 +45,16 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
-import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
-import org.thingsboard.server.service.converter.TBUplinkDataConverter;
-import org.thingsboard.server.service.converter.UplinkData;
-import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.converter.*;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
 import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -185,4 +187,45 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
     }
+
+    protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
+        integrationStatistics.incMessagesProcessed();
+        if (configuration.isDebugMode()) {
+            try {
+                ObjectNode json = mapper.createObjectNode();
+                if (data.getMetadata() != null && !data.getMetadata().isEmpty()) {
+                    json.set("metadata", mapper.valueToTree(data.getMetadata()));
+                }
+                json.set("payload", getDownlinkPayloadJson(data));
+                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
+    }
+
+    protected void reportDownlinkError(IntegrationContext context, DownLinkMsg msg, String status, Exception exception) {
+        if (!status.equals("OK")) {
+            integrationStatistics.incErrorsOccurred();
+            if (configuration.isDebugMode()) {
+                try {
+                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
+                } catch (Exception e) {
+                    log.warn("Failed to persist debug message", e);
+                }
+            }
+        }
+    }
+
+    protected JsonNode getDownlinkPayloadJson(DownlinkData data) throws IOException {
+        String contentType = data.getContentType();
+        if ("JSON".equals(contentType)) {
+            return mapper.readTree(data.getData());
+        } else if ("TEXT".equals(contentType)) {
+            return new TextNode(new String(data.getData(), StandardCharsets.UTF_8));
+        } else { //BINARY
+            return new TextNode(Base64Utils.encodeToString(data.getData()));
+        }
+    }
+
 }
