@@ -28,16 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.mqtt.ibm;
+package org.thingsboard.server.service.integration.mqtt.ttn;
 
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.credentials.BasicCredentials;
@@ -48,39 +46,39 @@ import java.io.File;
 import java.security.Security;
 import java.util.Optional;
 
+/**
+ * Created by igor on 3/2/18.
+ */
 @Slf4j
-public class IbmWatsonIotIntegration extends BasicMqttIntegration {
+public class TtnIntegration extends BasicMqttIntegration {
 
-    private static final String IBM_WATSON_IOT_ENDPOINT = "messaging.internetofthings.ibmcloud.com";
-    private static final String IBM_WATSON_IOT_COMMANDS_TOPIC = "iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}";
+    private static final String TTN_ENDPOINT = "thethings.network";
+    private static final String TTN_DOWNLINK_TOPIC = "/devices/${devId}/down";
+
+    private String appId;
 
     @Override
     protected String getDownlinkTopicPattern() {
-        return IBM_WATSON_IOT_COMMANDS_TOPIC;
+        return this.appId + TTN_DOWNLINK_TOPIC;
     }
 
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof BasicCredentials)) {
-            throw new RuntimeException("Can't setup IBM Watson IoT integration without Application Credentials!");
+            throw new RuntimeException("Can't setup TheThingsNetwork integration without Application Credentials!");
         }
         BasicCredentials basicCredentials = (BasicCredentials) credentials;
         if (StringUtils.isEmpty(basicCredentials.getUsername()) ||
                 StringUtils.isEmpty(basicCredentials.getPassword())) {
-            throw new RuntimeException("Can't setup IBM Watson IoT integration. Required IBM Watson IoT Application Credentials values are missing!");
+            throw new RuntimeException("Can't setup TheThingsNetwork integration. Required TheThingsNetwork Application Credentials values are missing!");
         }
 
-        String apiKey = basicCredentials.getUsername();
-        String[] parts = apiKey.split("-");
-        if (parts.length != 3 || !parts[0].equals("a") || StringUtils.isEmpty(parts[1])) {
-            throw new RuntimeException("Can't setup IBM Watson IoT integration. Invalid format of Application API Key!");
-        }
-        String organizationId = parts[1];
+        this.appId = basicCredentials.getUsername();
 
-        mqttClientConfiguration.setHost(organizationId + "." + IBM_WATSON_IOT_ENDPOINT);
+        String region = mqttClientConfiguration.getHost();
+        mqttClientConfiguration.setHost(region + "." + TTN_ENDPOINT);
         mqttClientConfiguration.setPort(8883);
-        mqttClientConfiguration.setClientId("a:" + organizationId + ":" + RandomStringUtils.randomAlphanumeric(10));
     }
 
     @Override

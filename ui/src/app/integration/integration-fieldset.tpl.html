@@ -466,9 +466,50 @@
             </md-input-container>
         </fieldset>
     </section>
-    <section layout="column" ng-if="types.integrationType[integration.type].mqtt">
+    <section layout="column" ng-if="integration.type == types.integrationType.TTN.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
-            <md-expansion-panel-group class="tb-topic-filters-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="topicFiltersPanelGroup">
+            <div flex layout="row">
+                <md-input-container flex="30" class="md-block">
+                    <label translate>integration.region</label>
+                    <input required name="region" ng-model="integration.configuration.clientConfiguration.host">
+                    <div ng-messages="theForm.region.$error">
+                        <div translate ng-message="required">integration.region-required</div>
+                    </div>
+                </md-input-container>
+                <div flex="70" layout="column" layout-align="center start">
+                    <label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</label>
+                </div>
+            </div>
+            <md-input-container class="md-block">
+                <label translate>integration.connect-timeout</label>
+                <input type="number" step="1" min="1" max="200" required
+                       name="connectTimeoutSec" ng-model="integration.configuration.clientConfiguration.connectTimeoutSec">
+                <div ng-messages="theForm.connectTimeoutSec.$error">
+                    <div translate ng-message="required">integration.connect-timeout-required</div>
+                    <div translate ng-message="min">integration.connect-timeout-range</div>
+                    <div translate ng-message="max">integration.connect-timeout-range</div>
+                </div>
+            </md-input-container>
+            <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.application-credentials' | translate }}</div>
+            <md-input-container class="md-block">
+                <label translate>integration.application-id</label>
+                <input required name="applicationId" ng-model="integration.configuration.clientConfiguration.credentials.username">
+                <div ng-messages="theForm.applicationId.$error">
+                    <div translate ng-message="required">integration.application-id-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label translate>integration.access-key</label>
+                <input type="password" required name="accessKey" ng-model="integration.configuration.clientConfiguration.credentials.password">
+                <div ng-messages="theForm.accessKey.$error">
+                    <div translate ng-message="required">integration.access-key-required</div>
+                </div>
+            </md-input-container>
+        </fieldset>
+    </section>
+    <section layout="column" ng-if="types.integrationType[integration.type].mqtt">
+        <fieldset ng-disabled="$root.loading || !isEdit || disableMqttTopics">
+            <md-expansion-panel-group class="tb-topic-filters-panel-group" ng-class="{'disabled': $root.loading || !isEdit || disableMqttTopics}" md-component-id="topicFiltersPanelGroup">
                 <md-expansion-panel md-component-id="topicFiltersPanel">
                     <md-expansion-panel-collapsed>
                         <div class="tb-panel-title">{{ 'integration.topic-filters' | translate }}</div>
@@ -488,19 +529,19 @@
                                  style="max-height: 40px;" layout-align="start center">
                                 <md-input-container flex md-no-float class="md-block"
                                                     style="margin: 10px 0px 0px 0px; max-height: 40px;">
-                                    <input placeholder="{{ 'integration.topic' | translate }}" ng-disabled="$root.loading || !isEdit"
+                                    <input placeholder="{{ 'integration.topic' | translate }}" ng-disabled="$root.loading || !isEdit || disableMqttTopics"
                                            ng-required="true" name="topicFilterTopic" ng-model="topicFilter.filter">
                                 </md-input-container>
                                 <md-input-container flex md-no-float class="md-block"
                                                     style="margin: 4px 0px 0px 0px; max-height: 40px;">
                                     <md-select placeholder="{{ 'integration.mqtt-qos' | translate }}"
-                                               ng-disabled="$root.loading || !isEdit" ng-required="true"  name="topicFilterQoS" ng-model="topicFilter.qos">
+                                               ng-disabled="$root.loading || !isEdit || disableMqttTopics" ng-required="true"  name="topicFilterQoS" ng-model="topicFilter.qos">
                                         <md-option ng-repeat="mqttQoS in types.mqttQoS" ng-value="mqttQoS.value">
                                             {{mqttQoS.name | translate}}
                                         </md-option>
                                     </md-select>
                                 </md-input-container>
-                                <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading" class="md-icon-button md-primary"
+                                <md-button ng-show="!($root.loading || !isEdit || disableMqttTopics)" ng-disabled="$root.loading" class="md-icon-button md-primary"
                                            ng-click="removeTopicFilter($index)"
                                            aria-label="{{ 'action.remove' | translate }}">
                                     <md-tooltip md-direction="top">
@@ -513,10 +554,10 @@
                                 </md-button>
                             </div>
                             <span ng-show="!integration.configuration.topicFilters.length"
-                                  layout-align="center center" ng-class="{'disabled': $root.loading || !isEdit}"
+                                  layout-align="center center" ng-class="{'disabled': $root.loading || !isEdit || disableMqttTopics}"
                                   class="no-data-found" translate>integration.add-topic-filter-prompt</span>
                             <div>
-                                <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading" class="md-primary md-raised"
+                                <md-button ng-show="!($root.loading || !isEdit || disableMqttTopics)" ng-disabled="$root.loading" class="md-primary md-raised"
                                            ng-click="addTopicFilter()"
                                            aria-label="{{ 'action.add' | translate }}">
                                     <md-tooltip md-direction="top">
@@ -533,7 +574,8 @@
             <md-input-container class="md-block">
                 <label translate>integration.downlink-topic-pattern</label>
                 <input required name="downlinkTopicPattern"
-                       ng-readonly="integration.type == types.integrationType.IBM_WATSON_IOT.value"
+                       ng-readonly="integration.type == types.integrationType.IBM_WATSON_IOT.value ||
+                       integration.type == types.integrationType.TTN.value"
                        ng-model="integration.configuration.downlinkTopicPattern">
                 <div ng-messages="theForm.downlinkTopicPattern.$error">
                     <div translate ng-message="required">integration.downlink-topic-pattern-required</div>

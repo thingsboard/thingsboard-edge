@@ -1262,6 +1262,12 @@ export default angular.module('thingsboard.locale', [])
                     "api-key-required": "API Key is required.",
                     "auth-token": "Authentication Token",
                     "auth-token-required": "Authentication Token is required.",
+                    "region": "Region",
+                    "region-required": "Region is required.",
+                    "application-id": "Application ID",
+                    "application-id-required": "Application ID is required.",
+                    "access-key": "Access Key",
+                    "access-key-required": "Access Key is required.",
                     "connection-parameters": "Connection parameters",
                     "service-bus-namespace-name": "Service Bus Namespace Name",
                     "service-bus-namespace-name-required": "Service Bus Namespace Name is required.",
@@ -1285,6 +1291,7 @@ export default angular.module('thingsboard.locale', [])
                     "type-mqtt": "MQTT",
                     "type-aws-iot": "AWS IoT",
                     "type-ibm-watson-iot": "IBM Watson IoT",
+                    "type-ttn": "TheThingsNetwork",
                     "type-azure-event-hub": "Azure Event Hub"
                 },
                 "item": {

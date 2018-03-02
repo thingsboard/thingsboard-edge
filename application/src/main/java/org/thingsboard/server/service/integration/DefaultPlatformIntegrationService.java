@@ -64,6 +64,7 @@ import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegr
 import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.ibm.IbmWatsonIotIntegration;
+import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.server.service.integration.msg.IntegrationMsg;
 import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
@@ -284,6 +285,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AwsIotIntegration();
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
+            case TTN:
+                return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
             default:

@@ -50,6 +50,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
 
         scope.httpEndpoint = null;
 
+        scope.disableMqttTopics = false;
+
         scope.$watch('integration', function(newVal) {
             if (newVal) {
                 if (!scope.integration.id) {
@@ -99,6 +101,24 @@ export default function IntegrationDirective($compile, $templateCache, $translat
         }
 
         function setupMqttConfiguration(integration) {
+            if (integration.type == types.integrationType.TTN.value) {
+                scope.disableMqttTopics = true;
+                if (!scope.ttnAppIdWatcher) {
+                    scope.ttnAppIdWatcher = scope.$watch('integration.configuration.clientConfiguration.credentials.username',
+                        (newVal) => {
+                            if (newVal) {
+                                integration.configuration.downlinkTopicPattern = newVal + "/devices/${devId}/down";
+                            }
+                        }
+                    );
+                }
+            } else {
+                scope.disableMqttTopics = false;
+                if (scope.ttnAppIdWatcher) {
+                    scope.ttnAppIdWatcher();
+                    scope.ttnAppIdWatcher = null;
+                }
+            }
             if (!integration.configuration.clientConfiguration) {
                 integration.configuration.clientConfiguration = {
                     connectTimeoutSec: 10,
@@ -106,7 +126,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     }
                 };
                 if (integration.type == types.integrationType.AWS_IOT.value ||
-                    integration.type == types.integrationType.IBM_WATSON_IOT.value) {
+                    integration.type == types.integrationType.IBM_WATSON_IOT.value ||
+                    integration.type == types.integrationType.TTN.value) {
                     integration.configuration.clientConfiguration.host = '';
                 } else {
                     integration.configuration.clientConfiguration.host = 'localhost';
@@ -122,6 +143,12 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                         qos: 0
                     });
                 }
+                if (integration.type == types.integrationType.TTN.value) {
+                    integration.configuration.topicFilters.push({
+                        filter: '+/devices/+/up',
+                        qos: 0
+                    });
+                }
             }
             if (!integration.configuration.downlinkTopicPattern) {
                 integration.configuration.downlinkTopicPattern = "${topic}";
@@ -133,6 +160,12 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             }
             if (integration.type == types.integrationType.IBM_WATSON_IOT.value) {
                 integration.configuration.downlinkTopicPattern = "iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}";
+                integration.configuration.clientConfiguration.port = 8883;
+                integration.configuration.clientConfiguration.ssl = true;
+                integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
+            }
+            if (integration.type == types.integrationType.TTN.value) {
+                integration.configuration.downlinkTopicPattern = "/devices/${devId}/down";
                 integration.configuration.clientConfiguration.port = 8883;
                 integration.configuration.clientConfiguration.ssl = true;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
