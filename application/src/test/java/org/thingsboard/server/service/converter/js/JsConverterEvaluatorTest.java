@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.server.service.converter.DownLinkMetaData;
@@ -77,7 +78,7 @@ public class JsConverterEvaluatorTest {
     public void basicDownlinkTest() throws ScriptException, NoSuchMethodException, IOException {
         JSDownlinkEvaluator eval = createDownlinkEvaluator("downlinkConverter.js");
 
-        DownLinkMsg downLinkMsg = new DownLinkMsg(new DeviceId(UUIDBased.EMPTY), "Sensor A", "temp-sensor");
+        DownLinkMsg downLinkMsg = new DownLinkMsg(new DeviceId(EntityId.NULL_UUID), "Sensor A", "temp-sensor");
         downLinkMsg.getUpdatedAttributes().put("temperature", new AttributeUpdate(System.currentTimeMillis(), "33"));
         downLinkMsg.getUpdatedAttributes().put("humidity", new AttributeUpdate(System.currentTimeMillis(), "78"));
         downLinkMsg.getDeletedAttributes().add("latitude");
