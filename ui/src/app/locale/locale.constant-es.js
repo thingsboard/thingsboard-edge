@@ -824,7 +824,8 @@
               "ko_KR": "Coreano",
               "zh_CN": "Chino",
               "ru_RU": "Ruso",
-              "es_ES": "Español"
+              "es_ES": "Español",
+              "fr_FR": "Francés"
         }
   };
   angular.extend(locales, {'es_ES': es_ES});

@@ -1807,7 +1807,8 @@ export default angular.module('thingsboard.locale', [])
                     "ko_KR": "Korean",
                     "zh_CN": "Chinese",
                     "ru_RU": "Russian",
-                    "es_ES": "Spanish"
+                    "es_ES": "Spanish",
+                    "fr_FR": "French"
                 },
                 "custom": {
                     "widget-action": {

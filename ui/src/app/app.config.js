@@ -34,6 +34,7 @@ import addLocaleKorean from './locale/locale.constant-ko';
 import addLocaleChinese from './locale/locale.constant-zh';
 import addLocaleRussian from './locale/locale.constant-ru';
 import addLocaleSpanish from './locale/locale.constant-es';
+import addLocaleFrench from './locale/locale.constant-fr';
 
 /* eslint-disable import/no-unresolved, import/default */
 
@@ -70,6 +71,7 @@ export default function AppConfig($provide,
     addLocaleChinese(locales);
     addLocaleRussian(locales);
     addLocaleSpanish(locales);
+    addLocaleFrench(locales);
 
     for (var langKey in locales) {
         var translationTable = locales[langKey];
@@ -87,6 +89,8 @@ export default function AppConfig($provide,
             $translateProvider.preferredLanguage('es_ES');
         } else if (lang.startsWith('ru')) {
             $translateProvider.preferredLanguage('ru_RU');
+        } else if (lang.startsWith('fr')) {
+            $translateProvider.preferredLanguage('fr_FR');
         } else {
             $translateProvider.preferredLanguage('en_US');
         }

@@ -824,7 +824,8 @@ export default function addLocaleRussian(locales) {
             "ko_KR": "Корейский",
             "zh_CN": "Китайский",
             "ru_RU": "Русский",
-            "es_ES": "испанский"
+            "es_ES": "испанский",
+            "fr_FR": "Французский"
 
         }
     };
