@@ -41,7 +41,7 @@ import javax.script.ScriptException;
 @Slf4j
 public class JSUplinkEvaluator extends AbstractJSEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(bytes, metadata) { " +
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(bytes, metadata) { " +
             "    var payload = convertBytes(bytes); " +
             "    return JSON.stringify(Decoder(payload, metadata));" +
             "    function Decoder(payload, metadata) {";

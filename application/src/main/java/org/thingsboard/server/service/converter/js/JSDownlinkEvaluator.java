@@ -46,7 +46,7 @@ import javax.script.ScriptException;
 @Slf4j
 public class JSDownlinkEvaluator extends AbstractJSEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(jsonStr, metadata) { " +
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(jsonStr, metadata) { " +
             "    var payload = JSON.parse(jsonStr); " +
             "    return JSON.stringify(Encoder(payload, metadata));" +
             "    function Encoder(payload, metadata) {";
