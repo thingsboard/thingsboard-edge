@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM cassandra:3.9
+FROM cassandra:3.11.2
 
 ADD ready-probe.sh /ready-probe.sh
 
