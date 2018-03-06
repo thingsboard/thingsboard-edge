@@ -1,7 +1,7 @@
 #
 # Thingsboard OÜ ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+# Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of Thingsboard OÜ and its suppliers,
@@ -37,7 +37,7 @@ ZK_LOG_DIR=/var/log/zookeeper \
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 ARG GPG_KEY=C823E3E5B12AF29C67F81976F5CECB3CB5E9BD2D
-ARG ZK_DIST=zookeeper-3.4.9
+ARG ZK_DIST=zookeeper-3.4.10
 RUN set -x \
     && apt-get update \
     && apt-get install -y openjdk-8-jre-headless wget netcat-openbsd \

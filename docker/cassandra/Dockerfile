@@ -1,7 +1,7 @@
 #
 # Thingsboard OÜ ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+# Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of Thingsboard OÜ and its suppliers,
@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM cassandra:3.9
+FROM cassandra:3.11.2
 
 ADD ready-probe.sh /ready-probe.sh
 
