@@ -881,7 +881,7 @@ export default class Subscription {
     }
 
     exportData() {
-        var exportedData = [], dataObj, col, row, key, value;
+        var exportedData = [], dataObj, col, row, ts, key, value;
         if (this.type == this.ctx.types.widgetType.timeseries.value || this.type == this.ctx.types.widgetType.latest.value) {
 
             const checkProperty = (dataObj, key) => {
@@ -892,18 +892,44 @@ export default class Subscription {
                     toCheck = key + count;
                 }
                 return toCheck;
-            }
+            };
 
             if (this.data.length) {
-                var firstSeries =  this.data[0].data;
-                for (row=0; row < firstSeries.length; row ++) {
-                    dataObj = {};
-                    var timestamp = firstSeries[row][0];
-                    dataObj["Timestamp"] = this.ctx.$filter('date')(timestamp, 'yyyy-MM-dd HH:mm:ss');
-                    for (col=0; col < this.data.length; col ++) {
+                var tsRows = {};
+                var allKeys = {};
+                for (col=0; col < this.data.length; col ++) {
+                    for (row=0; row < this.data[col].data.length; row ++) {
                         key = this.data[col].dataKey.label;
+                        ts = this.data[col].data[row][0];
                         value = this.data[col].data[row][1];
-                        dataObj[checkProperty(dataObj, key)] = value;
+                        var tsRow = tsRows[ts];
+                        if (!tsRow) {
+                            tsRow = {};
+                            tsRow["Timestamp"] = this.ctx.$filter('date')(ts, 'yyyy-MM-dd HH:mm:ss');
+                            tsRows[ts] = tsRow;
+                        }
+                        key = checkProperty(tsRow, key);
+                        if (!allKeys[key]) {
+                            allKeys[key] = true;
+                        }
+                        tsRow[key] = value;
+                    }
+                }
+                var timestamps = Object.keys(tsRows);
+                var rowKeys = Object.keys(allKeys);
+                timestamps.sort();
+                rowKeys.sort();
+                for (row = 0; row < timestamps.length; row++) {
+                    tsRow = tsRows[timestamps[row]];
+                    dataObj = {};
+                    dataObj["Timestamp"] = tsRow["Timestamp"];
+                    for (col=0;col<rowKeys.length;col++) {
+                        key = rowKeys[col];
+                        if (tsRow[key]) {
+                            dataObj[key] = tsRow[key];
+                        } else {
+                            dataObj[key] = null;
+                        }
                     }
                     exportedData.push(dataObj);
                 }
