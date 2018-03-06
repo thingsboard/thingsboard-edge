@@ -1,7 +1,7 @@
 @REM
 @REM Thingsboard OÜ ("COMPANY") CONFIDENTIAL
 @REM
-@REM Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+@REM Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
 @REM
 @REM NOTICE: All information contained herein is, and remains
 @REM the property of Thingsboard OÜ and its suppliers,

@@ -1,7 +1,7 @@
 /*
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2017 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
