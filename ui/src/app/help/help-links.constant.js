@@ -68,6 +68,7 @@ var integrationTypeHelpLinkMap = {
     'MQTT': 'integrationMqtt',
     'AWS_IOT': 'integrationAwsIoT',
     'IBM_WATSON_IOT': 'integrationIbmWatsonIoT',
+    'TTN': 'integrationTheThingsNetwork',
     'AZURE_EVENT_HUB': 'integrationAzureEventHub'
 };
 
@@ -116,7 +117,7 @@ export default angular.module('thingsboard.help', [])
                 widgetsConfigRpc: helpBaseUrl +  "/docs/user-guide/ui/dashboards#rpc",
                 widgetsConfigAlarm: helpBaseUrl +  "/docs/user-guide/ui/dashboards#alarm",
                 widgetsConfigStatic: helpBaseUrl +  "/docs/user-guide/ui/dashboards#static",
-                converters: helpBaseUrl +  "/docs/user-guide/integrations/#data-converters",
+                converters: helpBaseUrl +  "/docs/user-guide/data-converters",
                 integrations: helpBaseUrl +  "/docs/user-guide/integrations",
                 integrationHttp: helpBaseUrl +  "/docs/user-guide/integrations/http",
                 integrationOceanConnect: helpBaseUrl +  "/docs/user-guide/integrations/ocean-connect",
@@ -125,6 +126,7 @@ export default angular.module('thingsboard.help', [])
                 integrationMqtt: helpBaseUrl +  "/docs/user-guide/integrations/mqtt",
                 integrationAwsIoT: helpBaseUrl +  "/docs/user-guide/integrations/aws-iot",
                 integrationIbmWatsonIoT: helpBaseUrl +  "/docs/user-guide/integrations/ibm-watson-iot",
+                integrationTheThingsNetwork: helpBaseUrl +  "/docs/user-guide/integrations/ttn",
                 integrationAzureEventHub: helpBaseUrl +  "/docs/user-guide/integrations/azure-event-hub",
                 whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
                 entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
