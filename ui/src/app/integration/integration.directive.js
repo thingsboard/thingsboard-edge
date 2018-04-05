@@ -169,6 +169,20 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 integration.configuration.clientConfiguration.ssl = true;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
             }
+            if (integration.type == types.integrationType.OPC_UA.value) {
+                integration.configuration.clientConfiguration.applicationUri = '';
+                integration.configuration.clientConfiguration.host = 'localhost';
+                integration.configuration.clientConfiguration.port = 49320;
+                integration.configuration.clientConfiguration.scanPeriodInSeconds = 10;
+                integration.configuration.clientConfiguration.timeoutInMillis = 5000;
+                integration.configuration.clientConfiguration.security = 'Basic128Rsa15';
+                integration.configuration.clientConfiguration.identity.type = 'anonymous';
+                integration.configuration.clientConfiguration.keystore.type = '';
+                integration.configuration.clientConfiguration.keystore.fileContent = '';
+                integration.configuration.clientConfiguration.keystore.password = 'secret';
+                integration.configuration.clientConfiguration.keystore.alias = 'opc-ua-extension';
+                integration.configuration.clientConfiguration.keystore.keyPassword = 'secret';
+            }
         }
 
         function setupAzureEventHubConfiguration(integration) {

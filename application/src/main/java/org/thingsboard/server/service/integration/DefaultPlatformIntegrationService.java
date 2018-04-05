@@ -68,6 +68,7 @@ import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.server.service.integration.msg.IntegrationMsg;
 import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -289,6 +290,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
+            case OPC_UA:
+                return new OpcUaIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }

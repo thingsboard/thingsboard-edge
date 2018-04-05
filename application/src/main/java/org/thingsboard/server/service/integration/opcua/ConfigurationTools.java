@@ -1,0 +1,97 @@
+/**
+ * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Thingsboard OÜ and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Thingsboard OÜ
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.service.integration.opcua;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.codec.binary.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.*;
+import java.security.cert.X509Certificate;
+
+/**
+ * Created by ashvayka on 16.01.17.
+ */
+@Slf4j
+public class ConfigurationTools {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    public static <T> T readConfiguration(JsonNode configurationNode, Class<T> clazz) throws IOException {
+        try {
+            return mapper.treeToValue(configurationNode, clazz);
+        } catch (IOException e) {
+            log.error("Failed to load {} configuration from {}", clazz, configurationNode);
+            throw e;
+        }
+    }
+
+    public static <T> T readFileConfiguration(String configurationFile, Class<T> clazz) throws IOException {
+        try {
+            return mapper.readValue(getFileAsStream(configurationFile), clazz);
+        } catch (IOException e) {
+            log.error("Failed to load {} configuration from {}", clazz, configurationFile);
+            throw e;
+        }
+    }
+
+    public static CertificateInfo loadCertificate(KeystoreConfiguration configuration) throws GeneralSecurityException, IOException {
+        try {
+            KeyStore keyStore = KeyStore.getInstance(configuration.getType());
+            keyStore.load(getFileAsStream(configuration.getLocation()), configuration.getPassword().toCharArray());
+            Key key = keyStore.getKey(configuration.getAlias(), configuration.getKeyPassword().toCharArray());
+            if (key instanceof PrivateKey) {
+                X509Certificate certificate = (X509Certificate) keyStore.getCertificate(configuration.getAlias());
+                PublicKey publicKey = certificate.getPublicKey();
+                KeyPair keyPair = new KeyPair(publicKey, (PrivateKey) key);
+                return new CertificateInfo(certificate, keyPair);
+            } else {
+                throw new GeneralSecurityException(configuration.getAlias() + " is not a private key!");
+            }
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Keystore configuration: [{}] is invalid!", configuration, e);
+            throw e;
+        }
+    }
+
+    private static InputStream getResourceAsStream(String fileContent) {
+        byte[] decoded = Base64.decodeBase64(fileContent);
+        return new ByteArrayInputStream(decoded);
+    }
+
+    private static InputStream getFileAsStream(String configurationFile) {
+        return ConfigurationTools.class.getClassLoader().getResourceAsStream(configurationFile);
+    }
+}

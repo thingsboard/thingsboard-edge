@@ -385,6 +385,10 @@ export default angular.module('thingsboard.types', [])
                 "AZURE_EVENT_HUB": {
                     name: "integration.type-azure-event-hub",
                     value: "AZURE_EVENT_HUB"
+                },
+                "OPC_UA": {
+                    name: "integration.type-opc-ua",
+                    value: "OPC_UA"
                 }
             },
             componentType: {
@@ -773,13 +777,13 @@ export default angular.module('thingsboard.types', [])
                     name: 'integration.mqtt-qos-exactly-once'
                 }
             },
-            extensionOpcSecurityTypes: {
+            opcSecurityTypes: {
                 Basic128Rsa15: "Basic128Rsa15",
                 Basic256: "Basic256",
                 Basic256Sha256: "Basic256Sha256",
                 None: "None"
             },
-            extensionIdentityType: {
+            identityType: {
                 anonymous: "extension.anonymous",
                 username: "extension.username"
             },

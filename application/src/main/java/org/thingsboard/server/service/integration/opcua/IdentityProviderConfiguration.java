@@ -28,28 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.opcua;
 
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    HTTP(false),
-    MQTT(true),
-    AWS_IOT(true),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(false);
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+/**
+ * Created by ashvayka on 16.01.17.
+ */
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AnonymousIdentityProviderConfiguration.class, name = "anonymous"),
+        @JsonSubTypes.Type(value = UsernameIdentityProviderConfiguration.class, name = "username")})
+public interface IdentityProviderConfiguration {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-    }
+    IdentityProvider toProvider();
 
-    public boolean isSingleton() {
-        return singleton;
-    }
 }

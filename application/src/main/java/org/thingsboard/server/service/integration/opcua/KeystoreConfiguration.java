@@ -28,28 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.opcua;
 
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    HTTP(false),
-    MQTT(true),
-    AWS_IOT(true),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(false);
+import lombok.Data;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+/**
+ * Created by ashvayka on 16.01.17.
+ */
+@Data
+public class KeystoreConfiguration {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-    }
+    private String type;
+    private String location;
+    private String fileContent;
+    private String password;
+    private String alias;
+    private String keyPassword;
 
-    public boolean isSingleton() {
-        return singleton;
-    }
 }
