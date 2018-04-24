@@ -343,6 +343,12 @@
         <fieldset ng-disabled="$root.loading || !isEdit">
             <div flex layout="column" layout-gt-sm="row">
                 <md-input-container flex="40" class="md-block">
+                    <label translate>integration.opc-ua-application-uri</label>
+                    <input name="host" ng-model="integration.configuration.clientConfiguration.applicationUri">
+                </md-input-container>
+            </div>
+            <div flex layout="column" layout-gt-sm="row">
+                <md-input-container flex="40" class="md-block">
                     <label translate>integration.host</label>
                     <input required name="host" ng-model="integration.configuration.clientConfiguration.host">
                     <div ng-messages="theForm.host.$error">
@@ -359,14 +365,10 @@
                         <div translate ng-message="max">integration.port-range</div>
                     </div>
                 </md-input-container>
-                <md-input-container flex="40" class="md-block">
-                    <label translate>integration.opc-application-uri</label>
-                    <input name="host" ng-model="integration.configuration.clientConfiguration.applicationUri">
-                </md-input-container>
             </div>
             <div flex layout="column" layout-gt-sm="row">
                 <md-input-container flex="50" class="md-block">
-                    <label translate>integration.opc-scan-period-in-seconds</label>
+                    <label translate>integration.opc-ua-scan-period-in-seconds</label>
                     <input type="number"
                            required
                            name="scanPeriodInSeconds_{{serverIndex}}"
@@ -374,12 +376,12 @@
                     <div ng-messages="theForm['scanPeriodInSeconds_' + serverIndex].$error">
                         <div translate
                              ng-message="required"
-                        >integration.opc-scan-period-in-seconds-required</div>
+                        >integration.opc-ua-scan-period-in-seconds-required</div>
                     </div>
                 </md-input-container>
 
                 <md-input-container flex="50" class="md-block">
-                    <label translate>integration.opc-timeout</label>
+                    <label translate>integration.opc-ua-timeout</label>
                     <input type="number"
                            required name="timeoutInMillis_{{serverIndex}}"
                            ng-model="integration.configuration.clientConfiguration.timeoutInMillis"
@@ -387,13 +389,13 @@
                     <div ng-messages="theForm['timeoutInMillis_' + serverIndex].$error">
                         <div translate
                              ng-message="required"
-                        >integration.opc-timeout-required</div>
+                        >integration.opc-ua-timeout-required</div>
                     </div>
                 </md-input-container>
             </div>
             <div flex layout="column" layout-gt-sm="row">
                 <md-input-container flex="50" class="md-block tb-container-for-select">
-                    <label translate>integration.opc-security</label>
+                    <label translate>integration.opc-ua-security</label>
                     <md-select required
                                name="securityType_{{serverIndex}}"
                                ng-model="integration.configuration.clientConfiguration.security">
@@ -404,12 +406,12 @@
                     <div ng-messages="theForm['securityType_' + serverIndex].$error">
                         <div translate
                              ng-message="required"
-                        >integration.opc-security-required</div>
+                        >integration.opc-ua-security-required</div>
                     </div>
                 </md-input-container>
 
                 <md-input-container flex="50" class="md-block tb-container-for-select">
-                    <label translate>integration.opc-identity</label>
+                    <label translate>integration.opc-ua-identity</label>
                     <md-select required
                                name="identityType_{{serverIndex}}"
                                ng-model="integration.configuration.clientConfiguration.identity.type"
@@ -421,7 +423,7 @@
                     <div ng-messages="theForm['identityType_' + serverIndex].$error">
                         <div translate
                              ng-message="required"
-                        >integration.opc-identity-required</div>
+                        >integration.opc-ua-identity-required</div>
                     </div>
                 </md-input-container>
             </div>
@@ -454,28 +456,28 @@
                     </div>
                 </md-input-container>
             </div>
-            <!--
-            <v-accordion id="opc-keystore-accordion" class="vAccordion--default" onexpand="expandValidation(index, id)" oncollapse="collapseValidation(index, id)">
-                <v-pane id="opc-keystore-pane__{{serverIndex}}" expanded="true">
+            <v-accordion id="opc-ua-keystore-accordion" class="vAccordion--default"
+                         ng-if="integration.configuration.clientConfiguration.security != 'None'"
+                         onexpand="expandValidation(index, id)" oncollapse="collapseValidation(index, id)">
+                <v-pane id="opc-ua-keystore-pane__{{serverIndex}}" expanded="true">
                     <v-pane-header>
-                        {{ 'integration.opc-keystore' | translate }}
+                        {{ 'integration.opc-ua-keystore' | translate }}
                     </v-pane-header>
                     <v-pane-content>
-
                         <md-input-container class="md-block tb-container-for-select">
-                            <label translate>integration.opc-keystore-type</label>
+                            <label translate>integration.opc-ua-keystore-type</label>
                             <md-select required name="keystoreType_{{serverIndex}}" ng-model="integration.configuration.clientConfiguration.keystore.type">
                                 <md-option ng-value="keystoreType" ng-repeat="(keystoreType, keystoreValue) in types.extensionKeystoreType"><span ng-bind="::keystoreValue"></span></md-option>
                             </md-select>
                             <div ng-messages="theForm['keystoreType_'+serverIndex].$error">
-                                <div translate ng-message="required">integration.opc-keystore-type-required</div>
+                                <div translate ng-message="required">integration.opc-ua-keystore-type-required</div>
                             </div>
                         </md-input-container>
 
                         <section class="dropdown-section">
                             <div class="tb-container" ng-class="{'ng-invalid':!integration.configuration.clientConfiguration.keystore.fileContent}">
                                 <span ng-init='fieldsToFill = {"location":"location", "fileContent":"fileContent"}'></span>
-                                <label class="tb-label" translate>integration.opc-keystore-location</label>
+                                <label class="tb-label" translate>integration.opc-ua-keystore-location</label>
                                 <div flow-init="{singleFile:true}" flow-file-added='fileAdded($file, integration.configuration.clientConfiguration.keystore, fieldsToFill)' class="tb-file-select-container">
                                     <div class="tb-file-clear-container">
                                         <md-button ng-click='clearFile(integration.configuration.clientConfiguration.keystore, fieldsToFill)' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
@@ -498,7 +500,7 @@
                                 </div>
                             </div>
                             <div class="dropdown-messages">
-                                <div ng-if="!integration.configuration.clientConfiguration.keystore[fieldsToFill.location]" class="tb-error-message" translate>integration.no-file</div>
+                                <div ng-if="!integration.configuration.clientConfiguration.keystore[fieldsToFill.fileContent]" class="tb-error-message" translate>integration.no-file</div>
                                 <div ng-if="integration.configuration.clientConfiguration.keystore[fieldsToFill.location]">{{integration.configuration.clientConfiguration.keystore[fieldsToFill.location]}}</div>
                             </div>
                         </section>
@@ -506,34 +508,106 @@
 
                         <div flex layout="row">
                             <md-input-container flex="50" class="md-block">
-                                <label translate>integration.opc-keystore-password</label>
+                                <label translate>integration.opc-ua-keystore-password</label>
                                 <input required name="keystorePassword_{{serverIndex}}" ng-model="integration.configuration.clientConfiguration.keystore.password">
                                 <div ng-messages="theForm['keystorePassword_' + serverIndex].$error">
-                                    <div translate ng-message="required">integration.opc-keystore-password-require</div>
+                                    <div translate ng-message="required">integration.opc-ua-keystore-password-required</div>
                                 </div>
                             </md-input-container>
 
                             <md-input-container flex="50" class="md-block">
-                                <label translate>integration.opc-keystore-alias</label>
+                                <label translate>integration.opc-ua-keystore-alias</label>
                                 <input required name="keystoreAlias_{{serverIndex}}" ng-model="integration.configuration.clientConfiguration.keystore.alias">
                                 <div ng-messages="theForm['keystoreAlias_' + serverIndex].$error">
-                                    <div translate ng-message="required">integration.opc-keystore-alias-required</div>
+                                    <div translate ng-message="required">integration.opc-ua-keystore-alias-required</div>
                                 </div>
                             </md-input-container>
                         </div>
 
                         <md-input-container class="md-block">
-                            <label translate>integration.opc-keystore-key-password</label>
+                            <label translate>integration.opc-ua-keystore-key-password</label>
                             <input required name="keystoreKeyPassword_{{serverIndex}}" ng-model="integration.configuration.clientConfiguration.keystore.keyPassword">
                             <div ng-messages="theForm['keystoreKeyPassword_' + serverIndex].$error">
-                                <div translate ng-message="required">integration.opc-keystore-key-password-required</div>
+                                <div translate ng-message="required">integration.opc-ua-keystore-key-password-required</div>
                             </div>
                         </md-input-container>
 
                     </v-pane-content>
                 </v-pane>
             </v-accordion>
-            -->
+
+            <v-accordion id="opc-ua-mapping-accordion"
+                         class="vAccordion--default"
+                         onexpand="expandValidation(index, id)" oncollapse="collapseValidation(index, id)">
+                <v-pane id="opc-ua-mapping-pane_{{serverIndex}}">
+                    <v-pane-header>
+                        {{ 'integration.opc-ua-mapping' | translate }}
+                    </v-pane-header>
+                    <v-pane-content>
+                        <div ng-if="integration.configuration.clientConfiguration.mapping.length > 0">
+                            <ol class="list-group">
+                                <li class="list-group-item"
+                                    ng-repeat="(mapIndex, map) in integration.configuration.clientConfiguration.mapping"
+                                >
+                                    <md-button aria-label="{{ 'action.remove' | translate }}"
+                                               class="md-icon-button"
+                                               ng-click="removeItem(map, integration.configuration.clientConfiguration.mapping)"
+                                    >
+                                        <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
+                                        <md-tooltip md-direction="top">
+                                            {{ 'action.remove' | translate }}
+                                        </md-tooltip>
+                                    </md-button>
+
+                                    <md-card>
+                                        <md-card-content>
+                                            <div flex layout="row">
+                                                <md-input-container flex="50" class="md-block">
+                                                    <label translate>integration.opc-ua-device-node-pattern</label>
+                                                    <input required
+                                                           name="deviceNodePattern_{{serverIndex}}{{mapIndex}}"
+                                                           ng-model="map.deviceNodePattern"
+                                                    >
+                                                    <div ng-messages="theForm['deviceNodePattern_' + serverIndex + mapIndex].$error">
+                                                        <div translate
+                                                             ng-message="required"
+                                                        >integration.opc-device-node-pattern-required</div>
+                                                    </div>
+                                                </md-input-container>
+
+                                                <md-input-container flex="50" class="md-block">
+                                                    <label translate>integration.opc-ua-device-name-pattern</label>
+                                                    <input required
+                                                           name="deviceNamePattern_{{serverIndex}}{{mapIndex}}"
+                                                           ng-model="map.deviceNamePattern"
+                                                    >
+                                                    <div ng-messages="theForm['deviceNamePattern_' + serverIndex + mapIndex].$error">
+                                                        <div translate
+                                                             ng-message="required"
+                                                        >integration.opc-ua-device-name-pattern-required</div>
+                                                    </div>
+                                                </md-input-container>
+                                            </div>
+                                        </md-card-content>
+                                    </md-card>
+                                </li>
+                            </ol>
+                        </div>
+                        <div flex
+                             layout="row"
+                             layout-align="start center"
+                        >
+                            <md-button class="md-primary md-raised"
+                                       ng-click="addMap(integration.configuration.clientConfiguration.mapping)"
+                                       aria-label="{{ 'action.add' | translate }}"
+                            >
+                                <md-icon class="material-icons">add</md-icon>
+                                <span translate>integration.opc-ua-add-map</span>
+                            </md-button>
+                        </div>
+                    </v-pane-content>
+                </v-pane>
+            </v-accordion>
 
         </fieldset>
     </section>

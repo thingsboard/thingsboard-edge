@@ -69,6 +69,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                         setupMqttConfiguration(scope.integration);
                     } else if (scope.integration.type == types.integrationType.AZURE_EVENT_HUB.value) {
                         setupAzureEventHubConfiguration(scope.integration);
+                    } else if (scope.integrationType == types.integrationType.OPC_UA.value) {
+                        setupOpcUaConfiguration(scope.integration);
                     }
                 }
                 scope.updateValidity();
@@ -88,6 +90,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 setupMqttConfiguration(scope.integration);
             } else if (scope.integration.type == types.integrationType.AZURE_EVENT_HUB.value) {
                 setupAzureEventHubConfiguration(scope.integration);
+            } else if (scope.integration.type == types.integrationType.OPC_UA.value) {
+                setupOpcUaConfiguration(scope.integration);
             }
             scope.updateValidity();
         };
@@ -169,20 +173,30 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 integration.configuration.clientConfiguration.ssl = true;
                 integration.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
             }
-            if (integration.type == types.integrationType.OPC_UA.value) {
-                integration.configuration.clientConfiguration.applicationUri = '';
-                integration.configuration.clientConfiguration.host = 'localhost';
-                integration.configuration.clientConfiguration.port = 49320;
-                integration.configuration.clientConfiguration.scanPeriodInSeconds = 10;
-                integration.configuration.clientConfiguration.timeoutInMillis = 5000;
-                integration.configuration.clientConfiguration.security = 'Basic128Rsa15';
-                integration.configuration.clientConfiguration.identity.type = 'anonymous';
-                integration.configuration.clientConfiguration.keystore.type = '';
-                integration.configuration.clientConfiguration.keystore.fileContent = '';
-                integration.configuration.clientConfiguration.keystore.password = 'secret';
-                integration.configuration.clientConfiguration.keystore.alias = 'opc-ua-extension';
-                integration.configuration.clientConfiguration.keystore.keyPassword = 'secret';
-            }
+        }
+
+        function setupOpcUaConfiguration(integration) {
+        //if (!integration.configuration.clientConfiguration) {
+                integration.configuration.clientConfiguration = {
+                    applicationUri : '',
+                    host : 'localhost',
+                    port : 49320,
+                    scanPeriodInSeconds : 10,
+                    timeoutInMillis : 5000,
+                    security : 'Basic128Rsa15',
+                    identity : {
+                        type : 'anonymous'
+                    },
+                    keystore : {
+                        type : '',
+                        fileContent : '',
+                        password : 'secret',
+                        alias : 'opc-ua-extension',
+                        keyPassword : 'secret',
+                    },
+                    mapping : []
+                }
+        //    }
         }
 
         function setupAzureEventHubConfiguration(integration) {
@@ -318,6 +332,45 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             );
             scope.theForm.$setDirty();
             scope.updateValidity();
+        };
+
+        scope.removeItem = (item, itemList) => {
+            var index = itemList.indexOf(item);
+            if (index > -1) {
+                itemList.splice(index, 1);
+            }
+        };
+
+        function Map() {
+            this.deviceNodePattern = "Channel1\\.Device\\d+$";
+            this.deviceNamePattern = "Device ${_System._DeviceId}";
+        }
+
+        scope.addMap = function(mappingList) {
+            mappingList.push(new Map());
+        };
+
+        scope.fileAdded = function($file, model, options) {
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                scope.$apply(function() {
+                    if(event.target.result) {
+                        scope.theForm.$setDirty();
+                        let addedFile = event.target.result;
+
+                        if (addedFile && addedFile.length > 0) {
+                            model[options.location] = $file.name;
+                            model[options.fileContent] = addedFile.replace(/^data.*base64,/, "");
+
+                        }
+                    }
+                });
+            };
+            reader.readAsDataURL($file.file);
+        };
+
+        scope.clearFile = function(model, options) {
+            model[options.fileContent] = null;
         };
 
         $compile(element.contents())(scope);
