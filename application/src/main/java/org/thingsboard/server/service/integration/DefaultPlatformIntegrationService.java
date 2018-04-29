@@ -291,7 +291,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
             case OPC_UA:
-                return new OpcUaIntegration();
+                return new OpcUaIntegration(context);
             default:
                 throw new RuntimeException("Not Implemented!");
         }

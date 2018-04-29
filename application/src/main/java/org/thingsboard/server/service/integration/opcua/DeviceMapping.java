@@ -32,20 +32,12 @@ package org.thingsboard.server.service.integration.opcua;
 
 import lombok.Data;
 
-import java.util.List;
-
+/**
+ * Created by Valerii Sosliuk on 4/24/2018.
+ */
 @Data
-public class OpcUaServerConfiguration {
+public class DeviceMapping {
 
-    private String applicationName;
-    private String applicationUri;
-    private String host;
-    private int port;
-    private int scanPeriodInSeconds;
-    private int timeoutInMillis;
-    private String security;
-    private IdentityProviderConfiguration identity;
-    private KeystoreConfiguration keystore;
-    private List<DeviceMapping> mapping;
-
+    private final String deviceNodePattern;
+    private final String deviceNamePattern;
 }

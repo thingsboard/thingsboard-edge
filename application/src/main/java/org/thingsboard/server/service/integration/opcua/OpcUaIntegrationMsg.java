@@ -31,11 +31,33 @@
 package org.thingsboard.server.service.integration.opcua;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.ToString;
 
 /**
  * Created by Valerii Sosliuk on 3/17/2018.
  */
-public interface OpcUaIntegrationMsg {
+@Data
+@ToString(exclude = "payload")
+public class OpcUaIntegrationMsg {
 
-    JsonNode toJson();
+    private JsonNode json;
+    private byte[] payload;
+    private String nodeId;
+
+    OpcUaIntegrationMsg(JsonNode json) {
+        this.json = json;
+        this.payload = json.toString().getBytes();
+        this.nodeId = json.get("nodeId").get("identifier").toString();
+    }
+
+    JsonNode toJson() {
+        return json;
+    }
+
+    byte[] getPayload() {
+        return payload;
+    }
 }

@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.service.integration.opcua;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.codec.binary.Base64;
 
@@ -45,32 +43,12 @@ import java.security.cert.X509Certificate;
  * Created by ashvayka on 16.01.17.
  */
 @Slf4j
-public class ConfigurationTools {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    public static <T> T readConfiguration(JsonNode configurationNode, Class<T> clazz) throws IOException {
-        try {
-            return mapper.treeToValue(configurationNode, clazz);
-        } catch (IOException e) {
-            log.error("Failed to load {} configuration from {}", clazz, configurationNode);
-            throw e;
-        }
-    }
-
-    public static <T> T readFileConfiguration(String configurationFile, Class<T> clazz) throws IOException {
-        try {
-            return mapper.readValue(getFileAsStream(configurationFile), clazz);
-        } catch (IOException e) {
-            log.error("Failed to load {} configuration from {}", clazz, configurationFile);
-            throw e;
-        }
-    }
+public class OpcUaConfigurationTools {
 
     public static CertificateInfo loadCertificate(KeystoreConfiguration configuration) throws GeneralSecurityException, IOException {
         try {
             KeyStore keyStore = KeyStore.getInstance(configuration.getType());
-            keyStore.load(getFileAsStream(configuration.getLocation()), configuration.getPassword().toCharArray());
+            keyStore.load(getResourceAsStream(configuration.getFileContent()), configuration.getPassword().toCharArray());
             Key key = keyStore.getKey(configuration.getAlias(), configuration.getKeyPassword().toCharArray());
             if (key instanceof PrivateKey) {
                 X509Certificate certificate = (X509Certificate) keyStore.getCertificate(configuration.getAlias());
@@ -91,7 +69,4 @@ public class ConfigurationTools {
         return new ByteArrayInputStream(decoded);
     }
 
-    private static InputStream getFileAsStream(String configurationFile) {
-        return ConfigurationTools.class.getClassLoader().getResourceAsStream(configurationFile);
-    }
 }
