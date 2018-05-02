@@ -114,7 +114,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
     }
 
-    private void initClient(OpcUaServerConfiguration configuration) {
+    private void initClient(OpcUaServerConfiguration configuration) throws Exception {
         try {
 
             log.info("Initializing OPC-UA server connection to [{}:{}]!", configuration.getHost(), configuration.getPort());
@@ -143,6 +143,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             client.connect().get();
         } catch (Exception e) {
             log.error("Falied to connect to OPC-UA server. Reason: {}", e.getMessage(), e);
+            throw e;
         }
 
     }
@@ -165,9 +166,10 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private void scanForDevices(OpcUaNode node) {
         log.trace("Scanning node: {}", node);
+
+
         List<DeviceMapping> matchedMappings = mappings.entrySet().stream()
-                // TODO: match by FQN instead of id ?
-                .filter(mappingEntry -> mappingEntry.getKey().matcher(node.getNodeId().getIdentifier().toString()).matches())
+                .filter(mappingEntry -> mappingEntry.getKey().matcher(getMatchingValue(node, mappingEntry.getValue().getMappingType())).matches())
                 .map(m -> m.getValue()).collect(Collectors.toList());
 
         matchedMappings.forEach(m -> {
@@ -193,6 +195,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             }
         } catch (InterruptedException | ExecutionException e) {
             log.error("Browsing nodeId={} failed: {}", node, e.getMessage(), e);
+        }
+    }
+
+    private String getMatchingValue(OpcUaNode node, DeviceMappingType mappingType) {
+        switch (mappingType) {
+            case ID : return node.getNodeId().getIdentifier().toString();
+            case FQN : return node.getFqn();
+            default: throw new IllegalArgumentException("unknown DeviceMappingType: " + mappingType);
         }
     }
 
@@ -232,7 +242,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
 
         process(integrationContext, new OpcUaIntegrationMsg(dataNode));
-        log.info("Scanned device: ", node);
+        log.trace("Scanned device: ", node);
     }
 
     private ObjectNode getReferenceNode(ReferenceDescription rd) {
@@ -290,9 +300,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             dataValNode.put("value", data.getValue().getValue() == null ? null : data.getValue().getValue().toString());
         }
         if (data.getStatusCode() != null) {
-            //ObjectNode statusCodeJsonNode = mapper.createObjectNode();
-            //statusCodeJsonNode.put("name", data.getStatusCode().)
-            // TODO parse json!!!
             dataValNode.put("statusCode", data.getStatusCode().toString());
         }
         dataValNode.put("sourceTime", data.getSourceTime() == null ? null : data.getSourceTime().getJavaTime());

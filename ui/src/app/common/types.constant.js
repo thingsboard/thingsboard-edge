@@ -791,6 +791,10 @@ export default angular.module('thingsboard.types', [])
                 PKCS12: "PKCS12",
                 JKS: "JKS"
             },
+            opcUaMappingType: {
+                ID: "ID",
+                FQN: "Fully Qualified Name"
+            },
             latestTelemetry: {
                 value: "LATEST_TELEMETRY",
                 name: "attribute.scope-latest-telemetry",

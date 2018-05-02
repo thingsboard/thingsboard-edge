@@ -1317,10 +1317,10 @@ export default angular.module('thingsboard.locale', [])
                     "opc-ua-keystore-key-password":"Key password",
                     "opc-ua-keystore-key-password-required":"Key password is required",
                     "opc-ua-mapping":"Mapping",
+                    "opc-ua-mapping-type":"Mapping type:",
+                    "opc-ua-mapping-type-required":"Mapping type is required:",
                     "opc-ua-device-node-pattern":"Device Node Pattern",
                     "opc-ua-device-node-pattern-required":"Device Node Pattern is required",
-                    "opc-ua-device-name-pattern":"Device Name Pattern",
-                    "opc-ua-device-name-pattern-required":"Device name Pattern is required",
                     "opc-ua-add-map": "Add mapping element"
                 },
                 "item": {

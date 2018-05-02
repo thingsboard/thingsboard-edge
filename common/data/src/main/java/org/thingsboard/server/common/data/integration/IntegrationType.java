@@ -40,7 +40,7 @@ public enum IntegrationType {
     IBM_WATSON_IOT(true),
     TTN(true),
     AZURE_EVENT_HUB(true),
-    OPC_UA(false);
+    OPC_UA(true);
 
     //Identifies if the Integration instance is one per cluster.
     private final boolean singleton;

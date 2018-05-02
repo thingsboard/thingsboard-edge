@@ -574,17 +574,13 @@
                                                         >integration.opc-device-node-pattern-required</div>
                                                     </div>
                                                 </md-input-container>
-
-                                                <md-input-container flex="50" class="md-block">
-                                                    <label translate>integration.opc-ua-device-name-pattern</label>
-                                                    <input required
-                                                           name="deviceNamePattern_{{serverIndex}}{{mapIndex}}"
-                                                           ng-model="map.deviceNamePattern"
-                                                    >
-                                                    <div ng-messages="theForm['deviceNamePattern_' + serverIndex + mapIndex].$error">
-                                                        <div translate
-                                                             ng-message="required"
-                                                        >integration.opc-ua-device-name-pattern-required</div>
+                                                <md-input-container flex="50" class="md-block tb-container-for-select">
+                                                    <label translate>integration.opc-ua-mapping-type</label>
+                                                    <md-select required name="mappingType_{{serverIndex}}{{mapIndex}}" ng-model="map.mappingType">
+                                                        <md-option ng-value="mappingType" ng-repeat="(mappingType, mappingValue) in types.opcUaMappingType"><span ng-bind="::mappingValue"></span></md-option>
+                                                    </md-select>
+                                                    <div ng-messages="theForm['mappingType_'+serverIndex+mapIndex].$error">
+                                                        <div translate ng-message="required">integration.opc-ua-mapping-type-required</div>
                                                     </div>
                                                 </md-input-container>
                                             </div>

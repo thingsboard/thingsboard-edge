@@ -343,7 +343,6 @@ export default function IntegrationDirective($compile, $templateCache, $translat
 
         function Map() {
             this.deviceNodePattern = "Channel1\\.Device\\d+$";
-            this.deviceNamePattern = "Device ${_System._DeviceId}";
         }
 
         scope.addMap = function(mappingList) {

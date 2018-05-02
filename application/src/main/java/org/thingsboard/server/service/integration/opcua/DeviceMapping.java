@@ -38,6 +38,6 @@ import lombok.Data;
 @Data
 public class DeviceMapping {
 
+    private final DeviceMappingType mappingType;
     private final String deviceNodePattern;
-    private final String deviceNamePattern;
 }
