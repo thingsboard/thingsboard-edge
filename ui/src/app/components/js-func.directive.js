@@ -37,11 +37,17 @@ import thingsboardToast from '../services/toast';
 import thingsboardUtils from '../common/utils.service';
 import thingsboardExpandFullscreen from './expand-fullscreen.directive';
 
+import fixAceEditor from './ace-editor-fix';
+
 /* eslint-disable import/no-unresolved, import/default */
 
 import jsFuncTemplate from './js-func.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
+
+import beautify from 'js-beautify';
+
+const js_beautify = beautify.js;
 
 /* eslint-disable angular/angularelement */
 
@@ -74,7 +80,7 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
 
 
         scope.functionArgsString = '';
-        for (var i in scope.functionArgs) {
+        for (var i = 0; i < scope.functionArgs.length; i++) {
             if (scope.functionArgsString.length > 0) {
                 scope.functionArgsString += ', ';
             }
@@ -83,6 +89,11 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
 
         scope.onFullscreenChanged = function () {
             updateEditorSize();
+        };
+
+        scope.beautifyJs = function () {
+            var res = js_beautify(scope.functionBody, {indent_size: 4, wrap_line_length: 60});
+            scope.functionBody = res;
         };
 
         function updateEditorSize() {
@@ -105,6 +116,7 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
                 scope.js_editor.session.on("change", function () {
                     scope.cleanupJsErrors();
                 });
+                fixAceEditor(_ace);
             }
         };
 

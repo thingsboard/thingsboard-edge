@@ -30,7 +30,11 @@
  */
 package org.thingsboard.server.dao.relation;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -257,7 +261,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getSaveStmt() {
         if (saveStmt == null) {
-            saveStmt = getSession().prepare("INSERT INTO " + ModelConstants.RELATION_COLUMN_FAMILY_NAME + " " +
+            saveStmt = prepare("INSERT INTO " + ModelConstants.RELATION_COLUMN_FAMILY_NAME + " " +
                     "(" + ModelConstants.RELATION_FROM_ID_PROPERTY +
                     "," + ModelConstants.RELATION_FROM_TYPE_PROPERTY +
                     "," + ModelConstants.RELATION_TO_ID_PROPERTY +
@@ -272,7 +276,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getDeleteStmt() {
         if (deleteStmt == null) {
-            deleteStmt = getSession().prepare("DELETE FROM " + ModelConstants.RELATION_COLUMN_FAMILY_NAME +
+            deleteStmt = prepare("DELETE FROM " + ModelConstants.RELATION_COLUMN_FAMILY_NAME +
                     WHERE + ModelConstants.RELATION_FROM_ID_PROPERTY + " = ?" +
                     AND + ModelConstants.RELATION_FROM_TYPE_PROPERTY + " = ?" +
                     AND + ModelConstants.RELATION_TO_ID_PROPERTY + " = ?" +
@@ -285,7 +289,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getDeleteAllByEntityStmt() {
         if (deleteAllByEntityStmt == null) {
-            deleteAllByEntityStmt = getSession().prepare("DELETE FROM " + ModelConstants.RELATION_COLUMN_FAMILY_NAME +
+            deleteAllByEntityStmt = prepare("DELETE FROM " + ModelConstants.RELATION_COLUMN_FAMILY_NAME +
                     WHERE + ModelConstants.RELATION_FROM_ID_PROPERTY + " = ?" +
                     AND + ModelConstants.RELATION_FROM_TYPE_PROPERTY + " = ?");
         }
@@ -294,7 +298,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getFindAllByFromStmt() {
         if (findAllByFromStmt == null) {
-            findAllByFromStmt = getSession().prepare(SELECT_COLUMNS + " " +
+            findAllByFromStmt = prepare(SELECT_COLUMNS + " " +
                     FROM + ModelConstants.RELATION_COLUMN_FAMILY_NAME + " " +
                     WHERE + ModelConstants.RELATION_FROM_ID_PROPERTY + EQUAL_TO_PARAM +
                     AND + ModelConstants.RELATION_FROM_TYPE_PROPERTY + EQUAL_TO_PARAM +
@@ -305,7 +309,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getFindAllByFromAndTypeStmt() {
         if (findAllByFromAndTypeStmt == null) {
-            findAllByFromAndTypeStmt = getSession().prepare(SELECT_COLUMNS + " " +
+            findAllByFromAndTypeStmt = prepare(SELECT_COLUMNS + " " +
                     FROM + ModelConstants.RELATION_COLUMN_FAMILY_NAME + " " +
                     WHERE + ModelConstants.RELATION_FROM_ID_PROPERTY + EQUAL_TO_PARAM +
                     AND + ModelConstants.RELATION_FROM_TYPE_PROPERTY + EQUAL_TO_PARAM +
@@ -318,7 +322,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getFindAllByToStmt() {
         if (findAllByToStmt == null) {
-            findAllByToStmt = getSession().prepare(SELECT_COLUMNS + " " +
+            findAllByToStmt = prepare(SELECT_COLUMNS + " " +
                     FROM + ModelConstants.RELATION_REVERSE_VIEW_NAME + " " +
                     WHERE + ModelConstants.RELATION_TO_ID_PROPERTY + EQUAL_TO_PARAM +
                     AND + ModelConstants.RELATION_TO_TYPE_PROPERTY + EQUAL_TO_PARAM +
@@ -329,7 +333,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getFindAllByToAndTypeStmt() {
         if (findAllByToAndTypeStmt == null) {
-            findAllByToAndTypeStmt = getSession().prepare(SELECT_COLUMNS + " " +
+            findAllByToAndTypeStmt = prepare(SELECT_COLUMNS + " " +
                     FROM + ModelConstants.RELATION_REVERSE_VIEW_NAME + " " +
                     WHERE + ModelConstants.RELATION_TO_ID_PROPERTY + EQUAL_TO_PARAM +
                     AND + ModelConstants.RELATION_TO_TYPE_PROPERTY + EQUAL_TO_PARAM +
@@ -342,7 +346,7 @@ public class BaseRelationDao extends CassandraAbstractAsyncDao implements Relati
 
     private PreparedStatement getCheckRelationStmt() {
         if (checkRelationStmt == null) {
-            checkRelationStmt = getSession().prepare(SELECT_COLUMNS + " " +
+            checkRelationStmt = prepare(SELECT_COLUMNS + " " +
                     FROM + ModelConstants.RELATION_COLUMN_FAMILY_NAME + " " +
                     WHERE + ModelConstants.RELATION_FROM_ID_PROPERTY + EQUAL_TO_PARAM +
                     AND + ModelConstants.RELATION_FROM_TYPE_PROPERTY + EQUAL_TO_PARAM +

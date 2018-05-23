@@ -35,5 +35,6 @@ public enum RelationTypeGroup {
     ALARM,
     TO_ENTITY_GROUP,
     FROM_ENTITY_GROUP,
-    DASHBOARD
+    RULE_CHAIN,
+    RULE_NODE
 }

@@ -37,6 +37,7 @@ import eventRowStatsTemplate from './event-row-stats.tpl.html';
 import eventRowErrorTemplate from './event-row-error.tpl.html';
 import eventRowDebugConverterTemplate from './event-row-debug-converter.tpl.html';
 import eventRowDebugIntegrationTemplate from './event-row-debug-integration.tpl.html';
+import eventRowDebugRuleNodeTemplate from './event-row-debug-rulenode.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -62,6 +63,12 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                     break;
                 case types.debugEventType.debugIntegration.value:
                     template = eventRowDebugIntegrationTemplate;
+                    break;
+                case types.debugEventType.debugRuleNode.value:
+                    template = eventRowDebugRuleNodeTemplate;
+                    break;
+                case types.debugEventType.debugRuleChain.value:
+                    template = eventRowDebugRuleNodeTemplate;
                     break;
             }
             return $templateCache.get(template);
@@ -100,6 +107,14 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                     onShowingCallback.onShowing(scope, element);
                 }
             });
+        }
+
+        scope.checkTooltip = function($event) {
+            var el = $event.target;
+            var $el = angular.element(el);
+            if(el.offsetWidth < el.scrollWidth && !$el.attr('title')){
+                $el.attr('title', $el.text());
+            }
         }
 
         $compile(element.contents())(scope);

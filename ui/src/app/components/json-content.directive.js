@@ -36,11 +36,17 @@ import 'brace/mode/text';
 import 'ace-builds/src-min-noconflict/snippets/json';
 import 'ace-builds/src-min-noconflict/snippets/text';
 
+import fixAceEditor from './ace-editor-fix';
+
 /* eslint-disable import/no-unresolved, import/default */
 
 import jsonContentTemplate from './json-content.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
+
+import beautify from 'js-beautify';
+
+const js_beautify = beautify.js;
 
 export default angular.module('thingsboard.directives.jsonContent', [])
     .directive('tbJsonContent', JsonContent)
@@ -63,6 +69,11 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
 
         scope.onFullscreenChanged = function () {
             updateEditorSize();
+        };
+
+        scope.beautifyJson = function () {
+            var res = js_beautify(scope.contentBody, {indent_size: 4, wrap_line_length: 60});
+            scope.contentBody = res;
         };
 
         function updateEditorSize() {
@@ -92,6 +103,7 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
                 scope.json_editor.session.on("change", function () {
                     scope.cleanupJsonErrors();
                 });
+                fixAceEditor(_ace);
             }
         };
 

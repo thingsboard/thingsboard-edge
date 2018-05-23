@@ -131,18 +131,6 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'home'
                         },
                         {
-                            name: 'plugin.plugins',
-                            type: 'link',
-                            state: 'home.plugins',
-                            icon: 'extension'
-                        },
-                        {
-                            name: 'rule.rules',
-                            type: 'link',
-                            state: 'home.rules',
-                            icon: 'settings_ethernet'
-                        },
-                        {
                             name: 'tenant.tenants',
                             type: 'link',
                             state: 'home.tenants',
@@ -189,21 +177,6 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                         }];
                     homeSections =
                         [{
-                            name: 'rule-plugin.management',
-                            places: [
-                                {
-                                    name: 'plugin.plugins',
-                                    icon: 'extension',
-                                    state: 'home.plugins'
-                                },
-                                {
-                                    name: 'rule.rules',
-                                    icon: 'settings_ethernet',
-                                    state: 'home.rules'
-                                }
-                            ]
-                        },
-                        {
                             name: 'tenant.management',
                             places: [
                                 {
@@ -262,15 +235,9 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'home'
                         },
                         {
-                            name: 'plugin.plugins',
+                            name: 'rulechain.rulechains',
                             type: 'link',
-                            state: 'home.plugins',
-                            icon: 'extension'
-                        },
-                        {
-                            name: 'rule.rules',
-                            type: 'link',
-                            state: 'home.rules',
+                            state: 'home.ruleChains',
                             icon: 'settings_ethernet'
                         },
                         {
@@ -336,17 +303,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
 
                     homeSections =
                         [{
-                            name: 'rule-plugin.management',
+                            name: 'rulechain.management',
                             places: [
                                 {
-                                    name: 'plugin.plugins',
-                                    icon: 'extension',
-                                    state: 'home.plugins'
-                                },
-                                {
-                                    name: 'rule.rules',
+                                    name: 'rulechain.rulechains',
                                     icon: 'settings_ethernet',
-                                    state: 'home.rules'
+                                    state: 'home.ruleChains'
                                 }
                             ]
                         },

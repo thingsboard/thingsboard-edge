@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -55,6 +56,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -80,6 +82,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private TenantService tenantService;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
+    private InstallScripts installScripts;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -113,8 +121,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         switch (fromVersion) {
             case "1.4.0":
-                log.info("Updating data from version 1.4.0 to 1.4.0PE ...");
-
+                log.info("Updating data from version 1.4.0 to 2.0.0 ...");
+                tenantsDefaultRuleChainUpdater.updateEntities(null);
+                break;
+            case "2.0.0":
+                log.info("Updating data from version 2.0.0 to 2.0.0PE ...");
                 tenantsGroupAllUpdater.updateEntities(null);
 
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey("mailTemplates");
@@ -131,6 +142,27 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }
     }
+
+    private PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
+            new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected List<Tenant> findEntities(String region, TextPageLink pageLink) {
+                    return tenantService.findTenants(pageLink).getData();
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        RuleChain ruleChain = ruleChainService.getRootTenantRuleChain(tenant.getId());
+                        if (ruleChain == null) {
+                            installScripts.createDefaultRuleChains(tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
 
     private PaginatedUpdater<String, Tenant> tenantsGroupAllUpdater =
             new PaginatedUpdater<String, Tenant>() {

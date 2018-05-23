@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.extensions.api.plugins.msg.ToDeviceRpcRequestBody;
+import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 
 import java.util.List;
 import java.util.Set;

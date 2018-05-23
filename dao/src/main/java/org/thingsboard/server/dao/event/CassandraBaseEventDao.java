@@ -56,7 +56,10 @@ import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_BY_ID_VIEW_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_BY_TYPE_AND_ID_VIEW_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 @Component
 @Slf4j
@@ -146,6 +149,21 @@ public class CassandraBaseEventDao extends CassandraAbstractSearchTimeDao<EventE
                         QueryBuilder.desc(ModelConstants.EVENT_TYPE_PROPERTY),
                 pageLink);
         log.trace("Found events by tenant [{}], entity [{}], type [{}] and pageLink [{}]", tenantId, entityId, eventType, pageLink);
+        return DaoUtil.convertDataList(entities);
+    }
+
+    @Override
+    public List<Event> findLatestEvents(UUID tenantId, EntityId entityId, String eventType, int limit) {
+        log.trace("Try to find latest events by tenant [{}], entity [{}], type [{}] and limit [{}]", tenantId, entityId, eventType, limit);
+        Select select = select().from(EVENT_BY_TYPE_AND_ID_VIEW_NAME);
+        Select.Where query = select.where();
+        query.and(eq(ModelConstants.EVENT_TENANT_ID_PROPERTY, tenantId));
+        query.and(eq(ModelConstants.EVENT_ENTITY_TYPE_PROPERTY, entityId.getEntityType()));
+        query.and(eq(ModelConstants.EVENT_ENTITY_ID_PROPERTY, entityId.getId()));
+        query.and(eq(ModelConstants.EVENT_TYPE_PROPERTY, eventType));
+        query.limit(limit);
+        query.orderBy(QueryBuilder.desc(ModelConstants.EVENT_TYPE_PROPERTY), QueryBuilder.desc(ModelConstants.ID_PROPERTY));
+        List<EventEntity> entities = findListByStatement(query);
         return DaoUtil.convertDataList(entities);
     }
 

@@ -51,10 +51,7 @@ import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -122,6 +119,17 @@ public class JpaBaseEventDao extends JpaAbstractSearchTimeDao<EventEntity, Event
         Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = new PageRequest(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
         return DaoUtil.convertDataList(eventRepository.findAll(where(timeSearchSpec).and(fieldsSpec), pageable).getContent());
+    }
+
+    @Override
+    public List<Event> findLatestEvents(UUID tenantId, EntityId entityId, String eventType, int limit) {
+        List<EventEntity> latest = eventRepository.findLatestByTenantIdAndEntityTypeAndEntityIdAndEventType(
+                UUIDConverter.fromTimeUUID(tenantId),
+                entityId.getEntityType(),
+                UUIDConverter.fromTimeUUID(entityId.getId()),
+                eventType,
+                new PageRequest(0, limit));
+        return DaoUtil.convertDataList(latest);
     }
 
     public Optional<Event> save(EventEntity entity, boolean ifNotExists) {

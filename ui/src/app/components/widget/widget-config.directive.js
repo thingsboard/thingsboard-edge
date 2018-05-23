@@ -38,6 +38,8 @@ import thingsboardJsonForm from '../json-form.directive';
 import thingsboardManageWidgetActions from './action/manage-widget-actions.directive';
 import 'angular-ui-ace';
 
+import fixAceEditor from './../ace-editor-fix';
+
 import './widget-config.scss';
 
 /* eslint-disable import/no-unresolved, import/default */
@@ -87,6 +89,9 @@ function WidgetConfig($compile, $templateCache, $rootScope, $translate, $timeout
                 enableSnippets: true,
                 enableBasicAutocompletion: true,
                 enableLiveAutocompletion: true
+            },
+            onLoad: function (_ace) {
+                fixAceEditor(_ace);
             }
         };
 

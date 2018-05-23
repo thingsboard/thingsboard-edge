@@ -50,5 +50,4 @@ public class SystemSqlTestSuite {
             "sql/drop-all-tables.sql",
             "sql-test.properties");
 
-
 }

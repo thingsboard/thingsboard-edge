@@ -57,7 +57,9 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.function.BiFunction;
 
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j

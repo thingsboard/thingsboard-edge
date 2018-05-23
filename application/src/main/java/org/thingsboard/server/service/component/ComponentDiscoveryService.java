@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Andrew Shvayka
@@ -45,8 +46,8 @@ public interface ComponentDiscoveryService {
 
     List<ComponentDescriptor> getComponents(ComponentType type);
 
-    Optional<ComponentDescriptor> getComponent(String clazz);
+    List<ComponentDescriptor> getComponents(Set<ComponentType> types);
 
-    List<ComponentDescriptor> getPluginActions(String pluginClazz);
+    Optional<ComponentDescriptor> getComponent(String clazz);
 
 }
