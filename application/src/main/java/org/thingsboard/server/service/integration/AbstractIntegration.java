@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
-import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
+import org.thingsboard.server.common.msg.session.BasicTransportToDeviceSessionActorMsg;
 import org.thingsboard.server.service.converter.*;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
@@ -128,12 +128,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
         if (data.getTelemetry() != null) {
             AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getTelemetry());
-            context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
+            context.getSessionMsgProcessor().process(new BasicTransportToDeviceSessionActorMsg(device, msg));
         }
 
         if (data.getAttributesUpdate() != null) {
             AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getAttributesUpdate());
-            context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
+            context.getSessionMsgProcessor().process(new BasicTransportToDeviceSessionActorMsg(device, msg));
         }
 
         return device;

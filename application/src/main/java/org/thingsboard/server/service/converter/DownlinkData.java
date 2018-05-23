@@ -33,9 +33,6 @@ package org.thingsboard.server.service.converter;
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.msg.core.GetAttributesRequest;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
 
 import java.util.Map;
 

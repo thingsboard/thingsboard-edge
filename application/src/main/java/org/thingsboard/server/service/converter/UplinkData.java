@@ -34,7 +34,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.msg.core.GetAttributesRequest;
 import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
+import org.thingsboard.server.common.msg.core.AttributesUpdateRequest;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -46,7 +46,7 @@ public class UplinkData {
     private final String deviceName;
     private final String deviceType;
     private final TelemetryUploadRequest telemetry;
-    private final UpdateAttributesRequest attributesUpdate;
+    private final AttributesUpdateRequest attributesUpdate;
     private final GetAttributesRequest attributesRequest;
 
 }
