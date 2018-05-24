@@ -43,22 +43,19 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.RuleNodeId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.controller.HttpValidationCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -102,6 +99,12 @@ public class AccessValidator {
 
     @Autowired
     protected RuleChainService ruleChainService;
+
+    @Autowired
+    protected ConverterService converterService;
+
+    @Autowired
+    protected IntegrationService integrationService;
 
     private ExecutorService executor;
 
@@ -172,6 +175,12 @@ public class AccessValidator {
                 return;
             case TENANT:
                 validateTenant(currentUser, entityId, callback);
+                return;
+            case CONVERTER:
+                validateConverter(currentUser, entityId, callback);
+                return;
+            case INTEGRATION:
+                validateIntegration(currentUser, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -303,6 +312,44 @@ public class AccessValidator {
                     return ValidationResult.accessDenied("Tenant doesn't relate to the currently authorized user!");
                 } else {
                     return ValidationResult.ok(tenant);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateConverter(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isCustomerUser()) {
+            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Converter> converterFuture = converterService.findConverterByIdAsync(new ConverterId(entityId.getId()));
+            Futures.addCallback(converterFuture, getCallback(callback, converter -> {
+                if (converter == null) {
+                    return ValidationResult.entityNotFound("Converter with requested id wasn't found!");
+                } else if (!converter.getTenantId().equals(currentUser.getTenantId())) {
+                    return ValidationResult.accessDenied("Converter doesn't belong to the current Tenant!");
+                } else {
+                    return ValidationResult.ok(converter);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateIntegration(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isCustomerUser()) {
+            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Integration> integrationFuture = integrationService.findIntegrationByIdAsync(new IntegrationId(entityId.getId()));
+            Futures.addCallback(integrationFuture, getCallback(callback, integration -> {
+                if (integration == null) {
+                    return ValidationResult.entityNotFound("Integration with requested id wasn't found!");
+                } else if (!integration.getTenantId().equals(currentUser.getTenantId())) {
+                    return ValidationResult.accessDenied("Integration doesn't belong to the current Tenant!");
+                } else {
+                    return ValidationResult.ok(integration);
                 }
             }), executor);
         }

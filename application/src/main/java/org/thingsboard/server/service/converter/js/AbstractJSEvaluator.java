@@ -32,22 +32,32 @@ package org.thingsboard.server.service.converter.js;
 
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsScriptType;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.UUID;
 
 @Slf4j
 public abstract class AbstractJSEvaluator {
 
-    protected static NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-    protected static ScriptEngine engine = factory.getScriptEngine("--no-java");
+    protected final JsSandboxService sandboxService;
+    protected final UUID scriptId;
 
-    protected static void compileScript(String script) {
+    public AbstractJSEvaluator(JsSandboxService sandboxService, JsScriptType scriptType, String script) {
+        this.sandboxService = sandboxService;
         try {
-            engine.eval(script);
-        } catch (ScriptException e) {
-            log.warn("Failed to compile filter script: {}", e.getMessage(), e);
+            this.scriptId = this.sandboxService.eval(scriptType, script).get();
+        } catch (Exception e) {
+            log.warn("Failed to compile js script: {}", e.getMessage(), e);
             throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
+        }
+    }
+
+    public void destroy() {
+        if (this.scriptId != null) {
+            this.sandboxService.release(this.scriptId);
         }
     }
 

@@ -33,6 +33,8 @@ package org.thingsboard.server.service.converter.js;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsScriptType;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -41,37 +43,12 @@ import javax.script.ScriptException;
 @Slf4j
 public class JSUplinkEvaluator extends AbstractJSEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(bytes, metadata) { " +
-            "    var payload = convertBytes(bytes); " +
-            "    return JSON.stringify(Decoder(payload, metadata));" +
-            "    function Decoder(payload, metadata) {";
-
-    private static final String JS_WRAPPER_SUFFIX = "}" +
-            "    function convertBytes(bytes) {\n" +
-            "       var payload = [];\n" +
-            "       for (var i = 0; i < bytes.length; i++) {\n" +
-            "           payload.push(bytes[i]);\n" +
-            "       }\n" +
-            "       return payload;\n" +
-            "    }\n" +
-            "\n}";
-
-    private final String functionName;
-
-    public JSUplinkEvaluator(String decoder) {
-        this.functionName = "decodeInternal" + this.hashCode();
-        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
-        compileScript(jsWrapperPrefix
-                + decoder
-                + JS_WRAPPER_SUFFIX);
+    public JSUplinkEvaluator(JsSandboxService sandboxService, String script) {
+        super(sandboxService, JsScriptType.UPLINK_CONVERTER_SCRIPT, script);
     }
 
-    public void destroy() {
-        //engine = null;
-    }
-
-    public String execute(byte[] data, UplinkMetaData metadata) throws ScriptException, NoSuchMethodException {
-        return ((Invocable)engine).invokeFunction(this.functionName, data, metadata.getKvMap()).toString();
+    public String execute(byte[] data, UplinkMetaData metadata) throws Exception {
+        return sandboxService.invokeFunction(this.scriptId, data, metadata.getKvMap()).get().toString();
     }
 
 }

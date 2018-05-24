@@ -30,17 +30,18 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
@@ -48,10 +49,9 @@ import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.downlink.AttributeUpdate;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.downlink.RPCCall;
+import org.thingsboard.server.service.script.TestNashornJsSandboxService;
 
-import javax.script.ScriptException;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -67,15 +67,28 @@ public class JsConverterEvaluatorTest {
 
     final ObjectMapper mapper = new ObjectMapper();
 
-    @Test
-    public void basicUplinkTest() throws ScriptException, NoSuchMethodException {
-        JSUplinkEvaluator eval = createUplinkEvaluator("uplinkConverter.js");
-        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
-        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
+    private TestNashornJsSandboxService jsSandboxService;
+
+    @Before
+    public void beforeTest() throws Exception {
+        jsSandboxService = new TestNashornJsSandboxService(false, 1, 100, 3);
+    }
+
+    @After
+    public void afterTest() throws Exception {
+        jsSandboxService.stop();
     }
 
     @Test
-    public void basicDownlinkTest() throws ScriptException, NoSuchMethodException, IOException {
+    public void basicUplinkTest() throws Exception {
+        JSUplinkEvaluator eval = createUplinkEvaluator("uplinkConverter.js");
+        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
+        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
+        eval.destroy();
+    }
+
+    @Test
+    public void basicDownlinkTest() throws Exception {
         JSDownlinkEvaluator eval = createDownlinkEvaluator("downlinkConverter.js");
 
         DownLinkMsg downLinkMsg = new DownLinkMsg(new DeviceId(EntityId.NULL_UUID), "Sensor A", "temp-sensor");
@@ -108,16 +121,17 @@ public class JsConverterEvaluatorTest {
 
         Assert.assertTrue(dataJson.has("temperature"));
         Assert.assertEquals("33", dataJson.get("temperature").asText());
+        eval.destroy();
     }
 
     private JSUplinkEvaluator createUplinkEvaluator(String scriptName) {
         InputStream src = JsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSUplinkEvaluator(read(src));
+        return new JSUplinkEvaluator(jsSandboxService, read(src));
     }
 
     private JSDownlinkEvaluator createDownlinkEvaluator(String scriptName) {
         InputStream src = JsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSDownlinkEvaluator(read(src));
+        return new JSDownlinkEvaluator(jsSandboxService, read(src));
     }
 
     public static String read(InputStream input) {

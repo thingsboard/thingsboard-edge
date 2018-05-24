@@ -28,48 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.converter.js;
-
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
-import org.thingsboard.server.service.script.JsSandboxService;
+package org.thingsboard.server.service.script;
 
 /**
- * Created by ashvayka on 02.12.17.
+ * Created by igor on 5/24/18.
  */
-public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
+public class UplinkConverterScriptFactory {
 
-    private final JsSandboxService sandboxService;
-    private JSDownlinkEvaluator evaluator;
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(bytes, metadata) { " +
+            "    var payload = convertBytes(bytes); " +
+            "    return JSON.stringify(Decoder(payload, metadata));" +
+            "    function Decoder(payload, metadata) {";
 
-    public JSDownlinkDataConverter(JsSandboxService sandboxService) {
-        this.sandboxService = sandboxService;
+    private static final String JS_WRAPPER_SUFFIX = "}" +
+            "    function convertBytes(bytes) {\n" +
+            "       var payload = [];\n" +
+            "       for (var i = 0; i < bytes.length; i++) {\n" +
+            "           payload.push(bytes[i]);\n" +
+            "       }\n" +
+            "       return payload;\n" +
+            "    }\n" +
+            "\n}";
+
+    public static String generateUplinkConverterScript(String functionName, String scriptBody) {
+        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, functionName);
+        return jsWrapperPrefix + scriptBody + JS_WRAPPER_SUFFIX;
     }
-
-    @Override
-    public void init(Converter configuration) {
-        super.init(configuration);
-        String encoder = configuration.getConfiguration().get("encoder").asText();
-        this.evaluator = new JSDownlinkEvaluator(sandboxService, encoder);
-    }
-
-    @Override
-    public void update(Converter configuration) {
-        destroy();
-        init(configuration);
-    }
-
-    @Override
-    public void destroy() {
-        if (this.evaluator != null) {
-            this.evaluator.destroy();
-        }
-    }
-
-    @Override
-    protected String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception {
-        return evaluator.execute(payload, metadata);
-    }
-
 }

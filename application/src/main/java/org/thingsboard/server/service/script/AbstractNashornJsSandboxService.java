@@ -166,6 +166,10 @@ public abstract class AbstractNashornJsSandboxService implements JsSandboxServic
         switch (scriptType) {
             case RULE_NODE_SCRIPT:
                 return RuleNodeScriptFactory.generateRuleNodeScript(functionName, scriptBody, argNames);
+            case UPLINK_CONVERTER_SCRIPT:
+                return UplinkConverterScriptFactory.generateUplinkConverterScript(functionName, scriptBody);
+            case DOWNLINK_CONVERTER_SCRIPT:
+                return DownlinkConverterScriptFactory.generateDownlinkConverterScript(functionName, scriptBody);
             default:
                 throw new RuntimeException("No script factory implemented for scriptType: " + scriptType);
         }

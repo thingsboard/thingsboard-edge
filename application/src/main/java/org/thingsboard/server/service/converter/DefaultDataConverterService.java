@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
 import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
+import org.thingsboard.server.service.script.JsSandboxService;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;
@@ -51,6 +52,9 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Autowired
     private ConverterService converterService;
+
+    @Autowired
+    private JsSandboxService jsSandbox;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
@@ -109,11 +113,11 @@ public class DefaultDataConverterService implements DataConverterService {
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
             case UPLINK:
-                JSUplinkDataConverter uplink = new JSUplinkDataConverter();
+                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsSandbox);
                 uplink.init(converter);
                 return uplink;
             case DOWNLINK:
-                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter();
+                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsSandbox);
                 downlink.init(converter);
                 return downlink;
             default:

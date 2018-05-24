@@ -32,5 +32,7 @@
 package org.thingsboard.server.service.script;
 
 public enum JsScriptType {
-    RULE_NODE_SCRIPT
+    RULE_NODE_SCRIPT,
+    UPLINK_CONVERTER_SCRIPT,
+    DOWNLINK_CONVERTER_SCRIPT
 }

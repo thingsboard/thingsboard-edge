@@ -38,6 +38,8 @@ import org.thingsboard.server.service.converter.UplinkMetaData;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsScriptType;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -46,29 +48,12 @@ import javax.script.ScriptException;
 @Slf4j
 public class JSDownlinkEvaluator extends AbstractJSEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(jsonStr, metadata) { " +
-            "    var payload = JSON.parse(jsonStr); " +
-            "    return JSON.stringify(Encoder(payload, metadata));" +
-            "    function Encoder(payload, metadata) {";
-
-    private static final String JS_WRAPPER_SUFFIX = "}\n}";
-
-    private final String functionName;
-
-    public JSDownlinkEvaluator(String encoder) {
-        this.functionName = "encodeInternal" + this.hashCode();
-        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
-        compileScript(jsWrapperPrefix
-                + encoder
-                + JS_WRAPPER_SUFFIX);
+    public JSDownlinkEvaluator(JsSandboxService sandboxService, String script) {
+        super(sandboxService, JsScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
     }
 
-    public void destroy() {
-        //engine = null;
-    }
-
-    public String execute(String payload, DownLinkMetaData metadata) throws ScriptException, NoSuchMethodException, JsonProcessingException {
-        return ((Invocable)engine).invokeFunction(this.functionName, payload, metadata.getKvMap()).toString();
+    public String execute(String payload, DownLinkMetaData metadata) throws Exception {
+        return sandboxService.invokeFunction(this.scriptId, payload, metadata.getKvMap()).get().toString();
     }
 
 }

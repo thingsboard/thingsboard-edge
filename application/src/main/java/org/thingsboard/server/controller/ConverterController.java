@@ -59,6 +59,7 @@ import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSDownlinkEvaluator;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
+import org.thingsboard.server.service.script.JsSandboxService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -71,6 +72,9 @@ public class ConverterController extends BaseController {
 
     @Autowired
     private DataConverterService dataConverterService;
+
+    @Autowired
+    private JsSandboxService jsSandboxService;
 
     public static final String CONVERTER_ID = "converterId";
 
@@ -176,7 +180,7 @@ public class ConverterController extends BaseController {
             String errorText = "";
             JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
-                jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+                jsUplinkEvaluator = new JSUplinkEvaluator(jsSandboxService, decoder);
                 output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
@@ -212,7 +216,7 @@ public class ConverterController extends BaseController {
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
                 DownLinkMsg downLinkMsg = objectMapper.readValue(payload, DownLinkMsg.class);
-                jsDownlinkEvaluator = new JSDownlinkEvaluator(encoder);
+                jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, encoder);
                 output = jsDownlinkEvaluator.execute(payload, downLinkMetaData);
                 validateDownLinkOutput(output, downLinkMsg);
             } catch (Exception e) {
