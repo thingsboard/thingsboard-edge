@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.event;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,12 @@ public class BaseEventService implements EventService {
     public Event save(Event event) {
         eventValidator.validate(event);
         return eventDao.save(event);
+    }
+
+    @Override
+    public ListenableFuture<Event> saveAsync(Event event) {
+        eventValidator.validate(event);
+        return eventDao.saveAsync(event);
     }
 
     @Override

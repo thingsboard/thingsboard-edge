@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.event;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -51,6 +52,14 @@ public interface EventDao extends Dao<Event> {
      * @return saved event object
      */
     Event save(Event event);
+
+    /**
+     * Save or update event object async
+     *
+     * @param event the event object
+     * @return saved event object future
+     */
+    ListenableFuture<Event> saveAsync(Event event);
 
     /**
      * Save event object if it is not yet saved
