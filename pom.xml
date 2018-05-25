@@ -107,6 +107,7 @@
         <module>netty-mqtt</module>
         <module>common</module>
         <module>rule-engine</module>
+        <module>rule-engine-pe</module>
         <module>dao</module>
         <module>transport</module>
         <module>ui</module>
@@ -301,7 +302,7 @@
                             <exclude>src/main/scripts/control/**</exclude>
                             <exclude>src/main/scripts/windows/**</exclude>
                             <exclude>**/*.tpl.txt</exclude>
-                            <exclude>src/main/resources/public/static/rulenode/**</exclude>
+                            <exclude>**/public/static/rulenode/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
