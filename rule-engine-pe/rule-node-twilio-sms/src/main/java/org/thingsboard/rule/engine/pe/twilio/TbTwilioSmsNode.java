@@ -50,13 +50,13 @@ import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
 @Slf4j
 @RuleNode(
         type = ComponentType.EXTERNAL,
-        name = "send email",
+        name = "twilio sms",
         configClazz = TbTwilioSmsNodeConfiguration.class,
         nodeDescription = "Sends SMS message via Twilio.",
         nodeDetails = "Will send message payload as SMS message via Twilio.",
         uiResources = {"static/rulenode/twilio-sms-config.js"},
         configDirective = "tbActionNodeTwilioSmsConfig",
-        icon = "send"
+        icon = "sms"
 )
 public class TbTwilioSmsNode implements TbNode {
 
@@ -80,7 +80,7 @@ public class TbTwilioSmsNode implements TbNode {
     }
 
     private void sendSms(TbContext ctx, TbMsg msg) throws Exception {
-        String numberForm = TbNodeUtils.processPattern(this.config.getNumberFrom(), msg.getMetaData());
+        String numberFrom = TbNodeUtils.processPattern(this.config.getNumberFrom(), msg.getMetaData());
         String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersTo(), msg.getMetaData());
         String[] numbersToList = numbersTo.split(",");
         if (numbersToList.length == 0) {
@@ -88,8 +88,8 @@ public class TbTwilioSmsNode implements TbNode {
         }
         for (String numberTo : numbersToList) {
             Message.creator(
-                    new PhoneNumber(numberTo),
-                    new PhoneNumber(numberForm),
+                    new PhoneNumber(numberTo.trim()),
+                    new PhoneNumber(numberFrom.trim()),
                     msg.getData()
             ).create(this.twilioRestClient);
         }

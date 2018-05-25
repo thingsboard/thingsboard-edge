@@ -498,6 +498,23 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>copy-pe-rule-nodes</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/extensions</outputDirectory>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.thingsboard.rule-engine-pe</groupId>
+                                    <artifactId>rule-node-twilio-sms</artifactId>
+                                    <classifier>rule-node</classifier>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>copy-winsw-service</id>
                         <phase>package</phase>
                         <goals>
