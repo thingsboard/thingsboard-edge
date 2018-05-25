@@ -56,7 +56,8 @@ import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
         nodeDetails = "Will send message payload as SMS message via Twilio.",
         uiResources = {"static/rulenode/twilio-sms-config.js"},
         configDirective = "tbActionNodeTwilioSmsConfig",
-        icon = "sms"
+        icon = "sms",
+        docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-sms-node"
 )
 public class TbTwilioSmsNode implements TbNode {
 
