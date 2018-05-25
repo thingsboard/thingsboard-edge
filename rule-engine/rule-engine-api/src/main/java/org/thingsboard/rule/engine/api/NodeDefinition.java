@@ -47,5 +47,6 @@ public class NodeDefinition {
     String configDirective;
     String icon;
     String iconUrl;
+    String docUrl;
 
 }

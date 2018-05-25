@@ -191,6 +191,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
         nodeDefinition.setConfigDirective(nodeAnnotation.configDirective());
         nodeDefinition.setIcon(nodeAnnotation.icon());
         nodeDefinition.setIconUrl(nodeAnnotation.iconUrl());
+        nodeDefinition.setDocUrl(nodeAnnotation.docUrl());
         return nodeDefinition;
     }
 

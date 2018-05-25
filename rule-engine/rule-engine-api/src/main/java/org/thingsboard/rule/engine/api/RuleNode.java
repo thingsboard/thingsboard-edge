@@ -68,6 +68,8 @@ public @interface RuleNode {
 
     String iconUrl() default "";
 
+    String docUrl() default "";
+
     boolean customRelations() default false;
 
 }
