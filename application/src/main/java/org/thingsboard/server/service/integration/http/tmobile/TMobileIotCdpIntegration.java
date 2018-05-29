@@ -28,19 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.http.oc;
 
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true);
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.integration.IntegrationContext;
+import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
+import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+import java.util.List;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
+/**
+ * Created by ashvayka on 02.12.17.
+ */
+@Slf4j
+public class TMobileIotCdpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
+
+    @Override
+    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+
+        if (!msg.getMsg().has("deviceId")) {
+            return fromStatus(HttpStatus.BAD_REQUEST);
+        }
+
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
+        if (uplinkDataList != null) {
+            for (UplinkData data : uplinkDataList) {
+                processUplinkData(context, data);
+                log.info("[{}] Processing uplink data", data);
+            }
+        }
+        return fromStatus(HttpStatus.OK);
     }
 
-    public boolean isSingleton() {
-        return singleton;
-    }
 }

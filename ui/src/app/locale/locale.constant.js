@@ -1331,6 +1331,7 @@ export default angular.module('thingsboard.locale', [])
                     "type-ocean-connect": "OceanConnect",
                     "type-sigfox": "SigFox",
                     "type-thingpark": "ThingPark",
+                    "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
                     "type-mqtt": "MQTT",
                     "type-aws-iot": "AWS IoT",
                     "type-ibm-watson-iot": "IBM Watson IoT",
