@@ -28,12 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.integration.oc;
+package org.thingsboard.server.controller.integration.tmobile;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -52,7 +53,17 @@ import java.util.Optional;
 public class TMobileIotCdpIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}")
+    @RequestMapping(value = "/{routingKey}", consumes = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void processCheck(
+            @PathVariable("routingKey") String routingKey,
+            @RequestHeader(required = false) Map<String, String> requestHeaders
+    ) {
+        log.debug("[{}] Received validation request: {}", routingKey, requestHeaders);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = "/{routingKey}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.http.oc;
+package org.thingsboard.server.service.integration.http.tmobile;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -48,10 +48,6 @@ public class TMobileIotCdpIntegration extends AbstractHttpIntegration<HttpIntegr
 
     @Override
     protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
-
-        if (!msg.getMsg().has("deviceId")) {
-            return fromStatus(HttpStatus.BAD_REQUEST);
-        }
 
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
         if (uplinkDataList != null) {

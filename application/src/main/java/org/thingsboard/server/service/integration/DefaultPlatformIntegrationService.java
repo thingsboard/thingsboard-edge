@@ -59,7 +59,7 @@ import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
-import org.thingsboard.server.service.integration.http.oc.TMobileIotCdpIntegration;
+import org.thingsboard.server.service.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.server.service.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegration;
 import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
