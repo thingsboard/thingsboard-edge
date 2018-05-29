@@ -229,6 +229,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter private PlatformIntegrationService platformIntegrationService;
 
+    @Value("${actors.session.max_concurrent_sessions_per_device:1}")
+    @Getter
+    private long maxConcurrentSessionsPerDevice;
+
     @Value("${actors.session.sync.timeout}")
     @Getter
     private long syncSessionTimeout;

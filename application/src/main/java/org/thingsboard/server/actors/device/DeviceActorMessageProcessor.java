@@ -104,6 +104,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -140,7 +141,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         super(systemContext, logger);
         this.tenantId = tenantId;
         this.deviceId = deviceId;
-        this.sessions = new HashMap<>();
+        this.sessions = new LinkedHashMap<>();
         this.attributeSubscriptions = new HashMap<>();
         this.rpcSubscriptions = new HashMap<>();
         this.toDeviceRpcPendingMap = new HashMap<>();
@@ -186,7 +187,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
 
         if (request.isOneway() && sent) {
             logger.debug("[{}] Rpc command response sent [{}]!", deviceId, request.getId());
-            systemContext.getDeviceRpcService().process(new FromDeviceRpcResponse(msg.getMsg().getId(), null, null));
+            systemContext.getDeviceRpcService().processRpcResponseFromDevice(new FromDeviceRpcResponse(msg.getMsg().getId(), msg.getServerAddress(), null, null));
         } else {
             registerPendingRpcRequest(context, msg, sent, rpcRequest, timeout);
         }
@@ -224,8 +225,8 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         ToDeviceRpcRequestMetadata requestMd = toDeviceRpcPendingMap.remove(msg.getId());
         if (requestMd != null) {
             logger.debug("[{}] RPC request [{}] timeout detected!", deviceId, msg.getId());
-            systemContext.getDeviceRpcService().process(new FromDeviceRpcResponse(requestMd.getMsg().getMsg().getId(),
-                    null, requestMd.isSent() ? RpcError.TIMEOUT : RpcError.NO_ACTIVE_CONNECTION));
+            systemContext.getDeviceRpcService().processRpcResponseFromDevice(new FromDeviceRpcResponse(requestMd.getMsg().getMsg().getId(),
+                    requestMd.getMsg().getServerAddress(), null, requestMd.isSent() ? RpcError.TIMEOUT : RpcError.NO_ACTIVE_CONNECTION));
         }
     }
 
@@ -273,11 +274,12 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
 
     private Consumer<Map.Entry<Integer, ToDeviceRpcRequestMetadata>> processPendingRpc(ActorContext context, SessionId sessionId, Optional<ServerAddress> server, Set<Integer> sentOneWayIds) {
         return entry -> {
+            ToDeviceRpcRequestActorMsg requestActorMsg = entry.getValue().getMsg();
             ToDeviceRpcRequest request = entry.getValue().getMsg().getMsg();
             ToDeviceRpcRequestBody body = request.getBody();
             if (request.isOneway()) {
                 sentOneWayIds.add(entry.getKey());
-                systemContext.getDeviceRpcService().process(new FromDeviceRpcResponse(request.getId(), null, null));
+                systemContext.getDeviceRpcService().processRpcResponseFromDevice(new FromDeviceRpcResponse(request.getId(), requestActorMsg.getServerAddress(), null, null));
             }
             ToDeviceRpcRequestMsg rpcRequest = new ToDeviceRpcRequestMsg(
                     entry.getKey(),
@@ -399,7 +401,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
                 kv.getStrValue().ifPresent(v -> json.addProperty(kv.getKey(), v));
             }
             TbMsgMetaData metaData = defaultMetaData.copy();
-            metaData.putValue("ts", entry.getKey()+"");
+            metaData.putValue("ts", entry.getKey() + "");
             TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), deviceId, metaData, TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
             pushToRuleEngineWithTimeout(context, tbMsg, msgData);
         }
@@ -524,7 +526,8 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             ToDeviceRpcRequestMetadata requestMd = toDeviceRpcPendingMap.remove(responseMsg.getRequestId());
             boolean success = requestMd != null;
             if (success) {
-                systemContext.getDeviceRpcService().process(new FromDeviceRpcResponse(requestMd.getMsg().getMsg().getId(), responseMsg.getData(), null));
+                systemContext.getDeviceRpcService().processRpcResponseFromDevice(new FromDeviceRpcResponse(requestMd.getMsg().getMsg().getId(),
+                        requestMd.getMsg().getServerAddress(), responseMsg.getData(), null));
             } else {
                 logger.debug("[{}] Rpc command response [{}] is stale!", deviceId, responseMsg.getRequestId());
             }
@@ -572,6 +575,12 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         FromDeviceMsg inMsg = msg.getPayload();
         if (inMsg instanceof SessionOpenMsg) {
             logger.debug("[{}] Processing new session [{}]", deviceId, sessionId);
+            if (sessions.size() >= systemContext.getMaxConcurrentSessionsPerDevice()) {
+                SessionId sessionIdToRemove = sessions.keySet().stream().findFirst().orElse(null);
+                if (sessionIdToRemove != null) {
+                    closeSession(sessionIdToRemove, sessions.remove(sessionIdToRemove));
+                }
+            }
             sessions.put(sessionId, new SessionInfo(SessionType.ASYNC, msg.getServerAddress()));
             if (sessions.size() == 1) {
                 reportSessionOpen();
@@ -599,11 +608,13 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
     }
 
     void processCredentialsUpdate() {
-        sessions.forEach((k, v) -> {
-            sendMsgToSessionActor(new BasicActorSystemToDeviceSessionActorMsg(new SessionCloseNotification(), k), v.getServer());
-        });
+        sessions.forEach(this::closeSession);
         attributeSubscriptions.clear();
         rpcSubscriptions.clear();
+    }
+
+    private void closeSession(SessionId sessionId, SessionInfo sessionInfo) {
+        sendMsgToSessionActor(new BasicActorSystemToDeviceSessionActorMsg(new SessionCloseNotification(), sessionId), sessionInfo.getServer());
     }
 
     void processNameOrTypeUpdate(DeviceNameOrTypeUpdateMsg msg) {
