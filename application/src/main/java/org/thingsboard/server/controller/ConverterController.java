@@ -30,38 +30,35 @@
  */
 package org.thingsboard.server.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSDownlinkEvaluator;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.script.JsSandboxService;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
@@ -204,19 +201,24 @@ public class ConverterController extends BaseController {
     @ResponseBody
     public JsonNode testDownLinkConverter(@RequestBody JsonNode inputParams) throws ThingsboardException {
         try {
-            String payload = inputParams.get("payload").asText();
+            String data = inputParams.get("msg").asText();
             JsonNode metadata = inputParams.get("metadata");
+            String msgType = inputParams.get("msgType").asText();
+            JsonNode integrationMetadata = inputParams.get("integrationMetadata");
             String encoder = inputParams.get("encoder").asText();
 
             Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {});
-            DownLinkMetaData downLinkMetaData = new DownLinkMetaData(metadataMap);
 
-            String output = "";
+            Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {});
+            IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
+
+            JsonNode output = null;
             String errorText = "";
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
+                TbMsg inMsg = new TbMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadataMap), data, null, null, 0L);
                 jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, encoder);
-                output = jsDownlinkEvaluator.execute(payload, downLinkMetaData);
+                output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
                 validateDownLinkOutput(output);
             } catch (Exception e) {
                 log.error("Error evaluating JS Downlink Converter function", e);
@@ -227,7 +229,7 @@ public class ConverterController extends BaseController {
                 }
             }
             ObjectNode result = objectMapper.createObjectNode();
-            result.put("output", output);
+            result.put("output", objectMapper.writeValueAsString(output));
             result.put("error", errorText);
             return result;
         } catch (Exception e) {
@@ -235,24 +237,23 @@ public class ConverterController extends BaseController {
         }
     }
 
-    private void validateDownLinkOutput(String output) throws Exception {
-        JsonElement element = new JsonParser().parse(output);
-        if (element.isJsonArray()) {
-            for (JsonElement downlinkJson : element.getAsJsonArray()) {
-                if (downlinkJson.isJsonObject()) {
-                    validateDownLinkObject(downlinkJson.getAsJsonObject());
+    private void validateDownLinkOutput(JsonNode output) throws Exception {
+        if (output.isArray()) {
+            for (JsonNode downlinkJson : output) {
+                if (downlinkJson.isObject()) {
+                    validateDownLinkObject(downlinkJson);
                 } else {
                     throw new JsonParseException("Invalid downlink output format!");
                 }
             }
-        } else if (element.isJsonObject()) {
-            validateDownLinkObject(element.getAsJsonObject());
+        } else if (output.isObject()) {
+            validateDownLinkObject(output);
         } else {
             throw new JsonParseException("Invalid downlink output format!");
         }
     }
 
-    private void validateDownLinkObject(JsonObject src) throws Exception {
+    private void validateDownLinkObject(JsonNode src) throws Exception {
         AbstractDownlinkDataConverter.parseDownlinkData(src);
     }
 }

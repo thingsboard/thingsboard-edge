@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.service.converter.js;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.script.JsSandboxService;
 
 /**
@@ -68,8 +70,8 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
     }
 
     @Override
-    protected String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception {
-        return evaluator.execute(payload, metadata);
+    protected JsonNode doConvertDownlink(TbMsg msg, IntegrationMetaData metadata) throws Exception {
+        return evaluator.execute(msg, metadata);
     }
 
 }

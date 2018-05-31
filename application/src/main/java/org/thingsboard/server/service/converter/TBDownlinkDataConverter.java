@@ -32,7 +32,6 @@ package org.thingsboard.server.service.converter;
 
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.integration.ConverterContext;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 
 import java.util.List;
 
@@ -41,6 +40,6 @@ import java.util.List;
  */
 public interface TBDownlinkDataConverter extends TBDataConverter {
 
-    List<DownlinkData> convertDownLink(ConverterContext context, List<TbMsg> downLinkMsgs, DownLinkMetaData metadata) throws Exception;
+    List<DownlinkData> convertDownLink(ConverterContext context, List<TbMsg> downLinkMsgs, IntegrationMetaData metadata) throws Exception;
 
 }

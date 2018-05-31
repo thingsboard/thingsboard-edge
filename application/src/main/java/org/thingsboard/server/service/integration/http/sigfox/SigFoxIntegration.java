@@ -36,8 +36,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
@@ -46,7 +46,6 @@ import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +88,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                             mdMap.put("header:" + header, value);
                         }
                 );
-                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pending.getMsgs(), new DownLinkMetaData(mdMap));
+                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pending.getMsgs(), new IntegrationMetaData(mdMap));
                 context.getDownlinkService().remove(configuration.getId(), device.getId());
                 if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);

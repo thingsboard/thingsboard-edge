@@ -37,8 +37,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
@@ -49,12 +49,7 @@ import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 @Slf4j
@@ -116,7 +111,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
                     }
             );
 
-            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), tbMsgs, new DownLinkMetaData(mdMap));
+            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), tbMsgs, new IntegrationMetaData(mdMap));
 
             for (Device device : uplinkData.keySet()) {
                 context.getDownlinkService().remove(configuration.getId(), device.getId());

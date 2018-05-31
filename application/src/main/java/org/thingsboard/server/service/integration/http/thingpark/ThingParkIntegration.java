@@ -43,8 +43,8 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
@@ -133,7 +133,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
             List<DownlinkData> result = downlinkConverter.convertDownLink(
                     context.getConverterContext(),
                     Collections.singletonList(msg),
-                    new DownLinkMetaData(mdMap));
+                    new IntegrationMetaData(mdMap));
             if (!result.isEmpty()) {
                 for (DownlinkData downlink : result) {
                     if (downlink.isEmpty()) {

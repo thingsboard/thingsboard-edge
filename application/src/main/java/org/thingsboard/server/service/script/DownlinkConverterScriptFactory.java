@@ -35,10 +35,12 @@ package org.thingsboard.server.service.script;
  */
 public class DownlinkConverterScriptFactory {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(jsonStr, metadata) { " +
-            "    var payload = JSON.parse(jsonStr); " +
-            "    return JSON.stringify(Encoder(payload, metadata));" +
-            "    function Encoder(payload, metadata) {";
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(msgStr, metadataStr, msgType, integrationMetadataStr) { " +
+            "    var msg = JSON.parse(msgStr); " +
+            "    var metadata = JSON.parse(metadataStr); " +
+            "    var integrationMetadata = JSON.parse(integrationMetadataStr); " +
+            "    return JSON.stringify(Encoder(msg, metadata, msgType, integrationMetadata));" +
+            "    function Encoder(msg, metadata, msgType, integrationMetadata) {";
 
     private static final String JS_WRAPPER_SUFFIX = "}\n}";
 

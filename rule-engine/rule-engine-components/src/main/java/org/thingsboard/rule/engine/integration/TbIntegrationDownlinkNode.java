@@ -71,7 +71,10 @@ import java.util.concurrent.TimeUnit;
         name = "integration downlink",
         configClazz = TbIntegrationDownlinkConfiguration.class,
         nodeDescription = "Pushes downlink message to selected integration",
-        nodeDetails = "Will push downlink message to the selected integration queue. "
+        nodeDetails = "Will push downlink message to the selected integration queue.",
+        uiResources = {"static/rulenode/rulenode-pe-config.js"},
+        configDirective = "tbActionNodeIntegrationDownlinkConfig",
+        icon = "input"
 )
 public class TbIntegrationDownlinkNode implements TbNode {
 

@@ -30,30 +30,57 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
-import org.thingsboard.server.service.converter.UplinkMetaData;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.script.JsSandboxService;
 import org.thingsboard.server.service.script.JsScriptType;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class JSDownlinkEvaluator extends AbstractJSEvaluator {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public JSDownlinkEvaluator(JsSandboxService sandboxService, String script) {
         super(sandboxService, JsScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
     }
 
-    public String execute(String payload, DownLinkMetaData metadata) throws Exception {
-        return sandboxService.invokeFunction(this.scriptId, payload, metadata.getKvMap()).get().toString();
+    public JsonNode execute(TbMsg msg, IntegrationMetaData metadata) throws ScriptException {
+        try {
+            String[] inArgs = prepareArgs(msg, metadata);
+            String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
+            return mapper.readTree(eval);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ScriptException) {
+                throw (ScriptException)e.getCause();
+            } else {
+                throw new ScriptException("Failed to execute js script: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            throw new ScriptException("Failed to execute js script: " + e.getMessage());
+        }
+    }
+
+    private static String[] prepareArgs(TbMsg msg, IntegrationMetaData metadata) {
+        try {
+            String[] args = new String[4];
+            if (msg.getData() != null) {
+                args[0] = msg.getData();
+            } else {
+                args[0] = "";
+            }
+            args[1] = mapper.writeValueAsString(msg.getMetaData().getData());
+            args[2] = msg.getType();
+            args[3] = mapper.writeValueAsString(metadata.getKvMap());
+            return args;
+        } catch (Throwable th) {
+            throw new IllegalArgumentException("Cannot bind js args", th);
+        }
     }
 
 }

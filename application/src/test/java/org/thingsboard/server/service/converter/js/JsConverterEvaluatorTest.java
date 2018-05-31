@@ -30,25 +30,21 @@
  */
 package org.thingsboard.server.service.converter.js;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
-import org.thingsboard.server.service.integration.downlink.AttributeUpdate;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-import org.thingsboard.server.service.integration.downlink.RPCCall;
 import org.thingsboard.server.service.script.TestNashornJsSandboxService;
 
 import java.io.BufferedReader;
@@ -56,7 +52,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -89,39 +84,35 @@ public class JsConverterEvaluatorTest {
 
     @Test
     public void basicDownlinkTest() throws Exception {
-//        JSDownlinkEvaluator eval = createDownlinkEvaluator("downlinkConverter.js");
-//
-//        DownLinkMsg downLinkMsg = new DownLinkMsg(new DeviceId(EntityId.NULL_UUID), "Sensor A", "temp-sensor");
-//        downLinkMsg.getUpdatedAttributes().put("temperature", new AttributeUpdate(System.currentTimeMillis(), "33"));
-//        downLinkMsg.getUpdatedAttributes().put("humidity", new AttributeUpdate(System.currentTimeMillis(), "78"));
-//        downLinkMsg.getDeletedAttributes().add("latitude");
-//
-//        RPCCall rpcCall = new RPCCall();
-//        rpcCall.setId(UUID.randomUUID());
-//        rpcCall.setExpirationTime(System.currentTimeMillis() + 24 * 60 * 1000);
-//        rpcCall.setMethod("updateState");
-//        rpcCall.setParams("{\"status\": \"ACTIVE\"}");
-//
-//        downLinkMsg.getRpcCalls().add(rpcCall);
-//
-//        String downlinkPayload = mapper.writeValueAsString(downLinkMsg);
-//
-//        String result = eval.execute(downlinkPayload, new DownLinkMetaData(Collections.singletonMap("topicPrefix", "sensor")));
-//        JsonElement element = new JsonParser().parse(result);
-//        Assert.assertTrue(element.isJsonObject());
-//
-//        DownlinkData downlinkData = AbstractDownlinkDataConverter.parseDownlinkData(element.getAsJsonObject(), downLinkMsg);
-//
-//        Assert.assertEquals("JSON", downlinkData.getContentType());
-//        Assert.assertEquals(1, downlinkData.getMetadata().size());
-//        Assert.assertTrue(downlinkData.getMetadata().containsKey("topic"));
-//        Assert.assertEquals("sensor/upload", downlinkData.getMetadata().get("topic"));
-//
-//        JsonNode dataJson = mapper.readTree(downlinkData.getData());
-//
-//        Assert.assertTrue(dataJson.has("temperature"));
-//        Assert.assertEquals("33", dataJson.get("temperature").asText());
-//        eval.destroy();
+        JSDownlinkEvaluator eval = createDownlinkEvaluator("downlinkConverter.js");
+
+        String rawJson = "{\"temperature\": 33, \"humidity\": 78}";
+
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        IntegrationMetaData integrationMetaData = new IntegrationMetaData(Collections.singletonMap("topicPrefix", "sensor"));
+        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+
+        JsonNode result = eval.execute(msg, integrationMetaData);
+        Assert.assertTrue(result.isObject());
+        DownlinkData downlinkData = AbstractDownlinkDataConverter.parseDownlinkData(result);
+
+        Assert.assertEquals("JSON", downlinkData.getContentType());
+        Assert.assertEquals(1, downlinkData.getMetadata().size());
+        Assert.assertTrue(downlinkData.getMetadata().containsKey("topic"));
+        Assert.assertEquals("sensor/upload", downlinkData.getMetadata().get("topic"));
+
+        JsonNode dataJson = mapper.readTree(downlinkData.getData());
+
+        Assert.assertTrue(dataJson.has("temperature"));
+        Assert.assertEquals("33", dataJson.get("temperature").asText());
+
+        Assert.assertTrue(dataJson.has("humidity"));
+        Assert.assertEquals("78", dataJson.get("humidity").asText());
+
+        Assert.assertTrue(dataJson.has("dewPoint"));
+        Assert.assertEquals("28.65", dataJson.get("dewPoint").asText());
+
+        eval.destroy();
     }
 
     private JSUplinkEvaluator createUplinkEvaluator(String scriptName) {
