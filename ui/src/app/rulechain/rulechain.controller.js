@@ -993,8 +993,8 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
                     additionalInfo: ruleNode.additionalInfo,
                     configuration: ruleNode.configuration,
                     debugMode: ruleNode.debugMode,
-                    x: ruleNode.additionalInfo.layoutX,
-                    y: ruleNode.additionalInfo.layoutY,
+                    x: Math.round(ruleNode.additionalInfo.layoutX),
+                    y: Math.round(ruleNode.additionalInfo.layoutY),
                     component: component,
                     name: ruleNode.name,
                     nodeClass: vm.types.ruleNodeType[component.type].nodeClass,
@@ -1068,8 +1068,8 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
                         ruleChainNode = {
                             id: 'rule-chain-node-' + vm.nextNodeID++,
                             additionalInfo: ruleChainConnection.additionalInfo,
-                            x: ruleChainConnection.additionalInfo.layoutX,
-                            y: ruleChainConnection.additionalInfo.layoutY,
+                            x: Math.round(ruleChainConnection.additionalInfo.layoutX),
+                            y: Math.round(ruleChainConnection.additionalInfo.layoutY),
                             component: types.ruleChainNodeComponent,
                             nodeClass: vm.types.ruleNodeType.RULE_CHAIN.nodeClass,
                             icon: vm.types.ruleNodeType.RULE_CHAIN.icon,
@@ -1191,8 +1191,8 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
                         if (!ruleNode.additionalInfo) {
                             ruleNode.additionalInfo = {};
                         }
-                        ruleNode.additionalInfo.layoutX = node.x;
-                        ruleNode.additionalInfo.layoutY = node.y;
+                        ruleNode.additionalInfo.layoutX = Math.round(node.x);
+                        ruleNode.additionalInfo.layoutY = Math.round(node.y);
                         ruleChainMetaData.nodes.push(ruleNode);
                         nodes.push(node);
                     }
@@ -1219,8 +1219,8 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
                             if (!ruleChainConnection.additionalInfo) {
                                 ruleChainConnection.additionalInfo = {};
                             }
-                            ruleChainConnection.additionalInfo.layoutX = destNode.x;
-                            ruleChainConnection.additionalInfo.layoutY = destNode.y;
+                            ruleChainConnection.additionalInfo.layoutX = Math.round(destNode.x);
+                            ruleChainConnection.additionalInfo.layoutY = Math.round(destNode.y);
                             ruleChainConnection.additionalInfo.ruleChainNodeId = destNode.id;
                             ruleChainMetaData.ruleChainConnections.push(ruleChainConnection);
                         } else {
