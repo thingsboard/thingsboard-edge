@@ -40,13 +40,14 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.rpc.RpcBroadcastMsg;
 import org.thingsboard.server.actors.rpc.RpcSessionCreateRequestMsg;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 import org.thingsboard.server.gen.cluster.ClusterRpcServiceGrpc;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
-import org.thingsboard.server.service.integration.msg.IntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -162,11 +163,17 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
     }
 
     @Override
-    public void tell(ServerAddress serverAddress, IntegrationMsg toForward) {
-        // TODO: MERGE20
-        //ClusterAPIProtos.ToRpcServerMessage msg = ClusterAPIProtos.ToRpcServerMessage.newBuilder()
-         //       .setToIntegrationMsg(toProtoMsg(toForward)).build();
-        //tell(serverAddress, msg);
+    public void tell(ServerAddress serverAddress, IntegrationDownlinkMsg msg) {
+        ClusterAPIProtos.IntegrationDownlinkProto.Builder builder = ClusterAPIProtos.IntegrationDownlinkProto.newBuilder();
+        builder.setTenantIdMSB(msg.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(msg.getTenantId().getId().getLeastSignificantBits());
+
+        builder.setIntegrationIdMSB(msg.getIntegrationId().getId().getMostSignificantBits());
+        builder.setIntegrationIdLSB(msg.getIntegrationId().getId().getLeastSignificantBits());
+
+        builder.setData(ByteString.copyFrom(TbMsg.toBytes(msg.getTbMsg())));
+
+        tell(serverAddress, ClusterAPIProtos.MessageType.CLUSTER_INTEGRATION_DOWNLINK_MESSAGE, builder.build().toByteArray());
     }
 
 

@@ -72,6 +72,9 @@ enum MessageType {
   CLUSTER_TELEMETRY_ATTR_UPDATE_MESSAGE = 10;
   CLUSTER_TELEMETRY_TS_UPDATE_MESSAGE = 11;
   CLUSTER_RPC_FROM_DEVICE_RESPONSE_MESSAGE = 12;
+
+  // Messages related to TB PE
+  CLUSTER_INTEGRATION_DOWNLINK_MESSAGE = 13;
 }
 
 // Messages related to CLUSTER_TELEMETRY_MESSAGE
@@ -111,10 +114,6 @@ message SessionCloseProto {
     string sessionId = 1;
 }
 
-message ToIntegrationMessage {
-  bytes data = 1;
-}
-
 message SubscriptionCloseProto {
     string sessionId = 1;
     int32 subscriptionId = 2;
@@ -146,4 +145,12 @@ message FromDeviceRPCResponseProto {
     int64 requestIdLSB = 2;
     string response = 3;
     int32 error = 4;
+}
+
+message IntegrationDownlinkProto {
+    int64 tenantIdMSB = 1;
+    int64 tenantIdLSB = 2;
+    int64 integrationIdMSB = 3;
+    int64 integrationIdLSB = 4;
+    bytes data = 5;
 }

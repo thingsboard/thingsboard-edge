@@ -30,30 +30,24 @@
  */
 package org.thingsboard.server.service.integration.msg;
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.List;
-import java.util.Set;
+import java.io.Serializable;
 
 /**
  * Created by ashvayka on 22.02.18.
  */
-@Data
-@Builder
-public class SharedAttributesUpdateIntegrationMsg implements ToDeviceIntegrationMsg {
+public interface IntegrationDownlinkMsg extends Serializable {
 
-    private final TenantId tenantId;
-    private final IntegrationId integrationId;
-    private final DeviceId deviceId;
-    private final String deviceName;
-    private final String deviceType;
-    private final Set<AttributeKey> deletedKeys;
-    private final List<AttributeKvEntry> updatedValues;
+    TenantId getTenantId();
+
+    IntegrationId getIntegrationId();
+
+    EntityId getEntityId();
+
+    TbMsg getTbMsg();
 
 }

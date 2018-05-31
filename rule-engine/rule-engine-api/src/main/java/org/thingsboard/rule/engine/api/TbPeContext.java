@@ -28,18 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.msg;
+package org.thingsboard.rule.engine.api;
 
+import com.google.common.util.concurrent.FutureCallback;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.dao.integration.IntegrationService;
 
 /**
- * Created by ashvayka on 22.02.18.
+ * Created by ashvayka on 13.01.18.
  */
-public interface IntegrationMsg {
+public interface TbPeContext {
 
-    TenantId getTenantId();
+    IntegrationService getIntegrationService();
 
-    IntegrationId getIntegrationId();
+    void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
 
 }

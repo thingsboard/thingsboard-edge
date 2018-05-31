@@ -42,14 +42,13 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
 import org.thingsboard.server.common.msg.session.BasicTransportToDeviceSessionActorMsg;
 import org.thingsboard.server.service.converter.*;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -109,11 +108,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-    }
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg) {
 
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
     }
 
     @Override
@@ -204,7 +200,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    protected void reportDownlinkError(IntegrationContext context, DownLinkMsg msg, String status, Exception exception) {
+    protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
             if (configuration.isDebugMode()) {

@@ -30,22 +30,19 @@
  */
 package org.thingsboard.server.service.integration.downlink;
 
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 /**
  * Created by ashvayka on 22.02.18.
  */
 public interface DownlinkService {
 
-    DownLinkMsg get(IntegrationId integrationId, DeviceId deviceId);
+    DownLinkMsg get(IntegrationId integrationId, EntityId entityId);
 
-    DownLinkMsg put(RPCCallIntegrationMsg msg);
+    DownLinkMsg put(IntegrationDownlinkMsg msg);
 
-    DownLinkMsg put(SharedAttributesUpdateIntegrationMsg msg);
-
-    void remove(IntegrationId integrationId, DeviceId deviceId);
+    void remove(IntegrationId integrationId, EntityId entityId);
 
 }

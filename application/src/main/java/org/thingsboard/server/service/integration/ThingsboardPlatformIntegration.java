@@ -31,8 +31,8 @@
 package org.thingsboard.server.service.integration;
 
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -49,9 +49,7 @@ public interface ThingsboardPlatformIntegration<T> {
 
     void process(IntegrationContext context, T msg);
 
-    void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg);
-
-    void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg);
+    void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg);
 
     IntegrationStatistics popStatistics();
 

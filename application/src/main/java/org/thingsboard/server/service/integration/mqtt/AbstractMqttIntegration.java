@@ -34,19 +34,16 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttConnectResult;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.converter.TBDataConverter;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import javax.net.ssl.SSLException;
 import java.util.Optional;
@@ -114,24 +111,15 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-        logDownlink(context, "SharedAttributeUpdate", msg);
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+        TbMsg msg = downlink.getTbMsg();
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
-            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
-            processDownLinkMsg(context, downLinkMsg);
+            processDownLinkMsg(context, msg);
         }
     }
 
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
-        logDownlink(context, "RPCCall", msg);
-        if (downlinkConverter != null) {
-            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
-            processDownLinkMsg(context, downLinkMsg);
-        }
-    }
-
-    protected void processDownLinkMsg(IntegrationContext context, DownLinkMsg msg) {
+    protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -146,7 +134,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         reportDownlinkError(context, msg, status, exception);
     }
 
-    protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception;
+    protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception;
 
     protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;
 

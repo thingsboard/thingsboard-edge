@@ -82,14 +82,14 @@ public class SigFoxIntegration extends BasicHttpIntegration {
     private ResponseEntity processDownLinkData(IntegrationContext context, Device device, HttpIntegrationMsg msg, String sigFoxDeviceId) throws Exception {
         if (downlinkConverter != null) {
             DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
-            if (pending != null) {
+            if (pending != null && !pending.isEmpty()) {
                 Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
                 msg.getRequestHeaders().forEach(
                         (header, value) -> {
                             mdMap.put("header:" + header, value);
                         }
                 );
-                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(pending), new DownLinkMetaData(mdMap));
+                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pending.getMsgs(), new DownLinkMetaData(mdMap));
                 context.getDownlinkService().remove(configuration.getId(), device.getId());
                 if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);

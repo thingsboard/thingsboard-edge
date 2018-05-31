@@ -28,21 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.msg;
+package org.thingsboard.rule.engine.integration;
 
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-/**
- * Created by ashvayka on 22.02.18.
- */
-public interface ToDeviceIntegrationMsg extends IntegrationMsg {
+import java.util.UUID;
 
-    DeviceId getDeviceId();
+@Data
+public class TbIntegrationDownlinkConfiguration implements NodeConfiguration<TbIntegrationDownlinkConfiguration> {
 
-    String getDeviceName();
+    private UUID integrationId;
 
-    String getDeviceType();
-
+    @Override
+    public TbIntegrationDownlinkConfiguration defaultConfiguration() {
+        TbIntegrationDownlinkConfiguration configuration = new TbIntegrationDownlinkConfiguration();
+        configuration.setIntegrationId(null);
+        return configuration;
+    }
 }

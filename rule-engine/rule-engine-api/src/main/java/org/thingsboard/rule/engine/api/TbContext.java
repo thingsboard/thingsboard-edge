@@ -107,4 +107,8 @@ public interface TbContext {
 
     ScriptEngine createJsScriptEngine(String script, String... argNames);
 
+    /**
+     * This context is available only in TB PE.
+     */
+    TbPeContext getPeContext();
 }

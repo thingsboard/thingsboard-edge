@@ -48,13 +48,10 @@ import org.thingsboard.server.actors.shared.AbstractContextAwareMsgProcessor;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.SessionId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -86,11 +83,7 @@ import org.thingsboard.server.common.msg.session.FromDeviceMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.session.SessionType;
 import org.thingsboard.server.common.msg.session.ToDeviceMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
 
-import java.util.*;
-import java.util.concurrent.ExecutionException;
 import org.thingsboard.server.common.msg.timeout.DeviceActorClientSideRpcTimeoutMsg;
 import org.thingsboard.server.common.msg.timeout.DeviceActorQueueTimeoutMsg;
 import org.thingsboard.server.common.msg.timeout.DeviceActorServerSideRpcTimeoutMsg;
@@ -118,7 +111,7 @@ import java.util.stream.Collectors;
 /**
  * @author Andrew Shvayka
  */
-public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
+class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
 
     private final TenantId tenantId;
     private final DeviceId deviceId;
@@ -194,23 +187,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         if (sent) {
             logger.debug("[{}] RPC request {} is sent!", deviceId, request.getId());
         } else {
-            List<IntegrationId> integrations = getIntegrationIds();
-            if (!integrations.isEmpty()) {
-                for (IntegrationId integrationId : integrations) {
-                    RPCCallIntegrationMsg.RPCCallIntegrationMsgBuilder builder = RPCCallIntegrationMsg.builder();
-                    builder.integrationId(integrationId);
-                    builder.tenantId(tenantId);
-                    builder.deviceId(deviceId);
-                    builder.deviceName(deviceName);
-                    builder.deviceType(deviceType);
-                    builder.id(request.getId());
-                    builder.expirationTime(request.getExpirationTime());
-                    builder.body(body);
-                    systemContext.getPlatformIntegrationService().onMsg(builder.build());
-                }
-            } else {
-                logger.debug("[{}] RPC request {} is NOT sent!", deviceId, request.getId());
-            }
+            logger.debug("[{}] RPC request {} is NOT sent!", deviceId, request.getId());
         }
 
     }
@@ -478,43 +455,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
                     sendMsgToSessionActor(response, sub.getValue().getServer());
                 });
             }
-        } else {
-            Set<AttributeKey> deletedSharedKeys = null;
-            List<AttributeKvEntry> updatedSharedAttributes = null;
-            if (msg.isDeleted()) {
-                deletedSharedKeys = msg.getDeletedKeys().stream()
-                        .filter(key -> DataConstants.SHARED_SCOPE.equals(key.getScope()))
-                        .collect(Collectors.toSet());
-            } else {
-                if (DataConstants.SHARED_SCOPE.equals(msg.getScope())) {
-                    updatedSharedAttributes = new ArrayList<>(msg.getValues());
-                }
-            }
-
-            if ((deletedSharedKeys != null && !deletedSharedKeys.isEmpty()) || (updatedSharedAttributes != null && !updatedSharedAttributes.isEmpty())) {
-                List<IntegrationId> integrations = getIntegrationIds();
-                if (!integrations.isEmpty()) {
-                    for (IntegrationId integrationId : integrations) {
-                        SharedAttributesUpdateIntegrationMsg.SharedAttributesUpdateIntegrationMsgBuilder builder = SharedAttributesUpdateIntegrationMsg.builder();
-                        builder.integrationId(integrationId);
-                        builder.tenantId(tenantId);
-                        builder.deviceId(deviceId);
-                        builder.deviceName(deviceName);
-                        builder.deviceType(deviceType);
-                        builder.deletedKeys(deletedSharedKeys);
-                        builder.updatedValues(updatedSharedAttributes);
-                        systemContext.getPlatformIntegrationService().onMsg(builder.build());
-                    }
-                } else {
-                    logger.debug("[{}] No registered attributes subscriptions and device integrations to process!", deviceId);
-                }
-            }
         }
-    }
-
-    private List<IntegrationId> getIntegrationIds() {
-        List<EntityRelation> integrationRelations = systemContext.getRelationService().findByToAndType(deviceId, EntityRelation.INTEGRATION_TYPE, RelationTypeGroup.COMMON);
-        return integrationRelations.stream().map(EntityRelation::getFrom).map(id -> new IntegrationId(id.getId())).collect(Collectors.toList());
     }
 
     private void processRpcResponses(ActorContext context, DeviceToDeviceActorMsg msg) {

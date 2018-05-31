@@ -215,10 +215,9 @@ public class ConverterController extends BaseController {
             String errorText = "";
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
-                DownLinkMsg downLinkMsg = objectMapper.readValue(payload, DownLinkMsg.class);
                 jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, encoder);
                 output = jsDownlinkEvaluator.execute(payload, downLinkMetaData);
-                validateDownLinkOutput(output, downLinkMsg);
+                validateDownLinkOutput(output);
             } catch (Exception e) {
                 log.error("Error evaluating JS Downlink Converter function", e);
                 errorText = e.getMessage();
@@ -236,24 +235,24 @@ public class ConverterController extends BaseController {
         }
     }
 
-    private void validateDownLinkOutput(String output, DownLinkMsg downLinkMsg) throws Exception {
+    private void validateDownLinkOutput(String output) throws Exception {
         JsonElement element = new JsonParser().parse(output);
         if (element.isJsonArray()) {
             for (JsonElement downlinkJson : element.getAsJsonArray()) {
                 if (downlinkJson.isJsonObject()) {
-                    validateDownLinkObject(downlinkJson.getAsJsonObject(), downLinkMsg);
+                    validateDownLinkObject(downlinkJson.getAsJsonObject());
                 } else {
                     throw new JsonParseException("Invalid downlink output format!");
                 }
             }
         } else if (element.isJsonObject()) {
-            validateDownLinkObject(element.getAsJsonObject(), downLinkMsg);
+            validateDownLinkObject(element.getAsJsonObject());
         } else {
             throw new JsonParseException("Invalid downlink output format!");
         }
     }
 
-    private void validateDownLinkObject(JsonObject src, DownLinkMsg downLinkMsg) throws Exception {
-        AbstractDownlinkDataConverter.parseDownlinkData(src, downLinkMsg);
+    private void validateDownLinkObject(JsonObject src) throws Exception {
+        AbstractDownlinkDataConverter.parseDownlinkData(src);
     }
 }

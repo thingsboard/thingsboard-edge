@@ -30,35 +30,17 @@
  */
 package org.thingsboard.server.service.integration.msg;
 
-import lombok.Builder;
-import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
-
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Created by ashvayka on 22.02.18.
  */
-@Data
-@Builder
-public class RPCCallIntegrationMsg implements ToDeviceIntegrationMsg {
+public interface ToDeviceIntegrationDownlinkMsg extends IntegrationDownlinkMsg {
 
-    private final TenantId tenantId;
-    private final IntegrationId integrationId;
-    private final DeviceId deviceId;
-    private final String deviceName;
-    private final String deviceType;
+    DeviceId getDeviceId();
 
-    //For now RPC calls via integrations are always one-way
-    private final UUID id;
-    private final long expirationTime;
-    private final ToDeviceRpcRequestBody body;
+    String getDeviceName();
+
+    String getDeviceType();
 
 }

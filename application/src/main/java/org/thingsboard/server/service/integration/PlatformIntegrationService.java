@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.google.common.util.concurrent.FutureCallback;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.integration.msg.IntegrationMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.Optional;
 
@@ -53,6 +53,7 @@ public interface PlatformIntegrationService {
 
     Optional<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
 
-    void onMsg(IntegrationMsg msg);
+    void onDownlinkMsg(IntegrationDownlinkMsg msg, FutureCallback<Void> callback);
 
+    void onRemoteDownlinkMsg(ServerAddress serverAddress, byte[] bytes);
 }

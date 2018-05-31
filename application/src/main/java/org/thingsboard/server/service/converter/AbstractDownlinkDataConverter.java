@@ -42,6 +42,7 @@ import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.integration.ConverterContext;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 
@@ -70,7 +71,7 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
         Set<String> attributeKeysList = new HashSet<>();
         JsonNode attributeKeys = fetchAttributes != null ? fetchAttributes.get(scope) : null;
         if (attributeKeys != null && attributeKeys.isArray()) {
-            ArrayNode attributeKeysArray = (ArrayNode)attributeKeys;
+            ArrayNode attributeKeysArray = (ArrayNode) attributeKeys;
             for (JsonNode keyJson : attributeKeysArray) {
                 attributeKeysList.add(keyJson.asText());
             }
@@ -79,18 +80,16 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
     }
 
     @Override
-    public List<DownlinkData> convertDownLink(ConverterContext context, List<DownLinkMsg> downLinkMsgs, DownLinkMetaData metadata) throws Exception {
+    public List<DownlinkData> convertDownLink(ConverterContext context, List<TbMsg> downLinkMsgs, DownLinkMetaData metadata) throws Exception {
         List<String> rawPayloads = new ArrayList<>();
-        for (DownLinkMsg downLinkMsg : downLinkMsgs) {
-            fetchAttributes(context, downLinkMsg);
+        for (TbMsg downLinkMsg : downLinkMsgs) {
             String payload = mapper.writeValueAsString(downLinkMsg);
             rawPayloads.add(payload);
         }
         try {
             List<DownlinkData> result = new ArrayList<>();
             List<String> rawResults = new ArrayList<>();
-            for (int i=0;i<downLinkMsgs.size();i++) {
-                DownLinkMsg downLinkMsg = downLinkMsgs.get(i);
+            for (int i = 0; i < downLinkMsgs.size(); i++) {
                 String payload = rawPayloads.get(i);
                 String rawResult = doConvertDownlink(payload, metadata);
                 rawResults.add(rawResult);
@@ -98,10 +97,10 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
                 List<DownlinkData> downLinkResult = new ArrayList<>();
                 if (element.isJsonArray()) {
                     for (JsonElement downlinkJson : element.getAsJsonArray()) {
-                        result.add(parseDownlinkData(downlinkJson.getAsJsonObject(), downLinkMsg));
+                        result.add(parseDownlinkData(downlinkJson.getAsJsonObject()));
                     }
                 } else if (element.isJsonObject()) {
-                    result.add(parseDownlinkData(element.getAsJsonObject(), downLinkMsg));
+                    result.add(parseDownlinkData(element.getAsJsonObject()));
                 }
                 result.addAll(downLinkResult);
             }
@@ -117,21 +116,9 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
         }
     }
 
-    private void fetchAttributes(ConverterContext context, DownLinkMsg downLinkMsg) throws Exception {
-        for (Map.Entry<String, Set<String>> attrScopeEntry : fetchAttributesMap.entrySet()) {
-            if (!attrScopeEntry.getValue().isEmpty()) {
-                List<AttributeKvEntry> attributes = context.getAttributesService().find(downLinkMsg.getDeviceId(),
-                        attrScopeEntry.getKey(), attrScopeEntry.getValue()).get();
-                for (AttributeKvEntry attribute : attributes) {
-                    downLinkMsg.addCurrentAttribute(attrScopeEntry.getKey(), attribute.getKey(), attribute.getValueAsString());
-                }
-            }
-        }
-    }
-
     protected abstract String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception;
 
-    public static DownlinkData parseDownlinkData(JsonObject src, DownLinkMsg sourceMsg) {
+    public static DownlinkData parseDownlinkData(JsonObject src) {
         if (!src.has("contentType")) {
             throw new JsonParseException("Downlink content type is not set!");
         } else if (!src.has("data")) {
@@ -167,9 +154,6 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
             }
         }
         DownlinkData.DownlinkDataBuilder builder = DownlinkData.builder();
-        builder.deviceId(sourceMsg.getDeviceId());
-        builder.deviceName(sourceMsg.getDeviceName());
-        builder.deviceType(sourceMsg.getDeviceType());
         builder.contentType(contentType);
         builder.data(data);
         builder.metadata(metadata);

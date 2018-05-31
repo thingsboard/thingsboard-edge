@@ -39,6 +39,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.UplinkData;
@@ -104,7 +105,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     }
 
     @Override
-    protected boolean doProcessDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception {
+    protected boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<DownlinkData>> topicToDataMap = convertDownLinkMsg(context, msg);
         for (Map.Entry<String, List<DownlinkData>> topicEntry : topicToDataMap.entrySet()) {
             for (DownlinkData data : topicEntry.getValue()) {
@@ -116,7 +117,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         return !topicToDataMap.isEmpty();
     }
 
-    protected Map<String, List<DownlinkData>> convertDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception {
+    protected Map<String, List<DownlinkData>> convertDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<DownlinkData>> topicToDataMap = new HashMap<>();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new DownLinkMetaData(mdMap));

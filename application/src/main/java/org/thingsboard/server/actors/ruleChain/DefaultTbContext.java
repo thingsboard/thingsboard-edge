@@ -32,6 +32,7 @@ package org.thingsboard.server.actors.ruleChain;
 
 import akka.actor.ActorRef;
 import com.datastax.driver.core.utils.UUIDs;
+import com.google.common.util.concurrent.FutureCallback;
 import org.thingsboard.rule.engine.api.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
@@ -40,10 +41,12 @@ import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
@@ -56,10 +59,12 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
@@ -71,7 +76,7 @@ import java.util.function.Consumer;
 /**
  * Created by ashvayka on 19.03.18.
  */
-class DefaultTbContext implements TbContext {
+class DefaultTbContext implements TbContext, TbPeContext {
 
     private final ActorSystemContext mainCtx;
     private final RuleNodeCtx nodeCtx;
@@ -252,5 +257,20 @@ class DefaultTbContext implements TbContext {
                 });
             }
         };
+    }
+
+    @Override
+    public TbPeContext getPeContext() {
+        return this;
+    }
+
+    @Override
+    public IntegrationService getIntegrationService() {
+        return mainCtx.getIntegrationService();
+    }
+
+    @Override
+    public void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback) {
+        mainCtx.getPlatformIntegrationService().onDownlinkMsg(new DefaultIntegrationDownlinkMsg(getTenantId(), integrationId, tbMsg), callback);
     }
 }

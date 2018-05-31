@@ -28,34 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cluster.rpc;
+package org.thingsboard.server.service.integration.msg;
 
-import io.grpc.stub.StreamObserver;
-import org.thingsboard.server.actors.rpc.RpcBroadcastMsg;
-import org.thingsboard.server.common.msg.TbActorMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
-import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
-
-import java.util.UUID;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.TbMsg;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 22.02.18.
  */
-public interface ClusterRpcService {
+@Data
+public class DefaultIntegrationDownlinkMsg implements IntegrationDownlinkMsg {
 
-    void init(RpcMsgListener listener);
+    private final TenantId tenantId;
+    private final IntegrationId integrationId;
+    private final TbMsg tbMsg;
 
-    void broadcast(RpcBroadcastMsg msg);
-
-    void onSessionCreated(UUID msgUid, StreamObserver<ClusterAPIProtos.ClusterMessage> inputStream);
-
-    void tell(ClusterAPIProtos.ClusterMessage message);
-
-    void tell(ServerAddress serverAddress, TbActorMsg actorMsg);
-
-    void tell(ServerAddress serverAddress, ClusterAPIProtos.MessageType msgType, byte[] data);
-
-    void tell(ServerAddress serverAddress, IntegrationDownlinkMsg msg);
-
+    @Override
+    public EntityId getEntityId() {
+        return tbMsg.getOriginator();
+    }
 }

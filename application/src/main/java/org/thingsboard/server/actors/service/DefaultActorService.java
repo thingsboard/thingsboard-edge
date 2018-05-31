@@ -251,6 +251,9 @@ public class DefaultActorService implements ActorService {
             case CLUSTER_RPC_FROM_DEVICE_RESPONSE_MESSAGE:
                 actorContext.getDeviceRpcService().processRemoteResponseFromDevice(serverAddress, msg.getPayload().toByteArray());
                 break;
+            case CLUSTER_INTEGRATION_DOWNLINK_MESSAGE:
+                actorContext.getPlatformIntegrationService().onRemoteDownlinkMsg(serverAddress, msg.getPayload().toByteArray());
+                break;
         }
     }
 

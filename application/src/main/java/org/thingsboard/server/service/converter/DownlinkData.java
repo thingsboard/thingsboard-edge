@@ -43,10 +43,6 @@ import java.util.Map;
 @Builder
 public class DownlinkData {
 
-    private final DeviceId deviceId;
-    private final String deviceName;
-    private final String deviceType;
-
     private final String contentType;
     private final byte[] data;
     private final Map<String, String> metadata;
