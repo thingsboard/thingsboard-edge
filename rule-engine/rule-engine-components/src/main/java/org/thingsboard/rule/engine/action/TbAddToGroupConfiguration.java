@@ -28,23 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.integration.IntegrationService;
+package org.thingsboard.rule.engine.action;
 
-/**
- * Created by ashvayka on 13.01.18.
- */
-public interface TbPeContext {
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-    IntegrationService getIntegrationService();
+@Data
+public class TbAddToGroupConfiguration extends TbAbstractGroupActionConfigration implements NodeConfiguration<TbAddToGroupConfiguration> {
 
-    EntityGroupService getEntityGroupService();
+    private boolean createGroupIfNotExists;
 
-    void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
-
+    @Override
+    public TbAddToGroupConfiguration defaultConfiguration() {
+        TbAddToGroupConfiguration configuration = new TbAddToGroupConfiguration();
+        configuration.setGroupNamePattern("");
+        configuration.setCreateGroupIfNotExists(false);
+        configuration.setGroupCacheExpiration(300);
+        return configuration;
+    }
 }

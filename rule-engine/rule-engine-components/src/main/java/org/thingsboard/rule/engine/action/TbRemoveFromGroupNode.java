@@ -28,23 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.action;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.thingsboard.server.common.data.id.IntegrationId;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.RuleNode;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.integration.IntegrationService;
 
-/**
- * Created by ashvayka on 13.01.18.
- */
-public interface TbPeContext {
+@Slf4j
+@RuleNode(
+        type = ComponentType.ACTION,
+        name = "remove from group",
+        configClazz = TbRemoveFromGroupConfiguration.class,
+        nodeDescription = "Removes Message Originator Entity from Entity Group",
+        nodeDetails = "Finds target Entity Group by group name pattern and then removes Originator Entity from this group.",
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
+        configDirective = "tbActionNodeRemoveFromGroupConfig",
+        icon = "remove_circle"
+)
+public class TbRemoveFromGroupNode extends TbAbstractGroupActionNode<TbRemoveFromGroupConfiguration> {
 
-    IntegrationService getIntegrationService();
+    @Override
+    protected boolean createGroupIfNotExists() {
+        return false;
+    }
 
-    EntityGroupService getEntityGroupService();
+    @Override
+    protected TbRemoveFromGroupConfiguration loadGroupNodeActionConfig(TbNodeConfiguration configuration) throws TbNodeException {
+        return TbNodeUtils.convert(configuration, TbRemoveFromGroupConfiguration.class);
+    }
 
-    void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
-
+    @Override
+    protected void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {
+        ctx.getPeContext().getEntityGroupService().removeEntityFromEntityGroup(entityGroupId, msg.getOriginator());
+    }
 }

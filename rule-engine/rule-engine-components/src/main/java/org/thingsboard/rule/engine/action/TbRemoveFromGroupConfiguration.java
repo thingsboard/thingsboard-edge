@@ -28,23 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.integration.IntegrationService;
+package org.thingsboard.rule.engine.action;
 
-/**
- * Created by ashvayka on 13.01.18.
- */
-public interface TbPeContext {
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-    IntegrationService getIntegrationService();
+@Data
+public class TbRemoveFromGroupConfiguration extends TbAbstractGroupActionConfigration implements NodeConfiguration<TbRemoveFromGroupConfiguration> {
 
-    EntityGroupService getEntityGroupService();
-
-    void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
+    @Override
+    public TbRemoveFromGroupConfiguration defaultConfiguration() {
+        TbRemoveFromGroupConfiguration configuration = new TbRemoveFromGroupConfiguration();
+        configuration.setGroupNamePattern("");
+        configuration.setGroupCacheExpiration(300);
+        return configuration;
+    }
 
 }

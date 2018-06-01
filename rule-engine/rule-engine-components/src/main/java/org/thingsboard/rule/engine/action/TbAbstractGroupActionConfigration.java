@@ -28,23 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.action;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.integration.IntegrationService;
+import lombok.Data;
 
 /**
- * Created by ashvayka on 13.01.18.
+ * Created by igor on 6/1/18.
  */
-public interface TbPeContext {
+@Data
+public abstract class TbAbstractGroupActionConfigration {
 
-    IntegrationService getIntegrationService();
-
-    EntityGroupService getEntityGroupService();
-
-    void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
+    private String groupNamePattern;
+    private long groupCacheExpiration;
 
 }

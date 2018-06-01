@@ -60,11 +60,12 @@ import org.thingsboard.server.common.transport.auth.DeviceAuthService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -75,10 +76,10 @@ import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.queue.MsgQueueService;
 import org.thingsboard.server.service.rpc.DeviceRpcService;
@@ -203,6 +204,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter private IntegrationService integrationService;
 
+    @Autowired
+    @Getter private EntityGroupService entityGroupService;
+
+    @Autowired
     @Getter
     private DbCallbackExecutorService dbCallbackExecutor;
 
