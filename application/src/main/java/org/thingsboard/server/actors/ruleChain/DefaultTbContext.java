@@ -33,8 +33,10 @@ package org.thingsboard.server.actors.ruleChain;
 import akka.actor.ActorRef;
 import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.FutureCallback;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcResponse;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
@@ -44,6 +46,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -65,11 +68,14 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -273,7 +279,39 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback) {
-        mainCtx.getPlatformIntegrationService().onDownlinkMsg(new DefaultIntegrationDownlinkMsg(getTenantId(), integrationId, tbMsg), callback);
+    public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
+        boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
+        UUID requestUUID;
+        if (restApiCall) {
+            String tmp = msg.getMetaData().getValue("requestUUID");
+            requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUIDs.timeBased();
+            tmp = msg.getMetaData().getValue("oneway");
+            boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
+            if (!oneway) {
+                throw new RuntimeException("Only oneway RPC calls are supported in the integration!");
+            }
+        } else {
+            requestUUID = null;
+        }
+
+        mainCtx.getPlatformIntegrationService().onDownlinkMsg(new DefaultIntegrationDownlinkMsg(getTenantId(), integrationId, msg), new FutureCallback<Void>() {
+            @Override
+            public void onSuccess(@Nullable Void aVoid) {
+                if (restApiCall) {
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, mainCtx.getRoutingService().getCurrentServer(), null, null);
+                    mainCtx.getDeviceRpcService().processRestAPIRpcResponseFromRuleEngine(response);
+                }
+                callback.onSuccess(aVoid);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                if (restApiCall) {
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, mainCtx.getRoutingService().getCurrentServer(), null, RpcError.INTERNAL);
+                    mainCtx.getDeviceRpcService().processRestAPIRpcResponseFromRuleEngine(response);
+                }
+                callback.onFailure(throwable);
+            }
+        });
     }
 }
