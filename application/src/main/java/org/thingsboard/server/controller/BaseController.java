@@ -701,6 +701,12 @@ public abstract class BaseController {
             case ATTRIBUTES_DELETED:
                 msgType = DataConstants.ATTRIBUTES_DELETED;
                 break;
+            case ADDED_TO_ENTITY_GROUP:
+                msgType = DataConstants.ADDED_TO_ENTITY_GROUP;
+                break;
+            case REMOVED_FROM_ENTITY_GROUP:
+                msgType = DataConstants.REMOVED_FROM_ENTITY_GROUP;
+                break;
         }
         if (!StringUtils.isEmpty(msgType)) {
             try {
@@ -720,6 +726,16 @@ public abstract class BaseController {
                     String strCustomerName = extractParameter(String.class, 2, additionalInfo);
                     metaData.putValue("unassignedCustomerId", strCustomerId);
                     metaData.putValue("unassignedCustomerName", strCustomerName);
+                } else if (actionType == ActionType.ADDED_TO_ENTITY_GROUP) {
+                    String strEntityGroupId = extractParameter(String.class, 1, additionalInfo);
+                    String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("addedToEntityGroupId", strEntityGroupId);
+                    metaData.putValue("addedToEntityGroupName", strEntityGroupName);
+                } else if (actionType == ActionType.REMOVED_FROM_ENTITY_GROUP) {
+                    String strEntityGroupId = extractParameter(String.class, 1, additionalInfo);
+                    String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("removedFromEntityGroupId", strEntityGroupId);
+                    metaData.putValue("removedFromEntityGroupName", strEntityGroupName);
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
