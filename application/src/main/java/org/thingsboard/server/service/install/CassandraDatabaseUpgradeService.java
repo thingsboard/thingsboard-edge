@@ -232,6 +232,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
                 try {
                     cluster.getSession().execute(updateIntegrationTableStmt);
+                    Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
 
                 log.info("Schema updated.");

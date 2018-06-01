@@ -128,8 +128,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Updating schema ...");
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
-                    conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    loadSql(schemaUpdateFile, conn);
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
