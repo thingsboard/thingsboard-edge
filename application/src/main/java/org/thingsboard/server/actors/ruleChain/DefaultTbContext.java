@@ -65,6 +65,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
@@ -190,6 +191,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public CustomerService getCustomerService() {
         return mainCtx.getCustomerService();
+    }
+
+    @Override
+    public TenantService getTenantService() {
+        return mainCtx.getTenantService();
     }
 
     @Override
