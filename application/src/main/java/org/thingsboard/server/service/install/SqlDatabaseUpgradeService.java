@@ -86,8 +86,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Updating schema ...");
                 Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.3.1", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
-                    conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    loadSql(schemaUpdateFile, conn);
                 }
                 log.info("Schema updated.");
                 break;
@@ -103,8 +102,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
 
                     log.info("Updating schema ...");
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.4.0", SCHEMA_UPDATE_SQL);
-                    String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
-                    conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    loadSql(schemaUpdateFile, conn);
                     log.info("Schema updated.");
 
                     log.info("Restoring dashboards ...");
@@ -121,8 +119,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0", SCHEMA_UPDATE_SQL);
-                    String sql = new String(Files.readAllBytes(schemaUpdateFile), Charset.forName("UTF-8"));
-                    conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    loadSql(schemaUpdateFile, conn);
                     log.info("Schema updated.");
                 }
                 break;
@@ -143,5 +140,11 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }
+    }
+
+    private void loadSql(Path sqlFile, Connection conn) throws Exception {
+        String sql = new String(Files.readAllBytes(sqlFile), Charset.forName("UTF-8"));
+        conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+        Thread.sleep(5000);
     }
 }
