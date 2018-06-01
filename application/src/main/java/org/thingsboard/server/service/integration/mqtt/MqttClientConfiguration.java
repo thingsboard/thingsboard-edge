@@ -44,6 +44,7 @@ public class MqttClientConfiguration {
     private int connectTimeoutSec;
     private String clientId;
 
+    private boolean cleanSession;
     private boolean ssl;
     private MqttClientCredentials credentials;
 

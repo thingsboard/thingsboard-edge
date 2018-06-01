@@ -52,6 +52,7 @@ public class AwsIotIntegration extends BasicMqttIntegration {
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
         mqttClientConfiguration.setPort(8883);
+        mqttClientConfiguration.setCleanSession(true);
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof CertPemClientCredentials)) {
             throw new RuntimeException("Can't setup AWS IoT integration without AWS IoT Certificates!");

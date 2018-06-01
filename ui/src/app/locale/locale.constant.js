@@ -1275,6 +1275,7 @@ export default angular.module('thingsboard.locale', [])
                     "connect-timeout-required": "Connection timeout is required.",
                     "connect-timeout-range": "Connection timeout should be in a range from 1 to 200.",
                     "client-id": "Client ID",
+                    "clean-session": "Clean session",
                     "enable-ssl": "Enable SSL",
                     "credentials": "Credentials",
                     "credentials-type": "Credentials type",

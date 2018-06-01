@@ -145,6 +145,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         if (!StringUtils.isEmpty(configuration.getClientId())) {
             config.setClientId(configuration.getClientId());
         }
+        config.setCleanSession(configuration.isCleanSession());
 
         configuration.getCredentials().configure(config);
 

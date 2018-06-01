@@ -122,7 +122,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 integration.configuration.clientConfiguration = {
                     connectTimeoutSec: 10,
                     credentials: {
-                    }
+                    },
+                    cleanSession: true
                 };
                 if (integration.type == types.integrationType.AWS_IOT.value ||
                     integration.type == types.integrationType.IBM_WATSON_IOT.value ||

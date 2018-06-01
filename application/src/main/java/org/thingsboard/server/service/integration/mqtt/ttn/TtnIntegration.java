@@ -64,6 +64,7 @@ public class TtnIntegration extends BasicMqttIntegration {
 
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
+        mqttClientConfiguration.setCleanSession(true);
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof BasicCredentials)) {
             throw new RuntimeException("Can't setup TheThingsNetwork integration without Application Credentials!");

@@ -61,6 +61,7 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
 
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
+        mqttClientConfiguration.setCleanSession(true);
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof BasicCredentials)) {
             throw new RuntimeException("Can't setup IBM Watson IoT integration without Application Credentials!");
