@@ -113,6 +113,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void invokeHandlersForIncomingPublish(MqttPublishMessage message) {
+        boolean handlerInvoiked = false;
         for (MqttSubscribtion subscribtion : ImmutableSet.copyOf(this.client.getSubscriptions().values())) {
             if (subscribtion.matches(message.variableHeader().topicName())) {
                 if (subscribtion.isOnce() && subscribtion.isCalled()) {
@@ -125,21 +126,12 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
                     this.client.off(subscribtion.getTopic(), subscribtion.getHandler());
                 }
                 message.payload().resetReaderIndex();
+                handlerInvoiked = true;
             }
         }
-        /*Set<MqttSubscribtion> subscribtions = ImmutableSet.copyOf(this.client.getSubscriptions().get(message.variableHeader().topicName()));
-        for (MqttSubscribtion subscribtion : subscribtions) {
-            if(subscribtion.isOnce() && subscribtion.isCalled()){
-                continue;
-            }
-            message.payload().markReaderIndex();
-            subscribtion.setCalled(true);
-            subscribtion.getHandler().onMessage(message.variableHeader().topicName(), message.payload());
-            if(subscribtion.isOnce()){
-                this.client.off(subscribtion.getTopic(), subscribtion.getHandler());
-            }
-            message.payload().resetReaderIndex();
-        }*/
+        if (!handlerInvoiked && client.getDefaultHandler() != null) {
+            client.getDefaultHandler().onMessage(message.variableHeader().topicName(), message.payload());
+        }
         message.payload().release();
     }
 

@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttConnectResult;
+import org.thingsboard.mqtt.MqttHandler;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
@@ -56,6 +57,7 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> extends AbstractIntegration<T> {
 
+    protected MqttClientConfiguration mqttClientConfiguration;
     protected MqttClient mqttClient;
     protected IntegrationContext ctx;
 
@@ -63,11 +65,10 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         this.ctx = params.getContext();
-        MqttClientConfiguration mqttClientConfiguration = mapper.readValue(
+        mqttClientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 MqttClientConfiguration.class);
         setupConfiguration(mqttClientConfiguration);
-        mqttClient = initClient(mqttClientConfiguration);
     }
 
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
@@ -140,7 +141,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;
 
-    private MqttClient initClient(MqttClientConfiguration configuration) throws Exception {
+    protected MqttClient initClient(MqttClientConfiguration configuration, MqttHandler defaultHandler) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext(configuration);
 
         MqttClientConfig config = sslContextOpt.isPresent() ? new MqttClientConfig(sslContextOpt.get()) : new MqttClientConfig();
@@ -151,7 +152,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
         configuration.getCredentials().configure(config);
 
-        MqttClient client = MqttClient.create(config);
+        MqttClient client = MqttClient.create(config, defaultHandler);
         client.setEventLoop(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP);
         Future<MqttConnectResult> connectFuture = client.connect(configuration.getHost(), configuration.getPort());
         MqttConnectResult result;

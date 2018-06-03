@@ -67,6 +67,8 @@ final class MqttClientImpl implements MqttClient {
 
     private final MqttClientConfig clientConfig;
 
+    private final MqttHandler defaultHandler;
+
     private EventLoopGroup eventLoop;
 
     private volatile Channel channel;
@@ -81,8 +83,9 @@ final class MqttClientImpl implements MqttClient {
     /**
      * Construct the MqttClientImpl with default config
      */
-    public MqttClientImpl() {
+    public MqttClientImpl(MqttHandler defaultHandler) {
         this.clientConfig = new MqttClientConfig();
+        this.defaultHandler = defaultHandler;
     }
 
     /**
@@ -91,8 +94,9 @@ final class MqttClientImpl implements MqttClient {
      *
      * @param clientConfig The config object to use while looking for settings
      */
-    public MqttClientImpl(MqttClientConfig clientConfig) {
+    public MqttClientImpl(MqttClientConfig clientConfig, MqttHandler defaultHandler) {
         this.clientConfig = clientConfig;
+        this.defaultHandler = defaultHandler;
     }
 
     /**
@@ -530,4 +534,9 @@ final class MqttClientImpl implements MqttClient {
             ch.pipeline().addLast("mqttHandler", new MqttChannelHandler(MqttClientImpl.this, connectFuture));
         }
     }
+
+    MqttHandler getDefaultHandler() {
+        return defaultHandler;
+    }
+
 }
