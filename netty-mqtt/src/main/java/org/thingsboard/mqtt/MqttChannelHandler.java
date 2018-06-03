@@ -148,7 +148,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
             case CONNECTION_ACCEPTED:
                 this.connectFuture.setSuccess(new MqttConnectResult(true, MqttConnectReturnCode.CONNECTION_ACCEPTED, channel.closeFuture()));
 
-                this.client.getPendingSubscribtions().entrySet().stream().filter((e) -> !e.getValue().isSent()).forEach((e) -> {
+                this.client.getPendingSubscriptions().entrySet().stream().filter((e) -> !e.getValue().isSent()).forEach((e) -> {
                     channel.write(e.getValue().getSubscribeMessage());
                     e.getValue().setSent(true);
                 });
@@ -163,6 +163,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
                     }
                 });
                 channel.flush();
+                if (this.client.isReconnect()) {
+                    this.client.onSuccessfulReconnect();
+                }
                 break;
 
             case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
@@ -178,7 +181,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void handleSubAck(MqttSubAckMessage message) {
-        MqttPendingSubscribtion pendingSubscription = this.client.getPendingSubscribtions().remove(message.variableHeader().messageId());
+        MqttPendingSubscribtion pendingSubscription = this.client.getPendingSubscriptions().remove(message.variableHeader().messageId());
         if (pendingSubscription == null) {
             return;
         }
@@ -190,7 +193,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         }
         this.client.getPendingSubscribeTopics().remove(pendingSubscription.getTopic());
 
-        this.client.getServerSubscribtions().add(pendingSubscription.getTopic());
+        this.client.getServerSubscriptions().add(pendingSubscription.getTopic());
 
         if (!pendingSubscription.getFuture().isDone()) {
             pendingSubscription.getFuture().setSuccess(null);
@@ -235,7 +238,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
             return;
         }
         unsubscribtion.onUnsubackReceived();
-        this.client.getServerSubscribtions().remove(unsubscribtion.getTopic());
+        this.client.getServerSubscriptions().remove(unsubscribtion.getTopic());
         unsubscribtion.getFuture().setSuccess(null);
         this.client.getPendingServerUnsubscribes().remove(message.variableHeader().messageId());
     }

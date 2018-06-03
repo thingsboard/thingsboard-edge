@@ -57,10 +57,12 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> extends AbstractIntegration<T> {
 
     protected MqttClient mqttClient;
+    protected IntegrationContext ctx;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        this.ctx = params.getContext();
         MqttClientConfiguration mqttClientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 MqttClientConfiguration.class);
