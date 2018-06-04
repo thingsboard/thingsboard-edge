@@ -59,10 +59,10 @@ final class MqttClientImpl implements MqttClient {
     private final IntObjectHashMap<MqttPendingUnsubscribtion> pendingServerUnsubscribes = new IntObjectHashMap<>();
     private final IntObjectHashMap<MqttIncomingQos2Publish> qos2PendingIncomingPublishes = new IntObjectHashMap<>();
     private final IntObjectHashMap<MqttPendingPublish> pendingPublishes = new IntObjectHashMap<>();
-    private final HashMultimap<String, MqttSubscribtion> subscriptions = HashMultimap.create();
+    private final HashMultimap<String, MqttSubscription> subscriptions = HashMultimap.create();
     private final IntObjectHashMap<MqttPendingSubscribtion> pendingSubscriptions = new IntObjectHashMap<>();
     private final Set<String> pendingSubscribeTopics = new HashSet<>();
-    private final HashMultimap<MqttHandler, MqttSubscribtion> handlerToSubscribtion = HashMultimap.create();
+    private final HashMultimap<MqttHandler, MqttSubscription> handlerToSubscribtion = HashMultimap.create();
     private final AtomicInteger nextMessageId = new AtomicInteger(1);
 
     private final MqttClientConfig clientConfig;
@@ -272,7 +272,7 @@ final class MqttClientImpl implements MqttClient {
     @Override
     public Future<Void> off(String topic, MqttHandler handler) {
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
-        for (MqttSubscribtion subscribtion : this.handlerToSubscribtion.get(handler)) {
+        for (MqttSubscription subscribtion : this.handlerToSubscribtion.get(handler)) {
             this.subscriptions.remove(topic, subscribtion);
         }
         this.handlerToSubscribtion.removeAll(handler);
@@ -290,9 +290,9 @@ final class MqttClientImpl implements MqttClient {
     @Override
     public Future<Void> off(String topic) {
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
-        ImmutableSet<MqttSubscribtion> subscribtions = ImmutableSet.copyOf(this.subscriptions.get(topic));
-        for (MqttSubscribtion subscribtion : subscribtions) {
-            for (MqttSubscribtion handSub : this.handlerToSubscribtion.get(subscribtion.getHandler())) {
+        ImmutableSet<MqttSubscription> subscribtions = ImmutableSet.copyOf(this.subscriptions.get(topic));
+        for (MqttSubscription subscribtion : subscribtions) {
+            for (MqttSubscription handSub : this.handlerToSubscribtion.get(subscribtion.getHandler())) {
                 this.subscriptions.remove(topic, handSub);
             }
             this.handlerToSubscribtion.remove(subscribtion.getHandler(), subscribtion);
@@ -433,7 +433,7 @@ final class MqttClientImpl implements MqttClient {
             }
         }
         if (this.serverSubscriptions.contains(topic)) {
-            MqttSubscribtion subscribtion = new MqttSubscribtion(topic, handler, once);
+            MqttSubscription subscribtion = new MqttSubscription(topic, handler, once);
             this.subscriptions.put(topic, subscribtion);
             this.handlerToSubscribtion.put(handler, subscribtion);
             return this.channel.newSucceededFuture();
@@ -478,7 +478,7 @@ final class MqttClientImpl implements MqttClient {
         return pendingSubscriptions;
     }
 
-    HashMultimap<String, MqttSubscribtion> getSubscriptions() {
+    HashMultimap<String, MqttSubscription> getSubscriptions() {
         return subscriptions;
     }
 
@@ -486,7 +486,7 @@ final class MqttClientImpl implements MqttClient {
         return pendingSubscribeTopics;
     }
 
-    HashMultimap<MqttHandler, MqttSubscribtion> getHandlerToSubscribtion() {
+    HashMultimap<MqttHandler, MqttSubscription> getHandlerToSubscribtion() {
         return handlerToSubscribtion;
     }
 

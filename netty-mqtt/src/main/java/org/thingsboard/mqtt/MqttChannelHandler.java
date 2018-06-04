@@ -113,23 +113,23 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void invokeHandlersForIncomingPublish(MqttPublishMessage message) {
-        boolean handlerInvoiked = false;
-        for (MqttSubscribtion subscribtion : ImmutableSet.copyOf(this.client.getSubscriptions().values())) {
-            if (subscribtion.matches(message.variableHeader().topicName())) {
-                if (subscribtion.isOnce() && subscribtion.isCalled()) {
+        boolean handlerInvoked = false;
+        for (MqttSubscription subscription : ImmutableSet.copyOf(this.client.getSubscriptions().values())) {
+            if (subscription.matches(message.variableHeader().topicName())) {
+                if (subscription.isOnce() && subscription.isCalled()) {
                     continue;
                 }
                 message.payload().markReaderIndex();
-                subscribtion.setCalled(true);
-                subscribtion.getHandler().onMessage(message.variableHeader().topicName(), message.payload());
-                if (subscribtion.isOnce()) {
-                    this.client.off(subscribtion.getTopic(), subscribtion.getHandler());
+                subscription.setCalled(true);
+                subscription.getHandler().onMessage(message.variableHeader().topicName(), message.payload());
+                if (subscription.isOnce()) {
+                    this.client.off(subscription.getTopic(), subscription.getHandler());
                 }
                 message.payload().resetReaderIndex();
-                handlerInvoiked = true;
+                handlerInvoked = true;
             }
         }
-        if (!handlerInvoiked && client.getDefaultHandler() != null) {
+        if (!handlerInvoked && client.getDefaultHandler() != null) {
             client.getDefaultHandler().onMessage(message.variableHeader().topicName(), message.payload());
         }
         message.payload().release();
@@ -179,7 +179,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         }
         pendingSubscription.onSubackReceived();
         for (MqttPendingSubscribtion.MqttPendingHandler handler : pendingSubscription.getHandlers()) {
-            MqttSubscribtion subscribtion = new MqttSubscribtion(pendingSubscription.getTopic(), handler.getHandler(), handler.isOnce());
+            MqttSubscription subscribtion = new MqttSubscription(pendingSubscription.getTopic(), handler.getHandler(), handler.isOnce());
             this.client.getSubscriptions().put(pendingSubscription.getTopic(), subscribtion);
             this.client.getHandlerToSubscribtion().put(handler.getHandler(), subscribtion);
         }

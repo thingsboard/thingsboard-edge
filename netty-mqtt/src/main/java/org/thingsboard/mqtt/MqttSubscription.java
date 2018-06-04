@@ -32,7 +32,7 @@ package org.thingsboard.mqtt;
 
 import java.util.regex.Pattern;
 
-final class MqttSubscribtion {
+final class MqttSubscription {
 
     private final String topic;
     private final Pattern topicRegex;
@@ -42,7 +42,7 @@ final class MqttSubscribtion {
 
     private boolean called;
 
-    MqttSubscribtion(String topic, MqttHandler handler, boolean once) {
+    MqttSubscription(String topic, MqttHandler handler, boolean once) {
         if(topic == null){
             throw new NullPointerException("topic");
         }
@@ -80,7 +80,7 @@ final class MqttSubscribtion {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        MqttSubscribtion that = (MqttSubscribtion) o;
+        MqttSubscription that = (MqttSubscription) o;
 
         return once == that.once && topic.equals(that.topic) && handler.equals(that.handler);
     }

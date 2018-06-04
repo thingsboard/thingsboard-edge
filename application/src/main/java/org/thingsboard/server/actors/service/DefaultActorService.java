@@ -47,6 +47,7 @@ import org.thingsboard.server.actors.rpc.RpcManagerActor;
 import org.thingsboard.server.actors.rpc.RpcSessionCreateRequestMsg;
 import org.thingsboard.server.actors.session.SessionManagerActor;
 import org.thingsboard.server.actors.stats.StatsActor;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,6 +64,7 @@ import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
+import org.thingsboard.server.service.state.DeviceStateService;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -95,6 +97,9 @@ public class DefaultActorService implements ActorService {
 
     @Autowired
     private DiscoveryService discoveryService;
+
+    @Autowired
+    private DeviceStateService deviceStateService;
 
     private ActorSystem system;
 
@@ -214,7 +219,7 @@ public class DefaultActorService implements ActorService {
     public void onReceivedMsg(ServerAddress source, ClusterAPIProtos.ClusterMessage msg) {
         ServerAddress serverAddress = new ServerAddress(source.getHost(), source.getPort());
         log.info("Received msg [{}] from [{}]", msg.getMessageType().name(), serverAddress);
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.info("MSG: ", msg);
         }
         switch (msg.getMessageType()) {
@@ -272,4 +277,8 @@ public class DefaultActorService implements ActorService {
         rpcManagerActor.tell(msg, ActorRef.noSender());
     }
 
+    @Override
+    public void onDeviceAdded(Device device) {
+        deviceStateService.onDeviceAdded(device);
+    }
 }
