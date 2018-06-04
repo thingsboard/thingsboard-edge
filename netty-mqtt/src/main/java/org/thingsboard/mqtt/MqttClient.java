@@ -107,7 +107,7 @@ public interface MqttClient {
 
     /**
      * Subscribe on the given topic. When a message is received, MqttClient will invoke the {@link MqttHandler#onMessage(String, ByteBuf)} function of the given handler
-     * This subscribtion is only once. If the MqttClient has received 1 message, the subscribtion will be removed
+     * This subscription is only once. If the MqttClient has received 1 message, the subscription will be removed
      *
      * @param topic The topic filter to subscribe to
      * @param handler The handler to invoke when we receive a message
@@ -117,7 +117,7 @@ public interface MqttClient {
 
     /**
      * Subscribe on the given topic, with the given qos. When a message is received, MqttClient will invoke the {@link MqttHandler#onMessage(String, ByteBuf)} function of the given handler
-     * This subscribtion is only once. If the MqttClient has received 1 message, the subscribtion will be removed
+     * This subscription is only once. If the MqttClient has received 1 message, the subscription will be removed
      *
      * @param topic The topic filter to subscribe to
      * @param handler The handler to invoke when we receive a message
@@ -127,7 +127,7 @@ public interface MqttClient {
     Future<Void> once(String topic, MqttHandler handler, MqttQoS qos);
 
     /**
-     * Remove the subscribtion for the given topic and handler
+     * Remove the subscription for the given topic and handler
      * If you want to unsubscribe from all handlers known for this topic, use {@link #off(String)}
      *
      * @param topic The topic to unsubscribe for
@@ -137,7 +137,7 @@ public interface MqttClient {
     Future<Void> off(String topic, MqttHandler handler);
 
     /**
-     * Remove all subscribtions for the given topic.
+     * Remove all subscriptions for the given topic.
      * If you want to specify which handler to unsubscribe, use {@link #off(String, MqttHandler)}
      *
      * @param topic The topic to unsubscribe for
