@@ -377,7 +377,7 @@ public class DefaultTelemetrySubscriptionService implements TelemetrySubscriptio
 
             DonAsynchron.withCallback(tsService.findAll(entityId, queries),
                     missedUpdates -> {
-                        if (!missedUpdates.isEmpty()) {
+                        if (missedUpdates != null && !missedUpdates.isEmpty()) {
                             tellRemoteSubUpdate(address, sessionId, new SubscriptionUpdate(subscription.getSubscriptionId(), missedUpdates));
                         }
                     },
