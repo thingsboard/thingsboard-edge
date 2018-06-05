@@ -60,7 +60,10 @@ var ruleNodeClazzHelpLinkMap = {
     'org.thingsboard.rule.engine.mqtt.TbMqttNode': 'ruleNodeMqtt',
     'org.thingsboard.rule.engine.rabbitmq.TbRabbitMqNode': 'ruleNodeRabbitMq',
     'org.thingsboard.rule.engine.rest.TbRestApiCallNode': 'ruleNodeRestApiCall',
-    'org.thingsboard.rule.engine.mail.TbSendEmailNode': 'ruleNodeSendEmail'
+    'org.thingsboard.rule.engine.mail.TbSendEmailNode': 'ruleNodeSendEmail',
+    'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
+    'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
+    'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup'
 };
 
 var integrationTypeHelpLinkMap = {
@@ -115,6 +118,9 @@ export default angular.module('thingsboard.help', [])
                 ruleNodeRabbitMq: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/external-nodes/#rabbitmq-node",
                 ruleNodeRestApiCall: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/external-nodes/#rest-api-call-node",
                 ruleNodeSendEmail: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/external-nodes/#send-email-node",
+                ruleNodeIntegrationDownlink: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#integration-downlink-node",
+                ruleNodeAddToGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node",
+                ruleNodeRemoveFromGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node",
                 rulechains: helpBaseUrl + "/docs/user-guide/ui/rule-chains/",
                 tenants: helpBaseUrl + "/docs/user-guide/ui/tenants",
                 customers: helpBaseUrl + "/docs/user-guide/ui/customers",
@@ -129,7 +135,9 @@ export default angular.module('thingsboard.help', [])
                 widgetsConfigRpc: helpBaseUrl +  "/docs/user-guide/ui/dashboards#rpc",
                 widgetsConfigAlarm: helpBaseUrl +  "/docs/user-guide/ui/dashboards#alarm",
                 widgetsConfigStatic: helpBaseUrl +  "/docs/user-guide/ui/dashboards#static",
-                converters: helpBaseUrl +  "/docs/user-guide/data-converters",
+                converters: helpBaseUrl +  "/docs/user-guide/integrations/#data-converters",
+                uplinkConverters: helpBaseUrl +  "/docs/user-guide/integrations/#uplink-data-converter",
+                downlinkConverters: helpBaseUrl +  "/docs/user-guide/integrations/#downlink-data-converter",
                 integrations: helpBaseUrl +  "/docs/user-guide/integrations",
                 integrationHttp: helpBaseUrl +  "/docs/user-guide/integrations/http",
                 integrationOceanConnect: helpBaseUrl +  "/docs/user-guide/integrations/ocean-connect",
@@ -162,6 +170,17 @@ export default angular.module('thingsboard.help', [])
                 if (integration && integration.type) {
                     if (integrationTypeHelpLinkMap[integration.type]) {
                         link = integrationTypeHelpLinkMap[integration.type];
+                    }
+                }
+                return link;
+            },
+            getConverterLink: function(converter) {
+                var link = 'converters';
+                if (converter && converter.type) {
+                    if (converter.type === 'UPLINK') {
+                        link = 'uplinkConverters';
+                    } else {
+                        link = 'downlinkConverters';
                     }
                 }
                 return link;
