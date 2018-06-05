@@ -48,9 +48,7 @@ public class TenantRuleChainManager extends RuleChainManager {
 
     @Override
     public void init(ActorContext context) {
-        if (systemContext.isTenantComponentsInitEnabled()) {
-            super.init(context);
-        }
+        super.init(context);
     }
 
     @Override
