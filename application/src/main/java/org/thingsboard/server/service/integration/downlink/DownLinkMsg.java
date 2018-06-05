@@ -52,6 +52,7 @@ public class DownLinkMsg implements Serializable {
     }
 
     public static DownLinkMsg merge(DownLinkMsg result, IntegrationDownlinkMsg msg) {
+        result.getMsgs().clear();
         result.getMsgs().add(msg.getTbMsg());
         return result;
     }
