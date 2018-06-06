@@ -61,6 +61,7 @@ export default function RelationFilters($compile, $templateCache) {
         ngModelCtrl.$render = function () {
             if (ngModelCtrl.$viewValue) {
                 var value = ngModelCtrl.$viewValue;
+                scope.relationFilters.length = 0;
                 value.forEach(function (filter) {
                     scope.relationFilters.push(filter);
                 });

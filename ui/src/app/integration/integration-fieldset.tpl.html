@@ -86,7 +86,7 @@
                                    use-full-entity-id="true">
         </tb-converter-autocomplete>
     </fieldset>
-    <section layout="column" ng-if="types.integrationType[integration.type].http">
+    <section ng-if="types.integrationType[integration.type].http">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <md-input-container class="md-block">
                 <label translate>integration.base-url</label>
@@ -95,7 +95,7 @@
                     <div translate ng-message="required">integration.base-url-required</div>
                 </div>
             </md-input-container>
-            <section layout="column" ng-if="integration.type == types.integrationType.HTTP.value ||
+            <section ng-if="integration.type == types.integrationType.HTTP.value ||
                                             integration.type == types.integrationType.SIGFOX.value">
                 <md-input-container class="md-block">
                     <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
@@ -126,7 +126,7 @@
                     </md-expansion-panel>
                 </md-expansion-panel-group>
             </section>
-            <section layout="column" ng-if="integration.type == types.integrationType.THINGPARK.value">
+            <section ng-if="integration.type == types.integrationType.THINGPARK.value">
                 <md-input-container class="md-block">
                     <label translate>integration.downlink-url</label>
                     <input name="asKey" ng-model="integration.configuration.downlinkUrl">
@@ -177,9 +177,9 @@
             </md-button>
         </div>
     </section>
-    <section layout="column" ng-if="integration.type == types.integrationType.MQTT.value">
+    <section ng-if="integration.type == types.integrationType.MQTT.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
-            <div flex layout="column" layout-gt-sm="row">
+            <div layout="column" layout-gt-sm="row">
                 <md-input-container flex="60" class="md-block">
                     <label translate>integration.host</label>
                     <input required name="host" ng-model="integration.configuration.clientConfiguration.host">
@@ -212,11 +212,18 @@
                 <label translate>integration.client-id</label>
                 <input name="clientId" ng-model="integration.configuration.clientConfiguration.clientId">
             </md-input-container>
-            <md-checkbox ng-disabled="$root.loading || !isEdit"
-                         aria-label="{{ 'integration.enable-ssl' | translate }}"
-                         ng-model="integration.configuration.clientConfiguration.ssl">
-                {{ 'integration.enable-ssl' | translate }}
-            </md-checkbox>
+            <div layout="column">
+                <md-checkbox ng-disabled="$root.loading || !isEdit"
+                             aria-label="{{ 'integration.clean-session' | translate }}"
+                             ng-model="integration.configuration.clientConfiguration.cleanSession">
+                    {{ 'integration.clean-session' | translate }}
+                </md-checkbox>
+                <md-checkbox ng-disabled="$root.loading || !isEdit"
+                             aria-label="{{ 'integration.enable-ssl' | translate }}"
+                             ng-model="integration.configuration.clientConfiguration.ssl">
+                    {{ 'integration.enable-ssl' | translate }}
+                </md-checkbox>
+            </div>
             <md-expansion-panel-group class="tb-credentials-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="credentialsPanelGroup">
                 <md-expansion-panel md-component-id="credentialsPanel">
                     <md-expansion-panel-collapsed>
@@ -233,7 +240,7 @@
                             <md-expansion-panel-icon></md-expansion-panel-icon>
                         </md-expansion-panel-header>
                         <md-expansion-panel-content>
-                            <div layout="column">
+                            <div>
                                 <md-input-container class="md-block">
                                     <label translate>integration.credentials-type</label>
                                     <md-select required name="credentialsType" ng-model="integration.configuration.clientConfiguration.credentials.type"
@@ -246,7 +253,7 @@
                                         <div translate ng-message="required">integration.credentials-type-required</div>
                                     </div>
                                 </md-input-container>
-                                <section flex layout="column" ng-if="integration.configuration.clientConfiguration.credentials.type == types.mqttCredentialTypes.basic.value">
+                                <section ng-if="integration.configuration.clientConfiguration.credentials.type == types.mqttCredentialTypes.basic.value">
                                     <md-input-container class="md-block">
                                         <label translate>integration.username</label>
                                         <input required name="mqttUsername" ng-model="integration.configuration.clientConfiguration.credentials.username">
@@ -262,7 +269,7 @@
                                         </div>
                                     </md-input-container>
                                 </section>
-                                <section flex layout="column" ng-if="integration.configuration.clientConfiguration.credentials.type == types.mqttCredentialTypes['cert.PEM'].value"
+                                <section ng-if="integration.configuration.clientConfiguration.credentials.type == types.mqttCredentialTypes['cert.PEM'].value"
                                          class="dropdown-section">
                                     <div class="tb-container" ng-class="integration.configuration.clientConfiguration.credentials.caCertFileName ? 'ng-valid' : 'ng-invalid'">
                                         <label class="tb-label" translate>integration.ca-cert</label>
@@ -339,7 +346,7 @@
             </md-expansion-panel-group>
         </fieldset>
     </section>
-    <section layout="column" ng-if="integration.type == types.integrationType.OPC_UA.value">
+    <section ng-if="integration.type == types.integrationType.OPC_UA.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <div flex layout="column" layout-gt-sm="row">
                 <md-input-container flex="40" class="md-block">
@@ -607,9 +614,9 @@
 
         </fieldset>
     </section>
-    <section layout="column" ng-if="integration.type == types.integrationType.AWS_IOT.value">
+    <section ng-if="integration.type == types.integrationType.AWS_IOT.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
-            <div flex layout="column" layout-gt-sm="row">
+            <div layout="column" layout-gt-sm="row">
                 <md-input-container flex="60" class="md-block">
                     <label translate>integration.aws-iot-endpoint</label>
                     <input required name="host" ng-model="integration.configuration.clientConfiguration.host">
@@ -633,8 +640,7 @@
                 <input name="clientId" ng-model="integration.configuration.clientConfiguration.clientId">
             </md-input-container>
             <div class="tb-panel-title">{{ 'integration.aws-iot-credentials' | translate }}</div>
-            <section flex layout="column"
-                     class="dropdown-section">
+            <section class="dropdown-section">
                 <div class="tb-container" ng-class="integration.configuration.clientConfiguration.credentials.caCertFileName ? 'ng-valid' : 'ng-invalid'">
                     <label class="tb-label" translate>integration.ca-cert</label>
                     <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'caCert')" class="tb-file-select-container">
@@ -705,7 +711,7 @@
             </section>
         </fieldset>
     </section>
-    <section layout="column" ng-if="integration.type == types.integrationType.IBM_WATSON_IOT.value">
+    <section ng-if="integration.type == types.integrationType.IBM_WATSON_IOT.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <md-input-container class="md-block">
                 <label translate>integration.connect-timeout</label>
@@ -734,9 +740,9 @@
             </md-input-container>
         </fieldset>
     </section>
-    <section layout="column" ng-if="integration.type == types.integrationType.TTN.value">
+    <section ng-if="integration.type == types.integrationType.TTN.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
-            <div flex layout="row">
+            <div layout="row">
                 <md-input-container flex="30" class="md-block">
                     <label translate>integration.region</label>
                     <input required name="region" ng-model="integration.configuration.clientConfiguration.host">
@@ -775,7 +781,7 @@
             </md-input-container>
         </fieldset>
     </section>
-    <section layout="column" ng-if="types.integrationType[integration.type].mqtt">
+    <section ng-if="types.integrationType[integration.type].mqtt">
         <fieldset ng-disabled="$root.loading || !isEdit || disableMqttTopics">
             <md-expansion-panel-group class="tb-topic-filters-panel-group" ng-class="{'disabled': $root.loading || !isEdit || disableMqttTopics}" md-component-id="topicFiltersPanelGroup">
                 <md-expansion-panel md-component-id="topicFiltersPanel">
@@ -851,7 +857,7 @@
             </md-input-container>
         </fieldset>
     </section>
-    <section layout="column" ng-if="integration.type == types.integrationType.AZURE_EVENT_HUB.value">
+    <section ng-if="integration.type == types.integrationType.AZURE_EVENT_HUB.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <md-input-container class="md-block">
                 <label translate>integration.connect-timeout</label>

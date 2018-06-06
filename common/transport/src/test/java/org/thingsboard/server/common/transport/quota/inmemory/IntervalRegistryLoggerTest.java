@@ -33,6 +33,8 @@ package org.thingsboard.server.common.transport.quota.inmemory;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.common.transport.quota.host.HostIntervalRegistryLogger;
+import org.thingsboard.server.common.transport.quota.host.HostRequestIntervalRegistry;
 
 import java.util.Collections;
 import java.util.Map;
@@ -52,7 +54,7 @@ public class IntervalRegistryLoggerTest {
 
     @Before
     public void init() {
-        logger = new IntervalRegistryLogger(3, 10, requestRegistry);
+        logger = new HostIntervalRegistryLogger(3, 10, requestRegistry);
     }
 
     @Test

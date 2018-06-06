@@ -75,6 +75,7 @@ import 'material-ui';
 import 'react-schema-form';
 import react from 'ngreact';
 import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
+import 'ngFlowchart/dist/ngFlowchart';
 
 import thingsboardLocales from './locale/locale.constant';
 import thingsboardLogin from './login';
@@ -104,6 +105,8 @@ import thingsboardApiWhiteLabeling from './api/white-labeling.service';
 import thingsboardApiConverter from './api/converter.service';
 import thingsboardApiIntegration from './api/integration.service';
 import thingsboardApiAuditLog from './api/audit-log.service';
+import thingsboardApiComponentDescriptor from './api/component-descriptor.service';
+import thingsboardApiRuleChain from './api/rule-chain.service';
 
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -113,11 +116,12 @@ import 'angular-material/angular-material.min.css';
 import 'angular-material-icons/angular-material-icons.css';
 import 'angular-gridster/dist/angular-gridster.min.css';
 import 'v-accordion/dist/v-accordion.min.css'
-import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
 import 'md-color-picker/dist/mdColorPicker.min.css';
 import 'mdPickers/dist/mdPickers.min.css';
 import 'angular-hotkeys/build/hotkeys.min.css';
 import 'angular-carousel/dist/angular-carousel.min.css';
+import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
+import 'ngFlowchart/dist/flowchart.css';
 import '../scss/main.scss';
 
 import AppConfig from './app.config';
@@ -146,6 +150,7 @@ angular.module('thingsboard', [
     'ngclipboard',
     react.name,
     'flow',
+    'flowchart',
     thingsboardLocales,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
@@ -174,6 +179,8 @@ angular.module('thingsboard', [
     thingsboardApiConverter,
     thingsboardApiIntegration,
     thingsboardApiAuditLog,
+    thingsboardApiComponentDescriptor,
+    thingsboardApiRuleChain,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

@@ -195,7 +195,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     private ListenableFuture<List<EntityGroup>> relationsToEntityGroups(ListenableFuture<List<EntityRelation>> relations) {
-        return Futures.transform(relations, (AsyncFunction<List<EntityRelation>, List<EntityGroup>>) input -> {
+        return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<EntityGroup>> entityGroupFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
                 entityGroupFutures.add(entityGroupDao.findByIdAsync(relation.getTo().getId()));

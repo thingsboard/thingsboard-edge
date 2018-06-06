@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
+import org.thingsboard.server.common.msg.core.AttributesUpdateRequest;
 import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.service.integration.ConverterContext;
 
@@ -118,7 +118,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return JsonConverter.convertToTelemetry(src, telemetryIdSeq.getAndIncrement());
     }
 
-    private UpdateAttributesRequest parseAttributesUpdate(JsonElement src) {
+    private AttributesUpdateRequest parseAttributesUpdate(JsonElement src) {
         return JsonConverter.convertToAttributes(src, attrRequestIdSeq.getAndIncrement());
     }
 

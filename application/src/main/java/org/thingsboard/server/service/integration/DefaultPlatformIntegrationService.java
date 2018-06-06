@@ -32,6 +32,8 @@ package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
@@ -41,13 +43,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
@@ -61,13 +66,13 @@ import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegratio
 import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.server.service.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegration;
+import org.thingsboard.server.service.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
-import org.thingsboard.server.service.integration.msg.IntegrationMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
 
 import javax.annotation.PostConstruct;
@@ -75,6 +80,7 @@ import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 /**
@@ -213,7 +219,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void onMsg(IntegrationMsg msg) {
+    public void onDownlinkMsg(IntegrationDownlinkMsg msg, FutureCallback<Void> callback) {
         try {
             IntegrationId integrationId = msg.getIntegrationId();
             ThingsboardPlatformIntegration integration = integrationsByIdMap.get(integrationId);
@@ -228,19 +234,33 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             } else {
                 onMsg(integration, msg);
             }
+            if (callback != null) {
+                callback.onSuccess(null);
+            }
         } catch (Exception e) {
+            if (callback != null) {
+                callback.onFailure(e);
+            }
             throw handleException(e);
         }
     }
 
-    private void onMsg(ThingsboardPlatformIntegration integration, IntegrationMsg msg) {
-        if (msg instanceof SharedAttributesUpdateIntegrationMsg) {
-            integration.onSharedAttributeUpdate(context, (SharedAttributesUpdateIntegrationMsg) msg);
-        } else if (msg instanceof RPCCallIntegrationMsg) {
-            integration.onRPCCall(context, (RPCCallIntegrationMsg) msg);
-        } else {
-            log.warn("[{}] Unknown message: {}", integration.getConfiguration().getId(), msg);
+    @Override
+    public void onRemoteDownlinkMsg(ServerAddress serverAddress, byte[] data) {
+        ClusterAPIProtos.IntegrationDownlinkProto proto;
+        try {
+            proto = ClusterAPIProtos.IntegrationDownlinkProto.parseFrom(data);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
         }
+        TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+        IntegrationId integrationId = new IntegrationId(new UUID(proto.getIntegrationIdMSB(), proto.getIntegrationIdLSB()));
+        IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(proto.getData().toByteArray()));
+        onDownlinkMsg(msg, null);
+    }
+
+    private void onMsg(ThingsboardPlatformIntegration integration, IntegrationDownlinkMsg msg) {
+        integration.onDownlinkMsg(context, msg);
     }
 
     private void persistStatistics() {
@@ -280,6 +300,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new OceanConnectIntegration();
             case THINGPARK:
                 return new ThingParkIntegration();
+            case TMOBILE_IOT_CDP:
+                return new TMobileIotCdpIntegration();
             case MQTT:
                 return new BasicMqttIntegration();
             case AWS_IOT:

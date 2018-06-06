@@ -69,6 +69,8 @@ data:
   cassandra.host: "cassandra-headless"
   cassandra.port: "9042"
   database.type: "cassandra"
+  cache.type: "redis"
+  redis.host: "redis-service"
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
@@ -97,7 +99,7 @@ spec:
       containers:
       - name: tb
         imagePullPolicy: Always
-        image: thingsboard/application:1.4.0
+        image: thingsboard/application:2.0.1
         ports:
         - containerPort: 8080
           name: ui
@@ -142,6 +144,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: CACHE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: tb-config
+              key: cache.type
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: tb-config
+              key: redis.host
         command:
         - sh
         - -c

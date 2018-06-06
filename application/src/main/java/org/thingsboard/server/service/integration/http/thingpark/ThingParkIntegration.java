@@ -42,17 +42,16 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -118,31 +117,23 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-        logDownlink(context, "SharedAttributeUpdate", msg);
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+        TbMsg msg = downlink.getTbMsg();
+        logDownlink(context, msg.getType(), msg);
         if (downlinkConverter != null) {
-            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
-            processDownLinkMsg(context, downLinkMsg);
+            processDownLinkMsg(context, msg);
         }
     }
 
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
-        logDownlink(context, "RPCCall", msg);
-        if (downlinkConverter != null) {
-            processDownLinkMsg(context, DownLinkMsg.from(msg));
-        }
-    }
-
-    private void processDownLinkMsg(IntegrationContext context, DownLinkMsg msg) {
+    private void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        String status = "OK";
-        Exception exception = null;
+        String status;
+        Exception exception;
         try {
             List<DownlinkData> result = downlinkConverter.convertDownLink(
                     context.getConverterContext(),
                     Collections.singletonList(msg),
-                    new DownLinkMetaData(mdMap));
+                    new IntegrationMetaData(mdMap));
             if (!result.isEmpty()) {
                 for (DownlinkData downlink : result) {
                     if (downlink.isEmpty()) {
@@ -156,8 +147,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
                         throw new RuntimeException("FPort is missing in the downlink metadata!");
                     }
                     String payload = new String(downlink.getData(), StandardCharsets.UTF_8);
-                    String params = DEV_EUI + "=" + metadata.get(DEV_EUI) + "&" + F_PORT + "=" + metadata.get(F_PORT)
-                            + "&" + PAYLOAD + "=" + payload;
+                    String params = DEV_EUI + "=" + metadata.get(DEV_EUI) + "&" + F_PORT + "=" + metadata.get(F_PORT) + "&" + PAYLOAD + "=" + payload;
                     if (metadata.containsKey(F_CNT_DN)) {
                         params += "&" + F_CNT_DN + "=" + metadata.containsKey(F_CNT_DN);
                     }

@@ -49,7 +49,10 @@ import org.thingsboard.server.dao.relation.RelationService;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.thingsboard.server.common.data.CacheConstants.RELATIONS_CACHE;
 
 public abstract class BaseRelationCacheTest extends AbstractServiceTest {

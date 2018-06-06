@@ -48,8 +48,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.plugin.PluginService;
-import org.thingsboard.server.dao.rule.RuleService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -89,10 +88,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     private DashboardService dashboardService;
 
     @Autowired
-    private RuleService ruleService;
-
-    @Autowired
-    private PluginService pluginService;
+    private RuleChainService ruleChainService;
 
     @Autowired
     private IntegrationService integrationService;
@@ -141,10 +137,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
-        ruleService.deleteRulesByTenantId(tenantId);
-        pluginService.deletePluginsByTenantId(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
         converterService.deleteConvertersByTenantId(tenantId);
+        ruleChainService.deleteRuleChainsByTenantId(tenantId);
         tenantDao.removeById(tenantId.getId());
         deleteEntityGroups(tenantId);
         deleteEntityRelations(tenantId);

@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.common.data.id;
 
-public interface HasId<I extends HasUUID> {
+import java.io.Serializable;
+
+public interface HasId<I extends HasUUID> extends Serializable {
 
     I getId();
 

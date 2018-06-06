@@ -33,19 +33,25 @@ package org.thingsboard.server.service.converter.js;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.service.converter.AbstractUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.script.JsSandboxService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
-    private JSUplinkEvaluator jsUplinkEvaluator;
+    private final JsSandboxService sandboxService;
+    private JSUplinkEvaluator evaluator;
+
+    public JSUplinkDataConverter(JsSandboxService sandboxService) {
+        this.sandboxService = sandboxService;
+    }
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
         String decoder = configuration.getConfiguration().get("decoder").asText();
-        jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+        this.evaluator = new JSUplinkEvaluator(sandboxService, decoder);
     }
 
     @Override
@@ -56,17 +62,14 @@ public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
     @Override
     public void destroy() {
-        if (jsUplinkEvaluator != null) {
-            jsUplinkEvaluator.destroy();
+        if (this.evaluator != null) {
+            this.evaluator.destroy();
         }
     }
 
     @Override
     public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return applyJsFunction(data, metadata);
+        return evaluator.execute(data, metadata);
     }
 
-    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
-        return jsUplinkEvaluator.execute(data, metadata);
-    }
 }

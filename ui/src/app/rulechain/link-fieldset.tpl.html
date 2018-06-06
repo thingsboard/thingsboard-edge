@@ -1,0 +1,54 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-content class="md-padding tb-link" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit || isReadOnly">
+        <md-input-container class="md-block">
+            <label translate>rulenode.link-label</label>
+            <md-select ng-model="selectedLabel" ng-change="selectedLabelChanged()">
+                <md-option ng-repeat="label in labels" ng-value="label">
+                    {{label.name}}
+                </md-option>
+            </md-select>
+            <div ng-messages="theForm.linkLabel.$error">
+                <div translate ng-message="required">rulenode.link-label-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container ng-if="selectedLabel.custom" class="md-block">
+            <label translate>rulenode.link-label</label>
+            <input required name="customLinkLabel" ng-model="link.label">
+            <div ng-messages="theForm.customLinkLabel.$error">
+                <div translate ng-message="required">rulenode.custom-link-label-required</div>
+            </div>
+        </md-input-container>
+    </fieldset>
+</md-content>

@@ -58,54 +58,24 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
         };
     } else {
 
-        var downlinkPayload =
-        {
-            "deviceId":{
-                "entityType":"DEVICE",
-                "id":"00000000-0000-0000-0000-000000000000"
-            },
-            "deviceName":"sensorA",
-            "deviceType":"temp-sensor",
-            "currentAttributes":{
-                "server": {
-                    "serialNumber": "SN111",
-                    "model": "Model A"
-                },
-                "shared": {
-                },
-                "client": {
-                }
-            },
-            "deletedAttributes":[
-                "moistureUploadFrequency"
-            ],
-            "updatedAttributes":{
-                "temperatureUploadFrequency":{
-                    "lastUpdateTs":1519376381160,
-                    "value":"60"
-                },
-                "humidityUploadFrequency":{
-                    "lastUpdateTs":1519376381160,
-                    "value":"30"
-                }
-            },
-            "rpcCalls":[
-                {
-                    "id":"dfdba31a-c7c3-4ef6-abb1-00182574aa6d",
-                    "expirationTime":1519377821165,
-                    "method":"updateState",
-                    "params":"{\"status\": \"ACTIVE\"}"
-                }
-            ]
+        var msg = {
+            temperatureUploadFrequency: 60,
+            humidityUploadFrequency: 30
         };
 
         vm.inputParams = {
             payloadContentType: types.contentType.JSON.value,
-            stringContent: js_beautify(angular.toJson(downlinkPayload), {indent_size: 4}),
+            stringContent: js_beautify(angular.toJson(msg), {indent_size: 4}),
             metadata: {
+                'deviceName': 'sensorA',
+                'deviceType': 'temp-sensor',
+                'ss_serialNumber': 'SN111'
+            },
+            integrationMetadata: {
                 integrationName: 'Test integration'
             },
-            payload: null
+            msg: null,
+            msgType: 'ATTRIBUTES_UPDATED'
         };
     }
 
@@ -130,6 +100,12 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
     }
 
     $scope.$watch('theForm.metadataForm.$dirty', (newVal) => {
+        if (newVal) {
+            toast.hide();
+        }
+    });
+
+    $scope.$watch('theForm.integrationMetadataForm.$dirty', (newVal) => {
         if (newVal) {
             toast.hide();
         }
@@ -225,7 +201,7 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
                 vm.inputParams.payload = utils.stringToBase64(vm.inputParams.stringContent);
             }
         } else {
-            vm.inputParams.payload = angular.copy(vm.inputParams.stringContent);
+            vm.inputParams.msg = angular.copy(vm.inputParams.stringContent);
         }
     }
 
@@ -245,6 +221,9 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
         } else if (!$scope.theForm.metadataForm.$valid) {
             showMetadataError($translate.instant('converter.metadata-required'));
             return false;
+        } else if (!vm.isDecoder && !$scope.theForm.integrationMetadataForm.$valid) {
+            showIntegrationMetadataError($translate.instant('converter.integration-metadata-required'));
+            return false;
         }
         return true;
     }
@@ -254,18 +233,26 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
         toast.showError(error, toastParent, 'bottom left');
     }
 
+    function showIntegrationMetadataError(error) {
+        var toastParent = angular.element('#integration-metadata-panel', vm.converterTestDialogElement);
+        toast.showError(error, toastParent, 'bottom left');
+    }
+
     function testConverter() {
         var deferred = $q.defer();
         if (checkInputParamErrors()) {
             updateInputContent();
             $mdUtil.nextTick(() => {
                 var inputParams = {
-                    payload: vm.inputParams.payload,
                     metadata: vm.inputParams.metadata
                 };
                 if (vm.isDecoder) {
+                    inputParams.payload = vm.inputParams.payload;
                     inputParams.decoder = vm.funcBody;
                 } else {
+                    inputParams.msg = vm.inputParams.msg;
+                    inputParams.msgType = vm.inputParams.msgType;
+                    inputParams.integrationMetdadata = vm.inputParams.integrationMetdadata;
                     inputParams.encoder = vm.funcBody;
                 }
                 var testPromise = vm.isDecoder ? converterService.testUpLink(inputParams) :

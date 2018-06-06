@@ -44,7 +44,7 @@ export function ConverterCardController(types) {
 }
 
 /*@ngInject*/
-export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types) {
+export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types, helpLinks) {
 
     var converterActionsList = [
         {
@@ -95,6 +95,8 @@ export function ConverterController(converterService, $state, $stateParams, $tra
 
     vm.types = types;
 
+    vm.helpLinkIdForConverter = helpLinkIdForConverter;
+
     vm.converterGridConfig = {
 
         refreshParamsFunc: null,
@@ -144,6 +146,10 @@ export function ConverterController(converterService, $state, $stateParams, $tra
     }
 
     vm.exportConverter = exportConverter;
+
+    function helpLinkIdForConverter() {
+        return helpLinks.getConverterLink(vm.grid.operatingItem());
+    }
 
     function deleteConverterTitle(converter) {
         return $translate.instant('converter.delete-converter-title', {converterName: converter.name});

@@ -31,10 +31,10 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -43,10 +43,12 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -55,6 +57,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -64,7 +67,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -80,6 +82,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private TenantService tenantService;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
+    private InstallScripts installScripts;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -113,8 +121,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         switch (fromVersion) {
             case "1.4.0":
-                log.info("Updating data from version 1.4.0 to 1.4.0PE ...");
-
+                log.info("Updating data from version 1.4.0 to 2.0.0 ...");
+                tenantsDefaultRuleChainUpdater.updateEntities(null);
+                break;
+            case "2.0.0":
+                log.info("Updating data from version 2.0.0 to 2.0.0PE ...");
                 tenantsGroupAllUpdater.updateEntities(null);
 
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey("mailTemplates");
@@ -132,12 +143,33 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
+    private PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
+            new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected TextPageData<Tenant> findEntities(String region, TextPageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        RuleChain ruleChain = ruleChainService.getRootTenantRuleChain(tenant.getId());
+                        if (ruleChain == null) {
+                            installScripts.createDefaultRuleChains(tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
+
     private PaginatedUpdater<String, Tenant> tenantsGroupAllUpdater =
             new PaginatedUpdater<String, Tenant>() {
 
                 @Override
-                protected List<Tenant> findEntities(String region, TextPageLink pageLink) {
-                    return tenantService.findTenants(pageLink).getData();
+                protected TextPageData<Tenant> findEntities(String region, TextPageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
                 }
 
                 @Override
@@ -173,8 +205,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<TenantId, User> usersGroupAllUpdater = new PaginatedUpdater<TenantId, User>() {
         @Override
-        protected List<User> findEntities(TenantId id, TextPageLink pageLink) {
-            return userService.findTenantAdmins(id, pageLink).getData();
+        protected TextPageData<User> findEntities(TenantId id, TextPageLink pageLink) {
+            return userService.findTenantAdmins(id, pageLink);
         }
         @Override
         protected void updateEntity(User entity) {
@@ -184,8 +216,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<TenantId, Customer> customersGroupAllUpdater = new PaginatedUpdater<TenantId, Customer>() {
         @Override
-        protected List<Customer> findEntities(TenantId id, TextPageLink pageLink) {
-            return customerService.findCustomersByTenantId(id, pageLink).getData();
+        protected TextPageData<Customer> findEntities(TenantId id, TextPageLink pageLink) {
+            return customerService.findCustomersByTenantId(id, pageLink);
         }
         @Override
         protected void updateEntity(Customer entity) {
@@ -195,8 +227,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<TenantId, Asset> assetsGroupAllUpdater = new PaginatedUpdater<TenantId, Asset>() {
         @Override
-        protected List<Asset> findEntities(TenantId id, TextPageLink pageLink) {
-            return assetService.findAssetsByTenantId(id, pageLink).getData();
+        protected TextPageData<Asset> findEntities(TenantId id, TextPageLink pageLink) {
+            return assetService.findAssetsByTenantId(id, pageLink);
         }
         @Override
         protected void updateEntity(Asset entity) {
@@ -206,8 +238,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<TenantId, Device> devicesGroupAllUpdater = new PaginatedUpdater<TenantId, Device>() {
         @Override
-        protected List<Device> findEntities(TenantId id, TextPageLink pageLink) {
-            return deviceService.findDevicesByTenantId(id, pageLink).getData();
+        protected TextPageData<Device> findEntities(TenantId id, TextPageLink pageLink) {
+            return deviceService.findDevicesByTenantId(id, pageLink);
         }
         @Override
         protected void updateEntity(Device entity) {
@@ -217,8 +249,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new PaginatedUpdater<String, Tenant>() {
                 @Override
-                protected List<Tenant> findEntities(String id, TextPageLink pageLink) {
-                    return tenantService.findTenants(pageLink).getData();
+                protected TextPageData<Tenant> findEntities(String id, TextPageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
                 }
 
                 @Override
@@ -230,8 +262,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new PaginatedUpdater<TenantId, Customer>() {
         @Override
-        protected List<Customer> findEntities(TenantId id, TextPageLink pageLink) {
-            return customerService.findCustomersByTenantId(id, pageLink).getData();
+        protected TextPageData<Customer> findEntities(TenantId id, TextPageLink pageLink) {
+            return customerService.findCustomersByTenantId(id, pageLink);
         }
         @Override
         protected void updateEntity(Customer customer) {
@@ -239,7 +271,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     };
 
-    public abstract class PaginatedUpdater<I, D extends IdBased<?>> {
+    public abstract class PaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> {
 
         private static final int DEFAULT_LIMIT = 100;
 
@@ -247,20 +279,18 @@ public class DefaultDataUpdateService implements DataUpdateService {
             TextPageLink pageLink = new TextPageLink(DEFAULT_LIMIT);
             boolean hasNext = true;
             while (hasNext) {
-                List<D> entities = findEntities(id, pageLink);
-                for (D entity : entities) {
+                TextPageData<D> entities = findEntities(id, pageLink);
+                for (D entity : entities.getData()) {
                     updateEntity(entity);
                 }
-                hasNext = entities.size() == pageLink.getLimit();
+                hasNext = entities.hasNext();
                 if (hasNext) {
-                    int index = entities.size() - 1;
-                    UUID idOffset = entities.get(index).getUuidId();
-                    pageLink.setIdOffset(idOffset);
+                    pageLink = entities.getNextPageLink();
                 }
             }
         }
 
-        protected abstract List<D> findEntities(I id, TextPageLink pageLink);
+        protected abstract TextPageData<D> findEntities(I id, TextPageLink pageLink);
 
         protected abstract void updateEntity(D entity);
 

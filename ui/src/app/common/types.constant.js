@@ -362,6 +362,11 @@ export default angular.module('thingsboard.types', [])
                     value: "THINGPARK",
                     http: true
                 },
+                "TMOBILE_IOT_CDP": {
+                    name: "integration.type-tmobile-iot-cdp",
+                    value: "TMOBILE_IOT_CDP",
+                    http: true
+                },
                 "MQTT": {
                     name: "integration.type-mqtt",
                     value: "MQTT",
@@ -392,16 +397,15 @@ export default angular.module('thingsboard.types', [])
                 }
             },
             componentType: {
+                enrichment: "ENRICHMENT",
                 filter: "FILTER",
-                processor: "PROCESSOR",
+                transformation: "TRANSFORMATION",
                 action: "ACTION",
-                plugin: "PLUGIN"
+                external: "EXTERNAL"
             },
             entityType: {
                 device: "DEVICE",
                 asset: "ASSET",
-                rule: "RULE",
-                plugin: "PLUGIN",
                 tenant: "TENANT",
                 customer: "CUSTOMER",
                 user: "USER",
@@ -409,7 +413,9 @@ export default angular.module('thingsboard.types', [])
                 alarm: "ALARM",
                 entityGroup: "ENTITY_GROUP",
                 converter: "CONVERTER",
-                integration: "INTEGRATION"
+                integration: "INTEGRATION",
+                rulechain: "RULE_CHAIN",
+                rulenode: "RULE_NODE"
             },
             entityGroup: {
                 sortOrder: {
@@ -563,6 +569,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "INTEGRATION": {
                     helpId: 'integrations'
+                },
+                "RULE_CHAIN": {
+                    helpId: 'rulechains'
                 }
             },
             aliasEntityType: {
@@ -602,22 +611,6 @@ export default angular.module('thingsboard.types', [])
                     group: 'asset.group',
                     groupList: 'asset.list-of-groups',
                     groupNameStartsWith: 'asset.group-name-starts-with'
-                },
-                "RULE": {
-                    type: 'entity.type-rule',
-                    typePlural: 'entity.type-rules',
-                    list: 'entity.list-of-rules',
-                    nameStartsWith: 'entity.rule-name-starts-with',
-                    details: 'rule.rule-details',
-                    add: 'rule.add'
-                },
-                "PLUGIN": {
-                    type: 'entity.type-plugin',
-                    typePlural: 'entity.type-plugins',
-                    list: 'entity.list-of-plugins',
-                    nameStartsWith: 'entity.plugin-name-starts-with',
-                    details: 'plugin.plugin-details',
-                    add: 'plugin.add'
                 },
                 "TENANT": {
                     type: 'entity.type-tenant',
@@ -693,6 +686,12 @@ export default angular.module('thingsboard.types', [])
                     details: 'integration.integration-details',
                     add: 'integration.add'
                 },
+                "RULE_CHAIN": {
+                    type: 'entity.type-rulechain',
+                    typePlural: 'entity.type-rulechains',
+                    list: 'entity.list-of-rulechains',
+                    nameStartsWith: 'entity.rulechain-name-starts-with'
+                },
                 "CURRENT_CUSTOMER": {
                     type: 'entity.type-current-customer',
                     list: 'entity.type-current-customer'
@@ -728,12 +727,21 @@ export default angular.module('thingsboard.types', [])
                 debugIntegration: {
                     value: "DEBUG_INTEGRATION",
                     name: "event.type-debug-integration"
+                },
+                debugRuleNode: {
+                    value: "DEBUG_RULE_NODE",
+                    name: "event.type-debug-rule-node"
+                },
+                debugRuleChain: {
+                    value: "DEBUG_RULE_CHAIN",
+                    name: "event.type-debug-rule-chain"
                 }
             },
             extensionType: {
                 http: "HTTP",
                 mqtt: "MQTT",
-                opc: "OPC UA"
+                opc: "OPC UA",
+                modbus: "MODBUS"
             },
             extensionValueType: {
                 string: 'value.string',
@@ -791,6 +799,26 @@ export default angular.module('thingsboard.types', [])
                 PKCS12: "PKCS12",
                 JKS: "JKS"
             },
+            extensionModbusFunctionCodes: {
+                1: "Read Coils (1)",
+                2: "Read Discrete Inputs (2)",
+                3: "Read Multiple Holding Registers (3)",
+                4: "Read Input Registers (4)"
+            },
+            extensionModbusTransports: {
+                tcp: "TCP",
+                udp: "UDP",
+                rtu: "RTU"
+            },
+            extensionModbusRtuParities: {
+                none: "none",
+                even: "even",
+                odd: "odd"
+            },
+            extensionModbusRtuEncodings: {
+                ascii: "ascii",
+                rtu: "rtu"
+            },
             opcUaMappingType: {
                 ID: "ID",
                 FQN: "Fully Qualified Name"
@@ -815,6 +843,80 @@ export default angular.module('thingsboard.types', [])
                     value: "SHARED_SCOPE",
                     name: "attribute.scope-shared",
                     clientSide: false
+                }
+            },
+            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "EXTERNAL"],
+            ruleChainNodeComponent: {
+                type: 'RULE_CHAIN',
+                name: 'rule chain',
+                clazz: 'tb.internal.RuleChain',
+                configurationDescriptor: {
+                    nodeDefinition: {
+                        description: "",
+                        details: "Forwards incoming messages to specified Rule Chain",
+                        inEnabled: true,
+                        outEnabled: false,
+                        relationTypes: [],
+                        customRelations: false,
+                        defaultConfiguration: {}
+                    }
+                }
+            },
+            inputNodeComponent: {
+                type: 'INPUT',
+                name: 'Input',
+                clazz: 'tb.internal.Input'
+            },
+            ruleNodeType: {
+                FILTER: {
+                    value: "FILTER",
+                    name: "rulenode.type-filter",
+                    details: "rulenode.type-filter-details",
+                    nodeClass: "tb-filter-type",
+                    icon: "filter_list"
+                },
+                ENRICHMENT: {
+                    value: "ENRICHMENT",
+                    name: "rulenode.type-enrichment",
+                    details: "rulenode.type-enrichment-details",
+                    nodeClass: "tb-enrichment-type",
+                    icon: "playlist_add"
+                },
+                TRANSFORMATION: {
+                    value: "TRANSFORMATION",
+                    name: "rulenode.type-transformation",
+                    details: "rulenode.type-transformation-details",
+                    nodeClass: "tb-transformation-type",
+                    icon: "transform"
+                },
+                ACTION: {
+                    value: "ACTION",
+                    name: "rulenode.type-action",
+                    details: "rulenode.type-action-details",
+                    nodeClass: "tb-action-type",
+                    icon: "flash_on"
+                },
+                EXTERNAL: {
+                    value: "EXTERNAL",
+                    name: "rulenode.type-external",
+                    details: "rulenode.type-external-details",
+                    nodeClass: "tb-external-type",
+                    icon: "cloud_upload"
+                },
+                RULE_CHAIN: {
+                    value: "RULE_CHAIN",
+                    name: "rulenode.type-rule-chain",
+                    details: "rulenode.type-rule-chain-details",
+                    nodeClass: "tb-rule-chain-type",
+                    icon: "settings_ethernet"
+                },
+                INPUT: {
+                    value: "INPUT",
+                    name: "rulenode.type-input",
+                    details: "rulenode.type-input-details",
+                    nodeClass: "tb-input-type",
+                    icon: "input",
+                    special: true
                 }
             },
             valueType: {

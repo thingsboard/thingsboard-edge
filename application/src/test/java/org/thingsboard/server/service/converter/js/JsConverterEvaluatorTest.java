@@ -30,33 +30,28 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
-import org.thingsboard.server.service.integration.downlink.AttributeUpdate;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-import org.thingsboard.server.service.integration.downlink.RPCCall;
+import org.thingsboard.server.service.script.TestNashornJsSandboxService;
 
-import javax.script.ScriptException;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -67,37 +62,39 @@ public class JsConverterEvaluatorTest {
 
     final ObjectMapper mapper = new ObjectMapper();
 
-    @Test
-    public void basicUplinkTest() throws ScriptException, NoSuchMethodException {
-        JSUplinkEvaluator eval = createUplinkEvaluator("uplinkConverter.js");
-        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
-        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
+    private TestNashornJsSandboxService jsSandboxService;
+
+    @Before
+    public void beforeTest() throws Exception {
+        jsSandboxService = new TestNashornJsSandboxService(false, 1, 100, 3);
+    }
+
+    @After
+    public void afterTest() throws Exception {
+        jsSandboxService.stop();
     }
 
     @Test
-    public void basicDownlinkTest() throws ScriptException, NoSuchMethodException, IOException {
+    public void basicUplinkTest() throws Exception {
+        JSUplinkEvaluator eval = createUplinkEvaluator("uplinkConverter.js");
+        String result = eval.execute("ABC".getBytes(StandardCharsets.UTF_8), new UplinkMetaData("JSON", Collections.singletonMap("temperatureKeyName", "temperature")));
+        Assert.assertEquals("{\"deviceName\":\"ABC\",\"telemetry\":{\"telemetryKeyName\":42}}", result);
+        eval.destroy();
+    }
+
+    @Test
+    public void basicDownlinkTest() throws Exception {
         JSDownlinkEvaluator eval = createDownlinkEvaluator("downlinkConverter.js");
 
-        DownLinkMsg downLinkMsg = new DownLinkMsg(new DeviceId(EntityId.NULL_UUID), "Sensor A", "temp-sensor");
-        downLinkMsg.getUpdatedAttributes().put("temperature", new AttributeUpdate(System.currentTimeMillis(), "33"));
-        downLinkMsg.getUpdatedAttributes().put("humidity", new AttributeUpdate(System.currentTimeMillis(), "78"));
-        downLinkMsg.getDeletedAttributes().add("latitude");
+        String rawJson = "{\"temperature\": 33, \"humidity\": 78}";
 
-        RPCCall rpcCall = new RPCCall();
-        rpcCall.setId(UUID.randomUUID());
-        rpcCall.setExpirationTime(System.currentTimeMillis() + 24 * 60 * 1000);
-        rpcCall.setMethod("updateState");
-        rpcCall.setParams("{\"status\": \"ACTIVE\"}");
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        IntegrationMetaData integrationMetaData = new IntegrationMetaData(Collections.singletonMap("topicPrefix", "sensor"));
+        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
 
-        downLinkMsg.getRpcCalls().add(rpcCall);
-
-        String downlinkPayload = mapper.writeValueAsString(downLinkMsg);
-
-        String result = eval.execute(downlinkPayload, new DownLinkMetaData(Collections.singletonMap("topicPrefix", "sensor")));
-        JsonElement element = new JsonParser().parse(result);
-        Assert.assertTrue(element.isJsonObject());
-
-        DownlinkData downlinkData = AbstractDownlinkDataConverter.parseDownlinkData(element.getAsJsonObject(), downLinkMsg);
+        JsonNode result = eval.execute(msg, integrationMetaData);
+        Assert.assertTrue(result.isObject());
+        DownlinkData downlinkData = AbstractDownlinkDataConverter.parseDownlinkData(result);
 
         Assert.assertEquals("JSON", downlinkData.getContentType());
         Assert.assertEquals(1, downlinkData.getMetadata().size());
@@ -108,16 +105,24 @@ public class JsConverterEvaluatorTest {
 
         Assert.assertTrue(dataJson.has("temperature"));
         Assert.assertEquals("33", dataJson.get("temperature").asText());
+
+        Assert.assertTrue(dataJson.has("humidity"));
+        Assert.assertEquals("78", dataJson.get("humidity").asText());
+
+        Assert.assertTrue(dataJson.has("dewPoint"));
+        Assert.assertEquals("28.65", dataJson.get("dewPoint").asText());
+
+        eval.destroy();
     }
 
     private JSUplinkEvaluator createUplinkEvaluator(String scriptName) {
         InputStream src = JsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSUplinkEvaluator(read(src));
+        return new JSUplinkEvaluator(jsSandboxService, read(src));
     }
 
     private JSDownlinkEvaluator createDownlinkEvaluator(String scriptName) {
         InputStream src = JsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSDownlinkEvaluator(read(src));
+        return new JSDownlinkEvaluator(jsSandboxService, read(src));
     }
 
     public static String read(InputStream input) {

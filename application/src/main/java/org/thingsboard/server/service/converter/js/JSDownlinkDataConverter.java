@@ -30,25 +30,30 @@
  */
 package org.thingsboard.server.service.converter.js;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.*;
-import org.thingsboard.server.service.integration.ConverterContext;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-
-import java.util.List;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
+import org.thingsboard.server.service.script.JsSandboxService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
-    private JSDownlinkEvaluator jsDownlinkEvaluator;
+    private final JsSandboxService sandboxService;
+    private JSDownlinkEvaluator evaluator;
+
+    public JSDownlinkDataConverter(JsSandboxService sandboxService) {
+        this.sandboxService = sandboxService;
+    }
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
         String encoder = configuration.getConfiguration().get("encoder").asText();
-        jsDownlinkEvaluator = new JSDownlinkEvaluator(encoder);
+        this.evaluator = new JSDownlinkEvaluator(sandboxService, encoder);
     }
 
     @Override
@@ -59,18 +64,14 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
     @Override
     public void destroy() {
-        if (jsDownlinkEvaluator != null) {
-            jsDownlinkEvaluator.destroy();
+        if (this.evaluator != null) {
+            this.evaluator.destroy();
         }
     }
 
-
     @Override
-    protected String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception {
-        return applyJsFunction(payload, metadata);
+    protected JsonNode doConvertDownlink(TbMsg msg, IntegrationMetaData metadata) throws Exception {
+        return evaluator.execute(msg, metadata);
     }
 
-    private String applyJsFunction(String payload, DownLinkMetaData metadata) throws Exception {
-        return jsDownlinkEvaluator.execute(payload, metadata);
-    }
 }

@@ -63,13 +63,22 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_CUSTOMER_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_ENTITY_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_TENANT_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_USER_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_COLUMN_FAMILY_NAME;
 
 @Component
 @Slf4j
@@ -259,12 +268,12 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
             values.add("?");
         }
         String statementString = INSERT_INTO + cfName + " (" + String.join(",", columnsList) + ") VALUES (" + values.toString() + ")";
-        return getSession().prepare(statementString);
+        return prepare(statementString);
     }
 
     private PreparedStatement getPartitionInsertStmt() {
         if (partitionInsertStmt == null) {
-            partitionInsertStmt = getSession().prepare(INSERT_INTO + ModelConstants.AUDIT_LOG_BY_TENANT_ID_PARTITIONS_CF +
+            partitionInsertStmt = prepare(INSERT_INTO + ModelConstants.AUDIT_LOG_BY_TENANT_ID_PARTITIONS_CF +
                     "(" + ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY +
                     "," + ModelConstants.AUDIT_LOG_PARTITION_PROPERTY + ")" +
                     " VALUES(?, ?)");
@@ -358,7 +367,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
                 .where(eq(ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY, tenantId));
         select.and(QueryBuilder.gte(ModelConstants.PARTITION_COLUMN, minPartition));
         select.and(QueryBuilder.lte(ModelConstants.PARTITION_COLUMN, maxPartition));
-        return getSession().execute(select);
+        return executeRead(select);
     }
 
 }

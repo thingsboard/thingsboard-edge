@@ -30,8 +30,9 @@
  */
 package org.thingsboard.server.service.cluster.discovery;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationException;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -46,15 +47,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.thingsboard.server.gen.discovery.ServerInstanceProtos.ServerInfo;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.MiscUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -81,6 +85,14 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
 
     @Autowired
     private ServerInstanceService serverInstance;
+
+    @Autowired
+    @Lazy
+    private TelemetrySubscriptionService tsSubService;
+
+    @Autowired
+    @Lazy
+    private DeviceStateService deviceStateService;
 
     private final List<DiscoveryServiceListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -128,7 +140,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             log.info("[{}:{}] Creating ZK node for current instance", self.getHost(), self.getPort());
             nodePath = client.create()
                     .creatingParentsIfNeeded()
-                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(zkNodesDir + "/", self.getServerInfo().toByteArray());
+                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(zkNodesDir + "/", SerializationUtils.serialize(self.getServerAddress()));
             log.info("[{}:{}] Created ZK node for current instance: {}", self.getHost(), self.getPort(), nodePath);
         } catch (Exception e) {
             log.error("Failed to create ZK node", e);
@@ -159,8 +171,8 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                 .filter(cd -> !cd.getPath().equals(nodePath))
                 .map(cd -> {
                     try {
-                        return new ServerInstance(ServerInfo.parseFrom(cd.getData()));
-                    } catch (InvalidProtocolBufferException e) {
+                        return new ServerInstance( (ServerAddress) SerializationUtils.deserialize(cd.getData()));
+                    } catch (NoSuchElementException e) {
                         log.error("Failed to decode ZK node", e);
                         throw new RuntimeException(e);
                     }
@@ -201,20 +213,25 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
         }
         ServerInstance instance;
         try {
-            instance = new ServerInstance(ServerInfo.parseFrom(data.getData()));
-        } catch (IOException e) {
+            ServerAddress serverAddress  = SerializationUtils.deserialize(data.getData());
+            instance = new ServerInstance(serverAddress);
+        } catch (SerializationException e) {
             log.error("Failed to decode server instance for node {}", data.getPath(), e);
             throw e;
         }
         log.info("Processing [{}] event for [{}:{}]", pathChildrenCacheEvent.getType(), instance.getHost(), instance.getPort());
         switch (pathChildrenCacheEvent.getType()) {
             case CHILD_ADDED:
+                tsSubService.onClusterUpdate();
+                deviceStateService.onClusterUpdate();
                 listeners.forEach(listener -> listener.onServerAdded(instance));
                 break;
             case CHILD_UPDATED:
                 listeners.forEach(listener -> listener.onServerUpdated(instance));
                 break;
             case CHILD_REMOVED:
+                tsSubService.onClusterUpdate();
+                deviceStateService.onClusterUpdate();
                 listeners.forEach(listener -> listener.onServerRemoved(instance));
                 break;
             default:

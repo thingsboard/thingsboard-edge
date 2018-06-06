@@ -35,7 +35,6 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
@@ -50,7 +49,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.thingsboard.server.service.install.DatabaseHelper.*;
+import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
+import static org.thingsboard.server.service.install.DatabaseHelper.ASSET;
+import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
+import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATION;
+import static org.thingsboard.server.service.install.DatabaseHelper.CUSTOMER_ID;
+import static org.thingsboard.server.service.install.DatabaseHelper.DASHBOARD;
+import static org.thingsboard.server.service.install.DatabaseHelper.DEVICE;
+import static org.thingsboard.server.service.install.DatabaseHelper.ID;
+import static org.thingsboard.server.service.install.DatabaseHelper.SEARCH_TEXT;
+import static org.thingsboard.server.service.install.DatabaseHelper.TENANT_ID;
+import static org.thingsboard.server.service.install.DatabaseHelper.TITLE;
 
 @Service
 @NoSqlDao
@@ -63,9 +72,6 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
     public static final String CONVERTER = "converter";
     public static final String INTEGRATION = "integration";
 
-    @Value("${install.data_dir}")
-    private String dataDir;
-
     @Autowired
     private CassandraCluster cluster;
 
@@ -74,6 +80,9 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
     @Autowired
     private DashboardService dashboardService;
+
+    @Autowired
+    private InstallScripts installScripts;
 
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
@@ -111,7 +120,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Relations dumped.");
 
                 log.info("Updating schema ...");
-                Path schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.3.0", SCHEMA_UPDATE_CQL);
+                Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.3.0", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
                 log.info("Schema updated.");
 
@@ -193,7 +202,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
 
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.4.0", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.4.0", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
                 log.info("Schema updated.");
 
@@ -207,13 +216,23 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Dashboards restored.");
                 break;
             case "1.4.0":
+
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(this.dataDir, "upgrade", "1.4.0pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0", SCHEMA_UPDATE_CQL);
+                loadCql(schemaUpdateFile);
+                log.info("Schema updated.");
+
+                break;
+
+            case "2.0.0":
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
                 try {
                     cluster.getSession().execute(updateIntegrationTableStmt);
+                    Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
 
                 log.info("Schema updated.");
@@ -233,7 +252,6 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                     cluster.getSession().execute(statement);
                 }
 
-
                 log.info("Converters updated.");
                 break;
             default:
@@ -244,7 +262,13 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
     private void loadCql(Path cql) throws Exception {
         List<String> statements = new CQLStatementsParser(cql).getStatements();
-        statements.forEach(statement -> installCluster.getSession().execute(statement));
+        statements.forEach(statement -> {
+            installCluster.getSession().execute(statement);
+            try {
+                Thread.sleep(2500);
+            } catch (InterruptedException e) {}
+        });
+        Thread.sleep(5000);
     }
 
 }

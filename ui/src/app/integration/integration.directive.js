@@ -126,7 +126,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 integration.configuration.clientConfiguration = {
                     connectTimeoutSec: 10,
                     credentials: {
-                    }
+                    },
+                    cleanSession: true
                 };
                 if (integration.type == types.integrationType.AWS_IOT.value ||
                     integration.type == types.integrationType.IBM_WATSON_IOT.value ||
@@ -176,27 +177,25 @@ export default function IntegrationDirective($compile, $templateCache, $translat
         }
 
         function setupOpcUaConfiguration(integration) {
-        //if (!integration.configuration.clientConfiguration) {
-                integration.configuration.clientConfiguration = {
-                    applicationUri : '',
-                    host : 'localhost',
-                    port : 49320,
-                    scanPeriodInSeconds : 10,
-                    timeoutInMillis : 5000,
-                    security : 'Basic128Rsa15',
-                    identity : {
-                        type : 'anonymous'
-                    },
-                    keystore : {
-                        type : '',
-                        fileContent : '',
-                        password : 'secret',
-                        alias : 'opc-ua-extension',
-                        keyPassword : 'secret',
-                    },
-                    mapping : []
-                }
-        //    }
+            integration.configuration.clientConfiguration = {
+                applicationUri : '',
+                host : 'localhost',
+                port : 49320,
+                scanPeriodInSeconds : 10,
+                timeoutInMillis : 5000,
+                security : 'Basic128Rsa15',
+                identity : {
+                    type : 'anonymous'
+                },
+                keystore : {
+                    type : '',
+                    fileContent : '',
+                    password : 'secret',
+                    alias : 'opc-ua-extension',
+                    keyPassword : 'secret',
+                },
+                mapping : []
+            }
         }
 
         function setupAzureEventHubConfiguration(integration) {

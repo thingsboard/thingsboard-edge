@@ -45,7 +45,6 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DeviceService {
     
