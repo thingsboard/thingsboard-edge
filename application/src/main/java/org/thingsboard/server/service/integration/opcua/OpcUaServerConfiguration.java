@@ -28,19 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.opcua;
 
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true);
+import lombok.Data;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+import java.util.List;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-    }
+@Data
+public class OpcUaServerConfiguration {
 
-    public boolean isSingleton() {
-        return singleton;
-    }
+    private String applicationName;
+    private String applicationUri;
+    private String host;
+    private int port;
+    private int scanPeriodInSeconds;
+    private int timeoutInMillis;
+    private String security;
+    private IdentityProviderConfiguration identity;
+    private KeystoreConfiguration keystore;
+    private List<DeviceMapping> mapping;
+
 }

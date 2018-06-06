@@ -28,19 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.opcua;
 
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true);
+import lombok.Data;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+/**
+ * Created by Valerii Sosliuk on 4/24/2018.
+ */
+@Data
+public class DeviceMapping {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-    }
-
-    public boolean isSingleton() {
-        return singleton;
-    }
+    private final DeviceMappingType mappingType;
+    private final String deviceNodePattern;
 }

@@ -41,9 +41,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -51,7 +51,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
@@ -65,16 +64,16 @@ import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
-import org.thingsboard.server.service.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.server.service.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegration;
+import org.thingsboard.server.service.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
-import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -313,6 +312,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
+            case OPC_UA:
+                return new OpcUaIntegration(context);
             default:
                 throw new RuntimeException("Not Implemented!");
         }

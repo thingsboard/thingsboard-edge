@@ -75,7 +75,8 @@ var integrationTypeHelpLinkMap = {
     'AWS_IOT': 'integrationAwsIoT',
     'IBM_WATSON_IOT': 'integrationIbmWatsonIoT',
     'TTN': 'integrationTheThingsNetwork',
-    'AZURE_EVENT_HUB': 'integrationAzureEventHub'
+    'AZURE_EVENT_HUB': 'integrationAzureEventHub',
+    'OPC_UA': 'integrationOpcUa'
 };
 
 var helpBaseUrl = "https://thingsboard.io";
@@ -148,6 +149,7 @@ export default angular.module('thingsboard.help', [])
                 integrationIbmWatsonIoT: helpBaseUrl +  "/docs/user-guide/integrations/ibm-watson-iot",
                 integrationTheThingsNetwork: helpBaseUrl +  "/docs/user-guide/integrations/ttn",
                 integrationAzureEventHub: helpBaseUrl +  "/docs/user-guide/integrations/azure-event-hub",
+                integrationOpcUa:  helpBaseUrl +  "/docs/user-guide/integrations/opc-ua",
                 whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
                 entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
             },

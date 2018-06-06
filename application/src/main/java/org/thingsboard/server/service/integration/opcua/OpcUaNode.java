@@ -28,19 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.opcua;
 
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true);
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Data;
+import lombok.ToString;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.springframework.util.StringUtils;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+/**
+ * Created by Valerii Sosliuk on 4/27/2018.
+ */
+@Data
+@ToString(exclude = "parent")
+public class OpcUaNode {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
+    private final NodeId nodeId;
+    private final OpcUaNode parent;
+    private final String name;
+    private final String fqn;
+
+    public OpcUaNode(NodeId nodeId, String name) {
+        this(null, nodeId, name);
     }
 
-    public boolean isSingleton() {
-        return singleton;
+    public OpcUaNode(OpcUaNode parent, NodeId nodeId, String name) {
+        this.parent = parent;
+        this.nodeId = nodeId;
+        this.name = name;
+        this.fqn = ((parent != null && !StringUtils.isEmpty(parent.getFqn())) ? parent.getFqn() + "." : "") + name;
     }
+
 }

@@ -28,19 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.server.service.integration.opcua;
 
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true);
+import lombok.Data;
+import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
+import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+/**
+ * Created by ashvayka on 16.01.17.
+ */
+@Data
+public class UsernameIdentityProviderConfiguration implements IdentityProviderConfiguration {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-    }
+    private final String username;
+    private final String password;
 
-    public boolean isSingleton() {
-        return singleton;
+    @Override
+    public IdentityProvider toProvider() {
+        return new UsernameProvider(username, password);
     }
 }
