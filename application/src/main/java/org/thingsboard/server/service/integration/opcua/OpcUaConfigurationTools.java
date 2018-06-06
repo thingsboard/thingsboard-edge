@@ -60,7 +60,7 @@ public class OpcUaConfigurationTools {
             }
         } catch (IOException | GeneralSecurityException e) {
             log.error("Keystore configuration: [{}] is invalid!", configuration, e);
-            throw e;
+            throw new RuntimeException("Failed to load certificate using provided configuration!", e);
         }
     }
 

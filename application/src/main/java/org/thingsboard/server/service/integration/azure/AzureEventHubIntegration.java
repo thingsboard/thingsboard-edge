@@ -66,7 +66,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private EventHubClient ehClient;
     private ServiceClient serviceClient;
     private List<PartitionReceiver> receivers;
-    private transient boolean started = false;
+    private volatile boolean started = false;
     private ExecutorService executorService;
     private List<Future> receiverFutures;
 

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
+import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.VariableNode;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
@@ -60,10 +61,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -79,9 +77,10 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private Map<Pattern, DeviceMapping> mappings;
     private OpcUaClient client;
-    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService executor;
     private OpcUaServerConfiguration opcUaServerConfiguration;
     private IntegrationContext integrationContext;
+    private volatile boolean connected = false;
 
     public OpcUaIntegration(IntegrationContext integrationContext) {
         this.integrationContext = integrationContext;
@@ -93,9 +92,20 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         opcUaServerConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 OpcUaServerConfiguration.class);
+        if (opcUaServerConfiguration.getMapping().isEmpty()) {
+            throw new IllegalArgumentException("No mapping elements configured!");
+        }
         this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
         initClient(opcUaServerConfiguration);
-        scanForDevices();
+        connected = true;
+        executor = Executors.newSingleThreadScheduledExecutor();
+        executor.execute(() -> scanForDevices());
+    }
+
+    @Override
+    public void update(TbIntegrationInitParams params) throws Exception {
+        destroy();
+        init(params);
     }
 
     @Override
@@ -118,34 +128,62 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         try {
 
             log.info("Initializing OPC-UA server connection to [{}:{}]!", configuration.getHost(), configuration.getPort());
-            CertificateInfo certificate = OpcUaConfigurationTools.loadCertificate(configuration.getKeystore());
 
             SecurityPolicy securityPolicy = SecurityPolicy.valueOf(configuration.getSecurity());
             IdentityProvider identityProvider = configuration.getIdentity().toProvider();
 
-            EndpointDescription[] endpoints = UaTcpStackClient.getEndpoints("opc.tcp://" + configuration.getHost() + ":" + configuration.getPort() + "/").get();
+            EndpointDescription[] endpoints;
+            String endpointUrl = "opc.tcp://" + configuration.getHost() + ":" + configuration.getPort();
+            try {
+                endpoints = UaTcpStackClient.getEndpoints(endpointUrl).get();
+            } catch (ExecutionException e) {
+                log.error("Failed to connect to provided endpoint!", e);
+                throw new RuntimeException("Failed to connect to provided endpoint: " + endpointUrl);
+            }
 
             EndpointDescription endpoint = Arrays.stream(endpoints)
                     .filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getSecurityPolicyUri()))
                     .findFirst().orElseThrow(() -> new Exception("no desired endpoints returned"));
 
-            OpcUaClientConfig config = OpcUaClientConfig.builder()
+            OpcUaClientConfigBuilder configBuilder = OpcUaClientConfig.builder()
                     .setApplicationName(LocalizedText.english(configuration.getApplicationName()))
                     .setApplicationUri(configuration.getApplicationUri())
-                    .setCertificate(certificate.getCertificate())
-                    .setKeyPair(certificate.getKeyPair())
                     .setEndpoint(endpoint)
                     .setIdentityProvider(identityProvider)
-                    .setRequestTimeout(uint(configuration.getTimeoutInMillis()))
-                    .build();
+                    .setRequestTimeout(uint(configuration.getTimeoutInMillis()));
+
+            if (securityPolicy != SecurityPolicy.None) {
+                CertificateInfo certificate = OpcUaConfigurationTools.loadCertificate(configuration.getKeystore());
+                configBuilder.setCertificate(certificate.getCertificate())
+                        .setKeyPair(certificate.getKeyPair());
+            }
+
+            OpcUaClientConfig config = configBuilder.build();
 
             client = new OpcUaClient(config);
             client.connect().get();
         } catch (Exception e) {
-            log.error("Falied to connect to OPC-UA server. Reason: {}", e.getMessage(), e);
-            throw e;
+            Throwable t = e;
+            if (e instanceof ExecutionException) {
+                t = e.getCause();
+            }
+            log.error("Failed to connect to OPC-UA server. Reason: {}", t.getMessage(), t);
+            throw new RuntimeException("Failed to connect to OPC-UA server. Reason: " + t.getMessage());
         }
 
+    }
+
+    @Override
+    public void destroy() {
+        if (connected) {
+            try {
+                connected = false;
+                client.disconnect().get(2, TimeUnit.SECONDS);
+            } catch (Exception e) {}
+        }
+        if (executor != null) {
+            executor.shutdownNow();
+        }
     }
 
     public void scanForDevices() {
@@ -157,11 +195,12 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         } catch (Exception e) {
             log.warn("Periodic device scan failed!", e);
         }
-
-        log.info("Scheduling next scan in {} seconds!", opcUaServerConfiguration.getScanPeriodInSeconds());
-        executor.schedule(() -> {
-            scanForDevices();
-        }, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
+        if (connected) {
+            log.info("Scheduling next scan in {} seconds!", opcUaServerConfiguration.getScanPeriodInSeconds());
+            executor.schedule(() -> {
+                scanForDevices();
+            }, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
+        }
     }
 
     private void scanForDevices(OpcUaNode node) {
@@ -194,7 +233,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
-            log.error("Browsing nodeId={} failed: {}", node, e.getMessage(), e);
+            if (connected) {
+                log.error("Browsing nodeId={} failed: {}", node, e.getMessage(), e);
+            }
         }
     }
 

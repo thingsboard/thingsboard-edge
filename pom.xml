@@ -71,7 +71,7 @@
         <scala.version>2.11</scala.version>
         <akka.version>2.4.2</akka.version>
         <californium.version>1.0.2</californium.version>
-        <milo.client.version>0.1.0</milo.client.version>
+        <milo.client.version>0.2.1</milo.client.version>
         <gson.version>2.6.2</gson.version>
         <velocity.version>1.7</velocity.version>
         <velocity-tools.version>2.0</velocity-tools.version>
