@@ -218,6 +218,10 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             scope.updateValidity();
         };
 
+        scope.opcUaSecurityTypeChanged = () => {
+            scope.updateValidity();
+        };
+
         scope.certFileAdded = ($file, fileType) => {
             var reader = new FileReader();
             reader.onload = function(event) {
@@ -266,6 +270,8 @@ export default function IntegrationDirective($compile, $templateCache, $translat
         scope.updateValidity = () => {
             var certsValid = true;
             var topicFiltersValid = true;
+            var uaMappingValid = true;
+            var uaKeyStoreValid = true;
             if (scope.integration.type && types.integrationType[scope.integration.type].mqtt) {
                 var credentials = scope.integration.configuration.clientConfiguration.credentials;
                 if (credentials.type == types.mqttCredentialTypes['cert.PEM'].value) {
@@ -277,8 +283,20 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                     topicFiltersValid = false;
                 }
             }
+            if (scope.integration.type && scope.integration.type == types.integrationType.OPC_UA.value) {
+                if (!scope.integration.configuration.clientConfiguration.mapping || !scope.integration.configuration.clientConfiguration.mapping.length) {
+                    uaMappingValid = false;
+                }
+                if (scope.integration.configuration.clientConfiguration.security != 'None') {
+                    if (!scope.integration.configuration.clientConfiguration.keystore.fileContent) {
+                        uaKeyStoreValid = false;
+                    }
+                }
+            }
             scope.theForm.$setValidity('Certs', certsValid);
             scope.theForm.$setValidity('TopicFilters', topicFiltersValid);
+            scope.theForm.$setValidity('UAMapping', uaMappingValid);
+            scope.theForm.$setValidity('UAKeyStore', uaKeyStoreValid);
         };
 
         scope.integrationBaseUrlChanged = () => {
@@ -333,42 +351,51 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             scope.updateValidity();
         };
 
-        scope.removeItem = (item, itemList) => {
-            var index = itemList.indexOf(item);
+        scope.removeOpcUaMapping = (index) => {
             if (index > -1) {
-                itemList.splice(index, 1);
+                scope.integration.configuration.clientConfiguration.mapping.splice(index, 1);
+                scope.theForm.$setDirty();
+                scope.updateValidity();
             }
         };
 
-        function Map() {
-            this.deviceNodePattern = "Channel1\\.Device\\d+$";
-        }
-
-        scope.addMap = function(mappingList) {
-            mappingList.push(new Map());
+        scope.addOpcUaMapping = () => {
+            if (!scope.integration.configuration.clientConfiguration.mapping) {
+                scope.integration.configuration.clientConfiguration.mapping = [];
+            }
+            scope.integration.configuration.clientConfiguration.mapping.push(
+                {
+                    deviceNodePattern: 'Channel1\\.Device\\d+$',
+                    mappingType: 'FQN'
+                }
+            );
+            scope.theForm.$setDirty();
+            scope.updateValidity();
         };
 
-        scope.fileAdded = function($file, model, options) {
+        scope.opcUaKeystoreFileAdded = function($file) {
             let reader = new FileReader();
             reader.onload = function(event) {
                 scope.$apply(function() {
                     if(event.target.result) {
                         scope.theForm.$setDirty();
                         let addedFile = event.target.result;
-
                         if (addedFile && addedFile.length > 0) {
-                            model[options.location] = $file.name;
-                            model[options.fileContent] = addedFile.replace(/^data.*base64,/, "");
-
+                            scope.integration.configuration.clientConfiguration.keystore.location = $file.name;
+                            scope.integration.configuration.clientConfiguration.keystore.fileContent = addedFile.replace(/^data.*base64,/, "");
                         }
+                        scope.updateValidity();
                     }
                 });
             };
             reader.readAsDataURL($file.file);
         };
 
-        scope.clearFile = function(model, options) {
-            model[options.fileContent] = null;
+        scope.clearUaKeystoreFileFile = () => {
+            scope.theForm.$setDirty();
+            scope.integration.configuration.clientConfiguration.keystore.location = null;
+            scope.integration.configuration.clientConfiguration.keystore.fileContent = null;
+            scope.updateValidity();
         };
 
         $compile(element.contents())(scope);

@@ -110,17 +110,36 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     @Override
     public void process(IntegrationContext context, OpcUaIntegrationMsg msg) {
-        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+        String status = "OK";
+        Exception exception = null;
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), mdMap));
-            if (uplinkDataList != null) {
-                for (UplinkData data : uplinkDataList) {
-                    processUplinkData(context, data);
-                    log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
-                }
-            }
+            doProcess(context, msg);
+            integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
-            log.warn("Failed to procss OPC-UA device [" + msg.getNodeId() + "]. Reason: " + e.getMessage(), e);
+            log.warn("Failed to apply data converter function", e);
+            exception = e;
+            status = "ERROR";
+        }
+        if (!status.equals("OK")) {
+            integrationStatistics.incErrorsOccurred();
+        }
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
+    }
+
+    private void doProcess(IntegrationContext context, OpcUaIntegrationMsg msg) throws Exception {
+        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), mdMap));
+        if (uplinkDataList != null) {
+            for (UplinkData data : uplinkDataList) {
+                processUplinkData(context, data);
+                log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
+            }
         }
     }
 
