@@ -28,30 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.rule.engine.math;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-/**
- * @author Andrew Shvayka
- */
-public interface TimeseriesService {
+@Data
+public class TbSimpleAggMsgNodeConfiguration implements NodeConfiguration {
 
-    ListenableFuture<TsKvEntry> findOne(EntityId entityId, long ts, String key);
+    private String mathFunction;
+    private String intervalTimeUnit;
+    private int intervalValue;
 
-    ListenableFuture<List<TsKvEntry>> findAll(EntityId entityId, List<TsKvQuery> queries);
+    private String valueKey;
 
-    ListenableFuture<List<TsKvEntry>> findLatest(EntityId entityId, Collection<String> keys);
+    private String statePersistencePolicy;
+    private String statePersistencePeriod;
+    private int statePersistenceValue;
 
-    ListenableFuture<List<TsKvEntry>> findAllLatest(EntityId entityId);
+    private String msgAckPolicy;
 
-    ListenableFuture<List<Void>> save(EntityId entityId, TsKvEntry tsKvEntry);
+    private String msgRoutingPolicy;
 
-    ListenableFuture<List<Void>> save(EntityId entityId, List<TsKvEntry> tsKvEntry, long ttl);
+    @Override
+    public TbSimpleAggMsgNodeConfiguration defaultConfiguration() {
+        TbSimpleAggMsgNodeConfiguration configuration = new TbSimpleAggMsgNodeConfiguration();
+        configuration.setMathFunction(MathFunction.AVG.name());
+        configuration.setIntervalTimeUnit(TimeUnit.HOURS.name());
+        configuration.setIntervalValue(1);
+        configuration.setValueKey("temperature");
+
+        return configuration;
+    }
+
 }
