@@ -31,10 +31,12 @@
 import IntegrationRoutes from './integration.routes';
 import {IntegrationController, IntegrationCardController} from './integration.controller';
 import IntegrationDirective from './integration.directive';
+import IntegrationHttpDirective from './integration-forms/integration-http.directive';
 
 export default angular.module('thingsboard.integration', [])
     .config(IntegrationRoutes)
     .controller('IntegrationController', IntegrationController)
     .controller('IntegrationCardController', IntegrationCardController)
     .directive('tbIntegration', IntegrationDirective)
+    .directive('tbIntegrationHttp', IntegrationHttpDirective)
     .name;

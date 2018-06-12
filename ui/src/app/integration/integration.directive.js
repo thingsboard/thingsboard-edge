@@ -299,28 +299,6 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             scope.theForm.$setValidity('UAKeyStore', uaKeyStoreValid);
         };
 
-        scope.integrationBaseUrlChanged = () => {
-            if (types.integrationType[scope.integration.type].http) {
-                scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.integration);
-            }
-        };
-
-        scope.httpEnableSecurityChanged = () => {
-            if (scope.integration.configuration.enableSecurity &&
-                !scope.integration.configuration.headersFilter) {
-                scope.integration.configuration.headersFilter = {};
-            } else if (!scope.integration.configuration.enableSecurity) {
-                delete scope.integration.configuration.headersFilter;
-            }
-        };
-
-        scope.thingparkEnableSecurityChanged = () => {
-              if (scope.integration.configuration.enableSecurity &&
-                  !scope.integration.configuration.maxTimeDiffInSeconds) {
-                  scope.integration.configuration.maxTimeDiffInSeconds = 60;
-              }
-        };
-
         scope.onIntegrationIdCopied = function() {
             toast.showSuccess($translate.instant('integration.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
         };

@@ -86,7 +86,15 @@
                                    use-full-entity-id="true">
         </tb-converter-autocomplete>
     </fieldset>
-    <section ng-if="types.integrationType[integration.type].http">
+    <tb-integration-http
+            ng-if="types.integrationType[integration.type].http"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+            integration-type="integration.type"
+            routing-key="integration.routingKey"
+    >
+    </tb-integration-http>
+    <!--section ng-if="types.integrationType[integration.type].http">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <md-input-container class="md-block">
                 <label translate>integration.base-url</label>
@@ -176,7 +184,7 @@
                 </md-tooltip>
             </md-button>
         </div>
-    </section>
+    </section-->
     <section ng-if="integration.type == types.integrationType.MQTT.value">
         <fieldset ng-disabled="$root.loading || !isEdit">
             <div layout="column" layout-gt-sm="row">

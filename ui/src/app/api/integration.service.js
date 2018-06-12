@@ -98,10 +98,10 @@ function IntegrationService($http, $q) {
         return deferred.promise;
     }
 
-    function getIntegrationHttpEndpointLink(integration) {
-        var url = integration.configuration.baseUrl;
-        var type = integration.type ? integration.type.toLowerCase() : '';
-        var key = integration.routingKey ? integration.routingKey : '';
+    function getIntegrationHttpEndpointLink(configuration, integrationType, routingKey) {
+        var url = configuration.baseUrl;
+        var type = integrationType ? integrationType.toLowerCase() : '';
+        var key = routingKey ? routingKey : '';
         url += `/api/v1/integrations/${type}/${key}`;
         return url;
     }
