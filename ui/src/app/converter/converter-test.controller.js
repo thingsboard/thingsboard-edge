@@ -39,7 +39,8 @@ const js_beautify = beautify.js;
 /*@ngInject*/
 export default function ConverterTestController($scope, $mdDialog, $window, $document, $timeout,
                                                     $q, $mdUtil, $translate, toast, types, utils,
-                                                    converterService, onShowingCallback, isDecoder, funcBody) {
+                                                    converterService, onShowingCallback, isDecoder, funcBody,
+                                                    debugIn) {
 
     var vm = this;
 
@@ -47,36 +48,71 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
     vm.isDecoder = isDecoder;
     vm.funcBody = funcBody;
 
+    vm.inputParams = {};
+
+    if (debugIn) {
+        if (debugIn.inContentType) {
+            vm.inputParams.payloadContentType = debugIn.inContentType;
+            if (debugIn.inContent) {
+                var inStringContent = debugIn.inContent;
+                if (debugIn.inContentType == types.contentType.JSON.value) {
+                    inStringContent = js_beautify(inStringContent, {indent_size: 4});
+                }
+                vm.inputParams.stringContent = inStringContent;
+            }
+        }
+        if (debugIn.inMetadata) {
+            vm.inputParams.metadata = angular.fromJson(debugIn.inMetadata);
+        }
+        if (!vm.isDecoder) {
+            if (debugIn.inMsgType) {
+                vm.inputParams.msgType = debugIn.inMsgType;
+            }
+            if (debugIn.inIntegrationMetadata) {
+                vm.inputParams.integrationMetadata = angular.fromJson(debugIn.inIntegrationMetadata);
+            }
+        }
+    }
+
+    if (!vm.inputParams.payloadContentType) {
+        vm.inputParams.payloadContentType = types.contentType.JSON.value;
+    }
+
     if (vm.isDecoder) {
-        vm.inputParams = {
-            payloadContentType: types.contentType.JSON.value,
-            stringContent: js_beautify(angular.toJson({devName: "devA", param1: 1, param2: "test"}), {indent_size: 4}),
-            metadata: {
+        if (!vm.inputParams.stringContent) {
+            vm.inputParams.stringContent = js_beautify(angular.toJson({devName: "devA", param1: 1, param2: "test"}), {indent_size: 4});
+        }
+        if (!vm.inputParams.metadata) {
+            vm.inputParams.metadata = {
                 integrationName: 'Test integration'
-            },
-            payload: null
-        };
+            };
+        }
+        vm.inputParams.payload = null;
     } else {
 
-        var msg = {
-            temperatureUploadFrequency: 60,
-            humidityUploadFrequency: 30
-        };
-
-        vm.inputParams = {
-            payloadContentType: types.contentType.JSON.value,
-            stringContent: js_beautify(angular.toJson(msg), {indent_size: 4}),
-            metadata: {
+        if (!vm.inputParams.stringContent) {
+            var msg = {
+                temperatureUploadFrequency: 60,
+                humidityUploadFrequency: 30
+            };
+            vm.inputParams.stringContent = js_beautify(angular.toJson(msg), {indent_size: 4});
+        }
+        if (!vm.inputParams.metadata) {
+            vm.inputParams.metadata = {
                 'deviceName': 'sensorA',
                 'deviceType': 'temp-sensor',
                 'ss_serialNumber': 'SN111'
-            },
-            integrationMetadata: {
+            };
+        }
+        if (!vm.inputParams.integrationMetadata) {
+            vm.inputParams.integrationMetadata = {
                 integrationName: 'Test integration'
-            },
-            msg: null,
-            msgType: 'ATTRIBUTES_UPDATED'
-        };
+            };
+        }
+        if (!vm.inputParams.msgType) {
+            vm.inputParams.msgType = 'ATTRIBUTES_UPDATED';
+        }
+        vm.inputParams.msg = null;
     }
 
     vm.output = '';

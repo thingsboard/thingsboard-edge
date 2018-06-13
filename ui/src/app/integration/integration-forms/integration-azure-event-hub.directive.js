@@ -30,24 +30,18 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import integrationHttpTemplate from './integration-http.tpl.html';
+import integrationAzureEventHubTemplate from './integration-azure-event-hub.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import './integration-http.scss';
-
 /*@ngInject*/
-export default function IntegrationHttpDirective($compile, $templateCache, $translate, $mdExpansionPanel, toast, utils, types, integrationService) {
+export default function IntegrationAzureEventHubDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(integrationHttpTemplate);
+        var template = $templateCache.get(integrationAzureEventHubTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.$mdExpansionPanel = $mdExpansionPanel;
-        scope.headersFilterPanelId = (Math.random()*1000).toFixed(0);
-
-        scope.httpEndpoint = null;
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
@@ -57,44 +51,21 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
 
         ngModelCtrl.$render = function () {
             scope.configuration = ngModelCtrl.$viewValue;
-            setupHttpConfiguration();
+            setupAzureEventHubConfiguration();
         };
 
-        function setupHttpConfiguration() {
-            if (!scope.configuration.baseUrl) {
-                scope.configuration.baseUrl = utils.baseUrl();
-            }
-            scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            if (scope.integrationType == types.integrationType.THINGPARK.value) {
-                scope.configuration.downlinkUrl = 'https://api.thingpark.com/thingpark/lrc/rest/downlink';
+        function setupAzureEventHubConfiguration() {
+            if (!scope.configuration.clientConfiguration) {
+                scope.configuration.clientConfiguration = {
+                    connectTimeoutSec: 10,
+                    namespaceName: '',
+                    eventHubName: '',
+                    sasKeyName: '',
+                    sasKey: '',
+                    iotHubName: ''
+                };
             }
         }
-
-        scope.integrationBaseUrlChanged = () => {
-            if (types.integrationType[scope.integrationType].http) {
-                scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            }
-        };
-
-        scope.httpEnableSecurityChanged = () => {
-            if (scope.configuration.enableSecurity &&
-                !scope.configuration.headersFilter) {
-                scope.configuration.headersFilter = {};
-            } else if (!scope.configuration.enableSecurity) {
-                delete scope.configuration.headersFilter;
-            }
-        };
-
-        scope.thingparkEnableSecurityChanged = () => {
-            if (scope.configuration.enableSecurity &&
-                !scope.configuration.maxTimeDiffInSeconds) {
-                scope.configuration.maxTimeDiffInSeconds = 60;
-            }
-        };
-
-        scope.onHttpEndpointCopied = function() {
-            toast.showSuccess($translate.instant('integration.http-endpoint-url-copied-message'), 750, angular.element(element).parent().parent().parent(), 'bottom left');
-        };
 
         $compile(element.contents())(scope);
     };
@@ -103,9 +74,7 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
         restrict: "E",
         require: "^ngModel",
         scope: {
-            isEdit: '=',
-            integrationType: '=',
-            routingKey: '='
+            isEdit: '='
         },
         link: linker
     };

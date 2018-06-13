@@ -36,6 +36,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.Map;
+
 /**
  * Created by Valerii Sosliuk on 3/17/2018.
  */
@@ -43,14 +45,14 @@ import lombok.ToString;
 @ToString(exclude = "payload")
 public class OpcUaIntegrationMsg {
 
+    private Map<String,String> deviceMetadata;
     private JsonNode json;
     private byte[] payload;
-    private String nodeId;
 
-    OpcUaIntegrationMsg(JsonNode json) {
+    OpcUaIntegrationMsg(JsonNode json, Map<String,String> deviceMetadata) {
         this.json = json;
         this.payload = json.toString().getBytes();
-        this.nodeId = json.get("nodeId").get("identifier").toString();
+        this.deviceMetadata = deviceMetadata;
     }
 
     JsonNode toJson() {

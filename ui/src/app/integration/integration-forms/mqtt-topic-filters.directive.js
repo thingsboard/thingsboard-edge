@@ -30,70 +30,61 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import integrationHttpTemplate from './integration-http.tpl.html';
+import mqttTopicFiltersTemplate from './mqtt-topic-filters.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import './integration-http.scss';
+import './mqtt-topic-filters.scss';
 
 /*@ngInject*/
-export default function IntegrationHttpDirective($compile, $templateCache, $translate, $mdExpansionPanel, toast, utils, types, integrationService) {
+export default function MqttTopicFiltersDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(integrationHttpTemplate);
+        var template = $templateCache.get(mqttTopicFiltersTemplate);
         element.html(template);
 
         scope.types = types;
         scope.$mdExpansionPanel = $mdExpansionPanel;
-        scope.headersFilterPanelId = (Math.random()*1000).toFixed(0);
 
-        scope.httpEndpoint = null;
-
-        scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
+        scope.$watch('topicFilters', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
-                ngModelCtrl.$setViewValue(scope.configuration);
+                ngModelCtrl.$setViewValue(scope.topicFilters);
             }
-        });
+        }, true);
 
         ngModelCtrl.$render = function () {
-            scope.configuration = ngModelCtrl.$viewValue;
-            setupHttpConfiguration();
+            scope.topicFilters = ngModelCtrl.$viewValue;
+            scope.updateValidity();
         };
 
-        function setupHttpConfiguration() {
-            if (!scope.configuration.baseUrl) {
-                scope.configuration.baseUrl = utils.baseUrl();
+        scope.addTopicFilter = () => {
+            if (!scope.topicFilters) {
+                scope.topicFilters = [];
             }
-            scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            if (scope.integrationType == types.integrationType.THINGPARK.value) {
-                scope.configuration.downlinkUrl = 'https://api.thingpark.com/thingpark/lrc/rest/downlink';
-            }
-        }
-
-        scope.integrationBaseUrlChanged = () => {
-            if (types.integrationType[scope.integrationType].http) {
-                scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            }
+            scope.topicFilters.push(
+                {
+                    filter: '',
+                    qos: 0
+                }
+            );
+            ngModelCtrl.$setDirty();
+            scope.updateValidity();
         };
 
-        scope.httpEnableSecurityChanged = () => {
-            if (scope.configuration.enableSecurity &&
-                !scope.configuration.headersFilter) {
-                scope.configuration.headersFilter = {};
-            } else if (!scope.configuration.enableSecurity) {
-                delete scope.configuration.headersFilter;
+        scope.removeTopicFilter = (index) => {
+            if (index > -1) {
+                scope.topicFilters.splice(index, 1);
+                ngModelCtrl.$setDirty();
+                scope.updateValidity();
             }
         };
 
-        scope.thingparkEnableSecurityChanged = () => {
-            if (scope.configuration.enableSecurity &&
-                !scope.configuration.maxTimeDiffInSeconds) {
-                scope.configuration.maxTimeDiffInSeconds = 60;
+        scope.updateValidity = () => {
+            var topicFiltersValid = true;
+            if (!scope.topicFilters || !scope.topicFilters.length) {
+                topicFiltersValid = false;
             }
-        };
-
-        scope.onHttpEndpointCopied = function() {
-            toast.showSuccess($translate.instant('integration.http-endpoint-url-copied-message'), 750, angular.element(element).parent().parent().parent(), 'bottom left');
+            ngModelCtrl.$setValidity('TopicFilters', topicFiltersValid);
         };
 
         $compile(element.contents())(scope);
@@ -104,8 +95,7 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
         require: "^ngModel",
         scope: {
             isEdit: '=',
-            integrationType: '=',
-            routingKey: '='
+            disableMqttTopics: '='
         },
         link: linker
     };

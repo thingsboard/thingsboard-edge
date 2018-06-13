@@ -30,24 +30,18 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import integrationHttpTemplate from './integration-http.tpl.html';
+import integrationTtnTemplate from './integration-ttn.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import './integration-http.scss';
-
 /*@ngInject*/
-export default function IntegrationHttpDirective($compile, $templateCache, $translate, $mdExpansionPanel, toast, utils, types, integrationService) {
+export default function IntegrationIbmWatsonIotDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(integrationHttpTemplate);
+        var template = $templateCache.get(integrationTtnTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.$mdExpansionPanel = $mdExpansionPanel;
-        scope.headersFilterPanelId = (Math.random()*1000).toFixed(0);
-
-        scope.httpEndpoint = null;
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
@@ -57,44 +51,46 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
 
         ngModelCtrl.$render = function () {
             scope.configuration = ngModelCtrl.$viewValue;
-            setupHttpConfiguration();
+            setupTtnConfiguration();
         };
 
-        function setupHttpConfiguration() {
-            if (!scope.configuration.baseUrl) {
-                scope.configuration.baseUrl = utils.baseUrl();
+        function setupTtnConfiguration() {
+            if (!scope.ttnAppIdWatcher) {
+                scope.ttnAppIdWatcher = scope.$watch('configuration.clientConfiguration.credentials.username',
+                    (newVal) => {
+                        if (newVal) {
+                            scope.configuration.downlinkTopicPattern = newVal + "/devices/${devId}/down";
+                        }
+                    }
+                );
             }
-            scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            if (scope.integrationType == types.integrationType.THINGPARK.value) {
-                scope.configuration.downlinkUrl = 'https://api.thingpark.com/thingpark/lrc/rest/downlink';
+            if (!scope.configuration.clientConfiguration) {
+                scope.configuration.clientConfiguration = {
+                    connectTimeoutSec: 10,
+                    credentials: {
+                    },
+                    cleanSession: true
+                };
+                scope.configuration.clientConfiguration.host = '';
+                scope.configuration.clientConfiguration.port = 8883;
+                scope.configuration.clientConfiguration.ssl = true;
+                scope.configuration.clientConfiguration.credentials.type = types.mqttCredentialTypes.basic.value;
+            }
+            if (!scope.configuration.topicFilters) {
+                scope.configuration.topicFilters = [];
+                scope.configuration.topicFilters.push({
+                    filter: '+/devices/+/up',
+                    qos: 0
+                });
+            }
+            if (!scope.configuration.downlinkTopicPattern) {
+                var ttnAppId = scope.configuration.clientConfiguration.credentials.username;
+                if (!ttnAppId) {
+                    ttnAppId = "";
+                }
+                scope.configuration.downlinkTopicPattern = ttnAppId + "/devices/${devId}/down";
             }
         }
-
-        scope.integrationBaseUrlChanged = () => {
-            if (types.integrationType[scope.integrationType].http) {
-                scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            }
-        };
-
-        scope.httpEnableSecurityChanged = () => {
-            if (scope.configuration.enableSecurity &&
-                !scope.configuration.headersFilter) {
-                scope.configuration.headersFilter = {};
-            } else if (!scope.configuration.enableSecurity) {
-                delete scope.configuration.headersFilter;
-            }
-        };
-
-        scope.thingparkEnableSecurityChanged = () => {
-            if (scope.configuration.enableSecurity &&
-                !scope.configuration.maxTimeDiffInSeconds) {
-                scope.configuration.maxTimeDiffInSeconds = 60;
-            }
-        };
-
-        scope.onHttpEndpointCopied = function() {
-            toast.showSuccess($translate.instant('integration.http-endpoint-url-copied-message'), 750, angular.element(element).parent().parent().parent(), 'bottom left');
-        };
 
         $compile(element.contents())(scope);
     };
@@ -103,9 +99,7 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
         restrict: "E",
         require: "^ngModel",
         scope: {
-            isEdit: '=',
-            integrationType: '=',
-            routingKey: '='
+            isEdit: '='
         },
         link: linker
     };

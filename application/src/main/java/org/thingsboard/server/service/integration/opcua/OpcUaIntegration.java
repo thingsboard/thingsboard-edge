@@ -38,30 +38,31 @@ import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.VariableNode;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
+import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseDirection;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseResultMask;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseResult;
-import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
+import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.*;
+import org.eclipse.milo.opcua.stack.core.types.structured.*;
+import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -75,11 +76,17 @@ import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.toList;
 @Slf4j
 public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
-    private Map<Pattern, DeviceMapping> mappings;
-    private OpcUaClient client;
-    private ScheduledExecutorService executor;
     private OpcUaServerConfiguration opcUaServerConfiguration;
+
     private IntegrationContext integrationContext;
+    private OpcUaClient client;
+    private UaSubscription subscription;
+    private Map<NodeId, OpcUaDevice> devices;
+    private Map<NodeId, List<OpcUaDevice>> devicesByTags;
+    private Map<Pattern, DeviceMapping> mappings;
+    private ScheduledExecutorService executor;
+
+    private final AtomicLong clientHandles = new AtomicLong(1L);
     private volatile boolean connected = false;
 
     public OpcUaIntegration(IntegrationContext integrationContext) {
@@ -95,6 +102,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (opcUaServerConfiguration.getMapping().isEmpty()) {
             throw new IllegalArgumentException("No mapping elements configured!");
         }
+        this.devices = new HashMap<>();
+        this.devicesByTags = new HashMap<>();
         this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
         initClient(opcUaServerConfiguration);
         connected = true;
@@ -134,6 +143,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private void doProcess(IntegrationContext context, OpcUaIntegrationMsg msg) throws Exception {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+        mdMap.putAll(msg.getDeviceMetadata());
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
@@ -181,6 +191,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             client = new OpcUaClient(config);
             client.connect().get();
+
+            subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
+
         } catch (Exception e) {
             Throwable t = e;
             if (e instanceof ExecutionException) {
@@ -197,7 +210,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (connected) {
             try {
                 connected = false;
-                client.disconnect().get(2, TimeUnit.SECONDS);
+                client.disconnect().get(10, TimeUnit.SECONDS);
             } catch (Exception e) {}
         }
         if (executor != null) {
@@ -208,9 +221,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     public void scanForDevices() {
         try {
             long startTs = System.currentTimeMillis();
-            OpcUaNode rootNode = new OpcUaNode(Identifiers.RootFolder, "");
-            scanForDevices(rootNode);
+            scanForDevices(new OpcUaNode(Identifiers.RootFolder, ""));
             log.info("Device scan cycle completed in {} ms", (System.currentTimeMillis() - startTs));
+            List<OpcUaDevice> deleted = devices.entrySet().stream().filter(kv -> kv.getValue().getScanTs() < startTs).map(kv -> kv.getValue()).collect(Collectors.toList());
+            if (deleted.size() > 0) {
+                log.info("Devices {} are no longer available", deleted);
+            }
+            deleted.forEach(devices::remove);
         } catch (Exception e) {
             log.warn("Periodic device scan failed!", e);
         }
@@ -224,8 +241,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private void scanForDevices(OpcUaNode node) {
         log.trace("Scanning node: {}", node);
-
-
         List<DeviceMapping> matchedMappings = mappings.entrySet().stream()
                 .filter(mappingEntry -> mappingEntry.getKey().matcher(getMatchingValue(node, mappingEntry.getValue().getMappingType())).matches())
                 .map(m -> m.getValue()).collect(Collectors.toList());
@@ -233,7 +248,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         matchedMappings.forEach(m -> {
             try {
                 log.debug("Matched mapping: [{}]", m);
-                scanDevice(node);
+                scanDevice(node, m);
             } catch (Exception e) {
                 log.error("Failed to scan device: {}", node, e);
             }
@@ -266,107 +281,137 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
     }
 
-    private void scanDevice(OpcUaNode node) throws ExecutionException, InterruptedException {
+    private void scanDevice(OpcUaNode node, DeviceMapping m) throws ExecutionException, InterruptedException {
         log.debug("Scanning device node: {}", node);
-        BrowseResult browseResult = client.browse(getBrowseDescription(node.getNodeId())).get();
-        List<ReferenceDescription> references = toList(browseResult.getReferences());
+        Set<String> tags = m.getAllTags();
+        log.debug("Scanning node hierarchy for tags: {}", tags);
+        Map<String, NodeId> tagMap = lookupTags(node.getNodeId(), node.getName(), tags);
+        log.debug("Scanned {} tags out of {}", tagMap.size(), tags.size());
 
-        ObjectNode dataNode = mapper.createObjectNode();
-
-        ObjectNode nodeId = mapper.createObjectNode();
-        nodeId.put("identifier", node.getNodeId().getIdentifier().toString());
-        nodeId.put("namespaceIndex", node.getNodeId().getNamespaceIndex().toString());
-
-        dataNode.set("nodeId", nodeId);
-        dataNode.put("name", node.getName());
-        dataNode.put("fqn", node.getFqn());
-
-        for (ReferenceDescription rd : references) {
-            if (rd.getNodeId().isLocal()) {
-                NodeId childId = rd.getNodeId().local().get();
-                VariableNode varNode = client.getAddressSpace().createVariableNode(childId);
-                ObjectNode entryNode = mapper.createObjectNode();
-                ObjectNode referenceNode = getReferenceNode(rd);
-                entryNode.set("referenceDescription", referenceNode);
-
-                DataValue data = varNode.readValue().get();
-                if (data != null) {
-                    ObjectNode dataValNode = getDataValNode(data);
-
-                    entryNode.set("dataValue", dataValNode);
+        OpcUaDevice device;
+        if (devices.containsKey(node.getNodeId())) {
+            device = devices.get(node.getNodeId());
+        } else {
+            device = new OpcUaDevice(node, m);
+            devices.put(node.getNodeId(), device);
+            Map<String, NodeId> newTags = device.registerTags(tagMap);
+            if (newTags.size() > 0) {
+                for (NodeId tagId : newTags.values()) {
+                    devicesByTags.computeIfAbsent(tagId, key -> new ArrayList<>()).add(device);
+                    VariableNode varNode = client.getAddressSpace().createVariableNode(tagId);
+                    DataValue dataValue = varNode.readValue().get();
+                    if (dataValue != null) {
+                        device.updateTag(tagId, dataValue);
+                    }
                 }
-                dataNode.set(rd.getBrowseName().getName(), entryNode);
+                log.debug("Going to subscribe to tags: {}", newTags);
+                subscribeToTags(newTags);
+            }
+            onDeviceDataUpdate(device, null);
+        }
+
+        device.updateScanTs();
+
+        Map<String, NodeId> newTags = device.registerTags(tagMap);
+        if (newTags.size() > 0) {
+            for (NodeId tagId : newTags.values()) {
+                devicesByTags.computeIfAbsent(tagId, key -> new ArrayList<>()).add(device);
+            }
+            log.debug("Going to subscribe to tags: {}", newTags);
+            subscribeToTags(newTags);
+        }
+    }
+
+    private void onDeviceDataUpdate(OpcUaDevice device, NodeId affectedTagId) {
+        OpcUaIntegrationMsg message = device.prepareMsg(affectedTagId);
+        process(integrationContext, message);
+    }
+
+    private void subscribeToTags(Map<String, NodeId> newTags) throws InterruptedException, ExecutionException {
+        List<MonitoredItemCreateRequest> requests = new ArrayList<>();
+        for (Map.Entry<String, NodeId> kv : newTags.entrySet()) {
+            // subscribe to the Value attribute of the server's CurrentTime node
+            ReadValueId readValueId = new ReadValueId(
+                    kv.getValue(),
+                    AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE);
+            // important: client handle must be unique per item
+            UInteger clientHandle = uint(clientHandles.getAndIncrement());
+
+            MonitoringParameters parameters = new MonitoringParameters(
+                    clientHandle,
+                    1000.0,     // sampling interval
+                    null,       // filter, null means use default
+                    uint(10),   // queue size
+                    true        // discard oldest
+            );
+
+            requests.add(new MonitoredItemCreateRequest(
+                    readValueId, MonitoringMode.Reporting, parameters));
+        }
+
+        BiConsumer<UaMonitoredItem, Integer> onItemCreated =
+                (item, id) -> item.setValueConsumer(this::onSubscriptionValue);
+
+        List<UaMonitoredItem> items = subscription.createMonitoredItems(
+                TimestampsToReturn.Both,
+                requests,
+                onItemCreated
+        ).get();
+
+        for (UaMonitoredItem item : items) {
+            if (item.getStatusCode().isGood()) {
+                log.trace("Monitoring Item created for nodeId={}", item.getReadValueId().getNodeId());
             } else {
-                log.info("Remote node. Skipping for now: [] ", rd.getNodeId());
+                log.warn("Failed to create item for nodeId={} (status={})",
+                        item.getReadValueId().getNodeId(), item.getStatusCode());
             }
         }
-
-        process(integrationContext, new OpcUaIntegrationMsg(dataNode));
-        log.trace("Scanned device: ", node);
     }
 
-    private ObjectNode getReferenceNode(ReferenceDescription rd) {
-        ObjectNode referenceNode = mapper.createObjectNode();
-
-        if (rd.getReferenceTypeId() != null) {
-            ObjectNode referenceTypeId = mapper.createObjectNode();
-            referenceTypeId.put("identifier", rd.getReferenceTypeId().getIdentifier().toString());
-            referenceTypeId.put("namespaceIndex", rd.getReferenceTypeId().getNamespaceIndex().toString());
-            referenceNode.set("_referenceTypeId", referenceTypeId);
-        }
-        referenceNode.put("_isForward", rd.getIsForward());
-
-        if (rd.getNodeId() != null) {
-            ObjectNode nodeId = mapper.createObjectNode();
-            nodeId.put("identifier", rd.getNodeId().getIdentifier().toString());
-            nodeId.put("namespaceIndex", rd.getNodeId().getNamespaceIndex() == null ? null : rd.getNodeId().getNamespaceIndex().toString());
-            nodeId.put("namespaceIndex", rd.getNodeId().getNamespaceIndex() == null ? null : rd.getNodeId().getNamespaceIndex().toString());
-            nodeId.put("namespaceUri", rd.getNodeId().getNamespaceUri() == null ? null : rd.getNodeId().getNamespaceUri().toString());
-            nodeId.put("serverIndex", rd.getNodeId().getServerIndex());
-            nodeId.put("type", rd.getNodeId().getType().toString());
-            referenceNode.set("_nodeId", nodeId);
-        }
-
-        if (rd.getBrowseName() != null) {
-            ObjectNode browseName = mapper.createObjectNode();
-            browseName.put("namespaceIndex", rd.getBrowseName().getNamespaceIndex() == null ? null : rd.getBrowseName().getNamespaceIndex().toString());
-            browseName.put("name", rd.getBrowseName().getName());
-            referenceNode.set("_browseName", browseName);
-        }
-        if (rd.getDisplayName() != null) {
-            ObjectNode displayName = mapper.createObjectNode();
-            displayName.put("namespaceIndex", rd.getBrowseName() == null ? null : rd.getBrowseName().getNamespaceIndex().toString());
-            displayName.put("name", rd.getBrowseName().getName());
-            referenceNode.set("_displayName", displayName);
-        }
-        if (rd.getNodeClass() != null) {
-            referenceNode.put("_nodeClass", rd.getNodeClass().toString());
-        }
-        if (rd.getTypeDefinition() != null) {
-            ObjectNode nodeId = mapper.createObjectNode();
-            nodeId.put("identifier", rd.getTypeDefinition().getIdentifier() == null ? null : rd.getTypeDefinition().getIdentifier().toString());
-            nodeId.put("namespaceIndex", rd.getTypeDefinition().getNamespaceIndex() == null ? null : rd.getTypeDefinition().getNamespaceIndex().toString());
-            nodeId.put("namespaceUri", rd.getTypeDefinition().getNamespaceUri() == null ? null : rd.getTypeDefinition().getNamespaceUri().toString());
-            nodeId.put("serverIndex", rd.getTypeDefinition().getServerIndex());
-            nodeId.put("type", rd.getTypeDefinition().getType() == null ? null : rd.getTypeDefinition().getType().toString());
-            referenceNode.set("_typeDefinition", nodeId);
-        }
-        return referenceNode;
+    private void onSubscriptionValue(UaMonitoredItem item, DataValue dataValue) {
+        log.debug("Subscription value received: item={}, value={}",
+                item.getReadValueId().getNodeId(), dataValue.getValue());
+        NodeId tagId = item.getReadValueId().getNodeId();
+        devicesByTags.getOrDefault(tagId, Collections.emptyList()).forEach(
+                device -> {
+                    device.updateTag(tagId, dataValue);
+                    onDeviceDataUpdate(device, tagId);
+                }
+        );
     }
 
-    private ObjectNode getDataValNode(DataValue data) {
-        ObjectNode dataValNode = mapper.createObjectNode();
-        if (data.getValue() != null) {
-            dataValNode.put("value", data.getValue().getValue() == null ? null : data.getValue().getValue().toString());
+    private Map<String, NodeId> lookupTags(NodeId nodeId, String deviceNodeName, Set<String> tags) {
+        Map<String, NodeId> values = new HashMap<>();
+        try {
+            BrowseResult browseResult = client.browse(getBrowseDescription(nodeId)).get();
+            List<ReferenceDescription> references = toList(browseResult.getReferences());
+
+            for (ReferenceDescription rd : references) {
+                NodeId childId;
+                if (rd.getNodeId().isLocal()) {
+                    childId = rd.getNodeId().local().get();
+                } else {
+                    log.trace("Ignoring remote node: {}", rd.getNodeId());
+                    continue;
+                }
+
+                String name;
+                String childIdStr = childId.getIdentifier().toString();
+                if (childIdStr.contains(deviceNodeName)) {
+                    name = childIdStr.substring(childIdStr.indexOf(deviceNodeName) + deviceNodeName.length() + 1, childIdStr.length());
+                } else {
+                    name = rd.getBrowseName().getName();
+                }
+                if (tags.contains(name)) {
+                    values.put(name, childId);
+                }
+                // recursively browse to children
+                values.putAll(lookupTags(childId, deviceNodeName, tags));
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Browsing nodeId={} failed: {}", nodeId, e.getMessage(), e);
         }
-        if (data.getStatusCode() != null) {
-            dataValNode.put("statusCode", data.getStatusCode().toString());
-        }
-        dataValNode.put("sourceTime", data.getSourceTime() == null ? null : data.getSourceTime().getJavaTime());
-        dataValNode.put("sourcePicoseconds", data.getSourcePicoseconds() == null ? null : data.getSourcePicoseconds().doubleValue());
-        dataValNode.put("serverTime", data.getServerTime() == null ? null : data.getServerTime().getJavaTime());
-        dataValNode.put("serverPicoseconds", data.getServerPicoseconds() == null ? null : data.getServerPicoseconds().doubleValue());
-        return dataValNode;
+        return values;
     }
 
     private BrowseDescription getBrowseDescription(NodeId nodeId) {

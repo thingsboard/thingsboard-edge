@@ -30,8 +30,7 @@
  */
 @import '../../scss/constants';
 
-.tb-metadata-panel-group, .tb-credentials-panel-group, .tb-opc-ua-keystore-panel-group,
-.tb-topic-filters-panel-group, .tb-headers-filter-panel-group, .tb-opc-ua-mapping-panel-group {
+.tb-integration-panel-group {
   .tb-panel-title {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -56,16 +55,6 @@
   }
   md-icon.md-expansion-panel-icon {
     margin-right: 0px;
-  }
-}
-
-.tb-header-filters-panel-group {
-  padding-bottom: 15px;
-}
-
-.tb-topic-filters-panel-group, .tb-opc-ua-mapping-panel-group, .tb-opc-ua-keystore-panel-group {
-  .tb-panel-prompt {
-    color: rgb(221,44,0);
   }
   span.no-data-found {
     position: relative;

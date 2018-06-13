@@ -32,27 +32,11 @@ package org.thingsboard.server.service.integration.opcua;
 
 import lombok.Data;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-/**
- * Created by Valerii Sosliuk on 4/24/2018.
- */
 @Data
-public class DeviceMapping {
+public class SubscriptionTag {
 
-    public static final Pattern TAG_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
-
-    private final DeviceMappingType mappingType;
-    private final String deviceNodePattern;
-    private final List<SubscriptionTag> subscriptionTags;
-
-    public Set<String> getAllTags() {
-        Set<String> tags = new HashSet<>();
-        subscriptionTags.forEach(subscriptionTag -> tags.add(subscriptionTag.getPath()));
-        return tags;
-    }
+    private String key;
+    private String path;
+    private boolean required;
 
 }

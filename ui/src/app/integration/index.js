@@ -32,6 +32,14 @@ import IntegrationRoutes from './integration.routes';
 import {IntegrationController, IntegrationCardController} from './integration.controller';
 import IntegrationDirective from './integration.directive';
 import IntegrationHttpDirective from './integration-forms/integration-http.directive';
+import IntegrationMqttDirective from './integration-forms/integration-mqtt.directive';
+import IntegrationOpcUaDirective from './integration-forms/integration-opc-ua.directive';
+import IntegrationAwsIotDirective from './integration-forms/integration-aws-iot.directive';
+import IntegrationIbmWatsonIotDirective from './integration-forms/integration-ibm-watson-iot.directive';
+import IntegrationTtnDirective from './integration-forms/integration-ttn.directive';
+import MqttTopicFiltersDirective from './integration-forms/mqtt-topic-filters.directive';
+import OpcUaSubscriptionTagsDirective from './integration-forms/opc-ua-subscription-tags.directive';
+import IntegrationAzureEventHubDirective from './integration-forms/integration-azure-event-hub.directive';
 
 export default angular.module('thingsboard.integration', [])
     .config(IntegrationRoutes)
@@ -39,4 +47,12 @@ export default angular.module('thingsboard.integration', [])
     .controller('IntegrationCardController', IntegrationCardController)
     .directive('tbIntegration', IntegrationDirective)
     .directive('tbIntegrationHttp', IntegrationHttpDirective)
+    .directive('tbIntegrationMqtt', IntegrationMqttDirective)
+    .directive('tbIntegrationOpcUa', IntegrationOpcUaDirective)
+    .directive('tbIntegrationAwsIot', IntegrationAwsIotDirective)
+    .directive('tbIntegrationIbmWatsonIot', IntegrationIbmWatsonIotDirective)
+    .directive('tbIntegrationTtn', IntegrationTtnDirective)
+    .directive('tbMqttTopicFilters', MqttTopicFiltersDirective)
+    .directive('tbOpcUaSubscriptionTags', OpcUaSubscriptionTagsDirective)
+    .directive('tbIntegrationAzureEventHub', IntegrationAzureEventHubDirective)
     .name;

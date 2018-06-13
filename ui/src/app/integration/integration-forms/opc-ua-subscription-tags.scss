@@ -28,31 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
 
-import lombok.Data;
+@import '../../../scss/constants';
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-/**
- * Created by Valerii Sosliuk on 4/24/2018.
- */
-@Data
-public class DeviceMapping {
-
-    public static final Pattern TAG_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
-
-    private final DeviceMappingType mappingType;
-    private final String deviceNodePattern;
-    private final List<SubscriptionTag> subscriptionTags;
-
-    public Set<String> getAllTags() {
-        Set<String> tags = new HashSet<>();
-        subscriptionTags.forEach(subscriptionTag -> tags.add(subscriptionTag.getPath()));
-        return tags;
+.tb-integration-panel-group {
+  &.subscription-tags {
+    .tb-panel-prompt {
+      color: rgb(221,44,0);
     }
-
+  }
 }

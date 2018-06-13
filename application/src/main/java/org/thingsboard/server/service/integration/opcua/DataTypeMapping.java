@@ -30,29 +30,20 @@
  */
 package org.thingsboard.server.service.integration.opcua;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.thingsboard.server.common.data.kv.DataType;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-/**
- * Created by Valerii Sosliuk on 4/24/2018.
- */
 @Data
-public class DeviceMapping {
+@AllArgsConstructor
+public class DataTypeMapping {
 
-    public static final Pattern TAG_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
+    private DataType dataType;
 
-    private final DeviceMappingType mappingType;
-    private final String deviceNodePattern;
-    private final List<SubscriptionTag> subscriptionTags;
-
-    public Set<String> getAllTags() {
-        Set<String> tags = new HashSet<>();
-        subscriptionTags.forEach(subscriptionTag -> tags.add(subscriptionTag.getPath()));
-        return tags;
+    @JsonCreator
+    public static DataTypeMapping forValue(String value) {
+        return new DataTypeMapping(DataType.valueOf(value.toUpperCase()));
     }
 
 }

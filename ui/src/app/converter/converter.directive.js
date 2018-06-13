@@ -38,7 +38,7 @@ import jsEncoderTemplate from './js-encoder.tpl.txt';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, toast, types) {
+export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, toast, types, converterService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(converterFieldsetTemplate);
         element.html(template);
@@ -81,6 +81,19 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             if ($event) {
                 $event.stopPropagation();
             }
+            if (scope.converter.id) {
+                converterService.getLatestConverterDebugInput(scope.converter.id.id).then(
+                    (debugIn) => {
+                        showConverterTestDialog($event, isDecoder, debugIn);
+                    },
+                    () => {}
+                );
+            } else {
+                showConverterTestDialog($event, isDecoder, null);
+            }
+        };
+
+        function showConverterTestDialog($event, isDecoder, debugIn) {
             var funcBody;
             if (isDecoder) {
                 funcBody = angular.copy(scope.converter.configuration.decoder);
@@ -99,7 +112,8 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                 locals: {
                     isDecoder: isDecoder,
                     funcBody: funcBody,
-                    onShowingCallback: onShowingCallback
+                    onShowingCallback: onShowingCallback,
+                    debugIn: debugIn
                 },
                 fullscreen: true,
                 skipHide: true,
@@ -117,7 +131,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     scope.theForm.$setDirty();
                 }
             );
-        };
+        }
 
         $compile(element.contents())(scope);
 

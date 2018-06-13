@@ -1368,11 +1368,18 @@ export default angular.module('thingsboard.locale', [])
                     "opc-ua-keystore-key-password-required":"Key password is required",
                     "opc-ua-mapping":"Mapping",
                     "add-opc-ua-mapping-prompt": "Please add mapping",
-                    "opc-ua-mapping-type":"Mapping type:",
+                    "opc-ua-mapping-type":"Mapping type",
                     "opc-ua-mapping-type-required":"Mapping type is required",
                     "opc-ua-device-node-pattern":"Device Node Pattern",
                     "opc-ua-device-node-pattern-required":"Device Node Pattern is required",
-                    "opc-ua-add-map": "Add mapping element"
+                    "opc-ua-add-map": "Add mapping element",
+                    "subscription-tags": "Subscription tags",
+                    "remove-subscription-tag": "Remove subscription tag",
+                    "add-subscription-tag": "Add subscription tag",
+                    "add-subscription-tag-prompt": "Please add subscription tag",
+                    "key": "Key",
+                    "path": "Path",
+                    "required": "Required"
                 },
                 "item": {
                     "selected": "Selected"

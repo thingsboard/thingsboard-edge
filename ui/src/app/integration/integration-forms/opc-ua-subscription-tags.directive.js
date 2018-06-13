@@ -28,59 +28,75 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import './integration.scss';
-
 /* eslint-disable import/no-unresolved, import/default */
 
-import integrationFieldsetTemplate from './integration-fieldset.tpl.html';
+import opcUaSubscriptionTagsTemplate from './opc-ua-subscription-tags.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+import './opc-ua-subscription-tags.scss';
+
 /*@ngInject*/
-export default function IntegrationDirective($compile, $templateCache, $translate, $mdExpansionPanel, utils, integrationService, toast, types) {
-    var linker = function (scope, element) {
-        var template = $templateCache.get(integrationFieldsetTemplate);
+export default function OpcUaSubscriptionTagsDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
+
+    var linker = function (scope, element, attrs, ngModelCtrl) {
+        var template = $templateCache.get(opcUaSubscriptionTagsTemplate);
         element.html(template);
 
-        scope.metadataPanelId = (Math.random()*1000).toFixed(0);
-        scope.$mdExpansionPanel = $mdExpansionPanel;
         scope.types = types;
+        scope.$mdExpansionPanel = $mdExpansionPanel;
 
-        scope.$watch('integration', function(newVal) {
-            if (newVal) {
-                if (!scope.integration.id) {
-                    scope.integration.routingKey = utils.guid('');
-                }
-                if (!scope.integration.configuration) {
-                    scope.integration.configuration = {};
-                }
-                if (!scope.integration.configuration.metadata) {
-                    scope.integration.configuration.metadata = {};
-                }
+        scope.$watch('subscriptionTags', function (newConfiguration, oldConfiguration) {
+            if (!angular.equals(newConfiguration, oldConfiguration)) {
+                ngModelCtrl.$setViewValue(scope.subscriptionTags);
             }
-        });
+        }, true);
 
-        scope.integrationTypeChanged = () => {
-            scope.integration.configuration = {
-                metadata: {}
-            };
+        ngModelCtrl.$render = function () {
+            scope.subscriptionTags = ngModelCtrl.$viewValue;
+            scope.updateValidity();
         };
 
-        scope.onIntegrationIdCopied = function() {
-            toast.showSuccess($translate.instant('integration.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+        scope.addSubscriptionTag = () => {
+            if (!scope.subscriptionTags) {
+                scope.subscriptionTags = [];
+            }
+            scope.subscriptionTags.push(
+                {
+                    key: '',
+                    path: '',
+                    required: false
+                }
+            );
+            ngModelCtrl.$setDirty();
+            scope.updateValidity();
+        };
+
+        scope.removeSubscriptionTag = (index) => {
+            if (index > -1) {
+                scope.subscriptionTags.splice(index, 1);
+                ngModelCtrl.$setDirty();
+                scope.updateValidity();
+            }
+        };
+
+        scope.updateValidity = () => {
+            var subscriptionTagsValid = true;
+            if (!scope.subscriptionTags || !scope.subscriptionTags.length) {
+                subscriptionTagsValid = false;
+            }
+            ngModelCtrl.$setValidity('SubscriptionTags', subscriptionTagsValid);
         };
 
         $compile(element.contents())(scope);
-
     };
+
     return {
         restrict: "E",
-        link: linker,
+        require: "^ngModel",
         scope: {
-            integration: '=',
-            isEdit: '=',
-            theForm: '=',
-            onDeleteIntegration: '&'
-        }
+            isEdit: '='
+        },
+        link: linker
     };
 }
