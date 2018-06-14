@@ -332,4 +332,9 @@ class DefaultTbContext implements TbContext, TbPeContext {
             }
         });
     }
+
+    @Override
+    public void ack(TbMsg msg) {
+        123
+    }
 }

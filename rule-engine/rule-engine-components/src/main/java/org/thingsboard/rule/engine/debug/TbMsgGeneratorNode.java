@@ -62,7 +62,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 public class TbMsgGeneratorNode implements TbNode {
 
-    public static final String TB_MSG_GENERATOR_NODE_MSG = "TbMsgGeneratorNodeMsg";
+    private static final String TB_MSG_GENERATOR_NODE_MSG = "TbMsgGeneratorNodeMsg";
 
     private TbMsgGeneratorNodeConfiguration config;
     private ScriptEngine jsEngine;
@@ -81,19 +81,19 @@ public class TbMsgGeneratorNode implements TbNode {
             originatorId = ctx.getSelfId();
         }
         this.jsEngine = ctx.createJsScriptEngine(config.getJsScript(), "prevMsg", "prevMetadata", "prevMsgType");
-        sentTickMsg(ctx);
+        scheduleTickMsg(ctx);
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (msg.getType().equals(TB_MSG_GENERATOR_NODE_MSG) && msg.getId().equals(nextTickId)) {
             withCallback(generate(ctx),
-                    m -> {ctx.tellNext(m, SUCCESS); sentTickMsg(ctx);},
-                    t -> {ctx.tellFailure(msg, t); sentTickMsg(ctx);});
+                    m -> {ctx.tellNext(m, SUCCESS); scheduleTickMsg(ctx);},
+                    t -> {ctx.tellFailure(msg, t); scheduleTickMsg(ctx);});
         }
     }
 
-    private void sentTickMsg(TbContext ctx) {
+    private void scheduleTickMsg(TbContext ctx) {
         TbMsg tickMsg = ctx.newMsg(TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, delay);
