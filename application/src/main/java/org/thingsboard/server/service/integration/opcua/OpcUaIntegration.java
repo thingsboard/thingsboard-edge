@@ -53,11 +53,15 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.*;
 import org.eclipse.milo.opcua.stack.core.types.structured.*;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -88,6 +92,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private final AtomicLong clientHandles = new AtomicLong(1L);
     private volatile boolean connected = false;
+    private volatile boolean scheduleReconnect = false;
 
     public OpcUaIntegration(IntegrationContext integrationContext) {
         this.integrationContext = integrationContext;
@@ -151,6 +156,42 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
             }
         }
+    }
+
+    @Override
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+        TbMsg msg = downlink.getTbMsg();
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
+        if (downlinkConverter != null) {
+            processDownLinkMsg(context, msg);
+        }
+    }
+
+    protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
+        String status = "OK";
+        Exception exception = null;
+        try {
+            if (doProcessDownLinkMsg(context, msg)) {
+                integrationStatistics.incMessagesProcessed();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process downLink message", e);
+            exception = e;
+            status = "ERROR";
+        }
+        reportDownlinkError(context, msg, status, exception);
+    }
+
+    private boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
+        if (!connected || scheduleReconnect) {
+            return false;
+        }
+        Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
+        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
+        for (DownlinkData data : result) {
+            //TODO:
+        }
+        return false;
     }
 
     private void initClient(OpcUaServerConfiguration configuration) throws Exception {
@@ -218,7 +259,26 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
     }
 
+    private boolean reconnect() {
+        try {
+            devices.clear();
+            devicesByTags.clear();
+            initClient(opcUaServerConfiguration);
+            scheduleReconnect = false;
+            return true;
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
     public void scanForDevices() {
+        if (connected && scheduleReconnect && !reconnect()) {
+            log.info("Scheduling next scan in {} seconds!", opcUaServerConfiguration.getScanPeriodInSeconds());
+            executor.schedule(() -> {
+                scanForDevices();
+            }, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
+            return;
+        }
         try {
             long startTs = System.currentTimeMillis();
             scanForDevices(new OpcUaNode(Identifiers.RootFolder, ""));
@@ -269,6 +329,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         } catch (InterruptedException | ExecutionException e) {
             if (connected) {
                 log.error("Browsing nodeId={} failed: {}", node, e.getMessage(), e);
+                scheduleReconnect = true;
             }
         }
     }

@@ -257,7 +257,8 @@
                                 <li class="list-group-item"
                                     ng-repeat="(mapIndex, map) in configuration.clientConfiguration.mapping"
                                 >
-                                    <md-button aria-label="{{ 'action.remove' | translate }}"
+                                    <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading"
+                                               aria-label="{{ 'action.remove' | translate }}"
                                                class="md-icon-button"
                                                ng-click="removeItem(map, configuration.clientConfiguration.mapping)"
                                     >

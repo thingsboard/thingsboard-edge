@@ -181,15 +181,4 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         return result;
     }
 
-    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
-    }
-
-
 }
