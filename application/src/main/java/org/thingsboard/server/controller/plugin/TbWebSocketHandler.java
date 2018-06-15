@@ -61,7 +61,6 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements Telemetr
     private static final ConcurrentMap<String, String> externalSessionMap = new ConcurrentHashMap<>();
 
     @Autowired
-    @Lazy
     private TelemetryWebSocketService webSocketService;
 
     @Override
