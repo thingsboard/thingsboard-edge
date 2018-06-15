@@ -30,7 +30,8 @@
  */
 package org.thingsboard.server.service.integration.opcua;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -44,15 +45,10 @@ import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
+import org.eclipse.milo.opcua.stack.core.types.builtin.*;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.*;
 import org.eclipse.milo.opcua.stack.core.types.structured.*;
-import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
@@ -64,7 +60,10 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -188,10 +187,19 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
-        for (DownlinkData data : result) {
-            //TODO:
+        List<WriteValue> writeValues = prepareWriteValues(result);
+        List<CallMethodRequest> callMethods = prepareCallMethods(result);
+
+        logOpcUaDownlink(context, writeValues, callMethods);
+
+        if (!writeValues.isEmpty()) {
+            client.write(writeValues);
         }
-        return false;
+        if (!callMethods.isEmpty()) {
+            client.call(callMethods);
+        }
+
+        return !writeValues.isEmpty() || !callMethods.isEmpty();
     }
 
     private void initClient(OpcUaServerConfiguration configuration) throws Exception {
@@ -271,7 +279,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         return false;
     }
 
-    public void scanForDevices() {
+    private void scanForDevices() {
         if (connected && scheduleReconnect && !reconnect()) {
             log.info("Scheduling next scan in {} seconds!", opcUaServerConfiguration.getScanPeriodInSeconds());
             executor.schedule(() -> {
@@ -430,15 +438,17 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void onSubscriptionValue(UaMonitoredItem item, DataValue dataValue) {
-        log.debug("Subscription value received: item={}, value={}",
-                item.getReadValueId().getNodeId(), dataValue.getValue());
-        NodeId tagId = item.getReadValueId().getNodeId();
-        devicesByTags.getOrDefault(tagId, Collections.emptyList()).forEach(
-                device -> {
-                    device.updateTag(tagId, dataValue);
-                    onDeviceDataUpdate(device, tagId);
-                }
-        );
+        if (!integrationContext.isClosed()) {
+            log.debug("Subscription value received: item={}, value={}",
+                    item.getReadValueId().getNodeId(), dataValue.getValue());
+            NodeId tagId = item.getReadValueId().getNodeId();
+            devicesByTags.getOrDefault(tagId, Collections.emptyList()).forEach(
+                    device -> {
+                        device.updateTag(tagId, dataValue);
+                        onDeviceDataUpdate(device, tagId);
+                    }
+            );
+        }
     }
 
     private Map<String, NodeId> lookupTags(NodeId nodeId, String deviceNodeName, Set<String> tags) {
@@ -485,4 +495,136 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 uint(BrowseResultMask.All.getValue())
         );
     }
+
+    private List<WriteValue> prepareWriteValues(List<DownlinkData> dataList) {
+        List<WriteValue> writeValuesList = new ArrayList<>();
+        for (DownlinkData data : dataList) {
+            if (!data.isEmpty() && data.getContentType().equals("JSON")) {
+                try {
+                    JsonNode payload = mapper.readTree(data.getData());
+                    if (payload.has("writeValues")) {
+                        JsonNode writeValues = payload.get("writeValues");
+                        if (writeValues.isArray()) {
+                            for (JsonNode writeValueJson : writeValues) {
+                                Optional<NodeId> nodeId = Optional.empty();
+                                Optional<Variant> value = Optional.empty();
+                                if (writeValueJson.has("nodeId")) {
+                                    try {
+                                        nodeId = NodeId.parseSafe(writeValueJson.get("nodeId").asText());
+                                    } catch (Exception e) {}
+                                }
+                                if (writeValueJson.has("value")) {
+                                    JsonNode valueJson = writeValueJson.get("value");
+                                    value = extractValue(valueJson);
+                                }
+                                if (nodeId.isPresent() && value.isPresent()) {
+                                    WriteValue writeValue = new WriteValue(
+                                            nodeId.get(), AttributeId.Value.uid(), null, DataValue.valueOnly(value.get()));
+                                    writeValuesList.add(writeValue);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {}
+            }
+        }
+        return writeValuesList;
+    }
+
+    private List<CallMethodRequest> prepareCallMethods(List<DownlinkData> dataList) {
+        List<CallMethodRequest> callMethodRequests = new ArrayList<>();
+        for (DownlinkData data : dataList) {
+            if (!data.isEmpty() && data.getContentType().equals("JSON")) {
+                try {
+                    JsonNode payload = mapper.readTree(data.getData());
+                    if (payload.has("callMethods")) {
+                        JsonNode callMethods = payload.get("callMethods");
+                        if (callMethods.isArray()) {
+                            for (JsonNode callMethodJson : callMethods) {
+                                Optional<NodeId> objectId = Optional.empty();
+                                Optional<NodeId> methodId = Optional.empty();
+                                Optional<Variant[]> arguments = Optional.empty();
+                                if (callMethodJson.has("objectId")) {
+                                    try {
+                                        objectId = NodeId.parseSafe(callMethodJson.get("objectId").asText());
+                                    } catch (Exception e) {}
+                                }
+                                if (callMethodJson.has("methodId")) {
+                                    try {
+                                        methodId = NodeId.parseSafe(callMethodJson.get("methodId").asText());
+                                    } catch (Exception e) {}
+                                }
+                                if (callMethodJson.has("args")) {
+                                    JsonNode argsJson = callMethodJson.get("args");
+                                    if (argsJson.isArray()) {
+                                        List<Variant> argsList = new ArrayList<>();
+                                        for (JsonNode argJson : argsJson) {
+                                            Optional<Variant> value = extractValue(argJson);
+                                            if (value.isPresent()) {
+                                                argsList.add(value.get());
+                                            }
+                                        }
+                                        arguments = Optional.of(argsList.toArray(new Variant[]{}));
+                                    }
+                                }
+                                if (objectId.isPresent() && methodId.isPresent()) {
+                                    Variant[] args = arguments.isPresent() ? arguments.get() : new Variant[]{};
+                                    CallMethodRequest callMethodRequest = new CallMethodRequest(objectId.get(), methodId.get(), args);
+                                    callMethodRequests.add(callMethodRequest);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {}
+            }
+        }
+        return callMethodRequests;
+    }
+
+    private Optional<Variant> extractValue(JsonNode valueJson) {
+        Object val = null;
+        if (valueJson.isValueNode()) {
+            if (valueJson.isTextual()) {
+                val = valueJson.asText();
+            } else if (valueJson.isInt()) {
+                val = valueJson.asInt();
+            } else if (valueJson.isLong()) {
+                val = valueJson.asLong();
+            } else if (valueJson.isFloatingPointNumber()) {
+                val = valueJson.asDouble();
+            } else if (valueJson.isBoolean()) {
+                val = valueJson.asBoolean();
+            }
+        }
+        if (val != null) {
+            return Optional.of(new Variant(val));
+        }
+        return Optional.empty();
+    }
+
+    private void logOpcUaDownlink(IntegrationContext context, List<WriteValue> writeValues, List<CallMethodRequest> callMethods) {
+        if (configuration.isDebugMode() && (!writeValues.isEmpty() || !callMethods.isEmpty())) {
+            try {
+                ObjectNode json = mapper.createObjectNode();
+                if (!writeValues.isEmpty()) {
+                    json.set("writeValues", toJsonStringList(writeValues));
+                }
+                if (!callMethods.isEmpty()) {
+                    json.set("callMethods", toJsonStringList(callMethods));
+                }
+                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
+        }
+    }
+
+    private JsonNode toJsonStringList(List<?> list) {
+        ArrayNode arrayNode = mapper.createArrayNode();
+        for (Object item : list) {
+            arrayNode.add(item.toString());
+        }
+        return arrayNode;
+    }
+
 }
