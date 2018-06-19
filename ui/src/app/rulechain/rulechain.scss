@@ -184,6 +184,9 @@
   &.tb-rule-chain-type {
     background-color: #d6c4f1;
   }
+  &.tb-unknown-type {
+    background-color: #f16c29;
+  }
 }
 
 .tb-rule-node {
@@ -216,6 +219,7 @@
     background-color: #a3eaa9;
     user-select: none;
   }
+
   md-icon {
     font-size: 20px;
     width: 20px;

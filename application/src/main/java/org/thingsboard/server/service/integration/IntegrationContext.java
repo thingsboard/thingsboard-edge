@@ -34,6 +34,8 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.transport.SessionMsgProcessor;
@@ -49,6 +51,13 @@ import org.thingsboard.server.service.integration.downlink.DownlinkService;
 @Component
 @Data
 public class IntegrationContext {
+
+    private volatile boolean isClosed = false;
+
+    @EventListener
+    public void handleContextClosed (ContextClosedEvent event) {
+        isClosed = true;
+    }
 
     @Lazy
     @Autowired

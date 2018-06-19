@@ -70,13 +70,4 @@ md-sidenav.tb-sidenav-details {
     width: 65% !important;
   }
 
-  md-tab-content.md-active > div {
-    height: 100%;
-    & > *:first-child {
-      height: 100%;
-    }
-    md-content {
-      height: 100%;
-    }
-  }
 }

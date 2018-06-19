@@ -390,6 +390,10 @@ export default angular.module('thingsboard.types', [])
                 "AZURE_EVENT_HUB": {
                     name: "integration.type-azure-event-hub",
                     value: "AZURE_EVENT_HUB"
+                },
+                "OPC_UA": {
+                    name: "integration.type-opc-ua",
+                    value: "OPC_UA"
                 }
             },
             componentType: {
@@ -781,13 +785,13 @@ export default angular.module('thingsboard.types', [])
                     name: 'integration.mqtt-qos-exactly-once'
                 }
             },
-            extensionOpcSecurityTypes: {
+            opcSecurityTypes: {
                 Basic128Rsa15: "Basic128Rsa15",
                 Basic256: "Basic256",
                 Basic256Sha256: "Basic256Sha256",
                 None: "None"
             },
-            extensionIdentityType: {
+            identityType: {
                 anonymous: "extension.anonymous",
                 username: "extension.username"
             },
@@ -814,6 +818,10 @@ export default angular.module('thingsboard.types', [])
             extensionModbusRtuEncodings: {
                 ascii: "ascii",
                 rtu: "rtu"
+            },
+            opcUaMappingType: {
+                ID: "ID",
+                FQN: "Fully Qualified Name"
             },
             latestTelemetry: {
                 value: "LATEST_TELEMETRY",
@@ -848,6 +856,22 @@ export default angular.module('thingsboard.types', [])
                         details: "Forwards incoming messages to specified Rule Chain",
                         inEnabled: true,
                         outEnabled: false,
+                        relationTypes: [],
+                        customRelations: false,
+                        defaultConfiguration: {}
+                    }
+                }
+            },
+            unknownNodeComponent: {
+                type: 'UNKNOWN',
+                name: 'unknown',
+                clazz: 'tb.internal.Unknown',
+                configurationDescriptor: {
+                    nodeDefinition: {
+                        description: "",
+                        details: "",
+                        inEnabled: true,
+                        outEnabled: true,
                         relationTypes: [],
                         customRelations: false,
                         defaultConfiguration: {}
@@ -909,6 +933,13 @@ export default angular.module('thingsboard.types', [])
                     nodeClass: "tb-input-type",
                     icon: "input",
                     special: true
+                },
+                UNKNOWN: {
+                    value: "UNKNOWN",
+                    name: "rulenode.type-unknown",
+                    details: "rulenode.type-unknown-details",
+                    nodeClass: "tb-unknown-type",
+                    icon: "help_outline"
                 }
             },
             valueType: {

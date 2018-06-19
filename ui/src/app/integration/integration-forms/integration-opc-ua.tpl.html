@@ -1,0 +1,331 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section ng-form name="opcUaIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <md-input-container class="md-block">
+            <label translate>integration.opc-ua-application-name</label>
+            <input ng-model="configuration.clientConfiguration.applicationName">
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.opc-ua-application-uri</label>
+            <input ng-model="configuration.clientConfiguration.applicationUri">
+        </md-input-container>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container flex="40" class="md-block">
+                <label translate>integration.host</label>
+                <input required name="host" ng-model="configuration.clientConfiguration.host">
+                <div ng-messages="opcUaIntegrationForm.host.$error">
+                    <div translate ng-message="required">integration.host-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container flex="20" class="md-block">
+                <label translate>integration.port</label>
+                <input type="number" step="1" min="1" max="65535" required
+                       name="port" ng-model="configuration.clientConfiguration.port">
+                <div ng-messages="opcUaIntegrationForm.port.$error">
+                    <div translate ng-message="required">integration.port-required</div>
+                    <div translate ng-message="min">integration.port-range</div>
+                    <div translate ng-message="max">integration.port-range</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.opc-ua-scan-period-in-seconds</label>
+                <input type="number"
+                       required
+                       name="scanPeriodInSeconds"
+                       ng-model="configuration.clientConfiguration.scanPeriodInSeconds">
+                <div ng-messages="opcUaIntegrationForm.scanPeriodInSeconds.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.opc-ua-scan-period-in-seconds-required</div>
+                </div>
+            </md-input-container>
+
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.opc-ua-timeout</label>
+                <input type="number"
+                       required name="timeoutInMillis"
+                       ng-model="configuration.clientConfiguration.timeoutInMillis"
+                >
+                <div ng-messages="opcUaIntegrationForm.timeoutInMillis.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.opc-ua-timeout-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block tb-container-for-select">
+                <label translate>integration.opc-ua-security</label>
+                <md-select required
+                           ng-disabled="$root.loading || !isEdit"
+                           name="securityType"
+                           ng-change="opcUaSecurityTypeChanged()"
+                           ng-model="configuration.clientConfiguration.security">
+                    <md-option ng-value="securityType"
+                               ng-repeat="(securityType, securityValue) in types.opcSecurityTypes"
+                    ><span ng-bind="::securityValue"></span></md-option>
+                </md-select>
+                <div ng-messages="opcUaIntegrationForm.securityType.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.opc-ua-security-required</div>
+                </div>
+            </md-input-container>
+
+            <md-input-container flex="50" class="md-block tb-container-for-select">
+                <label translate>integration.opc-ua-identity</label>
+                <md-select required
+                           ng-disabled="$root.loading || !isEdit"
+                           name="identityType"
+                           ng-model="configuration.clientConfiguration.identity.type"
+                >
+                    <md-option ng-value="identityType"
+                               ng-repeat="(identityType, identityValue) in types.identityType"
+                    ><span ng-bind="identityValue | translate"></span></md-option>
+                </md-select>
+                <div ng-messages="opcUaIntegrationForm.identityType.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.opc-ua-identity-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div ng-if="configuration.clientConfiguration.identity.type != 'username'">
+                                            <span class=""
+                                                  ng-init="configuration.clientConfiguration.identity = {'type':'anonymous'}"></span>
+        </div>
+        <div layout="row" ng-if="configuration.clientConfiguration.identity.type == 'username'">
+            <md-input-container flex="50" class="md-block" md-is-error="opcUaIntegrationForm.identityUsername.$touched && opcUaIntegrationForm.identityUsername.$invalid">
+                <label translate>integration.username</label>
+                <input required
+                       name="identityUsername"
+                       ng-model="configuration.clientConfiguration.identity.username"
+                >
+                <div ng-messages="opcUaIntegrationForm.identityUsername.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.username-required</div>
+                </div>
+            </md-input-container>
+
+            <md-input-container flex="50" class="md-block" md-is-error="opcUaIntegrationForm.identityPassword.$touched && opcUaIntegrationForm.identityPassword.$invalid">
+                <label translate>integration.password</label>
+                <input required
+                       name="identityPassword" ng-model="configuration.clientConfiguration.identity.password">
+                <div ng-messages="opcUaIntegrationForm.identityPassword.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.password-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <md-expansion-panel-group class="tb-integration-panel-group opc-ua-keystore"
+                                  ng-if="configuration.clientConfiguration.security != 'None'"
+                                  ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="opcUaKeystorePanelGroup">
+            <md-expansion-panel md-component-id="opcUaKeystorePanel">
+                <md-expansion-panel-collapsed>
+                    <div class="tb-panel-title">{{ 'integration.opc-ua-keystore' | translate }}</div>
+                    <div class="tb-panel-prompt" translate ng-if="!configuration.clientConfiguration.keystore.fileContent">integration.add-opc-ua-keystore-prompt</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-collapsed>
+                <md-expansion-panel-expanded>
+                    <md-expansion-panel-header ng-click="$mdExpansionPanel('opcUaKeystorePanel').collapse()">
+                        <div class="tb-panel-title">{{ 'integration.opc-ua-keystore' | translate }}</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-header>
+                    <md-expansion-panel-content>
+                        <div>
+                            <md-input-container class="md-block">
+                                <label translate>integration.opc-ua-keystore-type</label>
+                                <md-select required name="keystoreType"
+                                           ng-disabled="$root.loading || !isEdit"
+                                           ng-model="configuration.clientConfiguration.keystore.type">
+                                    <md-option ng-value="keystoreType" ng-repeat="(keystoreType, keystoreValue) in types.extensionKeystoreType"><span ng-bind="::keystoreValue"></span></md-option>
+                                </md-select>
+                                <div ng-messages="opcUaIntegrationForm.keystoreType.$error">
+                                    <div translate ng-message="required">integration.opc-ua-keystore-type-required</div>
+                                </div>
+                            </md-input-container>
+                            <section class="dropdown-section">
+                                <div class="tb-container" ng-class="{'ng-invalid':!configuration.clientConfiguration.keystore.fileContent}">
+                                    <label class="tb-label" translate>integration.opc-ua-keystore-location</label>
+                                    <div flow-init="{singleFile:true}" flow-file-added='opcUaKeystoreFileAdded($file)' class="tb-file-select-container">
+                                        <div class="tb-file-clear-container">
+                                            <md-button ng-click='clearUaKeystoreFile()' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                                <md-tooltip md-direction="top">
+                                                    {{ 'action.remove' | translate }}
+                                                </md-tooltip>
+                                                <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                                            </md-button>
+                                        </div>
+                                        <div class="alert tb-flow-drop" flow-drop>
+                                            <label for="dropFileKeystore" translate>integration.drop-file</label>
+                                            <input flow-attrs="{accept:'.pfx,.p12'}"
+                                                   type="file"
+                                                   class="file-input"
+                                                   flow-btn id="dropFileKeystore"
+                                                   name="keystoreFile"
+                                                   ng-model="configuration.clientConfiguration.keystore.fileContent">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-messages">
+                                    <div ng-if="!configuration.clientConfiguration.keystore.fileContent" class="tb-error-message" translate>integration.no-file</div>
+                                    <div ng-if="configuration.clientConfiguration.keystore.location">{{configuration.clientConfiguration.keystore.location}}</div>
+                                </div>
+                            </section>
+                            <div flex layout="row">
+                                <md-input-container flex="50" class="md-block">
+                                    <label translate>integration.opc-ua-keystore-password</label>
+                                    <input required name="keystorePassword" ng-model="configuration.clientConfiguration.keystore.password">
+                                    <div ng-messages="opcUaIntegrationForm.keystorePassword.$error">
+                                        <div translate ng-message="required">integration.opc-ua-keystore-password-required</div>
+                                    </div>
+                                </md-input-container>
+                                <md-input-container flex="50" class="md-block">
+                                    <label translate>integration.opc-ua-keystore-alias</label>
+                                    <input required name="keystoreAlias" ng-model="configuration.clientConfiguration.keystore.alias">
+                                    <div ng-messages="opcUaIntegrationForm.keystoreAlias.$error">
+                                        <div translate ng-message="required">integration.opc-ua-keystore-alias-required</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                            <md-input-container class="md-block">
+                                <label translate>integration.opc-ua-keystore-key-password</label>
+                                <input required name="keystoreKeyPassword" ng-model="configuration.clientConfiguration.keystore.keyPassword">
+                                <div ng-messages="opcUaIntegrationForm.keystoreKeyPassword.$error">
+                                    <div translate ng-message="required">integration.opc-ua-keystore-key-password-required</div>
+                                </div>
+                            </md-input-container>
+                        </div>
+                    </md-expansion-panel-content>
+                </md-expansion-panel-expanded>
+            </md-expansion-panel>
+        </md-expansion-panel-group>
+        <md-expansion-panel-group class="tb-integration-panel-group opc-ua-mapping" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="opcUaMappingPanelGroup">
+            <md-expansion-panel md-component-id="opcUaMappingPanel">
+                <md-expansion-panel-collapsed>
+                    <div class="tb-panel-title">{{ 'integration.opc-ua-mapping' | translate }}</div>
+                    <div class="tb-panel-prompt" translate ng-if="!configuration.clientConfiguration.mapping.length">integration.add-opc-ua-mapping-prompt</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-collapsed>
+                <md-expansion-panel-expanded>
+                    <md-expansion-panel-header ng-click="$mdExpansionPanel('opcUaMappingPanel').collapse()">
+                        <div class="tb-panel-title">{{ 'integration.opc-ua-mapping' | translate }}</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-header>
+                    <md-expansion-panel-content>
+                        <div ng-if="configuration.clientConfiguration.mapping.length > 0">
+                            <ol class="list-group">
+                                <li class="list-group-item"
+                                    ng-repeat="(mapIndex, map) in configuration.clientConfiguration.mapping"
+                                >
+                                    <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading"
+                                               aria-label="{{ 'action.remove' | translate }}"
+                                               class="md-icon-button"
+                                               ng-click="removeItem(map, configuration.clientConfiguration.mapping)"
+                                    >
+                                        <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
+                                        <md-tooltip md-direction="top">
+                                            {{ 'action.remove' | translate }}
+                                        </md-tooltip>
+                                    </md-button>
+                                    <md-card>
+                                        <md-card-content>
+                                            <div flex layout="row">
+                                                <md-input-container flex="50" class="md-block">
+                                                    <label translate>integration.opc-ua-device-node-pattern</label>
+                                                    <input placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
+                                                           ng-disabled="$root.loading || !isEdit" ng-required="true"
+                                                           name="deviceNodePattern_{{mapIndex}}"
+                                                           ng-model="map.deviceNodePattern"
+                                                    >
+                                                    <div ng-messages="opcUaIntegrationForm['deviceNodePattern_' + mapIndex].$error">
+                                                        <div translate
+                                                             ng-message="required"
+                                                        >integration.opc-ua-device-node-pattern-required</div>
+                                                    </div>
+                                                </md-input-container>
+                                                <md-input-container flex="50" class="md-block">
+                                                    <label translate>integration.opc-ua-mapping-type</label>
+                                                    <md-select placeholder="{{ 'integration.opc-ua-mapping-type' | translate }}"
+                                                               ng-disabled="$root.loading || !isEdit" ng-required="true"
+                                                               name="mappingType_{{mapIndex}}" ng-model="map.mappingType">
+                                                        <md-option ng-repeat="(mappingType, mappingValue) in types.opcUaMappingType" ng-value="mappingType">
+                                                            {{mappingValue}}
+                                                        </md-option>
+                                                    </md-select>
+                                                    <div ng-messages="opcUaIntegrationForm['mappingType_' + mapIndex].$error">
+                                                        <div translate
+                                                             ng-message="required"
+                                                        >integration.opc-ua-mapping-type-required</div>
+                                                    </div>
+                                                </md-input-container>
+                                            </div>
+                                            <tb-opc-ua-subscription-tags
+                                                    ng-model="map.subscriptionTags"
+                                                    is-edit="isEdit"
+                                            ></tb-opc-ua-subscription-tags>
+                                        </md-card-content>
+                                    </md-card>
+                                </li>
+                            </ol>
+                        </div>
+                        <span ng-show="!configuration.clientConfiguration.mapping.length"
+                              layout-align="center center" ng-class="{'disabled': $root.loading || !isEdit}"
+                              class="no-data-found" translate>integration.add-opc-ua-mapping-prompt</span>
+                        <div>
+                            <md-button ng-show="!($root.loading || !isEdit)" ng-disabled="$root.loading"
+                                       class="md-primary md-raised"
+                                       ng-click="addMap(configuration.clientConfiguration.mapping)"
+                                       aria-label="{{ 'action.add' | translate }}">
+                                <md-tooltip md-direction="top">
+                                    {{ 'integration.opc-ua-add-map' | translate }}
+                                </md-tooltip>
+                                <md-icon class="material-icons">add</md-icon>
+                                <span translate>integration.opc-ua-add-map</span>
+                            </md-button>
+                        </div>
+                    </md-expansion-panel-content>
+                </md-expansion-panel-expanded>
+            </md-expansion-panel>
+        </md-expansion-panel-group>
+    </fieldset>
+</section>

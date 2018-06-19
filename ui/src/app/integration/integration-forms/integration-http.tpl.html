@@ -1,0 +1,123 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section ng-form name="httpIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <md-input-container class="md-block">
+            <label translate>integration.base-url</label>
+            <input required name="baseUrl" ng-model="configuration.baseUrl" ng-change="integrationBaseUrlChanged()">
+            <div ng-messages="httpIntegrationForm.baseUrl.$error">
+                <div translate ng-message="required">integration.base-url-required</div>
+            </div>
+        </md-input-container>
+        <section ng-if="integrationType == types.integrationType.HTTP.value ||
+                                                integrationType == types.integrationType.SIGFOX.value">
+            <md-input-container class="md-block">
+                <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
+                             ng-model="configuration.enableSecurity"
+                             ng-change="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
+                </md-checkbox>
+            </md-input-container>
+            <md-expansion-panel-group ng-if="configuration.enableSecurity"
+                                      class="tb-integration-panel-group header-filters" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="headersFilterPanelGroup">
+                <md-expansion-panel md-component-id="{{headersFilterPanelId}}">
+                    <md-expansion-panel-collapsed>
+                        <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-collapsed>
+                    <md-expansion-panel-expanded>
+                        <md-expansion-panel-header ng-click="$mdExpansionPanel(headersFilterPanelId).collapse()">
+                            <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
+                            <span flex></span>
+                            <md-expansion-panel-icon></md-expansion-panel-icon>
+                        </md-expansion-panel-header>
+                        <md-expansion-panel-content>
+                            <tb-key-val-map no-data-text="integration.no-headers-filter" key-placeholder-text="integration.header"
+                                            ng-disabled="$root.loading || !isEdit"
+                                            key-val-map="configuration.headersFilter"></tb-key-val-map>
+                        </md-expansion-panel-content>
+                    </md-expansion-panel-expanded>
+                </md-expansion-panel>
+            </md-expansion-panel-group>
+        </section>
+        <section ng-if="integrationType == types.integrationType.THINGPARK.value">
+            <md-input-container class="md-block">
+                <label translate>integration.downlink-url</label>
+                <input name="downlinkUrl" ng-model="configuration.downlinkUrl">
+            </md-input-container>
+            <md-input-container class="md-block">
+                <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
+                             ng-model="configuration.enableSecurity"
+                             ng-change="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="md-block" ng-if="configuration.enableSecurity">
+                <label translate>integration.as-id</label>
+                <input required name="asId" ng-model="configuration.asId">
+                <div ng-messages="httpIntegrationForm.asId.$error">
+                    <div translate ng-message="required">integration.as-id-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block" ng-if="configuration.enableSecurity">
+                <label translate>integration.as-key</label>
+                <input required name="asKey" ng-model="configuration.asKey">
+                <div ng-messages="httpIntegrationForm.asKey.$error">
+                    <div translate ng-message="required">integration.as-key-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block" ng-if="configuration.enableSecurity">
+                <label translate>integration.max-time-diff-in-seconds</label>
+                <input type="number" min="0" step="1" required name="maxTimeDiffInSeconds"
+                       ng-model="configuration.maxTimeDiffInSeconds">
+                <div ng-messages="httpIntegrationForm.maxTimeDiffInSeconds.$error">
+                    <div translate ng-message="required">integration.max-time-diff-in-seconds-required</div>
+                </div>
+            </md-input-container>
+        </section>
+    </fieldset>
+    <div layout="row">
+        <md-input-container class="md-block" flex>
+            <label translate>integration.http-endpoint</label>
+            <input ng-model="httpEndpoint" disabled>
+        </md-input-container>
+        <md-button class="md-icon-button" style="margin-top: 14px;"
+                   ngclipboard
+                   data-clipboard-text="{{ httpEndpoint }}"
+                   ngclipboard-success="onHttpEndpointCopied(e)">
+            <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
+            <md-tooltip md-direction="top">
+                {{ 'integration.copy-http-endpoint-url' | translate }}
+            </md-tooltip>
+        </md-button>
+    </div>
+</section>

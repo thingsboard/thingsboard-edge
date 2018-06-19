@@ -41,7 +41,8 @@ function ConverterService($http, $q) {
         deleteConverter: deleteConverter,
         saveConverter: saveConverter,
         testUpLink: testUpLink,
-        testDownLink: testDownLink
+        testDownLink: testDownLink,
+        getLatestConverterDebugInput: getLatestConverterDebugInput
     };
 
     return service;
@@ -114,6 +115,17 @@ function ConverterService($http, $q) {
         var deferred = $q.defer();
         var url = '/api/converter/testDownLink';
         $http.post(url, inputParams).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getLatestConverterDebugInput(converterId) {
+        var deferred = $q.defer();
+        var url = '/api/converter/' + converterId + '/debugIn';
+        $http.get(url).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();

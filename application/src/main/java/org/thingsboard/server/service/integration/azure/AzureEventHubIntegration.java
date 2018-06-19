@@ -66,7 +66,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private EventHubClient ehClient;
     private ServiceClient serviceClient;
     private List<PartitionReceiver> receivers;
-    private transient boolean started = false;
+    private volatile boolean started = false;
     private ExecutorService executorService;
     private List<Future> receiverFutures;
 
@@ -288,16 +288,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                     clientConfiguration.getIotHubName()));
         }
         return serviceClient;
-    }
-
-    private <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
     }
 
     private void logEventHubDownlink(IntegrationContext context, Message message, String deviceId, String contentType) {

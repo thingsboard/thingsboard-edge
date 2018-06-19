@@ -60,7 +60,7 @@ function EntitiesTableWidget() {
 }
 
 /*@ngInject*/
-function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $translate, utils, types) {
+function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $translate, $timeout, utils, types) {
     var vm = this;
 
     vm.stylesInfo = {};
@@ -271,6 +271,9 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $tra
     function enterFilterMode () {
         vm.query.search = '';
         vm.ctx.hideTitlePanel = true;
+        $timeout(()=>{
+            angular.element(vm.ctx.$container).find('.searchInput').focus();
+        })
     }
 
     function exitFilterMode () {

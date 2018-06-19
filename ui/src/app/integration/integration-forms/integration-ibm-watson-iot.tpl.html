@@ -1,0 +1,77 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section ng-form name="ibmWatsonIotIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <md-input-container class="md-block">
+            <label translate>integration.connect-timeout</label>
+            <input type="number" step="1" min="1" max="200" required
+                   name="connectTimeoutSec" ng-model="configuration.clientConfiguration.connectTimeoutSec">
+            <div ng-messages="ibmWatsonIotIntegrationForm.connectTimeoutSec.$error">
+                <div translate ng-message="required">integration.connect-timeout-required</div>
+                <div translate ng-message="min">integration.connect-timeout-range</div>
+                <div translate ng-message="max">integration.connect-timeout-range</div>
+            </div>
+        </md-input-container>
+        <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.application-credentials' | translate }}</div>
+        <md-input-container class="md-block">
+            <label translate>integration.api-key</label>
+            <input required name="apiKey" ng-model="configuration.clientConfiguration.credentials.username">
+            <div ng-messages="ibmWatsonIotIntegrationForm.apiKey.$error">
+                <div translate ng-message="required">integration.api-key-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.auth-token</label>
+            <input type="password" required name="authToken" ng-model="configuration.clientConfiguration.credentials.password">
+            <div ng-messages="ibmWatsonIotIntegrationForm.authToken.$error">
+                <div translate ng-message="required">integration.auth-token-required</div>
+            </div>
+        </md-input-container>
+    </fieldset>
+    <tb-mqtt-topic-filters
+            ng-model="configuration.topicFilters"
+            is-edit="isEdit"
+            disable-mqtt-topics="false"
+    ></tb-mqtt-topic-filters>
+    <div style="height: 30px;"></div>
+    <md-input-container class="md-block">
+        <label translate>integration.downlink-topic-pattern</label>
+        <input required name="downlinkTopicPattern"
+               ng-disabled="$root.loading || !isEdit"
+               ng-readonly="true"
+               ng-model="configuration.downlinkTopicPattern">
+        <div ng-messages="ibmWatsonIotIntegrationForm.downlinkTopicPattern.$error">
+            <div translate ng-message="required">integration.downlink-topic-pattern-required</div>
+        </div>
+    </md-input-container>
+</section>

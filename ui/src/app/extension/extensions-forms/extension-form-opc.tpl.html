@@ -151,7 +151,7 @@
                                                            name="securityType_{{serverIndex}}"
                                                            ng-model="server.security">
                                                     <md-option ng-value="securityType"
-                                                               ng-repeat="(securityType, securityValue) in types.extensionOpcSecurityTypes"
+                                                               ng-repeat="(securityType, securityValue) in types.opcSecurityTypes"
                                                     ><span ng-bind="::securityValue"></span></md-option>
                                                 </md-select>
                                                 <div ng-messages="theForm['securityType_' + serverIndex].$error">
@@ -168,7 +168,7 @@
                                                            ng-model="server.identity.type"
                                                 >
                                                     <md-option ng-value="identityType"
-                                                               ng-repeat="(identityType, identityValue) in types.extensionIdentityType"
+                                                               ng-repeat="(identityType, identityValue) in types.identityType"
                                                     ><span ng-bind="identityValue | translate"></span></md-option>
                                                 </md-select>
                                                 <div ng-messages="theForm['identityType_' + serverIndex].$error">
