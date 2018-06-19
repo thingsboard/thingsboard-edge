@@ -47,6 +47,8 @@ import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -61,6 +63,7 @@ import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -71,6 +74,7 @@ import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -168,6 +172,9 @@ public abstract class BaseController {
 
     @Autowired
     protected SchedulerEventService schedulerEventService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
 
     @Autowired
     protected AuditLogService auditLogService;
@@ -378,6 +385,12 @@ public abstract class BaseController {
                     return;
                 case ENTITY_GROUP:
                     checkEntityGroupId(new EntityGroupId(entityId.getId()));
+                    return;
+                case SCHEDULER_EVENT:
+                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()));
+                    return;
+                case BLOB_ENTITY:
+                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()));
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
@@ -649,6 +662,63 @@ public abstract class BaseController {
         checkTenantId(schedulerEvent.getTenantId());
         if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
             checkCustomerId(schedulerEvent.getCustomerId());
+        }
+    }
+
+    SchedulerEventInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId) throws ThingsboardException {
+        try {
+            validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+            SchedulerEventInfo schedulerEventInfo = schedulerEventService.findSchedulerEventInfoById(schedulerEventId);
+            checkSchedulerEventInfo(schedulerEventInfo);
+            return schedulerEventInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkSchedulerEventInfo(SchedulerEventInfo schedulerEventInfo) throws ThingsboardException {
+        checkNotNull(schedulerEventInfo);
+        checkTenantId(schedulerEventInfo.getTenantId());
+        if (schedulerEventInfo.getCustomerId() != null && !schedulerEventInfo.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(schedulerEventInfo.getCustomerId());
+        }
+    }
+
+    BlobEntity checkBlobEntityId(BlobEntityId blobEntityId) throws ThingsboardException {
+        try {
+            validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
+            BlobEntity blobEntity = blobEntityService.findBlobEntityById(blobEntityId);
+            checkBlobEntity(blobEntity);
+            return blobEntity;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkBlobEntity(BlobEntity blobEntity) throws ThingsboardException {
+        checkNotNull(blobEntity);
+        checkTenantId(blobEntity.getTenantId());
+        if (blobEntity.getCustomerId() != null && !blobEntity.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(blobEntity.getCustomerId());
+        }
+    }
+
+    BlobEntityInfo checkBlobEntityInfoId(BlobEntityId blobEntityId) throws ThingsboardException {
+        try {
+            validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
+            BlobEntityInfo blobEntityInfo = blobEntityService.findBlobEntityInfoById(blobEntityId);
+            checkBlobEntityInfo(blobEntityInfo);
+            return blobEntityInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkBlobEntityInfo(BlobEntityInfo blobEntityInfo) throws ThingsboardException {
+        checkNotNull(blobEntityInfo);
+        checkTenantId(blobEntityInfo.getTenantId());
+        if (blobEntityInfo.getCustomerId() != null && !blobEntityInfo.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(blobEntityInfo.getCustomerId());
         }
     }
 

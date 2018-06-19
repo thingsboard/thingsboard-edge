@@ -42,6 +42,8 @@ public interface SchedulerEventService {
 
     SchedulerEvent findSchedulerEventById(SchedulerEventId schedulerEventId);
 
+    SchedulerEventInfo findSchedulerEventInfoById(SchedulerEventId schedulerEventId);
+
     List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId);
 
     List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type);
