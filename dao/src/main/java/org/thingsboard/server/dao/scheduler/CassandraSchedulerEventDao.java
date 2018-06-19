@@ -28,11 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.scheduler;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.dao.model.nosql.SchedulerEventEntity;
+import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.NoSqlDao;
+
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_COLUMN_FAMILY_NAME;
+
+@Component
+@NoSqlDao
+public class CassandraSchedulerEventDao extends CassandraAbstractSearchTextDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
+
+    @Override
+    protected Class<SchedulerEventEntity> getColumnFamilyClass() {
+        return SchedulerEventEntity.class;
+    }
+
+    @Override
+    protected String getColumnFamilyName() {
+        return SCHEDULER_EVENT_COLUMN_FAMILY_NAME;
+    }
 }

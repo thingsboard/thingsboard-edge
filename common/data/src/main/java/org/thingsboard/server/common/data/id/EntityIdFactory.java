@@ -82,6 +82,8 @@ public class EntityIdFactory {
                 return new RuleChainId(uuid);
             case RULE_NODE:
                 return new RuleNodeId(uuid);
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }

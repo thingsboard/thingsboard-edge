@@ -28,11 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.scheduler;
+
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.dao.Dao;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
- * @author Andrew Shvayka
+ * The Interface SchedulerEventInfoDao.
+ *
  */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT;
+public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
+
+    /**
+     * Find scheduler events by tenantId.
+     *
+     * @param tenantId the tenantId
+     * @return the list of scheduler event objects
+     */
+    List<SchedulerEventInfo> findSchedulerEventsByTenantId(UUID tenantId);
+
+    /**
+     * Find scheduler events by tenantId and type.
+     *
+     * @param tenantId the tenantId
+     * @param type the type
+     * @return the list of scheduler event objects
+     */
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(UUID tenantId, String type);
+
+    /**
+     * Find scheduler events by tenantId and customerId.
+     *
+     * @param tenantId the tenantId
+     * @param customerId the customerId
+     * @return the list of scheduler event objects
+     */
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerId(UUID tenantId, UUID customerId);
+
+    /**
+     * Find scheduler events by tenantId, customerId and type.
+     *
+     * @param tenantId the tenantId
+     * @param customerId the customerId
+     * @param type the type
+     * @return the list of scheduler event objects
+     */
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type);
+
 }

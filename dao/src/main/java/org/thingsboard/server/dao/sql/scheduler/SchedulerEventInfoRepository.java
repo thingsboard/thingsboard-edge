@@ -28,11 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.sql.scheduler;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.AssetEntity;
+import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
+import org.thingsboard.server.dao.model.sql.SchedulerEventInfoEntity;
+import org.thingsboard.server.dao.util.SqlDao;
+
+import java.util.List;
+
+@SqlDao
+public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEventInfoEntity, String> {
+
+    List<SchedulerEventInfoEntity> findByTenantId(String tenantId);
+
+    List<SchedulerEventInfoEntity> findByTenantIdAndType(String tenantId, String type);
+
+    List<SchedulerEventInfoEntity> findByTenantIdAndCustomerId(String tenantId, String customerId);
+
+    List<SchedulerEventInfoEntity> findByTenantIdAndCustomerIdAndType(String tenantId, String customerId, String type);
+
 }

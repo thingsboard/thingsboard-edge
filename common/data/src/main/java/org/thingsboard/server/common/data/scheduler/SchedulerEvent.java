@@ -28,11 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.scheduler;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class SchedulerEvent extends SchedulerEventInfo {
+
+    private static final long serialVersionUID = 2807343050519549363L;
+
+    private transient JsonNode configuration;
+    @JsonIgnore
+    private byte[] configurationBytes;
+
+    public SchedulerEvent() {
+        super();
+    }
+
+    public SchedulerEvent(SchedulerEventId id) {
+        super(id);
+    }
+
+    public SchedulerEvent(SchedulerEvent schedulerEvent) {
+        super(schedulerEvent);
+        this.setConfiguration(schedulerEvent.getConfiguration());
+    }
+
+    public JsonNode getConfiguration() {
+        return SearchTextBasedWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
+    }
+
+    public void setConfiguration(JsonNode data) {
+        setJson(data, json -> this.configuration = json, bytes -> this.configurationBytes = bytes);
+    }
+
 }

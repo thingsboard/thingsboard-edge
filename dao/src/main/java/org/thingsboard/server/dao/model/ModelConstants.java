@@ -384,6 +384,23 @@ public class ModelConstants {
     public static final String RULE_NODE_CONFIGURATION_PROPERTY = "configuration";
 
     /**
+     * Cassandra scheduler event constants.
+     */
+    public static final String SCHEDULER_EVENT_COLUMN_FAMILY_NAME = "scheduler_event";
+    public static final String SCHEDULER_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_NAME_PROPERTY = "name";
+    public static final String SCHEDULER_EVENT_TYPE_PROPERTY = "type";
+    public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = "configuration";
+    public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
+
+    public static final String SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant";
+    public static final String SCHEDULER_EVENT_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant_and_type";
+    public static final String SCHEDULER_EVENT_BY_CUSTOMER_COLUMN_FAMILY_NAME = "scheduler_event_by_customer";
+    public static final String SCHEDULER_EVENT_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_customer_and_type";
+
+    /**
      * Cassandra attributes and timeseries constants.
      */
     public static final String ATTRIBUTES_KV_CF = "attributes_kv_cf";

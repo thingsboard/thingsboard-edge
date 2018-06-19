@@ -722,3 +722,44 @@ CREATE TABLE IF NOT EXISTS  thingsboard.rule_node (
     additional_info text,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS  thingsboard.scheduler_event (
+    id uuid,
+    tenant_id timeuuid,
+    customer_id timeuuid,
+    name text,
+    type text,
+    search_text text,
+    schedule text,
+    configuration text,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id, customer_id, type)
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_tenant AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, id, customer_id, type)
+    WITH CLUSTERING ORDER BY ( id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_tenant_and_type AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, type, id, customer_id)
+    WITH CLUSTERING ORDER BY ( type ASC, id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_customer AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( customer_id, tenant_id, id, type )
+    WITH CLUSTERING ORDER BY ( tenant_id DESC, id DESC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_customer_and_type AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( customer_id, tenant_id, type, id )
+    WITH CLUSTERING ORDER BY ( tenant_id DESC, type ASC, id DESC );

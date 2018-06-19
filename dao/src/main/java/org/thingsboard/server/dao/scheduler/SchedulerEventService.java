@@ -28,11 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.scheduler;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+
+import java.util.List;
+
+public interface SchedulerEventService {
+
+    SchedulerEvent findSchedulerEventById(SchedulerEventId schedulerEventId);
+
+    List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId);
+
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type);
+
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
+    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type);
+
+    SchedulerEvent saveSchedulerEvent(SchedulerEvent schedulerEvent);
+
+    void deleteSchedulerEvent(SchedulerEventId schedulerEventId);
+
+    void deleteSchedulerEventsByTenantId(TenantId tenantId);
+
 }

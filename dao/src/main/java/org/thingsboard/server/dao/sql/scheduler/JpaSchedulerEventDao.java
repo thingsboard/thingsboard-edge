@@ -28,11 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.sql.scheduler;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
+import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
+import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
+
+@Component
+@SqlDao
+public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
+
+    @Autowired
+    SchedulerEventRepository schedulerEventRepository;
+
+    @Override
+    protected Class<SchedulerEventEntity> getEntityClass() {
+        return SchedulerEventEntity.class;
+    }
+
+    @Override
+    protected CrudRepository<SchedulerEventEntity, String> getCrudRepository() {
+        return schedulerEventRepository;
+    }
 }

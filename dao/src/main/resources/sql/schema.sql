@@ -299,3 +299,15 @@ CREATE TABLE IF NOT EXISTS rule_node (
     debug_mode boolean,
     search_text varchar(255)
 );
+
+CREATE TABLE IF NOT EXISTS scheduler_event (
+    id varchar(31) NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
+    additional_info varchar,
+    customer_id varchar(31),
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255),
+    schedule varchar,
+    configuration varchar(10000000)
+);
