@@ -28,11 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.blob;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+
+import java.nio.ByteBuffer;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class BlobEntity extends BlobEntityInfo {
+
+    private static final long serialVersionUID = 2807343057809549363L;
+
+    private transient ByteBuffer data;
+
+    public BlobEntity() {
+        super();
+    }
+
+    public BlobEntity(BlobEntityId id) {
+        super(id);
+    }
+
+    public BlobEntity(BlobEntity blobEntity) {
+        super(blobEntity);
+        this.data = blobEntity.getData();
+    }
+
 }

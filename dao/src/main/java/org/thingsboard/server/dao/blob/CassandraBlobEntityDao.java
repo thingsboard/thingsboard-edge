@@ -28,11 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.blob;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.dao.model.nosql.BlobEntityEntity;
+import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.NoSqlDao;
+
+import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME;
+
+@Component
+@NoSqlDao
+public class CassandraBlobEntityDao extends CassandraAbstractSearchTextDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
+
+    @Override
+    protected Class<BlobEntityEntity> getColumnFamilyClass() {
+        return BlobEntityEntity.class;
+    }
+
+    @Override
+    protected String getColumnFamilyName() {
+        return BLOB_ENTITY_COLUMN_FAMILY_NAME;
+    }
 }

@@ -31,42 +31,28 @@
 package org.thingsboard.server.dao.scheduler;
 
 
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetSearchQuery;
-import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.List;
 
-import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -88,9 +74,6 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Autowired
     private CustomerDao customerDao;
 
-    @Autowired
-    private EntityService entityService;
-
     @Override
     public SchedulerEvent findSchedulerEventById(SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventById [{}]", schedulerEventId);
@@ -100,22 +83,34 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId) {
-        return null;
+        log.trace("Executing findSchedulerEventsByTenantId, tenantId [{}]", tenantId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        return schedulerEventInfoDao.findSchedulerEventsByTenantId(tenantId.getId());
     }
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type) {
-        return null;
+        log.trace("Executing findSchedulerEventsByTenantIdAndType, tenantId [{}], type [{}]", tenantId, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(type, "Incorrect type " + type);
+        return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndType(tenantId.getId(), type);
     }
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
-        return null;
+        log.trace("Executing findSchedulerEventsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId());
     }
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type) {
-        return null;
+        log.trace("Executing findSchedulerEventsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}]", tenantId, customerId, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateString(type, "Incorrect type " + type);
+        return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type);
     }
 
     @Override
@@ -136,9 +131,13 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
 
     @Override
     public void deleteSchedulerEventsByTenantId(TenantId tenantId) {
-
+        log.trace("Executing deleteSchedulerEventsByTenantId, tenantId [{}]", tenantId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        List<SchedulerEventInfo> schedulerEvents = schedulerEventInfoDao.findSchedulerEventsByTenantId(tenantId.getId());
+        for (SchedulerEventInfo schedulerEvent : schedulerEvents) {
+            deleteSchedulerEvent(schedulerEvent.getId());
+        }
     }
-
 
     private DataValidator<SchedulerEvent> schedulerEventValidator =
             new DataValidator<SchedulerEvent>() {

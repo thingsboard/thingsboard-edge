@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -82,6 +83,7 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
@@ -163,6 +165,9 @@ public abstract class BaseController {
 
     @Autowired
     protected EntityGroupService entityGroupService;
+
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
 
     @Autowired
     protected AuditLogService auditLogService;
@@ -625,6 +630,25 @@ public abstract class BaseController {
             }
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    SchedulerEvent checkSchedulerEventId(SchedulerEventId schedulerEventId) throws ThingsboardException {
+        try {
+            validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+            SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(schedulerEventId);
+            checkSchedulerEvent(schedulerEvent);
+            return schedulerEvent;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkSchedulerEvent(SchedulerEvent schedulerEvent) throws ThingsboardException {
+        checkNotNull(schedulerEvent);
+        checkTenantId(schedulerEvent.getTenantId());
+        if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(schedulerEvent.getCustomerId());
         }
     }
 

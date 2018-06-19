@@ -28,11 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.blob;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntityId> implements HasName, HasTenantId, HasCustomerId {
+
+    private static final long serialVersionUID = 2807223040519549363L;
+
+    private TenantId tenantId;
+    private CustomerId customerId;
+    private String name;
+    private String type;
+    private String contentType;
+
+    public BlobEntityInfo() {
+        super();
+    }
+
+    public BlobEntityInfo(BlobEntityId id) {
+        super(id);
+    }
+
+    public BlobEntityInfo(BlobEntityInfo blobEntityInfo) {
+        super(blobEntityInfo);
+        this.tenantId = blobEntityInfo.getTenantId();
+        this.customerId = blobEntityInfo.getCustomerId();
+        this.name = blobEntityInfo.getName();
+        this.type = blobEntityInfo.getType();
+        this.contentType = blobEntityInfo.getContentType();
+    }
+
+    @Override
+    public String getSearchText() {
+        return getName();
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
 }

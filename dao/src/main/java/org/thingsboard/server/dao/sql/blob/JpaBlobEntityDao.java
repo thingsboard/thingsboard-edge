@@ -28,11 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.sql.blob;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.dao.blob.BlobEntityDao;
+import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
+
+@Component
+@SqlDao
+public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
+
+    @Autowired
+    BlobEntityRepository blobEntityRepository;
+
+    @Override
+    protected Class<BlobEntityEntity> getEntityClass() {
+        return BlobEntityEntity.class;
+    }
+
+    @Override
+    protected CrudRepository<BlobEntityEntity, String> getCrudRepository() {
+        return blobEntityRepository;
+    }
 }

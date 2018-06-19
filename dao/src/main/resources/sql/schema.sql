@@ -311,3 +311,15 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     schedule varchar,
     configuration varchar(10000000)
 );
+
+CREATE TABLE IF NOT EXISTS blob_entity (
+    id varchar(31) NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    customer_id varchar(31),
+    name varchar(255),
+    type varchar(255),
+    content_type varchar(255),
+    search_text varchar(255),
+    data varchar(100000000),
+    additional_info varchar
+);

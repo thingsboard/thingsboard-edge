@@ -28,11 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.id;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.thingsboard.server.common.data.EntityType;
+
+import java.util.UUID;
+
+public class BlobEntityId extends UUIDBased implements EntityId {
+
+    private static final long serialVersionUID = 1L;
+
+    @JsonCreator
+    public BlobEntityId(@JsonProperty("id") UUID id) {
+        super(id);
+    }
+
+    public static BlobEntityId fromString(String blobEntityId) {
+        return new BlobEntityId(UUID.fromString(blobEntityId));
+    }
+
+    @JsonIgnore
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.BLOB_ENTITY;
+    }
 }

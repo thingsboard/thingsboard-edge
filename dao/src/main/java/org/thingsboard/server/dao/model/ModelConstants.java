@@ -401,6 +401,23 @@ public class ModelConstants {
     public static final String SCHEDULER_EVENT_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_customer_and_type";
 
     /**
+     * Cassandra blob entity constants.
+     */
+    public static final String BLOB_ENTITY_COLUMN_FAMILY_NAME = "blob_entity";
+    public static final String BLOB_ENTITY_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String BLOB_ENTITY_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String BLOB_ENTITY_NAME_PROPERTY = "name";
+    public static final String BLOB_ENTITY_TYPE_PROPERTY = "type";
+    public static final String BLOB_ENTITY_CONTENT_TYPE_PROPERTY = "content_type";
+    public static final String BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String BLOB_ENTITY_DATA_PROPERTY = "data";
+
+    public static final String BLOB_ENTITY_BY_TENANT_COLUMN_FAMILY_NAME = "blob_entity_by_tenant";
+    public static final String BLOB_ENTITY_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_tenant_and_type";
+    public static final String BLOB_ENTITY_BY_CUSTOMER_COLUMN_FAMILY_NAME = "blob_entity_by_customer";
+    public static final String BLOB_ENTITY_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_customer_and_type";
+
+    /**
      * Cassandra attributes and timeseries constants.
      */
     public static final String ATTRIBUTES_KV_CF = "attributes_kv_cf";
