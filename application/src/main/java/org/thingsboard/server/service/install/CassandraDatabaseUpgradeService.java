@@ -226,7 +226,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
             case "2.0.0":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.0pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";

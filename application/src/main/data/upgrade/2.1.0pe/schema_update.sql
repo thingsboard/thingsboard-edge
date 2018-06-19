@@ -63,3 +63,27 @@ CREATE TABLE IF NOT EXISTS integration (
 );
 
 ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);
+
+CREATE TABLE IF NOT EXISTS scheduler_event (
+    id varchar(31) NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
+    additional_info varchar,
+    customer_id varchar(31),
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255),
+    schedule varchar,
+    configuration varchar(10000000)
+);
+
+CREATE TABLE IF NOT EXISTS blob_entity (
+    id varchar(31) NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    customer_id varchar(31),
+    name varchar(255),
+    type varchar(255),
+    content_type varchar(255),
+    search_text varchar(255),
+    data varchar(100000000),
+    additional_info varchar
+);

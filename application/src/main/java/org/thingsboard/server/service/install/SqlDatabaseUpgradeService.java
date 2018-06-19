@@ -126,7 +126,7 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
 
             case "2.0.0":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {
