@@ -30,43 +30,17 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.thingsboard</groupId>
-        <version>2.1.0PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
-    </parent>
-    <artifactId>transport</artifactId>
-    <packaging>pom</packaging>
-
-    <name>ThingsBoard PE Server Transport Modules</name>
-    <url>https://thingsboard.io</url>
-
-    <properties>
-        <main.dir>${basedir}/..</main.dir>
-    </properties>
-
-    <modules>
-        <module>http</module>
-        <module>coap</module>
-        <module>mqtt</module>
-    </modules>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.thingsboard</groupId>
-            <artifactId>dao</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-        </dependency>
-    </dependencies>
-
-</project>
+<tb-scheduler-event-template-config ng-if="useDefinedTemplate()"
+                             ng-model="configuration"
+                             config-type="{{configType}}"
+                             config-types="configTypes"
+                             ng-required="required"
+                             ng-readonly="readonly">
+</tb-scheduler-event-template-config>
+<tb-json-object-edit ng-if="!useDefinedTemplate()"
+                     class="tb-scheduler-event-configuration-json"
+                     ng-model="configuration"
+                     label="{{ 'scheduler.configuration' | translate }}"
+                     ng-required="required"
+                     fill-height="true">
+</tb-json-object-edit>

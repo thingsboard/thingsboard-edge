@@ -30,43 +30,28 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.thingsboard</groupId>
-        <version>2.1.0PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
-    </parent>
-    <artifactId>transport</artifactId>
-    <packaging>pom</packaging>
-
-    <name>ThingsBoard PE Server Transport Modules</name>
-    <url>https://thingsboard.io</url>
-
-    <properties>
-        <main.dir>${basedir}/..</main.dir>
-    </properties>
-
-    <modules>
-        <module>http</module>
-        <module>coap</module>
-        <module>mqtt</module>
-    </modules>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.thingsboard</groupId>
-            <artifactId>dao</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-        </dependency>
-    </dependencies>
-
-</project>
+<md-toolbar class="tb-scheduler-events-title-toolbar">
+    <div class="md-toolbar-tools">
+        <span>{{widget.$ctx().widgetTitle}}</span>
+        <div class="tb-scheduler-events-view-type-toolbar" layout="row" layout-align="start center" ng-if="widget.$ctx().settings.enabledViews === 'both'">
+            <div class="tb-toolbar-button" ng-class="{'tb-selected' : widget.$ctx().currentSchedulerMode === 'list'}">
+                <md-button class="md-icon-button"
+                           ng-click="widget.$ctx().currentSchedulerMode = 'list'">
+                    <md-icon class="material-icons">view_list</md-icon>
+                    <md-tooltip md-direction="bottom">
+                        {{'scheduler.list-mode' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+            <div class="tb-toolbar-button" ng-class="{'tb-selected' : widget.$ctx().currentSchedulerMode === 'calendar'}">
+                <md-button class="md-icon-button"
+                           ng-click="widget.$ctx().currentSchedulerMode = 'calendar'">
+                    <md-icon class="material-icons">event</md-icon>
+                    <md-tooltip md-direction="bottom">
+                        {{'scheduler.calendar-mode' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </div>
+    </div>
+</md-toolbar>

@@ -268,6 +268,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'dashboards'
                         },
                         {
+                            name: 'scheduler.scheduler',
+                            type: 'link',
+                            state: 'home.scheduler',
+                            icon: 'schedule'
+                        },
+                        {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
@@ -381,6 +387,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 ]
                             },
                             {
+                                name: 'scheduler.management',
+                                places: [
+                                    {
+                                        name: 'scheduler.scheduler',
+                                        icon: 'schedule',
+                                        state: 'home.scheduler'
+                                    }
+                                ]
+                            },
+                            {
                                 name: 'admin.system-settings',
                                 places: [
                                     {
@@ -437,6 +453,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'dashboard'
                         },
                         {
+                            name: 'scheduler.scheduler',
+                            type: 'link',
+                            state: 'home.scheduler',
+                            icon: 'schedule'
+                        },
+                        {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
@@ -480,6 +502,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'dashboard.dashboards',
                                         icon: 'dashboard',
                                         state: 'home.dashboards'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'scheduler.management',
+                                places: [
+                                    {
+                                        name: 'scheduler.scheduler',
+                                        icon: 'schedule',
+                                        state: 'home.scheduler'
                                     }
                                 ]
                             },

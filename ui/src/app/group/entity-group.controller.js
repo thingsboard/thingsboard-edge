@@ -38,7 +38,8 @@ import addEntityTemplate from './add-entity.tpl.html';
 
 
 /*@ngInject*/
-export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $document, utils, tbDialogs, entityGroupService, telemetryWebsocketService,
+export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $document, $timeout, utils,
+                                              tbDialogs, entityGroupService, telemetryWebsocketService,
                                               $stateParams, $q, $translate, $filter, types, entityGroup) {
 
     var vm = this;
@@ -320,8 +321,15 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         clearSubscriptions();
     });
 
-    function enterFilterMode () {
+    function enterFilterMode (event) {
+        let $button = angular.element(event.currentTarget);
+        let $toolbarsContainer = $button.closest('.toolbarsContainer');
+
         vm.query.search = '';
+
+        $timeout(()=>{
+            $toolbarsContainer.find('.searchInput').focus();
+        })
     }
 
     function exitFilterMode () {

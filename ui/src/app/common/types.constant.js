@@ -1073,6 +1073,70 @@ export default angular.module('thingsboard.types', [])
                     value: 'custom'
                 }
             },
+            schedulerRepeat: {
+                daily: {
+                    value: 'DAILY',
+                    name: 'scheduler.daily'
+                },
+                weekly: {
+                    value: 'WEEKLY',
+                    name: 'scheduler.weekly'
+                }
+            },
+            schedulerWeekday: [
+                'scheduler.sunday',
+                'scheduler.monday',
+                'scheduler.tuesday',
+                'scheduler.wednesday',
+                'scheduler.thursday',
+                'scheduler.friday',
+                'scheduler.saturday'
+            ],
+            schedulerCalendarView: {
+                'month': {
+                    name: 'scheduler.month',
+                    value: 'month'
+                },
+                'basicWeek': {
+                    name: 'scheduler.week',
+                    value: 'basicWeek'
+                },
+                'basicDay': {
+                    name: 'scheduler.day',
+                    value: 'basicDay'
+                },
+                'listYear': {
+                    name: 'scheduler.list-year',
+                    value: 'listYear'
+                },
+                'listMonth': {
+                    name: 'scheduler.list-month',
+                    value: 'listMonth'
+                },
+                'listWeek': {
+                    name: 'scheduler.list-week',
+                    value: 'listWeek'
+                },
+                'listDay': {
+                    name: 'scheduler.list-day',
+                    value: 'listDay'
+                },
+                'agendaWeek': {
+                    name: 'scheduler.agenda-week',
+                    value: 'agendaWeek'
+                },
+                'agendaDay': {
+                    name: 'scheduler.agenda-day',
+                    value: 'agendaDay'
+                }
+            },
+            schedulerEventConfigTypes: [
+                {
+                    name: 'Generate Report',
+                    value: 'generateReport',
+                    directive: 'tbGenerateReportEventConfig'
+                }
+            ],
             systemBundleAlias: {
                 charts: "charts",
                 cards: "cards"

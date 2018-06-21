@@ -76,6 +76,9 @@ import 'react-schema-form';
 import react from 'ngreact';
 import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import 'ngFlowchart/dist/ngFlowchart';
+import 'fullcalendar/dist/fullcalendar.min.css';
+import 'fullcalendar/dist/fullcalendar.min.js';
+import 'angular-ui-calendar';
 
 import thingsboardLocales from './locale/locale.constant';
 import thingsboardLogin from './login';
@@ -107,6 +110,7 @@ import thingsboardApiIntegration from './api/integration.service';
 import thingsboardApiAuditLog from './api/audit-log.service';
 import thingsboardApiComponentDescriptor from './api/component-descriptor.service';
 import thingsboardApiRuleChain from './api/rule-chain.service';
+import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
 
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -151,6 +155,7 @@ angular.module('thingsboard', [
     react.name,
     'flow',
     'flowchart',
+    'ui.calendar',
     thingsboardLocales,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
@@ -181,6 +186,7 @@ angular.module('thingsboard', [
     thingsboardApiAuditLog,
     thingsboardApiComponentDescriptor,
     thingsboardApiRuleChain,
+    thingsboardApiSchedulerEvent,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

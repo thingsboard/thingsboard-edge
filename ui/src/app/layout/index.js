@@ -69,6 +69,7 @@ import thingsboardEntityGroup from '../group';
 import thingsboardConverter from '../converter';
 import thingsboardIntegration from '../integration';
 import thingsboardRuleChain from '../rulechain';
+import thingsboardScheduler from '../scheduler';
 
 import thingsboardJsonForm from '../jsonform';
 
@@ -103,6 +104,7 @@ export default angular.module('thingsboard.home', [
     thingsboardConverter,
     thingsboardIntegration,
     thingsboardRuleChain,
+    thingsboardScheduler,
     thingsboardJsonForm,
     thingsboardApiDevice,
     thingsboardApiLogin,
