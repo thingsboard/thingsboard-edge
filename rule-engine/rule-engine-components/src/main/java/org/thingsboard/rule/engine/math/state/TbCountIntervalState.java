@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -36,31 +36,38 @@ import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /**
  * Created by ashvayka on 13.06.18.
  */
 @Data
 @NoArgsConstructor
-abstract class TbBaseIntervalState implements TbIntervalState {
+public class TbCountIntervalState extends TbBaseIntervalState {
 
-    private boolean hasChanges = false;
+    private long count = 0L;
 
-    @Override
-    public void update(JsonElement value) {
-        if(doUpdate(value)){
-            hasChanges = true;
-        }
+    public TbCountIntervalState(JsonElement stateJson) {
+        this.count = stateJson.getAsJsonObject().get("count").getAsLong();
     }
 
     @Override
-    public boolean hasChanges() {
-        return hasChanges;
+    protected boolean doUpdate(JsonElement data) {
+        this.count++;
+        return true;
     }
 
     @Override
-    public void clearChanges() {
-        hasChanges = false;
+    public String toValueJson(Gson gson, String outputValueKey) {
+        JsonObject json = new JsonObject();
+        json.addProperty(outputValueKey, count);
+        return gson.toJson(json);
     }
 
-    protected abstract boolean doUpdate(JsonElement value);
+    @Override
+    public String toStateJson(Gson gson) {
+        JsonObject object = new JsonObject();
+        object.addProperty("count", Long.toString(count));
+        return gson.toJson(object);
+    }
 }

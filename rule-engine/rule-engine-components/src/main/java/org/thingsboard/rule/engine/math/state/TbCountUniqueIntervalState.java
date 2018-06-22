@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -31,36 +31,45 @@
 package org.thingsboard.rule.engine.math.state;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by ashvayka on 13.06.18.
  */
 @Data
 @NoArgsConstructor
-abstract class TbBaseIntervalState implements TbIntervalState {
+public class TbCountUniqueIntervalState extends TbBaseIntervalState {
 
-    private boolean hasChanges = false;
+    private Set<String> items = new HashSet<>();
 
-    @Override
-    public void update(JsonElement value) {
-        if(doUpdate(value)){
-            hasChanges = true;
-        }
+    public TbCountUniqueIntervalState(JsonElement stateJson) {
+        stateJson.getAsJsonArray().forEach(jsonElement -> items.add(jsonElement.toString()));
     }
 
     @Override
-    public boolean hasChanges() {
-        return hasChanges;
+    protected boolean doUpdate(JsonElement data) {
+        return items.add(data.getAsString());
     }
 
     @Override
-    public void clearChanges() {
-        hasChanges = false;
+    public String toValueJson(Gson gson, String outputValueKey) {
+        JsonObject json = new JsonObject();
+        json.addProperty(outputValueKey, items.size());
+        return gson.toJson(json);
     }
 
-    protected abstract boolean doUpdate(JsonElement value);
+    @Override
+    public String toStateJson(Gson gson) {
+        JsonArray array = new JsonArray();
+        items.forEach(item -> array.add(new JsonPrimitive(item)));
+        return gson.toJson(array);
+    }
 }

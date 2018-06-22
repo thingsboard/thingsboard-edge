@@ -28,39 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.math.state;
+package org.thingsboard.server.actors.ruleChain;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.TbMsg;
+
+import java.util.Set;
 
 /**
- * Created by ashvayka on 13.06.18.
+ * Created by ashvayka on 19.03.18.
  */
 @Data
-@NoArgsConstructor
-abstract class TbBaseIntervalState implements TbIntervalState {
+final class RuleNodeToRuleChainAckMsg implements TbActorMsg {
 
-    private boolean hasChanges = false;
-
-    @Override
-    public void update(JsonElement value) {
-        if(doUpdate(value)){
-            hasChanges = true;
-        }
-    }
+    private final RuleNodeId originator;
+    private final TbMsg msg;
 
     @Override
-    public boolean hasChanges() {
-        return hasChanges;
+    public MsgType getMsgType() {
+        return MsgType.RULE_TO_RULE_CHAIN_ACK_MSG;
     }
 
-    @Override
-    public void clearChanges() {
-        hasChanges = false;
-    }
-
-    protected abstract boolean doUpdate(JsonElement value);
 }

@@ -96,26 +96,10 @@ public class TbSimpleAggMsgNode implements TbNode {
         }
     }
 
-    private void onTickMsg(TbContext ctx, TbMsg msg) {
-        if (!msg.getId().equals(nextTickId)) {
-            return;
-        }
-
-        scheduleTickMsg(ctx);
-        intervals.getUpdatedStates().forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
-            JsonObject json = new JsonObject();
-            json.addProperty(config.getOutputValueKey(), interval.getValue());
-            TbMsgMetaData metaData = new TbMsgMetaData();
-            metaData.putValue("ts", Long.toString(ts));
-            ctx.tellNext(new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, TbMsgDataType.JSON, gson.toJson(json),
-                    null, null, 0L), TbRelationTypes.SUCCESS);
-        }));
-    }
-
     private void onDataMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
         EntityId entityId = msg.getOriginator();
         long ts = extractTs(msg);
-        double value = extractValue(msg);
+        JsonElement value = extractValue(msg);
         //TODO: forward message to different server if needed.
 
         TbIntervalState state = intervals.getByEntityIdAndTs(entityId, ts);
@@ -123,12 +107,31 @@ public class TbSimpleAggMsgNode implements TbNode {
 
         if (state.hasChanges() && statePersistPolicy == StatePersistPolicy.ON_EACH_CHANGE) {
             DonAsynchron.withCallback(intervals.saveIntervalState(entityId, ts, state),
-                    v -> ctx.getPeContext().ack(msg),
+                    v -> {
+                        ctx.getPeContext().ack(msg);
+                        state.clearChanges();
+                    },
                     t -> ctx.tellFailure(msg, t),
                     ctx.getDbCallbackExecutor());
         } else {
             ctx.getPeContext().ack(msg);
         }
+    }
+
+    private void onTickMsg(TbContext ctx, TbMsg msg) {
+        if (!msg.getId().equals(nextTickId)) {
+            return;
+        }
+        scheduleTickMsg(ctx);
+        intervals.getUpdatedStates().forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("ts", Long.toString(ts));
+            ctx.tellNext(new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, TbMsgDataType.JSON,
+                    interval.toValueJson(gson, config.getOutputValueKey()),
+                    null, null, 0L), TbRelationTypes.SUCCESS);
+        }));
+
+        intervals.cleanupStatesUsingTTL();
     }
 
     private void scheduleTickMsg(TbContext ctx) {
@@ -137,17 +140,16 @@ public class TbSimpleAggMsgNode implements TbNode {
         ctx.tellSelf(tickMsg, intervalCheckPeriod);
     }
 
-
     private long extractTs(TbMsg msg) {
         String ts = msg.getMetaData().getValue("ts");
         if (!StringUtils.isEmpty(ts)) {
             return Long.parseLong(ts);
         } else {
-            return System.currentTimeMillis();
+            return msg.getId().timestamp();
         }
     }
 
-    private double extractValue(TbMsg msg) {
+    private JsonElement extractValue(TbMsg msg) {
         JsonElement jsonElement = gsonParser.parse(msg.getData());
         if (!jsonElement.isJsonObject()) {
             throw new IllegalArgumentException("Incoming message is not a json object!");
@@ -156,7 +158,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!jsonObject.has(config.getInputValueKey())) {
             throw new IllegalArgumentException("Incoming message does not contain " + config.getInputValueKey() + "!");
         }
-        return jsonObject.get(config.getInputValueKey()).getAsDouble();
+        return jsonObject.get(config.getInputValueKey());
     }
 
     @Override

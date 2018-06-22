@@ -1,6 +1,37 @@
+/**
+ * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * <p>
+ * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * <p>
+ * NOTICE: All information contained herein is, and remains
+ * the property of Thingsboard OÜ and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Thingsboard OÜ
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * <p>
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ * <p>
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ * <p>
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.rule.engine.math.state;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,13 +48,15 @@ public class TbAvgIntervalState extends TbBaseIntervalState {
     private BigDecimal sum = BigDecimal.ZERO;
     private long count = 0L;
 
-    public TbAvgIntervalState(String sum, long count) {
-        this.sum = new BigDecimal(sum);
-        this.count = count;
+    public TbAvgIntervalState(JsonElement stateJson) {
+        JsonObject jsonObject = stateJson.getAsJsonObject();
+        this.sum = new BigDecimal(jsonObject.get("sum").getAsString());
+        this.count = jsonObject.get("count").getAsLong();
     }
 
     @Override
-    protected boolean doUpdate(double value) {
+    protected boolean doUpdate(JsonElement data) {
+        double value = data.getAsDouble();
         if (value != 0.0) {
             sum = sum.add(BigDecimal.valueOf(value));
         }
@@ -32,12 +65,14 @@ public class TbAvgIntervalState extends TbBaseIntervalState {
     }
 
     @Override
-    public double getValue() {
-        return sum.divide(BigDecimal.valueOf(count), 2, BigDecimal.ROUND_HALF_UP).doubleValue();
+    public String toValueJson(Gson gson, String outputValueKey) {
+        JsonObject json = new JsonObject();
+        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
+        return gson.toJson(json);
     }
 
     @Override
-    public String toJson(Gson gson) {
+    public String toStateJson(Gson gson) {
         JsonObject object = new JsonObject();
         object.addProperty("sum", sum.toString());
         object.addProperty("count", Long.toString(count));

@@ -128,6 +128,14 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public void ack(TbMsg msg) {
+        if (nodeCtx.getSelf().isDebugMode()) {
+            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, "ACK", null);
+        }
+        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
+    }
+
+    @Override
     public void tellFailure(TbMsg msg, Throwable th) {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
@@ -333,8 +341,4 @@ class DefaultTbContext implements TbContext, TbPeContext {
         });
     }
 
-    @Override
-    public void ack(TbMsg msg) {
-        123
-    }
 }
