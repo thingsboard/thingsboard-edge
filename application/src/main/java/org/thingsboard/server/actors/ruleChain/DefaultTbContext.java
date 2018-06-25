@@ -62,6 +62,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -127,6 +128,14 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public void ack(TbMsg msg) {
+        if (nodeCtx.getSelf().isDebugMode()) {
+            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, "ACK", null);
+        }
+        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
+    }
+
+    @Override
     public void tellFailure(TbMsg msg, Throwable th) {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
@@ -182,6 +191,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public ScriptEngine createJsScriptEngine(String script, String... argNames) {
         return new RuleNodeJsScriptEngine(mainCtx.getJsSandbox(), script, argNames);
+    }
+
+    @Override
+    public EventService getEventService() {
+        return mainCtx.getEventService();
     }
 
     @Override
@@ -326,4 +340,5 @@ class DefaultTbContext implements TbContext, TbPeContext {
             }
         });
     }
+
 }

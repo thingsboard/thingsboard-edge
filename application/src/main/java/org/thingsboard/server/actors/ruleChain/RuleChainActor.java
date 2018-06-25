@@ -69,6 +69,9 @@ public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMe
             case RULE_CHAIN_TO_RULE_CHAIN_MSG:
                 processor.onRuleChainToRuleChainMsg((RuleChainToRuleChainMsg) msg);
                 break;
+            case RULE_TO_RULE_CHAIN_ACK_MSG:
+                processor.onAckMsg((RuleNodeToRuleChainAckMsg) msg);
+                break;
             case CLUSTER_EVENT_MSG:
                 break;
             default:

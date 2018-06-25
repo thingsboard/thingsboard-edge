@@ -28,30 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.server.actors.ruleChain;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 19.03.18.
  */
-public interface TimeseriesService {
+@Data
+final class RuleNodeToRuleChainAckMsg implements TbActorMsg {
 
-    ListenableFuture<TsKvEntry> findOne(EntityId entityId, long ts, String key);
+    private final RuleNodeId originator;
+    private final TbMsg msg;
 
-    ListenableFuture<List<TsKvEntry>> findAll(EntityId entityId, List<TsKvQuery> queries);
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.RULE_TO_RULE_CHAIN_ACK_MSG;
+    }
 
-    ListenableFuture<List<TsKvEntry>> findLatest(EntityId entityId, Collection<String> keys);
-
-    ListenableFuture<List<TsKvEntry>> findAllLatest(EntityId entityId);
-
-    ListenableFuture<List<Void>> save(EntityId entityId, TsKvEntry tsKvEntry);
-
-    ListenableFuture<List<Void>> save(EntityId entityId, List<TsKvEntry> tsKvEntry, long ttl);
 }

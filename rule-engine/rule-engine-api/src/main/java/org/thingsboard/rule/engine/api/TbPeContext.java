@@ -47,4 +47,6 @@ public interface TbPeContext {
 
     void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
 
+    void ack(TbMsg msg);
+
 }

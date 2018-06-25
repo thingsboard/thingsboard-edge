@@ -41,6 +41,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -110,6 +111,7 @@ public interface TbContext {
 
     ScriptEngine createJsScriptEngine(String script, String... argNames);
 
+    EventService getEventService();
     /**
      * This context is available only in TB PE.
      */

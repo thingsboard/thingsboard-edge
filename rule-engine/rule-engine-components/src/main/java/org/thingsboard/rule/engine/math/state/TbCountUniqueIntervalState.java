@@ -28,30 +28,48 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.rule.engine.math.state;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 13.06.18.
  */
-public interface TimeseriesService {
+@Data
+@NoArgsConstructor
+public class TbCountUniqueIntervalState extends TbBaseIntervalState {
 
-    ListenableFuture<TsKvEntry> findOne(EntityId entityId, long ts, String key);
+    private Set<String> items = new HashSet<>();
 
-    ListenableFuture<List<TsKvEntry>> findAll(EntityId entityId, List<TsKvQuery> queries);
+    public TbCountUniqueIntervalState(JsonElement stateJson) {
+        stateJson.getAsJsonArray().forEach(jsonElement -> items.add(jsonElement.toString()));
+    }
 
-    ListenableFuture<List<TsKvEntry>> findLatest(EntityId entityId, Collection<String> keys);
+    @Override
+    protected boolean doUpdate(JsonElement data) {
+        return items.add(data.getAsString());
+    }
 
-    ListenableFuture<List<TsKvEntry>> findAllLatest(EntityId entityId);
+    @Override
+    public String toValueJson(Gson gson, String outputValueKey) {
+        JsonObject json = new JsonObject();
+        json.addProperty(outputValueKey, items.size());
+        return gson.toJson(json);
+    }
 
-    ListenableFuture<List<Void>> save(EntityId entityId, TsKvEntry tsKvEntry);
-
-    ListenableFuture<List<Void>> save(EntityId entityId, List<TsKvEntry> tsKvEntry, long ttl);
+    @Override
+    public String toStateJson(Gson gson) {
+        JsonArray array = new JsonArray();
+        items.forEach(item -> array.add(new JsonPrimitive(item)));
+        return gson.toJson(array);
+    }
 }

@@ -263,6 +263,12 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         }
     }
 
+    void onAckMsg(RuleNodeToRuleChainAckMsg envelope) {
+        TbMsg msg = envelope.getMsg();
+        EntityId ackId = msg.getRuleNodeId() != null ? msg.getRuleNodeId() : msg.getRuleChainId();
+        queue.ack(tenantId, msg, ackId.getId(), msg.getClusterPartition());
+    }
+
     private boolean contains(Set<String> relationTypes, String type) {
         if (relationTypes == null) {
             return true;
@@ -309,4 +315,5 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         // We don't put firstNodeId because it may change over time;
         return new TbMsg(tbMsg.getId(), tbMsg.getType(), tbMsg.getOriginator(), tbMsg.getMetaData().copy(), tbMsg.getData(), entityId, null, systemContext.getQueuePartitionId());
     }
+
 }
