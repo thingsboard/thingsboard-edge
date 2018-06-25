@@ -606,6 +606,7 @@ export default angular.module('thingsboard.locale', [])
                     "display-dashboard-export": "Display export",
                     "import": "Import dashboard",
                     "export": "Export dashboard",
+                    "export-as-pdf": "Export dashboard as PDF",
                     "export-failed-error": "Unable to export dashboard: {{error}}",
                     "create-new-dashboard": "Create new dashboard",
                     "dashboard-file": "Dashboard file",

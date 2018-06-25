@@ -298,6 +298,11 @@ integrations:
     enabled: "${INTEGRATIONS_STATISTICS_ENABLED:true}"
     persist_frequency: "${INTEGRATIONS_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
+# Reports parameters
+reports:
+  server:
+    endpointUrl: "${REPORTS_SERVER_ENDPOINT_URL:http://localhost:8383}"
+
 # Cache parameters
 cache:
   # caffeine or redis
