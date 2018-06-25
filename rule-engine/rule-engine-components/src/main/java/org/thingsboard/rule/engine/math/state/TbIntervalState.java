@@ -41,9 +41,13 @@ public interface TbIntervalState {
 
     void update(JsonElement value);
 
-    boolean hasChanges();
+    boolean hasChangesToPersist();
 
-    void clearChanges();
+    void clearChangesToPersist();
+
+    boolean hasChangesToReport();
+
+    void clearChangesToReport();
 
     String toValueJson(Gson gson, String outputValueKey);
 

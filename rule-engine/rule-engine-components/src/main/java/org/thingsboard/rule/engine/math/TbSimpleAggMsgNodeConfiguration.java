@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.math;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.math.state.StatePersistPolicy;
 
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +42,9 @@ public class TbSimpleAggMsgNodeConfiguration implements NodeConfiguration {
     private String mathFunction;
     private String aggIntervalTimeUnit;
     private int aggIntervalValue;
+    private boolean autoCreateIntervals;
 
+    private String intervalPersistencePolicy;
     private String intervalCheckTimeUnit;
     private int intervalCheckValue;
 
@@ -52,21 +55,30 @@ public class TbSimpleAggMsgNodeConfiguration implements NodeConfiguration {
     private String outputValueKey;
 
     private String statePersistencePolicy;
-    private String statePersistencePeriod;
+    private String statePersistenceTimeUnit;
     private int statePersistenceValue;
-
-    //TODO: use them
-    private String msgAckPolicy;
-    private String msgRoutingPolicy;
 
     @Override
     public TbSimpleAggMsgNodeConfiguration defaultConfiguration() {
         TbSimpleAggMsgNodeConfiguration configuration = new TbSimpleAggMsgNodeConfiguration();
+
         configuration.setMathFunction(MathFunction.AVG.name());
         configuration.setAggIntervalTimeUnit(TimeUnit.HOURS.name());
         configuration.setAggIntervalValue(1);
+        configuration.setAutoCreateIntervals(true);
+
+        configuration.setIntervalCheckTimeUnit(TimeUnit.MINUTES.name());
+        configuration.setIntervalCheckValue(1);
+
+        configuration.setIntervalTtlTimeUnit(TimeUnit.DAYS.name());
+        configuration.setIntervalTtlValue(1);
+
         configuration.setInputValueKey("temperature");
         configuration.setOutputValueKey("avgHourlyTemperature");
+
+        configuration.setStatePersistencePolicy(StatePersistPolicy.ON_EACH_CHANGE.name());
+        configuration.setStatePersistenceTimeUnit(TimeUnit.MINUTES.name());
+        configuration.setStatePersistenceValue(1);
 
         return configuration;
     }

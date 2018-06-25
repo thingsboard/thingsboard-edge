@@ -66,33 +66,50 @@ import java.util.concurrent.TimeUnit;
 )
 public class TbSimpleAggMsgNode implements TbNode {
 
-    private static final String TB_AGG_TICK_MSG = "TbAggTickMsg";
+    private static final String TB_INTERVAL_TICK_MSG = "TbIntervalTickMsg";
+    private static final String TB_PERSIST_TICK_MSG = "TbPersistTickMsg";
+    // millis at 00:00:00.000 15 Oct 1582.
+    private static final long START_EPOCH = -12219292800000L;
 
     private final JsonParser gsonParser = new JsonParser();
     private final Gson gson = new Gson();
 
     private StatePersistPolicy statePersistPolicy;
+    private IntervalPersistPolicy intervalPersistPolicy;
     private TbSimpleAggMsgNodeConfiguration config;
     private TbIntervalTable intervals;
-    private UUID nextTickId;
-    private long intervalCheckPeriod;
+    private UUID nextReportTickId;
+    private UUID nextPersistTickId;
+    private long intervalReportCheckPeriod;
+    private long statePersistCheckPeriod;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbSimpleAggMsgNodeConfiguration.class);
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
+        this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
-        this.intervalCheckPeriod = TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue());
-        scheduleTickMsg(ctx);
+        this.intervalReportCheckPeriod = TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue());
+        this.statePersistCheckPeriod = TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue());
+        scheduleReportTickMsg(ctx);
+        if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
+            scheduleStatePersistTickMsg(ctx);
+        }
         //TODO: fetch all states that were not persisted before restart?
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        if (msg.getType().equals(TB_AGG_TICK_MSG)) {
-            onTickMsg(ctx, msg);
-        } else {
-            onDataMsg(ctx, msg);
+        switch (msg.getType()) {
+            case TB_INTERVAL_TICK_MSG:
+                onIntervalTickMsg(ctx, msg);
+                break;
+            case TB_PERSIST_TICK_MSG:
+                onPersistTickMsg(ctx, msg);
+                break;
+            default:
+                onDataMsg(ctx, msg);
+                break;
         }
     }
 
@@ -105,11 +122,11 @@ public class TbSimpleAggMsgNode implements TbNode {
         TbIntervalState state = intervals.getByEntityIdAndTs(entityId, ts);
         state.update(value);
 
-        if (state.hasChanges() && statePersistPolicy == StatePersistPolicy.ON_EACH_CHANGE) {
+        if (state.hasChangesToPersist() && statePersistPolicy == StatePersistPolicy.ON_EACH_CHANGE) {
             DonAsynchron.withCallback(intervals.saveIntervalState(entityId, ts, state),
                     v -> {
                         ctx.getPeContext().ack(msg);
-                        state.clearChanges();
+                        state.clearChangesToPersist();
                     },
                     t -> ctx.tellFailure(msg, t),
                     ctx.getDbCallbackExecutor());
@@ -118,12 +135,12 @@ public class TbSimpleAggMsgNode implements TbNode {
         }
     }
 
-    private void onTickMsg(TbContext ctx, TbMsg msg) {
-        if (!msg.getId().equals(nextTickId)) {
+    private void onIntervalTickMsg(TbContext ctx, TbMsg msg) {
+        if (!msg.getId().equals(nextReportTickId)) {
             return;
         }
-        scheduleTickMsg(ctx);
-        intervals.getUpdatedStates().forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
+        scheduleReportTickMsg(ctx);
+        intervals.getStatesToReport(intervalPersistPolicy).forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", Long.toString(ts));
             ctx.tellNext(new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, TbMsgDataType.JSON,
@@ -134,10 +151,28 @@ public class TbSimpleAggMsgNode implements TbNode {
         intervals.cleanupStatesUsingTTL();
     }
 
-    private void scheduleTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(TB_AGG_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
-        nextTickId = tickMsg.getId();
-        ctx.tellSelf(tickMsg, intervalCheckPeriod);
+    private void onPersistTickMsg(TbContext ctx, TbMsg msg) {
+        if (!msg.getId().equals(nextPersistTickId)) {
+            return;
+        }
+        scheduleStatePersistTickMsg(ctx);
+        intervals.getStatesToPersist().forEach((entityId, entityStates) -> entityStates.forEach((ts, state) -> {
+            intervals.saveIntervalState(entityId, ts, state);
+        }));
+
+        intervals.cleanupStatesUsingTTL();
+    }
+
+    private void scheduleReportTickMsg(TbContext ctx) {
+        TbMsg tickMsg = ctx.newMsg(TB_INTERVAL_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        nextReportTickId = tickMsg.getId();
+        ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
+    }
+
+    private void scheduleStatePersistTickMsg(TbContext ctx) {
+        TbMsg tickMsg = ctx.newMsg(TB_PERSIST_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        nextPersistTickId = tickMsg.getId();
+        ctx.tellSelf(tickMsg, statePersistCheckPeriod);
     }
 
     private long extractTs(TbMsg msg) {
@@ -145,7 +180,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!StringUtils.isEmpty(ts)) {
             return Long.parseLong(ts);
         } else {
-            return msg.getId().timestamp();
+            return (msg.getId().timestamp() / 10000) + START_EPOCH;
         }
     }
 

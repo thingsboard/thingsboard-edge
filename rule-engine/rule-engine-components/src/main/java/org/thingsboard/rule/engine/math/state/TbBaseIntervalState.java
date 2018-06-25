@@ -30,9 +30,7 @@
  */
 package org.thingsboard.rule.engine.math.state;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -43,23 +41,35 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 abstract class TbBaseIntervalState implements TbIntervalState {
 
-    private boolean hasChanges = false;
+    private boolean hasChangesToPersist = true;
+    private boolean hasChangesToReport = true;
 
     @Override
     public void update(JsonElement value) {
         if(doUpdate(value)){
-            hasChanges = true;
+            hasChangesToPersist = true;
+            hasChangesToReport = true;
         }
     }
 
     @Override
-    public boolean hasChanges() {
-        return hasChanges;
+    public boolean hasChangesToReport(){
+        return hasChangesToReport;
     }
 
     @Override
-    public void clearChanges() {
-        hasChanges = false;
+    public boolean hasChangesToPersist(){
+        return hasChangesToPersist;
+    }
+
+    @Override
+    public void clearChangesToPersist(){
+        hasChangesToPersist = false;
+    }
+
+    @Override
+    public void clearChangesToReport(){
+        hasChangesToReport = false;
     }
 
     protected abstract boolean doUpdate(JsonElement value);

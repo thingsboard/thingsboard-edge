@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -51,12 +50,15 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.Optional;
 
 /**
  * Created by ashvayka on 07.06.18.
@@ -69,6 +71,7 @@ class TbIntervalTable {
     private final long intervalDuration;
     private final long intervalTtl;
     private final MathFunction function;
+    private final boolean autoCreateIntervals;
     private Map<EntityId, Map<Long, TbIntervalState>> states = new HashMap<>();
 
     TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config, JsonParser gson) {
@@ -77,6 +80,7 @@ class TbIntervalTable {
         this.intervalDuration = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue());
         this.intervalTtl = TimeUnit.valueOf(config.getIntervalTtlTimeUnit()).toMillis(config.getIntervalTtlValue());
         this.function = MathFunction.valueOf(config.getMathFunction());
+        this.autoCreateIntervals = config.isAutoCreateIntervals();
     }
 
     //TODO: make this async
@@ -98,19 +102,52 @@ class TbIntervalTable {
         return ctx.getTimeseriesService().save(entityId, tsKvEntry);
     }
 
-    Map<EntityId, Map<Long, TbIntervalState>> getUpdatedStates() {
+    Map<EntityId, Map<Long, TbIntervalState>> getStatesToReport(IntervalPersistPolicy intervalPersistPolicy) {
+        long ts = System.currentTimeMillis();
         Map<EntityId, Map<Long, TbIntervalState>> updatedStates = new HashMap<>();
 
+        if (autoCreateIntervals) {
+            states.forEach((entityId, intervals) -> {
+                Optional<Long> maxIntervalTs = intervals.keySet().stream().max(Comparator.comparingLong(Long::valueOf));
+                if (maxIntervalTs.isPresent()) {
+                    for (long tmpTs = maxIntervalTs.get() + intervalDuration; tmpTs < ts; tmpTs = tmpTs + intervalDuration) {
+                        intervals.put(tmpTs, createDefaultTbIntervalState());
+                    }
+                }
+            });
+        }
+
         states.forEach((entityId, intervals) -> {
-            Map<Long, TbIntervalState> updatedIntervals = intervals.entrySet().stream().filter(e -> e.getValue().hasChanges()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Stream<Map.Entry<Long, TbIntervalState>> entryStream = intervals.entrySet().stream().filter(e -> e.getValue().hasChangesToReport());
+            if (intervalPersistPolicy == IntervalPersistPolicy.ON_EACH_CHECK_AFTER_INTERVAL_END) {
+                entryStream = entryStream.filter(e -> (e.getKey() + intervalDuration) < ts);
+            }
+            Map<Long, TbIntervalState> updatedIntervals = entryStream
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             if (!updatedIntervals.isEmpty()) {
-                updatedIntervals.values().forEach(TbIntervalState::clearChanges);
+                updatedIntervals.values().forEach(TbIntervalState::clearChangesToReport);
                 updatedStates.put(entityId, updatedIntervals);
             }
         });
 
         return updatedStates;
     }
+
+    Map<EntityId, Map<Long, TbIntervalState>> getStatesToPersist() {
+        Map<EntityId, Map<Long, TbIntervalState>> updatedStates = new HashMap<>();
+
+        states.forEach((entityId, intervals) -> {
+            Map<Long, TbIntervalState> updatedIntervals = intervals.entrySet().stream().filter(e -> e.getValue().hasChangesToPersist())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            if (!updatedIntervals.isEmpty()) {
+                updatedIntervals.values().forEach(TbIntervalState::clearChangesToPersist);
+                updatedStates.put(entityId, updatedIntervals);
+            }
+        });
+
+        return updatedStates;
+    }
+
 
     void cleanupStatesUsingTTL() {
         long expTime = System.currentTimeMillis() - intervalTtl;
@@ -123,44 +160,55 @@ class TbIntervalTable {
     private ListenableFuture<TbIntervalState> fetchIntervalState(EntityId entityId, long intervalStartTs) {
         ListenableFuture<TsKvEntry> f = ctx.getTimeseriesService().findOne(entityId, intervalStartTs, "RuleNodeState_" + ctx.getSelfId());
         return Futures.transform(f, input -> {
-            String value = input.getStrValue().orElse(null);
+            String value = null;
+            if (input != null) {
+                value = input.getStrValue().orElse(null);
+            }
             if (StringUtils.isEmpty(value)) {
-                switch (function) {
-                    case MIN:
-                        return new TbMinIntervalState();
-                    case MAX:
-                        return new TbMaxIntervalState();
-                    case SUM:
-                        return new TbSumIntervalState();
-                    case AVG:
-                        return new TbAvgIntervalState();
-                    case COUNT:
-                        return new TbCountIntervalState();
-                    case COUNT_UNIQUE:
-                        return new TbCountUniqueIntervalState();
-                    default:
-                        throw new IllegalArgumentException("Unsupported math function: " + function.name() + "!");
-                }
+                return createDefaultTbIntervalState();
             } else {
-                JsonElement stateJson = gsonParser.parse(value);
-                switch (function) {
-                    case MIN:
-                        return new TbMinIntervalState(stateJson);
-                    case MAX:
-                        return new TbMaxIntervalState(stateJson);
-                    case SUM:
-                        return new TbSumIntervalState(stateJson);
-                    case AVG:
-                        return new TbAvgIntervalState(stateJson);
-                    case COUNT:
-                        return new TbCountIntervalState(stateJson);
-                    case COUNT_UNIQUE:
-                        return new TbCountUniqueIntervalState(stateJson);
-                    default:
-                        throw new IllegalArgumentException("Unsupported math function: " + function.name() + "!");
-                }
+                return readTbIntervalState(value);
             }
         });
+    }
+
+    private TbIntervalState readTbIntervalState(String value) {
+        JsonElement stateJson = gsonParser.parse(value);
+        switch (function) {
+            case MIN:
+                return new TbMinIntervalState(stateJson);
+            case MAX:
+                return new TbMaxIntervalState(stateJson);
+            case SUM:
+                return new TbSumIntervalState(stateJson);
+            case AVG:
+                return new TbAvgIntervalState(stateJson);
+            case COUNT:
+                return new TbCountIntervalState(stateJson);
+            case COUNT_UNIQUE:
+                return new TbCountUniqueIntervalState(stateJson);
+            default:
+                throw new IllegalArgumentException("Unsupported math function: " + function.name() + "!");
+        }
+    }
+
+    private TbIntervalState createDefaultTbIntervalState() {
+        switch (function) {
+            case MIN:
+                return new TbMinIntervalState();
+            case MAX:
+                return new TbMaxIntervalState();
+            case SUM:
+                return new TbSumIntervalState();
+            case AVG:
+                return new TbAvgIntervalState();
+            case COUNT:
+                return new TbCountIntervalState();
+            case COUNT_UNIQUE:
+                return new TbCountUniqueIntervalState();
+            default:
+                throw new IllegalArgumentException("Unsupported math function: " + function.name() + "!");
+        }
     }
 
     private long calculateIntervalStart(long ts) {
