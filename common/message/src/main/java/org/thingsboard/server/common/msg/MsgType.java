@@ -88,6 +88,11 @@ public enum MsgType {
     RULE_TO_SELF_MSG,
 
     /**
+     * Message that is sent by RuleNodeActor implementation to RuleChainActor to ack the message.
+     */
+    RULE_TO_RULE_CHAIN_ACK_MSG,
+
+    /**
      * Message that is sent by Session Actor to Device Actor. Represents messages from the device itself.
      */
     DEVICE_SESSION_TO_DEVICE_ACTOR_MSG,

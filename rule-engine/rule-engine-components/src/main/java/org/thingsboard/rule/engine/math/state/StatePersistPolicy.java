@@ -28,30 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
-
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
-
-import java.util.Collection;
-import java.util.List;
+package org.thingsboard.rule.engine.math.state;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 13.06.18.
  */
-public interface TimeseriesService {
-
-    ListenableFuture<TsKvEntry> findOne(EntityId entityId, long ts, String key);
-
-    ListenableFuture<List<TsKvEntry>> findAll(EntityId entityId, List<TsKvQuery> queries);
-
-    ListenableFuture<List<TsKvEntry>> findLatest(EntityId entityId, Collection<String> keys);
-
-    ListenableFuture<List<TsKvEntry>> findAllLatest(EntityId entityId);
-
-    ListenableFuture<List<Void>> save(EntityId entityId, TsKvEntry tsKvEntry);
-
-    ListenableFuture<List<Void>> save(EntityId entityId, List<TsKvEntry> tsKvEntry, long ttl);
+public enum StatePersistPolicy {
+    ON_EACH_CHANGE, PERIODICALLY
 }

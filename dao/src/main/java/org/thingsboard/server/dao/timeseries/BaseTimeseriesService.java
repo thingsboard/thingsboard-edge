@@ -60,6 +60,12 @@ public class BaseTimeseriesService implements TimeseriesService {
     private TimeseriesDao timeseriesDao;
 
     @Override
+    public ListenableFuture<TsKvEntry> findOne(EntityId entityId, long ts, String key) {
+        validate(entityId);
+        return timeseriesDao.findOneAsync(entityId, ts, key);
+    }
+
+    @Override
     public ListenableFuture<List<TsKvEntry>> findAll(EntityId entityId, List<TsKvQuery> queries) {
         validate(entityId);
         queries.forEach(query -> validate(query));

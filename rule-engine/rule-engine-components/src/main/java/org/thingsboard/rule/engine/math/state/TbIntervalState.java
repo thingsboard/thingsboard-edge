@@ -28,30 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.rule.engine.math.state;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
-
-import java.util.Collection;
-import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 07.06.18.
  */
-public interface TimeseriesService {
 
-    ListenableFuture<TsKvEntry> findOne(EntityId entityId, long ts, String key);
+public interface TbIntervalState {
 
-    ListenableFuture<List<TsKvEntry>> findAll(EntityId entityId, List<TsKvQuery> queries);
+    void update(JsonElement value);
 
-    ListenableFuture<List<TsKvEntry>> findLatest(EntityId entityId, Collection<String> keys);
+    boolean hasChangesToPersist();
 
-    ListenableFuture<List<TsKvEntry>> findAllLatest(EntityId entityId);
+    void clearChangesToPersist();
 
-    ListenableFuture<List<Void>> save(EntityId entityId, TsKvEntry tsKvEntry);
+    boolean hasChangesToReport();
 
-    ListenableFuture<List<Void>> save(EntityId entityId, List<TsKvEntry> tsKvEntry, long ttl);
+    void clearChangesToReport();
+
+    String toValueJson(Gson gson, String outputValueKey);
+
+    String toStateJson(Gson gson);
+
 }
