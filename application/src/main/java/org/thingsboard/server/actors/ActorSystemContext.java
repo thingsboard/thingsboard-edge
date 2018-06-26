@@ -83,6 +83,7 @@ import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.queue.MsgQueueService;
 import org.thingsboard.server.service.rpc.DeviceRpcService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.script.JsSandboxService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -226,6 +227,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DeviceStateService deviceStateService;
+
+    @Autowired
+    @Getter
+    private SchedulerService schedulerService;
 
     @Value("${cluster.partition_id}")
     @Getter

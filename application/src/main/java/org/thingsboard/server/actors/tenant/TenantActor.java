@@ -68,7 +68,6 @@ public class TenantActor extends RuleChainManagerActor {
         this.deviceActors = new HashMap<>();
     }
 
-
     @Override
     public SupervisorStrategy supervisorStrategy() {
         return strategy;

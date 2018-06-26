@@ -98,6 +98,12 @@ public class SchedulerEventController extends BaseController {
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            if (schedulerEvent.getId() == null) {
+                schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
+            } else {
+                schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
+            }
+
             return savedSchedulerEvent;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
@@ -121,8 +127,8 @@ public class SchedulerEventController extends BaseController {
                     schedulerEvent.getCustomerId(),
                     ActionType.DELETED, null, strSchedulerEventId);
 
+            schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
-
             logEntityAction(emptyId(EntityType.SCHEDULER_EVENT),
                     null,
                     null,
@@ -141,14 +147,14 @@ public class SchedulerEventController extends BaseController {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
-                if (type != null && type.trim().length()>0) {
+                if (type != null && type.trim().length() > 0) {
                     return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndType(tenantId, type));
                 } else {
                     return checkNotNull(schedulerEventService.findSchedulerEventsByTenantId(tenantId));
                 }
             } else { //CUSTOMER_USER
                 CustomerId customerId = getCurrentUser().getCustomerId();
-                if (type != null && type.trim().length()>0) {
+                if (type != null && type.trim().length() > 0) {
                     return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndCustomerIdAndType(tenantId, customerId, type));
                 } else {
                     return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndCustomerId(tenantId, customerId));

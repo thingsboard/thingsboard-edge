@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.MiscUtils;
@@ -93,6 +94,10 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     @Autowired
     @Lazy
     private DeviceStateService deviceStateService;
+
+    @Autowired
+    @Lazy
+    protected SchedulerService schedulerService;
 
     private final List<DiscoveryServiceListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -224,6 +229,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             case CHILD_ADDED:
                 tsSubService.onClusterUpdate();
                 deviceStateService.onClusterUpdate();
+                schedulerService.onClusterUpdate();
                 listeners.forEach(listener -> listener.onServerAdded(instance));
                 break;
             case CHILD_UPDATED:
@@ -232,6 +238,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             case CHILD_REMOVED:
                 tsSubService.onClusterUpdate();
                 deviceStateService.onClusterUpdate();
+                schedulerService.onClusterUpdate();
                 listeners.forEach(listener -> listener.onServerRemoved(instance));
                 break;
             default:

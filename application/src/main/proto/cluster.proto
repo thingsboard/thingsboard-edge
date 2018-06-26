@@ -77,6 +77,7 @@ enum MessageType {
 
   // Messages related to TB PE
   CLUSTER_INTEGRATION_DOWNLINK_MESSAGE = 14;
+  CLUSTER_SCHEDULER_SERVICE_MESSAGE = 15;
 }
 
 // Messages related to CLUSTER_TELEMETRY_MESSAGE
@@ -165,5 +166,15 @@ message IntegrationDownlinkProto {
     int64 integrationIdMSB = 3;
     int64 integrationIdLSB = 4;
     bytes data = 5;
+}
+
+message SchedulerServiceMsgProto {
+    int64 tenantIdMSB = 1;
+    int64 tenantIdLSB = 2;
+    int64 eventIdMSB = 3;
+    int64 eventIdLSB = 4;
+    bool added = 5;
+    bool updated = 6;
+    bool deleted = 7;
 }
 
