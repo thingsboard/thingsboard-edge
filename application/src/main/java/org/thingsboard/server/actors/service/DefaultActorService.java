@@ -259,6 +259,9 @@ public class DefaultActorService implements ActorService {
             case CLUSTER_DEVICE_STATE_SERVICE_MESSAGE:
                 actorContext.getDeviceStateService().onRemoteMsg(serverAddress, msg.getPayload().toByteArray());
                 break;
+            case CLUSTER_SCHEDULER_SERVICE_MESSAGE:
+                actorContext.getSchedulerService().onRemoteMsg(serverAddress, msg.getPayload().toByteArray());
+                break;
             case CLUSTER_INTEGRATION_DOWNLINK_MESSAGE:
                 actorContext.getPlatformIntegrationService().onRemoteDownlinkMsg(serverAddress, msg.getPayload().toByteArray());
                 break;
