@@ -37,7 +37,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, jwtHelper, $translate, $state, $location) {
+function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -142,11 +142,11 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function isAuthenticated() {
-        return store.get('jwt_token');
+        return _storeGet('jwt_token');
     }
 
     function getJwtToken() {
-        return store.get('jwt_token');
+        return _storeGet('jwt_token');
     }
 
     function logout() {
@@ -162,8 +162,16 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function isTokenValid(prefix) {
-        var clientExpiration = store.get(prefix + '_expiration');
+        var clientExpiration = _storeGet(prefix + '_expiration');
         return clientExpiration && clientExpiration > new Date().valueOf();
+    }
+
+    function _storeGet(key) {
+        if ($rootScope.reportView) {
+            return reportStore.get(key);
+        } else {
+            return store.get(key);
+        }
     }
 
     function validateJwtToken(doRefresh) {
@@ -207,7 +215,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         var deferred = $q.defer();
         refreshTokenQueue.push(deferred);
         if (refreshTokenQueue.length === 1) {
-            var refreshToken = store.get('refresh_token');
+            var refreshToken = _storeGet('refresh_token');
             var refreshTokenValid = isTokenValid('refresh_token');
             setUserFromJwtToken(null, null, false, false);
             if (!refreshTokenValid) {
@@ -307,7 +315,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
 
         function procceedJwtTokenValidate() {
             validateJwtToken(doTokenRefresh).then(function success() {
-                var jwtToken = store.get('jwt_token');
+                var jwtToken = _storeGet('jwt_token');
                 currentUser = jwtHelper.decodeToken(jwtToken);
                 if (currentUser && currentUser.scopes && currentUser.scopes.length > 0) {
                     currentUser.authority = currentUser.scopes[0];
@@ -388,7 +396,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function updateAuthorizationHeader(headers) {
-        var jwtToken = store.get('jwt_token');
+        var jwtToken = _storeGet('jwt_token');
         if (jwtToken) {
             headers['X-Authorization'] = 'Bearer ' + jwtToken;
         }
@@ -396,7 +404,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function setAuthorizationRequestHeader(request) {
-        var jwtToken = store.get('jwt_token');
+        var jwtToken = _storeGet('jwt_token');
         if (jwtToken) {
             request.setRequestHeader('X-Authorization', 'Bearer ' + jwtToken);
         }

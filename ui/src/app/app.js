@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import './ie.support';
+import './tz.support';
 
 import 'event-source-polyfill';
 

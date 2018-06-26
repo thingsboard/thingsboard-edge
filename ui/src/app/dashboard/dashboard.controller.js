@@ -610,7 +610,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     function generateDashboardReport($event, reportType) {
         var locationSearch = $location.search();
         reportService.downloadDashboardReport($event, vm.currentDashboardId, reportType,
-            locationSearch.state, vm.dashboardCtx.dashboardTimewindow);
+            locationSearch.state, vm.dashboardCtx.dashboardTimewindow, Date.getTimezoneOffset());
     }
 
     function exportWidget($event, layoutCtx, widget) {

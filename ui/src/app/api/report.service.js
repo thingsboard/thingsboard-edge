@@ -31,6 +31,22 @@
 
 export default angular.module('thingsboard.api.reportService', [])
     .factory('reportService', ReportService)
+    .factory('reportStore', function($rootScope, store) {
+        var reportStore = store.getNamespacedStore('tbReportStore', 'sessionStorage', null, false);
+        var tbReportView = reportStore.get('report_view');
+        if (tbReportView) {
+            $rootScope.reportView = true;
+            var reportTimewindow = reportStore.get('report_timewindow');
+            if (reportTimewindow) {
+                $rootScope.reportTimewindow = angular.fromJson(reportTimewindow);
+            }
+            var tzOffset = reportStore.get('report_tz_offset');
+            if (angular.isNumber(tzOffset)) {
+                Date.setTimezoneOffset(Number(tzOffset));
+            }
+        }
+        return reportStore;
+    })
     .name;
 
 /*@ngInject*/
@@ -42,10 +58,11 @@ function ReportService($http, $q, $document, $window, $translate, tbDialogs) {
 
     return service;
 
-    function downloadDashboardReport($event, dashboardId, reportType, state, timewindow) {
+    function downloadDashboardReport($event, dashboardId, reportType, state, timewindow, tzOffset) {
         var url = '/api/report/' + dashboardId +  '/download';
         var reportParams = {
-            type: reportType
+            type: reportType,
+            tzOffset: tzOffset
         };
         if (state) {
             reportParams.state = state;

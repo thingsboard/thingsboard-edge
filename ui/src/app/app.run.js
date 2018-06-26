@@ -32,7 +32,7 @@ import Flow from '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import UrlHandler from './url.handler';
 
 /*@ngInject*/
-export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter, store,
+export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
                                whiteLabelingService, loginService, userService, $translate) {
 
     $window.Flow = Flow;
@@ -50,15 +50,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     $mdTheming.generateTheme('tb-dark');
 
     $rootScope.iframeMode = false;
-
-    var tbReportView = store.get('tb_report_view');
-    if (tbReportView) {
-        $rootScope.reportView = true;
-        var reportTimewindow = store.get('tb_report_timewindow');
-        if (reportTimewindow) {
-            $rootScope.reportTimewindow = angular.fromJson(reportTimewindow);
-        }
-    }
 
     var favicon = angular.element('link[rel="icon"]');
 
