@@ -188,7 +188,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.addWidget = addWidget;
     vm.addWidgetFromType = addWidgetFromType;
     vm.exportDashboard = exportDashboard;
-    vm.downloadDashboardReport = downloadDashboardReport;
+    vm.generateDashboardReport = generateDashboardReport;
     vm.importWidget = importWidget;
     vm.isPublicUser = isPublicUser;
     vm.isTenantAdmin = isTenantAdmin;
@@ -380,7 +380,11 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                     vm.dashboard = dashboardUtils.validateAndUpdateDashboard(dashboard);
                     vm.dashboardConfiguration = vm.dashboard.configuration;
                     vm.dashboardCtx.dashboard = vm.dashboard;
-                    vm.dashboardCtx.dashboardTimewindow = vm.dashboardConfiguration.timewindow;
+                    if ($rootScope.reportTimewindow) {
+                        vm.dashboardCtx.dashboardTimewindow = $rootScope.reportTimewindow;
+                    } else {
+                        vm.dashboardCtx.dashboardTimewindow = vm.dashboardConfiguration.timewindow;
+                    }
                     vm.dashboardCtx.aliasController = new AliasController($scope, $q, $filter, utils,
                         types, entityService, vm.dashboardCtx.stateController, vm.dashboardConfiguration.entityAliases);
                 }, function fail() {
@@ -603,10 +607,10 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         importExport.exportDashboard(vm.currentDashboardId);
     }
 
-    function downloadDashboardReport($event) {
-        $event.stopPropagation();
+    function generateDashboardReport($event, reportType) {
         var locationSearch = $location.search();
-        reportService.downloadDashboardReport(vm.currentDashboardId, locationSearch.state);
+        reportService.downloadDashboardReport($event, vm.currentDashboardId, reportType,
+            locationSearch.state, vm.dashboardCtx.dashboardTimewindow);
     }
 
     function exportWidget($event, layoutCtx, widget) {

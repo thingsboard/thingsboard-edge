@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -60,10 +61,10 @@ public class ReportController extends BaseController {
     public static final String DASHBOARD_ID = "dashboardId";
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/report/{dashboardId}/download", method = RequestMethod.GET)
+    @RequestMapping(value = "/report/{dashboardId}/download", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> downloadDashboardReport(@PathVariable(DASHBOARD_ID) String strDashboardId,
-                                                                  @RequestParam(required = false) String state,
+                                                                  @RequestBody JsonNode reportParams,
                                                                   HttpServletRequest request) throws ThingsboardException {
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
         checkParameter(DASHBOARD_ID, strDashboardId);
@@ -76,7 +77,7 @@ public class ReportController extends BaseController {
             name += "_" + defaultDateFormat.format(new Date());
 
             reportService.
-                    generateDashboardReport(baseUrl, dashboardId, state, getCurrentUser().getId(), name,
+                    generateDashboardReport(baseUrl, dashboardId, getCurrentUser().getId(), name, reportParams,
                             reportData -> {
                                 ByteArrayResource resource = new ByteArrayResource(reportData.getData());
                                 ResponseEntity<Resource> response = ResponseEntity.ok().

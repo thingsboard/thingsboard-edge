@@ -54,6 +54,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     var tbReportView = store.get('tb_report_view');
     if (tbReportView) {
         $rootScope.reportView = true;
+        var reportTimewindow = store.get('tb_report_timewindow');
+        if (reportTimewindow) {
+            $rootScope.reportTimewindow = angular.fromJson(reportTimewindow);
+        }
     }
 
     var favicon = angular.element('link[rel="icon"]');

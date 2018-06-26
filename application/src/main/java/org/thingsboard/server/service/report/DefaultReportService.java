@@ -46,7 +46,6 @@ import org.springframework.http.*;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRequestCallback;
@@ -58,6 +57,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.report.ReportData;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.AccessJwtToken;
@@ -69,7 +69,6 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -87,6 +86,10 @@ public class DefaultReportService implements ReportService {
 
     @Autowired
     private JwtTokenFactory jwtTokenFactory;
+
+    @Autowired
+    private ThingsboardErrorResponseHandler errorResponseHandler;
+
 
     private EventLoopGroup eventLoopGroup;
     private AsyncRestTemplate httpClient;
@@ -112,24 +115,18 @@ public class DefaultReportService implements ReportService {
     }
 
     @Override
-    public void generateDashboardReport(String baseUrl, DashboardId dashboardId, String dashboardState, UserId userId, String reportName, Consumer<ReportData> onSuccess,
+    public void generateDashboardReport(String baseUrl, DashboardId dashboardId, UserId userId,
+                                        String reportName, JsonNode reportParams, Consumer<ReportData> onSuccess,
                                         Consumer<Throwable> onFailure) {
         log.trace("Executing generateDashboardReport, baseUrl [{}], dashboardId [{}], userId [{}]", baseUrl, dashboardId, userId);
         AccessJwtToken accessToken = calculateUserAccessToken(userId);
         String token = accessToken.getToken();
         long expiration = accessToken.getClaims().getExpiration().getTime();
 
-        String dashboardUrl = baseUrl;
-        if (!dashboardUrl.endsWith("/")) {
-            dashboardUrl += "/";
-        }
-        dashboardUrl += "dashboards/"+dashboardId.toString();
-        if (!StringUtils.isEmpty(dashboardState)) {
-            dashboardUrl += "?state="+dashboardState;
-        }
-
         ObjectNode dashboardReportRequest = mapper.createObjectNode();
-        dashboardReportRequest.put("dashboardUrl", dashboardUrl);
+        dashboardReportRequest.put("baseUrl", baseUrl);
+        dashboardReportRequest.put("dashboardId", dashboardId.toString());
+        dashboardReportRequest.set("reportParams", reportParams);
         dashboardReportRequest.put("token", token);
         dashboardReportRequest.put("expiration", expiration);
         dashboardReportRequest.put("name", reportName);

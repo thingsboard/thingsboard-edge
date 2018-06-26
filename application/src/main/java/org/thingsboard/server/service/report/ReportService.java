@@ -31,7 +31,7 @@
 
 package org.thingsboard.server.service.report;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.report.ReportData;
@@ -40,7 +40,12 @@ import java.util.function.Consumer;
 
 public interface ReportService {
 
-    void generateDashboardReport(String baseUrl, DashboardId dashboardId, String dashboardState, UserId userId, String reportName, Consumer<ReportData> onSuccess,
-                                                         Consumer<Throwable> onFailure);
+    void generateDashboardReport(String baseUrl,
+                                 DashboardId dashboardId,
+                                 UserId userId,
+                                 String reportName,
+                                 JsonNode reportParams,
+                                 Consumer<ReportData> onSuccess,
+                                 Consumer<Throwable> onFailure);
 
 }

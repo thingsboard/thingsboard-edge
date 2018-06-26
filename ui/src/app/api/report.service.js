@@ -34,7 +34,7 @@ export default angular.module('thingsboard.api.reportService', [])
     .name;
 
 /*@ngInject*/
-function ReportService($http, $q, $document, $window) {
+function ReportService($http, $q, $document, $window, $translate, tbDialogs) {
 
     var service = {
         downloadDashboardReport: downloadDashboardReport
@@ -42,16 +42,29 @@ function ReportService($http, $q, $document, $window) {
 
     return service;
 
-    function downloadDashboardReport(dashboardId, state) {
-        var deferred = $q.defer();
+    function downloadDashboardReport($event, dashboardId, reportType, state, timewindow) {
         var url = '/api/report/' + dashboardId +  '/download';
+        var reportParams = {
+            type: reportType
+        };
         if (state) {
-            url += '?state=' + state;
+            reportParams.state = state;
         }
+        if (timewindow) {
+            reportParams.timewindow = timewindow;
+        }
+        var progressText = $translate.instant('dashboard.download-dashboard-progress', {reportType: reportType});
+        var progressFunction = () => _downloadDashboardReport(url, reportParams);
+        tbDialogs.progress($event, progressFunction, progressText);
+    }
+
+    function _downloadDashboardReport(url, reportParams) {
+        var deferred = $q.defer();
         $http({
-            method: 'GET',
+            method: 'POST',
             url: url,
             params: {},
+            data: reportParams,
             responseType: 'arraybuffer'
         }).success(function (data, status, headers) {
             headers = headers();
