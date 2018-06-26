@@ -34,7 +34,7 @@ export default angular.module('thingsboard.api.schedulerEvent', [])
     .name;
 
 /*@ngInject*/
-function SchedulerEventService($http, $q, $templateCache, customerService) {
+function SchedulerEventService($http, $q, customerService) {
 
     var service = {
         getSchedulerEvents: getSchedulerEvents,

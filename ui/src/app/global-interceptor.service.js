@@ -191,7 +191,7 @@ export default function GlobalInterceptor($rootScope, $q, $injector) {
 
         if (unhandled && !ignoreErrors) {
             if (rejection.data && !rejection.data.message) {
-                getToast().showError(rejection.data);
+                getToast().showError(prepareMessageFromData(rejection.data));
             } else if (rejection.data && rejection.data.message) {
                 getToast().showError(rejection.data.message);
             } else {
@@ -199,6 +199,24 @@ export default function GlobalInterceptor($rootScope, $q, $injector) {
             }
         }
         return $q.reject(rejection);
+    }
+
+    function prepareMessageFromData(data) {
+        if (angular.isObject(data) && data.constructor === ArrayBuffer) { //eslint-disable-line
+            var msg = String.fromCharCode.apply(null, new Uint8Array(data)); //eslint-disable-line
+            try {
+                var msgObj = angular.fromJson(msg);
+                if (msgObj.message) {
+                    return msgObj.message;
+                } else {
+                    return msg;
+                }
+            } catch (e) {
+                return msg;
+            }
+        } else {
+            return data;
+        }
     }
 
     function updateLoadingState(config, isLoading) {

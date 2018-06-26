@@ -43,8 +43,8 @@ import AliasController from '../api/alias-controller';
 
 /*@ngInject*/
 export default function DashboardController(types, utils, dashboardUtils, widgetService, userService,
-                                            dashboardService, timeService, entityService, itembuffer, importExport, hotkeys, $window, $rootScope,
-                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter) {
+                                            dashboardService, timeService, entityService, itembuffer, importExport, reportService, hotkeys, $window, $rootScope,
+                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter, $location) {
 
     var vm = this;
 
@@ -82,7 +82,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
 
     Object.defineProperty(vm, 'toolbarOpened', {
         get: function() {
-            return !vm.widgetEditMode &&
+            return !vm.widgetEditMode && !$rootScope.reportView &&
                 (toolbarAlwaysOpen() || vm.isToolbarOpened || vm.isEdit || vm.showRightLayoutSwitch()); },
         set: function() { }
     });
@@ -188,6 +188,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.addWidget = addWidget;
     vm.addWidgetFromType = addWidgetFromType;
     vm.exportDashboard = exportDashboard;
+    vm.downloadDashboardReport = downloadDashboardReport;
     vm.importWidget = importWidget;
     vm.isPublicUser = isPublicUser;
     vm.isTenantAdmin = isTenantAdmin;
@@ -600,6 +601,12 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     function exportDashboard($event) {
         $event.stopPropagation();
         importExport.exportDashboard(vm.currentDashboardId);
+    }
+
+    function downloadDashboardReport($event) {
+        $event.stopPropagation();
+        var locationSearch = $location.search();
+        reportService.downloadDashboardReport(vm.currentDashboardId, locationSearch.state);
     }
 
     function exportWidget($event, layoutCtx, widget) {
