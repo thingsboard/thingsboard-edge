@@ -28,23 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.service.ruleengine;
 
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Created by ashvayka on 02.04.18.
+ * Created by ashvayka on 16.04.18.
  */
-public interface RuleEngineRpcService {
+public interface RuleEngineCallService {
 
-    void sendRpcReply(DeviceId deviceId, int requestId, String body);
+    void processRestAPICallToRuleEngine(TenantId tenantId, TbMsg request, Consumer<TbMsg> response);
 
-    void sendRpcRequest(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
-
-    void sendRestApiCallReply(UUID requestId, TbMsg msg);
+    void processRestAPICallResponseFromRuleEngine(UUID requestId, TbMsg response);
 
 }

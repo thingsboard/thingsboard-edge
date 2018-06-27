@@ -292,7 +292,7 @@ public class RuleChainController extends BaseController {
             ScriptEngine engine = null;
             try {
                 engine = new RuleNodeJsScriptEngine(jsSandboxService, script, argNames);
-                TbMsg inMsg = new TbMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadata), data, null, null, 0L);
+                TbMsg inMsg = TbMsg.createNewMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadata), data);
                 switch (scriptType) {
                     case "update":
                         output = msgToOutput(engine.executeUpdate(inMsg));

@@ -28,23 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.rest;
 
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.msg.TbMsg;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-import java.util.UUID;
-import java.util.function.Consumer;
+@Data
+public class TbSendRestApiCallReplyNodeConfiguration implements NodeConfiguration<TbSendRestApiCallReplyNodeConfiguration> {
 
-/**
- * Created by ashvayka on 02.04.18.
- */
-public interface RuleEngineRpcService {
+    private String requestIdMetaDataAttribute;
 
-    void sendRpcReply(DeviceId deviceId, int requestId, String body);
-
-    void sendRpcRequest(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
-
-    void sendRestApiCallReply(UUID requestId, TbMsg msg);
-
+    @Override
+    public TbSendRestApiCallReplyNodeConfiguration defaultConfiguration() {
+        TbSendRestApiCallReplyNodeConfiguration configuration = new TbSendRestApiCallReplyNodeConfiguration();
+        configuration.setRequestIdMetaDataAttribute("requestUUID");
+        return configuration;
+    }
 }

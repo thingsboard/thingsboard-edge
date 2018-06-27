@@ -90,6 +90,7 @@ public class RpcController extends BaseController {
     @Autowired
     private AccessValidator accessValidator;
 
+    //TODO: remove this in open-source version;
     private ExecutorService executor;
 
     @PostConstruct

@@ -48,7 +48,8 @@ public enum ActionType {
     CREDENTIALS_READ(true), // log device id
     ATTRIBUTES_READ(true), // log attributes
     ADDED_TO_ENTITY_GROUP(false), // log entity group name
-    REMOVED_FROM_ENTITY_GROUP(false); // log entity group name
+    REMOVED_FROM_ENTITY_GROUP(false), // log entity group name
+    REST_API_RULE_ENGINE_CALL(false); // log call to rule engine from REST API
 
     private final boolean isRead;
 

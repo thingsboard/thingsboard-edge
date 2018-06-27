@@ -62,6 +62,10 @@ public final class TbMsg implements Serializable {
     private final RuleNodeId ruleNodeId;
     private final long clusterPartition;
 
+    public static TbMsg createNewMsg(UUID id, String type, EntityId originator, TbMsgMetaData metaData, String data){
+        return new TbMsg(id, type, originator, metaData, data, null, null, 0L);
+    }
+
     public TbMsg(UUID id, String type, EntityId originator, TbMsgMetaData metaData, String data,
                  RuleChainId ruleChainId, RuleNodeId ruleNodeId, long clusterPartition) {
         this.id = id;

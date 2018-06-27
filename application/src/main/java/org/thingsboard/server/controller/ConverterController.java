@@ -280,7 +280,7 @@ public class ConverterController extends BaseController {
             String errorText = "";
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
-                TbMsg inMsg = new TbMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadataMap), data, null, null, 0L);
+                TbMsg inMsg = TbMsg.createNewMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadataMap), data);
                 jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, encoder);
                 output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
                 validateDownLinkOutput(output);

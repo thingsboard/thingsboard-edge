@@ -286,6 +286,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
                             .build());
                 });
             }
+
+            @Override
+            public void sendRestApiCallReply(UUID requestId, TbMsg msg) {
+                mainCtx.getRuleEngineCallService().processRestAPICallResponseFromRuleEngine(requestId, msg);
+            }
         };
     }
 
