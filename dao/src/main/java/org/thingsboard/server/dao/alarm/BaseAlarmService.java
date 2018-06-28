@@ -66,6 +66,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -142,9 +143,13 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
 
     private void createAlarmRelations(Alarm alarm) throws InterruptedException, ExecutionException {
         if (alarm.isPropagate()) {
-            EntityRelationsQuery query = new EntityRelationsQuery();
-            query.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE));
-            List<EntityId> parentEntities = relationService.findByQuery(query).get().stream().map(r -> r.getFrom()).collect(Collectors.toList());
+            EntityRelationsQuery commonQuery = new EntityRelationsQuery();
+            commonQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.COMMON));
+            EntityRelationsQuery groupQuery = new EntityRelationsQuery();
+            groupQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.FROM_ENTITY_GROUP));
+            Set<EntityId> parentEntities = new HashSet<>();
+            parentEntities.addAll(relationService.findByQuery(commonQuery).get().stream().map(EntityRelation::getFrom).collect(Collectors.toList()));
+            parentEntities.addAll(relationService.findByQuery(groupQuery).get().stream().map(EntityRelation::getFrom).collect(Collectors.toList()));
             for (EntityId parentId : parentEntities) {
                 createAlarmRelation(parentId, alarm.getId(), alarm.getStatus(), true);
             }
