@@ -47,6 +47,7 @@ import thingsboardDashboardAutocomplete from '../components/dashboard-autocomple
 import thingsboardKvMap from '../components/kv-map.directive';
 import thingsboardJsonObjectEdit from '../components/json-object-edit.directive';
 import thingsboardJsonContent from '../components/json-content.directive';
+import thingsboardTimezoneSelect from '../components/timezone-select.directive';
 
 import thingsboardUserMenu from './user-menu.directive';
 
@@ -115,7 +116,8 @@ export default angular.module('thingsboard.home', [
     thingsboardDashboardAutocomplete,
     thingsboardKvMap,
     thingsboardJsonObjectEdit,
-    thingsboardJsonContent
+    thingsboardJsonContent,
+    thingsboardTimezoneSelect
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

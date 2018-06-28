@@ -80,6 +80,7 @@ import 'ngFlowchart/dist/ngFlowchart';
 import 'fullcalendar/dist/fullcalendar.min.css';
 import 'fullcalendar/dist/fullcalendar.min.js';
 import 'angular-ui-calendar';
+import 'moment-timezone';
 
 import thingsboardLocales from './locale/locale.constant';
 import thingsboardLogin from './login';

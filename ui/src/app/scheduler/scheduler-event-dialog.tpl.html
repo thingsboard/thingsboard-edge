@@ -78,6 +78,7 @@
                         <md-tab label="{{ 'scheduler.schedule' | translate }}">
                             <div layout="column" style="padding-top: 15px;">
                                 <span style="height: 16px;"></span>
+                                <tb-timezone-select default-timezone="vm.defaultTimezone" ng-model="vm.schedulerEvent.schedule.timezone"></tb-timezone-select>
                                 <label translate class="tb-small">scheduler.start</label>
                                 <section layout="column" layout-gt-sm="row" layout-align-gt-sm="start start">
                                     <mdp-date-picker ng-required="true" ng-model="vm.startDate" mdp-placeholder="{{'scheduler.date' | translate}}">
