@@ -1667,6 +1667,12 @@ export default angular.module('thingsboard.locale', [])
                     "friday": "Friday",
                     "saturday": "Saturday"
                 },
+                "timezone": {
+                    "timezone": "Timezone",
+                    "select-timezone": "Select timezone",
+                    "no-timezones-matching": "No timezones matching '{{timezone}}' were found.",
+                    "timezone-required": "Timezone is required."
+                },
                 "tenant": {
                     "tenant": "Tenant",
                     "tenants": "Tenants",

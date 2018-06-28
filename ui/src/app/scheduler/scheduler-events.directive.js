@@ -352,18 +352,21 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     function eventSourceFunction(start, end, timezone, callback) {
         var events = [];
         if (vm.schedulerEvents && vm.schedulerEvents.length) {
+            var userZone = moment.tz.zone(moment.tz.guess()); //eslint-disable-line
             var rangeStart = start.local();
             var rangeEnd = end.local();
             vm.schedulerEvents.forEach((event) => {
-                var eventStart = moment(event.schedule.startTime); //eslint-disable-line
-                var eventEnd = moment(event.schedule.startTime); //eslint-disable-line
+                var startOffset = userZone.utcOffset(event.schedule.startTime) * 60 * 1000;
+                var eventStart = moment(event.schedule.startTime - startOffset); //eslint-disable-line
+                var eventEnd = moment(event.schedule.startTime - startOffset); //eslint-disable-line
                 var calendarEvent;
                 if (rangeEnd.isSameOrAfter(eventStart)) {
                     if (event.schedule.repeat) {
                         var eventDuration = moment.duration(eventEnd.diff(eventStart)); //eslint-disable-line
-                        var repeatEndsOn = moment(event.schedule.repeat.endsOn); //eslint-disable-line
+                        var endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
+                        var repeatEndsOn = moment(event.schedule.repeat.endsOn - endOffset); //eslint-disable-line
                         var currentDay;
-                        if (rangeStart.isSameOrBefore(event.schedule.startTime)) {
+                        if (rangeStart.isSameOrBefore(eventStart)) {
                             currentDay = eventStart.clone();
                         } else {
                             currentDay = rangeStart.clone().subtract(eventDuration);
@@ -414,12 +417,13 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         var startTime = event.schedule.startTime;
         if (!event.schedule.repeat) {
             var start;
-            start = moment.utc(startTime).format('MMM DD, YYYY, hh:mma'); //eslint-disable-line
+            start = moment.utc(startTime).local().format('MMM DD, YYYY, hh:mma'); //eslint-disable-line
             info += start;
             return info;
         } else {
-            info += '<b>'+$translate.instant('scheduler.repeat') + '</b>: ';
-            info += $translate.instant('scheduler.starting-from') + ' ' + moment.utc(startTime).format('MMM DD, YYYY') + ', '; //eslint-disable-line
+            info += moment.utc(startTime).local().format('hh:mma'); //eslint-disable-line
+            info += '<br/>';
+            info += $translate.instant('scheduler.starting-from') + ' ' + moment.utc(startTime).local().format('MMM DD, YYYY') + ', '; //eslint-disable-line
             if (event.schedule.repeat.type == types.schedulerRepeat.daily.value) {
                 info += $translate.instant('scheduler.daily') + ', ';
             } else {
@@ -430,10 +434,8 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                 }
             }
             info += $translate.instant('scheduler.until') + ' ';
-            var endsOn = moment.utc(event.schedule.repeat.endsOn).format('MMM DD, YYYY');  //eslint-disable-line
+            var endsOn = moment.utc(event.schedule.repeat.endsOn).local().format('MMM DD, YYYY');  //eslint-disable-line
             info += endsOn;
-
-            info += '<br/><b>' + $translate.instant('scheduler.on') + '</b>: ' + moment.utc(startTime).format('hh:mma'); //eslint-disable-line
             return info;
         }
     }

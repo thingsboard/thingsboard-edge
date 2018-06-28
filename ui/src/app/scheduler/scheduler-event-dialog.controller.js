@@ -39,6 +39,8 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
 
     vm.types = types;
 
+    vm.defaultTimezone = moment.tz.guess(); //eslint-disable-line
+
     vm.configTypesList = configTypesList;
 
     vm.configTypes = {};
@@ -54,6 +56,9 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
     var startDate;
     if (vm.isAdd) {
         vm.schedulerEvent.type = vm.defaultEventType;
+        if (!vm.schedulerEvent.schedule.timezone) {
+            vm.schedulerEvent.schedule.timezone = vm.defaultTimezone;
+        }
         if (!vm.schedulerEvent.schedule.startTime) {
             var date = new Date();
             startDate = new Date(
@@ -61,10 +66,10 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
                 date.getMonth(),
                 date.getDate());
         } else {
-            startDate = setTzOffset(new Date(vm.schedulerEvent.schedule.startTime));
+            startDate = dateFromUtcTime(vm.schedulerEvent.schedule.startTime);
         }
     } else {
-        startDate = setTzOffset(new Date(vm.schedulerEvent.schedule.startTime));
+        startDate = dateFromUtcTime(vm.schedulerEvent.schedule.startTime);
         if (vm.schedulerEvent.schedule.repeat) {
             if (vm.schedulerEvent.schedule.repeat.type == types.schedulerRepeat.weekly.value &&
                 vm.schedulerEvent.schedule.repeat.repeatOn) {
@@ -73,10 +78,12 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
                         vm.weeklyRepeat[vm.schedulerEvent.schedule.repeat.repeatOn[i]] = true;
                     }
             }
-            vm.endsOn = setTzOffset(new Date(vm.schedulerEvent.schedule.repeat.endsOn));
+            vm.endsOn = dateFromUtcTime(vm.schedulerEvent.schedule.repeat.endsOn);
         }
     }
     setStartDate(startDate);
+
+    vm.lastAppliedTimezone = vm.schedulerEvent.schedule.timezone;
 
     vm.repeat = vm.schedulerEvent.schedule.repeat ? true : false;
 
@@ -93,31 +100,25 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
         }
     });
 
-    function setTzOffset(d) {
-        d.setTime( d.getTime() + d.getTimezoneOffset()*60*1000 );
-        return d;
-    }
+    $scope.$watch('vm.schedulerEvent.schedule.timezone', function (newValue, prevValue) {
+        if (!angular.equals(newValue, prevValue) && newValue) {
+            timezoneChange();
+        }
+    });
 
-    function removeTzOffset(d) {
-        d.setTime( d.getTime() - d.getTimezoneOffset()*60*1000 );
-        return d;
+    function dateFromUtcTime(time, timezone) {
+        if (!timezone) {
+            timezone = vm.schedulerEvent.schedule.timezone;
+        }
+        var offset = moment.tz.zone(timezone).utcOffset(time) * 60 * 1000; //eslint-disable-line
+        return new Date(time - offset + Date.getTimezoneOffset()*60*1000);
     }
-
-    function setStartDate(startDate) {
-        vm.startDate = new Date(
-            startDate.getFullYear(),
-            startDate.getMonth(),
-            startDate.getDate());
-        vm.startDateTime = new Date(
-            0,
-            0,
-            0,
-            startDate.getHours(),
-            startDate.getMinutes());
-    }
-
-    function getTimestampMs(date, time) {
-        return removeTzOffset(new Date(
+    
+    function dateTimeToUtcTime(date, time, timezone) {
+        if (!timezone) {
+            timezone = vm.schedulerEvent.schedule.timezone;
+        }
+        var ts = new Date(
             date.getFullYear(),
             date.getMonth(),
             date.getDate(),
@@ -125,7 +126,44 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             time.getMinutes(),
             time.getSeconds(),
             time.getMilliseconds()
-        )).getTime();
+        ).getTime();
+        var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
+        return ts + offset - Date.getTimezoneOffset()*60*1000;
+    }
+
+    function dateToUtcTime(date, timezone) {
+        if (!timezone) {
+            timezone = vm.schedulerEvent.schedule.timezone;
+        }
+        var ts = new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+        ).getTime();
+        var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
+        return ts + offset - Date.getTimezoneOffset()*60*1000;
+    }
+
+    function timezoneChange() {
+        if (!angular.equals(vm.schedulerEvent.schedule.timezone, vm.lastAppliedTimezone)) {
+            var startTime = dateTimeToUtcTime(vm.startDate, vm.startDateTime, vm.lastAppliedTimezone);
+            var startDate = dateFromUtcTime(startTime);
+            setStartDate(startDate);
+            if (vm.endsOn) {
+                var endsOnTime = dateToUtcTime(vm.endsOn, vm.lastAppliedTimezone);
+                vm.endsOn = dateFromUtcTime(endsOnTime);
+            }
+            vm.lastAppliedTimezone = vm.schedulerEvent.schedule.timezone;
+        }
+    }
+
+    function setStartDate(startDate) {
+        vm.startDate = new Date(
+            startDate.getFullYear(),
+            startDate.getMonth(),
+            startDate.getDate());
+        var millis = (startDate.getHours() * 60 * 60 * 1000 + startDate.getMinutes() * 60 * 1000) + Date.getTimezoneOffset() * 60 * 1000;
+        vm.startDateTime = new Date(millis);
     }
 
     function repeatsChange() {
@@ -175,7 +213,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
         if (!vm.repeat) {
             delete vm.schedulerEvent.schedule.repeat;
         } else {
-            vm.schedulerEvent.schedule.repeat.endsOn = removeTzOffset(vm.endsOn).getTime();
+            vm.schedulerEvent.schedule.repeat.endsOn = dateToUtcTime(vm.endsOn);
             if (vm.schedulerEvent.schedule.repeat.type == types.schedulerRepeat.weekly.value) {
                 vm.schedulerEvent.schedule.repeat.repeatOn = [];
                 for (var i=0;i<7;i++) {
@@ -187,7 +225,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
                 delete vm.schedulerEvent.schedule.repeat.repeatOn;
             }
         }
-        vm.schedulerEvent.schedule.startTime = getTimestampMs(vm.startDate, vm.startDateTime);
+        vm.schedulerEvent.schedule.startTime = dateTimeToUtcTime(vm.startDate, vm.startDateTime);
         schedulerEventService.saveSchedulerEvent(vm.schedulerEvent).then(
             () => {
                 $mdDialog.hide();
