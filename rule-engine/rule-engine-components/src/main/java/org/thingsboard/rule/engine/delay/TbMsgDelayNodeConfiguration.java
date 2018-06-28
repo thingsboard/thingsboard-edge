@@ -28,42 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.relation;
+package org.thingsboard.rule.engine.delay;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 
-import java.util.UUID;
-
-/**
- * Created by ashvayka on 03.05.17.
- */
 @Data
-@AllArgsConstructor
-public class RelationsSearchParameters {
+public class TbMsgDelayNodeConfiguration implements NodeConfiguration<TbMsgDelayNodeConfiguration> {
 
-    private UUID rootId;
-    private EntityType rootType;
-    private EntitySearchDirection direction;
-    private RelationTypeGroup relationTypeGroup;
-    private int maxLevel = 1;
+    private int periodInSeconds;
+    private int maxPendingMsgs;
 
-    public RelationsSearchParameters(EntityId entityId, EntitySearchDirection direction, int maxLevel) {
-        this(entityId, direction, maxLevel, RelationTypeGroup.COMMON);
-    }
-
-    public RelationsSearchParameters(EntityId entityId, EntitySearchDirection direction, int maxLevel, RelationTypeGroup relationTypeGroup) {
-        this.rootId = entityId.getId();
-        this.rootType = entityId.getEntityType();
-        this.direction = direction;
-        this.maxLevel = maxLevel;
-        this.relationTypeGroup = relationTypeGroup;
-    }
-
-    public EntityId getEntityId() {
-        return EntityIdFactory.getByTypeAndUuid(rootType, rootId);
+    @Override
+    public TbMsgDelayNodeConfiguration defaultConfiguration() {
+        TbMsgDelayNodeConfiguration configuration = new TbMsgDelayNodeConfiguration();
+        configuration.setPeriodInSeconds(60);
+        configuration.setMaxPendingMsgs(1000);
+        return configuration;
     }
 }
