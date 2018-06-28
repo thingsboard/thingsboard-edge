@@ -77,6 +77,8 @@ public class DataConstants {
     public static final String ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP";
     public static final String REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP";
 
+    public static final String REST_API_REQUEST = "REST_API_REQUEST";
+
     public static final String RPC_CALL_FROM_SERVER_TO_DEVICE = "RPC_CALL_FROM_SERVER_TO_DEVICE";
 
 }

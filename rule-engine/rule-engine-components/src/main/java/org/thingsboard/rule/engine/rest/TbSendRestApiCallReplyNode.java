@@ -67,9 +67,7 @@ public class TbSendRestApiCallReplyNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         String requestIdStr = msg.getMetaData().getValue(config.getRequestIdMetaDataAttribute());
-        if (msg.getOriginator().getEntityType() != EntityType.DEVICE) {
-            ctx.tellFailure(msg, new RuntimeException("Message originator is not a device entity!"));
-        } else if (StringUtils.isEmpty(requestIdStr)) {
+        if (StringUtils.isEmpty(requestIdStr)) {
             ctx.tellFailure(msg, new RuntimeException("Request id is not present in the metadata!"));
         } else if (StringUtils.isEmpty(msg.getData())) {
             ctx.tellFailure(msg, new RuntimeException("Request body is empty!"));

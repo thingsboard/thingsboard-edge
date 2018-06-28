@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -84,26 +85,36 @@ public class RuleEngineController extends BaseController {
     private AccessValidator accessValidator;
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/{msgType}/{entityType}/{entityId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseBody
-    public DeferredResult<ResponseEntity> handleRuleEngineRequest(@PathVariable("msgType") String msgType,
-                                                                  @PathVariable("entityType") String entityType,
-                                                                  @PathVariable("entityId") String entityIdStr,
-                                                                  @RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest(msgType, entityType, entityIdStr, DEFAULT_TIMEOUT, requestBody);
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(@RequestBody String requestBody) throws ThingsboardException {
+        return handleRuleEngineRequest( null, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/{msgType}/{entityType}/{entityId}/{timeout}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseBody
-    public DeferredResult<ResponseEntity> handleRuleEngineRequest(@PathVariable("msgType") String msgType,
-                                                                  @PathVariable("entityType") String entityType,
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(@PathVariable("entityType") String entityType,
+                                                                  @PathVariable("entityId") String entityIdStr,
+                                                                  @RequestBody String requestBody) throws ThingsboardException {
+        return handleRuleEngineRequest(entityType, entityIdStr, DEFAULT_TIMEOUT, requestBody);
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/{entityType}/{entityId}/{timeout}", method = RequestMethod.POST)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(@PathVariable("entityType") String entityType,
                                                                   @PathVariable("entityId") String entityIdStr,
                                                                   @PathVariable("timeout") int timeout,
                                                                   @RequestBody String requestBody) throws ThingsboardException {
         try {
             SecurityUser currentUser = getCurrentUser();
-            EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+            EntityId entityId;
+            if (StringUtils.isEmpty(entityType) || StringUtils.isEmpty(entityIdStr)) {
+                entityId = currentUser.getId();
+            } else {
+                entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
+            }
             //Check that this is a valid JSON
             jsonMapper.readTree(requestBody);
             final DeferredResult<ResponseEntity> response = new DeferredResult<>();
@@ -115,7 +126,7 @@ public class RuleEngineController extends BaseController {
                     HashMap<String, String> metaData = new HashMap<>();
                     metaData.put("requestUUID", msgId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
-                    TbMsg msg = TbMsg.createNewMsg(msgId, msgType, entityId, new TbMsgMetaData(metaData), requestBody);
+                    TbMsg msg = TbMsg.createNewMsg(msgId, DataConstants.REST_API_REQUEST, entityId, new TbMsgMetaData(metaData), requestBody);
                     ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), msg,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }

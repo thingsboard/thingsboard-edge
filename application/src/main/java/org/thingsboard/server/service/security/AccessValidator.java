@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -42,6 +42,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -78,6 +79,7 @@ public class AccessValidator {
     public static final String CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "Customer user is not allowed to perform this operation!";
     public static final String SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "System administrator is not allowed to perform this operation!";
     public static final String DEVICE_WITH_REQUESTED_ID_NOT_FOUND = "Device with requested id wasn't found!";
+    public static final String USER_WITH_REQUESTED_ID_NOT_FOUND = "User with requested id wasn't found!";
 
     @Autowired
     protected TenantService tenantService;
@@ -182,10 +184,28 @@ public class AccessValidator {
             case INTEGRATION:
                 validateIntegration(currentUser, entityId, callback);
                 return;
+            case USER:
+                validateUser(currentUser, entityId, callback);
+                return;
             default:
                 //TODO: add support of other entities
                 throw new IllegalStateException("Not Implemented!");
         }
+    }
+
+    private void validateUser(SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        ListenableFuture<User> userFuture = userService.findUserByIdAsync(new UserId(entityId.getId()));
+        Futures.addCallback(userFuture, getCallback(callback, user -> {
+            if (user == null) {
+                return ValidationResult.entityNotFound(USER_WITH_REQUESTED_ID_NOT_FOUND);
+            } else {
+                if (user.getId().equals(currentUser.getId())) {
+                    return ValidationResult.ok(user);
+                } else {
+                    return ValidationResult.accessDenied("Users mismatch!");
+                }
+            }
+        }), executor);
     }
 
     private void validateDevice(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
