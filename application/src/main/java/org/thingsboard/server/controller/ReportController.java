@@ -40,10 +40,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.service.report.ReportService;
+import org.thingsboard.server.common.data.report.ReportConfig;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -74,10 +75,45 @@ public class ReportController extends BaseController {
             String baseUrl = constructBaseUrl(request);
 
             String name = dashboardInfo.getTitle();
-            name += "_" + defaultDateFormat.format(new Date());
+            name += "-" + defaultDateFormat.format(new Date());
 
             reportService.
                     generateDashboardReport(baseUrl, dashboardId, getCurrentUser().getId(), name, reportParams,
+                            reportData -> {
+                                ByteArrayResource resource = new ByteArrayResource(reportData.getData());
+                                ResponseEntity<Resource> response = ResponseEntity.ok().
+                                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + reportData.getName())
+                                        .header("x-filename", reportData.getName())
+                                        .contentLength(resource.contentLength())
+                                        .contentType(parseMediaType(reportData.getContentType()))
+                                        .body(resource);
+                                result.setResult(response);
+                            },
+                            throwable -> {
+                                result.setErrorResult(throwable);
+                            });
+        } catch (Exception e) {
+            result.setErrorResult(handleException(e));
+        }
+        return result;
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/report/test", method = RequestMethod.POST)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> downloadTestReport(@RequestBody ReportConfig reportConfig,
+                                                             @RequestParam(required = false) String reportsServerEndpointUrl) {
+        DeferredResult<ResponseEntity> result = new DeferredResult<>();
+        try {
+            String strDashboardId = reportConfig.getDashboardId();
+            checkParameter(DASHBOARD_ID, strDashboardId);
+
+            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
+            checkDashboardInfoId(dashboardId);
+
+            reportService.
+                    generateReport(reportConfig,
+                            reportsServerEndpointUrl,
                             reportData -> {
                                 ByteArrayResource resource = new ByteArrayResource(reportData.getData());
                                 ResponseEntity<Resource> response = ResponseEntity.ok().

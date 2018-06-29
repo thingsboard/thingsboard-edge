@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -28,11 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.rule.engine.report;
 
-import ReportConfigDirective from './report-config.directive';
-import GenerateReportEventConfigDirective from './generate-report.directive';
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.report.ReportConfig;
 
-export default angular.module('thingsboard.scheduler.config', [])
-    .directive('tbReportConfig', ReportConfigDirective)
-    .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
-    .name;
+@Data
+public class TbGenerateReportNodeConfiguration implements NodeConfiguration<TbGenerateReportNodeConfiguration> {
+
+    private boolean useSystemReportsServer;
+    private String reportsServerEndpointUrl;
+    private boolean useReportConfigFromMessage;
+    private ReportConfig reportConfig;
+
+    @Override
+    public TbGenerateReportNodeConfiguration defaultConfiguration() {
+        TbGenerateReportNodeConfiguration configuration = new TbGenerateReportNodeConfiguration();
+        configuration.setUseSystemReportsServer(true);
+        configuration.setUseReportConfigFromMessage(true);
+        return configuration;
+    }
+}

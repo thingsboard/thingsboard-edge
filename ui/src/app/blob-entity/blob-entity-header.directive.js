@@ -28,11 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+/* eslint-disable import/no-unresolved, import/default */
 
-import ReportConfigDirective from './report-config.directive';
-import GenerateReportEventConfigDirective from './generate-report.directive';
+import blobEntityHeaderTemplate from './blob-entity-header.tpl.html';
 
-export default angular.module('thingsboard.scheduler.config', [])
-    .directive('tbReportConfig', ReportConfigDirective)
-    .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
-    .name;
+/* eslint-enable import/no-unresolved, import/default */
+
+/*@ngInject*/
+export default function BlobEntityHeaderDirective($compile, $templateCache) {
+
+    var linker = function (scope, element/*, attrs*/) {
+
+        var template = $templateCache.get(blobEntityHeaderTemplate);
+        element.html(template);
+        $compile(element.contents())(scope);
+
+    };
+
+    return {
+        restrict: "A",
+        replace: false,
+        link: linker,
+        scope: false
+    };
+}

@@ -73,5 +73,14 @@ public interface UserDao extends Dao<User> {
      * @return the list of user entities
      */
     List<User> findCustomerUsers(UUID tenantId, UUID customerId, TextPageLink pageLink);
-    
+
+    /**
+     * Find all customer users by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of user entities
+     */
+    List<User> findAllCustomerUsers(UUID tenantId, TextPageLink pageLink);
+
 }

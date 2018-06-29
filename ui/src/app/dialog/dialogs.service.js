@@ -333,6 +333,7 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
             locals: {progressFunction: progressFunction, progressText: progressText},
             parent: angular.element($document[0].body),
             fullscreen: true,
+            skipHide: true,
             targetEvent: $event
         });
     }

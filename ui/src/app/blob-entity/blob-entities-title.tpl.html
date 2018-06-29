@@ -30,7 +30,27 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-
-<section ng-form name="generateReportConfigForm" layout="column">
-    <tb-report-config ng-model="configuration.reportConfig"></tb-report-config>
-</section>
+<div class="tb-blob-entities-title-toolbar">
+    <div class="md-toolbar-tools tb-blob-entity-toolbar">
+        <span class="tb-blob-entities-title">{{widget.$ctx().widgetTitle}}</span>
+        <tb-timewindow ng-model="widget.$ctx().currentTimewindow" history-only as-button="true"></tb-timewindow>
+        <div flex layout="row" layout-align="start center">
+            <md-button class="md-icon-button" aria-label="{{ 'action.search' | translate }}">
+                <md-icon aria-label="{{ 'action.search' | translate }}" class="material-icons">search</md-icon>
+                <md-tooltip md-direction="top">
+                    {{'blob-entity.search' | translate}}
+                </md-tooltip>
+            </md-button>
+            <md-input-container flex class="tb-blob-entity-search-input">
+                <label>&nbsp;</label>
+                <input ng-model="widget.$ctx().currentSearchText" placeholder="{{'blob-entity.search' | translate}}"/>
+            </md-input-container>
+            <md-button ng-disabled="$root.loading" class="md-icon-button" aria-label="Close" ng-click="widget.$ctx().currentSearchText = ''">
+                <md-icon aria-label="Close" class="material-icons">close</md-icon>
+                <md-tooltip md-direction="top">
+                    {{ 'blob-entity.clear-search' | translate }}
+                </md-tooltip>
+            </md-button>
+        </div>
+    </div>
+</div>

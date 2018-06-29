@@ -29,74 +29,74 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-export default angular.module('thingsboard.api.reportService', [])
-    .factory('reportService', ReportService)
-    .factory('reportStore', function($rootScope, store) {
-        var reportStore = store.getNamespacedStore('tbReportStore', 'sessionStorage', null, false);
-        var tbReportView = reportStore.get('report_view');
-        if (tbReportView) {
-            $rootScope.reportView = true;
-            var reportTimewindow = reportStore.get('report_timewindow');
-            if (reportTimewindow) {
-                $rootScope.reportTimewindow = angular.fromJson(reportTimewindow);
-            }
-            var tzOffset = reportStore.get('report_tz_offset');
-            if (angular.isNumber(tzOffset)) {
-                Date.setTimezoneOffset(Number(tzOffset));
-            }
-        }
-        return reportStore;
-    })
+export default angular.module('thingsboard.api.blobEntity', [])
+    .factory('blobEntityService', BlobEntityService)
     .name;
 
 /*@ngInject*/
-function ReportService($http, $q, $document, $window, $translate, tbDialogs) {
+function BlobEntityService($http, $q, $document, $window, customerService) {
 
     var service = {
-        downloadDashboardReport: downloadDashboardReport,
-        downloadTestReport: downloadTestReport
+        getBlobEntities: getBlobEntities,
+        deleteBlobEntity: deleteBlobEntity,
+        downloadBlobEntity: downloadBlobEntity
     };
 
     return service;
 
-    function downloadDashboardReport($event, dashboardId, reportType, state, timewindow, tzOffset) {
-        var url = '/api/report/' + dashboardId +  '/download';
-        var reportParams = {
-            type: reportType,
-            tzOffset: tzOffset
-        };
-        if (state) {
-            reportParams.state = state;
-        }
-        if (timewindow) {
-            reportParams.timewindow = timewindow;
-        }
-        var progressText = $translate.instant('dashboard.download-dashboard-progress', {reportType: reportType});
-        var progressFunction = () => _downloadDashboardReport(url, reportParams);
-        tbDialogs.progress($event, progressFunction, progressText);
-    }
-
-    function downloadTestReport($event, reportConfig, reportsServerEndpointUrl) {
-        var url = '/api/report/test';
-        var params = {};
-        if (reportsServerEndpointUrl) {
-            params['reportsServerEndpointUrl'] = reportsServerEndpointUrl;
-        }
-        var progressText = $translate.instant('dashboard.download-dashboard-progress', {reportType: reportConfig.type});
-        var progressFunction = () => _downloadDashboardReport(url, reportConfig, params);
-        tbDialogs.progress($event, progressFunction, progressText);
-    }
-
-    function _downloadDashboardReport(url, reportParams, params) {
-        if (!params) {
-            params = {};
-        }
+    function getBlobEntities(pageLink, type, applyCustomersInfo, config) {
         var deferred = $q.defer();
+        var url = `/api/blobEntities?limit=${pageLink.limit}`;
+        if (type) {
+            url += '&type=' + type;
+        }
+        if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
+            url += '&startTime=' + pageLink.startTime;
+        }
+        if (angular.isDefined(pageLink.endTime) && pageLink.endTime != null) {
+            url += '&endTime=' + pageLink.endTime;
+        }
+        if (angular.isDefined(pageLink.idOffset) && pageLink.idOffset != null) {
+            url += '&offset=' + pageLink.idOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            if (applyCustomersInfo) {
+                customerService.applyAssignedCustomersInfo(response.data.data).then(
+                    function success(data) {
+                        response.data.data = data;
+                        deferred.resolve(response.data);
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+            } else {
+                deferred.resolve(response.data);
+            }
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function deleteBlobEntity(blobEntityId) {
+        var deferred = $q.defer();
+        var url = '/api/blobEntity/' + blobEntityId;
+        $http.delete(url).then(function success() {
+            deferred.resolve();
+        }, function fail(response) {
+            deferred.reject(response.data);
+        });
+        return deferred.promise;
+    }
+
+    function downloadBlobEntity(blobEntityId) {
+        var deferred = $q.defer();
+        var url = '/api/blobEntity/' + blobEntityId +  '/download';
         $http({
-            method: 'POST',
+            method: 'GET',
             url: url,
-            params: params,
-            data: reportParams,
+            params: {},
             responseType: 'arraybuffer'
         }).success(function (data, status, headers) {
             headers = headers();

@@ -1667,6 +1667,35 @@ export default angular.module('thingsboard.locale', [])
                     "friday": "Friday",
                     "saturday": "Saturday"
                 },
+                "report": {
+                    "dashboard-state-param": "Dashboard state parameter value",
+                    "base-url": "Base URL",
+                    "base-url-required": "Base URL is required.",
+                    "use-dashboard-timewindow": "Use dashboard timewindow",
+                    "timewindow": "Timewindow",
+                    "name-pattern": "Report name pattern",
+                    "name-pattern-required": "Report name pattern is required",
+                    "type": "Report type",
+                    "use-current-user-credentials": "Use current user credentials",
+                    "customer-user-credentials": "Customer user credentials",
+                    "customer-user-credentials-required": "Customer user credentials is required",
+                    "generate-test-report": "Generate test report"
+                },
+                "blob-entity": {
+                    "files": "Files",
+                    "search": "Search files",
+                    "clear-search": "Clear search",
+                    "no-blob-entities-prompt": "No files found",
+                    "report": "Report",
+                    "created-time": "Created time",
+                    "name": "Name",
+                    "type": "Type",
+                    "assigned_customer": "Assigned customer",
+                    "download-blob-entity": "Download file",
+                    "delete-blob-entity": "Delete file",
+                    "delete-blob-entity-title": "Are you sure you want to delete file '{{blobEntityName}}'?",
+                    "delete-blob-entity-text": "Be careful, after the confirmation file data will become unrecoverable."
+                },
                 "timezone": {
                     "timezone": "Timezone",
                     "select-timezone": "Select timezone",

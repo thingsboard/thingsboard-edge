@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-
-<section ng-form name="generateReportConfigForm" layout="column">
-    <tb-report-config ng-model="configuration.reportConfig"></tb-report-config>
-</section>
+<div ng-if="displayCreatedTime" translate class="tb-cell" flex="20">blob-entity.created-time</div>
+<div translate class="tb-cell" flex>blob-entity.name</div>
+<div ng-if="displayType" translate class="tb-cell" flex="15">blob-entity.type</div>
+<div ng-if="displayCustomer" translate class="tb-cell" flex="20">blob-entity.assigned_customer</div>
+<div class="tb-cell tb-buttons"></div>

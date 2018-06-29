@@ -30,7 +30,31 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-
-<section ng-form name="generateReportConfigForm" layout="column">
-    <tb-report-config ng-model="configuration.reportConfig"></tb-report-config>
-</section>
+<div ng-if="displayCreatedTime" class="tb-cell" flex="20">{{ blobEntity.createdTime | date :  'yyyy-MM-dd HH:mm:ss' }}</div>
+<div class="tb-cell" flex>{{ blobEntity.name }}</div>
+<div ng-if="displayType" class="tb-cell" flex="15">{{ blobEntity.typeText }}</div>
+<div ng-if="displayCustomer" class="tb-cell" flex="20">{{ blobEntity.assignedCustomer.title }}</div>
+<div class="tb-cell tb-buttons">
+    <md-button class="md-icon-button"
+               ng-click="downloadBlobEntity($event)"
+               aria-label="{{ 'blob-entity.download-blob-entity' | translate }}">
+        <md-tooltip md-direction="top">
+            {{ 'blob-entity.download-blob-entity' | translate }}
+        </md-tooltip>
+        <md-icon aria-label="{{ 'blob-entity.download-blob-entity' | translate }}"
+                 class="material-icons">
+            file_download
+        </md-icon>
+    </md-button>
+    <md-button class="md-icon-button"
+               ng-click="deleteBlobEntity($event)"
+               aria-label="{{ 'blob-entity.delete-blob-entity' | translate }}">
+        <md-tooltip md-direction="top">
+            {{ 'blob-entity.delete-blob-entity' | translate }}
+        </md-tooltip>
+        <md-icon aria-label="{{ 'blob-entity.delete-blob-entity' | translate }}"
+                 class="material-icons">
+            delete
+        </md-icon>
+    </md-button>
+</div>

@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -29,10 +29,29 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import ReportConfigDirective from './report-config.directive';
-import GenerateReportEventConfigDirective from './generate-report.directive';
+package org.thingsboard.rule.engine.api;
 
-export default angular.module('thingsboard.scheduler.config', [])
-    .directive('tbReportConfig', ReportConfigDirective)
-    .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
-    .name;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.report.ReportConfig;
+import org.thingsboard.server.common.data.report.ReportData;
+
+import java.util.function.Consumer;
+
+public interface ReportService {
+
+    void generateDashboardReport(String baseUrl,
+                                 DashboardId dashboardId,
+                                 UserId userId,
+                                 String reportName,
+                                 JsonNode reportParams,
+                                 Consumer<ReportData> onSuccess,
+                                 Consumer<Throwable> onFailure);
+
+    void generateReport(ReportConfig reportConfig,
+                        String reportsServerEndpointUrl,
+                        Consumer<ReportData> onSuccess,
+                        Consumer<Throwable> onFailure);
+
+}

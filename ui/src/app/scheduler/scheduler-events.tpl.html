@@ -192,7 +192,7 @@
                 </div>
             </div>
             <md-menu flex id="tb-event-schedule-calendar-context-menu" style="position: relative;" md-position-mode="target target" tb-offset-x="-40" tb-offset-y="-45" tb-mousepoint-menu>
-                <div ui-calendar="vm.calendarConfig" calendar="eventScheduleCalendar" ng-model="vm.calendarEventSources" ng-click=""></div>
+                <div ui-calendar="vm.calendarConfig" calendar="{{vm.calendarId}}" ng-model="vm.calendarEventSources" ng-click=""></div>
                 <md-menu-content class="tb-event-schedule-calendar-menu-content" width="3" ng-mouseleave="$mdCloseMousepointMenu()">
                     <div class="tb-context-menu-header">
                         <div class="tb-context-menu-title">{{vm.contextMenuSchedulerEvent.name}}</div>

@@ -98,4 +98,15 @@ public class CassandraUserDao extends CassandraAbstractSearchTextDao<UserEntity,
         return DaoUtil.convertDataList(userEntities);
     }
 
+    @Override
+    public List<User> findAllCustomerUsers(UUID tenantId, TextPageLink pageLink) {
+        log.debug("Try to find customer users by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
+        List<UserEntity> userEntities = findPageWithTextSearch(ModelConstants.USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(ModelConstants.USER_TENANT_ID_PROPERTY, tenantId),
+                        eq(ModelConstants.USER_AUTHORITY_PROPERTY, Authority.CUSTOMER_USER.name())),
+                pageLink);
+        log.trace("Found customer users [{}] by tenantId [{}] and pageLink [{}]", userEntities, tenantId, pageLink);
+        return DaoUtil.convertDataList(userEntities);
+    }
+
 }

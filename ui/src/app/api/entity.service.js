@@ -360,7 +360,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
                 break;
             case types.entityType.user:
-                $log.error('Get User Entities is not implemented!');
+                if (user.authority === 'TENANT_ADMIN') {
+                    promise = userService.getAllCustomerUsers(pageLink, config);
+                } else {
+                    $log.error('Get User Entities is not implemented!');
+                }
                 break;
             case types.entityType.alarm:
                 $log.error('Get Alarm Entities is not implemented!');

@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
@@ -61,6 +62,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -208,6 +210,12 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter private EntityGroupService entityGroupService;
+
+    @Autowired
+    @Getter private ReportService reportService;
+
+    @Autowired
+    @Getter private BlobEntityService blobEntityService;
 
     @Autowired
     @Getter

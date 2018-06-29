@@ -180,3 +180,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.blob_entity_by_customer_and_t
     WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
     PRIMARY KEY ( (tenant_id, customer_id), type, id )
     WITH CLUSTERING ORDER BY ( type ASC, id ASC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.user_by_tenant_authority_and_search_text AS
+	SELECT *
+	from thingsboard.user
+	WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND authority IS NOT NULL AND search_text IS NOT NULL AND id
+	IS NOT NULL
+	PRIMARY KEY ( tenant_id, authority, search_text, id, customer_id )
+	WITH CLUSTERING ORDER BY ( authority DESC, search_text ASC, id DESC);

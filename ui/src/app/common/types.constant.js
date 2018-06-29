@@ -1137,6 +1137,25 @@ export default angular.module('thingsboard.types', [])
                     directive: 'tbGenerateReportEventConfig'
                 }
             ],
+            reportType: {
+                'pdf': {
+                    name: 'PDF',
+                    value: 'pdf'
+                },
+                'png': {
+                    name: 'PNG',
+                    value: 'png'
+                },
+                'jpeg': {
+                    name: 'JPEG',
+                    value: 'jpeg'
+                }
+            },
+            blobEntityType: {
+                "report": {
+                    name: "blob-entity.report"
+                }
+            },
             systemBundleAlias: {
                 charts: "charts",
                 cards: "cards"

@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -29,10 +29,23 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import ReportConfigDirective from './report-config.directive';
-import GenerateReportEventConfigDirective from './generate-report.directive';
+package org.thingsboard.server.common.data.report;
 
-export default angular.module('thingsboard.scheduler.config', [])
-    .directive('tbReportConfig', ReportConfigDirective)
-    .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
-    .name;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+
+@Data
+public class ReportConfig {
+
+    String baseUrl;
+    String dashboardId;
+    String state;
+    String timezone;
+    boolean useDashboardTimewindow;
+    JsonNode timewindow;
+    String namePattern;
+    String type;
+    boolean useCurrentUserCredentials;
+    String userId;
+
+}

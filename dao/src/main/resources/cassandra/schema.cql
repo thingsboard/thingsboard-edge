@@ -71,6 +71,14 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.user_by_customer_and_search_t
 	PRIMARY KEY ( customer_id, tenant_id, authority, search_text, id )
 	WITH CLUSTERING ORDER BY ( tenant_id DESC, authority DESC, search_text ASC, id DESC );
 
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.user_by_tenant_authority_and_search_text AS
+	SELECT *
+	from thingsboard.user
+	WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND authority IS NOT NULL AND search_text IS NOT NULL AND id
+	IS NOT NULL
+	PRIMARY KEY ( tenant_id, authority, search_text, id, customer_id )
+	WITH CLUSTERING ORDER BY ( authority DESC, search_text ASC, id DESC);
+
 CREATE TABLE IF NOT EXISTS thingsboard.user_credentials (
 	id timeuuid PRIMARY KEY,
 	user_id timeuuid,
