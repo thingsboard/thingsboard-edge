@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -32,6 +32,8 @@ package org.thingsboard.server.controller.integration.http;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +52,8 @@ import java.util.Optional;
 @RequestMapping("/api/v1/integrations/http")
 @Slf4j
 public class HttpIntegrationController extends BaseIntegrationController {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.POST})
@@ -82,7 +86,9 @@ public class HttpIntegrationController extends BaseIntegrationController {
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
     @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey) {
+    public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey,
+                                                      @RequestParam Map<String, String> requestParams,
+                                                      @RequestHeader Map<String, String> requestHeaders) {
         log.debug("[{}] Received status check request", routingKey);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
@@ -98,7 +104,14 @@ public class HttpIntegrationController extends BaseIntegrationController {
             return result;
         }
 
-        result.setResult(new ResponseEntity<>(HttpStatus.OK));
+        if (requestParams.size() > 0) {
+            ObjectNode msg = mapper.createObjectNode();
+            requestParams.forEach(msg::put);
+            process(integration.get(), new HttpIntegrationMsg(requestHeaders, msg, result));
+        } else {
+            result.setResult(new ResponseEntity<>(HttpStatus.OK));
+        }
+
         return result;
     }
 
