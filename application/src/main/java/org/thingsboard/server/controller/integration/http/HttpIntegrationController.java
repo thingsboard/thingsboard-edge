@@ -32,6 +32,8 @@ package org.thingsboard.server.controller.integration.http;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +52,8 @@ import java.util.Optional;
 @RequestMapping("/api/v1/integrations/http")
 @Slf4j
 public class HttpIntegrationController extends BaseIntegrationController {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.POST})
@@ -82,7 +86,9 @@ public class HttpIntegrationController extends BaseIntegrationController {
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
     @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey) {
+    public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey,
+                                                      @RequestParam Map<String, String> requestParams,
+                                                      @RequestHeader Map<String, String> requestHeaders) {
         log.debug("[{}] Received status check request", routingKey);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
@@ -98,7 +104,10 @@ public class HttpIntegrationController extends BaseIntegrationController {
             return result;
         }
 
-        result.setResult(new ResponseEntity<>(HttpStatus.OK));
+        ObjectNode msg = mapper.createObjectNode();
+        requestParams.forEach(msg::put);
+        process(integration.get(), new HttpIntegrationMsg(requestHeaders, msg, result));
+
         return result;
     }
 
