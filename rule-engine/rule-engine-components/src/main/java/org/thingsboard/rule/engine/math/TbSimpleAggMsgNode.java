@@ -62,7 +62,10 @@ import java.util.concurrent.TimeUnit;
         name = "aggregation",
         configClazz = TbSimpleAggMsgNodeConfiguration.class,
         nodeDescription = "Calculates MIN/MAX/AVG/SUM based on the incoming data",
-        nodeDetails = "Calculates MIN/MAX/AVG/SUM based on the incoming data"
+        nodeDetails = "Calculates MIN/MAX/AVG/SUM based on the incoming data",
+        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        configDirective = "tbTransformationNodeAggregationConfig",
+        icon = "functions"
 )
 public class TbSimpleAggMsgNode implements TbNode {
 

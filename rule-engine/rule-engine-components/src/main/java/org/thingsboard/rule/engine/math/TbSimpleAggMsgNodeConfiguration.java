@@ -67,6 +67,7 @@ public class TbSimpleAggMsgNodeConfiguration implements NodeConfiguration {
         configuration.setAggIntervalValue(1);
         configuration.setAutoCreateIntervals(true);
 
+        configuration.setIntervalPersistencePolicy(IntervalPersistPolicy.ON_EACH_CHECK_AFTER_INTERVAL_END.name());
         configuration.setIntervalCheckTimeUnit(TimeUnit.MINUTES.name());
         configuration.setIntervalCheckValue(1);
 
