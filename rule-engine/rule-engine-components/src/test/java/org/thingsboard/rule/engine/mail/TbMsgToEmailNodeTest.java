@@ -48,6 +48,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -101,6 +102,7 @@ public class TbMsgToEmailNodeTest {
                 .to("user@email.io")
                 .subject("Hi oreo there")
                 .body("temp is to high. Current 5 and 100")
+                .attachments(Collections.emptyList())
                 .build();
         assertEquals(expected, actual);
     }
