@@ -1,4 +1,4 @@
-/**
+/*
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -28,24 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mail;
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.BlobEntityId;
+/* eslint-disable import/no-unresolved, import/default */
 
-import java.util.List;
+import emailConfigTemplate from './email-config.tpl.html';
 
-@Data
-@Builder
-class EmailPojo {
+/* eslint-enable import/no-unresolved, import/default */
 
-    private final String from;
-    private final String to;
-    private final String cc;
-    private final String bcc;
-    private final String subject;
-    private final String body;
-    private final List<BlobEntityId> attachments;
+/*@ngInject*/
+export default function EmailConfigDirective($compile, $templateCache, types, utils, userService) {
 
+    var linker = function (scope, element, attrs, ngModelCtrl) {
+        var template = $templateCache.get(emailConfigTemplate);
+        element.html(template);
+
+        scope.$watch('emailConfig', function (newEmailConfig, oldEmailConfig) {
+            if (!angular.equals(newEmailConfig, oldEmailConfig)) {
+                ngModelCtrl.$setViewValue(scope.emailConfig);
+            }
+        });
+
+        ngModelCtrl.$render = function () {
+            scope.emailConfig = ngModelCtrl.$viewValue;
+            if (!scope.emailConfig) {
+                scope.emailConfig = createDefaultEmailConfig();
+                ngModelCtrl.$setViewValue(scope.emailConfig);
+            }
+        };
+
+        function createDefaultEmailConfig() {
+            var emailConfig = {};
+            emailConfig.from = userService.getCurrentUser().sub;
+            emailConfig.subject = 'Report generated on %d{yyyy-MM-dd HH:mm:ss}';
+            emailConfig.body = 'Report was successfully generated on %d{yyyy-MM-dd HH:mm:ss}.\nSee attached report file.';
+            return emailConfig;
+        }
+
+        $compile(element.contents())(scope);
+    };
+
+    return {
+        restrict: "E",
+        require: "^ngModel",
+        scope: {
+        },
+        link: linker
+    };
 }

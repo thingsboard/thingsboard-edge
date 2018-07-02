@@ -30,9 +30,11 @@
  */
 
 import ReportConfigDirective from './report-config.directive';
+import EmailConfigDirective from './email-config.directive';
 import GenerateReportEventConfigDirective from './generate-report.directive';
 
 export default angular.module('thingsboard.scheduler.config', [])
     .directive('tbReportConfig', ReportConfigDirective)
+    .directive('tbEmailConfig', EmailConfigDirective)
     .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
     .name;

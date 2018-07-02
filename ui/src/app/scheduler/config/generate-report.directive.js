@@ -35,14 +35,17 @@ import generateReportTemplate from './generate-report.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+import './generate-report.scss';
+
 /*@ngInject*/
-export default function GenerateReportEventConfigDirective($compile, $templateCache, types) {
+export default function GenerateReportEventConfigDirective($compile, $templateCache, types, $mdExpansionPanel) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(generateReportTemplate);
         element.html(template);
 
         scope.types = types;
+        scope.$mdExpansionPanel = $mdExpansionPanel;
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
@@ -52,6 +55,14 @@ export default function GenerateReportEventConfigDirective($compile, $templateCa
 
         ngModelCtrl.$render = function () {
             scope.configuration = ngModelCtrl.$viewValue;
+        };
+
+        scope.sendEmailChanged = function() {
+            if (scope.configuration.sendEmail) {
+                $mdExpansionPanel('emailConfigPanel').expand();
+            } else {
+                $mdExpansionPanel('emailConfigPanel').collapse();
+            }
         };
 
         $compile(element.contents())(scope);

@@ -1668,6 +1668,8 @@ export default angular.module('thingsboard.locale', [])
                     "saturday": "Saturday"
                 },
                 "report": {
+                    "report-config": "Report configuration",
+                    "email-config": "Email configuration",
                     "dashboard-state-param": "Dashboard state parameter value",
                     "base-url": "Base URL",
                     "base-url-required": "Base URL is required.",
@@ -1679,7 +1681,18 @@ export default angular.module('thingsboard.locale', [])
                     "use-current-user-credentials": "Use current user credentials",
                     "customer-user-credentials": "Customer user credentials",
                     "customer-user-credentials-required": "Customer user credentials is required",
-                    "generate-test-report": "Generate test report"
+                    "generate-test-report": "Generate test report",
+                    "send-email": "Send email",
+                    "from": "From",
+                    "from-required": "From is required.",
+                    "to": "To",
+                    "to-required": "To is required.",
+                    "cc": "Cc",
+                    "bcc": "Bcc",
+                    "subject": "Subject",
+                    "subject-required": "Subject is required.",
+                    "body": "Body",
+                    "body-required": "Body is required."
                 },
                 "blob-entity": {
                     "files": "Files",

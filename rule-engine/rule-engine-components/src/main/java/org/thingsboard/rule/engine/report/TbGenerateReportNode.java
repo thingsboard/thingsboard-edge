@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.report;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.User;
@@ -106,7 +107,13 @@ public class TbGenerateReportNode implements TbNode {
                         reportBlobEntity.setCustomerId(user.getCustomerId());
                         reportBlobEntity = ctx.getPeContext().getBlobEntityService().saveBlobEntity(reportBlobEntity);
                         TbMsgMetaData metaData = msg.getMetaData().copy();
-                        metaData.putValue(ATTACHMENTS, reportBlobEntity.getId().toString());
+                        String attachments = metaData.getValue(ATTACHMENTS);
+                        if (!StringUtils.isEmpty(attachments)) {
+                            attachments += "," + reportBlobEntity.getId().toString();
+                        } else {
+                            attachments = reportBlobEntity.getId().toString();
+                        }
+                        metaData.putValue(ATTACHMENTS, attachments);
                         TbMsg newMsg = ctx.transformMsg(msg, msg.getType(), msg.getOriginator(), metaData, msg.getData());
                         ctx.tellNext(newMsg, SUCCESS);
                     },

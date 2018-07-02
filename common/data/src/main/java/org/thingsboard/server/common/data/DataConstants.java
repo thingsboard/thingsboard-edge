@@ -81,4 +81,6 @@ public class DataConstants {
 
     public static final String RPC_CALL_FROM_SERVER_TO_DEVICE = "RPC_CALL_FROM_SERVER_TO_DEVICE";
 
+    public static final String GENERATE_REPORT = "generateReport";
+
 }
