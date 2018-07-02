@@ -1343,6 +1343,7 @@ export default angular.module('thingsboard.locale', [])
                     "type-ttn": "TheThingsNetwork",
                     "type-azure-event-hub": "Azure Event Hub",
                     "type-opc-ua": "OPC-UA",
+                    "type-ffb": "FFB",
                     "opc-ua-application-name": "Application name",
                     "opc-ua-application-uri": "Application uri",
                     "opc-ua-scan-period-in-seconds": "Scan period in seconds",

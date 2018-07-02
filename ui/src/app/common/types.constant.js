@@ -394,6 +394,11 @@ export default angular.module('thingsboard.types', [])
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
+                },
+                "FFB": {
+                    name: "integration.type-ffb",
+                    value: "FFB",
+                    http: true
                 }
             },
             componentType: {
