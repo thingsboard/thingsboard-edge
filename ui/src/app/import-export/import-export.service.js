@@ -271,7 +271,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                         };
                         var name = ruleChain.name;
                         name = name.toLowerCase().replace(/\W/g,"_");
-                        exportToPc(ruleChainExport, name + '.json');
+                        exportToPc(ruleChainExport, name);
                     },
                     (rejection) => {
                         processExportRuleChainRejection(rejection);
@@ -715,7 +715,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                 function success(extension) {
                     var name = extension.title;
                     name = name.toLowerCase().replace(/\W/g,"_");
-                    exportToPc(prepareExport(extension), name + '.json');
+                    exportToPc(prepareExport(extension), name);
                 },
                 function fail(rejection) {
                     var message = rejection;
