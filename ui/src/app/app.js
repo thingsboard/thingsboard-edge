@@ -114,6 +114,7 @@ import thingsboardApiComponentDescriptor from './api/component-descriptor.servic
 import thingsboardApiRuleChain from './api/rule-chain.service';
 import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
 import thingsboardApiReport from './api/report.service';
+import thingsboardApiBlobEntity from './api/blob-entity.service';
 
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -191,6 +192,7 @@ angular.module('thingsboard', [
     thingsboardApiRuleChain,
     thingsboardApiSchedulerEvent,
     thingsboardApiReport,
+    thingsboardApiBlobEntity,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

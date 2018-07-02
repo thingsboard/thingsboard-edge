@@ -34,17 +34,7 @@ import akka.actor.ActorRef;
 import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.FutureCallback;
 import org.springframework.util.StringUtils;
-import org.thingsboard.rule.engine.api.ListeningExecutor;
-import org.thingsboard.rule.engine.api.MailService;
-import org.thingsboard.rule.engine.api.RpcError;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcResponse;
-import org.thingsboard.rule.engine.api.RuleEngineRpcService;
-import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
-import org.thingsboard.rule.engine.api.ScriptEngine;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbPeContext;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -60,6 +50,7 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
@@ -307,6 +298,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityGroupService getEntityGroupService() {
         return mainCtx.getEntityGroupService();
+    }
+
+    @Override
+    public ReportService getReportService() {
+        return mainCtx.getReportService();
+    }
+
+    @Override
+    public BlobEntityService getBlobEntityService() {
+        return mainCtx.getBlobEntityService();
     }
 
     @Override

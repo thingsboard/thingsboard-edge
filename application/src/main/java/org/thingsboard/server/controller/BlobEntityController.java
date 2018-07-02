@@ -67,6 +67,7 @@ public class BlobEntityController extends BaseController {
             ByteArrayResource resource = new ByteArrayResource(blobEntity.getData().array());
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + blobEntity.getName())
+                    .header("x-filename", blobEntity.getName())
                     .contentLength(resource.contentLength())
                     .contentType(parseMediaType(blobEntity.getContentType()))
                     .body(resource);

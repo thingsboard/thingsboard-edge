@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.api;
 import com.google.common.util.concurrent.FutureCallback;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 
@@ -44,6 +45,10 @@ public interface TbPeContext {
     IntegrationService getIntegrationService();
 
     EntityGroupService getEntityGroupService();
+
+    ReportService getReportService();
+
+    BlobEntityService getBlobEntityService();
 
     void pushToIntegration(IntegrationId integrationId, TbMsg tbMsg, FutureCallback<Void> callback);
 

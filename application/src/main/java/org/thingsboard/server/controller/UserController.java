@@ -244,5 +244,22 @@ public class UserController extends BaseController {
             throw handleException(e);
         }
     }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/customer/users", params = { "limit" }, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<User> getAllCustomerUsers(
+            @RequestParam int limit,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            return checkNotNull(userService.findAllCustomerUsers(tenantId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
     
 }

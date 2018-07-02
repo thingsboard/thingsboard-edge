@@ -28,24 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mail;
+package org.thingsboard.rule.engine.report;
 
-import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.BlobEntityId;
-
-import java.util.List;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.report.ReportConfig;
 
 @Data
-@Builder
-class EmailPojo {
+public class TbGenerateReportNodeConfiguration implements NodeConfiguration<TbGenerateReportNodeConfiguration> {
 
-    private final String from;
-    private final String to;
-    private final String cc;
-    private final String bcc;
-    private final String subject;
-    private final String body;
-    private final List<BlobEntityId> attachments;
+    private boolean useSystemReportsServer;
+    private String reportsServerEndpointUrl;
+    private boolean useReportConfigFromMessage;
+    private ReportConfig reportConfig;
 
+    @Override
+    public TbGenerateReportNodeConfiguration defaultConfiguration() {
+        TbGenerateReportNodeConfiguration configuration = new TbGenerateReportNodeConfiguration();
+        configuration.setUseSystemReportsServer(true);
+        configuration.setUseReportConfigFromMessage(true);
+        return configuration;
+    }
 }

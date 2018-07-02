@@ -45,7 +45,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "Activity Event", "Inactivity Event",
                 "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
-                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Added to Group", "Removed from Group", "REST API request", "Other"},
+                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Added to Group", "Removed from Group", "REST API request", "Generate Report", "Other"},
         nodeDescription = "Route incoming messages by Message Type",
         nodeDetails = "Sends messages with message types <b>\"Post attributes\", \"Post telemetry\", \"RPC Request\"</b> etc. via corresponding chain, otherwise <b>Other</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -98,6 +98,8 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Removed from Group";
         } else if (msg.getType().equals(DataConstants.REST_API_REQUEST)) {
             relationType = "REST API request";
+        } else if (msg.getType().equals(DataConstants.GENERATE_REPORT)) {
+            relationType = "Generate Report";
         } else {
             relationType = "Other";
         }

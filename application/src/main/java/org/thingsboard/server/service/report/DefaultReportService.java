@@ -46,14 +46,17 @@ import org.springframework.http.*;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRequestCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseExtractor;
+import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
@@ -68,15 +71,22 @@ import javax.annotation.PreDestroy;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
 public class DefaultReportService implements ReportService {
 
     private static ObjectMapper mapper = new ObjectMapper();
+    private static final Pattern reportNameDatePattern = Pattern.compile("%d\\{([^\\}]*)\\}");
 
     @Value("${reports.server.endpointUrl}")
     private String reportsServerEndpointUrl;
@@ -131,6 +141,22 @@ public class DefaultReportService implements ReportService {
         dashboardReportRequest.put("expiration", expiration);
         dashboardReportRequest.put("name", reportName);
 
+        requestReport(dashboardReportRequest, null, onSuccess, onFailure);
+    }
+
+    @Override
+    public void generateReport(ReportConfig reportConfig, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess, Consumer<Throwable> onFailure) {
+        log.trace("Executing generateReport, reportConfig [{}]", reportConfig);
+
+        JsonNode dashboardReportRequest = createDashboardReportRequest(reportConfig);
+        requestReport(dashboardReportRequest, reportsServerEndpointUrl, onSuccess, onFailure);
+    }
+
+    private void requestReport(JsonNode dashboardReportRequest, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess,
+                               Consumer<Throwable> onFailure) {
+        if (StringUtils.isEmpty(reportsServerEndpointUrl)) {
+            reportsServerEndpointUrl = this.reportsServerEndpointUrl;
+        }
         String endpointUrl = reportsServerEndpointUrl + "/dashboardReport";
 
         HttpHeaders headers = new HttpHeaders();
@@ -159,6 +185,47 @@ public class DefaultReportService implements ReportService {
                 onFailure.accept(t);
             }
         });
+    }
+
+    private JsonNode createDashboardReportRequest(ReportConfig reportConfig) {
+        AccessJwtToken accessToken = calculateUserAccessToken(new UserId(UUID.fromString(reportConfig.getUserId())));
+        String token = accessToken.getToken();
+        long expiration = accessToken.getClaims().getExpiration().getTime();
+        TimeZone tz = TimeZone.getTimeZone(reportConfig.getTimezone());
+        String reportName = prepareReportName(reportConfig.getNamePattern(), new Date(), tz);
+        ObjectNode dashboardReportRequest = mapper.createObjectNode();
+        dashboardReportRequest.put("baseUrl", reportConfig.getBaseUrl());
+        dashboardReportRequest.put("dashboardId", reportConfig.getDashboardId());
+        dashboardReportRequest.put("token", token);
+        dashboardReportRequest.put("expiration", expiration);
+        dashboardReportRequest.put("name", reportName);
+        dashboardReportRequest.set("reportParams", createReportParams(reportConfig, tz));
+        return dashboardReportRequest;
+    }
+
+    private JsonNode createReportParams(ReportConfig reportConfig, TimeZone tz) {
+        ObjectNode reportParams = mapper.createObjectNode();
+        reportParams.put("type", reportConfig.getType());
+        reportParams.put("state", reportConfig.getState());
+        if (!reportConfig.isUseDashboardTimewindow()) {
+            reportParams.set("timewindow", reportConfig.getTimewindow());
+        }
+        long tzOffset = -tz.getOffset(System.currentTimeMillis()) / (60*1000);
+        reportParams.put("tzOffset", tzOffset);
+        return reportParams;
+    }
+
+    private String prepareReportName(String namePattern, Date reportDate, TimeZone tz) {
+        String name = namePattern;
+        Matcher matcher = reportNameDatePattern.matcher(namePattern);
+        while (matcher.find()) {
+            String toReplace = matcher.group(0);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(matcher.group(1));
+            dateFormat.setTimeZone(tz);
+            String replacement = dateFormat.format(reportDate);
+            name = name.replace(toReplace, replacement);
+        }
+        return name;
     }
 
     private AccessJwtToken calculateUserAccessToken(UserId userId) {

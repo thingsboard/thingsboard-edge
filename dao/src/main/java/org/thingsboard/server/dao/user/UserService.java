@@ -69,7 +69,9 @@ public interface UserService {
 	void deleteTenantAdmins(TenantId tenantId);
 	
 	TextPageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
-	    
+
+	TextPageData<User> findAllCustomerUsers(TenantId tenantId, TextPageLink pageLink);
+
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
 	EntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId);

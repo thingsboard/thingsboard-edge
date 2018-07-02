@@ -55,6 +55,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         isAuthenticated: isAuthenticated,
         getCurrentUser: getCurrentUser,
         getCustomerUsers: getCustomerUsers,
+        getAllCustomerUsers: getAllCustomerUsers,
         getUser: getUser,
         getTenantAdmins: getTenantAdmins,
         isUserLoaded: isUserLoaded,
@@ -444,6 +445,26 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
             url += '&textOffset=' + pageLink.textOffset;
         }
         $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getAllCustomerUsers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/customer/users?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();

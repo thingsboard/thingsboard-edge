@@ -28,50 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
 /* eslint-disable import/no-unresolved, import/default */
 
-import generateReportTemplate from './generate-report.tpl.html';
+import blobEntityRowTemplate from './blob-entity-row.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import './generate-report.scss';
-
 /*@ngInject*/
-export default function GenerateReportEventConfigDirective($compile, $templateCache, types, $mdExpansionPanel) {
+export default function BlobEntityRowDirective($compile, $templateCache, $translate, $mdDialog, blobEntityService) {
 
-    var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(generateReportTemplate);
+    var linker = function (scope, element, attrs) {
+
+        var template = $templateCache.get(blobEntityRowTemplate);
         element.html(template);
 
-        scope.types = types;
-        scope.$mdExpansionPanel = $mdExpansionPanel;
-
-        scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
-            if (!angular.equals(newConfiguration, oldConfiguration)) {
-                ngModelCtrl.$setViewValue(scope.configuration);
+        scope.downloadBlobEntity = function($event) {
+            if ($event) {
+                $event.stopPropagation();
             }
-        });
-
-        ngModelCtrl.$render = function () {
-            scope.configuration = ngModelCtrl.$viewValue;
+            blobEntityService.downloadBlobEntity(scope.blobEntity.id.id);
         };
 
-        scope.sendEmailChanged = function() {
-            if (scope.configuration.sendEmail) {
-                $mdExpansionPanel('emailConfigPanel').expand();
-            } else {
-                $mdExpansionPanel('emailConfigPanel').collapse();
+        scope.deleteBlobEntity = function($event) {
+            if ($event) {
+                $event.stopPropagation();
             }
+            var title = $translate.instant('blob-entity.delete-blob-entity-title', {blobEntityName: scope.blobEntity.name});
+            var content = $translate.instant('blob-entity.delete-blob-entity-text');
+
+            var confirm = $mdDialog.confirm()
+                .targetEvent($event)
+                .title(title)
+                .htmlContent(content)
+                .ariaLabel(title)
+                .cancel($translate.instant('action.no'))
+                .ok($translate.instant('action.yes'));
+            $mdDialog.show(confirm).then(function () {
+                blobEntityService.deleteBlobEntity(scope.blobEntity.id.id).then(
+                    () => {
+                        if (attrs.onDeleteBlobEntity) {
+                            scope.$eval(attrs.onDeleteBlobEntity);
+                        }
+                    }
+                );
+            });
         };
 
         $compile(element.contents())(scope);
     };
 
     return {
-        restrict: "E",
-        require: "^ngModel",
-        scope: {},
-        link: linker
+        restrict: "A",
+        replace: false,
+        link: linker,
+        scope: false
     };
 }

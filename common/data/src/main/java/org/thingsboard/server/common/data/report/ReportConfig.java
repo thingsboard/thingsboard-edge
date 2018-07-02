@@ -28,24 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mail;
 
-import lombok.Builder;
+package org.thingsboard.server.common.data.report;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.BlobEntityId;
-
-import java.util.List;
 
 @Data
-@Builder
-class EmailPojo {
+public class ReportConfig {
 
-    private final String from;
-    private final String to;
-    private final String cc;
-    private final String bcc;
-    private final String subject;
-    private final String body;
-    private final List<BlobEntityId> attachments;
+    String baseUrl;
+    String dashboardId;
+    String state;
+    String timezone;
+    boolean useDashboardTimewindow;
+    JsonNode timewindow;
+    String namePattern;
+    String type;
+    boolean useCurrentUserCredentials;
+    String userId;
 
 }

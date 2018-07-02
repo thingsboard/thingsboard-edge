@@ -1,4 +1,4 @@
-/**
+/*
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -28,24 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mail;
+/* eslint-disable import/no-unresolved, import/default */
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.BlobEntityId;
+import blobEntityHeaderTemplate from './blob-entity-header.tpl.html';
 
-import java.util.List;
+/* eslint-enable import/no-unresolved, import/default */
 
-@Data
-@Builder
-class EmailPojo {
+/*@ngInject*/
+export default function BlobEntityHeaderDirective($compile, $templateCache) {
 
-    private final String from;
-    private final String to;
-    private final String cc;
-    private final String bcc;
-    private final String subject;
-    private final String body;
-    private final List<BlobEntityId> attachments;
+    var linker = function (scope, element/*, attrs*/) {
 
+        var template = $templateCache.get(blobEntityHeaderTemplate);
+        element.html(template);
+        $compile(element.contents())(scope);
+
+    };
+
+    return {
+        restrict: "A",
+        replace: false,
+        link: linker,
+        scope: false
+    };
 }

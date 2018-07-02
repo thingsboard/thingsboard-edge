@@ -123,6 +123,7 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("maps_v2");
                         systemDataLoaderService.deleteSystemWidgetBundle("gateway_widgets");
                         systemDataLoaderService.deleteSystemWidgetBundle("scheduling");
+                        systemDataLoaderService.deleteSystemWidgetBundle("files");
 
                         systemDataLoaderService.loadSystemWidgets();
 

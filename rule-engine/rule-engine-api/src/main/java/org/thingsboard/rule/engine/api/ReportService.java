@@ -28,24 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mail;
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.BlobEntityId;
+package org.thingsboard.rule.engine.api;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.report.ReportConfig;
+import org.thingsboard.server.common.data.report.ReportData;
 
-@Data
-@Builder
-class EmailPojo {
+import java.util.function.Consumer;
 
-    private final String from;
-    private final String to;
-    private final String cc;
-    private final String bcc;
-    private final String subject;
-    private final String body;
-    private final List<BlobEntityId> attachments;
+public interface ReportService {
+
+    void generateDashboardReport(String baseUrl,
+                                 DashboardId dashboardId,
+                                 UserId userId,
+                                 String reportName,
+                                 JsonNode reportParams,
+                                 Consumer<ReportData> onSuccess,
+                                 Consumer<Throwable> onFailure);
+
+    void generateReport(ReportConfig reportConfig,
+                        String reportsServerEndpointUrl,
+                        Consumer<ReportData> onSuccess,
+                        Consumer<Throwable> onFailure);
 
 }

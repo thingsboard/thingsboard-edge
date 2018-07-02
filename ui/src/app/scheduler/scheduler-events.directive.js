@@ -65,6 +65,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     vm.mode = 'list';
     vm.currentCalendarView = 'month';
+    vm.calendarId = 'eventScheduleCalendar-' + utils.guid();
 
     vm.types = types;
 
@@ -481,7 +482,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     }
 
     function calendarElem() {
-        var element = uiCalendarConfig.calendars['eventScheduleCalendar'];
+        var element = uiCalendarConfig.calendars[vm.calendarId];
         if (element && element.data('fullCalendar')) {
             return element;
         } else {

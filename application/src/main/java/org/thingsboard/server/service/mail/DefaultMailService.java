@@ -42,16 +42,21 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
+import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
+import javax.mail.util.ByteArrayDataSource;
 import java.util.*;
 
 @Service
@@ -68,6 +73,9 @@ public class DefaultMailService implements MailService {
 
     @Autowired
     private AttributesService attributesService;
+
+    @Autowired
+    private BlobEntityService blobEntityService;
 
     @Override
     public void sendEmail(TenantId tenantId, String email, String subject, String message) throws ThingsboardException {
@@ -160,12 +168,17 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body) throws ThingsboardException {
+        send(tenantId, from, to, cc, bcc, subject, body, null);
+    }
+
+    @Override
+    public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
         JsonNode jsonConfig = getConfig(tenantId, "mail");
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
         String mailFrom = getStringValue(jsonConfig, "mailFrom");
         try {
             MimeMessage mailMsg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mailMsg, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mailMsg, attachments != null && !attachments.isEmpty(), "UTF-8");
             helper.setFrom(StringUtils.isBlank(from) ? mailFrom : from);
             helper.setTo(to.split("\\s*,\\s*"));
             if (!StringUtils.isBlank(cc)) {
@@ -176,6 +189,15 @@ public class DefaultMailService implements MailService {
             }
             helper.setSubject(subject);
             helper.setText(body);
+            if (attachments != null) {
+                for (BlobEntityId blobEntityId : attachments) {
+                    BlobEntity blobEntity = blobEntityService.findBlobEntityById(blobEntityId);
+                    if (blobEntity != null) {
+                        DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
+                        helper.addAttachment(blobEntity.getName(), dataSource);
+                    }
+                }
+            }
             mailSender.send(helper.getMimeMessage());
         } catch (Exception e) {
             throw handleException(e);

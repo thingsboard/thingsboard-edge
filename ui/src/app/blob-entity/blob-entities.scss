@@ -28,24 +28,110 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+.tb-blob-entities {
+  background-color: #fff;
+}
 
-package org.thingsboard.server.service.report;
+.tb-blob-entity-toolbar {
+  font-size: 20px;
+  input {
+    font-size: 20px;
+  }
+  span.tb-blob-entities-title {
+      padding-right: 16px;
+  }
+  md-input-container.tb-blob-entity-search-input {
+    .md-errors-spacer {
+      min-height: 0px;
+    }
+  }
+}
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.report.ReportData;
+.tb-blob-entity-container {
+  overflow-x: auto;
+}
 
-import java.util.function.Consumer;
 
-public interface ReportService {
 
-    void generateDashboardReport(String baseUrl,
-                                 DashboardId dashboardId,
-                                 UserId userId,
-                                 String reportName,
-                                 JsonNode reportParams,
-                                 Consumer<ReportData> onSuccess,
-                                 Consumer<Throwable> onFailure);
+md-list.tb-blob-entity-table {
+  padding: 0px;
 
+  md-list-item {
+    padding: 0px;
+  }
+
+  .tb-row {
+    height: 48px;
+    padding: 0px;
+    overflow: hidden;
+    &.tb-header {
+      height: 56px;
+    }
+  }
+
+  .tb-row:hover {
+    background-color: #EEEEEE;
+  }
+
+  .tb-header:hover {
+    background: none;
+  }
+
+  .tb-header {
+    .tb-cell {
+      color: rgba(0,0,0,.54);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      background: none;
+    }
+  }
+
+  .tb-cell {
+    padding: 0 12px;
+    margin: auto 0;
+    color: rgba(0,0,0,.87);
+    font-size: 13px;
+    vertical-align: middle;
+    text-align: left;
+    overflow: hidden;
+    .md-button {
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  .tb-cell.tb-number {
+    text-align: right;
+  }
+
+  .tb-cell.tb-buttons {
+    padding: 0 8px;
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    .md-button.md-icon-button {
+      margin: 0;
+      padding: 6px;
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+
+}
+
+div.tb-widget-title {
+  div.tb-blob-entities-title-toolbar {
+    height: 55px;
+    min-height: 55px;
+    background-color: transparent;
+    color: rgba(0,0,0,.87);
+    box-shadow: none;
+    .md-toolbar-tools {
+      height: 55px;
+      min-height: 55px;
+      max-height: 55px;
+    }
+  }
 }

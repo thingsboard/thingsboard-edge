@@ -28,24 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mail;
+@import '../../../scss/constants';
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.BlobEntityId;
-
-import java.util.List;
-
-@Data
-@Builder
-class EmailPojo {
-
-    private final String from;
-    private final String to;
-    private final String cc;
-    private final String bcc;
-    private final String subject;
-    private final String body;
-    private final List<BlobEntityId> attachments;
-
+.tb-report-config-panel-group {
+  .tb-panel-title {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    min-width: 90px;
+    @media (min-width: $layout-breakpoint-sm) {
+      min-width: 180px;
+    }
+  }
+  .tb-panel-prompt {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.87);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &.disabled {
+    .tb-panel-title, .tb-panel-prompt {
+      color: rgba(0, 0, 0, 0.38);
+    }
+  }
+  md-icon.md-expansion-panel-icon {
+    margin-right: 0px;
+  }
 }

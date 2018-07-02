@@ -110,6 +110,20 @@
         "type": "RPC Request to Device"
       }
     ],
-    "ruleChainConnections": null
+    "ruleChainConnections": [
+      {
+        "fromIndex": 2,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "${Generate Report}"
+        },
+        "additionalInfo": {
+          "layoutX": 829,
+          "layoutY": 575,
+          "ruleChainNodeId": "rule-chain-node-8"
+        },
+        "type": "Generate Report"
+      }
+    ]
   }
 }

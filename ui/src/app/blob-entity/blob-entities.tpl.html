@@ -1,0 +1,90 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div flex ng-class="{'md-padding': !widgetMode}" class="tb-absolute-fill" layout="column">
+    <div flex ng-show="showData" layout="column" class="tb-blob-entities" ng-class="{'md-whiteframe-z1': !widgetMode}">
+        <div ng-if="!widgetMode" layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" class="tb-blob-entity-toolbar md-padding">
+            <tb-timewindow ng-model="timewindow" history-only as-button="true"></tb-timewindow>
+            <div flex layout="row" layout-align="start center">
+                <md-button class="md-icon-button" aria-label="{{ 'action.search' | translate }}">
+                    <md-icon aria-label="{{ 'action.search' | translate }}" class="material-icons">search</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{'blob-entity.search' | translate}}
+                    </md-tooltip>
+                </md-button>
+                <md-input-container flex class="tb-blob-entity-search-input">
+                    <label>&nbsp;</label>
+                    <input ng-model="searchText" placeholder="{{'blob-entity.search' | translate}}"/>
+                </md-input-container>
+                <md-button ng-disabled="$root.loading" class="md-icon-button" aria-label="Close" ng-click="searchText = ''">
+                    <md-icon aria-label="Close" class="material-icons">close</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'blob-entity.clear-search' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button ng-disabled="$root.loading"
+                           class="md-icon-button" ng-click="reload()">
+                    <md-icon>refresh</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.refresh' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </div>
+        <div flex layout="column" class="tb-blob-entity-container">
+            <md-list flex layout="column" class="tb-blob-entity-table" ng-class="{'tb-blob-entity-table-full': !widgetMode}">
+                <md-list class="tb-row tb-header" layout="row" layout-align="start center"
+                         tb-blob-entity-header>
+                </md-list>
+                <md-progress-linear style="max-height: 0px;" md-mode="indeterminate" ng-disabled="!$root.loading"
+                                    ng-show="$root.loading"></md-progress-linear>
+                <md-divider></md-divider>
+                <span translate layout-align="center center"
+                      style="margin-top: 25px;"
+                      class="tb-prompt" ng-show="noData()">blob-entity.no-blob-entities-prompt</span>
+                <md-virtual-repeat-container ng-show="hasData()" flex md-top-index="topIndex" tb-scope-element="repeatContainer">
+                    <md-list-item md-virtual-repeat="blobEntity in theBlobEntities" md-on-demand flex ng-style="hasScroll() ? {'margin-right':'-15px'} : {}">
+                        <md-list class="tb-row" flex layout="row" layout-align="start center"
+                                 tb-blob-entity-row
+                                 on-delete-blob-entity="reload()">
+                        </md-list>
+                        <md-divider flex></md-divider>
+                    </md-list-item>
+                </md-virtual-repeat-container>
+            </md-list>
+        </div>
+    </div>
+    <span ng-show="!showData"
+          layout-align="center center"
+          style="text-transform: uppercase; display: flex;"
+          class="tb-absolute-fill" translate>entity.no-data</span>
+</div>

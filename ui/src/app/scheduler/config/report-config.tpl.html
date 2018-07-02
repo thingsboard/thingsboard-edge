@@ -1,0 +1,105 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+
+<section ng-form name="reportConfigForm" layout="column">
+    <div layout='column' layout-gt-sm='row'>
+        <md-input-container flex class="md-block">
+            <label translate>report.base-url</label>
+            <input required name="baseUrl" ng-model="reportConfig.baseUrl">
+            <div ng-messages="reportConfigForm.baseUrl.$error">
+                <div translate ng-message="required">report.base-url-required</div>
+            </div>
+        </md-input-container>
+        <tb-entity-autocomplete flex the-form="reportConfigForm"
+                                tb-required="true"
+                                entity-type="types.entityType.dashboard"
+                                ng-model="reportConfig.dashboardId">
+        </tb-entity-autocomplete>
+    </div>
+    <md-input-container class="md-block">
+        <label translate>report.dashboard-state-param</label>
+        <input name="state" ng-model="reportConfig.state">
+    </md-input-container>
+    <tb-timezone-select default-timezone="defaultTimezone" ng-model="reportConfig.timezone"></tb-timezone-select>
+    <div layout='column' layout-align="center"
+         layout-gt-sm='row' layout-align-gt-sm="start center">
+        <md-checkbox flex aria-label="{{ 'report.use-dashboard-timewindow' | translate }}"
+                     ng-model="reportConfig.useDashboardTimewindow">{{ 'report.use-dashboard-timewindow' | translate }}
+        </md-checkbox>
+        <section flex layout="row" layout-align="start center" style="margin-bottom: 16px;">
+            <span ng-class="{'tb-disabled-label': reportConfig.useDashboardTimewindow}" translate style="padding-right: 8px;">report.timewindow</span>
+            <tb-timewindow ng-disabled="reportConfig.useDashboardTimewindow" as-button="true" aggregation="true"
+                           flex ng-model="reportConfig.timewindow"></tb-timewindow>
+        </section>
+    </div>
+    <div layout='column' layout-gt-sm='row'>
+        <md-input-container flex class="md-block">
+            <label translate>report.name-pattern</label>
+            <input required name="namePattern" ng-model="reportConfig.namePattern">
+            <div ng-messages="reportConfigForm.namePattern.$error">
+                <div translate ng-message="required">report.name-pattern-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container flex class="md-block">
+            <label translate>report.type</label>
+            <md-select name="reportType" required aria-label="{{ 'report.type' | translate }}"
+                       ng-model="reportConfig.type">
+                <md-option ng-repeat="reportType in types.reportType" ng-value="reportType.value">
+                    {{ reportType.name }}
+                </md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+    <div layout='column' layout-align="center"
+         layout-gt-sm='row' layout-align-gt-sm="start center" ng-if="isTenantAdmin">
+        <md-checkbox flex aria-label="{{ 'report.use-current-user-credentials' | translate }}"
+                     ng-change="useCurrentUserCredentialsChange()"
+                     ng-model="reportConfig.useCurrentUserCredentials">{{ 'report.use-current-user-credentials' | translate }}
+        </md-checkbox>
+        <tb-entity-autocomplete flex
+                                ng-if="!reportConfig.useCurrentUserCredentials"
+                                the-form="reportConfigForm"
+                                ng-disabled="reportConfig.useCurrentUserCredentials"
+                                tb-required="!reportConfig.useCurrentUserCredentials"
+                                entity-type="types.entityType.user"
+                                label-text="'report.customer-user-credentials'"
+                                required-text="'report.customer-user-credentials-required'"
+                                ng-model="reportConfig.userId">
+        </tb-entity-autocomplete>
+    </div>
+    <div layout='row'>
+        <md-button ng-disabled="$root.loading || reportConfigForm.$invalid" ng-click="generateTestReport($event)" class="md-raised md-primary">
+            {{ 'report.generate-test-report' | translate }}
+        </md-button>
+    </div>
+</section>

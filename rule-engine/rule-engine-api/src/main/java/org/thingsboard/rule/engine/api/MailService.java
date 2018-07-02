@@ -30,12 +30,14 @@
  */
 package org.thingsboard.rule.engine.api;
 
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import javax.mail.MessagingException;
+import java.util.List;
 
 public interface MailService {
 
@@ -52,5 +54,7 @@ public interface MailService {
     void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException;
     
     void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body) throws ThingsboardException;
+
+    void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException;
 
 }
