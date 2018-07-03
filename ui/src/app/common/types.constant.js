@@ -1134,7 +1134,10 @@ export default angular.module('thingsboard.types', [])
                 {
                     name: 'Generate Report',
                     value: 'generateReport',
-                    directive: 'tbGenerateReportEventConfig'
+                    directive: 'tbGenerateReportEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
                 }
             ],
             reportType: {

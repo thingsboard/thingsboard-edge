@@ -30,17 +30,27 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<tb-scheduler-event-template-config ng-if="useDefinedTemplate()"
-                             ng-model="configuration"
-                             config-type="{{configType}}"
-                             config-types="configTypes"
-                             ng-required="required"
-                             ng-readonly="readonly">
-</tb-scheduler-event-template-config>
-<tb-json-object-edit ng-if="!useDefinedTemplate()"
-                     class="tb-scheduler-event-configuration-json"
-                     ng-model="configuration"
-                     label="{{ 'scheduler.configuration' | translate }}"
-                     ng-required="required"
-                     fill-height="true">
-</tb-json-object-edit>
+<section ng-form name="schedulerEventConfigForm" layout="column">
+    <div ng-if="showOriginator">
+        <small translate>scheduler.originator</small>
+        <tb-entity-select
+                          the-form="schedulerEventConfigForm"
+                          tb-required="false"
+                          ng-model="configuration.originatorId">
+        </tb-entity-select>
+    </div>
+    <tb-scheduler-event-template-config ng-if="useDefinedTemplate"
+                                 ng-model="configuration.msgBody"
+                                 config-type="{{configType}}"
+                                 config-types="configTypes"
+                                 ng-required="required"
+                                 ng-readonly="readonly">
+    </tb-scheduler-event-template-config>
+    <tb-json-object-edit ng-if="!useDefinedTemplate"
+                         class="tb-scheduler-event-configuration-json"
+                         ng-model="configuration.msgBody"
+                         label="{{ 'scheduler.configuration' | translate }}"
+                         ng-required="required"
+                         fill-height="true">
+    </tb-json-object-edit>
+</section>

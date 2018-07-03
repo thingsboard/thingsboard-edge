@@ -96,7 +96,12 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
 
     $scope.$watch('vm.schedulerEvent.type', function (newValue, prevValue) {
         if (!angular.equals(newValue, prevValue)) {
-            vm.schedulerEvent.configuration = {};
+            vm.schedulerEvent.configuration = {
+                originatorId: null,
+                msgType: null,
+                msgBody: {},
+                metadata: {}
+            }
         }
     });
 
