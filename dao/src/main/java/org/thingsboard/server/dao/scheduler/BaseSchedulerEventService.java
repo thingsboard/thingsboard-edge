@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.scheduler;
 
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,6 +87,13 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         log.trace("Executing findSchedulerEventInfoById [{}]", schedulerEventId);
         validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
         return schedulerEventInfoDao.findById(schedulerEventId.getId());
+    }
+
+    @Override
+    public ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(SchedulerEventId schedulerEventId) {
+        log.trace("Executing findSchedulerEventInfoByIdAsync [{}]", schedulerEventId);
+        validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
+        return schedulerEventInfoDao.findByIdAsync(schedulerEventId.getId());
     }
 
     @Override

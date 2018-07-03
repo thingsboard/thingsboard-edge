@@ -460,6 +460,34 @@ pre.tb-highlight {
   @include line-clamp(2, 1.1);
 }
 
+.tb-panel-group {
+  .tb-panel-title {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    min-width: 90px;
+    @media (min-width: $layout-breakpoint-sm) {
+      min-width: 180px;
+    }
+  }
+  .tb-panel-prompt {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.87);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &.disabled {
+    .tb-panel-title, .tb-panel-prompt {
+      color: rgba(0, 0, 0, 0.38);
+    }
+  }
+  md-icon.md-expansion-panel-icon {
+    margin-right: 0px;
+  }
+}
+
 /***********************
  * Flow
  ***********************/

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.blob;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -43,6 +44,8 @@ public interface BlobEntityService {
     BlobEntity findBlobEntityById(BlobEntityId blobEntityId);
 
     BlobEntityInfo findBlobEntityInfoById(BlobEntityId blobEntityId);
+
+    ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(BlobEntityId blobEntityId);
 
     TimePageData<BlobEntityInfo> findBlobEntitiesByTenantId(TenantId tenantId, TimePageLink pageLink);
 

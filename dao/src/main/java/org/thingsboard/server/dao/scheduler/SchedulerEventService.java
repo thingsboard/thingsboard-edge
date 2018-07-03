@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.scheduler;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,6 +44,8 @@ public interface SchedulerEventService {
     SchedulerEvent findSchedulerEventById(SchedulerEventId schedulerEventId);
 
     SchedulerEventInfo findSchedulerEventInfoById(SchedulerEventId schedulerEventId);
+
+    ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(SchedulerEventId schedulerEventId);
 
     List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId);
 

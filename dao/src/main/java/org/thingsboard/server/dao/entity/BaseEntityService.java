@@ -41,12 +41,14 @@ import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 
@@ -86,6 +88,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @Autowired
     private RuleChainService ruleChainService;
+
+    @Autowired
+    private SchedulerEventService schedulerEventService;
+
+    @Autowired
+    private BlobEntityService blobEntityService;
 
     @Override
     public void deleteEntityRelations(EntityId entityId) {
@@ -127,6 +135,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case RULE_CHAIN:
                 hasName = ruleChainService.findRuleChainByIdAsync(new RuleChainId(entityId.getId()));
+                break;
+            case SCHEDULER_EVENT:
+                hasName = schedulerEventService.findSchedulerEventInfoByIdAsync(new SchedulerEventId(entityId.getId()));
+                break;
+            case BLOB_ENTITY:
+                hasName = blobEntityService.findBlobEntityInfoByIdAsync(new BlobEntityId(entityId.getId()));
                 break;
             default:
                 throw new IllegalStateException("Not Implemented!");

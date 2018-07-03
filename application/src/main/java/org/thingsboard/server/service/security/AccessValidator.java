@@ -44,20 +44,24 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.controller.HttpValidationCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -107,6 +111,12 @@ public class AccessValidator {
 
     @Autowired
     protected IntegrationService integrationService;
+
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
 
     private ExecutorService executor;
 
@@ -186,6 +196,12 @@ public class AccessValidator {
                 return;
             case USER:
                 validateUser(currentUser, entityId, callback);
+                return;
+            case SCHEDULER_EVENT:
+                validateSchedulerEvent(currentUser, entityId, callback);
+                return;
+            case BLOB_ENTITY:
+                validateBlobEntity(currentUser, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -374,6 +390,45 @@ public class AccessValidator {
             }), executor);
         }
     }
+
+    private void validateSchedulerEvent(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<SchedulerEventInfo> schedulerEventInfoFuture = schedulerEventService.findSchedulerEventInfoByIdAsync(new SchedulerEventId(entityId.getId()));
+            Futures.addCallback(schedulerEventInfoFuture, getCallback(callback, schedulerEventInfo -> {
+                if (schedulerEventInfo == null) {
+                    return ValidationResult.entityNotFound("Scheduler event with requested id wasn't found!");
+                } else if (!schedulerEventInfo.getTenantId().equals(currentUser.getTenantId())) {
+                    return ValidationResult.accessDenied("Scheduler event doesn't belong to the current Tenant!");
+                } else if (currentUser.isCustomerUser() && !schedulerEventInfo.getCustomerId().equals(currentUser.getCustomerId())) {
+                    return ValidationResult.accessDenied("Scheduler event doesn't belong to the current Customer!");
+                } else {
+                    return ValidationResult.ok(schedulerEventInfo);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateBlobEntity(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<BlobEntityInfo> blobEntityInfoFuture = blobEntityService.findBlobEntityInfoByIdAsync(new BlobEntityId(entityId.getId()));
+            Futures.addCallback(blobEntityInfoFuture, getCallback(callback, blobEntityInfo -> {
+                if (blobEntityInfo == null) {
+                    return ValidationResult.entityNotFound("Blob entity with requested id wasn't found!");
+                } else if (!blobEntityInfo.getTenantId().equals(currentUser.getTenantId())) {
+                    return ValidationResult.accessDenied("Blob entity doesn't belong to the current Tenant!");
+                } else if (currentUser.isCustomerUser() && !blobEntityInfo.getCustomerId().equals(currentUser.getCustomerId())) {
+                    return ValidationResult.accessDenied("Blob entity doesn't belong to the current Customer!");
+                } else {
+                    return ValidationResult.ok(blobEntityInfo);
+                }
+            }), executor);
+        }
+    }
+
 
     private <T, V> FutureCallback<T> getCallback(FutureCallback<ValidationResult> callback, Function<T, ValidationResult<V>> transformer) {
         return new FutureCallback<T>() {

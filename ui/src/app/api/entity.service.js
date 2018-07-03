@@ -38,7 +38,7 @@ export default angular.module('thingsboard.api.entity', [thingsboardTypes])
 function EntityService($http, $q, $filter, $translate, $log, userService, deviceService,
                        assetService, tenantService, customerService,
                        ruleChainService, dashboardService, entityGroupService,
-                       converterService, integrationService,
+                       converterService, integrationService, schedulerEventService, blobEntityService,
                        entityRelationService, attributeService, types, utils) {
     var service = {
         getEntity: getEntity,
@@ -97,6 +97,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.integration:
                 promise = integrationService.getIntegration(entityId, config);
                 break;
+            case types.entityType.schedulerEvent:
+                promise = schedulerEventService.getSchedulerEventInfo(entityId, config);
+                break;
+            case types.entityType.blobEntity:
+                promise = blobEntityService.getBlobEntityInfo(entityId, config);
+                break;
         }
         return promise;
     }
@@ -137,6 +143,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.integration:
                 promise = integrationService.saveIntegration(entity);
+                break;
+            case types.entityType.schedulerEvent:
+                promise = schedulerEventService.saveSchedulerEvent(entity);
                 break;
         }
         return promise;
@@ -245,6 +254,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.integration:
                 promise = getEntitiesByIdsPromise(
                     (id) => integrationService.getIntegration(id, config), entityIds);
+                break;
+            case types.entityType.schedulerEvent:
+                promise = getEntitiesByIdsPromise(
+                    (id) => schedulerEventService.getSchedulerEventInfo(id, config), entityIds);
+                break;
+            case types.entityType.blobEntity:
+                promise = getEntitiesByIdsPromise(
+                    (id) => blobEntityService.getBlobEntityInfo(id, config), entityIds);
                 break;
         }
         return promise;
@@ -381,6 +398,30 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.integration:
                 promise = integrationService.getIntegrations(pageLink, config);
+                break;
+            case types.entityType.schedulerEvent:
+                var deferred = $q.defer();
+                schedulerEventService.getSchedulerEvents(null, false, config).then(
+                    (schedulerEvents) => {
+                        utils.filterSearchTextEntities(schedulerEvents, 'name', pageLink, deferred);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+                promise = deferred.promise;
+                break;
+            case types.entityType.blobEntity:
+                deferred = $q.defer();
+                blobEntityService.getBlobEntities({limit: 2147483647}, null, false, config).then(
+                    (blobEntitiesData) => {
+                        utils.filterSearchTextEntities(blobEntitiesData.data, 'name', pageLink, deferred);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+                promise = deferred.promise;
                 break;
         }
         return promise;
@@ -970,6 +1011,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.dashboard = types.entityType.dashboard;
                 entityTypes.converter = types.entityType.converter;
                 entityTypes.integration = types.entityType.integration;
+                entityTypes.schedulerEvent = types.entityType.schedulerEvent;
+                entityTypes.blobEntity = types.entityType.blobEntity;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
                 }
@@ -979,6 +1022,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.asset = types.entityType.asset;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
+                entityTypes.schedulerEvent = types.entityType.schedulerEvent;
+                entityTypes.blobEntity = types.entityType.blobEntity;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
                 }

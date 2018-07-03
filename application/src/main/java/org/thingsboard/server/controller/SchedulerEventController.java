@@ -71,6 +71,19 @@ public class SchedulerEventController extends BaseController {
     public static final String SCHEDULER_EVENT_ID = "schedulerEventId";
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/schedulerEvent/info/{schedulerEventId}", method = RequestMethod.GET)
+    @ResponseBody
+    public SchedulerEventInfo getSchedulerEventInfoById(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+        checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
+        try {
+            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+            return checkSchedulerEventInfoId(schedulerEventId);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/{schedulerEventId}", method = RequestMethod.GET)
     @ResponseBody
     public SchedulerEvent getSchedulerEventById(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {

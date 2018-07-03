@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.telemetry;
 
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -62,6 +63,8 @@ public class TbMsgAttributesNode implements TbNode {
 
     private TbMsgAttributesNodeConfiguration config;
 
+    private static final String SCOPE = "scope";
+
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgAttributesNodeConfiguration.class);
@@ -75,8 +78,12 @@ public class TbMsgAttributesNode implements TbNode {
         }
 
         String src = msg.getData();
+        String scope = msg.getMetaData().getValue(SCOPE);
+        if (StringUtils.isEmpty(scope)) {
+            scope = config.getScope();
+        }
         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(src)).getAttributes();
-        ctx.getTelemetryService().saveAndNotify(msg.getOriginator(), config.getScope(), new ArrayList<>(attributes), new TelemetryNodeCallback(ctx, msg));
+        ctx.getTelemetryService().saveAndNotify(msg.getOriginator(), scope, new ArrayList<>(attributes), new TelemetryNodeCallback(ctx, msg));
     }
 
     @Override

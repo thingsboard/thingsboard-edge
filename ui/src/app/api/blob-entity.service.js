@@ -37,12 +37,24 @@ export default angular.module('thingsboard.api.blobEntity', [])
 function BlobEntityService($http, $q, $document, $window, customerService) {
 
     var service = {
+        getBlobEntityInfo: getBlobEntityInfo,
         getBlobEntities: getBlobEntities,
         deleteBlobEntity: deleteBlobEntity,
         downloadBlobEntity: downloadBlobEntity
     };
 
     return service;
+
+    function getBlobEntityInfo(blobEntityId, config) {
+        var deferred = $q.defer();
+        var url = '/api/blobEntity/info/' + blobEntityId;
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
     function getBlobEntities(pageLink, type, applyCustomersInfo, config) {
         var deferred = $q.defer();

@@ -32,9 +32,17 @@
 import ReportConfigDirective from './report-config.directive';
 import EmailConfigDirective from './email-config.directive';
 import GenerateReportEventConfigDirective from './generate-report.directive';
+import AttributeValueDirective from './attribute-value.directive';
+import AttributeKeyValueTableDirective from './attribute-key-value-table.directive';
+import UpdateAttributesEventConfigDirective from './update-attributes.directive';
+import SendRpcRequestEventConfigDirective from './send-rpc-request.directive';
 
 export default angular.module('thingsboard.scheduler.config', [])
     .directive('tbReportConfig', ReportConfigDirective)
     .directive('tbEmailConfig', EmailConfigDirective)
     .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
+    .directive('tbAttributeValue', AttributeValueDirective)
+    .directive('tbAttributeKeyValueTable', AttributeKeyValueTableDirective)
+    .directive('tbUpdateAttributesEventConfig', UpdateAttributesEventConfigDirective)
+    .directive('tbSendRpcRequestEventConfig', SendRpcRequestEventConfigDirective)
     .name;

@@ -33,7 +33,7 @@
 
 <section ng-form name="generateReportConfigForm" layout="column">
     <md-expansion-panel-group auto-expand="true"
-                              class="tb-report-config-panel-group" ng-class="{'disabled': $root.loading}"
+                              class="tb-panel-group" ng-class="{'disabled': $root.loading}"
                               md-component-id="reportConfigPanelGroup">
         <md-expansion-panel md-component-id="reportConfigPanel">
             <md-expansion-panel-collapsed>
@@ -48,7 +48,7 @@
                     <md-expansion-panel-icon></md-expansion-panel-icon>
                 </md-expansion-panel-header>
                 <md-expansion-panel-content>
-                    <tb-report-config ng-model="configuration.reportConfig"></tb-report-config>
+                    <tb-report-config ng-model="configuration.msgBody.reportConfig"></tb-report-config>
                 </md-expansion-panel-content>
             </md-expansion-panel-expanded>
         </md-expansion-panel>
@@ -56,26 +56,26 @@
     <div style="height: 20px;"></div>
     <md-checkbox flex aria-label="{{ 'report.send-email' | translate }}"
                  ng-change="sendEmailChanged()"
-                 ng-model="configuration.sendEmail">{{ 'report.send-email' | translate }}
+                 ng-model="configuration.msgBody.sendEmail">{{ 'report.send-email' | translate }}
     </md-checkbox>
     <md-expansion-panel-group auto-expand="true"
-                              class="tb-report-config-panel-group"
-                              ng-class="{'disabled': $root.loading || !configuration.sendEmail}"
+                              class="tb-panel-group"
+                              ng-class="{'disabled': $root.loading || !configuration.msgBody.sendEmail}"
                               md-component-id="emailConfigPanelGroup">
         <md-expansion-panel md-component-id="emailConfigPanel">
             <md-expansion-panel-collapsed>
                 <div class="tb-panel-title">{{ 'report.email-config' | translate }}</div>
                 <span flex></span>
-                <md-expansion-panel-icon ng-if="configuration.sendEmail"></md-expansion-panel-icon>
+                <md-expansion-panel-icon ng-if="configuration.msgBody.sendEmail"></md-expansion-panel-icon>
             </md-expansion-panel-collapsed>
             <md-expansion-panel-expanded>
                 <md-expansion-panel-header ng-click="$mdExpansionPanel('emailConfigPanel').collapse()">
                     <div class="tb-panel-title">{{ 'report.email-config' | translate }}</div>
                     <span flex></span>
-                    <md-expansion-panel-icon ng-if="configuration.sendEmail"></md-expansion-panel-icon>
+                    <md-expansion-panel-icon ng-if="configuration.msgBody.sendEmail"></md-expansion-panel-icon>
                 </md-expansion-panel-header>
-                <md-expansion-panel-content ng-if="configuration.sendEmail">
-                    <tb-email-config ng-model="configuration.emailConfig"></tb-email-config>
+                <md-expansion-panel-content ng-if="configuration.msgBody.sendEmail">
+                    <tb-email-config ng-model="configuration.msgBody.emailConfig"></tb-email-config>
                 </md-expansion-panel-content>
             </md-expansion-panel-expanded>
         </md-expansion-panel>

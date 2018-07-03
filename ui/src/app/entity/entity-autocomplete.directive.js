@@ -214,6 +214,18 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.noEntitiesMatchingText = 'integration.no-integrations-matching';
                     scope.entityRequiredText = 'integration.integration-required'
                     break;
+                case types.entityType.schedulerEvent:
+                    scope.selectEntityText = 'scheduler.select-scheduler-event';
+                    scope.entityText = 'scheduler.scheduler-event';
+                    scope.noEntitiesMatchingText = 'scheduler.no-scheduler-events-matching';
+                    scope.entityRequiredText = 'scheduler.scheduler-event-required'
+                    break;
+                case types.entityType.blobEntity:
+                    scope.selectEntityText = 'blob-entity.select-blob-entity';
+                    scope.entityText = 'blob-entity.blob-entity';
+                    scope.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
+                    scope.entityRequiredText = 'blob-entity.blob-entity-required'
+                    break;
             }
             if (scope.labelText && scope.labelText.length) {
                 scope.entityText = scope.labelText;

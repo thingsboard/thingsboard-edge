@@ -31,19 +31,18 @@
 
 /* eslint-disable import/no-unresolved, import/default */
 
-import generateReportTemplate from './generate-report.tpl.html';
+import sendRpcRequestTemplate from './send-rpc-request.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function GenerateReportEventConfigDirective($compile, $templateCache, types, $mdExpansionPanel) {
+export default function SendRpcRequestEventConfigDirective($compile, $templateCache, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(generateReportTemplate);
+        var template = $templateCache.get(sendRpcRequestTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.$mdExpansionPanel = $mdExpansionPanel;
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
@@ -53,13 +52,20 @@ export default function GenerateReportEventConfigDirective($compile, $templateCa
 
         ngModelCtrl.$render = function () {
             scope.configuration = ngModelCtrl.$viewValue;
-        };
-
-        scope.sendEmailChanged = function() {
-            if (scope.configuration.msgBody.sendEmail) {
-                $mdExpansionPanel('emailConfigPanel').expand();
-            } else {
-                $mdExpansionPanel('emailConfigPanel').collapse();
+            if (!scope.configuration.msgType) {
+                scope.configuration.msgType = types.messageType.RPC_CALL_FROM_SERVER_TO_DEVICE.value;
+                ngModelCtrl.$setViewValue(scope.configuration);
+            }
+            if (!scope.configuration.originatorId) {
+                scope.configuration.originatorId = {
+                    entityType: types.entityType.device,
+                    id: null
+                };
+                ngModelCtrl.$setViewValue(scope.configuration);
+            }
+            if (!scope.configuration.metadata.oneway) {
+                scope.configuration.metadata.oneway = true;
+                ngModelCtrl.$setViewValue(scope.configuration);
             }
         };
 

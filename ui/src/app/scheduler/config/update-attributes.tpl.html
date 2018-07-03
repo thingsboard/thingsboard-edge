@@ -1,0 +1,101 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+
+<section ng-form name="updateAttributesConfigForm" layout="column">
+    <div>
+        <small translate>scheduler.target-entity</small>
+        <tb-entity-select
+                the-form="updateAttributesConfigForm"
+                tb-required="true"
+                ng-model="configuration.originatorId">
+        </tb-entity-select>
+    </div>
+    <md-input-container class="md-block" ng-if="configuration.originatorId.entityType === types.entityType.device">
+        <label translate>attribute.attributes-scope</label>
+        <md-select ng-model="configuration.metadata.scope" ng-change="scopeChanged()">
+            <md-option ng-repeat="scope in attributeScopes" ng-value="scope.value">
+                {{scope.name | translate}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+    <md-expansion-panel-group auto-expand="true" ng-if="configuration.metadata.scope === types.attributesScope.server.value"
+                              class="tb-panel-group" ng-class="{'disabled': $root.loading}"
+                              md-component-id="serverAttributesPanelGroup">
+        <md-expansion-panel md-component-id="serverAttributesPanel">
+            <md-expansion-panel-collapsed>
+                <div class="tb-panel-title">{{ 'attribute.scope-server' | translate }}</div>
+                <span flex></span>
+                <md-expansion-panel-icon></md-expansion-panel-icon>
+            </md-expansion-panel-collapsed>
+            <md-expansion-panel-expanded>
+                <md-expansion-panel-header ng-click="$mdExpansionPanel('serverAttributesPanel').collapse()">
+                    <div class="tb-panel-title">{{ 'attribute.scope-server' | translate }}</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-header>
+                <md-expansion-panel-content>
+                    <tb-attribute-key-value-table title-text="attribute.scope-server"
+                                                  ng-model="configuration.msgBody"
+                                                  ng-required="true"
+                                                  required-prompt="attribute.add-attribute-prompt">
+                    </tb-attribute-key-value-table>
+                </md-expansion-panel-content>
+            </md-expansion-panel-expanded>
+        </md-expansion-panel>
+    </md-expansion-panel-group>
+    <md-expansion-panel-group auto-expand="true" ng-if="configuration.metadata.scope === types.attributesScope.shared.value"
+                              class="tb-panel-group" ng-class="{'disabled': $root.loading}"
+                              md-component-id="sharedAttributesPanelGroup">
+        <md-expansion-panel md-component-id="sharedAttributesPanel">
+            <md-expansion-panel-collapsed>
+                <div class="tb-panel-title">{{ 'attribute.scope-shared' | translate }}</div>
+                <span flex></span>
+                <md-expansion-panel-icon></md-expansion-panel-icon>
+            </md-expansion-panel-collapsed>
+            <md-expansion-panel-expanded>
+                <md-expansion-panel-header ng-click="$mdExpansionPanel('sharedAttributesPanel').collapse()">
+                    <div class="tb-panel-title">{{ 'attribute.scope-shared' | translate }}</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-header>
+                <md-expansion-panel-content>
+                    <tb-attribute-key-value-table title-text="attribute.scope-shared"
+                                                  ng-model="configuration.msgBody"
+                                                  ng-required="true"
+                                                  required-prompt="attribute.add-attribute-prompt">
+                    </tb-attribute-key-value-table>
+                </md-expansion-panel-content>
+            </md-expansion-panel-expanded>
+        </md-expansion-panel>
+    </md-expansion-panel-group>
+</section>

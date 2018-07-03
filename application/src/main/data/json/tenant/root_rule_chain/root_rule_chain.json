@@ -28,7 +28,7 @@
           "layoutY": 52
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
-        "name": "Save Client Attributes",
+        "name": "Save Attributes",
         "debugMode": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"

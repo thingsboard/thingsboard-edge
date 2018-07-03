@@ -46,7 +46,7 @@
             the-form="schedulerEventConfigForm">
     </tb-message-type-autocomplete>
     <tb-scheduler-event-template-config ng-if="useDefinedTemplate"
-                                 ng-model="configuration.msgBody"
+                                 ng-model="configuration"
                                  config-type="{{configType}}"
                                  config-types="configTypes"
                                  ng-required="required"
@@ -82,4 +82,4 @@
             </md-expansion-panel>
         </md-expansion-panel-group>
     </div>
-</div>
+</section>

@@ -415,7 +415,9 @@ export default angular.module('thingsboard.types', [])
                 converter: "CONVERTER",
                 integration: "INTEGRATION",
                 rulechain: "RULE_CHAIN",
-                rulenode: "RULE_NODE"
+                rulenode: "RULE_NODE",
+                schedulerEvent: "SCHEDULER_EVENT",
+                blobEntity: "BLOB_ENTITY"
             },
             entityGroup: {
                 sortOrder: {
@@ -695,6 +697,18 @@ export default angular.module('thingsboard.types', [])
                 "CURRENT_CUSTOMER": {
                     type: 'entity.type-current-customer',
                     list: 'entity.type-current-customer'
+                },
+                "SCHEDULER_EVENT": {
+                    type: 'entity.type-scheduler-event',
+                    typePlural: 'entity.type-scheduler-events',
+                    list: 'entity.list-of-scheduler-events',
+                    nameStartsWith: 'entity.scheduler-event-name-starts-with'
+                },
+                "BLOB_ENTITY": {
+                    type: 'entity.type-blob-entity',
+                    typePlural: 'entity.type-blob-entities',
+                    list: 'entity.list-of-blob-entities',
+                    nameStartsWith: 'entity.blob-entity-name-starts-with'
                 }
             },
             entitySearchDirection: {
@@ -1213,6 +1227,22 @@ export default angular.module('thingsboard.types', [])
                     name: 'Generate Report',
                     value: 'generateReport',
                     directive: 'tbGenerateReportEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                },
+                {
+                    name: 'Update Attributes',
+                    value: 'updateAttributes',
+                    directive: 'tbUpdateAttributesEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                },
+                {
+                    name: 'Send RPC Request to Device',
+                    value: 'sendRpcRequest',
+                    directive: 'tbSendRpcRequestEventConfig',
                     originator: false,
                     msgType: false,
                     metadata: false

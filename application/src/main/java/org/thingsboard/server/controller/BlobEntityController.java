@@ -57,6 +57,19 @@ public class BlobEntityController extends BaseController {
     public static final String BLOB_ENTITY_ID = "blobEntityId";
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/blobEntity/info/{blobEntityId}", method = RequestMethod.GET)
+    @ResponseBody
+    public BlobEntityInfo getBlobEntityInfoById(@PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
+        checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
+        try {
+            BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
+            return checkBlobEntityInfoId(blobEntityId);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/{blobEntityId}/download", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<Resource> downloadBlobEntity(@PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {

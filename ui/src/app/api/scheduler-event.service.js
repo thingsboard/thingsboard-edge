@@ -39,6 +39,7 @@ function SchedulerEventService($http, $q, customerService) {
     var service = {
         getSchedulerEvents: getSchedulerEvents,
         getSchedulerEvent: getSchedulerEvent,
+        getSchedulerEventInfo: getSchedulerEventInfo,
         saveSchedulerEvent: saveSchedulerEvent,
         deleteSchedulerEvent: deleteSchedulerEvent
     };
@@ -64,6 +65,17 @@ function SchedulerEventService($http, $q, customerService) {
             } else {
                 deferred.resolve(response.data);
             }
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getSchedulerEventInfo(schedulerEventId, config) {
+        var deferred = $q.defer();
+        var url = '/api/schedulerEvent/info/' + schedulerEventId;
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });

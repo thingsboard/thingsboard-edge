@@ -31,35 +31,49 @@
 
 /* eslint-disable import/no-unresolved, import/default */
 
-import generateReportTemplate from './generate-report.tpl.html';
+import attributeValueTemplate from './attribute-value.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+
 /*@ngInject*/
-export default function GenerateReportEventConfigDirective($compile, $templateCache, types, $mdExpansionPanel) {
+export default function AttributeValueDirective($compile, $templateCache, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(generateReportTemplate);
+        var template = $templateCache.get(attributeValueTemplate);
         element.html(template);
 
-        scope.types = types;
-        scope.$mdExpansionPanel = $mdExpansionPanel;
+        scope.valueTypes = types.valueType;
 
-        scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
-            if (!angular.equals(newConfiguration, oldConfiguration)) {
-                ngModelCtrl.$setViewValue(scope.configuration);
+        scope.$watch('model.value', function (newValue, oldValue) {
+            if (!angular.equals(newValue, oldValue)) {
+                ngModelCtrl.$setViewValue(scope.model.value);
             }
         });
 
-        ngModelCtrl.$render = function () {
-            scope.configuration = ngModelCtrl.$viewValue;
+        scope.valueTypeChange = function() {
+            if (scope.valueType === types.valueType.boolean) {
+                scope.model.value = false;
+            } else {
+                scope.model.value = null;
+            }
         };
 
-        scope.sendEmailChanged = function() {
-            if (scope.configuration.msgBody.sendEmail) {
-                $mdExpansionPanel('emailConfigPanel').expand();
+        ngModelCtrl.$render = function () {
+            var attributeValue = ngModelCtrl.$viewValue;
+            scope.model = {
+                value: attributeValue
+            };
+            if (scope.model.value === true || scope.model.value === false) {
+                scope.valueType = types.valueType.boolean;
+            } else if (angular.isNumber(scope.model.value)) {
+                if (scope.model.value.toString().indexOf('.') == -1) {
+                    scope.valueType = types.valueType.integer;
+                } else {
+                    scope.valueType = types.valueType.double;
+                }
             } else {
-                $mdExpansionPanel('emailConfigPanel').collapse();
+                scope.valueType = types.valueType.string;
             }
         };
 

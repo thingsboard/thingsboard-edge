@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.blob;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,6 +87,13 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
         log.trace("Executing findBlobEntityInfoById [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
         return blobEntityInfoDao.findById(blobEntityId.getId());
+    }
+
+    @Override
+    public ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(BlobEntityId blobEntityId) {
+        log.trace("Executing findBlobEntityInfoByIdAsync [{}]", blobEntityId);
+        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        return blobEntityInfoDao.findByIdAsync(blobEntityId.getId());
     }
 
     @Override

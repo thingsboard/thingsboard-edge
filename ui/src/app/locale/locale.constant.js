@@ -312,6 +312,7 @@ export default angular.module('thingsboard.locale', [])
                     "scope-server": "Server attributes",
                     "scope-shared": "Shared attributes",
                     "add": "Add attribute",
+                    "add-attribute-prompt": "Please add attribute",
                     "key": "Key",
                     "last-update-time": "Last update time",
                     "key-required": "Attribute key is required.",
@@ -878,6 +879,14 @@ export default angular.module('thingsboard.locale', [])
                     "type-rulechains": "Rule chains",
                     "list-of-rulechains": "{ count, select, 1 {One rule chain} other {List of # rule chains} }",
                     "rulechain-name-starts-with": "Rule chains whose names start with '{{prefix}}'",
+                    "type-scheduler-event": "Scheduler event",
+                    "type-scheduler-events": "Scheduler events",
+                    "list-of-scheduler-events": "{ count, select, 1 {One scheduler event} other {List of # scheduler events} }",
+                    "scheduler-event-name-starts-with": "Scheduler events whose names start with '{{prefix}}'",
+                    "type-blob-entity": "Blob entity",
+                    "type-blob-entities": "Blob entities",
+                    "list-of-blob-entities": "{ count, select, 1 {One blob entity} other {List of # blob entities} }",
+                    "blob-entity-name-starts-with": "Blob entities whose names start with '{{prefix}}'",
                     "type-current-customer": "Current Customer",
                     "search": "Search entities",
                     "selected-entities": "{ count, select, 1 {1 entity} other {# entities} } selected",
@@ -1594,6 +1603,10 @@ export default angular.module('thingsboard.locale', [])
                 },
                 "scheduler": {
                     "scheduler": "Scheduler",
+                    "scheduler-event": "Scheduler event",
+                    "select-scheduler-event": "Select scheduler event",
+                    "no-scheduler-events-matching": "No scheduler events matching '{{entity}}' were found.",
+                    "scheduler-event-required": "Scheduler event is required",
                     "management": "Schedule management",
                     "scheduler-events": "Scheduler events",
                     "add-scheduler-event": "Add scheduler event",
@@ -1668,7 +1681,11 @@ export default angular.module('thingsboard.locale', [])
                     "friday": "Friday",
                     "saturday": "Saturday",
                     "originator": "Originator",
-                    "message-body": "Message body"
+                    "message-body": "Message body",
+                    "target-entity": "Target entity",
+                    "rpc-method": "Method",
+                    "rpc-method-required": "Method is required",
+                    "rpc-params": "Params"
                 },
                 "report": {
                     "report-config": "Report configuration",
@@ -1698,6 +1715,10 @@ export default angular.module('thingsboard.locale', [])
                     "body-required": "Body is required."
                 },
                 "blob-entity": {
+                    "blob-entity": "Blob entity",
+                    "select-blob-entity": "Select blob entity",
+                    "no-blob-entities-matching": "No blob entities matching '{{entity}}' were found.",
+                    "blob-entity-required": "Blob entity is required",
                     "files": "Files",
                     "search": "Search files",
                     "clear-search": "Clear search",

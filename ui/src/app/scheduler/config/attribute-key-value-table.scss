@@ -28,32 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../scss/constants';
-
-.tb-report-config-panel-group {
-  .tb-panel-title {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    min-width: 90px;
-    @media (min-width: $layout-breakpoint-sm) {
-      min-width: 180px;
+.tb-attribute-kv-table {
+  span.no-data-found {
+    position: relative;
+    height: 40px;
+    text-transform: uppercase;
+    display: flex;
+    &.disabled {
+      color: rgba(0,0,0,0.38);
+    }
+    &.required {
+      color: rgb(221,44,0);
     }
   }
-  .tb-panel-prompt {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  &.disabled {
-    .tb-panel-title, .tb-panel-prompt {
-      color: rgba(0, 0, 0, 0.38);
-    }
-  }
-  md-icon.md-expansion-panel-icon {
-    margin-right: 0px;
+  md-input-container {
+    margin-bottom: 0px;
   }
 }
