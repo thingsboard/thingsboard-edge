@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -42,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -62,6 +64,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -221,14 +226,13 @@ public class DefaultSchedulerService implements SchedulerService {
             SchedulerEvent event = schedulerEventService.findSchedulerEventById(eventId);
             if (event != null) {
                 try {
-                    HashMap<String, String> metaData = new HashMap<>();
-                    metaData.put("customerId", event.getCustomerId().getId().toString());
-                    metaData.put("eventName", event.getName());
-                    if (event.getAdditionalInfo() != null) {
-                        metaData.put("additionalInfo", mapper.writeValueAsString(event.getAdditionalInfo()));
-                    }
-                    TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), event.getType(), eventId, new TbMsgMetaData(metaData),
-                            TbMsgDataType.JSON, mapper.writeValueAsString(event.getConfiguration()), null, null, 0L);
+                    JsonNode configuration = event.getConfiguration();
+                    String msgType = getMsgType(event, configuration);
+                    EntityId originatorId = getOriginatorId(eventId, configuration);
+                    TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
+                    TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), msgType, originatorId, tbMsgMD,
+                            TbMsgDataType.JSON, getMsgBody(event.getConfiguration()),
+                            null, null, 0L);
                     actorService.onMsg(new ServiceToRuleEngineMsg(event.getTenantId(), tbMsg));
                 } catch (JsonProcessingException e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
@@ -241,6 +245,40 @@ public class DefaultSchedulerService implements SchedulerService {
         } else {
             log.debug("[{}] Triggered processing of removed event.", eventId);
         }
+    }
+
+    private String getMsgBody(JsonNode configuration) throws JsonProcessingException {
+        return mapper.writeValueAsString(configuration.get("msgBody"));
+    }
+
+    private String getMsgType(SchedulerEvent event, JsonNode configuration) {
+        return configuration.has("msgType") ? configuration.get("msgType").asText() : event.getType();
+    }
+
+    private EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
+        EntityId originatorId = eventId;
+        if (configuration.has("entityId")) {
+            JsonNode entityId = configuration.get("entityId");
+            originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
+        }
+        return originatorId;
+    }
+
+    private TbMsgMetaData getTbMsgMetaData(SchedulerEvent event, JsonNode configuration) throws JsonProcessingException {
+        HashMap<String, String> metaData = new HashMap<>();
+        if (configuration.has("metadata")) {
+            for (Iterator<Entry<String, JsonNode>> it = configuration.get("metadata").fields(); it.hasNext(); ) {
+                Entry<String, JsonNode> kv = it.next();
+                metaData.put(kv.getKey(), kv.getValue().asText());
+            }
+        } else {
+            metaData.put("customerId", event.getCustomerId().getId().toString());
+            metaData.put("eventName", event.getName());
+            if (event.getAdditionalInfo() != null) {
+                metaData.put("additionalInfo", mapper.writeValueAsString(event.getAdditionalInfo()));
+            }
+        }
+        return new TbMsgMetaData(metaData);
     }
 
     private void onSchedulerEventAddedSync(SchedulerEventInfo event) {

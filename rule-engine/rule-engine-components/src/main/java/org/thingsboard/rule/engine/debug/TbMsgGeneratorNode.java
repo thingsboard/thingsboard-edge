@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -67,6 +67,7 @@ public class TbMsgGeneratorNode implements TbNode {
     private TbMsgGeneratorNodeConfiguration config;
     private ScriptEngine jsEngine;
     private long delay;
+    private long lastScheduledTs;
     private EntityId originatorId;
     private UUID nextTickId;
     private TbMsg prevMsg;
@@ -88,21 +89,33 @@ public class TbMsgGeneratorNode implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (msg.getType().equals(TB_MSG_GENERATOR_NODE_MSG) && msg.getId().equals(nextTickId)) {
             withCallback(generate(ctx),
-                    m -> {ctx.tellNext(m, SUCCESS); scheduleTickMsg(ctx);},
-                    t -> {ctx.tellFailure(msg, t); scheduleTickMsg(ctx);});
+                    m -> {
+                        ctx.tellNext(m, SUCCESS);
+                        scheduleTickMsg(ctx);
+                    },
+                    t -> {
+                        ctx.tellFailure(msg, t);
+                        scheduleTickMsg(ctx);
+                    });
         }
     }
 
     private void scheduleTickMsg(TbContext ctx) {
+        long curTs = System.currentTimeMillis();
+        if (lastScheduledTs == 0L) {
+            lastScheduledTs = curTs;
+        }
+        lastScheduledTs = lastScheduledTs + delay;
+        long curDelay = Math.max(0L, (lastScheduledTs - curTs));
         TbMsg tickMsg = ctx.newMsg(TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextTickId = tickMsg.getId();
-        ctx.tellSelf(tickMsg, delay);
+        ctx.tellSelf(tickMsg, curDelay);
     }
 
     private ListenableFuture<TbMsg> generate(TbContext ctx) {
         return ctx.getJsExecutor().executeAsync(() -> {
             if (prevMsg == null) {
-                prevMsg = ctx.newMsg( "", originatorId, new TbMsgMetaData(), "{}");
+                prevMsg = ctx.newMsg("", originatorId, new TbMsgMetaData(), "{}");
             }
             TbMsg generated = jsEngine.executeGenerate(prevMsg);
             prevMsg = ctx.newMsg(generated.getType(), originatorId, generated.getMetaData(), generated.getData());

@@ -1,22 +1,22 @@
 /**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of Thingsboard OÜ and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to Thingsboard OÜ
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -35,6 +35,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -57,6 +58,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "aggregation",
@@ -125,11 +127,15 @@ public class TbSimpleAggMsgNode implements TbNode {
         TbIntervalState state = intervals.getByEntityIdAndTs(entityId, ts);
         state.update(value);
 
+        log.trace("Data Msg received: {}", msg);
+
         if (state.hasChangesToPersist() && statePersistPolicy == StatePersistPolicy.ON_EACH_CHANGE) {
+            log.trace("Persisting state: {}", state);
             DonAsynchron.withCallback(intervals.saveIntervalState(entityId, ts, state),
                     v -> {
                         ctx.getPeContext().ack(msg);
                         state.clearChangesToPersist();
+                        log.trace("Cleared state after persising: {}", state);
                     },
                     t -> ctx.tellFailure(msg, t),
                     ctx.getDbCallbackExecutor());
@@ -143,7 +149,9 @@ public class TbSimpleAggMsgNode implements TbNode {
             return;
         }
         scheduleReportTickMsg(ctx);
+        log.trace("Reporting intervals!");
         intervals.getStatesToReport(intervalPersistPolicy).forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
+            log.trace("Reporting interval: [{}][{}]", ts, interval);
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", Long.toString(ts));
             ctx.tellNext(new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, TbMsgDataType.JSON,
@@ -159,7 +167,9 @@ public class TbSimpleAggMsgNode implements TbNode {
             return;
         }
         scheduleStatePersistTickMsg(ctx);
+        log.trace("Persisting states!");
         intervals.getStatesToPersist().forEach((entityId, entityStates) -> entityStates.forEach((ts, state) -> {
+            log.trace("Persisting state: [{}][{}]", ts, state);
             intervals.saveIntervalState(entityId, ts, state);
         }));
 
