@@ -551,7 +551,12 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
               if (!schedulerEvent) {
                   schedulerEvent = {
                       schedule: {},
-                      configuration: {}
+                      configuration: {
+                          originatorId: null,
+                          msgType: null,
+                          msgBody: {},
+                          metadata: {}
+                      }
                   };
               }
           }

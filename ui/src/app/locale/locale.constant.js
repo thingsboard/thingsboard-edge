@@ -1665,7 +1665,8 @@ export default angular.module('thingsboard.locale', [])
                     "wednesday": "Wednesday",
                     "thursday": "Thursday",
                     "friday": "Friday",
-                    "saturday": "Saturday"
+                    "saturday": "Saturday",
+                    "originator": "Originator"
                 },
                 "report": {
                     "report-config": "Report configuration",

@@ -51,11 +51,33 @@ export default function SchedulerEventConfigDirective($compile, $templateCache) 
             scope.configuration = ngModelCtrl.$viewValue;
         };
 
-        scope.useDefinedTemplate = function() {
-            return scope.configType &&
-                scope.configTypes[scope.configType] &&
-                (scope.configTypes[scope.configType].template || scope.configTypes[scope.configType].directive);
-        };
+        scope.$watch('configType', function (newVal, prevVal) {
+            if (!angular.equals(newVal, prevVal)) {
+                updateConfigTypeParams();
+            }
+        });
+
+        updateConfigTypeParams();
+
+        function updateConfigTypeParams() {
+            var useDefinedTemplate = false;
+            var showOriginator = true;
+            var showMsgType = true;
+            var showMetadata = true;
+            if (scope.configType) {
+                if (scope.configTypes[scope.configType]) {
+                    var configTypeDef = scope.configTypes[scope.configType];
+                    useDefinedTemplate = configTypeDef.template || configTypeDef.directive;
+                    showOriginator = configTypeDef.originator;
+                    showMsgType = configTypeDef.msgType;
+                    showMetadata = configTypeDef.metadata;
+                }
+            }
+            scope.useDefinedTemplate = useDefinedTemplate;
+            scope.showOriginator = showOriginator;
+            scope.showMsgType = showMsgType;
+            scope.showMetadata = showMetadata;
+        }
 
         $compile(element.contents())(scope);
     };
