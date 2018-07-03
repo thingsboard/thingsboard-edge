@@ -39,6 +39,12 @@
                           ng-model="configuration.originatorId">
         </tb-entity-select>
     </div>
+    <tb-message-type-autocomplete
+            ng-if="showMsgType"
+            ng-required="false"
+            ng-model="configuration.msgType"
+            the-form="schedulerEventConfigForm">
+    </tb-message-type-autocomplete>
     <tb-scheduler-event-template-config ng-if="useDefinedTemplate"
                                  ng-model="configuration.msgBody"
                                  config-type="{{configType}}"
@@ -49,8 +55,31 @@
     <tb-json-object-edit ng-if="!useDefinedTemplate"
                          class="tb-scheduler-event-configuration-json"
                          ng-model="configuration.msgBody"
-                         label="{{ 'scheduler.configuration' | translate }}"
+                         label="{{ 'scheduler.message-body' | translate }}"
                          ng-required="required"
                          fill-height="true">
     </tb-json-object-edit>
-</section>
+    <div ng-if="showMetadata">
+        <div style="height: 24px;"></div>
+        <md-expansion-panel-group class="tb-scheduler-event-metadata-panel-group" md-component-id="metadataPanelGroup">
+            <md-expansion-panel md-component-id="{{metadataPanelId}}">
+                <md-expansion-panel-collapsed>
+                    <div class="tb-panel-title">{{ 'rulenode.metadata' | translate }}</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-collapsed>
+                <md-expansion-panel-expanded>
+                    <md-expansion-panel-header ng-click="$mdExpansionPanel(metadataPanelId).collapse()">
+                        <div class="tb-panel-title">{{ 'rulenode.metadata' | translate }}</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-header>
+                    <md-expansion-panel-content>
+                        <tb-key-val-map title-text="rulenode.metadata"
+                                        key-val-map="configuration.metadata"></tb-key-val-map>
+                    </md-expansion-panel-content>
+                </md-expansion-panel-expanded>
+            </md-expansion-panel>
+        </md-expansion-panel-group>
+    </div>
+</div>

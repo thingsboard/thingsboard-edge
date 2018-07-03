@@ -34,12 +34,17 @@ import schedulerEventConfigTemplate from './scheduler-event-config.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+import './scheduler-event-config.scss';
+
 /*@ngInject*/
-export default function SchedulerEventConfigDirective($compile, $templateCache) {
+export default function SchedulerEventConfigDirective($compile, $templateCache, $mdExpansionPanel) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(schedulerEventConfigTemplate);
         element.html(template);
+
+        scope.metadataPanelId = (Math.random()*1000).toFixed(0);
+        scope.$mdExpansionPanel = $mdExpansionPanel;
 
         scope.$watch('configuration', function (newVal, prevVal) {
             if (!angular.equals(newVal, prevVal)) {
