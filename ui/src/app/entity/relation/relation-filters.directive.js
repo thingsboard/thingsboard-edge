@@ -59,6 +59,10 @@ export default function RelationFilters($compile, $templateCache) {
         scope.removeFilter = removeFilter;
 
         ngModelCtrl.$render = function () {
+            if (scope.relationFiltersWatch) {
+                scope.relationFiltersWatch();
+                scope.relationFiltersWatch = null;
+            }
             if (ngModelCtrl.$viewValue) {
                 var value = ngModelCtrl.$viewValue;
                 scope.relationFilters.length = 0;
@@ -66,7 +70,7 @@ export default function RelationFilters($compile, $templateCache) {
                     scope.relationFilters.push(filter);
                 });
             }
-            scope.$watch('relationFilters', function (newVal, prevVal) {
+            scope.relationFiltersWatch = scope.$watch('relationFilters', function (newVal, prevVal) {
                 if (!angular.equals(newVal, prevVal)) {
                     updateValue();
                 }
@@ -89,11 +93,16 @@ export default function RelationFilters($compile, $templateCache) {
         }
 
         function updateValue() {
-            var value = [];
+            var value = ngModelCtrl.$viewValue;
+            if (!value) {
+                value = [];
+                ngModelCtrl.$setViewValue(value);
+            } else {
+                value.length = 0;
+            }
             scope.relationFilters.forEach(function (filter) {
                 value.push(filter);
             });
-            ngModelCtrl.$setViewValue(value);
         }
         $compile(element.contents())(scope);
     }
