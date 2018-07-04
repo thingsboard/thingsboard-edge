@@ -34,6 +34,7 @@ import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
 import EntityGroupSettings from './entity-group-settings.directive';
 import EntityGroupAutocompleteDirective from './entity-group-autocomplete.directive';
+import EntityGroupSelectDirective from './entity-group-select.directive';
 import EntityGroupListDirective from './entity-group-list.directive';
 import EntityGroupColumn from './entity-group-column.directive';
 import EntityGroupColumns from './entity-group-columns.directive';
@@ -48,6 +49,7 @@ export default angular.module('thingsboard.entityGroup', [])
     .directive('tbEntityGroup', EntityGroupDirective)
     .directive('tbEntityGroupSettings', EntityGroupSettings)
     .directive('tbEntityGroupAutocomplete', EntityGroupAutocompleteDirective)
+    .directive('tbEntityGroupSelect', EntityGroupSelectDirective)
     .directive('tbEntityGroupList', EntityGroupListDirective)
     .directive('tbEntityGroupColumn', EntityGroupColumn)
     .directive('tbEntityGroupColumns', EntityGroupColumns)

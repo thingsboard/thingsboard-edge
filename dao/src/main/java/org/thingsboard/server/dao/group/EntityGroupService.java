@@ -88,6 +88,8 @@ public interface EntityGroupService {
     ListenableFuture<TimePageData<EntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
                                                             BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
 
+    ListenableFuture<List<EntityId>> findAllEntityIds(EntityGroupId entityGroupId, TimePageLink pageLink);
+
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(EntityId entityId);
 
 }

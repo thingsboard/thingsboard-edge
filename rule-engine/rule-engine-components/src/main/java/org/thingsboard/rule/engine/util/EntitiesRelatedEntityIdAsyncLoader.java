@@ -44,6 +44,8 @@ import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class EntitiesRelatedEntityIdAsyncLoader {
 
@@ -60,6 +62,27 @@ public class EntitiesRelatedEntityIdAsyncLoader {
                     : Futures.immediateFuture(null));
         }
         return Futures.immediateFailedFuture(new IllegalStateException("Unknown direction"));
+    }
+
+    public static ListenableFuture<List<EntityId>> findEntitiesAsync(TbContext ctx, EntityId originator,
+                                                                     RelationsQuery relationsQuery) {
+        RelationService relationService = ctx.getRelationService();
+        EntityRelationsQuery query = buildQuery(originator, relationsQuery);
+        ListenableFuture<List<EntityRelation>> asyncRelation = relationService.findByQuery(query);
+
+        Function<EntityRelation, EntityId> mapFunction;
+
+        if (relationsQuery.getDirection() == EntitySearchDirection.FROM) {
+            mapFunction = EntityRelation::getTo;
+        } else if (relationsQuery.getDirection() == EntitySearchDirection.TO) {
+            mapFunction = EntityRelation::getFrom;
+        } else {
+            return Futures.immediateFailedFuture(new IllegalStateException("Unknown direction"));
+        }
+
+        return Futures.transformAsync(asyncRelation, r -> CollectionUtils.isNotEmpty(r)
+                ? Futures.immediateFuture(r.stream().map(mapFunction).collect(Collectors.toList()))
+                : Futures.immediateFuture(null));
     }
 
     private static EntityRelationsQuery buildQuery(EntityId originator, RelationsQuery relationsQuery) {
