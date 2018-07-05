@@ -40,71 +40,26 @@ import org.thingsboard.server.common.msg.TbMsg;
 @Slf4j
 @RuleNode(
         type = ComponentType.FILTER,
-        name = "originator type switch",
-        configClazz = EmptyNodeConfiguration.class,
-        relationTypes = {"Device", "Asset", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
-                "Rule node", "Entity group", "Converter", "Integration", "Scheduler event", "Blob entity"},
-        nodeDescription = "Route incoming messages by Message Originator Type",
-        nodeDetails = "Routes messages to chain according to the originator type ('Device', 'Asset', etc.).",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbNodeEmptyConfig")
-public class TbOriginatorTypeSwitchNode implements TbNode {
+        name = "originator type",
+        configClazz = TbOriginatorTypeFilterNodeConfiguration.class,
+        relationTypes = {"True", "False"},
+        nodeDescription = "Filter incoming messages by message Originator Type",
+        nodeDetails = "If Originator Type of incoming message is expected - send Message via <b>True</b> chain, otherwise <b>False</b> chain is used.",
+        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        configDirective = "tbFilterNodeOriginatorTypeConfig")
+public class TbOriginatorTypeFilterNode implements TbNode {
 
-    EmptyNodeConfiguration config;
+    TbOriginatorTypeFilterNodeConfiguration config;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
+        this.config = TbNodeUtils.convert(configuration, TbOriginatorTypeFilterNodeConfiguration.class);
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
-        String relationType;
         EntityType originatorType = msg.getOriginator().getEntityType();
-        switch (originatorType) {
-            case TENANT:
-                relationType = "Tenant";
-                break;
-            case CUSTOMER:
-                relationType = "Customer";
-                break;
-            case USER:
-                relationType = "User";
-                break;
-            case DASHBOARD:
-                relationType = "Dashboard";
-                break;
-            case ASSET:
-                relationType = "Asset";
-                break;
-            case DEVICE:
-                relationType = "Device";
-                break;
-            case RULE_CHAIN:
-                relationType = "Rule chain";
-                break;
-            case RULE_NODE:
-                relationType = "Rule node";
-                break;
-            case ENTITY_GROUP:
-                relationType = "Entity group";
-                break;
-            case CONVERTER:
-                relationType = "Converter";
-                break;
-            case INTEGRATION:
-                relationType = "Integration";
-                break;
-            case SCHEDULER_EVENT:
-                relationType = "Scheduler event";
-                break;
-            case BLOB_ENTITY:
-                relationType = "Blob entity";
-                break;
-            default:
-                throw new TbNodeException("Unsupported originator type: " + originatorType);
-        }
-        ctx.tellNext(msg, relationType);
+        ctx.tellNext(msg, config.getOriginatorTypes().contains(originatorType) ? "True" : "False");
     }
 
     @Override
