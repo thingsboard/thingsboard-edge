@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -29,22 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import thingsboardSchedulerConfig from './config';
-
-import SchedulerRoutes from './scheduler.routes';
-import SchedulerController from './scheduler.controller';
-import SchedulerEventsDirective from './scheduler-events.directive';
-import SchedulerEventTemplateConfigDirective from './scheduler-event-template-config.directive';
-import SchedulerEventConfigDirective from './scheduler-event-config.directive';
-import SchedulerEventTypeAutocompleteDirective from './scheduler-event-type-autocomplete.directive';
-import OriginatorSelectDirective from './originator-select.directive';
-
-export default angular.module('thingsboard.scheduler', [thingsboardSchedulerConfig])
-    .config(SchedulerRoutes)
-    .controller('SchedulerController', SchedulerController)
-    .directive('tbSchedulerEvents', SchedulerEventsDirective)
-    .directive('tbSchedulerEventTemplateConfig', SchedulerEventTemplateConfigDirective)
-    .directive('tbSchedulerEventConfig', SchedulerEventConfigDirective)
-    .directive('tbSchedulerEventTypeAutocomplete', SchedulerEventTypeAutocompleteDirective)
-    .directive('tbOriginatorSelect', OriginatorSelectDirective)
-    .name;
+.tb-originator-select {
+  &.optional {
+    .tb-entity-select, .tb-entity-group-select {
+      height: 60px;
+    }
+  }
+}

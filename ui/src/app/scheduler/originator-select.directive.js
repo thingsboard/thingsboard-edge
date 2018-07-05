@@ -30,58 +30,55 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import schedulerEventConfigTemplate from './scheduler-event-config.tpl.html';
+import originatorSelectConfigTemplate from './originator-select.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import './scheduler-event-config.scss';
+import './originator-select.scss';
 
 /*@ngInject*/
-export default function SchedulerEventConfigDirective($compile, $templateCache, $mdExpansionPanel) {
+export default function OriginatorSelectDirective($compile, $templateCache, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(schedulerEventConfigTemplate);
+        var template = $templateCache.get(originatorSelectConfigTemplate);
         element.html(template);
 
-        scope.metadataPanelId = (Math.random()*1000).toFixed(0);
-        scope.$mdExpansionPanel = $mdExpansionPanel;
+        scope.model = {
+        };
 
-        scope.$watch('configuration', function (newVal, prevVal) {
+        scope.$watch('model.originatorId', function (newVal, prevVal) {
             if (!angular.equals(newVal, prevVal)) {
-                ngModelCtrl.$setViewValue(scope.configuration);
+                updateViewValue();
             }
-        });
+        }, true);
 
         ngModelCtrl.$render = function () {
-            scope.configuration = ngModelCtrl.$viewValue;
-       };
-
-        scope.$watch('configType', function (newVal, prevVal) {
-            if (!angular.equals(newVal, prevVal)) {
-                updateConfigTypeParams();
+            scope.model.originatorId = ngModelCtrl.$viewValue;
+            var isEntityGroupOriginator = false;
+            if (scope.model.originatorId &&
+                scope.model.originatorId.entityType === types.entityType.entityGroup) {
+                isEntityGroupOriginator = true;
             }
-        });
+            scope.isEntityGroupOriginator = isEntityGroupOriginator;
+        };
 
-        updateConfigTypeParams();
-
-        function updateConfigTypeParams() {
-            var useDefinedTemplate = false;
-            var showOriginator = true;
-            var showMsgType = true;
-            var showMetadata = true;
-            if (scope.configType) {
-                if (scope.configTypes[scope.configType]) {
-                    var configTypeDef = scope.configTypes[scope.configType];
-                    useDefinedTemplate = configTypeDef.template || configTypeDef.directive;
-                    showOriginator = configTypeDef.originator;
-                    showMsgType = configTypeDef.msgType;
-                    showMetadata = configTypeDef.metadata;
-                }
+        scope.isEntityGroupOriginatorChange = function() {
+            if (scope.isEntityGroupOriginator) {
+                scope.model.originatorId = {
+                    entityType: types.entityType.entityGroup,
+                    id: null
+                };
+            } else {
+                scope.model.originatorId = null;
             }
-            scope.useDefinedTemplate = useDefinedTemplate;
-            scope.showOriginator = showOriginator;
-            scope.showMsgType = showMsgType;
-            scope.showMetadata = showMetadata;
+        };
+
+        function updateViewValue() {
+            if (scope.model.originatorId && scope.model.originatorId.id) {
+                ngModelCtrl.$setViewValue(scope.model.originatorId);
+            } else {
+                ngModelCtrl.$setViewValue(null);
+            }
         }
 
         $compile(element.contents())(scope);
@@ -91,10 +88,10 @@ export default function SchedulerEventConfigDirective($compile, $templateCache, 
         restrict: "E",
         require: "^ngModel",
         scope: {
-            configType: '=',
-            configTypes: '=',
+            allowedEntityTypes: '=?',
             required:'=ngRequired',
-            readonly:'=ngReadonly'
+            readonly:'=ngReadonly',
+            onCurrentGroupType: '&?'
         },
         link: linker
     };

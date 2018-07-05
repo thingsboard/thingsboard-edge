@@ -33,16 +33,18 @@
 
 <section ng-form name="updateAttributesConfigForm" layout="column">
     <div>
-        <small translate>scheduler.target-entity</small>
-        <tb-entity-select
-                the-form="updateAttributesConfigForm"
-                tb-required="true"
+        <small translate>scheduler.target</small>
+        <tb-originator-select
+                ng-required="true"
+                on-current-group-type="currentGroupType = groupType"
                 ng-model="configuration.originatorId">
-        </tb-entity-select>
+        </tb-originator-select>
     </div>
-    <md-input-container class="md-block" ng-if="configuration.originatorId.entityType === types.entityType.device">
+    <md-input-container class="md-block"
+                        ng-if="configuration.originatorId.entityType === types.entityType.device ||
+                               (configuration.originatorId.entityType === types.entityType.entityGroup && currentGroupType === types.entityType.device)">
         <label translate>attribute.attributes-scope</label>
-        <md-select ng-model="configuration.metadata.scope" ng-change="scopeChanged()">
+        <md-select ng-model="configuration.metadata.scope" ng-change="scopeChanged()" aria-label="{{'attribute.attributes-scope' | translate}}">
             <md-option ng-repeat="scope in attributeScopes" ng-value="scope.value">
                 {{scope.name | translate}}
             </md-option>

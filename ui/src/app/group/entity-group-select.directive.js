@@ -44,11 +44,17 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
 
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
 
+        var groupTypes = [types.entityType.device, types.entityType.asset, types.entityType.customer];
 
         if (scope.allowedGroupTypes && scope.allowedGroupTypes.length) {
-            scope.entityGroupTypes = scope.allowedGroupTypes;
+            scope.entityGroupTypes = [];
+            for (var i=0; i<groupTypes.length;i++) {
+                if (scope.allowedGroupTypes.indexOf(groupTypes[i]) != -1) {
+                    scope.entityGroupTypes.push(groupTypes[i]);
+                }
+            }
         } else {
-            scope.entityGroupTypes = [types.entityType.device, types.entityType.asset, types.entityType.customer];
+            scope.entityGroupTypes = groupTypes;
         }
         if (scope.entityGroupTypes.length === 1) {
             scope.displayGroupTypeSelect = false;
@@ -60,6 +66,20 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
         scope.model = {
             groupType: scope.defaultGroupType
         };
+
+        currentGroupTypeUpdated();
+
+        scope.$watch('model.groupType', function (newVal, prevVal) {
+            if (!angular.equals(newVal, prevVal)) {
+                currentGroupTypeUpdated();
+            }
+        });
+
+        function currentGroupTypeUpdated() {
+            if (scope.onCurrentGroupType) {
+                scope.onCurrentGroupType({groupType: scope.model.groupType});
+            }
+        }
 
         scope.updateView = function () {
             if (!scope.disabled) {
@@ -133,6 +153,7 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
             defaultGroupType: '=?',
             excludeGroupIds: '=?',
             excludeGroupAll: '=?',
+            onCurrentGroupType: '&?',
             placeholderText: '@',
             notFoundText: '@',
             requiredText: '@'

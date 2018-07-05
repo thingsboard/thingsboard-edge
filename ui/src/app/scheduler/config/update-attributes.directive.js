@@ -48,6 +48,8 @@ export default function UpdateAttributesEventConfigDirective($compile, $template
         scope.attributeScopes.push(types.attributesScope.server);
         scope.attributeScopes.push(types.attributesScope.shared);
 
+        scope.currentGroupType = null;
+
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
                 ngModelCtrl.$setViewValue(scope.configuration);

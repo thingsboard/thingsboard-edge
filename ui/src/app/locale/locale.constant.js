@@ -1685,8 +1685,10 @@ export default angular.module('thingsboard.locale', [])
                     "friday": "Friday",
                     "saturday": "Saturday",
                     "originator": "Originator",
+                    "single-entity": "Single entity",
+                    "group-of-entities": "Group of entities",
                     "message-body": "Message body",
-                    "target-entity": "Target entity",
+                    "target": "Target",
                     "rpc-method": "Method",
                     "rpc-method-required": "Method is required",
                     "rpc-params": "Params"

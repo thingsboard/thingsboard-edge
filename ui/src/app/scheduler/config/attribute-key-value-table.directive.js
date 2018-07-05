@@ -70,14 +70,16 @@ export default function AttributeKeyValueTableDirective($compile, $templateCache
         };
 
         function watchKvList() {
-            scope.kvListWatcher = scope.$watch('kvList', () => {
-                var keyValMap = {};
-                for (var i=0;i<scope.kvList.length;i++) {
-                    var entry = scope.kvList[i];
-                    keyValMap[entry.key] = entry.value;
+            scope.kvListWatcher = scope.$watch('kvList', (newVal, prevVal) => {
+                if (!angular.equals(newVal, prevVal)) {
+                    var keyValMap = {};
+                    for (var i = 0; i < scope.kvList.length; i++) {
+                        var entry = scope.kvList[i];
+                        keyValMap[entry.key] = entry.value;
+                    }
+                    ngModelCtrl.$setViewValue(keyValMap);
+                    updateValidity();
                 }
-                ngModelCtrl.$setViewValue(keyValMap);
-                updateValidity();
             }, true);
         }
 

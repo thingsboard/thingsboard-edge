@@ -30,27 +30,32 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section layout="row" class="tb-entity-group-select">
-    <tb-entity-type-select
-            ng-if="displayGroupTypeSelect"
-            ng-model="model.groupType"
-            the-form="theForm"
-            ng-disabled="disabled"
-            tb-required="tbRequired"
-            allowed-entity-types="entityGroupTypes">
-    </tb-entity-type-select>
-    <tb-entity-group-autocomplete flex
-                                  ng-if="model.groupType || model.groupId || !displayGroupTypeSelect"
-                                  ng-model="model.groupId"
-                                  tb-required="tbRequired"
-                                  ng-disabled="disabled"
-                                  group-type="model.groupType"
-                                  on-entity-group-loaded="entityGroupLoaded(entityGroup)"
-                                  the-form="theForm"
-                                  exclude-group-ids="excludeGroupIds"
-                                  exclude-group-all="excludeGroupAll"
-                                  placeholder-text="{{placeholderText}}"
-                                  not-found-text="{{notFoundText}}"
-                                  required-text="{{requiredText}}">
-    </tb-entity-group-autocomplete>
+<section ng-form name="orginatorSelectForm" class="tb-originator-select" ng-class="{'optional': !required}" layout="column">
+    <md-radio-group layout="row" ng-model="isEntityGroupOriginator"
+                    style="padding-top: 16px; padding-bottom: 16px;"
+                    class="md-primary" ng-change="isEntityGroupOriginatorChange()">
+        <md-radio-button ng-value=false aria-label="{{ 'scheduler.single-entity' | translate }}" class="md-primary md-align-top-left">
+            <span translate>scheduler.single-entity</span>
+        </md-radio-button>
+        <md-radio-button ng-value=true aria-label="{{ 'scheduler.group-of-entities' | translate }}" class="md-primary md-align-top-left">
+            <span translate>scheduler.group-of-entities</span>
+        </md-radio-button>
+    </md-radio-group>
+    <tb-entity-select
+            ng-if="!isEntityGroupOriginator"
+            the-form="orginatorSelectForm"
+            tb-required="required"
+            ng-model="model.originatorId">
+    </tb-entity-select>
+    <tb-entity-group-select
+            ng-if="isEntityGroupOriginator"
+            allowed-group-types="allowedEntityTypes"
+            ng-model="model.originatorId"
+            on-current-group-type="onCurrentGroupType({groupType: groupType})"
+            tb-required="required"
+            the-form="orginatorSelectForm"
+            placeholder-text="entity-group.select-entity-group"
+            not-found-text="entity-group.no-entity-groups-matching"
+            required-text="entity-group.target-entity-group-required">
+    </tb-entity-group-select>
 </section>
