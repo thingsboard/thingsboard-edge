@@ -60,6 +60,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             $rootScope.editWidgetInfo = angular.fromJson(dataWidgetAttr);
             $rootScope.widgetEditMode = true;
         }
+        var stateSelectViewAttr = angular.element(frame).attr('state-select-view');
+        if (stateSelectViewAttr) {
+            $rootScope.stateSelectView = true;
+        }
     }
 
     initWatchers();

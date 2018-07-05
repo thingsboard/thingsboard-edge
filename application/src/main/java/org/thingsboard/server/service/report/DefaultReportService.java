@@ -45,6 +45,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -53,12 +55,17 @@ import org.springframework.web.client.AsyncRequestCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseExtractor;
 import org.thingsboard.rule.engine.api.ReportService;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -95,6 +102,9 @@ public class DefaultReportService implements ReportService {
     private UserService userService;
 
     @Autowired
+    private CustomerService customerService;
+
+    @Autowired
     private JwtTokenFactory jwtTokenFactory;
 
     @Autowired
@@ -125,11 +135,19 @@ public class DefaultReportService implements ReportService {
     }
 
     @Override
-    public void generateDashboardReport(String baseUrl, DashboardId dashboardId, UserId userId,
+    public void generateDashboardReport(String baseUrl, DashboardId dashboardId, UserId userId, String publicId,
                                         String reportName, JsonNode reportParams, Consumer<ReportData> onSuccess,
                                         Consumer<Throwable> onFailure) {
         log.trace("Executing generateDashboardReport, baseUrl [{}], dashboardId [{}], userId [{}]", baseUrl, dashboardId, userId);
-        AccessJwtToken accessToken = calculateUserAccessToken(userId);
+
+        AccessJwtToken accessToken;
+        if (StringUtils.isEmpty(publicId)) {
+            accessToken = calculateUserAccessToken(userId);
+        } else {
+            accessToken = calculateUserAccessTokenFromPublicId(publicId);
+            ((ObjectNode)reportParams).put("publicId", publicId);
+        }
+
         String token = accessToken.getToken();
         long expiration = accessToken.getClaims().getExpiration().getTime();
 
@@ -137,9 +155,9 @@ public class DefaultReportService implements ReportService {
         dashboardReportRequest.put("baseUrl", baseUrl);
         dashboardReportRequest.put("dashboardId", dashboardId.toString());
         dashboardReportRequest.set("reportParams", reportParams);
+        dashboardReportRequest.put("name", reportName);
         dashboardReportRequest.put("token", token);
         dashboardReportRequest.put("expiration", expiration);
-        dashboardReportRequest.put("name", reportName);
 
         requestReport(dashboardReportRequest, null, onSuccess, onFailure);
     }
@@ -233,6 +251,32 @@ public class DefaultReportService implements ReportService {
         UserCredentials credentials = userService.findUserCredentialsByUserId(userId);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal);
+        return jwtTokenFactory.createAccessJwtToken(securityUser);
+    }
+
+    private AccessJwtToken calculateUserAccessTokenFromPublicId(String publicId) {
+        CustomerId customerId;
+        try {
+            customerId = new CustomerId(UUID.fromString(publicId));
+        } catch (Exception e) {
+            throw new BadCredentialsException("Authentication Failed. Public Id is not valid.");
+        }
+        Customer publicCustomer = customerService.findCustomerById(customerId);
+        if (publicCustomer == null) {
+            throw new UsernameNotFoundException("Public entity not found: " + publicId);
+        }
+        if (!publicCustomer.isPublic()) {
+            throw new BadCredentialsException("Authentication Failed. Public Id is not valid.");
+        }
+        User user = new User(new UserId(EntityId.NULL_UUID));
+        user.setTenantId(publicCustomer.getTenantId());
+        user.setCustomerId(publicCustomer.getId());
+        user.setEmail(publicId);
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setFirstName("Public");
+        user.setLastName("Public");
+
+        SecurityUser securityUser = new SecurityUser(user, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId));
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 

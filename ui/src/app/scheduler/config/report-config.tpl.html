@@ -46,10 +46,18 @@
                                 ng-model="reportConfig.dashboardId">
         </tb-entity-autocomplete>
     </div>
-    <md-input-container class="md-block">
-        <label translate>report.dashboard-state-param</label>
-        <input name="state" ng-model="reportConfig.state">
-    </md-input-container>
+    <div layout="row">
+        <md-input-container flex class="md-block">
+            <label translate>report.dashboard-state-param</label>
+            <input name="state" ng-model="reportConfig.state">
+        </md-input-container>
+        <md-button class="md-icon-button" ng-disabled="!reportConfig.dashboardId" ng-click="selectDashboardState($event)">
+            <md-icon class="material-icons">open_in_new</md-icon>
+            <md-tooltip md-direction="top">
+                {{ 'scheduler.select-dashboard-state' | translate }}
+            </md-tooltip>
+        </md-button>
+    </div>
     <tb-timezone-select default-timezone="defaultTimezone" ng-model="reportConfig.timezone"></tb-timezone-select>
     <div layout='column' layout-align="center"
          layout-gt-sm='row' layout-align-gt-sm="start center">

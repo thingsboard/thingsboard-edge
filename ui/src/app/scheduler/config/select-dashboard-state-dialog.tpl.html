@@ -1,0 +1,57 @@
+<!--
+
+    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of Thingsboard OÜ and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Thingsboard OÜ
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-dialog aria-label="{{ 'scheduler.select-dashboard-state' | translate }}" class="tb-select-dashboard-state-dialog" style="width: 800px;">
+    <form flex name="theForm" ng-submit="vm.select()">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>{{ 'scheduler.select-dashboard-state' | translate }}</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="vm.cancel()">
+                    <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content flex style="position: relative; overflow: hidden;">
+            <div class="tb-absolute-fill">
+                <iframe id="select-dashboard-frame" frameborder="0" height="100%" width="100%"></iframe>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <span flex></span>
+            <md-button ng-disabled="$root.loading" type="submit" class="md-raised md-primary">
+                {{ 'action.select' | translate }}
+            </md-button>
+            <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ 'action.cancel' | translate }}</md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

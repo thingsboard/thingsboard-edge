@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.report.ReportConfig;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.model.UserPrincipal;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -77,8 +79,13 @@ public class ReportController extends BaseController {
             String name = dashboardInfo.getTitle();
             name += "-" + defaultDateFormat.format(new Date());
 
+            SecurityUser currentUser = getCurrentUser();
+            String publicId = "";
+            if (currentUser.getUserPrincipal().getType() == UserPrincipal.Type.PUBLIC_ID) {
+                publicId = currentUser.getUserPrincipal().getValue();
+            }
             reportService.
-                    generateDashboardReport(baseUrl, dashboardId, getCurrentUser().getId(), name, reportParams,
+                    generateDashboardReport(baseUrl, dashboardId, currentUser.getId(), publicId, name, reportParams,
                             reportData -> {
                                 ByteArrayResource resource = new ByteArrayResource(reportData.getData());
                                 ResponseEntity<Resource> response = ResponseEntity.ok().

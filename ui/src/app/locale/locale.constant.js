@@ -85,7 +85,8 @@ export default angular.module('thingsboard.locale', [])
                     "import": "Import",
                     "export": "Export",
                     "share-via": "Share via {{provider}}",
-                    "move": "Move"
+                    "move": "Move",
+                    "select": "Select"
                 },
                 "aggregation": {
                     "aggregation": "Aggregation",
@@ -1693,7 +1694,8 @@ export default angular.module('thingsboard.locale', [])
                     "target": "Target",
                     "rpc-method": "Method",
                     "rpc-method-required": "Method is required",
-                    "rpc-params": "Params"
+                    "rpc-params": "Params",
+                    "select-dashboard-state": "Select dashboard state"
                 },
                 "report": {
                     "report-config": "Report configuration",

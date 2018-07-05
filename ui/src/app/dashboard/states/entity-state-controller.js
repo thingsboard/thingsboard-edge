@@ -31,7 +31,7 @@
 import './entity-state-controller.scss';
 
 /*@ngInject*/
-export default function EntityStateController($scope, $timeout, $location, $state, $stateParams,
+export default function EntityStateController($rootScope, $scope, $timeout, $location, $window, $state, $stateParams,
                                               $q, $translate, utils, types, dashboardUtils, entityService, preservedState) {
 
     var vm = this;
@@ -342,6 +342,14 @@ export default function EntityStateController($scope, $timeout, $location, $stat
             } else {
                 $location.search('state', utils.objToBase64(vm.stateObject));
             }
+            notifyStateSelected();
+        }
+    }
+
+    function notifyStateSelected() {
+        if ($rootScope.stateSelectView) {
+            var parentScope = $window.parent.angular.element($window.frameElement).scope();
+            parentScope.$root.$broadcast('dashboardStateSelected', $location.search().state);
         }
     }
 

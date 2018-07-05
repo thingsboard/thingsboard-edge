@@ -32,11 +32,13 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import reportConfigTemplate from './report-config.tpl.html';
+import selectDashboardStateDialogTemplate from './select-dashboard-state-dialog.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function ReportConfigDirective($compile, $templateCache, types, utils, userService, reportService) {
+export default function ReportConfigDirective($compile, $templateCache, $mdDialog, $document,
+                                              types, utils, userService, reportService) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(reportConfigTemplate);
@@ -60,6 +62,44 @@ export default function ReportConfigDirective($compile, $templateCache, types, u
             } else {
                 scope.reportConfig.userId = null;
             }
+        };
+
+        scope.$watch('reportConfig.dashboardId', function (newDashboardId, oldDashboardId) {
+            if (!angular.equals(newDashboardId, oldDashboardId)) {
+                scope.reportConfig.state = '';
+            }
+        });
+
+        scope.selectDashboardState = function($event) {
+
+            var onShowingCallback = {
+                onShowed: () => {
+                }
+            };
+
+            $mdDialog.show({
+                controller: 'SelectDashboardStateController',
+                controllerAs: 'vm',
+                templateUrl: selectDashboardStateDialogTemplate,
+                parent: angular.element($document[0].body),
+                locals: {
+                    dashboardId: scope.reportConfig.dashboardId,
+                    state: scope.reportConfig.state,
+                    onShowingCallback: onShowingCallback
+                },
+                fullscreen: true,
+                skipHide: true,
+                targetEvent: $event,
+                onComplete: () => {
+                    onShowingCallback.onShowed();
+                }
+            }).then(
+                (state) => {
+                    scope.reportConfig.state = state;
+                    scope.reportConfigForm.$setDirty();
+                },
+                () => {}
+            );
         };
 
         scope.generateTestReport = function($event) {

@@ -44,6 +44,7 @@ public interface ReportService {
     void generateDashboardReport(String baseUrl,
                                  DashboardId dashboardId,
                                  UserId userId,
+                                 String publicId,
                                  String reportName,
                                  JsonNode reportParams,
                                  Consumer<ReportData> onSuccess,

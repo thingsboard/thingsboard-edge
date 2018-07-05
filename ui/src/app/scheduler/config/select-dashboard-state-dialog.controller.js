@@ -28,23 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+import './select-dashboard-state-dialog.scss';
 
-import SelectDashboardStateController from './select-dashboard-state-dialog.controller';
-import ReportConfigDirective from './report-config.directive';
-import EmailConfigDirective from './email-config.directive';
-import GenerateReportEventConfigDirective from './generate-report.directive';
-import AttributeValueDirective from './attribute-value.directive';
-import AttributeKeyValueTableDirective from './attribute-key-value-table.directive';
-import UpdateAttributesEventConfigDirective from './update-attributes.directive';
-import SendRpcRequestEventConfigDirective from './send-rpc-request.directive';
+/*@ngInject*/
+export default function SelectDashboardStateController($scope, $mdDialog, $window, $document, $timeout,
+                                                 $q, $mdUtil, $translate, toast, types, utils, onShowingCallback, dashboardId, state) {
 
-export default angular.module('thingsboard.scheduler.config', [])
-    .controller('SelectDashboardStateController', SelectDashboardStateController)
-    .directive('tbReportConfig', ReportConfigDirective)
-    .directive('tbEmailConfig', EmailConfigDirective)
-    .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
-    .directive('tbAttributeValue', AttributeValueDirective)
-    .directive('tbAttributeKeyValueTable', AttributeKeyValueTableDirective)
-    .directive('tbUpdateAttributesEventConfig', UpdateAttributesEventConfigDirective)
-    .directive('tbSendRpcRequestEventConfig', SendRpcRequestEventConfigDirective)
-    .name;
+    var vm = this;
+
+    vm.types = types;
+    vm.utils = utils;
+    vm.dashboardId = dashboardId;
+
+    vm.select = select;
+    vm.cancel = cancel;
+
+    vm.currentState = state;
+
+    $scope.$on('dashboardStateSelected', function (event, state) {
+        vm.currentState = state;
+    });
+
+    onShowingCallback.onShowed = () => {
+        vm.iframe = angular.element('#select-dashboard-frame');
+        loadDashboard();
+    };
+
+    function loadDashboard() {
+        vm.iframe.attr('state-select-view', true);
+        var path = '/dashboard/'+vm.dashboardId;
+        if (vm.currentState) {
+            path += '?state='+vm.currentState;
+        }
+        vm.iframe.attr('src', path);
+    }
+
+    function cancel() {
+        $mdDialog.cancel();
+    }
+
+    function select() {
+        $mdDialog.hide(vm.currentState);
+    }
+}

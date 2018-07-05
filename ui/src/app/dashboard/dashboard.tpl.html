@@ -111,7 +111,7 @@
                         </md-tooltip>
                         <md-icon aria-label="{{ 'dashboard.settings' | translate }}" class="material-icons">settings</md-icon>
                     </md-button>
-                    <tb-dashboard-select   ng-show="!vm.isEdit && !vm.widgetEditMode && vm.displayDashboardsSelect()"
+                    <tb-dashboard-select   ng-show="!vm.isEdit && !vm.widgetEditMode && !$root.stateSelectView && vm.displayDashboardsSelect()"
                                            ng-model="vm.currentDashboardId"
                                            dashboards-scope="{{vm.currentDashboardScope}}"
                                            customer-id="vm.currentCustomerId">
@@ -319,7 +319,7 @@
                       class="md-headline tb-absolute-fill">widget.select-widgets-bundle</span>
             </div>
         </tb-details-sidenav>
-        <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end" ng-if="!$root.reportView">
+        <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end" ng-if="!$root.reportView && !$root.stateSelectView">
             <md-fab-speed-dial ng-disabled="$root.loading" ng-show="!vm.isAddingWidget && vm.isEdit && !vm.widgetEditMode"
                                md-open="vm.addItemActionsOpen" class="md-scale" md-direction="up">
                 <md-fab-trigger>

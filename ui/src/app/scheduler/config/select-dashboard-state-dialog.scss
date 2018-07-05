@@ -1,4 +1,4 @@
-/*
+/**
  * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
@@ -29,22 +29,14 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import SelectDashboardStateController from './select-dashboard-state-dialog.controller';
-import ReportConfigDirective from './report-config.directive';
-import EmailConfigDirective from './email-config.directive';
-import GenerateReportEventConfigDirective from './generate-report.directive';
-import AttributeValueDirective from './attribute-value.directive';
-import AttributeKeyValueTableDirective from './attribute-key-value-table.directive';
-import UpdateAttributesEventConfigDirective from './update-attributes.directive';
-import SendRpcRequestEventConfigDirective from './send-rpc-request.directive';
-
-export default angular.module('thingsboard.scheduler.config', [])
-    .controller('SelectDashboardStateController', SelectDashboardStateController)
-    .directive('tbReportConfig', ReportConfigDirective)
-    .directive('tbEmailConfig', EmailConfigDirective)
-    .directive('tbGenerateReportEventConfig', GenerateReportEventConfigDirective)
-    .directive('tbAttributeValue', AttributeValueDirective)
-    .directive('tbAttributeKeyValueTable', AttributeKeyValueTableDirective)
-    .directive('tbUpdateAttributesEventConfig', UpdateAttributesEventConfigDirective)
-    .directive('tbSendRpcRequestEventConfig', SendRpcRequestEventConfigDirective)
-    .name;
+md-dialog.tb-select-dashboard-state-dialog {
+  &.md-dialog-fullscreen {
+    min-height: 100%;
+    min-width: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}

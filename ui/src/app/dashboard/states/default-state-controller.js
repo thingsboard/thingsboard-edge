@@ -31,7 +31,7 @@
 import './default-state-controller.scss';
 
 /*@ngInject*/
-export default function DefaultStateController($scope, $timeout, $location, $state,
+export default function DefaultStateController($rootScope, $scope, $timeout, $location, $window, $state,
                                                $stateParams, utils, types, dashboardUtils, preservedState) {
 
     var vm = this;
@@ -265,6 +265,15 @@ export default function DefaultStateController($scope, $timeout, $location, $sta
     function updateLocation() {
         if (vm.stateObject[0].id) {
             $location.search('state', utils.objToBase64(vm.stateObject));
+            notifyStateSelected();
         }
     }
+
+    function notifyStateSelected() {
+        if ($rootScope.stateSelectView) {
+            var parentScope = $window.parent.angular.element($window.frameElement).scope();
+            parentScope.$root.$broadcast('dashboardStateSelected', $location.search().state);
+        }
+    }
+
 }
