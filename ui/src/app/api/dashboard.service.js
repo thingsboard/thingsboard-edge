@@ -267,7 +267,7 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         if (port != 80 && port != 443) {
             url += ":" + port;
         }
-        url += "/dashboards/" + dashboard.id.id + "?publicId=" + dashboard.publicCustomerId;
+        url += "/dashboard/" + dashboard.id.id + "?publicId=" + dashboard.publicCustomerId;
         return url;
     }
 
