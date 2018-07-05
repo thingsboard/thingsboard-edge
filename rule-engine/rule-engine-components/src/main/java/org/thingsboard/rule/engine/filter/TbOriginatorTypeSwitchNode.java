@@ -43,7 +43,7 @@ import org.thingsboard.server.common.msg.TbMsg;
         name = "originator type switch",
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Device", "Asset", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
-                "Rule node", "Entity group", "Converter", "Integration"},
+                "Rule node", "Entity Group", "Data converter", "Integration"},
         nodeDescription = "Route incoming messages by Message Originator Type",
         nodeDetails = "Routes messages to chain according to the originator type ('Device', 'Asset', etc.).",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -87,10 +87,10 @@ public class TbOriginatorTypeSwitchNode implements TbNode {
                 relationType = "Rule node";
                 break;
             case ENTITY_GROUP:
-                relationType = "Entity group";
+                relationType = "Entity Group";
                 break;
             case CONVERTER:
-                relationType = "Converter";
+                relationType = "Data converter";
                 break;
             case INTEGRATION:
                 relationType = "Integration";
