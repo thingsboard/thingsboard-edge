@@ -43,6 +43,7 @@
     </md-radio-group>
     <tb-entity-select
             ng-if="!isEntityGroupOriginator"
+            allowed-entity-types="allowedEntityTypes"
             the-form="orginatorSelectForm"
             tb-required="required"
             ng-model="model.originatorId">

@@ -32,11 +32,20 @@
 -->
 
 <section ng-form name="sendRpcRequestConfigForm" layout="column">
-    <tb-entity-autocomplete the-form="sendRpcRequestConfigForm"
+    <!--tb-entity-autocomplete the-form="sendRpcRequestConfigForm"
                             tb-required="true"
                             entity-type="configuration.originatorId.entityType"
                             ng-model="configuration.originatorId.id">
-    </tb-entity-autocomplete>
+    </tb-entity-autocomplete-->
+    <div>
+        <small translate>scheduler.target</small>
+        <tb-originator-select
+                ng-required="true"
+                ng-model="configuration.originatorId"
+                allowed-entity-types="[types.entityType.device]">
+        </tb-originator-select>
+    </div>
+
     <md-input-container class="md-block">
         <label translate>scheduler.rpc-method</label>
         <input required name="rpcMethod" ng-model="configuration.msgBody.method">
