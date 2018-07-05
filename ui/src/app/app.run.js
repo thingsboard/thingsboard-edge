@@ -152,7 +152,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             } else {
                                 redirect = to.redirectTo;
                             }
-                            $state.go(redirect, params)
+                            $state.go(redirect, params);
+                        } else if (to.name === 'home.dashboards.dashboard' && $rootScope.forceFullscreen) {
+                            evt.preventDefault();
+                            $state.go('dashboard', params);
                         }
                     }
                 } else {
@@ -181,7 +184,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         updatePageTitle();
 
         $rootScope.stateChangeSuccessHandle = $rootScope.$on('$stateChangeSuccess', function (evt, to, params) {
-            if (userService.isPublic() && to.name === 'home.dashboards.dashboard') {
+            if (userService.isPublic() && to.name === 'dashboard') {
                 $location.search('publicId', userService.getPublicId());
                 userService.updateLastPublicDashboardId(params.dashboardId);
             }

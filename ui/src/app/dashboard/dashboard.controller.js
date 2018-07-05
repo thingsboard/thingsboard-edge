@@ -212,6 +212,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.displayDashboardTimewindow = displayDashboardTimewindow;
     vm.displayDashboardsSelect = displayDashboardsSelect;
     vm.displayEntitiesSelect = displayEntitiesSelect;
+    vm.hideFullscreenButton = hideFullscreenButton;
 
     vm.widgetsBundle;
 
@@ -274,7 +275,11 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                     dashboardId: vm.currentDashboardId
                 });
             } else {
-                $state.go('home.dashboards.dashboard', {dashboardId: vm.currentDashboardId});
+                if ($state.current.name === 'dashboard') {
+                    $state.go('dashboard', {dashboardId: vm.currentDashboardId});
+                } else {
+                    $state.go('home.dashboards.dashboard', {dashboardId: vm.currentDashboardId});
+                }
             }
         }
     });
@@ -829,6 +834,10 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         } else {
             return true;
         }
+    }
+
+    function hideFullscreenButton() {
+        return vm.widgetEditMode || vm.iframeMode || $rootScope.forceFullscreen || $state.current.name === 'dashboard';
     }
 
     function onRevertWidgetEdit(widgetForm) {
