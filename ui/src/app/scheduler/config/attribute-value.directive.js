@@ -47,13 +47,25 @@ export default function AttributeValueDirective($compile, $templateCache, types)
 
         scope.$watch('model.value', function (newValue, oldValue) {
             if (!angular.equals(newValue, oldValue)) {
-                ngModelCtrl.$setViewValue(scope.model.value);
+                ngModelCtrl.$setViewValue(prepareValue(scope.model.value));
             }
         });
+
+        function prepareValue(origValue) {
+            var result = origValue;
+            if (scope.valueType === types.valueType.string) {
+                if (!origValue) {
+                    result = '';
+                }
+            }
+            return result;
+        }
 
         scope.valueTypeChange = function() {
             if (scope.valueType === types.valueType.boolean) {
                 scope.model.value = false;
+            } else if (scope.valueType === types.valueType.string) {
+                scope.model.value = '';
             } else {
                 scope.model.value = null;
             }

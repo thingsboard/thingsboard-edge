@@ -46,6 +46,14 @@ export default function OriginatorSelectDirective($compile, $templateCache, type
         scope.model = {
         };
 
+        if (!scope.singleEntityText) {
+            scope.singleEntityText = 'scheduler.single-entity';
+        }
+
+        if (!scope.groupOfEntitiesText) {
+            scope.groupOfEntitiesText = 'scheduler.group-of-entities';
+        }
+
         scope.$watch('model.originatorId', function (newVal, prevVal) {
             if (!angular.equals(newVal, prevVal)) {
                 updateViewValue();
@@ -91,7 +99,9 @@ export default function OriginatorSelectDirective($compile, $templateCache, type
             allowedEntityTypes: '=?',
             required:'=ngRequired',
             readonly:'=ngReadonly',
-            onCurrentGroupType: '&?'
+            onCurrentGroupType: '&?',
+            singleEntityText: '@?',
+            groupOfEntitiesText: '@?'
         },
         link: linker
     };

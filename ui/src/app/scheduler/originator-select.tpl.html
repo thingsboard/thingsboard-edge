@@ -34,11 +34,11 @@
     <md-radio-group layout="row" ng-model="isEntityGroupOriginator"
                     style="padding-top: 16px; padding-bottom: 16px;"
                     class="md-primary" ng-change="isEntityGroupOriginatorChange()">
-        <md-radio-button ng-value=false aria-label="{{ 'scheduler.single-entity' | translate }}" class="md-primary md-align-top-left">
-            <span translate>scheduler.single-entity</span>
+        <md-radio-button ng-value=false aria-label="{{ singleEntityText | translate }}" class="md-primary md-align-top-left">
+            <span>{{ singleEntityText | translate }}</span>
         </md-radio-button>
-        <md-radio-button ng-value=true aria-label="{{ 'scheduler.group-of-entities' | translate }}" class="md-primary md-align-top-left">
-            <span translate>scheduler.group-of-entities</span>
+        <md-radio-button ng-value=true aria-label="{{ groupOfEntitiesText | translate }}" class="md-primary md-align-top-left">
+            <span>{{ groupOfEntitiesText | translate }}</span>
         </md-radio-button>
     </md-radio-group>
     <tb-entity-select

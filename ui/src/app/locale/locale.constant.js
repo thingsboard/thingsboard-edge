@@ -1687,6 +1687,8 @@ export default angular.module('thingsboard.locale', [])
                     "originator": "Originator",
                     "single-entity": "Single entity",
                     "group-of-entities": "Group of entities",
+                    "single-device": "Single device",
+                    "group-of-devices": "Group of devices",
                     "message-body": "Message body",
                     "target": "Target",
                     "rpc-method": "Method",
