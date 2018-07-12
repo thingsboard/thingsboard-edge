@@ -925,7 +925,7 @@ export default class Subscription {
                     dataObj["Timestamp"] = tsRow["Timestamp"];
                     for (col=0;col<rowKeys.length;col++) {
                         key = rowKeys[col];
-                        if (tsRow[key]) {
+                        if (angular.isDefined(tsRow[key])) {
                             dataObj[key] = tsRow[key];
                         } else {
                             dataObj[key] = null;
