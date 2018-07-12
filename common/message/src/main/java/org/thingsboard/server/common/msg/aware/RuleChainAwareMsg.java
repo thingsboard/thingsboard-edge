@@ -28,29 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.ruleChain;
+package org.thingsboard.server.common.msg.aware;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.RuleNodeId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.TbActorMsg;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.data.id.RuleChainId;
 
-import java.util.Set;
+public interface RuleChainAwareMsg {
 
-/**
- * Created by ashvayka on 19.03.18.
- */
-@Data
-class RuleNodeToRuleChainTellNextMsg implements TbActorMsg {
-
-    private final RuleNodeId originator;
-    private final Set<String> relationTypes;
-    private final TbMsg msg;
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.RULE_TO_RULE_CHAIN_TELL_NEXT_MSG;
-    }
-
+	RuleChainId getRuleChainId();
+	
 }
