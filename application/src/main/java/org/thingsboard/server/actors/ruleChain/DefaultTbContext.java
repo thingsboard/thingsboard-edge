@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -63,11 +64,13 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.service.script.JsScriptType;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -124,6 +127,17 @@ class DefaultTbContext implements TbContext, TbPeContext {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, "ACK", null);
         }
         nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
+    }
+
+    @Override
+    public boolean isLocalEntity(EntityId entityId) {
+        Optional<ServerAddress> address = mainCtx.getRoutingService().resolveById(entityId);
+        return !address.isPresent();
+    }
+
+    @Override
+    public ScriptEngine createAttributesJsScriptEngine(String script) {
+        return new RuleNodeJsScriptEngine(mainCtx.getJsSandbox(), JsScriptType.ATTRIBUTES_SCRIPT, script);
     }
 
     @Override

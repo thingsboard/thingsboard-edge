@@ -28,11 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.rule.engine.math.mapper.latest;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+import java.math.BigDecimal;
+
+public class TbSumAggFunction extends TbBaseAggFunction {
+
+    private BigDecimal sum = BigDecimal.ZERO;
+
+    @Override
+    protected void doUpdate(double value) {
+        if (value != 0.0) {
+            sum = sum.add(BigDecimal.valueOf(value));
+        }
+    }
+
+    @Override
+    protected double prepareResult() {
+        return sum.doubleValue();
+    }
+
+
 }

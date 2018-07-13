@@ -28,11 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.rule.engine.math.mapper.latest;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+import org.thingsboard.rule.engine.math.MathFunction;
+
+public class TbAggFunctionFactory {
+
+    public static TbAggFunction createAggFunction(MathFunction mathFunction) {
+        switch (mathFunction) {
+            case MIN:
+                return new TbMinAggFunction();
+            case MAX:
+                return new TbMaxAggFunction();
+            case SUM:
+                return new TbSumAggFunction();
+            case AVG:
+                return new TbAvgAggFunction();
+            case COUNT:
+                return new TbCountAggFunction();
+            case COUNT_UNIQUE:
+                return new TbCountUniqueAggFunction();
+            default:
+                throw new IllegalArgumentException("Unsupported math function: " + mathFunction.name() + "!");
+        }
+    }
+
 }

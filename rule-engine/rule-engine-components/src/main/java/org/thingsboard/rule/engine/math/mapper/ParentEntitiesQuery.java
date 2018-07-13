@@ -28,11 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.rule.engine.math.mapper;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.id.EntityId;
+
+import java.util.List;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ParentEntitiesRelationsQuery.class, name = "relationsQuery"),
+        @JsonSubTypes.Type(value = ParentEntitiesGroup.class, name = "single"),
+        @JsonSubTypes.Type(value = ParentEntitiesSingleEntity.class, name = "group")})
+public interface ParentEntitiesQuery {
+
+    ListenableFuture<List<EntityId>> getParentEntitiesAsync(TbContext ctx);
+
+    ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId);
+
 }

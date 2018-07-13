@@ -28,11 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.rule.engine.math.mapper;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+import lombok.Data;
+
+import java.util.concurrent.TimeUnit;
+
+@Data
+public abstract class TbAbstractMapperNodeConfiguration {
+
+    private ParentEntitiesQuery parentEntitiesQuery;
+
+    private TimeUnit periodTimeUnit;
+    private int periodValue;
+
 }

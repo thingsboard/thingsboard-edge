@@ -28,11 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.rule.engine.math.mapper.latest;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+public class TbMaxAggFunction extends TbBaseAggFunction {
+
+    private double max = -Double.MAX_VALUE;
+
+    @Override
+    protected void doUpdate(double value) {
+        if (value > max) {
+            max = value;
+        }
+    }
+
+    @Override
+    protected double prepareResult() {
+        return max;
+    }
+
+
 }

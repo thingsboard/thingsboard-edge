@@ -28,11 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.rule.engine.math.mapper.latest;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import org.thingsboard.server.common.data.kv.KvEntry;
+
+import java.util.Optional;
+
+public class TbCountAggFunction implements TbAggFunction {
+
+    private long count = 0L;
+
+    @Override
+    public void update(Optional<KvEntry> entry, double defaultValue) {
+        count++;
+    }
+
+    @Override
+    public Optional<JsonElement> result() {
+        return Optional.of(new JsonPrimitive(count));
+    }
+
+    @Override
+    public boolean fetchAttrValue() { return false; }
 }

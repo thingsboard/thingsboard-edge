@@ -30,9 +30,18 @@
  */
 package org.thingsboard.server.service.script;
 
-public enum JsScriptType {
-    RULE_NODE_SCRIPT,
-    ATTRIBUTES_SCRIPT,
-    UPLINK_CONVERTER_SCRIPT,
-    DOWNLINK_CONVERTER_SCRIPT
+public class AttributesScriptFactory {
+
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(attributesStr) { " +
+            "    var attributes = JSON.parse(attributesStr); " +
+            "    return JSON.stringify(attributesFunc(attributes));" +
+            "    function attributesFunc(attributes) {";
+    private static final String JS_WRAPPER_SUFFIX = "}" +
+            "\n}";
+
+    public static String generateAttributesScript(String functionName, String scriptBody) {
+        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, functionName);
+        return jsWrapperPrefix + scriptBody + JS_WRAPPER_SUFFIX;
+    }
+
 }

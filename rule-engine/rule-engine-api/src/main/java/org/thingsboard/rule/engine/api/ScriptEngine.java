@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
+import java.util.Map;
 import java.util.Set;
 
 public interface ScriptEngine {
@@ -43,6 +44,8 @@ public interface ScriptEngine {
     TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
 
     boolean executeFilter(TbMsg msg) throws ScriptException;
+
+    boolean executeAttributesFilter(Map<String,String> attributes) throws ScriptException;
 
     Set<String> executeSwitch(TbMsg msg) throws ScriptException;
 

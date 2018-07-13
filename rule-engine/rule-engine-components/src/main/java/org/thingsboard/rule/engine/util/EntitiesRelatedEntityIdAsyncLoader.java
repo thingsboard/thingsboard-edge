@@ -45,6 +45,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EntitiesRelatedEntityIdAsyncLoader {
@@ -66,6 +67,11 @@ public class EntitiesRelatedEntityIdAsyncLoader {
 
     public static ListenableFuture<List<EntityId>> findEntitiesAsync(TbContext ctx, EntityId originator,
                                                                      RelationsQuery relationsQuery) {
+        return findEntitiesAsync(ctx, originator, relationsQuery, entityId -> true);
+    }
+
+    public static ListenableFuture<List<EntityId>> findEntitiesAsync(TbContext ctx, EntityId originator,
+                                                                     RelationsQuery relationsQuery, Predicate<EntityId> entityFilter) {
         RelationService relationService = ctx.getRelationService();
         EntityRelationsQuery query = buildQuery(originator, relationsQuery);
         ListenableFuture<List<EntityRelation>> asyncRelation = relationService.findByQuery(query);
@@ -81,7 +87,7 @@ public class EntitiesRelatedEntityIdAsyncLoader {
         }
 
         return Futures.transformAsync(asyncRelation, r -> CollectionUtils.isNotEmpty(r)
-                ? Futures.immediateFuture(r.stream().map(mapFunction).collect(Collectors.toList()))
+                ? Futures.immediateFuture(r.stream().map(mapFunction).filter(entityFilter).collect(Collectors.toList()))
                 : Futures.immediateFuture(null));
     }
 
