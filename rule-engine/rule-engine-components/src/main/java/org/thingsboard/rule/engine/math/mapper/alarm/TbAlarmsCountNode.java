@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.math.mapper.alarm;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,10 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.math.mapper.TbAbstractMapperNode;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.*;
 
@@ -82,7 +87,10 @@ public class TbAlarmsCountNode extends TbAbstractMapperNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                throw new RuntimeException("Failed to fetch child entities for parent entity [" + parentEntityId + "]", e);
+                TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                        parentEntityId, new TbMsgMetaData(), TbMsgDataType.JSON,
+                        "", null, null, 0L);
+                ctx.tellFailure(msg, new RuntimeException("Failed to fetch child entities for parent entity [" + parentEntityId + "]", e));
             }
         }
         Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> result = new HashMap<>();

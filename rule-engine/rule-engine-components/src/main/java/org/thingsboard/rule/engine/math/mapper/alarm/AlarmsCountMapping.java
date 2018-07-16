@@ -31,12 +31,9 @@
 package org.thingsboard.rule.engine.math.mapper.alarm;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.data.alarm.AlarmId;
@@ -53,7 +50,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 @Data
-public class AlarmsCountMapping implements Predicate<AlarmInfo> {
+public class AlarmsCountMapping {
 
     private String target;
     private List<String> typesList;
@@ -75,11 +72,12 @@ public class AlarmsCountMapping implements Predicate<AlarmInfo> {
                 return Futures.successfulAsList(alarmFutures);
             }, ctx.getDbCallbackExecutor());
             return Futures.transform(alarmsFuture,
-                    alarms -> Optional.of(prepareResult(alarms.stream().filter(AlarmsCountMapping.this).count())),
+                    alarms -> Optional.of(prepareResult(alarms.stream().filter(createAlarmFilter()).count())),
                     ctx.getDbCallbackExecutor());
         } else if (executeTimeFilter) {
+            long maxTime = System.currentTimeMillis() - latestInterval;
             return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().filter(relation ->
-                UUIDs.unixTimestamp(relation.getTo().getId()) < System.currentTimeMillis() - latestInterval
+                UUIDs.unixTimestamp(relation.getTo().getId()) >= maxTime
             ).count())), ctx.getDbCallbackExecutor());
         } else {
             return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.size())), ctx.getDbCallbackExecutor());
@@ -92,23 +90,25 @@ public class AlarmsCountMapping implements Predicate<AlarmInfo> {
         return obj;
     }
 
-    @Override
-    public boolean test(AlarmInfo alarmInfo) {
-        if (!matches(typesList, alarmInfo.getType())) {
-            return false;
-        }
-        if (!matches(severityList, alarmInfo.getSeverity())) {
-            return false;
-        }
-        if (!matches(statusList, alarmInfo.getStatus())) {
-            return false;
-        }
-        if (latestInterval > 0) {
-            if (alarmInfo.getCreatedTime() < System.currentTimeMillis() - latestInterval) {
+    private Predicate<AlarmInfo> createAlarmFilter() {
+        long maxTime = System.currentTimeMillis() - latestInterval;
+        return alarmInfo -> {
+            if (!matches(typesList, alarmInfo.getType())) {
                 return false;
             }
-        }
-        return true;
+            if (!matches(severityList, alarmInfo.getSeverity())) {
+                return false;
+            }
+            if (!matches(statusList, alarmInfo.getStatus())) {
+                return false;
+            }
+            if (latestInterval > 0) {
+                if (alarmInfo.getCreatedTime() >= maxTime) {
+                    return false;
+                }
+            }
+            return true;
+        };
     }
 
     private <T> boolean matches (List<T> filterList, T value) {

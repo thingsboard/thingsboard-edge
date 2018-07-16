@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.relation.RelationService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -88,7 +89,7 @@ public class EntitiesRelatedEntityIdAsyncLoader {
 
         return Futures.transformAsync(asyncRelation, r -> CollectionUtils.isNotEmpty(r)
                 ? Futures.immediateFuture(r.stream().map(mapFunction).filter(entityFilter).collect(Collectors.toList()))
-                : Futures.immediateFuture(null));
+                : Futures.immediateFuture(Collections.emptyList()));
     }
 
     private static EntityRelationsQuery buildQuery(EntityId originator, RelationsQuery relationsQuery) {
