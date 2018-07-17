@@ -28,13 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.incoming.state;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 13.06.18.
  */
-public enum ComponentType {
+@Data
+@NoArgsConstructor
+public class TbAvgIntervalState extends TbBaseIntervalState {
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+    private BigDecimal sum = BigDecimal.ZERO;
+    private long count = 0L;
 
+    public TbAvgIntervalState(JsonElement stateJson) {
+        JsonObject jsonObject = stateJson.getAsJsonObject();
+        this.sum = new BigDecimal(jsonObject.get("sum").getAsString());
+        this.count = jsonObject.get("count").getAsLong();
+    }
+
+    @Override
+    protected boolean doUpdate(JsonElement data) {
+        double value = data.getAsDouble();
+        if (value != 0.0) {
+            sum = sum.add(BigDecimal.valueOf(value));
+        }
+        this.count++;
+        return true;
+    }
+
+    @Override
+    public String toValueJson(Gson gson, String outputValueKey) {
+        JsonObject json = new JsonObject();
+        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
+        return gson.toJson(json);
+    }
+
+    @Override
+    public String toStateJson(Gson gson) {
+        JsonObject object = new JsonObject();
+        object.addProperty("sum", sum.toString());
+        object.addProperty("count", Long.toString(count));
+        return gson.toJson(object);
+    }
 }

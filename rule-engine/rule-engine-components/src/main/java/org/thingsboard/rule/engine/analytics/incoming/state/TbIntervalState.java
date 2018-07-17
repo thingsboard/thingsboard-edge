@@ -28,13 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.incoming.state;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 07.06.18.
  */
-public enum ComponentType {
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+public interface TbIntervalState {
+
+    void update(JsonElement value);
+
+    boolean hasChangesToPersist();
+
+    void clearChangesToPersist();
+
+    boolean hasChangesToReport();
+
+    void clearChangesToReport();
+
+    String toValueJson(Gson gson, String outputValueKey);
+
+    String toStateJson(Gson gson);
 
 }

@@ -28,13 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.rule.engine.util.EntitiesRelatedEntityIdAsyncLoader;
+import org.thingsboard.server.common.data.id.EntityId;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.List;
+
+@Data
+public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
+
+    private EntityId rootEntityId;
+    private RelationsQuery relationsQuery;
+    private RelationsQuery childRelationsQuery;
+
+    @Override
+    public ListenableFuture<List<EntityId>> getParentEntitiesAsync(TbContext ctx) {
+        return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, rootEntityId, relationsQuery,
+                entityId -> ctx.getPeContext().isLocalEntity(entityId));
+    }
+
+    @Override
+    public ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId) {
+        return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, parentEntityId, childRelationsQuery);
+    }
 
 }

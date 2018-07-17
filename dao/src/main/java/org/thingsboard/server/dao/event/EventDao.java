@@ -102,7 +102,7 @@ public interface EventDao extends Dao<Event> {
     List<Event> findEvents(UUID tenantId, EntityId entityId, String eventType, TimePageLink pageLink);
 
     /**
-     * Find latest events by tenantId, entityId and eventType.
+     * Find telemetry events by tenantId, entityId and eventType.
      *
      * @param tenantId the tenantId
      * @param entityId the entityId

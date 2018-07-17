@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -59,6 +61,7 @@ import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -117,6 +120,9 @@ public class AccessValidator {
 
     @Autowired
     protected BlobEntityService blobEntityService;
+
+    @Autowired
+    protected EntityGroupService entityGroupService;
 
     private ExecutorService executor;
 
@@ -202,6 +208,9 @@ public class AccessValidator {
                 return;
             case BLOB_ENTITY:
                 validateBlobEntity(currentUser, entityId, callback);
+                return;
+            case ENTITY_GROUP:
+                validateEntityGroup(currentUser, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -429,6 +438,35 @@ public class AccessValidator {
         }
     }
 
+    private void validateEntityGroup(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isCustomerUser()) {
+            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(new EntityGroupId(entityId.getId()));
+            ListenableFuture<Pair<EntityGroup, Boolean>> entityGroupCheckPairFuture =
+                Futures.transformAsync(entityGroupFuture, entityGroup -> {
+                    ListenableFuture<Boolean> entityGroupCheckFuture;
+                    if (entityGroup != null) {
+                        entityGroupCheckFuture =
+                                entityGroupService.checkEntityGroup(currentUser.getTenantId(), entityGroup);
+                    } else {
+                        entityGroupCheckFuture = Futures.immediateFuture(false);
+                    }
+                    return Futures.transform(entityGroupCheckFuture, result -> Pair.of(entityGroup, result));
+            }, executor);
+            Futures.addCallback(entityGroupCheckPairFuture, getCallback(callback, entityGroupCheckPair -> {
+                if (entityGroupCheckPair.getFirst() == null) {
+                    return ValidationResult.entityNotFound("Entity group with requested id wasn't found!");
+                } else if (!entityGroupCheckPair.getSecond()) {
+                    return ValidationResult.accessDenied("Entity group doesn't belong to the current Tenant!");
+                } else {
+                    return ValidationResult.ok(entityGroupCheckPair.getFirst());
+                }
+            }), executor);
+        }
+    }
 
     private <T, V> FutureCallback<T> getCallback(FutureCallback<ValidationResult> callback, Function<T, ValidationResult<V>> transformer) {
         return new FutureCallback<T>() {

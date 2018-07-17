@@ -28,13 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import java.math.BigDecimal;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+public class TbSumAggFunction extends TbBaseAggFunction {
+
+    private BigDecimal sum = BigDecimal.ZERO;
+
+    @Override
+    protected void doUpdate(double value) {
+        if (value != 0.0) {
+            sum = sum.add(BigDecimal.valueOf(value));
+        }
+    }
+
+    @Override
+    protected double prepareResult() {
+        return sum.doubleValue();
+    }
+
 
 }

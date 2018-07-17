@@ -164,7 +164,7 @@ public class CassandraBaseEventDao extends CassandraAbstractSearchTimeDao<EventE
 
     @Override
     public List<Event> findLatestEvents(UUID tenantId, EntityId entityId, String eventType, int limit) {
-        log.trace("Try to find latest events by tenant [{}], entity [{}], type [{}] and limit [{}]", tenantId, entityId, eventType, limit);
+        log.trace("Try to find telemetry events by tenant [{}], entity [{}], type [{}] and limit [{}]", tenantId, entityId, eventType, limit);
         Select select = select().from(EVENT_BY_TYPE_AND_ID_VIEW_NAME);
         Select.Where query = select.where();
         query.and(eq(ModelConstants.EVENT_TENANT_ID_PROPERTY, tenantId));

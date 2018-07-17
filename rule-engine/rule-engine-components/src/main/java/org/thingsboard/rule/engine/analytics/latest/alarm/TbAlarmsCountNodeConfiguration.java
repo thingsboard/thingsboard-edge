@@ -28,13 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.alarm;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import lombok.Data;
+import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
+import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+@Data
+public class TbAlarmsCountNodeConfiguration extends TbAbstractLatestNodeConfiguration implements NodeConfiguration {
+
+    private boolean countAlarmsForChildEntities;
+    private List<AlarmsCountMapping> alarmsCountMappings;
+
+    @Override
+    public TbAlarmsCountNodeConfiguration defaultConfiguration() {
+        TbAlarmsCountNodeConfiguration configuration = new TbAlarmsCountNodeConfiguration();
+
+        configuration.setParentEntitiesQuery(new ParentEntitiesGroup());
+
+        configuration.setCountAlarmsForChildEntities(false);
+
+        List<AlarmsCountMapping> alarmsCountMappings = new ArrayList<>();
+        AlarmsCountMapping alarmsCountMapping = new AlarmsCountMapping();
+        alarmsCountMapping.setTarget("alarmsCount");
+        alarmsCountMappings.add(alarmsCountMapping);
+
+        configuration.setAlarmsCountMappings(alarmsCountMappings);
+
+        configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
+        configuration.setPeriodValue(5);
+
+        return configuration;
+    }
 }

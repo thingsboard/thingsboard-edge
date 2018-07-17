@@ -28,13 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.incoming.state;
+
+import com.google.gson.JsonElement;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 13.06.18.
  */
-public enum ComponentType {
+@Data
+@NoArgsConstructor
+abstract class TbBaseIntervalState implements TbIntervalState {
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+    private boolean hasChangesToPersist = true;
+    private boolean hasChangesToReport = true;
 
+    @Override
+    public void update(JsonElement value) {
+        if(doUpdate(value)){
+            hasChangesToPersist = true;
+            hasChangesToReport = true;
+        }
+    }
+
+    @Override
+    public boolean hasChangesToReport(){
+        return hasChangesToReport;
+    }
+
+    @Override
+    public boolean hasChangesToPersist(){
+        return hasChangesToPersist;
+    }
+
+    @Override
+    public void clearChangesToPersist(){
+        hasChangesToPersist = false;
+    }
+
+    @Override
+    public void clearChangesToReport(){
+        hasChangesToReport = false;
+    }
+
+    protected abstract boolean doUpdate(JsonElement value);
 }

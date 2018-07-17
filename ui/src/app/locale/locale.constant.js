@@ -1584,6 +1584,8 @@ export default angular.module('thingsboard.locale', [])
                     "type-transformation-details": "Change Message payload and Metadata",
                     "type-action": "Action",
                     "type-action-details": "Perform special action",
+                    "type-analytics": "Analytics",
+                    "type-analytics-details": "Perform analysis of streamed or persisted data",
                     "type-external": "External",
                     "type-external-details": "Interacts with external system",
                     "type-rule-chain": "Rule Chain",

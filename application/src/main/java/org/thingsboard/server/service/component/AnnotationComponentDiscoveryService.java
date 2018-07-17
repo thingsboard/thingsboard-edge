@@ -140,6 +140,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
                 case FILTER:
                 case TRANSFORMATION:
                 case ACTION:
+                case ANALYTICS:
                 case EXTERNAL:
                     RuleNode ruleNodeAnnotation = clazz.getAnnotation(RuleNode.class);
                     scannedComponent.setName(ruleNodeAnnotation.name());

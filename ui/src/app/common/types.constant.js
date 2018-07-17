@@ -865,7 +865,7 @@ export default angular.module('thingsboard.types', [])
                     clientSide: false
                 }
             },
-            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "EXTERNAL"],
+            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],
             ruleChainNodeComponent: {
                 type: 'RULE_CHAIN',
                 name: 'rule chain',
@@ -931,6 +931,13 @@ export default angular.module('thingsboard.types', [])
                     details: "rulenode.type-action-details",
                     nodeClass: "tb-action-type",
                     icon: "flash_on"
+                },
+                ANALYTICS: {
+                    value: "ANALYTICS",
+                    name: "rulenode.type-analytics",
+                    details: "rulenode.type-analytics-details",
+                    nodeClass: "tb-analytics-type",
+                    icon: "functions"
                 },
                 EXTERNAL: {
                     value: "EXTERNAL",

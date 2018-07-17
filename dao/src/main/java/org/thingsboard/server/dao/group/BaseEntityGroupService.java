@@ -466,7 +466,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                     entityView.put(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
                 });
             } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to fetch entity latest timeseries", e);
+                log.error("Unable to fetch entity telemetry timeseries", e);
             }
         }
     }

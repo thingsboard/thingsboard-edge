@@ -28,13 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import com.google.gson.JsonElement;
+import org.thingsboard.server.common.data.kv.KvEntry;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.Optional;
+
+public interface TbAggFunction {
+
+    void update(Optional<KvEntry> entry, double defaultValue);
+
+    Optional<JsonElement> result();
+
+    default boolean fetchAttrValue() { return true; }
 
 }

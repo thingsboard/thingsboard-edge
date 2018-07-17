@@ -28,13 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.incoming.state;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 13.06.18.
  */
-public enum ComponentType {
-
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
-
+public enum StatePersistPolicy {
+    ON_EACH_CHANGE, PERIODICALLY
 }

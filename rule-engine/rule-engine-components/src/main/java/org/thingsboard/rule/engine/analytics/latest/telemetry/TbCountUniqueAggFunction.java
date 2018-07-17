@@ -28,13 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import org.thingsboard.server.common.data.kv.KvEntry;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
+public class TbCountUniqueAggFunction implements TbAggFunction {
+
+    private Set<String> items = new HashSet<>();
+
+    @Override
+    public void update(Optional<KvEntry> entry, double defaultValue) {
+        if (entry.isPresent()) {
+            items.add(entry.get().getValueAsString());
+        }
+    }
+
+    @Override
+    public Optional<JsonElement> result() {
+        return Optional.of(new JsonPrimitive(items.size()));
+    }
 }

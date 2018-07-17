@@ -28,13 +28,48 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.incoming.state;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Andrew Shvayka
+ * Created by ashvayka on 13.06.18.
  */
-public enum ComponentType {
+@Data
+@NoArgsConstructor
+public class TbCountUniqueIntervalState extends TbBaseIntervalState {
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+    private Set<String> items = new HashSet<>();
 
+    public TbCountUniqueIntervalState(JsonElement stateJson) {
+        stateJson.getAsJsonArray().forEach(jsonElement -> items.add(jsonElement.toString()));
+    }
+
+    @Override
+    protected boolean doUpdate(JsonElement data) {
+        return items.add(data.getAsString());
+    }
+
+    @Override
+    public String toValueJson(Gson gson, String outputValueKey) {
+        JsonObject json = new JsonObject();
+        json.addProperty(outputValueKey, items.size());
+        return gson.toJson(json);
+    }
+
+    @Override
+    public String toStateJson(Gson gson) {
+        JsonArray array = new JsonArray();
+        items.forEach(item -> array.add(new JsonPrimitive(item)));
+        return gson.toJson(array);
+    }
 }

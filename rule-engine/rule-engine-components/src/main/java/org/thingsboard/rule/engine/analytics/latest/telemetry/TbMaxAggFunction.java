@@ -28,13 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+public class TbMaxAggFunction extends TbBaseAggFunction {
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+    private double max = -Double.MAX_VALUE;
+
+    @Override
+    protected void doUpdate(double value) {
+        if (value > max) {
+            max = value;
+        }
+    }
+
+    @Override
+    protected double prepareResult() {
+        return max;
+    }
+
 
 }

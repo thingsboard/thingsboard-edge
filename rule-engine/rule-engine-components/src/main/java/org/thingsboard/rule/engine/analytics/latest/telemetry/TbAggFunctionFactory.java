@@ -28,13 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+public class TbAggFunctionFactory {
+
+    public static TbAggFunction createAggFunction(MathFunction mathFunction) {
+        switch (mathFunction) {
+            case MIN:
+                return new TbMinAggFunction();
+            case MAX:
+                return new TbMaxAggFunction();
+            case SUM:
+                return new TbSumAggFunction();
+            case AVG:
+                return new TbAvgAggFunction();
+            case COUNT:
+                return new TbCountAggFunction();
+            case COUNT_UNIQUE:
+                return new TbCountUniqueAggFunction();
+            default:
+                throw new IllegalArgumentException("Unsupported incoming function: " + mathFunction.name() + "!");
+        }
+    }
 
 }

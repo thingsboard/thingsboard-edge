@@ -191,7 +191,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 unsubscribe(sessionRef, cmd, sessionId);
             } else if (validateSubscriptionCmd(sessionRef, cmd)) {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(cmd.getEntityType(), cmd.getEntityId());
-                log.debug("[{}] fetching latest attributes ({}) values for device: {}", sessionId, cmd.getKeys(), entityId);
+                log.debug("[{}] fetching telemetry attributes ({}) values for device: {}", sessionId, cmd.getKeys(), entityId);
                 Optional<Set<String>> keysOptional = getKeys(cmd);
                 if (keysOptional.isPresent()) {
                     List<String> keys = new ArrayList<>(keysOptional.get());
@@ -361,7 +361,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         } else {
             List<String> keys = new ArrayList<>(getKeys(cmd).orElse(Collections.emptySet()));
             startTs = System.currentTimeMillis();
-            log.debug("[{}] fetching latest timeseries data for keys: ({}) for device : {}", sessionId, cmd.getKeys(), entityId);
+            log.debug("[{}] fetching telemetry timeseries data for keys: ({}) for device : {}", sessionId, cmd.getKeys(), entityId);
             final FutureCallback<List<TsKvEntry>> callback = getSubscriptionCallback(sessionRef, cmd, sessionId, entityId, startTs, keys);
             accessValidator.validate(sessionRef.getSecurityCtx(), entityId,
                     on(r -> Futures.addCallback(tsService.findLatest(entityId, keys), callback, executor), callback::onFailure));

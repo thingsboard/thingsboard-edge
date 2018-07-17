@@ -28,13 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.Collections;
+import java.util.List;
+
+@Data
+public class ParentEntitiesGroup implements ParentEntitiesQuery {
+
+    private EntityId entityGroupId;
+
+    @Override
+    public ListenableFuture<List<EntityId>> getParentEntitiesAsync(TbContext ctx) {
+        if (ctx.getPeContext().isLocalEntity(entityGroupId)) {
+            return Futures.immediateFuture(Collections.singletonList(entityGroupId));
+        } else {
+            return Futures.immediateFuture(Collections.emptyList());
+        }
+    }
+
+    @Override
+    public ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId) {
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(new EntityGroupId(parentEntityId.getId()),
+                new TimePageLink(Integer.MAX_VALUE));
+    }
 
 }

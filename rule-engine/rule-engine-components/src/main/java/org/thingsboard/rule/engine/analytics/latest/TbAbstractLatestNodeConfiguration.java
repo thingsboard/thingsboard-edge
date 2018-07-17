@@ -28,13 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import lombok.Data;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.concurrent.TimeUnit;
+
+@Data
+public abstract class TbAbstractLatestNodeConfiguration {
+
+    private ParentEntitiesQuery parentEntitiesQuery;
+
+    private TimeUnit periodTimeUnit;
+    private int periodValue;
 
 }

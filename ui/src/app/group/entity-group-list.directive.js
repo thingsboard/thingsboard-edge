@@ -53,7 +53,7 @@ export default function EntityGroupListDirective($compile, $templateCache, $q, $
         scope.fetchEntityGroups = function(searchText, limit) {
             if (scope.groupType) {
                 var deferred = $q.defer();
-                entityService.getEntitiesByNameFilter(types.entityType.entityGroup, searchText, limit, null, scope.groupType).then(
+                entityService.getEntitiesByNameFilter(types.entityType.entityGroup, searchText, limit, {ignoreLoading: true}, scope.groupType).then(
                     function success(result) {
                         if (result) {
                             deferred.resolve(result);

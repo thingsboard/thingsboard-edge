@@ -28,13 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.plugin;
+package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-/**
- * @author Andrew Shvayka
- */
-public enum ComponentType {
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
+import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
+import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+@Data
+public class TbAggLatestTelemetryNodeConfiguration extends TbAbstractLatestNodeConfiguration implements NodeConfiguration {
+
+    private List<AggLatestMapping> aggMappings;
+
+    @Override
+    public TbAggLatestTelemetryNodeConfiguration defaultConfiguration() {
+        TbAggLatestTelemetryNodeConfiguration configuration = new TbAggLatestTelemetryNodeConfiguration();
+
+        configuration.setParentEntitiesQuery(new ParentEntitiesGroup());
+
+        List<AggLatestMapping> aggMappings = new ArrayList<>();
+        AggLatestMapping aggMapping = new AggLatestMapping();
+        aggMapping.setSource("temperature");
+        aggMapping.setSourceScope("LATEST_TELEMETRY");
+        aggMapping.setAggFunction(MathFunction.AVG);
+        aggMapping.setDefaultValue(0);
+        aggMapping.setTarget("latestAvgTemperature");
+        aggMappings.add(aggMapping);
+
+        configuration.setAggMappings(aggMappings);
+
+        configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
+        configuration.setPeriodValue(5);
+
+        return configuration;
+    }
 }
