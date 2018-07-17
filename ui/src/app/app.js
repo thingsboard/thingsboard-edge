@@ -77,7 +77,7 @@ import react from 'ngreact';
 import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import 'ngFlowchart/dist/ngFlowchart';
 
-import thingsboardLocales from './locale/locale.constant';
+import thingsboardTranslateHandler from './locale/translate-handler';
 import thingsboardLogin from './login';
 import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
 import thingsboardDialogs from './dialog';
@@ -151,7 +151,7 @@ angular.module('thingsboard', [
     react.name,
     'flow',
     'flowchart',
-    thingsboardLocales,
+    thingsboardTranslateHandler,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
     thingsboardDialogs,
