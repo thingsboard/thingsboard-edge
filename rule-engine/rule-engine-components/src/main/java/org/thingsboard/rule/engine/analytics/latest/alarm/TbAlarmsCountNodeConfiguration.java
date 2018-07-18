@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Data
-public class TbAlarmsCountNodeConfiguration extends TbAbstractLatestNodeConfiguration implements NodeConfiguration {
+public class TbAlarmsCountNodeConfiguration extends TbAbstractLatestNodeConfiguration {
 
     private boolean countAlarmsForChildEntities;
     private List<AlarmsCountMapping> alarmsCountMappings;

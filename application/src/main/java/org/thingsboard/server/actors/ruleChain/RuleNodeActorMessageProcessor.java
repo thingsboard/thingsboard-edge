@@ -99,7 +99,9 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     @Override
     public void onClusterEventMsg(ClusterEventMsg msg) throws Exception {
-
+        if (tbNode != null) {
+            tbNode.onClusterEventMsg(defaultCtx, msg);
+        }
     }
 
     public void onRuleToSelfMsg(RuleNodeToSelfMsg msg) throws Exception {

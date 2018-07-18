@@ -163,7 +163,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     @Override
     public void onClusterEventMsg(ClusterEventMsg msg) throws Exception {
-
+        nodeActors.values().stream().map(RuleNodeCtx::getSelfActor).forEach(actorRef -> actorRef.tell(msg, self));
     }
 
     private ActorRef createRuleNodeActor(ActorContext context, RuleNode ruleNode) {

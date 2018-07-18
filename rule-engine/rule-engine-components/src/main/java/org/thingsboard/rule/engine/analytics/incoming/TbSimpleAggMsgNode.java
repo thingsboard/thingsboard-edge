@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.UUID;
@@ -71,8 +72,9 @@ import java.util.concurrent.TimeUnit;
 )
 public class TbSimpleAggMsgNode implements TbNode {
 
-    private static final String TB_INTERVAL_TICK_MSG = "TbIntervalTickMsg";
+    private static final String TB_REPORT_TICK_MSG = "TbIntervalTickMsg";
     private static final String TB_PERSIST_TICK_MSG = "TbPersistTickMsg";
+    private static final String TB_ENTITIES_TICK_MSG = "TbEntitiesTickMsg";
     // millis at 00:00:00.000 15 Oct 1582.
     private static final long START_EPOCH = -12219292800000L;
 
@@ -85,8 +87,10 @@ public class TbSimpleAggMsgNode implements TbNode {
     private TbIntervalTable intervals;
     private UUID nextReportTickId;
     private UUID nextPersistTickId;
+    private UUID nextEntitiesTickId;
     private long intervalReportCheckPeriod;
     private long statePersistCheckPeriod;
+    private long entitiesCheckPeriod;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -100,17 +104,24 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
             scheduleStatePersistTickMsg(ctx);
         }
-        //TODO: fetch all states that were not persisted before restart?
+        if (config.isAutoCreateIntervals()) {
+            this.entitiesCheckPeriod = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
+            initEntities(ctx, null);
+            scheduleEntitiesTickMsg(ctx);
+        }
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         switch (msg.getType()) {
-            case TB_INTERVAL_TICK_MSG:
+            case TB_REPORT_TICK_MSG:
                 onIntervalTickMsg(ctx, msg);
                 break;
             case TB_PERSIST_TICK_MSG:
                 onPersistTickMsg(ctx, msg);
+                break;
+            case TB_ENTITIES_TICK_MSG:
+                onEntitiesTickMsg(ctx, msg);
                 break;
             default:
                 onDataMsg(ctx, msg);
@@ -118,12 +129,16 @@ public class TbSimpleAggMsgNode implements TbNode {
         }
     }
 
+    @Override
+    public void onClusterEventMsg(TbContext ctx, ClusterEventMsg msg) {
+        log.trace("Cluster change msg received: {}", msg);
+        intervals.cleanupEntities(ctx);
+    }
+
     private void onDataMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
         EntityId entityId = msg.getOriginator();
         long ts = extractTs(msg);
         JsonElement value = extractValue(msg);
-        //TODO: forward message to different server if needed.
-
         TbIntervalState state = intervals.getByEntityIdAndTs(entityId, ts);
         state.update(value);
 
@@ -167,17 +182,35 @@ public class TbSimpleAggMsgNode implements TbNode {
             return;
         }
         scheduleStatePersistTickMsg(ctx);
-        log.trace("Persisting states!");
+        log.trace("[{}] Persisting states!", ctx.getSelfId());
         intervals.getStatesToPersist().forEach((entityId, entityStates) -> entityStates.forEach((ts, state) -> {
-            log.trace("Persisting state: [{}][{}]", ts, state);
+            log.trace("[{}] Persisting state: [{}][{}]", ctx.getSelfId(), ts, state);
             intervals.saveIntervalState(entityId, ts, state);
         }));
 
         intervals.cleanupStatesUsingTTL();
     }
 
+    private void onEntitiesTickMsg(TbContext ctx, TbMsg msg) {
+        if (!msg.getId().equals(nextEntitiesTickId)) {
+            return;
+        }
+        scheduleEntitiesTickMsg(ctx);
+        initEntities(ctx, msg);
+    }
+
+    private void initEntities(TbContext ctx, TbMsg msg) {
+        log.trace("[{}] Lookup entities!", ctx.getSelfId());
+        DonAsynchron.withCallback(config.getParentEntitiesQuery().getParentEntitiesAsync(ctx),
+                entities -> intervals.addEntities(ctx, msg, entities), t -> {
+                    if (msg != null) {
+                        ctx.tellFailure(msg, t);
+                    }
+                });
+    }
+
     private void scheduleReportTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(TB_INTERVAL_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(TB_REPORT_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextReportTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
     }
@@ -186,6 +219,12 @@ public class TbSimpleAggMsgNode implements TbNode {
         TbMsg tickMsg = ctx.newMsg(TB_PERSIST_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextPersistTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, statePersistCheckPeriod);
+    }
+
+    private void scheduleEntitiesTickMsg(TbContext ctx) {
+        TbMsg tickMsg = ctx.newMsg(TB_ENTITIES_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        nextEntitiesTickId = tickMsg.getId();
+        ctx.tellSelf(tickMsg, entitiesCheckPeriod);
     }
 
     private long extractTs(TbMsg msg) {

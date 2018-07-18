@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Data
-public class TbAggLatestTelemetryNodeConfiguration extends TbAbstractLatestNodeConfiguration implements NodeConfiguration {
+public class TbAggLatestTelemetryNodeConfiguration extends TbAbstractLatestNodeConfiguration {
 
     private List<AggLatestMapping> aggMappings;
 

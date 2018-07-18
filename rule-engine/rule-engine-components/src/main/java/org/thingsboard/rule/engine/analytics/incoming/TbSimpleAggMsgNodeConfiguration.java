@@ -31,13 +31,14 @@
 package org.thingsboard.rule.engine.analytics.incoming;
 
 import lombok.Data;
+import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 
 import java.util.concurrent.TimeUnit;
 
 @Data
-public class TbSimpleAggMsgNodeConfiguration implements NodeConfiguration {
+public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfiguration {
 
     private String mathFunction;
     private String aggIntervalTimeUnit;

@@ -39,6 +39,7 @@ import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import scala.concurrent.duration.Duration;
@@ -74,6 +75,7 @@ public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMe
                 processor.onAckMsg((RuleNodeToRuleChainAckMsg) msg);
                 break;
             case CLUSTER_EVENT_MSG:
+                onClusterEventMsg((ClusterEventMsg) msg);
                 break;
             default:
                 return false;

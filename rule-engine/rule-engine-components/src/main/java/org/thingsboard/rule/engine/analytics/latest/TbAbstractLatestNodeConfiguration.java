@@ -31,11 +31,12 @@
 package org.thingsboard.rule.engine.analytics.latest;
 
 import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
 import java.util.concurrent.TimeUnit;
 
 @Data
-public abstract class TbAbstractLatestNodeConfiguration {
+public abstract class TbAbstractLatestNodeConfiguration implements NodeConfiguration {
 
     private ParentEntitiesQuery parentEntitiesQuery;
 

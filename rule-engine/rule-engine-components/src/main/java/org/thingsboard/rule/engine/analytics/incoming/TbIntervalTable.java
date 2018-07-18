@@ -49,11 +49,16 @@ import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -72,7 +77,7 @@ class TbIntervalTable {
     private final long intervalTtl;
     private final MathFunction function;
     private final boolean autoCreateIntervals;
-    private Map<EntityId, Map<Long, TbIntervalState>> states = new HashMap<>();
+    private ConcurrentMap<EntityId, ConcurrentMap<Long, TbIntervalState>> states = new ConcurrentHashMap<>();
 
     TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config, JsonParser gson) {
         this.ctx = ctx;
@@ -83,11 +88,29 @@ class TbIntervalTable {
         this.autoCreateIntervals = config.isAutoCreateIntervals();
     }
 
+    void addEntities(TbContext ctx, TbMsg msg, List<EntityId> entities) {
+        long ts = System.currentTimeMillis();
+        entities.forEach(entityId -> {
+            try {
+                getByEntityIdAndTs(entityId, ts);
+            } catch (Exception e) {
+                if (msg != null) {
+                    ctx.tellFailure(msg, e);
+                }
+            }
+        });
+    }
+
+    void cleanupEntities(TbContext ctx) {
+        Set<EntityId> keys = new HashSet<>(states.keySet());
+        keys.stream().filter(entityId -> !ctx.getPeContext().isLocalEntity(entityId)).forEach(states::remove);
+    }
+
     //TODO: make this async
     TbIntervalState getByEntityIdAndTs(EntityId entityId, long ts) throws ExecutionException, InterruptedException {
         long intervalStartTs = calculateIntervalStart(ts);
 
-        Map<Long, TbIntervalState> tsStates = states.computeIfAbsent(entityId, k -> new HashMap<>());
+        Map<Long, TbIntervalState> tsStates = states.computeIfAbsent(entityId, k -> new ConcurrentHashMap<>());
         TbIntervalState state = tsStates.get(intervalStartTs);
         if (state == null) {
             state = fetchIntervalState(entityId, intervalStartTs).get();
@@ -113,6 +136,8 @@ class TbIntervalTable {
                     for (long tmpTs = maxIntervalTs.get() + intervalDuration; tmpTs < ts; tmpTs = tmpTs + intervalDuration) {
                         intervals.put(tmpTs, createDefaultTbIntervalState());
                     }
+                } else {
+                    intervals.put(calculateIntervalStart(ts), createDefaultTbIntervalState());
                 }
             });
         }
@@ -214,4 +239,5 @@ class TbIntervalTable {
     private long calculateIntervalStart(long ts) {
         return (ts / intervalDuration) * intervalDuration;
     }
+
 }
