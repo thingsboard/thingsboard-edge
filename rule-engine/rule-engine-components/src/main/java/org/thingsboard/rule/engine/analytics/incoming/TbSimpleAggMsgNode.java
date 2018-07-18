@@ -64,8 +64,15 @@ import java.util.concurrent.TimeUnit;
         type = ComponentType.ANALYTICS,
         name = "aggregate stream",
         configClazz = TbSimpleAggMsgNodeConfiguration.class,
-        nodeDescription = "Calculates MIN/MAX/AVG/SUM based on the incoming data stream",
-        nodeDetails = "Calculates MIN/MAX/AVG/SUM based on the incoming data stream",
+        nodeDescription = "Aggregates incoming data stream grouped by originator Entity Id",
+        nodeDetails = "Calculates MIN/MAX/SUM/AVG/COUNT/UNIQUE based on the incoming data stream. " +
+                "Groups incoming data stream based on originator id of the message (i.e. particular device, asset, customer) and <b>\"aggregation interval value\"</b> into Intervals.<br/><br/>" +
+                "Intervals are periodically persisted based on <b>\"interval persistence policy\"</b> and <b>\"interval check value\"</b>.<br/><br/>" +
+                "Intervals are cached in memory based on <b>\"Interval TTL value\"</b>.<br/><br/>" +
+                "State of the Intervals are persisted as timeseries entities based on <b>\"state persistence policy\"</b> and <b>\"state persistence value\"</b>.<br/><br/>"+
+                "In case there is no data for certain entity, it might be useful to generate default values for those entities. " +
+                "To lookup those entities one may select <b>\"Create intervals automatically\"</b> checkbox and configure <b>\"Interval entities\"</b>.<br/><br/>" +
+                "Generates 'POST_TELEMETRY_REQUEST' messages with the results of the aggregation for particular interval.",
         uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
