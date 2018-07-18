@@ -32,6 +32,7 @@ package org.thingsboard.server.service.ruleengine;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -56,6 +57,7 @@ import java.util.function.Consumer;
 public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     @Autowired
+    @Lazy
     private ActorService actorService;
 
     private ScheduledExecutorService rpcCallBackExecutor;

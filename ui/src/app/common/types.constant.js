@@ -937,7 +937,7 @@ export default angular.module('thingsboard.types', [])
                     name: "rulenode.type-analytics",
                     details: "rulenode.type-analytics-details",
                     nodeClass: "tb-analytics-type",
-                    icon: "functions"
+                    icon: "timeline"
                 },
                 EXTERNAL: {
                     value: "EXTERNAL",

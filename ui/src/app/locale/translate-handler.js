@@ -28,8 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+ export default angular.module('thingsboard.locale', [])
+                       .factory('tbMissingTranslationHandler', ThingsboardMissingTranslateHandler)
+                       .name;
+
 /*@ngInject*/
-export default function ThingsboardMissingTranslateHandler($log, types) {
+function ThingsboardMissingTranslateHandler($log, types) {
 
     return function (translationId) {
         if (translationId && !translationId.startsWith(types.translate.customTranslationsPrefix)) {

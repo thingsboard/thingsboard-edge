@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.Tenant;
@@ -92,6 +93,7 @@ public class DefaultSchedulerService implements SchedulerService {
     private SchedulerEventService schedulerEventService;
 
     @Autowired
+    @Lazy
     private ActorService actorService;
 
     @Autowired

@@ -65,11 +65,13 @@ var ruleNodeClazzHelpLinkMap = {
     'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
     'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
     'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',
-    'org.thingsboard.rule.engine.math.TbSimpleAggMsgNode': 'ruleNodeAggregation',
     'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode': 'ruleNodeDuplicateToGroup',
     'org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode': 'ruleNodeDuplicateToRelated',
     'org.thingsboard.rule.engine.report.TbGenerateReportNode': 'ruleNodeGenerateReport',
-    'org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode': 'ruleNodeRestCallReply'
+    'org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode': 'ruleNodeRestCallReply',
+    'org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode': 'ruleNodeAggregateLatest',
+    'org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode': 'ruleNodeAggregateStream',
+    'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCount'
 };
 
 var integrationTypeHelpLinkMap = {
@@ -130,11 +132,13 @@ export default angular.module('thingsboard.help', [])
                 ruleNodeIntegrationDownlink: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#integration-downlink-node",
                 ruleNodeAddToGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node",
                 ruleNodeRemoveFromGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node",
-                ruleNodeAggregation: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#aggregation-node",
                 ruleNodeDuplicateToGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node",
                 ruleNodeDuplicateToRelated: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-related-node",
                 ruleNodeGenerateReport: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#generate-report-node",
                 ruleNodeRestCallReply: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#rest-call-reply-node",
+                ruleNodeAggregateLatest: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-latest-node",
+                ruleNodeAggregateStream: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-stream-node",
+                ruleNodeAlarmsCount: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#alarms-count-node",
                 rulechains: helpBaseUrl + "/docs/user-guide/ui/rule-chains/",
                 tenants: helpBaseUrl + "/docs/user-guide/ui/tenants",
                 customers: helpBaseUrl + "/docs/user-guide/ui/customers",

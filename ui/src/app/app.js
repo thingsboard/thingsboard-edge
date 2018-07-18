@@ -82,7 +82,7 @@ import 'fullcalendar/dist/fullcalendar.min.js';
 import 'angular-ui-calendar';
 import 'moment-timezone';
 
-import thingsboardLocales from './locale/locale.constant';
+import thingsboardTranslateHandler from './locale/translate-handler';
 import thingsboardLogin from './login';
 import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
 import thingsboardDialogs from './dialog';
@@ -160,7 +160,7 @@ angular.module('thingsboard', [
     'flow',
     'flowchart',
     'ui.calendar',
-    thingsboardLocales,
+    thingsboardTranslateHandler,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
     thingsboardDialogs,
