@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.analytics.incoming;
 
 import lombok.Data;
+import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
@@ -66,7 +67,12 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         configuration.setMathFunction(MathFunction.AVG.name());
         configuration.setAggIntervalTimeUnit(TimeUnit.HOURS.name());
         configuration.setAggIntervalValue(1);
-        configuration.setAutoCreateIntervals(true);
+        configuration.setAutoCreateIntervals(false);
+
+        configuration.setParentEntitiesQuery(new ParentEntitiesGroup());
+
+        configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
+        configuration.setPeriodValue(5);
 
         configuration.setIntervalPersistencePolicy(IntervalPersistPolicy.ON_EACH_CHECK_AFTER_INTERVAL_END.name());
         configuration.setIntervalCheckTimeUnit(TimeUnit.MINUTES.name());
