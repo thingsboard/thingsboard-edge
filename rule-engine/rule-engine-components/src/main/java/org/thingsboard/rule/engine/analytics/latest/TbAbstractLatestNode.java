@@ -96,6 +96,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         ListenableFuture<List<EntityId>> parentEntityIdsFuture = this.config.getParentEntitiesQuery().getParentEntitiesAsync(ctx);
         return Futures.transformAsync(parentEntityIdsFuture, parentEntityIds -> {
             List<ListenableFuture<TbMsg>> msgFutures = new ArrayList<>();
+            String dataTs = Long.toString(System.currentTimeMillis());
             parentEntityIds.forEach(parentEntityId -> {
                 Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> aggregateFuturesMap = doParentAggregations(ctx, parentEntityId);
                 aggregateFuturesMap.forEach((originatorId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
@@ -110,7 +111,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                     ListenableFuture<TbMsg> msgFuture = Futures.transform(aggregateFutureWithFallback, element -> {
                         if (element.isPresent()) {
                             TbMsgMetaData metaData = new TbMsgMetaData();
-                            metaData.putValue("ts", Long.toString(System.currentTimeMillis()));
+                            metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
                             TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                                     originatorId, metaData, TbMsgDataType.JSON,

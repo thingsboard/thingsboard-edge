@@ -297,6 +297,19 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
                 scope.widgetsBundleWatch = null;
             }
 
+            dashboardUtils.createSingleEntityFilter(scope.entityType, scope.entityId).then(
+                (filter) => {
+                    var entityAlias = {
+                        id: utils.guid(),
+                        alias: scope.entityName,
+                        filter: filter
+                    };
+                    configureWidgetMode(entityAlias);
+                }
+            );
+        };
+
+        function configureWidgetMode(entityAlias) {
             scope.mode = 'widget';
             scope.checkSubscription();
             scope.widgetsList = [];
@@ -309,11 +322,6 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
             scope.firstBundle = true;
             scope.selectedWidgetsBundleAlias = types.systemBundleAlias.cards;
 
-            var entityAlias = {
-                id: utils.guid(),
-                alias: scope.entityName,
-                filter: dashboardUtils.createSingleEntityFilter(scope.entityType, scope.entityId)
-            };
             var entitiAliases = {};
             entitiAliases[entityAlias.id] = entityAlias;
 

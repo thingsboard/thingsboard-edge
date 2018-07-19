@@ -140,27 +140,31 @@ export default function AddWidgetToDashboardDialogController($scope, $mdDialog, 
             datasourceAliases: {},
             targetDeviceAliases: {}
         };
-        aliasesInfo.datasourceAliases[0] = {
-            alias: entityName,
-            filter: dashboardUtils.createSingleEntityFilter(entityType, entityId)
-        };
-        itembuffer.addWidgetToDashboard(theDashboard, targetState, targetLayout, vm.widget, aliasesInfo, null, 48, null, -1, -1).then(
-            function(theDashboard) {
-                dashboardService.saveDashboard(theDashboard).then(
-                    function success(dashboard) {
-                        $scope.theForm.$setPristine();
-                        $mdDialog.hide();
-                        if (vm.openDashboard) {
-                            var stateParams = {
-                                dashboardId: dashboard.id.id
+        dashboardUtils.createSingleEntityFilter(entityType, entityId).then(
+            (filter) => {
+                aliasesInfo.datasourceAliases[0] = {
+                    alias: entityName,
+                    filter: filter
+                };
+                itembuffer.addWidgetToDashboard(theDashboard, targetState, targetLayout, vm.widget, aliasesInfo, null, 48, null, -1, -1).then(
+                    function(theDashboard) {
+                        dashboardService.saveDashboard(theDashboard).then(
+                            function success(dashboard) {
+                                $scope.theForm.$setPristine();
+                                $mdDialog.hide();
+                                if (vm.openDashboard) {
+                                    var stateParams = {
+                                        dashboardId: dashboard.id.id
+                                    }
+                                    var stateIds = Object.keys(dashboard.configuration.states);
+                                    var stateIndex = stateIds.indexOf(targetState);
+                                    if (stateIndex > 0) {
+                                        stateParams.state = utils.objToBase64([ {id: targetState, params: {}} ]);
+                                    }
+                                    $state.go('home.dashboards.dashboard', stateParams);
+                                }
                             }
-                            var stateIds = Object.keys(dashboard.configuration.states);
-                            var stateIndex = stateIds.indexOf(targetState);
-                            if (stateIndex > 0) {
-                                stateParams.state = utils.objToBase64([ {id: targetState, params: {}} ]);
-                            }
-                            $state.go('home.dashboards.dashboard', stateParams);
-                        }
+                        );
                     }
                 );
             }

@@ -33,7 +33,7 @@ export default angular.module('thingsboard.dashboardUtils', [])
     .name;
 
 /*@ngInject*/
-function DashboardUtils(types, utils, timeService) {
+function DashboardUtils($q, types, utils, timeService, entityGroupService) {
 
     var service = {
         validateAndUpdateDashboard: validateAndUpdateDashboard,
@@ -365,11 +365,28 @@ function DashboardUtils(types, utils, timeService) {
     }
 
     function createSingleEntityFilter(entityType, entityId) {
-        return {
-            type: types.aliasFilterType.singleEntity.value,
-            singleEntity: { entityType: entityType, id: entityId },
-            resolveMultiple: false
-        };
+        var deferred = $q.defer();
+        if (entityType === types.entityType.entityGroup) {
+            entityGroupService.getEntityGroup(entityId).then(
+                (entityGroup) => {
+                    var filter = {
+                        type: types.aliasFilterType.entityGroupList.value,
+                        groupType: entityGroup.type,
+                        entityGroupList: [entityId],
+                        resolveMultiple: false
+                    };
+                    deferred.resolve(filter);
+                }
+            );
+        } else {
+            var filter = {
+                type: types.aliasFilterType.singleEntity.value,
+                singleEntity: {entityType: entityType, id: entityId},
+                resolveMultiple: false
+            };
+            deferred.resolve(filter);
+        }
+        return deferred.promise;
     }
 
     function getStateLayoutsData(dashboard, targetState) {
