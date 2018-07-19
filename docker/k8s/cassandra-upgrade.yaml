@@ -37,7 +37,7 @@ spec:
   containers:
   - name: cassandra-upgrade
     imagePullPolicy: Always
-    image: thingsboard/cassandra-upgrade:2.0.3
+    image: thingsboard/cassandra-upgrade:2.1.0
     env:
     - name: ADD_DEMO_DATA
       value: "true"
