@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,12 +35,11 @@ import 'brace/mode/javascript';
 import 'brace/mode/html';
 import 'brace/mode/css';
 import 'brace/mode/json';
-import 'ace-builds/src-min-noconflict/ace';
-import 'ace-builds/src-min-noconflict/snippets/javascript';
-import 'ace-builds/src-min-noconflict/snippets/text';
-import 'ace-builds/src-min-noconflict/snippets/html';
-import 'ace-builds/src-min-noconflict/snippets/css';
-import 'ace-builds/src-min-noconflict/snippets/json';
+import 'brace/snippets/javascript';
+import 'brace/snippets/text';
+import 'brace/snippets/html';
+import 'brace/snippets/css';
+import 'brace/snippets/json';
 
 /* eslint-disable import/no-unresolved, import/default */
 

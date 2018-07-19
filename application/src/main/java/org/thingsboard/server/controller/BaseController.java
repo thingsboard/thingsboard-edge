@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -47,6 +47,8 @@ import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -60,6 +62,8 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -70,6 +74,7 @@ import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -82,12 +87,14 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.state.DeviceStateService;
 
@@ -165,10 +172,19 @@ public abstract class BaseController {
     protected EntityGroupService entityGroupService;
 
     @Autowired
+    protected SchedulerEventService schedulerEventService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
+
+    @Autowired
     protected AuditLogService auditLogService;
 
     @Autowired
     protected DeviceStateService deviceStateService;
+
+    @Autowired
+    protected SchedulerService schedulerService;
 
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
@@ -373,6 +389,12 @@ public abstract class BaseController {
                     return;
                 case ENTITY_GROUP:
                     checkEntityGroupId(new EntityGroupId(entityId.getId()));
+                    return;
+                case SCHEDULER_EVENT:
+                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()));
+                    return;
+                case BLOB_ENTITY:
+                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()));
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
@@ -628,6 +650,82 @@ public abstract class BaseController {
         }
     }
 
+    SchedulerEvent checkSchedulerEventId(SchedulerEventId schedulerEventId) throws ThingsboardException {
+        try {
+            validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+            SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(schedulerEventId);
+            checkSchedulerEvent(schedulerEvent);
+            return schedulerEvent;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkSchedulerEvent(SchedulerEvent schedulerEvent) throws ThingsboardException {
+        checkNotNull(schedulerEvent);
+        checkTenantId(schedulerEvent.getTenantId());
+        if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(schedulerEvent.getCustomerId());
+        }
+    }
+
+    SchedulerEventInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId) throws ThingsboardException {
+        try {
+            validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+            SchedulerEventInfo schedulerEventInfo = schedulerEventService.findSchedulerEventInfoById(schedulerEventId);
+            checkSchedulerEventInfo(schedulerEventInfo);
+            return schedulerEventInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkSchedulerEventInfo(SchedulerEventInfo schedulerEventInfo) throws ThingsboardException {
+        checkNotNull(schedulerEventInfo);
+        checkTenantId(schedulerEventInfo.getTenantId());
+        if (schedulerEventInfo.getCustomerId() != null && !schedulerEventInfo.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(schedulerEventInfo.getCustomerId());
+        }
+    }
+
+    BlobEntity checkBlobEntityId(BlobEntityId blobEntityId) throws ThingsboardException {
+        try {
+            validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
+            BlobEntity blobEntity = blobEntityService.findBlobEntityById(blobEntityId);
+            checkBlobEntity(blobEntity);
+            return blobEntity;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkBlobEntity(BlobEntity blobEntity) throws ThingsboardException {
+        checkNotNull(blobEntity);
+        checkTenantId(blobEntity.getTenantId());
+        if (blobEntity.getCustomerId() != null && !blobEntity.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(blobEntity.getCustomerId());
+        }
+    }
+
+    BlobEntityInfo checkBlobEntityInfoId(BlobEntityId blobEntityId) throws ThingsboardException {
+        try {
+            validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
+            BlobEntityInfo blobEntityInfo = blobEntityService.findBlobEntityInfoById(blobEntityId);
+            checkBlobEntityInfo(blobEntityInfo);
+            return blobEntityInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkBlobEntityInfo(BlobEntityInfo blobEntityInfo) throws ThingsboardException {
+        checkNotNull(blobEntityInfo);
+        checkTenantId(blobEntityInfo.getTenantId());
+        if (blobEntityInfo.getCustomerId() != null && !blobEntityInfo.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(blobEntityInfo.getCustomerId());
+        }
+    }
+
     protected String constructBaseUrl(HttpServletRequest request) {
         String scheme = request.getScheme();
         if (request.getHeader("x-forwarded-proto") != null) {
@@ -648,18 +746,16 @@ public abstract class BaseController {
         return baseUrl;
     }
 
-    protected <I extends UUIDBased & EntityId> I emptyId(EntityType entityType) {
+    protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I)EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
 
-    protected <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> void logEntityAction(I entityId, E entity, CustomerId customerId,
+    protected <E extends HasName, I extends EntityId> void logEntityAction(I entityId, E entity, CustomerId customerId,
                                                                  ActionType actionType, Exception e, Object... additionalInfo) throws ThingsboardException {
         logEntityAction(getCurrentUser(), entityId, entity, customerId, actionType, e, additionalInfo);
     }
 
-    protected <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
+    protected <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
                                                                  ActionType actionType, Exception e, Object... additionalInfo) throws ThingsboardException {
         if (customerId == null || customerId.isNullUid()) {
             customerId = user.getCustomerId();
@@ -675,8 +771,7 @@ public abstract class BaseController {
         return error != null ? (Exception.class.isInstance(error) ? (Exception) error : new Exception(error)) : null;
     }
 
-    private <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, CustomerId customerId,
+    private <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, CustomerId customerId,
                                                                          ActionType actionType, Object... additionalInfo) {
         String msgType = null;
         switch (actionType) {

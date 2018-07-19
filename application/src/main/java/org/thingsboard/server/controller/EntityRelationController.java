@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,10 +39,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -73,7 +76,15 @@ public class EntityRelationController extends BaseController {
                 relation.setTypeGroup(RelationTypeGroup.COMMON);
             }
             relationService.saveRelation(relation);
+            logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_ADD_OR_UPDATE, null, relation);
+            logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_ADD_OR_UPDATE, null, relation);
         } catch (Exception e) {
+            logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_ADD_OR_UPDATE, e, relation);
+            logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_ADD_OR_UPDATE, e, relation);
             throw handleException(e);
         }
     }
@@ -96,12 +107,21 @@ public class EntityRelationController extends BaseController {
         checkEntityId(fromId);
         checkEntityId(toId);
         RelationTypeGroup relationTypeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);
+        EntityRelation relation = new EntityRelation(fromId, toId, strRelationType, relationTypeGroup);
         try {
             Boolean found = relationService.deleteRelation(fromId, toId, strRelationType, relationTypeGroup);
             if (!found) {
                 throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
             }
+            logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_DELETED, null, relation);
+            logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_DELETED, null, relation);
         } catch (Exception e) {
+            logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_DELETED, e, relation);
+            logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
+                    ActionType.RELATION_DELETED, e, relation);
             throw handleException(e);
         }
     }
@@ -117,7 +137,9 @@ public class EntityRelationController extends BaseController {
         checkEntityId(entityId);
         try {
             relationService.deleteEntityRelations(entityId);
+            logEntityAction(entityId, null, getCurrentUser().getCustomerId(), ActionType.RELATIONS_DELETED, null);
         } catch (Exception e) {
+            logEntityAction(entityId, null, getCurrentUser().getCustomerId(), ActionType.RELATIONS_DELETED, e);
             throw handleException(e);
         }
     }
@@ -225,8 +247,8 @@ public class EntityRelationController extends BaseController {
     @RequestMapping(value = "/relations/info", method = RequestMethod.GET, params = {TO_ID, TO_TYPE})
     @ResponseBody
     public List<EntityRelationInfo> findInfoByTo(@RequestParam(TO_ID) String strToId,
-                                                   @RequestParam(TO_TYPE) String strToType,
-                                                   @RequestParam(value = "relationTypeGroup", required = false) String strRelationTypeGroup) throws ThingsboardException {
+                                                 @RequestParam(TO_TYPE) String strToType,
+                                                 @RequestParam(value = "relationTypeGroup", required = false) String strRelationTypeGroup) throws ThingsboardException {
         checkParameter(TO_ID, strToId);
         checkParameter(TO_TYPE, strToType);
         EntityId entityId = EntityIdFactory.getByTypeAndId(strToType, strToId);
@@ -291,10 +313,11 @@ public class EntityRelationController extends BaseController {
 
     private RelationTypeGroup parseRelationTypeGroup(String strRelationTypeGroup, RelationTypeGroup defaultValue) {
         RelationTypeGroup result = defaultValue;
-        if (strRelationTypeGroup != null && strRelationTypeGroup.trim().length()>0) {
+        if (strRelationTypeGroup != null && strRelationTypeGroup.trim().length() > 0) {
             try {
                 result = RelationTypeGroup.valueOf(strRelationTypeGroup);
-            } catch (IllegalArgumentException e) { }
+            } catch (IllegalArgumentException e) {
+            }
         }
         return result;
     }

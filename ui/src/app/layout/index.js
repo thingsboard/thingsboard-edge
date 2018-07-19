@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -47,6 +47,7 @@ import thingsboardDashboardAutocomplete from '../components/dashboard-autocomple
 import thingsboardKvMap from '../components/kv-map.directive';
 import thingsboardJsonObjectEdit from '../components/json-object-edit.directive';
 import thingsboardJsonContent from '../components/json-content.directive';
+import thingsboardTimezoneSelect from '../components/timezone-select.directive';
 
 import thingsboardUserMenu from './user-menu.directive';
 
@@ -69,6 +70,8 @@ import thingsboardEntityGroup from '../group';
 import thingsboardConverter from '../converter';
 import thingsboardIntegration from '../integration';
 import thingsboardRuleChain from '../rulechain';
+import thingsboardScheduler from '../scheduler';
+import thingsboardBlobEntity from '../blob-entity';
 
 import thingsboardJsonForm from '../jsonform';
 
@@ -103,6 +106,8 @@ export default angular.module('thingsboard.home', [
     thingsboardConverter,
     thingsboardIntegration,
     thingsboardRuleChain,
+    thingsboardScheduler,
+    thingsboardBlobEntity,
     thingsboardJsonForm,
     thingsboardApiDevice,
     thingsboardApiLogin,
@@ -113,7 +118,8 @@ export default angular.module('thingsboard.home', [
     thingsboardDashboardAutocomplete,
     thingsboardKvMap,
     thingsboardJsonObjectEdit,
-    thingsboardJsonContent
+    thingsboardJsonContent,
+    thingsboardTimezoneSelect
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

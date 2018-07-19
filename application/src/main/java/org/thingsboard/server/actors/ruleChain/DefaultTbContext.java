@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,17 +34,7 @@ import akka.actor.ActorRef;
 import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.FutureCallback;
 import org.springframework.util.StringUtils;
-import org.thingsboard.rule.engine.api.ListeningExecutor;
-import org.thingsboard.rule.engine.api.MailService;
-import org.thingsboard.rule.engine.api.RpcError;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcResponse;
-import org.thingsboard.rule.engine.api.RuleEngineRpcService;
-import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
-import org.thingsboard.rule.engine.api.ScriptEngine;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbPeContext;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -56,12 +46,15 @@ import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -71,11 +64,13 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.service.script.JsScriptType;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -124,6 +119,25 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     private void scheduleMsgWithDelay(Object msg, long delayInMs, ActorRef target) {
         mainCtx.getScheduler().scheduleOnce(Duration.create(delayInMs, TimeUnit.MILLISECONDS), target, msg, mainCtx.getActorSystem().dispatcher(), nodeCtx.getSelfActor());
+    }
+
+    @Override
+    public void ack(TbMsg msg) {
+        if (nodeCtx.getSelf().isDebugMode()) {
+            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, "ACK", null);
+        }
+        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
+    }
+
+    @Override
+    public boolean isLocalEntity(EntityId entityId) {
+        Optional<ServerAddress> address = mainCtx.getRoutingService().resolveById(entityId);
+        return !address.isPresent();
+    }
+
+    @Override
+    public ScriptEngine createAttributesJsScriptEngine(String script) {
+        return new RuleNodeJsScriptEngine(mainCtx.getJsSandbox(), JsScriptType.ATTRIBUTES_SCRIPT, script);
     }
 
     @Override
@@ -182,6 +196,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public ScriptEngine createJsScriptEngine(String script, String... argNames) {
         return new RuleNodeJsScriptEngine(mainCtx.getJsSandbox(), script, argNames);
+    }
+
+    @Override
+    public EventService getEventService() {
+        return mainCtx.getEventService();
     }
 
     @Override
@@ -272,6 +291,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
                             .build());
                 });
             }
+
+            @Override
+            public void sendRestApiCallReply(UUID requestId, TbMsg msg) {
+                mainCtx.getRuleEngineCallService().processRestAPICallResponseFromRuleEngine(requestId, msg);
+            }
         };
     }
 
@@ -288,6 +312,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityGroupService getEntityGroupService() {
         return mainCtx.getEntityGroupService();
+    }
+
+    @Override
+    public ReportService getReportService() {
+        return mainCtx.getReportService();
+    }
+
+    @Override
+    public BlobEntityService getBlobEntityService() {
+        return mainCtx.getBlobEntityService();
     }
 
     @Override
@@ -326,4 +360,5 @@ class DefaultTbContext implements TbContext, TbPeContext {
             }
         });
     }
+
 }

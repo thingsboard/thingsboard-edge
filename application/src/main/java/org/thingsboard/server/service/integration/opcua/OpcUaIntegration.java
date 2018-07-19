@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -60,10 +60,12 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -106,13 +108,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (opcUaServerConfiguration.getMapping().isEmpty()) {
             throw new IllegalArgumentException("No mapping elements configured!");
         }
-        this.devices = new HashMap<>();
-        this.devicesByTags = new HashMap<>();
-        this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
+        this.devices = new ConcurrentHashMap<>();
+        this.devicesByTags = new ConcurrentHashMap<>();
+        this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toConcurrentMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
         initClient(opcUaServerConfiguration);
         connected = true;
         executor = Executors.newSingleThreadScheduledExecutor();
-        executor.execute(() -> scanForDevices());
+        executor.execute(this::scanForDevices);
     }
 
     @Override
@@ -158,7 +160,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -260,7 +262,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             try {
                 connected = false;
                 client.disconnect().get(10, TimeUnit.SECONDS);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                log.warn("Failed to disconnect", e);
+            }
         }
         if (executor != null) {
             executor.shutdownNow();
@@ -275,6 +279,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             scheduleReconnect = false;
             return true;
         } catch (Exception e) {
+            log.warn("Failed to reconnect", e);
         }
         return false;
     }
@@ -282,16 +287,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private void scanForDevices() {
         if (connected && scheduleReconnect && !reconnect()) {
             log.info("Scheduling next scan in {} seconds!", opcUaServerConfiguration.getScanPeriodInSeconds());
-            executor.schedule(() -> {
-                scanForDevices();
-            }, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
+            executor.schedule((Runnable) this::scanForDevices, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
             return;
         }
         try {
             long startTs = System.currentTimeMillis();
             scanForDevices(new OpcUaNode(Identifiers.RootFolder, ""));
             log.info("Device scan cycle completed in {} ms", (System.currentTimeMillis() - startTs));
-            List<OpcUaDevice> deleted = devices.entrySet().stream().filter(kv -> kv.getValue().getScanTs() < startTs).map(kv -> kv.getValue()).collect(Collectors.toList());
+            List<OpcUaDevice> deleted = devices.entrySet().stream().filter(kv -> kv.getValue().getScanTs() < startTs).map(Map.Entry::getValue).collect(Collectors.toList());
             if (deleted.size() > 0) {
                 log.info("Devices {} are no longer available", deleted);
             }
@@ -301,9 +304,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
         if (connected) {
             log.info("Scheduling next scan in {} seconds!", opcUaServerConfiguration.getScanPeriodInSeconds());
-            executor.schedule(() -> {
-                scanForDevices();
-            }, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
+            executor.schedule((Runnable) this::scanForDevices, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
         }
     }
 
@@ -311,7 +312,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         log.trace("Scanning node: {}", node);
         List<DeviceMapping> matchedMappings = mappings.entrySet().stream()
                 .filter(mappingEntry -> mappingEntry.getKey().matcher(getMatchingValue(node, mappingEntry.getValue().getMappingType())).matches())
-                .map(m -> m.getValue()).collect(Collectors.toList());
+                .map(Map.Entry::getValue).collect(Collectors.toList());
 
         matchedMappings.forEach(m -> {
             try {
@@ -334,7 +335,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     log.trace("Ignoring remote node: {}", rd.getNodeId());
                 }
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             if (connected) {
                 log.error("Browsing nodeId={} failed: {}", node, e.getMessage(), e);
                 scheduleReconnect = true;
@@ -344,13 +345,16 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private String getMatchingValue(OpcUaNode node, DeviceMappingType mappingType) {
         switch (mappingType) {
-            case ID : return node.getNodeId().getIdentifier().toString();
-            case FQN : return node.getFqn();
-            default: throw new IllegalArgumentException("unknown DeviceMappingType: " + mappingType);
+            case ID:
+                return node.getNodeId().getIdentifier().toString();
+            case FQN:
+                return node.getFqn();
+            default:
+                throw new IllegalArgumentException("unknown DeviceMappingType: " + mappingType);
         }
     }
 
-    private void scanDevice(OpcUaNode node, DeviceMapping m) throws ExecutionException, InterruptedException {
+    private void scanDevice(OpcUaNode node, DeviceMapping m) throws Exception {
         log.debug("Scanning device node: {}", node);
         Set<String> tags = m.getAllTags();
         log.debug("Scanning node hierarchy for tags: {}", tags);
@@ -396,7 +400,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         process(integrationContext, message);
     }
 
-    private void subscribeToTags(Map<String, NodeId> newTags) throws InterruptedException, ExecutionException {
+    private void subscribeToTags(Map<String, NodeId> newTags) throws InterruptedException, ExecutionException, TimeoutException {
         List<MonitoredItemCreateRequest> requests = new ArrayList<>();
         for (Map.Entry<String, NodeId> kv : newTags.entrySet()) {
             // subscribe to the Value attribute of the server's CurrentTime node
@@ -425,7 +429,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 TimestampsToReturn.Both,
                 requests,
                 onItemCreated
-        ).get();
+        ).get(5, TimeUnit.SECONDS);
 
         for (UaMonitoredItem item : items) {
             if (item.getStatusCode().isGood()) {
@@ -438,23 +442,27 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void onSubscriptionValue(UaMonitoredItem item, DataValue dataValue) {
-        if (!integrationContext.isClosed()) {
-            log.debug("Subscription value received: item={}, value={}",
-                    item.getReadValueId().getNodeId(), dataValue.getValue());
-            NodeId tagId = item.getReadValueId().getNodeId();
-            devicesByTags.getOrDefault(tagId, Collections.emptyList()).forEach(
-                    device -> {
-                        device.updateTag(tagId, dataValue);
-                        onDeviceDataUpdate(device, tagId);
-                    }
-            );
+        try {
+            if (!integrationContext.isClosed()) {
+                log.debug("Subscription value received: item={}, value={}",
+                        item.getReadValueId().getNodeId(), dataValue.getValue());
+                NodeId tagId = item.getReadValueId().getNodeId();
+                devicesByTags.getOrDefault(tagId, Collections.emptyList()).forEach(
+                        device -> {
+                            device.updateTag(tagId, dataValue);
+                            onDeviceDataUpdate(device, tagId);
+                        }
+                );
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process subscription value", item.getReadValueId().getNodeId(), item.getStatusCode());
         }
     }
 
     private Map<String, NodeId> lookupTags(NodeId nodeId, String deviceNodeName, Set<String> tags) {
         Map<String, NodeId> values = new HashMap<>();
         try {
-            BrowseResult browseResult = client.browse(getBrowseDescription(nodeId)).get();
+            BrowseResult browseResult = client.browse(getBrowseDescription(nodeId)).get(5, TimeUnit.SECONDS);
             List<ReferenceDescription> references = toList(browseResult.getReferences());
 
             for (ReferenceDescription rd : references) {
@@ -479,7 +487,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 // recursively browse to children
                 values.putAll(lookupTags(childId, deviceNodeName, tags));
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             log.error("Browsing nodeId={} failed: {}", nodeId, e.getMessage(), e);
         }
         return values;
@@ -511,7 +519,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                 if (writeValueJson.has("nodeId")) {
                                     try {
                                         nodeId = NodeId.parseSafe(writeValueJson.get("nodeId").asText());
-                                    } catch (Exception e) {}
+                                    } catch (Exception e) {
+                                        log.error("Browsing nodeId={} failed: {}", nodeId, e.getMessage(), e);
+                                    }
                                 }
                                 if (writeValueJson.has("value")) {
                                     JsonNode valueJson = writeValueJson.get("value");
@@ -525,7 +535,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                             }
                         }
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    log.error("Preparing write values failed: {}", e.getMessage(), e);
+                }
             }
         }
         return writeValuesList;
@@ -547,12 +559,16 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                 if (callMethodJson.has("objectId")) {
                                     try {
                                         objectId = NodeId.parseSafe(callMethodJson.get("objectId").asText());
-                                    } catch (Exception e) {}
+                                    } catch (Exception e) {
+                                        log.error("Parsing safe {}", e.getMessage(), e);
+                                    }
                                 }
                                 if (callMethodJson.has("methodId")) {
                                     try {
                                         methodId = NodeId.parseSafe(callMethodJson.get("methodId").asText());
-                                    } catch (Exception e) {}
+                                    } catch (Exception e) {
+                                        log.error("Parsing safe {}", e.getMessage(), e);
+                                    }
                                 }
                                 if (callMethodJson.has("args")) {
                                     JsonNode argsJson = callMethodJson.get("args");
@@ -560,9 +576,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                         List<Variant> argsList = new ArrayList<>();
                                         for (JsonNode argJson : argsJson) {
                                             Optional<Variant> value = extractValue(argJson);
-                                            if (value.isPresent()) {
-                                                argsList.add(value.get());
-                                            }
+                                            value.ifPresent(argsList::add);
                                         }
                                         arguments = Optional.of(argsList.toArray(new Variant[]{}));
                                     }
@@ -575,7 +589,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                             }
                         }
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    log.error("PrepareCallMethods {}", e.getMessage(), e);
+                }
             }
         }
         return callMethodRequests;

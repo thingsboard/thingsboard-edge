@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -417,7 +417,7 @@ public class BaseRelationService implements RelationService {
         int maxLvl = params.getMaxLevel() > 0 ? params.getMaxLevel() : Integer.MAX_VALUE;
 
         try {
-            ListenableFuture<Set<EntityRelation>> relationSet = findRelationsRecursively(params.getEntityId(), params.getDirection(), maxLvl, new ConcurrentHashMap<>());
+            ListenableFuture<Set<EntityRelation>> relationSet = findRelationsRecursively(params.getEntityId(), params.getDirection(), params.getRelationTypeGroup(), maxLvl, new ConcurrentHashMap<>());
             return Futures.transform(relationSet, input -> {
                 List<EntityRelation> relations = new ArrayList<>();
                 if (filters == null || filters.isEmpty()) {
@@ -533,14 +533,15 @@ public class BaseRelationService implements RelationService {
         }
     }
 
-    private ListenableFuture<Set<EntityRelation>> findRelationsRecursively(final EntityId rootId, final EntitySearchDirection direction, int lvl,
+    private ListenableFuture<Set<EntityRelation>> findRelationsRecursively(final EntityId rootId, final EntitySearchDirection direction,
+                                                                           RelationTypeGroup relationTypeGroup, int lvl,
                                                                            final ConcurrentHashMap<EntityId, Boolean> uniqueMap) throws Exception {
         if (lvl == 0) {
             return Futures.immediateFuture(Collections.emptySet());
         }
         lvl--;
         //TODO: try to remove this blocking operation
-        Set<EntityRelation> children = new HashSet<>(findRelations(rootId, direction).get());
+        Set<EntityRelation> children = new HashSet<>(findRelations(rootId, direction, relationTypeGroup).get());
         Set<EntityId> childrenIds = new HashSet<>();
         for (EntityRelation childRelation : children) {
             log.trace("Found Relation: {}", childRelation);
@@ -559,7 +560,7 @@ public class BaseRelationService implements RelationService {
         }
         List<ListenableFuture<Set<EntityRelation>>> futures = new ArrayList<>();
         for (EntityId entityId : childrenIds) {
-            futures.add(findRelationsRecursively(entityId, direction, lvl, uniqueMap));
+            futures.add(findRelationsRecursively(entityId, direction, relationTypeGroup, lvl, uniqueMap));
         }
         //TODO: try to remove this blocking operation
         List<Set<EntityRelation>> relations = Futures.successfulAsList(futures).get();
@@ -567,12 +568,15 @@ public class BaseRelationService implements RelationService {
         return Futures.immediateFuture(children);
     }
 
-    private ListenableFuture<List<EntityRelation>> findRelations(final EntityId rootId, final EntitySearchDirection direction) {
+    private ListenableFuture<List<EntityRelation>> findRelations(final EntityId rootId, final EntitySearchDirection direction, RelationTypeGroup relationTypeGroup) {
         ListenableFuture<List<EntityRelation>> relations;
+        if (relationTypeGroup == null) {
+            relationTypeGroup = RelationTypeGroup.COMMON;
+        }
         if (direction == EntitySearchDirection.FROM) {
-            relations = findByFromAsync(rootId, RelationTypeGroup.COMMON);
+            relations = findByFromAsync(rootId, relationTypeGroup);
         } else {
-            relations = findByToAsync(rootId, RelationTypeGroup.COMMON);
+            relations = findByToAsync(rootId, relationTypeGroup);
         }
         return relations;
     }

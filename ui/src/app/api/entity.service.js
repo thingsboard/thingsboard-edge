@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,7 +38,7 @@ export default angular.module('thingsboard.api.entity', [thingsboardTypes])
 function EntityService($http, $q, $filter, $translate, $log, userService, deviceService,
                        assetService, tenantService, customerService,
                        ruleChainService, dashboardService, entityGroupService,
-                       converterService, integrationService,
+                       converterService, integrationService, schedulerEventService, blobEntityService,
                        entityRelationService, attributeService, types, utils) {
     var service = {
         getEntity: getEntity,
@@ -97,6 +97,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.integration:
                 promise = integrationService.getIntegration(entityId, config);
                 break;
+            case types.entityType.schedulerEvent:
+                promise = schedulerEventService.getSchedulerEventInfo(entityId, config);
+                break;
+            case types.entityType.blobEntity:
+                promise = blobEntityService.getBlobEntityInfo(entityId, config);
+                break;
         }
         return promise;
     }
@@ -137,6 +143,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.integration:
                 promise = integrationService.saveIntegration(entity);
+                break;
+            case types.entityType.schedulerEvent:
+                promise = schedulerEventService.saveSchedulerEvent(entity);
                 break;
         }
         return promise;
@@ -245,6 +254,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.integration:
                 promise = getEntitiesByIdsPromise(
                     (id) => integrationService.getIntegration(id, config), entityIds);
+                break;
+            case types.entityType.schedulerEvent:
+                promise = getEntitiesByIdsPromise(
+                    (id) => schedulerEventService.getSchedulerEventInfo(id, config), entityIds);
+                break;
+            case types.entityType.blobEntity:
+                promise = getEntitiesByIdsPromise(
+                    (id) => blobEntityService.getBlobEntityInfo(id, config), entityIds);
                 break;
         }
         return promise;
@@ -360,7 +377,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
                 break;
             case types.entityType.user:
-                $log.error('Get User Entities is not implemented!');
+                if (user.authority === 'TENANT_ADMIN') {
+                    promise = userService.getAllCustomerUsers(pageLink, config);
+                } else {
+                    $log.error('Get User Entities is not implemented!');
+                }
                 break;
             case types.entityType.alarm:
                 $log.error('Get Alarm Entities is not implemented!');
@@ -377,6 +398,30 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.integration:
                 promise = integrationService.getIntegrations(pageLink, config);
+                break;
+            case types.entityType.schedulerEvent:
+                var deferred = $q.defer();
+                schedulerEventService.getSchedulerEvents(null, false, config).then(
+                    (schedulerEvents) => {
+                        utils.filterSearchTextEntities(schedulerEvents, 'name', pageLink, deferred);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+                promise = deferred.promise;
+                break;
+            case types.entityType.blobEntity:
+                deferred = $q.defer();
+                blobEntityService.getBlobEntities({limit: 2147483647}, null, false, config).then(
+                    (blobEntitiesData) => {
+                        utils.filterSearchTextEntities(blobEntitiesData.data, 'name', pageLink, deferred);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+                promise = deferred.promise;
                 break;
         }
         return promise;
@@ -966,6 +1011,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.dashboard = types.entityType.dashboard;
                 entityTypes.converter = types.entityType.converter;
                 entityTypes.integration = types.entityType.integration;
+                entityTypes.schedulerEvent = types.entityType.schedulerEvent;
+                entityTypes.blobEntity = types.entityType.blobEntity;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
                 }
@@ -975,6 +1022,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.asset = types.entityType.asset;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
+                entityTypes.schedulerEvent = types.entityType.schedulerEvent;
+                entityTypes.blobEntity = types.entityType.blobEntity;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
                 }

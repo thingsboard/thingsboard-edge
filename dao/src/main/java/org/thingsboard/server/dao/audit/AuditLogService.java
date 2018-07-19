@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -55,15 +55,14 @@ public interface AuditLogService {
 
     TimePageData<AuditLog> findAuditLogsByTenantId(TenantId tenantId, TimePageLink pageLink);
 
-    <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> ListenableFuture<List<Void>> logEntityAction(
-                                                        TenantId tenantId,
-                                                        CustomerId customerId,
-                                                        UserId userId,
-                                                        String userName,
-                                                        I entityId,
-                                                        E entity,
-                                                        ActionType actionType,
-                                                        Exception e, Object... additionalInfo);
+    <E extends HasName, I extends EntityId> ListenableFuture<List<Void>> logEntityAction(
+            TenantId tenantId,
+            CustomerId customerId,
+            UserId userId,
+            String userName,
+            I entityId,
+            E entity,
+            ActionType actionType,
+            Exception e, Object... additionalInfo);
 
 }

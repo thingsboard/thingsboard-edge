@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -28,13 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
 var ruleNodeClazzHelpLinkMap = {
     'org.thingsboard.rule.engine.filter.TbCheckRelationNode': 'ruleNodeCheckRelation',
     'org.thingsboard.rule.engine.filter.TbJsFilterNode': 'ruleNodeJsFilter',
     'org.thingsboard.rule.engine.filter.TbJsSwitchNode': 'ruleNodeJsSwitch',
     'org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode': 'ruleNodeMessageTypeFilter',
     'org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode': 'ruleNodeMessageTypeSwitch',
+    'org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode': 'ruleNodeOriginatorTypeFilter',
     'org.thingsboard.rule.engine.filter.TbOriginatorTypeSwitchNode': 'ruleNodeOriginatorTypeSwitch',
     'org.thingsboard.rule.engine.metadata.TbGetAttributesNode': 'ruleNodeOriginatorAttributes',
     'org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode': 'ruleNodeOriginatorFields',
@@ -46,7 +46,8 @@ var ruleNodeClazzHelpLinkMap = {
     'org.thingsboard.rule.engine.transform.TbTransformMsgNode': 'ruleNodeTransformMsg',
     'org.thingsboard.rule.engine.mail.TbMsgToEmailNode': 'ruleNodeMsgToEmail',
     'org.thingsboard.rule.engine.action.TbClearAlarmNode': 'ruleNodeClearAlarm',
-    'org.thingsboard.rule.engine.action.TbCreateAlarmNode': 'ruleNodeCrateAlarm',
+    'org.thingsboard.rule.engine.action.TbCreateAlarmNode': 'ruleNodeCreateAlarm',
+    'org.thingsboard.rule.engine.delay.TbMsgDelayNode': 'ruleNodeMsgDelay',
     'org.thingsboard.rule.engine.debug.TbMsgGeneratorNode': 'ruleNodeMsgGenerator',
     'org.thingsboard.rule.engine.action.TbLogNode': 'ruleNodeLog',
     'org.thingsboard.rule.engine.rpc.TbSendRPCReplyNode': 'ruleNodeRpcCallReply',
@@ -63,7 +64,14 @@ var ruleNodeClazzHelpLinkMap = {
     'org.thingsboard.rule.engine.mail.TbSendEmailNode': 'ruleNodeSendEmail',
     'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
     'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
-    'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup'
+    'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',
+    'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode': 'ruleNodeDuplicateToGroup',
+    'org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode': 'ruleNodeDuplicateToRelated',
+    'org.thingsboard.rule.engine.report.TbGenerateReportNode': 'ruleNodeGenerateReport',
+    'org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode': 'ruleNodeRestCallReply',
+    'org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode': 'ruleNodeAggregateLatest',
+    'org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode': 'ruleNodeAggregateStream',
+    'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCount'
 };
 
 var integrationTypeHelpLinkMap = {
@@ -93,6 +101,7 @@ export default angular.module('thingsboard.help', [])
                 ruleNodeJsSwitch: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/filter-nodes/#switch-node",
                 ruleNodeMessageTypeFilter: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/filter-nodes/#message-type-filter-node",
                 ruleNodeMessageTypeSwitch: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/filter-nodes/#message-type-switch-node",
+                ruleNodeOriginatorTypeFilter: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/filter-nodes/#originator-type-filter-node",
                 ruleNodeOriginatorTypeSwitch: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/filter-nodes/#originator-type-switch-node",
                 ruleNodeOriginatorAttributes: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/enrichment-nodes/#originator-attributes",
                 ruleNodeOriginatorFields: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/enrichment-nodes/#originator-fields",
@@ -104,7 +113,8 @@ export default angular.module('thingsboard.help', [])
                 ruleNodeTransformMsg: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/transformation-nodes/#script-transformation-node",
                 ruleNodeMsgToEmail: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/transformation-nodes/#to-email-node",
                 ruleNodeClearAlarm: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#clear-alarm-node",
-                ruleNodeCrateAlarm: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#create-alarm-node",
+                ruleNodeCreateAlarm: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#create-alarm-node",
+                ruleNodeMsgDelay: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#delay-node",
                 ruleNodeMsgGenerator: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#generator-node",
                 ruleNodeLog: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#log-node",
                 ruleNodeRpcCallReply: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#rpc-call-reply-node",
@@ -122,6 +132,13 @@ export default angular.module('thingsboard.help', [])
                 ruleNodeIntegrationDownlink: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#integration-downlink-node",
                 ruleNodeAddToGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node",
                 ruleNodeRemoveFromGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node",
+                ruleNodeDuplicateToGroup: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node",
+                ruleNodeDuplicateToRelated: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-related-node",
+                ruleNodeGenerateReport: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#generate-report-node",
+                ruleNodeRestCallReply: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/action-nodes/#rest-call-reply-node",
+                ruleNodeAggregateLatest: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-latest-node",
+                ruleNodeAggregateStream: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-stream-node",
+                ruleNodeAlarmsCount: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#alarms-count-node",
                 rulechains: helpBaseUrl + "/docs/user-guide/ui/rule-chains/",
                 tenants: helpBaseUrl + "/docs/user-guide/ui/tenants",
                 customers: helpBaseUrl + "/docs/user-guide/ui/customers",
@@ -132,7 +149,7 @@ export default angular.module('thingsboard.help', [])
                 widgetsBundles: helpBaseUrl + "/docs/user-guide/ui/widget-library#bundles",
                 widgetsConfig:  helpBaseUrl + "/docs/user-guide/ui/dashboards#widget-configuration",
                 widgetsConfigTimeseries:  helpBaseUrl + "/docs/user-guide/ui/dashboards#timeseries",
-                widgetsConfigLatest: helpBaseUrl +  "/docs/user-guide/ui/dashboards#latest",
+                widgetsConfigLatest: helpBaseUrl +  "/docs/user-guide/ui/dashboards#telemetry",
                 widgetsConfigRpc: helpBaseUrl +  "/docs/user-guide/ui/dashboards#rpc",
                 widgetsConfigAlarm: helpBaseUrl +  "/docs/user-guide/ui/dashboards#alarm",
                 widgetsConfigStatic: helpBaseUrl +  "/docs/user-guide/ui/dashboards#static",

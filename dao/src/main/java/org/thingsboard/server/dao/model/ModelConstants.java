@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -85,6 +85,7 @@ public class ModelConstants {
     public static final String USER_BY_EMAIL_COLUMN_FAMILY_NAME = "user_by_email";
     public static final String USER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_and_search_text";
     public static final String USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_customer_and_search_text";
+    public static final String USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_authority_and_search_text";
 
     /**
      * Cassandra user_credentials constants.
@@ -382,6 +383,40 @@ public class ModelConstants {
     public static final String RULE_NODE_TYPE_PROPERTY = "type";
     public static final String RULE_NODE_NAME_PROPERTY = "name";
     public static final String RULE_NODE_CONFIGURATION_PROPERTY = "configuration";
+
+    /**
+     * Cassandra scheduler event constants.
+     */
+    public static final String SCHEDULER_EVENT_COLUMN_FAMILY_NAME = "scheduler_event";
+    public static final String SCHEDULER_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_NAME_PROPERTY = "name";
+    public static final String SCHEDULER_EVENT_TYPE_PROPERTY = "type";
+    public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = "configuration";
+    public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
+
+    public static final String SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant";
+    public static final String SCHEDULER_EVENT_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant_and_type";
+    public static final String SCHEDULER_EVENT_BY_CUSTOMER_COLUMN_FAMILY_NAME = "scheduler_event_by_customer";
+    public static final String SCHEDULER_EVENT_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_customer_and_type";
+
+    /**
+     * Cassandra blob entity constants.
+     */
+    public static final String BLOB_ENTITY_COLUMN_FAMILY_NAME = "blob_entity";
+    public static final String BLOB_ENTITY_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String BLOB_ENTITY_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String BLOB_ENTITY_NAME_PROPERTY = "name";
+    public static final String BLOB_ENTITY_TYPE_PROPERTY = "type";
+    public static final String BLOB_ENTITY_CONTENT_TYPE_PROPERTY = "content_type";
+    public static final String BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String BLOB_ENTITY_DATA_PROPERTY = "data";
+
+    public static final String BLOB_ENTITY_BY_TENANT_COLUMN_FAMILY_NAME = "blob_entity_by_tenant";
+    public static final String BLOB_ENTITY_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_tenant_and_type";
+    public static final String BLOB_ENTITY_BY_CUSTOMER_COLUMN_FAMILY_NAME = "blob_entity_by_customer";
+    public static final String BLOB_ENTITY_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_customer_and_type";
 
     /**
      * Cassandra attributes and timeseries constants.

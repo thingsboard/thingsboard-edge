@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -229,10 +229,19 @@ function ItemBuffer($q, bufferStore, types, utils, dashboardUtils, ruleChainServ
                 var node = ruleNodes.nodes[i];
                 var component = ruleChainService.getRuleNodeComponentByClazz(node.componentClazz);
                 if (component) {
+                    var icon = types.ruleNodeType[component.type].icon;
+                    var iconUrl = null;
+                    if (component.configurationDescriptor.nodeDefinition.icon) {
+                        icon = component.configurationDescriptor.nodeDefinition.icon;
+                    }
+                    if (component.configurationDescriptor.nodeDefinition.iconUrl) {
+                        iconUrl = component.configurationDescriptor.nodeDefinition.iconUrl;
+                    }
                     delete node.componentClazz;
                     node.component = component;
                     node.nodeClass = types.ruleNodeType[component.type].nodeClass;
-                    node.icon = types.ruleNodeType[component.type].icon;
+                    node.icon = icon;
+                    node.iconUrl = iconUrl;
                     node.connectors = [];
                     node.x = Math.round(node.x + deltaX);
                     node.y = Math.round(node.y + deltaY);

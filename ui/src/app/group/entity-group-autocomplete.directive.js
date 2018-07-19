@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -101,30 +101,45 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
                 entityGroupService.getEntityGroup(ngModelCtrl.$viewValue).then(
                     function success(entityGroup) {
                         scope.entityGroup = entityGroup;
+                        if (scope.onEntityGroupLoaded) {
+                            scope.onEntityGroupLoaded({entityGroup: entityGroup});
+                        }
                     },
                     function fail() {
                         scope.entityGroup = null;
+                        if (scope.onEntityGroupLoaded) {
+                            scope.onEntityGroupLoaded({entityGroup: null});
+                        }
                     }
                 );
             } else {
                 scope.entityGroup = null;
+                if (scope.onEntityGroupLoaded) {
+                    scope.onEntityGroupLoaded({entityGroup: null});
+                }
             }
         }
 
-        scope.$watch('entityGroup', function () {
-            scope.updateView();
-        });
-
-        scope.$watch('groupType', function (newGroupType, prevGroupType) {
-            if (!angular.equals(newGroupType, prevGroupType)) {
-                scope.allEntityGroups = null;
-                scope.entityGroup = null;
+        scope.$watch('entityGroup', function (newEntityGroup, prevEntityGroup) {
+            if (!angular.equals(newEntityGroup, prevEntityGroup)) {
                 scope.updateView();
             }
         });
 
-        scope.$watch('disabled', function () {
-            scope.updateView();
+        scope.$watch('groupType', function (newGroupType, prevGroupType) {
+            if (!angular.equals(newGroupType, prevGroupType)) {
+                if (!scope.entityGroup || scope.entityGroup.type !== newGroupType) {
+                    scope.allEntityGroups = null;
+                    scope.entityGroup = null;
+                    scope.updateView();
+                }
+            }
+        });
+
+        scope.$watch('disabled', function (newDisabled, prevDisabled) {
+            if (!angular.equals(newDisabled, prevDisabled)) {
+                scope.updateView();
+            }
         });
 
         $compile(element.contents())(scope);
@@ -143,7 +158,8 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
             disabled:'=ngDisabled',
             placeholderText: '@',
             notFoundText: '@',
-            requiredText: '@'
+            requiredText: '@',
+            onEntityGroupLoaded: '&?'
         }
     };
 }

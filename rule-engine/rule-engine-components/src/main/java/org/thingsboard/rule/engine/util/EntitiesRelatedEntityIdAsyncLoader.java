@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -43,7 +43,11 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.relation.RelationService;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class EntitiesRelatedEntityIdAsyncLoader {
 
@@ -60,6 +64,32 @@ public class EntitiesRelatedEntityIdAsyncLoader {
                     : Futures.immediateFuture(null));
         }
         return Futures.immediateFailedFuture(new IllegalStateException("Unknown direction"));
+    }
+
+    public static ListenableFuture<List<EntityId>> findEntitiesAsync(TbContext ctx, EntityId originator,
+                                                                     RelationsQuery relationsQuery) {
+        return findEntitiesAsync(ctx, originator, relationsQuery, entityId -> true);
+    }
+
+    public static ListenableFuture<List<EntityId>> findEntitiesAsync(TbContext ctx, EntityId originator,
+                                                                     RelationsQuery relationsQuery, Predicate<EntityId> entityFilter) {
+        RelationService relationService = ctx.getRelationService();
+        EntityRelationsQuery query = buildQuery(originator, relationsQuery);
+        ListenableFuture<List<EntityRelation>> asyncRelation = relationService.findByQuery(query);
+
+        Function<EntityRelation, EntityId> mapFunction;
+
+        if (relationsQuery.getDirection() == EntitySearchDirection.FROM) {
+            mapFunction = EntityRelation::getTo;
+        } else if (relationsQuery.getDirection() == EntitySearchDirection.TO) {
+            mapFunction = EntityRelation::getFrom;
+        } else {
+            return Futures.immediateFailedFuture(new IllegalStateException("Unknown direction"));
+        }
+
+        return Futures.transformAsync(asyncRelation, r -> CollectionUtils.isNotEmpty(r)
+                ? Futures.immediateFuture(r.stream().map(mapFunction).filter(entityFilter).collect(Collectors.toList()))
+                : Futures.immediateFuture(Collections.emptyList()));
     }
 
     private static EntityRelationsQuery buildQuery(EntityId originator, RelationsQuery relationsQuery) {

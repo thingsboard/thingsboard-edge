@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,6 +34,7 @@ import deviceCredentialsTemplate from './../device/device-credentials.tpl.html';
 import assignDevicesToCustomerTemplate from './../device/assign-to-customer.tpl.html';
 import assignAssetsToCustomerTemplate from './../asset/assign-to-customer.tpl.html';
 import selectEntityGroupTemplate from './select-entity-group.tpl.html';
+import progressTemplate from './progress.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -52,7 +53,8 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
         unassignAssetsFromCustomer: unassignAssetsFromCustomer,
         makeAssetPublic: makeAssetPublic,
         selectEntityGroup: selectEntityGroup,
-        confirm: confirm
+        confirm: confirm,
+        progress: progress
     }
 
     return service;
@@ -318,6 +320,35 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
             .cancel($translate.instant('action.no'))
             .ok($translate.instant('action.yes'));
         return $mdDialog.show(confirm);
+    }
+
+    function progress($event, progressFunction, progressText) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: ProgressDialogController,
+            controllerAs: 'vm',
+            templateUrl: progressTemplate,
+            locals: {progressFunction: progressFunction, progressText: progressText},
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            skipHide: true,
+            targetEvent: $event
+        });
+    }
+
+    function ProgressDialogController($mdDialog, progressFunction, progressText) {
+        var vm = this;
+        vm.progressText = progressText;
+        progressFunction().then(
+            () => {
+                $mdDialog.hide();
+            },
+            () => {
+                $mdDialog.hide();
+            }
+        );
     }
 
 }

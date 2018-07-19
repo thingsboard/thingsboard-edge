@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,11 +36,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.api.*;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.rule.engine.mail.TbSendEmailNode.SEND_EMAIL_TYPE;
@@ -60,6 +65,11 @@ import static org.thingsboard.rule.engine.mail.TbSendEmailNode.SEND_EMAIL_TYPE;
 public class TbMsgToEmailNode implements TbNode {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private static final String ATTACHMENTS = "attachments";
+    private static final String EMAIL_TIMEZONE = "emailTimezone";
+
+    private static final Pattern dateVarPattern = Pattern.compile("%d\\{([^\\}]*)\\}");
 
     private TbMsgToEmailNodeConfiguration config;
 
@@ -86,13 +96,28 @@ public class TbMsgToEmailNode implements TbNode {
     }
 
     private EmailPojo convert(TbMsg msg) throws IOException {
+        TimeZone tz = null;
+        String emailTimezone = msg.getMetaData().getValue(EMAIL_TIMEZONE);
+        if (!StringUtils.isEmpty(emailTimezone)) {
+            tz = TimeZone.getTimeZone(emailTimezone);
+        }
+        Date currentDate = new Date();
         EmailPojo.EmailPojoBuilder builder = EmailPojo.builder();
         builder.from(fromTemplate(this.config.getFromTemplate(), msg.getMetaData()));
         builder.to(fromTemplate(this.config.getToTemplate(), msg.getMetaData()));
         builder.cc(fromTemplate(this.config.getCcTemplate(), msg.getMetaData()));
         builder.bcc(fromTemplate(this.config.getBccTemplate(), msg.getMetaData()));
-        builder.subject(fromTemplate(this.config.getSubjectTemplate(), msg.getMetaData()));
-        builder.body(fromTemplate(this.config.getBodyTemplate(), msg.getMetaData()));
+        builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg.getMetaData(), currentDate, tz));
+        builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg.getMetaData(), currentDate, tz));
+        List<BlobEntityId> attachments = new ArrayList<>();
+        String attachmentsStr = msg.getMetaData().getValue(ATTACHMENTS);
+        if (!StringUtils.isEmpty(attachmentsStr)) {
+            String[] attachmentsStrArray = attachmentsStr.split(",");
+            for (String attachmentStr : attachmentsStrArray) {
+                attachments.add(new BlobEntityId(UUID.fromString(attachmentStr)));
+            }
+        }
+        builder.attachments(attachments);
         return builder.build();
     }
 
@@ -102,6 +127,29 @@ public class TbMsgToEmailNode implements TbNode {
         } else {
             return null;
         }
+    }
+
+    private String fromTemplateWithDate(String template, TbMsgMetaData metaData, Date currentDate, TimeZone tz) {
+        if (!StringUtils.isEmpty(template)) {
+            return processDatePatterns(TbNodeUtils.processPattern(template, metaData), currentDate, tz);
+        } else {
+            return null;
+        }
+    }
+
+    private String processDatePatterns(String datePattern, Date currentDate, TimeZone tz) {
+        String result = datePattern;
+        Matcher matcher = dateVarPattern.matcher(datePattern);
+        while (matcher.find()) {
+            String toReplace = matcher.group(0);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(matcher.group(1));
+            if (tz != null) {
+                dateFormat.setTimeZone(tz);
+            }
+            String replacement = dateFormat.format(currentDate);
+            result = result.replace(toReplace, replacement);
+        }
+        return result;
     }
 
     @Override

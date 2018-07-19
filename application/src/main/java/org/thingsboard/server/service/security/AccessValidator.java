@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -42,21 +43,28 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.controller.HttpValidationCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -78,6 +86,7 @@ public class AccessValidator {
     public static final String CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "Customer user is not allowed to perform this operation!";
     public static final String SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "System administrator is not allowed to perform this operation!";
     public static final String DEVICE_WITH_REQUESTED_ID_NOT_FOUND = "Device with requested id wasn't found!";
+    public static final String USER_WITH_REQUESTED_ID_NOT_FOUND = "User with requested id wasn't found!";
 
     @Autowired
     protected TenantService tenantService;
@@ -105,6 +114,15 @@ public class AccessValidator {
 
     @Autowired
     protected IntegrationService integrationService;
+
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
+
+    @Autowired
+    protected EntityGroupService entityGroupService;
 
     private ExecutorService executor;
 
@@ -182,10 +200,37 @@ public class AccessValidator {
             case INTEGRATION:
                 validateIntegration(currentUser, entityId, callback);
                 return;
+            case USER:
+                validateUser(currentUser, entityId, callback);
+                return;
+            case SCHEDULER_EVENT:
+                validateSchedulerEvent(currentUser, entityId, callback);
+                return;
+            case BLOB_ENTITY:
+                validateBlobEntity(currentUser, entityId, callback);
+                return;
+            case ENTITY_GROUP:
+                validateEntityGroup(currentUser, entityId, callback);
+                return;
             default:
                 //TODO: add support of other entities
                 throw new IllegalStateException("Not Implemented!");
         }
+    }
+
+    private void validateUser(SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        ListenableFuture<User> userFuture = userService.findUserByIdAsync(new UserId(entityId.getId()));
+        Futures.addCallback(userFuture, getCallback(callback, user -> {
+            if (user == null) {
+                return ValidationResult.entityNotFound(USER_WITH_REQUESTED_ID_NOT_FOUND);
+            } else {
+                if (user.getId().equals(currentUser.getId())) {
+                    return ValidationResult.ok(user);
+                } else {
+                    return ValidationResult.accessDenied("Users mismatch!");
+                }
+            }
+        }), executor);
     }
 
     private void validateDevice(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
@@ -350,6 +395,74 @@ public class AccessValidator {
                     return ValidationResult.accessDenied("Integration doesn't belong to the current Tenant!");
                 } else {
                     return ValidationResult.ok(integration);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateSchedulerEvent(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<SchedulerEventInfo> schedulerEventInfoFuture = schedulerEventService.findSchedulerEventInfoByIdAsync(new SchedulerEventId(entityId.getId()));
+            Futures.addCallback(schedulerEventInfoFuture, getCallback(callback, schedulerEventInfo -> {
+                if (schedulerEventInfo == null) {
+                    return ValidationResult.entityNotFound("Scheduler event with requested id wasn't found!");
+                } else if (!schedulerEventInfo.getTenantId().equals(currentUser.getTenantId())) {
+                    return ValidationResult.accessDenied("Scheduler event doesn't belong to the current Tenant!");
+                } else if (currentUser.isCustomerUser() && !schedulerEventInfo.getCustomerId().equals(currentUser.getCustomerId())) {
+                    return ValidationResult.accessDenied("Scheduler event doesn't belong to the current Customer!");
+                } else {
+                    return ValidationResult.ok(schedulerEventInfo);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateBlobEntity(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<BlobEntityInfo> blobEntityInfoFuture = blobEntityService.findBlobEntityInfoByIdAsync(new BlobEntityId(entityId.getId()));
+            Futures.addCallback(blobEntityInfoFuture, getCallback(callback, blobEntityInfo -> {
+                if (blobEntityInfo == null) {
+                    return ValidationResult.entityNotFound("Blob entity with requested id wasn't found!");
+                } else if (!blobEntityInfo.getTenantId().equals(currentUser.getTenantId())) {
+                    return ValidationResult.accessDenied("Blob entity doesn't belong to the current Tenant!");
+                } else if (currentUser.isCustomerUser() && !blobEntityInfo.getCustomerId().equals(currentUser.getCustomerId())) {
+                    return ValidationResult.accessDenied("Blob entity doesn't belong to the current Customer!");
+                } else {
+                    return ValidationResult.ok(blobEntityInfo);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateEntityGroup(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isCustomerUser()) {
+            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(new EntityGroupId(entityId.getId()));
+            ListenableFuture<Pair<EntityGroup, Boolean>> entityGroupCheckPairFuture =
+                Futures.transformAsync(entityGroupFuture, entityGroup -> {
+                    ListenableFuture<Boolean> entityGroupCheckFuture;
+                    if (entityGroup != null) {
+                        entityGroupCheckFuture =
+                                entityGroupService.checkEntityGroup(currentUser.getTenantId(), entityGroup);
+                    } else {
+                        entityGroupCheckFuture = Futures.immediateFuture(false);
+                    }
+                    return Futures.transform(entityGroupCheckFuture, result -> Pair.of(entityGroup, result));
+            }, executor);
+            Futures.addCallback(entityGroupCheckPairFuture, getCallback(callback, entityGroupCheckPair -> {
+                if (entityGroupCheckPair.getFirst() == null) {
+                    return ValidationResult.entityNotFound("Entity group with requested id wasn't found!");
+                } else if (!entityGroupCheckPair.getSecond()) {
+                    return ValidationResult.accessDenied("Entity group doesn't belong to the current Tenant!");
+                } else {
+                    return ValidationResult.ok(entityGroupCheckPair.getFirst());
                 }
             }), executor);
         }

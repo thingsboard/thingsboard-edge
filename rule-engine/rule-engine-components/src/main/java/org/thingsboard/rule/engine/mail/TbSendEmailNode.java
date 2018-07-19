@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,10 +37,14 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.api.*;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
+import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
+import javax.mail.util.ByteArrayDataSource;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -100,10 +104,10 @@ public class TbSendEmailNode implements TbNode {
     private void sendEmail(TbContext ctx, EmailPojo email) throws Exception {
         if (this.config.isUseSystemSmtpSettings()) {
             ctx.getMailService().send(ctx.getTenantId(), email.getFrom(), email.getTo(), email.getCc(),
-                    email.getBcc(), email.getSubject(), email.getBody());
+                    email.getBcc(), email.getSubject(), email.getBody(), email.getAttachments());
         } else {
             MimeMessage mailMsg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mailMsg, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mailMsg, !email.getAttachments().isEmpty(),"UTF-8");
             helper.setFrom(email.getFrom());
             helper.setTo(email.getTo().split("\\s*,\\s*"));
             if (!StringUtils.isBlank(email.getCc())) {
@@ -114,6 +118,13 @@ public class TbSendEmailNode implements TbNode {
             }
             helper.setSubject(email.getSubject());
             helper.setText(email.getBody());
+            for (BlobEntityId blobEntityId : email.getAttachments()) {
+                BlobEntity blobEntity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(blobEntityId);
+                if (blobEntity != null) {
+                    DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
+                    helper.addAttachment(blobEntity.getName(), dataSource);
+                }
+            }
             mailSender.send(helper.getMimeMessage());
         }
     }

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -213,6 +213,18 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.entityText = 'integration.integration';
                     scope.noEntitiesMatchingText = 'integration.no-integrations-matching';
                     scope.entityRequiredText = 'integration.integration-required'
+                    break;
+                case types.entityType.schedulerEvent:
+                    scope.selectEntityText = 'scheduler.select-scheduler-event';
+                    scope.entityText = 'scheduler.scheduler-event';
+                    scope.noEntitiesMatchingText = 'scheduler.no-scheduler-events-matching';
+                    scope.entityRequiredText = 'scheduler.scheduler-event-required'
+                    break;
+                case types.entityType.blobEntity:
+                    scope.selectEntityText = 'blob-entity.select-blob-entity';
+                    scope.entityText = 'blob-entity.blob-entity';
+                    scope.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
+                    scope.entityRequiredText = 'blob-entity.blob-entity-required'
                     break;
             }
             if (scope.labelText && scope.labelText.length) {

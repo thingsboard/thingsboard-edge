@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -103,6 +103,13 @@ public class ThingsboardInstallService {
 
                         dataUpdateService.updateData("1.4.0");
 
+                    case "2.0.0": // to 2.1.0PE
+                        log.info("Upgrading ThingsBoard from version 2.0.0 to 2.1.0PE ...");
+
+                        databaseUpgradeService.upgradeDatabase("2.0.0");
+
+                        dataUpdateService.updateData("2.0.0");
+
                         log.info("Updating system data...");
 
                         systemDataLoaderService.deleteSystemWidgetBundle("charts");
@@ -115,15 +122,10 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("control_widgets");
                         systemDataLoaderService.deleteSystemWidgetBundle("maps_v2");
                         systemDataLoaderService.deleteSystemWidgetBundle("gateway_widgets");
+                        systemDataLoaderService.deleteSystemWidgetBundle("scheduling");
+                        systemDataLoaderService.deleteSystemWidgetBundle("files");
 
                         systemDataLoaderService.loadSystemWidgets();
-
-                    case "2.0.0": // to 2.0.0PE
-                        log.info("Upgrading ThingsBoard from version 2.0.0 to 2.0.0PE ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.0.0");
-
-                        dataUpdateService.updateData("2.0.0");
 
                         break;
                     default:

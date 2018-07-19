@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,6 +35,9 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.LoggingAdapter;
 import com.datastax.driver.core.utils.UUIDs;
+
+import java.util.Optional;
+
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.device.DeviceActorToRuleEngineMsg;
 import org.thingsboard.server.actors.device.RuleEngineQueuePutAckMsg;
@@ -52,6 +55,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -159,7 +163,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     @Override
     public void onClusterEventMsg(ClusterEventMsg msg) throws Exception {
-
+        nodeActors.values().stream().map(RuleNodeCtx::getSelfActor).forEach(actorRef -> actorRef.tell(msg, self));
     }
 
     private ActorRef createRuleNodeActor(ActorContext context, RuleNode ruleNode) {
@@ -232,16 +236,36 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     void onTellNext(RuleNodeToRuleChainTellNextMsg envelope) {
         checkActive();
-        RuleNodeId originator = envelope.getOriginator();
-        List<RuleNodeRelation> relations = nodeRoutes.get(originator).stream()
+        TbMsg msg = envelope.getMsg();
+        EntityId originatorEntityId = msg.getOriginator();
+        Optional<ServerAddress> address = systemContext.getRoutingService().resolveById(originatorEntityId);
+
+        if (address.isPresent()) {
+            onRemoteTellNext(address.get(), envelope);
+        } else {
+            onLocalTellNext(envelope);
+        }
+    }
+
+    private void onRemoteTellNext(ServerAddress serverAddress, RuleNodeToRuleChainTellNextMsg envelope) {
+        TbMsg msg = envelope.getMsg();
+        logger.debug("Forwarding [{}] msg to remote server [{}] due to changed originator id: [{}]", msg.getId(), serverAddress, msg.getOriginator());
+        envelope = new RemoteToRuleChainTellNextMsg(envelope, tenantId, entityId);
+        systemContext.getRpcService().tell(systemContext.getEncodingService().convertToProtoDataMessage(serverAddress, envelope));
+    }
+
+    private void onLocalTellNext(RuleNodeToRuleChainTellNextMsg envelope) {
+        TbMsg msg = envelope.getMsg();
+        RuleNodeId originatorNodeId = envelope.getOriginator();
+        List<RuleNodeRelation> relations = nodeRoutes.get(originatorNodeId).stream()
                 .filter(r -> contains(envelope.getRelationTypes(), r.getType()))
                 .collect(Collectors.toList());
-
-        TbMsg msg = envelope.getMsg();
         int relationsCount = relations.size();
         EntityId ackId = msg.getRuleNodeId() != null ? msg.getRuleNodeId() : msg.getRuleChainId();
         if (relationsCount == 0) {
-            queue.ack(tenantId, msg, ackId.getId(), msg.getClusterPartition());
+            if (ackId != null) {
+                queue.ack(tenantId, msg, ackId.getId(), msg.getClusterPartition());
+            }
         } else if (relationsCount == 1) {
             for (RuleNodeRelation relation : relations) {
                 pushToTarget(msg, relation.getOut(), relation.getType());
@@ -259,8 +283,16 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
                 }
             }
             //TODO: Ideally this should happen in async way when all targets confirm that the copied messages are successfully written to corresponding target queues.
-            queue.ack(tenantId, msg, ackId.getId(), msg.getClusterPartition());
+            if (ackId != null) {
+                queue.ack(tenantId, msg, ackId.getId(), msg.getClusterPartition());
+            }
         }
+    }
+
+    void onAckMsg(RuleNodeToRuleChainAckMsg envelope) {
+        TbMsg msg = envelope.getMsg();
+        EntityId ackId = msg.getRuleNodeId() != null ? msg.getRuleNodeId() : msg.getRuleChainId();
+        queue.ack(tenantId, msg, ackId.getId(), msg.getClusterPartition());
     }
 
     private boolean contains(Set<String> relationTypes, String type) {
@@ -309,4 +341,5 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         // We don't put firstNodeId because it may change over time;
         return new TbMsg(tbMsg.getId(), tbMsg.getType(), tbMsg.getOriginator(), tbMsg.getMetaData().copy(), tbMsg.getData(), entityId, null, systemContext.getQueuePartitionId());
     }
+
 }

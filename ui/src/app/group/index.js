@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,6 +34,7 @@ import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
 import EntityGroupSettings from './entity-group-settings.directive';
 import EntityGroupAutocompleteDirective from './entity-group-autocomplete.directive';
+import EntityGroupSelectDirective from './entity-group-select.directive';
 import EntityGroupListDirective from './entity-group-list.directive';
 import EntityGroupColumn from './entity-group-column.directive';
 import EntityGroupColumns from './entity-group-columns.directive';
@@ -48,6 +49,7 @@ export default angular.module('thingsboard.entityGroup', [])
     .directive('tbEntityGroup', EntityGroupDirective)
     .directive('tbEntityGroupSettings', EntityGroupSettings)
     .directive('tbEntityGroupAutocomplete', EntityGroupAutocompleteDirective)
+    .directive('tbEntityGroupSelect', EntityGroupSelectDirective)
     .directive('tbEntityGroupList', EntityGroupListDirective)
     .directive('tbEntityGroupColumn', EntityGroupColumn)
     .directive('tbEntityGroupColumns', EntityGroupColumns)

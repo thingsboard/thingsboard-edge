@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -164,7 +164,7 @@ public class CassandraBaseEventDao extends CassandraAbstractSearchTimeDao<EventE
 
     @Override
     public List<Event> findLatestEvents(UUID tenantId, EntityId entityId, String eventType, int limit) {
-        log.trace("Try to find latest events by tenant [{}], entity [{}], type [{}] and limit [{}]", tenantId, entityId, eventType, limit);
+        log.trace("Try to find telemetry events by tenant [{}], entity [{}], type [{}] and limit [{}]", tenantId, entityId, eventType, limit);
         Select select = select().from(EVENT_BY_TYPE_AND_ID_VIEW_NAME);
         Select.Where query = select.where();
         query.and(eq(ModelConstants.EVENT_TENANT_ID_PROPERTY, tenantId));

@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -31,7 +31,7 @@
 
 -->
 <div class="tb-absolute-fill tb-entity-group-table tb-data-table md-padding" layout="column">
-    <div ng-show="vm.showData" flex class="md-whiteframe-z1 tb-entity-group-table-content" layout="column">
+    <div ng-show="vm.showData" flex class="md-whiteframe-z1 toolbarsContainer tb-entity-group-table-content" layout="column">
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
@@ -47,7 +47,7 @@
                         {{ vm.translations.add | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button ng-disabled="$root.loading" ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode()">
+                <md-button ng-disabled="$root.loading" ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode($event)">
                     <md-icon>search</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.search | translate }}
@@ -66,7 +66,7 @@
                 </md-button>
                 <md-input-container flex>
                     <label>&nbsp;</label>
-                    <input ng-model="vm.query.search" placeholder="{{ vm.translations.search | translate }}"/>
+                    <input ng-model="vm.query.search" class="searchInput" name="querySearchInput" placeholder="{{ vm.translations.search | translate }}"/>
                 </md-input-container>
                 <md-button class="md-icon-button" aria-label="Close" ng-click="vm.exitFilterMode()">
                     <md-icon aria-label="Close" class="material-icons">close</md-icon>

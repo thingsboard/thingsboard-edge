@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -268,6 +268,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'dashboards'
                         },
                         {
+                            name: 'scheduler.scheduler',
+                            type: 'link',
+                            state: 'home.scheduler',
+                            icon: 'schedule'
+                        },
+                        {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
@@ -381,6 +387,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 ]
                             },
                             {
+                                name: 'scheduler.management',
+                                places: [
+                                    {
+                                        name: 'scheduler.scheduler',
+                                        icon: 'schedule',
+                                        state: 'home.scheduler'
+                                    }
+                                ]
+                            },
+                            {
                                 name: 'admin.system-settings',
                                 places: [
                                     {
@@ -437,6 +453,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'dashboard'
                         },
                         {
+                            name: 'scheduler.scheduler',
+                            type: 'link',
+                            state: 'home.scheduler',
+                            icon: 'schedule'
+                        },
+                        {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
@@ -480,6 +502,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'dashboard.dashboards',
                                         icon: 'dashboard',
                                         state: 'home.dashboards'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'scheduler.management',
+                                places: [
+                                    {
+                                        name: 'scheduler.scheduler',
+                                        icon: 'schedule',
+                                        state: 'home.scheduler'
                                     }
                                 ]
                             },
