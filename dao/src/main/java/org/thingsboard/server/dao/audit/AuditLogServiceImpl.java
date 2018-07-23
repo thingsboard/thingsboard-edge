@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.audit.sink.AuditLogSink;
@@ -130,7 +131,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public <E extends BaseData<I> & HasName, I extends UUIDBased & EntityId> ListenableFuture<List<Void>>
+    public <E extends HasName, I extends EntityId> ListenableFuture<List<Void>>
         logEntityAction(TenantId tenantId, CustomerId customerId, UserId userId, String userName, I entityId, E entity,
                                ActionType actionType, Exception e, Object... additionalInfo) {
         if (canLog(entityId.getEntityType(), actionType)) {
@@ -171,14 +172,16 @@ public class AuditLogServiceImpl implements AuditLogService {
         }
     }
 
-    private <E extends BaseData<I> & HasName, I extends UUIDBased & EntityId> JsonNode constructActionData(I entityId,
-                                                                                                           E entity,
+    private <E extends HasName, I extends EntityId> JsonNode constructActionData(I entityId, E entity,
                                                                                                            ActionType actionType,
                                                                                                            Object... additionalInfo) {
         ObjectNode actionData = objectMapper.createObjectNode();
         switch(actionType) {
             case ADDED:
             case UPDATED:
+            case ALARM_ACK:
+            case ALARM_CLEAR:
+            case RELATIONS_DELETED:
                 if (entity != null) {
                     ObjectNode entityNode = objectMapper.valueToTree(entity);
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
@@ -270,6 +273,10 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.put("entityId", strEntityId);
                 actionData.put("removedFromEntityGroupId", strEntityGroupId);
                 actionData.put("removedFromEntityGroupName", strEntityGroupName);
+            case RELATION_ADD_OR_UPDATE:
+            case RELATION_DELETED:
+                EntityRelation relation = extractParameter(EntityRelation.class, 0, additionalInfo);
+                actionData.set("relation", objectMapper.valueToTree(relation));
                 break;
         }
         return actionData;

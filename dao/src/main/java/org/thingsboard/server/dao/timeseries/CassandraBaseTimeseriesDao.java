@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -108,6 +108,7 @@ public class CassandraBaseTimeseriesDao extends CassandraAbstractAsyncDao implem
     private PreparedStatement[] saveStmts;
     private PreparedStatement[] saveTtlStmts;
     private PreparedStatement[] fetchStmts;
+    private PreparedStatement findOneStmt;
     private PreparedStatement findLatestStmt;
     private PreparedStatement findAllLatestStmt;
 
@@ -133,6 +134,18 @@ public class CassandraBaseTimeseriesDao extends CassandraAbstractAsyncDao implem
     @PreDestroy
     public void stop() {
         super.stopExecutor();
+    }
+
+    @Override
+    public ListenableFuture<TsKvEntry> findOneAsync(EntityId entityId, long ts, String key) {
+        PreparedStatement proto = getFindOneStmt();
+        BoundStatement stmt = proto.bind();
+        stmt.setString(0, entityId.getEntityType().name());
+        stmt.setUUID(1, entityId.getId());
+        stmt.setString(2, key);
+        stmt.setLong(3, toPartitionTs(ts));
+        stmt.setLong(4, ts);
+        return getFuture(executeAsyncRead(stmt), rs -> convertResultToTsKvEntry(key, rs.one()));
     }
 
     @Override
@@ -522,6 +535,24 @@ public class CassandraBaseTimeseriesDao extends CassandraAbstractAsyncDao implem
         return partitionInsertTtlStmt;
     }
 
+    private PreparedStatement getFindOneStmt() {
+        if (findOneStmt == null) {
+            findOneStmt = prepare(SELECT_PREFIX +
+                    ModelConstants.KEY_COLUMN + "," +
+                    ModelConstants.TS_COLUMN + "," +
+                    ModelConstants.STRING_VALUE_COLUMN + "," +
+                    ModelConstants.BOOLEAN_VALUE_COLUMN + "," +
+                    ModelConstants.LONG_VALUE_COLUMN + "," +
+                    ModelConstants.DOUBLE_VALUE_COLUMN + " " +
+                    " FROM " + ModelConstants.TS_KV_CF +
+                    " WHERE " + ModelConstants.ENTITY_TYPE_COLUMN + EQUALS_PARAM +
+                    "AND " + ModelConstants.ENTITY_ID_COLUMN + EQUALS_PARAM +
+                    "AND " + ModelConstants.KEY_COLUMN + EQUALS_PARAM +
+                    "AND " + ModelConstants.PARTITION_COLUMN + EQUALS_PARAM +
+                    "AND " + ModelConstants.TS_COLUMN + " = ? ");
+        }
+        return findOneStmt;
+    }
 
     private PreparedStatement getFindLatestStmt() {
         if (findLatestStmt == null) {

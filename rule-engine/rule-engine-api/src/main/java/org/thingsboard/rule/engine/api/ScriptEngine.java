@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
+import java.util.Map;
 import java.util.Set;
 
 public interface ScriptEngine {
@@ -43,6 +44,8 @@ public interface ScriptEngine {
     TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
 
     boolean executeFilter(TbMsg msg) throws ScriptException;
+
+    boolean executeAttributesFilter(Map<String,String> attributes) throws ScriptException;
 
     Set<String> executeSwitch(TbMsg msg) throws ScriptException;
 

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -87,6 +87,8 @@ public interface EntityGroupService {
 
     ListenableFuture<TimePageData<EntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
                                                             BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
+
+    ListenableFuture<List<EntityId>> findAllEntityIds(EntityGroupId entityGroupId, TimePageLink pageLink);
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(EntityId entityId);
 

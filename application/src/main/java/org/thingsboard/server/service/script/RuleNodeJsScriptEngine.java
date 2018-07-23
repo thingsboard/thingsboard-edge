@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -56,9 +56,13 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private final UUID scriptId;
 
     public RuleNodeJsScriptEngine(JsSandboxService sandboxService, String script, String... argNames) {
+        this(sandboxService, JsScriptType.RULE_NODE_SCRIPT, script, argNames);
+    }
+
+    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, JsScriptType scriptType, String script, String... argNames) {
         this.sandboxService = sandboxService;
         try {
-            this.scriptId = this.sandboxService.eval(JsScriptType.RULE_NODE_SCRIPT, script, argNames).get();
+            this.scriptId = this.sandboxService.eval(scriptType, script, argNames).get();
         } catch (Exception e) {
             throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
         }
@@ -153,6 +157,16 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     }
 
     @Override
+    public boolean executeAttributesFilter(Map<String, String> attributes) throws ScriptException {
+        JsonNode result = executeAttributesScript(attributes);
+        if (!result.isBoolean()) {
+            log.warn("Wrong result type: {}", result.getNodeType());
+            throw new ScriptException("Wrong result type: " + result.getNodeType());
+        }
+        return result.asBoolean();
+    }
+
+    @Override
     public Set<String> executeSwitch(TbMsg msg) throws ScriptException {
         JsonNode result = executeScript(msg);
         if (result.isTextual()) {
@@ -178,6 +192,22 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
         try {
             String[] inArgs = prepareArgs(msg);
             String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2]).get().toString();
+            return mapper.readTree(eval);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ScriptException) {
+                throw (ScriptException)e.getCause();
+            } else {
+                throw new ScriptException("Failed to execute js script: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            throw new ScriptException("Failed to execute js script: " + e.getMessage());
+        }
+    }
+
+    private JsonNode executeAttributesScript(Map<String,String> attributes) throws ScriptException {
+        try {
+            String attributesStr = mapper.writeValueAsString(attributes);
+            String eval = sandboxService.invokeFunction(this.scriptId, attributesStr).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {

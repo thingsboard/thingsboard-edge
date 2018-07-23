@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -45,7 +45,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "Activity Event", "Inactivity Event",
                 "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
-                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Added to Group", "Removed from Group", "Other"},
+                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Added to Group", "Removed from Group", "REST API request", "Generate Report", "Other"},
         nodeDescription = "Route incoming messages by Message Type",
         nodeDetails = "Sends messages with message types <b>\"Post attributes\", \"Post telemetry\", \"RPC Request\"</b> etc. via corresponding chain, otherwise <b>Other</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -96,6 +96,10 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Added to Group";
         } else if (msg.getType().equals(DataConstants.REMOVED_FROM_ENTITY_GROUP)) {
             relationType = "Removed from Group";
+        } else if (msg.getType().equals(DataConstants.REST_API_REQUEST)) {
+            relationType = "REST API request";
+        } else if (msg.getType().equals(DataConstants.GENERATE_REPORT)) {
+            relationType = "Generate Report";
         } else {
             relationType = "Other";
         }

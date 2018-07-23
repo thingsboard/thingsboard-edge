@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import './ie.support';
+import './tz.support';
 
 import 'event-source-polyfill';
 
@@ -76,8 +77,12 @@ import 'react-schema-form';
 import react from 'ngreact';
 import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import 'ngFlowchart/dist/ngFlowchart';
+import 'fullcalendar/dist/fullcalendar.min.css';
+import 'fullcalendar/dist/fullcalendar.min.js';
+import 'angular-ui-calendar';
+import 'moment-timezone';
 
-import thingsboardLocales from './locale/locale.constant';
+import thingsboardTranslateHandler from './locale/translate-handler';
 import thingsboardLogin from './login';
 import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
 import thingsboardDialogs from './dialog';
@@ -107,6 +112,9 @@ import thingsboardApiIntegration from './api/integration.service';
 import thingsboardApiAuditLog from './api/audit-log.service';
 import thingsboardApiComponentDescriptor from './api/component-descriptor.service';
 import thingsboardApiRuleChain from './api/rule-chain.service';
+import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
+import thingsboardApiReport from './api/report.service';
+import thingsboardApiBlobEntity from './api/blob-entity.service';
 
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -151,7 +159,8 @@ angular.module('thingsboard', [
     react.name,
     'flow',
     'flowchart',
-    thingsboardLocales,
+    'ui.calendar',
+    thingsboardTranslateHandler,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
     thingsboardDialogs,
@@ -181,6 +190,9 @@ angular.module('thingsboard', [
     thingsboardApiAuditLog,
     thingsboardApiComponentDescriptor,
     thingsboardApiRuleChain,
+    thingsboardApiSchedulerEvent,
+    thingsboardApiReport,
+    thingsboardApiBlobEntity,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

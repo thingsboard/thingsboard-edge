@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,7 +37,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, jwtHelper, $translate, $state, $location) {
+function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -55,6 +55,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         isAuthenticated: isAuthenticated,
         getCurrentUser: getCurrentUser,
         getCustomerUsers: getCustomerUsers,
+        getAllCustomerUsers: getAllCustomerUsers,
         getUser: getUser,
         getTenantAdmins: getTenantAdmins,
         isUserLoaded: isUserLoaded,
@@ -142,11 +143,11 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function isAuthenticated() {
-        return store.get('jwt_token');
+        return _storeGet('jwt_token');
     }
 
     function getJwtToken() {
-        return store.get('jwt_token');
+        return _storeGet('jwt_token');
     }
 
     function logout() {
@@ -162,8 +163,16 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function isTokenValid(prefix) {
-        var clientExpiration = store.get(prefix + '_expiration');
+        var clientExpiration = _storeGet(prefix + '_expiration');
         return clientExpiration && clientExpiration > new Date().valueOf();
+    }
+
+    function _storeGet(key) {
+        if ($rootScope.reportView) {
+            return reportStore.get(key);
+        } else {
+            return store.get(key);
+        }
     }
 
     function validateJwtToken(doRefresh) {
@@ -207,7 +216,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         var deferred = $q.defer();
         refreshTokenQueue.push(deferred);
         if (refreshTokenQueue.length === 1) {
-            var refreshToken = store.get('refresh_token');
+            var refreshToken = _storeGet('refresh_token');
             var refreshTokenValid = isTokenValid('refresh_token');
             setUserFromJwtToken(null, null, false, false);
             if (!refreshTokenValid) {
@@ -307,7 +316,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
 
         function procceedJwtTokenValidate() {
             validateJwtToken(doTokenRefresh).then(function success() {
-                var jwtToken = store.get('jwt_token');
+                var jwtToken = _storeGet('jwt_token');
                 currentUser = jwtHelper.decodeToken(jwtToken);
                 if (currentUser && currentUser.scopes && currentUser.scopes.length > 0) {
                     currentUser.authority = currentUser.scopes[0];
@@ -388,7 +397,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function updateAuthorizationHeader(headers) {
-        var jwtToken = store.get('jwt_token');
+        var jwtToken = _storeGet('jwt_token');
         if (jwtToken) {
             headers['X-Authorization'] = 'Bearer ' + jwtToken;
         }
@@ -396,7 +405,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function setAuthorizationRequestHeader(request) {
-        var jwtToken = store.get('jwt_token');
+        var jwtToken = _storeGet('jwt_token');
         if (jwtToken) {
             request.setRequestHeader('X-Authorization', 'Bearer ' + jwtToken);
         }
@@ -436,6 +445,26 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
             url += '&textOffset=' + pageLink.textOffset;
         }
         $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getAllCustomerUsers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/customer/users?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -515,7 +544,8 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
                         } else {
                             return true;
                         }
-                    } else if (to.name === 'home.dashboards.dashboard' && allowedDashboardIds.indexOf(params.dashboardId) > -1) {
+                    } else if ((to.name === 'home.dashboards.dashboard' || to.name === 'dashboard')
+                        && allowedDashboardIds.indexOf(params.dashboardId) > -1) {
                         return false;
                     } else {
                         return true;
@@ -531,10 +561,10 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
             var place = 'home.links';
             if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
                 if (userHasDefaultDashboard()) {
-                    place = 'home.dashboards.dashboard';
+                    place = $rootScope.forceFullscreen ? 'dashboard' : 'home.dashboards.dashboard';
                     params = {dashboardId: currentUserDetails.additionalInfo.defaultDashboardId};
                 } else if (isPublic()) {
-                    place = 'home.dashboards.dashboard';
+                    place = 'dashboard';
                     params = {dashboardId: lastPublicDashboardId};
                 }
             } else if (currentUser.authority === 'SYS_ADMIN') {

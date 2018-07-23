@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -43,8 +43,8 @@ import AliasController from '../api/alias-controller';
 
 /*@ngInject*/
 export default function DashboardController(types, utils, dashboardUtils, widgetService, userService,
-                                            dashboardService, timeService, entityService, itembuffer, importExport, hotkeys, $window, $rootScope,
-                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter) {
+                                            dashboardService, timeService, entityService, itembuffer, importExport, reportService, hotkeys, $window, $rootScope,
+                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter, $location) {
 
     var vm = this;
 
@@ -82,7 +82,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
 
     Object.defineProperty(vm, 'toolbarOpened', {
         get: function() {
-            return !vm.widgetEditMode &&
+            return !vm.widgetEditMode && !$rootScope.reportView &&
                 (toolbarAlwaysOpen() || vm.isToolbarOpened || vm.isEdit || vm.showRightLayoutSwitch()); },
         set: function() { }
     });
@@ -188,6 +188,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.addWidget = addWidget;
     vm.addWidgetFromType = addWidgetFromType;
     vm.exportDashboard = exportDashboard;
+    vm.generateDashboardReport = generateDashboardReport;
     vm.importWidget = importWidget;
     vm.isPublicUser = isPublicUser;
     vm.isTenantAdmin = isTenantAdmin;
@@ -211,6 +212,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.displayDashboardTimewindow = displayDashboardTimewindow;
     vm.displayDashboardsSelect = displayDashboardsSelect;
     vm.displayEntitiesSelect = displayEntitiesSelect;
+    vm.hideFullscreenButton = hideFullscreenButton;
 
     vm.widgetsBundle;
 
@@ -273,7 +275,11 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                     dashboardId: vm.currentDashboardId
                 });
             } else {
-                $state.go('home.dashboards.dashboard', {dashboardId: vm.currentDashboardId});
+                if ($state.current.name === 'dashboard') {
+                    $state.go('dashboard', {dashboardId: vm.currentDashboardId});
+                } else {
+                    $state.go('home.dashboards.dashboard', {dashboardId: vm.currentDashboardId});
+                }
             }
         }
     });
@@ -379,7 +385,11 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                     vm.dashboard = dashboardUtils.validateAndUpdateDashboard(dashboard);
                     vm.dashboardConfiguration = vm.dashboard.configuration;
                     vm.dashboardCtx.dashboard = vm.dashboard;
-                    vm.dashboardCtx.dashboardTimewindow = vm.dashboardConfiguration.timewindow;
+                    if ($rootScope.reportTimewindow) {
+                        vm.dashboardCtx.dashboardTimewindow = $rootScope.reportTimewindow;
+                    } else {
+                        vm.dashboardCtx.dashboardTimewindow = vm.dashboardConfiguration.timewindow;
+                    }
                     vm.dashboardCtx.aliasController = new AliasController($scope, $q, $filter, utils,
                         types, entityService, vm.dashboardCtx.stateController, vm.dashboardConfiguration.entityAliases);
                 }, function fail() {
@@ -602,6 +612,12 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         importExport.exportDashboard(vm.currentDashboardId);
     }
 
+    function generateDashboardReport($event, reportType) {
+        var locationSearch = $location.search();
+        reportService.downloadDashboardReport($event, vm.currentDashboardId, reportType,
+            locationSearch.state, vm.dashboardCtx.dashboardTimewindow, Date.getTimezoneOffset());
+    }
+
     function exportWidget($event, layoutCtx, widget) {
         $event.stopPropagation();
         importExport.exportWidget(vm.dashboard, vm.dashboardCtx.state, layoutCtx.id, widget);
@@ -818,6 +834,10 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         } else {
             return true;
         }
+    }
+
+    function hideFullscreenButton() {
+        return vm.widgetEditMode || vm.iframeMode || $rootScope.forceFullscreen || $state.current.name === 'dashboard';
     }
 
     function onRevertWidgetEdit(widgetForm) {

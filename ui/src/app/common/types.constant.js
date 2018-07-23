@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -216,6 +216,24 @@ export default angular.module('thingsboard.types', [])
                 },
                 "REMOVED_FROM_ENTITY_GROUP": {
                     name: "audit-log.type-removed-from-entity-group"
+                },
+                "RELATION_ADD_OR_UPDATE": {
+                    name: "audit-log.type-relation-add-or-update"
+                },
+                "RELATION_DELETED": {
+                    name: "audit-log.type-relation-delete"
+                },
+                "RELATIONS_DELETED": {
+                    name: "audit-log.type-relations-delete"
+                },
+                "ALARM_ACK": {
+                    name: "audit-log.type-alarm-ack"
+                },
+                "ALARM_CLEAR": {
+                    name: "audit-log.type-alarm-clear"
+                },
+                "REST_API_RULE_ENGINE_CALL": {
+                    name: "audit-log.type-rest-api-rule-engine-call"
                 }
             },
             auditLogActionStatus: {
@@ -420,7 +438,9 @@ export default angular.module('thingsboard.types', [])
                 converter: "CONVERTER",
                 integration: "INTEGRATION",
                 rulechain: "RULE_CHAIN",
-                rulenode: "RULE_NODE"
+                rulenode: "RULE_NODE",
+                schedulerEvent: "SCHEDULER_EVENT",
+                blobEntity: "BLOB_ENTITY"
             },
             entityGroup: {
                 sortOrder: {
@@ -697,9 +717,27 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-rulechains',
                     nameStartsWith: 'entity.rulechain-name-starts-with'
                 },
+                "RULE_NODE": {
+                    type: 'entity.type-rulenode',
+                    typePlural: 'entity.type-rulenodes',
+                    list: 'entity.list-of-rulenodes',
+                    nameStartsWith: 'entity.rulenode-name-starts-with'
+                },
                 "CURRENT_CUSTOMER": {
                     type: 'entity.type-current-customer',
                     list: 'entity.type-current-customer'
+                },
+                "SCHEDULER_EVENT": {
+                    type: 'entity.type-scheduler-event',
+                    typePlural: 'entity.type-scheduler-events',
+                    list: 'entity.list-of-scheduler-events',
+                    nameStartsWith: 'entity.scheduler-event-name-starts-with'
+                },
+                "BLOB_ENTITY": {
+                    type: 'entity.type-blob-entity',
+                    typePlural: 'entity.type-blob-entities',
+                    list: 'entity.list-of-blob-entities',
+                    nameStartsWith: 'entity.blob-entity-name-starts-with'
                 }
             },
             entitySearchDirection: {
@@ -850,7 +888,7 @@ export default angular.module('thingsboard.types', [])
                     clientSide: false
                 }
             },
-            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "EXTERNAL"],
+            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],
             ruleChainNodeComponent: {
                 type: 'RULE_CHAIN',
                 name: 'rule chain',
@@ -917,6 +955,13 @@ export default angular.module('thingsboard.types', [])
                     nodeClass: "tb-action-type",
                     icon: "flash_on"
                 },
+                ANALYTICS: {
+                    value: "ANALYTICS",
+                    name: "rulenode.type-analytics",
+                    details: "rulenode.type-analytics-details",
+                    nodeClass: "tb-analytics-type",
+                    icon: "timeline"
+                },
                 EXTERNAL: {
                     value: "EXTERNAL",
                     name: "rulenode.type-external",
@@ -945,6 +990,84 @@ export default angular.module('thingsboard.types', [])
                     details: "rulenode.type-unknown-details",
                     nodeClass: "tb-unknown-type",
                     icon: "help_outline"
+                }
+            },
+            messageType: {
+                'POST_ATTRIBUTES_REQUEST': {
+                    name: 'Post attributes',
+                    value: 'POST_ATTRIBUTES_REQUEST'
+                },
+                'POST_TELEMETRY_REQUEST': {
+                    name: 'Post telemetry',
+                    value: 'POST_TELEMETRY_REQUEST'
+                },
+                'TO_SERVER_RPC_REQUEST': {
+                    name: 'RPC Request from Device',
+                    value: 'TO_SERVER_RPC_REQUEST'
+                },
+                'RPC_CALL_FROM_SERVER_TO_DEVICE': {
+                    name: 'RPC Request to Device',
+                    value: 'RPC_CALL_FROM_SERVER_TO_DEVICE'
+                },
+                'ACTIVITY_EVENT': {
+                    name: 'Activity Event',
+                    value: 'ACTIVITY_EVENT'
+                },
+                'INACTIVITY_EVENT': {
+                    name: 'Inactivity Event',
+                    value: 'INACTIVITY_EVENT'
+                },
+                'CONNECT_EVENT': {
+                    name: 'Connect Event',
+                    value: 'CONNECT_EVENT'
+                },
+                'DISCONNECT_EVENT': {
+                    name: 'Disconnect Event',
+                    value: 'DISCONNECT_EVENT'
+                },
+                'ENTITY_CREATED': {
+                    name: 'Entity Created',
+                    value: 'ENTITY_CREATED'
+                },
+                'ENTITY_UPDATED': {
+                    name: 'Entity Updated',
+                    value: 'ENTITY_UPDATED'
+                },
+                'ENTITY_DELETED': {
+                    name: 'Entity Deleted',
+                    value: 'ENTITY_DELETED'
+                },
+                'ENTITY_ASSIGNED': {
+                    name: 'Entity Assigned',
+                    value: 'ENTITY_ASSIGNED'
+                },
+                'ENTITY_UNASSIGNED': {
+                    name: 'Entity Unassigned',
+                    value: 'ENTITY_UNASSIGNED'
+                },
+                'ATTRIBUTES_UPDATED': {
+                    name: 'Attributes Updated',
+                    value: 'ATTRIBUTES_UPDATED'
+                },
+                'ATTRIBUTES_DELETED': {
+                    name: 'Attributes Deleted',
+                    value: 'ATTRIBUTES_DELETED'
+                },
+                'ADDED_TO_ENTITY_GROUP': {
+                    name: 'Added to Group',
+                    value: 'ADDED_TO_ENTITY_GROUP'
+                },
+                'REMOVED_FROM_ENTITY_GROUP': {
+                    name: 'Removed from Group',
+                    value: 'REMOVED_FROM_ENTITY_GROUP'
+                },
+                'REST_API_REQUEST': {
+                    name: 'REST API request',
+                    value: 'REST_API_REQUEST'
+                },
+                'generateReport': {
+                    name: 'Generate Report',
+                    value: 'generateReport'
                 }
             },
             valueType: {
@@ -1076,6 +1199,108 @@ export default angular.module('thingsboard.types', [])
                 custom: {
                     name: 'widget-action.custom',
                     value: 'custom'
+                }
+            },
+            schedulerRepeat: {
+                daily: {
+                    value: 'DAILY',
+                    name: 'scheduler.daily'
+                },
+                weekly: {
+                    value: 'WEEKLY',
+                    name: 'scheduler.weekly'
+                }
+            },
+            schedulerWeekday: [
+                'scheduler.sunday',
+                'scheduler.monday',
+                'scheduler.tuesday',
+                'scheduler.wednesday',
+                'scheduler.thursday',
+                'scheduler.friday',
+                'scheduler.saturday'
+            ],
+            schedulerCalendarView: {
+                'month': {
+                    name: 'scheduler.month',
+                    value: 'month'
+                },
+                'basicWeek': {
+                    name: 'scheduler.week',
+                    value: 'basicWeek'
+                },
+                'basicDay': {
+                    name: 'scheduler.day',
+                    value: 'basicDay'
+                },
+                'listYear': {
+                    name: 'scheduler.list-year',
+                    value: 'listYear'
+                },
+                'listMonth': {
+                    name: 'scheduler.list-month',
+                    value: 'listMonth'
+                },
+                'listWeek': {
+                    name: 'scheduler.list-week',
+                    value: 'listWeek'
+                },
+                'listDay': {
+                    name: 'scheduler.list-day',
+                    value: 'listDay'
+                },
+                'agendaWeek': {
+                    name: 'scheduler.agenda-week',
+                    value: 'agendaWeek'
+                },
+                'agendaDay': {
+                    name: 'scheduler.agenda-day',
+                    value: 'agendaDay'
+                }
+            },
+            schedulerEventConfigTypes: [
+                {
+                    name: 'Generate Report',
+                    value: 'generateReport',
+                    directive: 'tbGenerateReportEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                },
+                {
+                    name: 'Update Attributes',
+                    value: 'updateAttributes',
+                    directive: 'tbUpdateAttributesEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                },
+                {
+                    name: 'Send RPC Request to Device',
+                    value: 'sendRpcRequest',
+                    directive: 'tbSendRpcRequestEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                }
+            ],
+            reportType: {
+                'pdf': {
+                    name: 'PDF',
+                    value: 'pdf'
+                },
+                'png': {
+                    name: 'PNG',
+                    value: 'png'
+                },
+                'jpeg': {
+                    name: 'JPEG',
+                    value: 'jpeg'
+                }
+            },
+            blobEntityType: {
+                "report": {
+                    name: "blob-entity.report"
                 }
             },
             systemBundleAlias: {

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -78,6 +78,11 @@ public enum MsgType {
     RULE_TO_RULE_CHAIN_TELL_NEXT_MSG,
 
     /**
+     * Message forwarded from original rule chain to remote rule chain due to change in the cluster structure or originator entity of the TbMsg.
+     */
+    REMOTE_TO_RULE_CHAIN_TELL_NEXT_MSG,
+
+    /**
      * Message that is sent by RuleActor implementation to RuleActor itself to log the error.
      */
     RULE_TO_SELF_ERROR_MSG,
@@ -86,6 +91,11 @@ public enum MsgType {
      * Message that is sent by RuleActor implementation to RuleActor itself to process the message.
      */
     RULE_TO_SELF_MSG,
+
+    /**
+     * Message that is sent by RuleNodeActor implementation to RuleChainActor to ack the message.
+     */
+    RULE_TO_RULE_CHAIN_ACK_MSG,
 
     /**
      * Message that is sent by Session Actor to Device Actor. Represents messages from the device itself.
@@ -116,6 +126,10 @@ public enum MsgType {
     /**
      * Message that is sent from Rule Engine to the Device Actor when message is successfully pushed to queue.
      */
-    RULE_ENGINE_QUEUE_PUT_ACK_MSG, ACTOR_SYSTEM_TO_DEVICE_SESSION_ACTOR_MSG, TRANSPORT_TO_DEVICE_SESSION_ACTOR_MSG, SESSION_TIMEOUT_MSG, SESSION_CTRL_MSG;
+    RULE_ENGINE_QUEUE_PUT_ACK_MSG,
+    ACTOR_SYSTEM_TO_DEVICE_SESSION_ACTOR_MSG,
+    TRANSPORT_TO_DEVICE_SESSION_ACTOR_MSG,
+    SESSION_TIMEOUT_MSG,
+    SESSION_CTRL_MSG;
 
 }

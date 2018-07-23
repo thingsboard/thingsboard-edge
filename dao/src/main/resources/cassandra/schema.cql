@@ -1,12 +1,12 @@
 --
--- Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+-- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+-- Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
--- the property of Thingsboard OÜ and its suppliers,
+-- the property of ThingsBoard, Inc. and its suppliers,
 -- if any.  The intellectual and technical concepts contained
--- herein are proprietary to Thingsboard OÜ
+-- herein are proprietary to ThingsBoard, Inc.
 -- and its suppliers and may be covered by U.S. and Foreign Patents,
 -- patents in process, and are protected by trade secret or copyright law.
 --
@@ -70,6 +70,14 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.user_by_customer_and_search_t
 	IS NOT NULL
 	PRIMARY KEY ( customer_id, tenant_id, authority, search_text, id )
 	WITH CLUSTERING ORDER BY ( tenant_id DESC, authority DESC, search_text ASC, id DESC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.user_by_tenant_authority_and_search_text AS
+	SELECT *
+	from thingsboard.user
+	WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND authority IS NOT NULL AND search_text IS NOT NULL AND id
+	IS NOT NULL
+	PRIMARY KEY ( tenant_id, authority, search_text, id, customer_id )
+	WITH CLUSTERING ORDER BY ( authority DESC, search_text ASC, id DESC);
 
 CREATE TABLE IF NOT EXISTS thingsboard.user_credentials (
 	id timeuuid PRIMARY KEY,
@@ -722,3 +730,85 @@ CREATE TABLE IF NOT EXISTS  thingsboard.rule_node (
     additional_info text,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS  thingsboard.scheduler_event (
+    id timeuuid,
+    tenant_id timeuuid,
+    customer_id timeuuid,
+    name text,
+    type text,
+    search_text text,
+    schedule text,
+    configuration text,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id, customer_id, type)
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_tenant AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, id, customer_id, type)
+    WITH CLUSTERING ORDER BY ( id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_tenant_and_type AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, type, id, customer_id)
+    WITH CLUSTERING ORDER BY ( type ASC, id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_customer AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( customer_id, tenant_id, id, type )
+    WITH CLUSTERING ORDER BY ( tenant_id DESC, id DESC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.scheduler_event_by_customer_and_type AS
+    SELECT *
+    from thingsboard.scheduler_event
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( customer_id, tenant_id, type, id )
+    WITH CLUSTERING ORDER BY ( tenant_id DESC, type ASC, id DESC );
+
+CREATE TABLE IF NOT EXISTS thingsboard.blob_entity (
+    id timeuuid,
+    tenant_id timeuuid,
+    customer_id timeuuid,
+    name text,
+    type text,
+    content_type text,
+    search_text text,
+    data blob,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id, customer_id, type)
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.blob_entity_by_tenant AS
+    SELECT *
+    from thingsboard.blob_entity
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, id, type, customer_id)
+    WITH CLUSTERING ORDER BY (id ASC, type ASC, customer_id ASC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.blob_entity_by_tenant_and_type AS
+    SELECT *
+    from thingsboard.blob_entity
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, type, id, customer_id)
+    WITH CLUSTERING ORDER BY ( type ASC, id ASC, customer_id ASC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.blob_entity_by_customer AS
+    SELECT *
+    from thingsboard.blob_entity
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( (tenant_id, customer_id), id, type )
+    WITH CLUSTERING ORDER BY ( id ASC, type ASC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.blob_entity_by_customer_and_type AS
+    SELECT *
+    from thingsboard.blob_entity
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( (tenant_id, customer_id), type, id )
+    WITH CLUSTERING ORDER BY ( type ASC, id ASC );

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -77,6 +77,10 @@ public class DataConstants {
     public static final String ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP";
     public static final String REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP";
 
+    public static final String REST_API_REQUEST = "REST_API_REQUEST";
+
     public static final String RPC_CALL_FROM_SERVER_TO_DEVICE = "RPC_CALL_FROM_SERVER_TO_DEVICE";
+
+    public static final String GENERATE_REPORT = "generateReport";
 
 }

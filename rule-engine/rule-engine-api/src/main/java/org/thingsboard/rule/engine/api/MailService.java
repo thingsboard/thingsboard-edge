@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,12 +30,14 @@
  */
 package org.thingsboard.rule.engine.api;
 
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import javax.mail.MessagingException;
+import java.util.List;
 
 public interface MailService {
 
@@ -52,5 +54,7 @@ public interface MailService {
     void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException;
     
     void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body) throws ThingsboardException;
+
+    void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException;
 
 }

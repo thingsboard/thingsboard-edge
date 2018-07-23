@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -59,6 +59,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         if (dataWidgetAttr) {
             $rootScope.editWidgetInfo = angular.fromJson(dataWidgetAttr);
             $rootScope.widgetEditMode = true;
+        }
+        var stateSelectViewAttr = angular.element(frame).attr('state-select-view');
+        if (stateSelectViewAttr) {
+            $rootScope.stateSelectView = true;
         }
     }
 
@@ -148,7 +152,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             } else {
                                 redirect = to.redirectTo;
                             }
-                            $state.go(redirect, params)
+                            $state.go(redirect, params);
+                        } else if (to.name === 'home.dashboards.dashboard' && $rootScope.forceFullscreen) {
+                            evt.preventDefault();
+                            $state.go('dashboard', params);
                         }
                     }
                 } else {
@@ -177,7 +184,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         updatePageTitle();
 
         $rootScope.stateChangeSuccessHandle = $rootScope.$on('$stateChangeSuccess', function (evt, to, params) {
-            if (userService.isPublic() && to.name === 'home.dashboards.dashboard') {
+            if (userService.isPublic() && to.name === 'dashboard') {
                 $location.search('publicId', userService.getPublicId());
                 userService.updateLastPublicDashboardId(params.dashboardId);
             }

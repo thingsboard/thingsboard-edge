@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,6 +39,7 @@ import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import scala.concurrent.duration.Duration;
@@ -64,12 +65,17 @@ public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMe
                 processor.onDeviceActorToRuleEngineMsg((DeviceActorToRuleEngineMsg) msg);
                 break;
             case RULE_TO_RULE_CHAIN_TELL_NEXT_MSG:
+            case REMOTE_TO_RULE_CHAIN_TELL_NEXT_MSG:
                 processor.onTellNext((RuleNodeToRuleChainTellNextMsg) msg);
                 break;
             case RULE_CHAIN_TO_RULE_CHAIN_MSG:
                 processor.onRuleChainToRuleChainMsg((RuleChainToRuleChainMsg) msg);
                 break;
+            case RULE_TO_RULE_CHAIN_ACK_MSG:
+                processor.onAckMsg((RuleNodeToRuleChainAckMsg) msg);
+                break;
             case CLUSTER_EVENT_MSG:
+                onClusterEventMsg((ClusterEventMsg) msg);
                 break;
             default:
                 return false;

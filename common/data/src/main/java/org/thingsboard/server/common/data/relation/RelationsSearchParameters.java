@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -48,13 +48,19 @@ public class RelationsSearchParameters {
     private UUID rootId;
     private EntityType rootType;
     private EntitySearchDirection direction;
+    private RelationTypeGroup relationTypeGroup;
     private int maxLevel = 1;
 
     public RelationsSearchParameters(EntityId entityId, EntitySearchDirection direction, int maxLevel) {
+        this(entityId, direction, maxLevel, RelationTypeGroup.COMMON);
+    }
+
+    public RelationsSearchParameters(EntityId entityId, EntitySearchDirection direction, int maxLevel, RelationTypeGroup relationTypeGroup) {
         this.rootId = entityId.getId();
         this.rootType = entityId.getEntityType();
         this.direction = direction;
         this.maxLevel = maxLevel;
+        this.relationTypeGroup = relationTypeGroup;
     }
 
     public EntityId getEntityId() {

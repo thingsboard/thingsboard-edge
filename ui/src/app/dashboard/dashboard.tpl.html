@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-content style="padding-top: 150px;" flex tb-expand-fullscreen="vm.widgetEditMode || vm.iframeMode || forceFullscreen" expand-button-id="dashboard-expand-button"
-            hide-expand-button="vm.widgetEditMode || vm.iframeMode || forceFullscreen" expand-tooltip-direction="bottom" ng-if="vm.dashboard">
-    <section class="tb-dashboard-toolbar" ng-show="vm.showDashboardToolbar()"
+<md-content style="padding-top: 150px;" flex tb-expand-fullscreen="vm.widgetEditMode || vm.iframeMode || forceFullscreen || $root.reportView" expand-button-id="dashboard-expand-button"
+            hide-expand-button="vm.hideFullscreenButton()" expand-tooltip-direction="bottom" ng-if="vm.dashboard">
+    <section class="tb-dashboard-toolbar" ng-show="vm.showDashboardToolbar() && !$root.reportView"
              ng-class="{ 'tb-dashboard-toolbar-opened': vm.toolbarOpened, 'tb-dashboard-toolbar-closed': !vm.toolbarOpened }">
         <tb-dashboard-toolbar ng-show="!vm.widgetEditMode" force-fullscreen="forceFullscreen"
                               toolbar-opened="vm.toolbarOpened" on-trigger-click="vm.openToolbar()">
@@ -56,14 +56,37 @@
                                aria-label="{{ 'fullscreen.fullscreen' | translate }}"
                                class="md-icon-button">
                     </md-button>
-                    <md-button ng-show="vm.isEdit || vm.displayExport()"
-                               aria-label="{{ 'action.export' | translate }}" class="md-icon-button"
-                               ng-click="vm.exportDashboard($event)">
-                        <md-tooltip md-direction="bottom">
-                            {{ 'dashboard.export' | translate }}
-                        </md-tooltip>
-                        <md-icon aria-label="{{ 'action.export' | translate }}" class="material-icons">file_download</md-icon>
-                    </md-button>
+                    <md-menu md-position-mode="target-right target" ng-show="vm.isEdit || vm.displayExport()">
+                        <md-button class="md-icon-button"  aria-label="{{ 'dashboard.export' | translate }}" ng-click="$mdOpenMenu($event)">
+                            <md-icon md-menu-origin aria-label="{{ 'dashboard.export' | translate }}" class="material-icons">file_download</md-icon>
+                        </md-button>
+                        <md-menu-content width="4">
+                            <md-menu-item>
+                                <md-button ng-click="vm.generateDashboardReport($event, 'pdf')">
+                                    <md-icon md-menu-align-target aria-label="{{ 'dashboard.export-pdf' | translate }}" md-svg-icon="mdi:file-pdf"></md-icon>
+                                    <span translate>dashboard.export-pdf</span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-item>
+                                <md-button ng-click="vm.generateDashboardReport($event, 'png')">
+                                    <md-icon md-menu-align-target aria-label="{{ 'dashboard.export-png' | translate }}" md-svg-icon="mdi:file-image"></md-icon>
+                                    <span translate>dashboard.export-png</span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-item>
+                                <md-button ng-click="vm.generateDashboardReport($event, 'jpeg')">
+                                    <md-icon md-menu-align-target aria-label="{{ 'dashboard.export-jpg' | translate }}" md-svg-icon="mdi:file-image"></md-icon>
+                                    <span translate>dashboard.export-jpg</span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-item>
+                                <md-button ng-click="vm.exportDashboard($event)">
+                                    <md-icon md-menu-align-target aria-label="{{ 'dashboard.export-json-config' | translate }}" md-svg-icon="mdi:file-xml"></md-icon>
+                                    <span translate>dashboard.export-json-config</span>
+                                </md-button>
+                            </md-menu-item>
+                        </md-menu-content>
+                    </md-menu>
                     <tb-timewindow ng-show="vm.isEdit || vm.displayDashboardTimewindow()"
                                    is-toolbar
                                    direction="left"
@@ -88,7 +111,7 @@
                         </md-tooltip>
                         <md-icon aria-label="{{ 'dashboard.settings' | translate }}" class="material-icons">settings</md-icon>
                     </md-button>
-                    <tb-dashboard-select   ng-show="!vm.isEdit && !vm.widgetEditMode && vm.displayDashboardsSelect()"
+                    <tb-dashboard-select   ng-show="!vm.isEdit && !vm.widgetEditMode && !$root.stateSelectView && vm.displayDashboardsSelect()"
                                            ng-model="vm.currentDashboardId"
                                            dashboards-scope="{{vm.currentDashboardScope}}"
                                            customer-id="vm.currentCustomerId">
@@ -296,7 +319,7 @@
                       class="md-headline tb-absolute-fill">widget.select-widgets-bundle</span>
             </div>
         </tb-details-sidenav>
-        <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end">
+        <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end" ng-if="!$root.reportView && !$root.stateSelectView">
             <md-fab-speed-dial ng-disabled="$root.loading" ng-show="!vm.isAddingWidget && vm.isEdit && !vm.widgetEditMode"
                                md-open="vm.addItemActionsOpen" class="md-scale" md-direction="up">
                 <md-fab-trigger>

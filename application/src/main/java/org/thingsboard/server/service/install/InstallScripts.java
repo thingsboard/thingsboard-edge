@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,6 +32,8 @@ package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,6 +41,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -55,6 +58,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
 
@@ -74,6 +79,8 @@ public class InstallScripts {
     public static final String TENANT_DIR = "tenant";
     public static final String DEMO_DIR = "demo";
     public static final String RULE_CHAINS_DIR = "rule_chains";
+    public static final String ROOT_RULE_CHAIN_DIR = "root_rule_chain";
+    public static final String ROOT_RULE_CHAIN_JSON = "root_rule_chain.json";
     public static final String WIDGET_BUNDLES_DIR = "widget_bundles";
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
@@ -103,6 +110,11 @@ public class InstallScripts {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
 
+    public Path getRootTenantRuleChainFile() {
+        return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, ROOT_RULE_CHAIN_DIR, ROOT_RULE_CHAIN_JSON);
+    }
+
+
     public String getDataDir() {
         if (!StringUtils.isEmpty(dataDir)) {
             if (!Paths.get(this.dataDir).toFile().isDirectory()) {
@@ -126,25 +138,45 @@ public class InstallScripts {
 
     public void createDefaultRuleChains(TenantId tenantId) throws IOException {
         Path tenantChainsDir = getTenantRuleChainsDir();
+        Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tenantChainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
             dirStream.forEach(
                     path -> {
                         try {
                             JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
-                            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
-                            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
-
-                            ruleChain.setTenantId(tenantId);
-                            ruleChain = ruleChainService.saveRuleChain(ruleChain);
-
-                            ruleChainMetaData.setRuleChainId(ruleChain.getId());
-                            ruleChainService.saveRuleChainMetaData(ruleChainMetaData);
+                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId);
+                            ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
                         } catch (Exception e) {
                             log.error("Unable to load rule chain from json: [{}]", path.toString());
                             throw new RuntimeException("Unable to load rule chain from json", e);
                         }
                     }
             );
+        }
+        Path rootRuleChainFile = getRootTenantRuleChainFile();
+        String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
+        for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
+            String key = "${" + entry.getKey() + "}";
+            rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
+        }
+        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
+        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId);
+    }
+
+    private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId) {
+        try {
+            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+
+            ruleChain.setTenantId(tenantId);
+            ruleChain = ruleChainService.saveRuleChain(ruleChain);
+
+            ruleChainMetaData.setRuleChainId(ruleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ruleChainMetaData);
+            return ruleChain;
+        } catch (Exception e) {
+            log.error("Unable to load rule chain from json: [{}]", path.toString());
+            throw new RuntimeException("Unable to load rule chain from json", e);
         }
     }
 

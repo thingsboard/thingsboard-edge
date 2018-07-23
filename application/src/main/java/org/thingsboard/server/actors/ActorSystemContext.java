@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
@@ -61,6 +62,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -83,6 +85,8 @@ import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.queue.MsgQueueService;
 import org.thingsboard.server.service.rpc.DeviceRpcService;
+import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.script.JsSandboxService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -208,6 +212,12 @@ public class ActorSystemContext {
     @Getter private EntityGroupService entityGroupService;
 
     @Autowired
+    @Getter private ReportService reportService;
+
+    @Autowired
+    @Getter private BlobEntityService blobEntityService;
+
+    @Autowired
     @Getter
     private DbCallbackExecutorService dbCallbackExecutor;
 
@@ -226,6 +236,14 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DeviceStateService deviceStateService;
+
+    @Autowired
+    @Getter
+    private SchedulerService schedulerService;
+
+    @Autowired
+    @Getter
+    private RuleEngineCallService ruleEngineCallService;
 
     @Value("${cluster.partition_id}")
     @Getter

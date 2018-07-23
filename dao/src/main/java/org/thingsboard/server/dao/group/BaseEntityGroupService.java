@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -78,6 +78,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String INCORRECT_GROUP_TYPE = "Incorrect groupType ";
     public static final String INCORRECT_ENTITY_GROUP_ID = "Incorrect entityGroupId ";
     public static final String INCORRECT_ENTITY_ID = "Incorrect entityId ";
+    public static final String UNABLE_TO_FIND_ENTITY_GROUP_BY_ID = "Unable to find entity group by id ";
 
     @Autowired
     private EntityGroupDao entityGroupDao;
@@ -296,7 +297,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
         EntityGroup entityGroup = findEntityGroupById(entityGroupId);
         if (entityGroup == null) {
-            throw new IncorrectParameterException("Unable to find entity group by id " + entityGroupId);
+            throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
         return toEntityView(entityId, columnsInfo, transformFunction);
@@ -314,7 +315,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
         EntityGroup entityGroup = findEntityGroupById(entityGroupId);
         if (entityGroup == null) {
-            throw new IncorrectParameterException("Unable to find entity group by id " + entityGroupId);
+            throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
         ListenableFuture<List<EntityId>> entityIds = findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
@@ -334,6 +335,17 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 return result;
             }
         });
+    }
+
+    @Override
+    public ListenableFuture<List<EntityId>> findAllEntityIds(EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        EntityGroup entityGroup = findEntityGroupById(entityGroupId);
+        if (entityGroup == null) {
+            throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
+        }
+        return findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
     }
 
     @Override
@@ -454,7 +466,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                     entityView.put(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
                 });
             } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to fetch entity latest timeseries", e);
+                log.error("Unable to fetch entity telemetry timeseries", e);
             }
         }
     }
