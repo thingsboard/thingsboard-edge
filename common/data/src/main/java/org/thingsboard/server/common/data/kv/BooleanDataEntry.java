@@ -48,7 +48,7 @@ public class BooleanDataEntry extends BasicKvEntry {
 
     @Override
     public Optional<Boolean> getBooleanValue() {
-        return Optional.of(value);
+        return Optional.ofNullable(value);
     }
 
     @Override

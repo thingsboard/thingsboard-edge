@@ -50,7 +50,7 @@ public class StringDataEntry extends BasicKvEntry {
 
     @Override
     public Optional<String> getStrValue() {
-        return Optional.of(value);
+        return Optional.ofNullable(value);
     }
 
     @Override

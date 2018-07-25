@@ -69,6 +69,9 @@ public class RuleNodeActor extends ComponentActor<RuleNodeId, RuleNodeActorMessa
             case CLUSTER_EVENT_MSG:
                 onClusterEventMsg((ClusterEventMsg) msg);
                 break;
+            case STATS_PERSIST_TICK_MSG:
+                onStatsPersistTick(id);
+                break;
             default:
                 return false;
         }
