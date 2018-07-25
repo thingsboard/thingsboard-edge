@@ -320,6 +320,6 @@ CREATE TABLE IF NOT EXISTS blob_entity (
     type varchar(255),
     content_type varchar(255),
     search_text varchar(255),
-    data varchar(100000000),
+    data varchar(10485760),
     additional_info varchar
 );
