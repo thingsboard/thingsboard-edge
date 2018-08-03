@@ -261,7 +261,7 @@ public class DefaultSchedulerService implements SchedulerService {
         EntityId originatorId = eventId;
         if (configuration.has("originatorId")) {
             JsonNode entityId = configuration.get("originatorId");
-            if (eventId != null) {
+            if (entityId != null) {
                 originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
             }
         }
