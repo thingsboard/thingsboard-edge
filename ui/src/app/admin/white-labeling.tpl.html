@@ -44,6 +44,10 @@
         <md-card-content>
             <form name="vm.whiteLabelForm" ng-submit="vm.save()" tb-confirm-on-exit="vm.onFormExit()" confirm-form="vm.whiteLabelForm">
                 <fieldset ng-disabled="$root.loading">
+                    <md-input-container flex class="md-block" ng-show="vm.isLoginWl && !vm.isSysAdmin">
+                        <label translate>white-labeling.domain-name</label>
+                        <input ng-if="vm.isLoginWl && !vm.isSysAdmin" ng-required="true" ng-model="vm.whiteLabelingParams.domainName">
+                    </md-input-container>
                     <md-input-container flex class="md-block">
                         <label translate>white-labeling.app-title</label>
                         <input ng-model="vm.whiteLabelingParams.appTitle">
