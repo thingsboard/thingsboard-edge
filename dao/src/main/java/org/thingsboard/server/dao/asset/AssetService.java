@@ -53,7 +53,7 @@ public interface AssetService {
 
     ListenableFuture<Asset> findAssetByIdAsync(AssetId assetId);
 
-    Optional<Asset> findAssetByTenantIdAndName(TenantId tenantId, String name);
+    Asset findAssetByTenantIdAndName(TenantId tenantId, String name);
 
     Asset saveAsset(Asset asset);
 

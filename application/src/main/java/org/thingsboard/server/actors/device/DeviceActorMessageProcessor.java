@@ -130,7 +130,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
     private String deviceType;
     private TbMsgMetaData defaultMetaData;
 
-    public DeviceActorMessageProcessor(ActorSystemContext systemContext, LoggingAdapter logger, TenantId tenantId, DeviceId deviceId) {
+    DeviceActorMessageProcessor(ActorSystemContext systemContext, LoggingAdapter logger, TenantId tenantId, DeviceId deviceId) {
         super(systemContext, logger);
         this.tenantId = tenantId;
         this.deviceId = deviceId;

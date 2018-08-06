@@ -254,14 +254,16 @@ public class DefaultSchedulerService implements SchedulerService {
     }
 
     private String getMsgType(SchedulerEvent event, JsonNode configuration) {
-        return configuration.has("msgType") ? configuration.get("msgType").asText() : event.getType();
+        return (configuration.has("msgType") && !configuration.get("msgType").isNull()) ? configuration.get("msgType").asText() : event.getType();
     }
 
     private EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
         EntityId originatorId = eventId;
-        if (configuration.has("originatorId")) {
+        if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
             JsonNode entityId = configuration.get("originatorId");
             if (entityId != null) {
+                if(entityId.has("entityType") && !entityId.get("entityType").isNull()
+                        && entityId.has("id") && !entityId.get("id").isNull())
                 originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
             }
         }
@@ -270,7 +272,7 @@ public class DefaultSchedulerService implements SchedulerService {
 
     private TbMsgMetaData getTbMsgMetaData(SchedulerEvent event, JsonNode configuration) throws JsonProcessingException {
         HashMap<String, String> metaData = new HashMap<>();
-        if (configuration.has("metadata")) {
+        if (configuration.has("metadata") && !configuration.get("metadata").isNull()) {
             for (Iterator<Entry<String, JsonNode>> it = configuration.get("metadata").fields(); it.hasNext(); ) {
                 Entry<String, JsonNode> kv = it.next();
                 metaData.put(kv.getKey(), kv.getValue().asText());

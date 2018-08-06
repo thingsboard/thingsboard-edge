@@ -34,5 +34,6 @@ public class CacheConstants {
     public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
     public static final String RELATIONS_CACHE = "relations";
     public static final String DEVICE_CACHE = "devices";
+    public static final String ASSET_CACHE = "assets";
     public static final String DOWNLINK_CACHE = "downlink";
 }
