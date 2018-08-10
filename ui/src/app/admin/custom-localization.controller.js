@@ -28,28 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import ngMaterial from 'angular-material';
-import ngMessages from 'angular-messages';
-import thingsboardApiAdmin from '../api/admin.service';
-import thingsboardConfirmOnExit from '../components/confirm-on-exit.directive';
-import thingsboardToast from '../services/toast';
 
-import AdminRoutes from './admin.routes';
-import AdminController from './admin.controller';
-import WhiteLabelingController from './white-labeling.controller';
-import CustomLocalizationController from './custom-localization.controller';
+/*@ngInject*/
+export default function CustomLocalizationController(types, customLocalizationService) {
 
-export default angular.module('thingsboard.admin', [
-    uiRouter,
-    ngMaterial,
-    ngMessages,
-    thingsboardApiAdmin,
-    thingsboardConfirmOnExit,
-    thingsboardToast
-])
-    .config(AdminRoutes)
-    .controller('AdminController', AdminController)
-    .controller('WhiteLabelingController', WhiteLabelingController)
-    .controller('CustomLocalizationController', CustomLocalizationController)
-    .name;
+    var vm = this;
+
+    vm.types = types;
+    vm.customLocalization = {};
+    vm.customLocalization.localizationMap = {};
+    vm.save = save;
+
+    vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
+
+    loadCustomLocalization();
+
+    function loadCustomLocalization() {
+        var loadPromise = customLocalizationService.loadCustomLocalization();
+        loadPromise.then(
+            function success(customLocalization) {
+                vm.customLocalization = customLocalization;
+            });
+    }
+
+    function save() {
+        var savePromise = customLocalizationService.saveCustomLocalization(vm.customLocalization);
+        savePromise.then(
+            function success() {
+                vm.customLocalizationForm.$setPristine();
+            });
+    }
+}

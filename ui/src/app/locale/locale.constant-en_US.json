@@ -474,6 +474,10 @@
         "default-customer": "Default customer",
         "default-customer-required": "Default customer is required in order to debug dashboard on Tenant level"
     },
+    "custom-localization": {
+        "custom-localization": "Custom Localization",
+        "localization-map": "Localization map"
+    },
     "datetime": {
         "date-from": "Date from",
         "time-from": "Time from",

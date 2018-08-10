@@ -146,7 +146,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '160px',
+                            height: '200px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -172,6 +172,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-localization.custom-localization',
+                                    type: 'link',
+                                    state: 'home.settings.customLocalization',
+                                    icon: 'language'
                                 }
                             ]
                         }];
@@ -223,6 +229,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'white-labeling.login-white-labeling',
                                         icon: 'format_paint',
                                         state: 'home.settings.loginWhiteLabel'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'custom-localization.custom-localization',
+                                places: [
+                                    {
+                                        name: 'custom-localization.custom-localization',
+                                        icon: 'language',
+                                        state: 'home.settings.customLocalization'
                                     }
                                 ]
                             }];

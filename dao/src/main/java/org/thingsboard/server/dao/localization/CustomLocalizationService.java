@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,28 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import ngMaterial from 'angular-material';
-import ngMessages from 'angular-messages';
-import thingsboardApiAdmin from '../api/admin.service';
-import thingsboardConfirmOnExit from '../components/confirm-on-exit.directive';
-import thingsboardToast from '../services/toast';
+package org.thingsboard.server.dao.localization;
 
-import AdminRoutes from './admin.routes';
-import AdminController from './admin.controller';
-import WhiteLabelingController from './white-labeling.controller';
-import CustomLocalizationController from './custom-localization.controller';
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.localization.CustomLocalization;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
-export default angular.module('thingsboard.admin', [
-    uiRouter,
-    ngMaterial,
-    ngMessages,
-    thingsboardApiAdmin,
-    thingsboardConfirmOnExit,
-    thingsboardToast
-])
-    .config(AdminRoutes)
-    .controller('AdminController', AdminController)
-    .controller('WhiteLabelingController', WhiteLabelingController)
-    .controller('CustomLocalizationController', CustomLocalizationController)
-    .name;
+public interface CustomLocalizationService {
+
+    CustomLocalization getSystemCustomLocalization();
+
+    CustomLocalization getTenantCustomLocalization(TenantId tenantId);
+
+    CustomLocalization getCustomerCustomLocalization(CustomerId customerId);
+
+    CustomLocalization getMergedTenantCustomLocalization(TenantId tenantId);
+
+    CustomLocalization getMergedCustomerCustomLocalization(TenantId tenantId, CustomerId customerId);
+
+    CustomLocalization saveSystemCustomLocalization(CustomLocalization customLocalization);
+
+    CustomLocalization saveTenantCustomLocalization(TenantId tenantId, CustomLocalization customLocalization);
+
+    CustomLocalization saveCustomerCustomLocalization(CustomerId customerId, CustomLocalization customLocalization);
+
+}
