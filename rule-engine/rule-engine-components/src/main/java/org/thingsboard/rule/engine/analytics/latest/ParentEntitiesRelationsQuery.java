@@ -57,4 +57,9 @@ public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
         return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, parentEntityId, childRelationsQuery);
     }
 
+    @Override
+    public boolean useParentEntitiesOnlyForSimpleAggregation() {
+        return true;
+    }
+
 }
