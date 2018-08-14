@@ -182,7 +182,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         base64toString: base64toString,
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults,
-        loadImageAspect: loadImageAspect
+        loadImageAspect: loadImageAspect,
+        translateText: translateText
     }
 
     return service;
@@ -740,6 +741,14 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             deferred.resolve(0);
         }
         return deferred.promise;
+    }
+
+    function translateText(text) {
+        if (text.startsWith("${") && text.endsWith("}")) {
+            return $translate.instant(text.substring(2, text.length - 1))
+        } else {
+            return text;
+        }
     }
 
 }

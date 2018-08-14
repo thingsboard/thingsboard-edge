@@ -293,7 +293,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '120px',
+                            height: '160px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -313,6 +313,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.whiteLabel',
                                     icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-localization.custom-localization',
+                                    type: 'link',
+                                    state: 'home.settings.customLocalization',
+                                    icon: 'language'
                                 }
                             ]
                         },
@@ -441,6 +447,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         state: 'home.auditLogs'
                                     }
                                 ]
+                            },
+                            {
+                                name: 'custom-localization.custom-localization',
+                                places: [
+                                    {
+                                        name: 'custom-localization.custom-localization',
+                                        icon: 'language',
+                                        state: 'home.settings.customLocalization'
+                                    }
+                                ]
                             }];
                 } else if (authority === 'CUSTOMER_USER') {
                     sections = [
@@ -478,7 +494,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '40px',
+                            height: '80px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -486,6 +502,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.whiteLabel',
                                     icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-localization.custom-localization',
+                                    type: 'link',
+                                    state: 'home.settings.customLocalization',
+                                    icon: 'language'
                                 }
                             ]
                         }];
@@ -538,6 +560,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'white-labeling.white-labeling',
                                         icon: 'format_paint',
                                         state: 'home.settings.whiteLabel'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'custom-localization.custom-localization',
+                                places: [
+                                    {
+                                        name: 'custom-localization.custom-localization',
+                                        icon: 'language',
+                                        state: 'home.settings.customLocalization'
                                     }
                                 ]
                             }];

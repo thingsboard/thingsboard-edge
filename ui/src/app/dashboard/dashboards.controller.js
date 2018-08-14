@@ -71,7 +71,7 @@ export function DashboardCardController(types) {
 
 /*@ngInject*/
 export function DashboardsController(userService, dashboardService, customerService, importExport, types,
-                                             $state, $stateParams, $mdDialog, $document, $q, $translate) {
+                                             $state, $stateParams, $mdDialog, $document, $q, $translate, utils) {
 
     var customerId = $stateParams.customerId;
 
@@ -422,7 +422,7 @@ export function DashboardsController(userService, dashboardService, customerServ
     }
 
     function getDashboardTitle(dashboard) {
-        return dashboard ? dashboard.title : '';
+        return dashboard ? utils.customTranslation(dashboard.title, dashboard.title) : '';
     }
 
     function loadDashboard(dashboard) {

@@ -41,10 +41,12 @@ export default function CustomLocalizationController(types, customLocalizationSe
 
     vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
 
-    loadCustomLocalization();
+    vm.currentLang = vm.languageList[0];
 
-    function loadCustomLocalization() {
-        var loadPromise = customLocalizationService.loadCustomLocalization();
+    getCurrentCustomLocalization();
+
+    function getCurrentCustomLocalization() {
+        var loadPromise = customLocalizationService.getCurrentCustomLocalization();
         loadPromise.then(
             function success(customLocalization) {
                 vm.customLocalization = customLocalization;

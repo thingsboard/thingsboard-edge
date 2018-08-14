@@ -72,7 +72,7 @@ function CustomLocalizationService($rootScope, $q, $http) {
         var deferred = $q.defer();
         var url = '/api/customLocalization/customLocalization';
         $http.post(url, customLocalization).then(function success() {
-            loadCustomLocalization().then(
+            getCurrentCustomLocalization().then(
                 function success() {
                     deferred.resolve();
                 }, function fail() {

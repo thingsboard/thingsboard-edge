@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function BreadcrumbLabel($translate) {
+export default function BreadcrumbLabel($translate, utils) {
     var labels = {};
 
     var breadcrumbLabel = function (bLabel) {
@@ -52,7 +52,7 @@ export default function BreadcrumbLabel($translate) {
                     )
                 }
             }
-            return labels[labelObj.label][key];
+            return utils.customTranslation(labels[labelObj.label][key], labels[labelObj.label][key]);
         } else {
             return '';
         }

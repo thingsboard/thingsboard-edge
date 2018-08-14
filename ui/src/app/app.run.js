@@ -33,7 +33,7 @@ import UrlHandler from './url.handler';
 
 /*@ngInject*/
 export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
-                               whiteLabelingService, loginService, userService, $translate) {
+                               whiteLabelingService, loginService, userService, $translate, $translateProvider, customLocalizationService) {
 
     $window.Flow = Flow;
     var frame = null;
@@ -158,6 +158,15 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             $state.go('dashboard', params);
                         }
                     }
+                    customLocalizationService.loadCustomLocalization().then(
+                        function success(response) {
+                            Object.keys(response.localizationMap).forEach(function(key) {
+                                if (response.localizationMap[key]) {
+                                    $translateProvider.translations(key, angular.fromJson(response.localizationMap[key]));
+                                }
+                            });
+                        }
+                    )
                 } else {
                     if (publicId && publicId.length > 0) {
                         evt.preventDefault();

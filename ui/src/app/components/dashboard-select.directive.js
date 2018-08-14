@@ -49,7 +49,7 @@ export default angular.module('thingsboard.directives.dashboardSelect', [thingsb
     .name;
 
 /*@ngInject*/
-function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $document, types, dashboardService, userService) {
+function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $document, types, dashboardService, userService, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(dashboardSelectTemplate);
@@ -144,6 +144,10 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
             $mdPanel.open(config).then(function(result) {
                 scope.panelRef = result;
             });
+        }
+
+        scope.getDashboardTitle = function(title) {
+            return utils.customTranslation(title, title);
         }
 
         $compile(element.contents())(scope);

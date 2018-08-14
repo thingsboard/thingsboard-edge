@@ -36,7 +36,7 @@
            ng-model="dashboardId"
            aria-label="{{ 'dashboard.dashboard' | translate }}">
     <md-option ng-repeat="dashboard in dashboards" ng-value="dashboard.id.id">
-        {{dashboard.title}}
+        {{getDashboardTitle(dashboard.title)}}
     </md-option>
 </md-select>
 <section hide-gt-md class="tb-dashboard-select">
