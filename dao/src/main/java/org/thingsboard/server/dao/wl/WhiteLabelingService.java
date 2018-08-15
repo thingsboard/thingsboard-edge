@@ -39,7 +39,7 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams getSystemWhiteLabelingParams();
 
-    LoginWhiteLabelingParams getLoginWhiteLabelingParams();
+    LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams();
 
     WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId);
 
@@ -47,19 +47,27 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams getMergedSystemWhiteLabelingParams(String logoImageChecksum, String faviconChecksum);
 
-    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String logoImageChecksum, String faviconChecksum);
-
     WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
 
     WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
 
-    WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
+    LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId);
 
-    LoginWhiteLabelingParams saveLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams);
+    LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(CustomerId customerId);
+
+    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String domainName, String logoImageChecksum, String faviconChecksum);
+
+    WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 
     WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 
     WhiteLabelingParams saveCustomerWhiteLabelingParams(CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
+
+    LoginWhiteLabelingParams saveSystemLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams);
+
+    LoginWhiteLabelingParams saveTenantLoginWhiteLabelingParams(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams);
+
+    LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams);
 
     WhiteLabelingParams mergeSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 

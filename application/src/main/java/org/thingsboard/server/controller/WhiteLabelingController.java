@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +45,9 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 @RestController
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
+
+    private static final String HOST_HEADER_KEY = "host";
+    private static final String X_FORWARDED_HOST_HEADER_KEY = "x-forwarded-host";
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
@@ -74,10 +79,27 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(
+            @RequestHeader HttpHeaders headers,
             @RequestParam(required = false) String logoImageChecksum,
             @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
         try {
-            return whiteLabelingService.getMergedLoginWhiteLabelingParams(logoImageChecksum, faviconChecksum);
+            String domainName;
+            String forwardedHost = headers.getFirst(X_FORWARDED_HOST_HEADER_KEY);
+            if (StringUtils.isNotBlank(forwardedHost)) {
+                if (forwardedHost.contains(":")) {
+                    domainName = forwardedHost.substring(0, forwardedHost.indexOf(":"));
+                } else {
+                    domainName = forwardedHost;
+                }
+            } else {
+                String host = headers.getFirst(HOST_HEADER_KEY);
+                if (host.contains(":")) {
+                    domainName = host.substring(0, host.indexOf(":"));
+                } else {
+                    domainName = host;
+                }
+            }
+            return whiteLabelingService.getMergedLoginWhiteLabelingParams(domainName, logoImageChecksum, faviconChecksum);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -103,12 +125,21 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentLoginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getCurrentLoginWhiteLabelParams() throws ThingsboardException {
         try {
-            return whiteLabelingService.getLoginWhiteLabelingParams();
+            Authority authority = getCurrentUser().getAuthority();
+            LoginWhiteLabelingParams loginWhiteLabelingParams = null;
+            if (authority == Authority.SYS_ADMIN) {
+                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams();
+            } else if (authority == Authority.TENANT_ADMIN) {
+                loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(getCurrentUser().getTenantId());
+            } else if (authority == Authority.CUSTOMER_USER) {
+                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(getCurrentUser().getCustomerId());
+            }
+            return loginWhiteLabelingParams;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -134,12 +165,21 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/loginWhiteLabelParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public LoginWhiteLabelingParams saveLoginWhiteLabelParams(@RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws ThingsboardException {
         try {
-            return whiteLabelingService.saveLoginWhiteLabelingParams(loginWhiteLabelingParams);
+            Authority authority = getCurrentUser().getAuthority();
+            LoginWhiteLabelingParams savedLoginWhiteLabelingParams = null;
+            if (authority == Authority.SYS_ADMIN) {
+                savedLoginWhiteLabelingParams = whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
+            } else if (authority == Authority.TENANT_ADMIN) {
+                savedLoginWhiteLabelingParams = whiteLabelingService.saveTenantLoginWhiteLabelingParams(getCurrentUser().getTenantId(), loginWhiteLabelingParams);
+            } else if (authority == Authority.CUSTOMER_USER) {
+                savedLoginWhiteLabelingParams = whiteLabelingService.saveCustomerLoginWhiteLabelingParams(getCurrentUser().getCustomerId(), loginWhiteLabelingParams);
+            }
+            return savedLoginWhiteLabelingParams;
         } catch (Exception e) {
             throw handleException(e);
         }

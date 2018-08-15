@@ -47,6 +47,8 @@ export default function WhiteLabelingController($state, userService, $scope, $md
 
     vm.isLoginWl = $state.current.data.isLoginWl;
 
+    vm.isSysAdmin = userService.getAuthority() === 'SYS_ADMIN';
+
     vm.maxFaviconSizeKb = maxFaviconSize / 1024;
     vm.maxLogoSizeKb = maxLogoSize / 1024;
 
@@ -224,6 +226,9 @@ export default function WhiteLabelingController($state, userService, $scope, $md
                         whiteLabelingService.saveWhiteLabelParams(vm.whiteLabelingParams);
         savePromise.then(() => {
             vm.whiteLabelForm.$setPristine();
+            if (vm.isLoginWl) {
+                loadWhiteLabelingParams();
+            }
         });
     }
 
