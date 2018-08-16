@@ -60,4 +60,9 @@ public class ParentEntitiesSingleEntity implements ParentEntitiesQuery {
     public ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId) {
         return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, parentEntityId, childRelationsQuery);
     }
+
+    @Override
+    public boolean useParentEntitiesOnlyForSimpleAggregation() {
+        return true;
+    }
 }

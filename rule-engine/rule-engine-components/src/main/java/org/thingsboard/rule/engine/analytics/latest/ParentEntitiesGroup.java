@@ -61,4 +61,9 @@ public class ParentEntitiesGroup implements ParentEntitiesQuery {
                 new TimePageLink(Integer.MAX_VALUE));
     }
 
+    @Override
+    public boolean useParentEntitiesOnlyForSimpleAggregation() {
+        return false;
+    }
+
 }

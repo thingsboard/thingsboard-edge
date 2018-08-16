@@ -31,12 +31,14 @@
 package org.thingsboard.rule.engine.analytics.incoming;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesQuery;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -55,9 +57,11 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @Slf4j
 @RuleNode(
@@ -69,7 +73,7 @@ import java.util.concurrent.TimeUnit;
                 "Groups incoming data stream based on originator id of the message (i.e. particular device, asset, customer) and <b>\"aggregation interval value\"</b> into Intervals.<br/><br/>" +
                 "Intervals are periodically persisted based on <b>\"interval persistence policy\"</b> and <b>\"interval check value\"</b>.<br/><br/>" +
                 "Intervals are cached in memory based on <b>\"Interval TTL value\"</b>.<br/><br/>" +
-                "State of the Intervals are persisted as timeseries entities based on <b>\"state persistence policy\"</b> and <b>\"state persistence value\"</b>.<br/><br/>"+
+                "State of the Intervals are persisted as timeseries entities based on <b>\"state persistence policy\"</b> and <b>\"state persistence value\"</b>.<br/><br/>" +
                 "In case there is no data for certain entity, it might be useful to generate default values for those entities. " +
                 "To lookup those entities one may select <b>\"Create intervals automatically\"</b> checkbox and configure <b>\"Interval entities\"</b>.<br/><br/>" +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with the results of the aggregation for particular interval.",
@@ -113,7 +117,11 @@ public class TbSimpleAggMsgNode implements TbNode {
         }
         if (config.isAutoCreateIntervals()) {
             this.entitiesCheckPeriod = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
-            initEntities(ctx, null);
+            try {
+                initEntities(ctx, null);
+            } catch (Exception e) {
+                throw new TbNodeException(e);
+            }
             scheduleEntitiesTickMsg(ctx);
         }
     }
@@ -128,7 +136,11 @@ public class TbSimpleAggMsgNode implements TbNode {
                 onPersistTickMsg(ctx, msg);
                 break;
             case TB_ENTITIES_TICK_MSG:
-                onEntitiesTickMsg(ctx, msg);
+                try {
+                    onEntitiesTickMsg(ctx, msg);
+                } catch (Exception e) {
+                    throw new TbNodeException(e);
+                }
                 break;
             default:
                 onDataMsg(ctx, msg);
@@ -198,7 +210,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         intervals.cleanupStatesUsingTTL();
     }
 
-    private void onEntitiesTickMsg(TbContext ctx, TbMsg msg) {
+    private void onEntitiesTickMsg(TbContext ctx, TbMsg msg) throws Exception {
         if (!msg.getId().equals(nextEntitiesTickId)) {
             return;
         }
@@ -206,14 +218,31 @@ public class TbSimpleAggMsgNode implements TbNode {
         initEntities(ctx, msg);
     }
 
-    private void initEntities(TbContext ctx, TbMsg msg) {
+    private void initEntities(TbContext ctx, TbMsg msg) throws Exception {
         log.trace("[{}] Lookup entities!", ctx.getSelfId());
-        DonAsynchron.withCallback(config.getParentEntitiesQuery().getParentEntitiesAsync(ctx),
-                entities -> intervals.addEntities(ctx, msg, entities), t -> {
-                    if (msg != null) {
-                        ctx.tellFailure(msg, t);
-                    }
-                });
+        ParentEntitiesQuery query = config.getParentEntitiesQuery();
+        if (query.useParentEntitiesOnlyForSimpleAggregation()) {
+            addIntervals(ctx, msg, query.getParentEntitiesAsync(ctx));
+        } else {
+            DonAsynchron.withCallback(query.getParentEntitiesAsync(ctx), parents -> {
+                for (EntityId parentId : parents) {
+                    addIntervals(ctx, msg, query.getChildEntitiesAsync(ctx, parentId));
+                }
+            }, getErrorsConsumer(ctx, msg), ctx.getDbCallbackExecutor());
+        }
+    }
+
+    private void addIntervals(TbContext ctx, TbMsg msg, ListenableFuture<List<EntityId>> entities) {
+        DonAsynchron.withCallback(entities,
+                tmp -> intervals.addEntities(ctx, msg, tmp), getErrorsConsumer(ctx, msg), ctx.getDbCallbackExecutor());
+    }
+
+    private Consumer<Throwable> getErrorsConsumer(TbContext ctx, TbMsg msg) {
+        return t -> {
+            if (msg != null) {
+                ctx.tellFailure(msg, t);
+            }
+        };
     }
 
     private void scheduleReportTickMsg(TbContext ctx) {

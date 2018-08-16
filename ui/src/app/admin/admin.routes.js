@@ -112,7 +112,7 @@ export default function AdminRoutes($stateProvider) {
         .state('home.settings.loginWhiteLabel', {
             url: '/loginWhiteLabel',
             module: 'private',
-            auth: ['SYS_ADMIN'],
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: whiteLabelingTemplate,

@@ -52,4 +52,6 @@ public interface ParentEntitiesQuery {
 
     ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId);
 
+    boolean useParentEntitiesOnlyForSimpleAggregation();
+
 }

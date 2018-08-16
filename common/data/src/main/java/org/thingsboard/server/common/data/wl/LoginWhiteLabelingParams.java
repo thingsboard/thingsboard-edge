@@ -40,6 +40,8 @@ public class LoginWhiteLabelingParams extends WhiteLabelingParams {
 
     private String pageBackgroundColor;
     private boolean darkForeground;
+    private String domainName;
+    private String adminSettingsId;
 
     public LoginWhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         Integer prevLogoImageHeight = this.logoImageHeight;
