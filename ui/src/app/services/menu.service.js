@@ -293,7 +293,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '160px',
+                            height: '200px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -312,6 +312,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     name: 'white-labeling.white-labeling',
                                     type: 'link',
                                     state: 'home.settings.whiteLabel',
+                                    icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-localization.custom-localization',
+                                    type: 'link',
+                                    state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint'
                                 },
                                 {
@@ -494,13 +500,19 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '80px',
+                            height: '160px',
                             icon: 'settings',
                             pages: [
                                 {
                                     name: 'white-labeling.white-labeling',
                                     type: 'link',
                                     state: 'home.settings.whiteLabel',
+                                    icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-localization.custom-localization',
+                                    type: 'link',
+                                    state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint'
                                 },
                                 {
@@ -560,6 +572,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'white-labeling.white-labeling',
                                         icon: 'format_paint',
                                         state: 'home.settings.whiteLabel'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'custom-localization.custom-localization',
+                                places: [
+                                    {
+                                        name: 'custom-localization.custom-localization',
+                                        icon: 'language',
+                                        state: 'home.settings.customLocalization'
                                     }
                                 ]
                             },
