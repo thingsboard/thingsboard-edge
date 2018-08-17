@@ -1816,7 +1816,9 @@
         "activation-link-copied-message": "User activation link has been copied to clipboard",
         "selected-users": "{ count, plural, 1 {1 user} other {# users} } selected",
         "search": "Search users",
-        "details": "Details"
+        "details": "Details",
+        "login-as-tenant-admin": "Login as Tenant Admin",
+        "login-as-customer-user": "Login as Customer User"
     },
     "value": {
         "type": "Value type",
