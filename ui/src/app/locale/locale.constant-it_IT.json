@@ -1434,12 +1434,14 @@
     "language": {
         "language": "Lingua",
         "locales": {
+			"fr_FR": "Francese",
             "zh_CN": "Cinese",
             "ko_KR": "Coreano",
             "en_US": "Inglese",
             "it_IT": "Italiano",
             "ru_RU": "Russo",
-            "es_ES": "Spagnolo"
+            "es_ES": "Spagnolo",
+            "ja_JA": "Giapponese"
         }
     }
 }

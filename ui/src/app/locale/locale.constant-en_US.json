@@ -2035,12 +2035,14 @@
     "language": {
         "language": "Language",
         "locales": {
+			"fr_FR": "French",
             "zh_CN": "Chinese",
             "en_US": "English",
             "it_IT": "Italian",
             "ko_KR": "Korean",
             "ru_RU": "Russian",
-            "es_ES": "Spanish"
+            "es_ES": "Spanish",
+            "ja_JA": "Japanese"
         }
     }
 }
