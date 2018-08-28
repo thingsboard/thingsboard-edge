@@ -52,8 +52,6 @@ public interface MailService {
     void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, String email) throws ThingsboardException;
     
     void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException;
-    
-    void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body) throws ThingsboardException;
 
     void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException;
 

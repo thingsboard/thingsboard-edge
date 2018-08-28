@@ -32,9 +32,11 @@ package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -67,6 +69,9 @@ public class DefaultMailService implements MailService {
     public static final String MAIL_PROP = "mail.";
     public static final String TARGET_EMAIL = "targetEmail";
     public static final String UTF_8 = "UTF-8";
+
+    @Value("${actors.rule.allow_system_mail_service}")
+    private boolean allowSystemMailService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -167,13 +172,8 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body) throws ThingsboardException {
-        send(tenantId, from, to, cc, bcc, subject, body, null);
-    }
-
-    @Override
     public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
-        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        JsonNode jsonConfig = getConfig(tenantId, "mail", allowSystemMailService);
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
         String mailFrom = getStringValue(jsonConfig, "mailFrom");
         try {
@@ -263,6 +263,10 @@ public class DefaultMailService implements MailService {
     }
 
     private JsonNode getConfig(TenantId tenantId, String key) throws ThingsboardException {
+        return getConfig(tenantId, key, true);
+    }
+
+    private JsonNode getConfig(TenantId tenantId, String key, boolean allowSystemMailService) throws ThingsboardException {
         try {
             JsonNode jsonConfig = null;
             if (tenantId != null && !tenantId.isNullUid()) {
@@ -281,6 +285,9 @@ public class DefaultMailService implements MailService {
                 }
             }
             if (jsonConfig == null) {
+                if (!allowSystemMailService) {
+                    throw new RuntimeException("Access to System Mail Service is forbidden!");
+                }
                 AdminSettings settings = adminSettingsService.findAdminSettingsByKey(key);
                 if (settings != null) {
                     jsonConfig = settings.getJsonValue();

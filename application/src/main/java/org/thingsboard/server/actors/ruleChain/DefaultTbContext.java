@@ -260,11 +260,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public MailService getMailService() {
-        if (mainCtx.isAllowSystemMailService()) {
-            return mainCtx.getMailService();
-        } else {
-            throw new RuntimeException("Access to System Mail Service is forbidden!");
-        }
+        return mainCtx.getMailService();
     }
 
     @Override
