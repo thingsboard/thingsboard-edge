@@ -33,7 +33,7 @@
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
 import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
 import whiteLabelingTemplate from './white-labeling.tpl.html';
-import customLocalizationTemplate from './custom-localization.tpl.html';
+import customTranslationTemplate from './custom-translation.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -128,22 +128,22 @@ export default function AdminRoutes($stateProvider) {
                 label: '{"icon": "format_paint", "label": "white-labeling.login-white-labeling"}'
             }
         })
-        .state('home.settings.customLocalization', {
-            url: '/customLocalization',
+        .state('home.settings.customTranslation', {
+            url: '/customTranslation',
             module: 'private',
             auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
-                    templateUrl: customLocalizationTemplate,
+                    templateUrl: customTranslationTemplate,
                     controllerAs: 'vm',
-                    controller: 'CustomLocalizationController'
+                    controller: 'CustomTranslationController'
                 }
             },
             data: {
-                pageTitle: 'custom-localization.custom-localization'
+                pageTitle: 'custom-translation.custom-translation'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "language", "label": "custom-localization.custom-localization"}'
+                label: '{"icon": "language", "label": "custom-translation.custom-translation"}'
             }
         });
 }

@@ -29,24 +29,24 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-export default angular.module('thingsboard.api.customLocalization', [])
-    .factory('customLocalizationService', CustomLocalizationService)
+export default angular.module('thingsboard.api.customTranslation', [])
+    .factory('customTranslationService', CustomTranslationService)
     .name;
 
 /*@ngInject*/
-function CustomLocalizationService($rootScope, $q, $http) {
+function CustomTranslationService($rootScope, $q, $http) {
 
     var service = {
-        loadCustomLocalization: loadCustomLocalization,
-        getCurrentCustomLocalization: getCurrentCustomLocalization,
-        saveCustomLocalization: saveCustomLocalization
+        loadCustomTranslation: loadCustomTranslation,
+        getCurrentCustomTranslation: getCurrentCustomTranslation,
+        saveCustomTranslation: saveCustomTranslation
     };
 
     return service;
 
-    function loadCustomLocalization() {
+    function loadCustomTranslation() {
         var deferred = $q.defer();
-        var url = '/api/customLocalization/customLocalization';
+        var url = '/api/customTranslation/customTranslation';
         $http.get(url, null).then(
             function success(response) {
                 deferred.resolve(response.data);
@@ -57,9 +57,9 @@ function CustomLocalizationService($rootScope, $q, $http) {
         return deferred.promise;
     }
 
-    function getCurrentCustomLocalization() {
+    function getCurrentCustomTranslation() {
         var deferred = $q.defer();
-        var url = '/api/customLocalization/currentCustomLocalization';
+        var url = '/api/customTranslation/currentCustomTranslation';
         $http.get(url, null).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -68,11 +68,11 @@ function CustomLocalizationService($rootScope, $q, $http) {
         return deferred.promise;
     }
 
-    function saveCustomLocalization(customLocalization) {
+    function saveCustomTranslation(customTranslation) {
         var deferred = $q.defer();
-        var url = '/api/customLocalization/customLocalization';
-        $http.post(url, customLocalization).then(function success() {
-            getCurrentCustomLocalization().then(
+        var url = '/api/customTranslation/customTranslation';
+        $http.post(url, customTranslation).then(function success() {
+            getCurrentCustomTranslation().then(
                 function success() {
                     deferred.resolve();
                 }, function fail() {

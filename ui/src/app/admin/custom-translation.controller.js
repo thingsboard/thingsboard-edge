@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,30 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.localization;
 
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.localization.CustomLocalization;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+/*@ngInject*/
+export default function CustomTranslationController(types, customTranslationService) {
 
-public interface CustomLocalizationService {
+    var vm = this;
 
-    CustomLocalization getSystemCustomLocalization();
+    vm.types = types;
+    vm.customTranslation = {};
+    vm.customTranslation.translationMap = {};
+    vm.save = save;
 
-    CustomLocalization getTenantCustomLocalization(TenantId tenantId);
+    vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
 
-    CustomLocalization getCustomerCustomLocalization(CustomerId customerId);
+    vm.currentLang = vm.languageList[0];
 
-    CustomLocalization getMergedTenantCustomLocalization(TenantId tenantId);
+    getCurrentCustomTranslation();
 
-    CustomLocalization getMergedCustomerCustomLocalization(TenantId tenantId, CustomerId customerId);
+    function getCurrentCustomTranslation() {
+        var loadPromise = customTranslationService.getCurrentCustomTranslation();
+        loadPromise.then(
+            function success(customTranslation) {
+                vm.customTranslation = customTranslation;
+            });
+    }
 
-    CustomLocalization saveSystemCustomLocalization(CustomLocalization customLocalization);
-
-    CustomLocalization saveTenantCustomLocalization(TenantId tenantId, CustomLocalization customLocalization);
-
-    CustomLocalization saveCustomerCustomLocalization(CustomerId customerId, CustomLocalization customLocalization);
-
+    function save() {
+        var savePromise = customTranslationService.saveCustomTranslation(vm.customTranslation);
+        savePromise.then(
+            function success() {
+                vm.customTranslationForm.$setPristine();
+            });
+    }
 }

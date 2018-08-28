@@ -28,12 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.localization;
+package org.thingsboard.server.common.data.translation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j;
@@ -49,25 +48,25 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode
 @Log4j
-public class CustomLocalization {
+public class CustomTranslation {
 
-    private Map<String, String> localizationMap;
+    private Map<String, String> translationMap;
 
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public CustomLocalization merge(CustomLocalization otherCL) {
-        if (localizationMap == null) {
-            localizationMap = new HashMap<>();
+    public CustomTranslation merge(CustomTranslation otherCL) {
+        if (translationMap == null) {
+            translationMap = new HashMap<>();
         }
         List<String> languages = new ArrayList<>();
-        languages.addAll(localizationMap.keySet());
-        languages.addAll(otherCL.getLocalizationMap().keySet());
+        languages.addAll(translationMap.keySet());
+        languages.addAll(otherCL.getTranslationMap().keySet());
         for (String lang : languages) {
-            JsonNode node = safeParse(localizationMap.get(lang));
-            JsonNode otherNode = safeParse(otherCL.getLocalizationMap().get(lang));
+            JsonNode node = safeParse(translationMap.get(lang));
+            JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
             node = JacksonUtils.merge(node, otherNode);
             try {
-                localizationMap.put(lang, mapper.writeValueAsString(node));
+                translationMap.put(lang, mapper.writeValueAsString(node));
             } catch (JsonProcessingException e) {
                 log.warn("Can't write object as json string", e);
             }

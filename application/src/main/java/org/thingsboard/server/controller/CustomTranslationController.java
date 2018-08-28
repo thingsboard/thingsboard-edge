@@ -40,72 +40,72 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.localization.CustomLocalization;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.localization.CustomLocalizationService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 
 @RestController
 @RequestMapping("/api")
-public class CustomLocalizationController extends BaseController {
+public class CustomTranslationController extends BaseController {
 
     @Autowired
-    private CustomLocalizationService customLocalizationService;
+    private CustomTranslationService customTranslationService;
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customLocalization/customLocalization", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public CustomLocalization getCustomLocalization() throws ThingsboardException {
+    public CustomTranslation getCustomTranslation() throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            CustomLocalization customLocalization = null;
+            CustomTranslation customTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
-                customLocalization = customLocalizationService.getSystemCustomLocalization();
+                customTranslation = customTranslationService.getSystemCustomTranslation();
             } else if (authority == Authority.TENANT_ADMIN) {
-                customLocalization = customLocalizationService.getMergedTenantCustomLocalization(getCurrentUser().getTenantId());
+                customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
-                customLocalization = customLocalizationService.getMergedCustomerCustomLocalization(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+                customTranslation = customTranslationService.getMergedCustomerCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
             }
-            return customLocalization;
+            return customTranslation;
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customLocalization/currentCustomLocalization", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/customTranslation/currentCustomTranslation", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public CustomLocalization getCurrentCustomLocalization() throws ThingsboardException {
+    public CustomTranslation getCurrentCustomTranslation() throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            CustomLocalization customLocalization = null;
+            CustomTranslation customTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
-                customLocalization = customLocalizationService.getSystemCustomLocalization();
+                customTranslation = customTranslationService.getSystemCustomTranslation();
             } else if (authority == Authority.TENANT_ADMIN) {
-                customLocalization = customLocalizationService.getTenantCustomLocalization(getCurrentUser().getTenantId());
+                customTranslation = customTranslationService.getTenantCustomTranslation(getCurrentUser().getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
-                customLocalization = customLocalizationService.getCustomerCustomLocalization(getCurrentUser().getCustomerId());
+                customTranslation = customTranslationService.getCustomerCustomTranslation(getCurrentUser().getCustomerId());
             }
-            return customLocalization;
+            return customTranslation;
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customLocalization/customLocalization", method = RequestMethod.POST)
+    @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomLocalization saveCustomLocalization(@RequestBody CustomLocalization customLocalization) throws ThingsboardException {
+    public CustomTranslation saveCustomTranslation(@RequestBody CustomTranslation customTranslation) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            CustomLocalization savedCustomLocalization = null;
+            CustomTranslation savedCustomTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
-                savedCustomLocalization = customLocalizationService.saveSystemCustomLocalization(customLocalization);
+                savedCustomTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
             } else if (authority == Authority.TENANT_ADMIN) {
-                savedCustomLocalization = customLocalizationService.saveTenantCustomLocalization(getCurrentUser().getTenantId(), customLocalization);
+                savedCustomTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
             } else if (authority == Authority.CUSTOMER_USER) {
-                savedCustomLocalization = customLocalizationService.saveCustomerCustomLocalization(getCurrentUser().getCustomerId(), customLocalization);
+                savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getCurrentUser().getCustomerId(), customTranslation);
             }
-            return savedCustomLocalization;
+            return savedCustomTranslation;
         } catch (Exception e) {
             throw handleException(e);
         }

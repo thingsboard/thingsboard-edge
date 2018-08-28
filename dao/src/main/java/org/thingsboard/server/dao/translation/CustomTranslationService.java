@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,36 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.server.dao.translation;
 
-/*@ngInject*/
-export default function CustomLocalizationController(types, customLocalizationService) {
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 
-    var vm = this;
+public interface CustomTranslationService {
 
-    vm.types = types;
-    vm.customLocalization = {};
-    vm.customLocalization.localizationMap = {};
-    vm.save = save;
+    CustomTranslation getSystemCustomTranslation();
 
-    vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
+    CustomTranslation getTenantCustomTranslation(TenantId tenantId);
 
-    vm.currentLang = vm.languageList[0];
+    CustomTranslation getCustomerCustomTranslation(CustomerId customerId);
 
-    getCurrentCustomLocalization();
+    CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId);
 
-    function getCurrentCustomLocalization() {
-        var loadPromise = customLocalizationService.getCurrentCustomLocalization();
-        loadPromise.then(
-            function success(customLocalization) {
-                vm.customLocalization = customLocalization;
-            });
-    }
+    CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
 
-    function save() {
-        var savePromise = customLocalizationService.saveCustomLocalization(vm.customLocalization);
-        savePromise.then(
-            function success() {
-                vm.customLocalizationForm.$setPristine();
-            });
-    }
+    CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation);
+
+    CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation);
+
+    CustomTranslation saveCustomerCustomTranslation(CustomerId customerId, CustomTranslation customTranslation);
+
 }

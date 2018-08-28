@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.localization;
+package org.thingsboard.server.dao.translation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.localization.CustomLocalization;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -57,11 +57,11 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class BaseCustomLocalizationService implements CustomLocalizationService {
+public class BaseCustomTranslationService implements CustomTranslationService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String CUSTOM_LOCALIZATION_ATTR_NAME = "customLocalization";
+    private static final String CUSTOM_TRANSLATION_ATTR_NAME = "customTranslation";
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -70,100 +70,100 @@ public class BaseCustomLocalizationService implements CustomLocalizationService 
     private AttributesService attributesService;
 
     @Override
-    public CustomLocalization getSystemCustomLocalization() {
-        AdminSettings customLocalizationSettings = adminSettingsService.findAdminSettingsByKey(CUSTOM_LOCALIZATION_ATTR_NAME);
+    public CustomTranslation getSystemCustomTranslation() {
+        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(CUSTOM_TRANSLATION_ATTR_NAME);
         String json = null;
-        if (customLocalizationSettings != null) {
-            json = customLocalizationSettings.getJsonValue().get("value").asText();
+        if (customTranslationSettings != null) {
+            json = customTranslationSettings.getJsonValue().get("value").asText();
         }
-        return constructCustomLocalization(json);
+        return constructCustomTranslation(json);
     }
 
     @Override
-    public CustomLocalization getTenantCustomLocalization(TenantId tenantId) {
-        return getEntityCustomLocalization(tenantId);
+    public CustomTranslation getTenantCustomTranslation(TenantId tenantId) {
+        return getEntityCustomTranslation(tenantId);
     }
 
     @Override
-    public CustomLocalization getCustomerCustomLocalization(CustomerId customerId) {
-        return getEntityCustomLocalization(customerId);
+    public CustomTranslation getCustomerCustomTranslation(CustomerId customerId) {
+        return getEntityCustomTranslation(customerId);
     }
 
     @Override
-    public CustomLocalization getMergedTenantCustomLocalization(TenantId tenantId) {
-        CustomLocalization result = getTenantCustomLocalization(tenantId);
-        result.merge(getSystemCustomLocalization());
+    public CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId) {
+        CustomTranslation result = getTenantCustomTranslation(tenantId);
+        result.merge(getSystemCustomTranslation());
         return result;
     }
 
     @Override
-    public CustomLocalization getMergedCustomerCustomLocalization(TenantId tenantId, CustomerId customerId) {
-        CustomLocalization result = getCustomerCustomLocalization(customerId);
-        result.merge(getTenantCustomLocalization(tenantId)).merge(getSystemCustomLocalization());
+    public CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId) {
+        CustomTranslation result = getCustomerCustomTranslation(customerId);
+        result.merge(getTenantCustomTranslation(tenantId)).merge(getSystemCustomTranslation());
         return result;
     }
 
     @Override
-    public CustomLocalization saveSystemCustomLocalization(CustomLocalization customLocalization) {
-        AdminSettings customLocalizationSettings = adminSettingsService.findAdminSettingsByKey(CUSTOM_LOCALIZATION_ATTR_NAME);
-        if (customLocalizationSettings == null) {
-            customLocalizationSettings = new AdminSettings();
-            customLocalizationSettings.setKey(CUSTOM_LOCALIZATION_ATTR_NAME);
+    public CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation) {
+        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(CUSTOM_TRANSLATION_ATTR_NAME);
+        if (customTranslationSettings == null) {
+            customTranslationSettings = new AdminSettings();
+            customTranslationSettings.setKey(CUSTOM_TRANSLATION_ATTR_NAME);
             ObjectNode node = objectMapper.createObjectNode();
-            customLocalizationSettings.setJsonValue(node);
+            customTranslationSettings.setJsonValue(node);
         }
         String json;
         try {
-            json = objectMapper.writeValueAsString(customLocalization);
+            json = objectMapper.writeValueAsString(customTranslation);
         } catch (JsonProcessingException e) {
-            log.error("Unable to convert custom localization to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert custom localization to JSON!");
+            log.error("Unable to convert custom translation to JSON!", e);
+            throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
-        ((ObjectNode) customLocalizationSettings.getJsonValue()).put("value", json);
-        adminSettingsService.saveAdminSettings(customLocalizationSettings);
-        return getSystemCustomLocalization();
+        ((ObjectNode) customTranslationSettings.getJsonValue()).put("value", json);
+        adminSettingsService.saveAdminSettings(customTranslationSettings);
+        return getSystemCustomTranslation();
     }
 
     @Override
-    public CustomLocalization saveTenantCustomLocalization(TenantId tenantId, CustomLocalization customLocalization) {
-        saveEntityCustomLocalization(tenantId, customLocalization);
-        return getTenantCustomLocalization(tenantId);
+    public CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation) {
+        saveEntityCustomTranslation(tenantId, customTranslation);
+        return getTenantCustomTranslation(tenantId);
     }
 
     @Override
-    public CustomLocalization saveCustomerCustomLocalization(CustomerId customerId, CustomLocalization customLocalization) {
-        saveEntityCustomLocalization(customerId, customLocalization);
-        return getCustomerCustomLocalization(customerId);
+    public CustomTranslation saveCustomerCustomTranslation(CustomerId customerId, CustomTranslation customTranslation) {
+        saveEntityCustomTranslation(customerId, customTranslation);
+        return getCustomerCustomTranslation(customerId);
     }
 
-    private CustomLocalization constructCustomLocalization(String json) {
-        CustomLocalization result = null;
+    private CustomTranslation constructCustomTranslation(String json) {
+        CustomTranslation result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = objectMapper.readValue(json, CustomLocalization.class);
+                result = objectMapper.readValue(json, CustomTranslation.class);
             } catch (IOException e) {
-                log.error("Unable to read custom localization from JSON!", e);
-                throw new IncorrectParameterException("Unable to read custom localization from JSON!");
+                log.error("Unable to read custom translation from JSON!", e);
+                throw new IncorrectParameterException("Unable to read custom translation from JSON!");
             }
         }
         if (result == null) {
-            result = new CustomLocalization();
+            result = new CustomTranslation();
         }
         return result;
     }
 
-    private CustomLocalization getEntityCustomLocalization(EntityId entityId) {
+    private CustomTranslation getEntityCustomTranslation(EntityId entityId) {
         String json = getEntityAttributeValue(entityId);
-        return constructCustomLocalization(json);
+        return constructCustomTranslation(json);
     }
 
     private String getEntityAttributeValue(EntityId entityId) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_LOCALIZATION_ATTR_NAME)).get();
+            attributeKvEntries = attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_TRANSLATION_ATTR_NAME)).get();
         } catch (Exception e) {
-            log.error("Unable to read custom localization from attributes!", e);
-            throw new IncorrectParameterException("Unable to read custom localization from attributes!");
+            log.error("Unable to read custom translation from attributes!", e);
+            throw new IncorrectParameterException("Unable to read custom translation from attributes!");
         }
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
@@ -173,13 +173,13 @@ public class BaseCustomLocalizationService implements CustomLocalizationService 
         }
     }
 
-    private void saveEntityCustomLocalization(EntityId entityId, CustomLocalization customLocalization) {
+    private void saveEntityCustomTranslation(EntityId entityId, CustomTranslation customTranslation) {
         String json;
         try {
-            json = objectMapper.writeValueAsString(customLocalization);
+            json = objectMapper.writeValueAsString(customTranslation);
         } catch (JsonProcessingException e) {
-            log.error("Unable to convert custom localization to JSON!", e);
-            throw new IncorrectParameterException("Unable to convert custom localization to JSON!");
+            log.error("Unable to convert custom translation to JSON!", e);
+            throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
         saveEntityAttribute(entityId, json);
     }
@@ -187,12 +187,12 @@ public class BaseCustomLocalizationService implements CustomLocalizationService 
     private void saveEntityAttribute(EntityId entityId, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
-        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(CUSTOM_LOCALIZATION_ATTR_NAME, value), ts));
+        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(CUSTOM_TRANSLATION_ATTR_NAME, value), ts));
         try {
             attributesService.save(entityId, DataConstants.SERVER_SCOPE, attributes).get();
         } catch (Exception e) {
-            log.error("Unable to save custom localization to attributes!", e);
-            throw new IncorrectParameterException("Unable to save custom localization to attributes!");
+            log.error("Unable to save custom translation to attributes!", e);
+            throw new IncorrectParameterException("Unable to save custom translation to attributes!");
         }
     }
 

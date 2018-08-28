@@ -174,9 +174,9 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     icon: 'format_paint'
                                 },
                                 {
-                                    name: 'custom-localization.custom-localization',
+                                    name: 'custom-translation.custom-translation',
                                     type: 'link',
-                                    state: 'home.settings.customLocalization',
+                                    state: 'home.settings.customTranslation',
                                     icon: 'language'
                                 }
                             ]
@@ -233,12 +233,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 ]
                             },
                             {
-                                name: 'custom-localization.custom-localization',
+                                name: 'custom-translation.custom-translation',
                                 places: [
                                     {
-                                        name: 'custom-localization.custom-localization',
+                                        name: 'custom-translation.custom-translation',
                                         icon: 'language',
-                                        state: 'home.settings.customLocalization'
+                                        state: 'home.settings.customTranslation'
                                     }
                                 ]
                             }];
@@ -321,9 +321,9 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     icon: 'format_paint'
                                 },
                                 {
-                                    name: 'custom-localization.custom-localization',
+                                    name: 'custom-translation.custom-translation',
                                     type: 'link',
-                                    state: 'home.settings.customLocalization',
+                                    state: 'home.settings.customTranslation',
                                     icon: 'language'
                                 }
                             ]
@@ -460,12 +460,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 ]
                             },
                             {
-                                name: 'custom-localization.custom-localization',
+                                name: 'custom-translation.custom-translation',
                                 places: [
                                     {
-                                        name: 'custom-localization.custom-localization',
+                                        name: 'custom-translation.custom-translation',
                                         icon: 'language',
-                                        state: 'home.settings.customLocalization'
+                                        state: 'home.settings.customTranslation'
                                     }
                                 ]
                             }];
@@ -521,9 +521,9 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     icon: 'format_paint'
                                 },
                                 {
-                                    name: 'custom-localization.custom-localization',
+                                    name: 'custom-translation.custom-translation',
                                     type: 'link',
-                                    state: 'home.settings.customLocalization',
+                                    state: 'home.settings.customTranslation',
                                     icon: 'language'
                                 }
                             ]
@@ -586,22 +586,22 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 ]
                             },
                             {
-                                name: 'custom-localization.custom-localization',
+                                name: 'custom-translation.custom-translation',
                                 places: [
                                     {
-                                        name: 'custom-localization.custom-localization',
+                                        name: 'custom-translation.custom-translation',
                                         icon: 'language',
-                                        state: 'home.settings.customLocalization'
+                                        state: 'home.settings.customTranslation'
                                     }
                                 ]
                             },
                             {
-                                name: 'custom-localization.custom-localization',
+                                name: 'custom-translation.custom-translation',
                                 places: [
                                     {
-                                        name: 'custom-localization.custom-localization',
+                                        name: 'custom-translation.custom-translation',
                                         icon: 'language',
-                                        state: 'home.settings.customLocalization'
+                                        state: 'home.settings.customTranslation'
                                     }
                                 ]
                             }];
