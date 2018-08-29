@@ -36,6 +36,7 @@ import delight.nashornsandbox.NashornSandbox;
 import delight.nashornsandbox.NashornSandboxes;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -56,9 +57,10 @@ public abstract class AbstractNashornJsSandboxService implements JsSandboxServic
     private ScriptEngine engine;
     private ExecutorService monitorExecutorService;
 
-    private Map<UUID, String> functionsMap = new ConcurrentHashMap<>();
-
-    private Map<UUID,AtomicInteger> blackListedFunctions = new ConcurrentHashMap<>();
+    private final Map<UUID, String> functionsMap = new ConcurrentHashMap<>();
+    private final Map<UUID,AtomicInteger> blackListedFunctions = new ConcurrentHashMap<>();
+    private final Map<String, Pair<UUID, AtomicInteger>> scriptToId = new ConcurrentHashMap<>();
+    private final Map<UUID, AtomicInteger> scriptIdToCount = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -93,19 +95,27 @@ public abstract class AbstractNashornJsSandboxService implements JsSandboxServic
 
     @Override
     public ListenableFuture<UUID> eval(JsScriptType scriptType, String scriptBody, String... argNames) {
-        UUID scriptId = UUID.randomUUID();
-        String functionName = "invokeInternal_" + scriptId.toString().replace('-','_');
-        String jsScript = generateJsScript(scriptType, functionName, scriptBody, argNames);
-        try {
-            if (useJsSandbox()) {
-                sandbox.eval(jsScript);
-            } else {
-                engine.eval(jsScript);
+        Pair<UUID, AtomicInteger> deduplicated = deduplicate(scriptType, scriptBody);
+        UUID scriptId = deduplicated.getLeft();
+        AtomicInteger duplicateCount = deduplicated.getRight();
+
+        if(duplicateCount.compareAndSet(0, 1)) {
+            String functionName = "invokeInternal_" + scriptId.toString().replace('-', '_');
+            String jsScript = generateJsScript(scriptType, functionName, scriptBody, argNames);
+            try {
+                if (useJsSandbox()) {
+                    sandbox.eval(jsScript);
+                } else {
+                    engine.eval(jsScript);
+                }
+                functionsMap.put(scriptId, functionName);
+            } catch (Exception e) {
+                duplicateCount.decrementAndGet();
+                log.warn("Failed to compile JS script: {}", e.getMessage(), e);
+                return Futures.immediateFailedFuture(e);
             }
-            functionsMap.put(scriptId, functionName);
-        } catch (Exception e) {
-            log.warn("Failed to compile JS script: {}", e.getMessage(), e);
-            return Futures.immediateFailedFuture(e);
+        } else {
+            duplicateCount.incrementAndGet();
         }
         return Futures.immediateFuture(scriptId);
     }
@@ -137,6 +147,13 @@ public abstract class AbstractNashornJsSandboxService implements JsSandboxServic
 
     @Override
     public ListenableFuture<Void> release(UUID scriptId) {
+        AtomicInteger count = scriptIdToCount.get(scriptId);
+        if(count != null) {
+            if(count.decrementAndGet() > 0) {
+                return Futures.immediateFuture(null);
+            }
+        }
+
         String functionName = functionsMap.get(scriptId);
         if (functionName != null) {
             try {
@@ -176,5 +193,17 @@ public abstract class AbstractNashornJsSandboxService implements JsSandboxServic
             default:
                 throw new RuntimeException("No script factory implemented for scriptType: " + scriptType);
         }
+    }
+
+    private Pair<UUID, AtomicInteger> deduplicate(JsScriptType scriptType, String scriptBody) {
+        Pair<UUID, AtomicInteger> precomputed = Pair.of(UUID.randomUUID(), new AtomicInteger());
+
+        Pair<UUID, AtomicInteger> pair = scriptToId.computeIfAbsent(deduplicateKey(scriptType, scriptBody), i -> precomputed);
+        AtomicInteger duplicateCount = scriptIdToCount.computeIfAbsent(pair.getLeft(), i -> pair.getRight());
+        return Pair.of(pair.getLeft(), duplicateCount);
+    }
+
+    private String deduplicateKey(JsScriptType scriptType, String scriptBody) {
+        return scriptType + "_" + scriptBody;
     }
 }
