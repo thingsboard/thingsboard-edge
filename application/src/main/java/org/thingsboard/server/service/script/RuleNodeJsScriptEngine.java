@@ -64,7 +64,7 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
         try {
             this.scriptId = this.sandboxService.eval(scriptType, script, argNames).get();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
+            throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
         }
     }
 

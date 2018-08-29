@@ -131,6 +131,7 @@ public class AppActor extends RuleChainManagerActor {
                 break;
             case ACTOR_SYSTEM_TO_DEVICE_SESSION_ACTOR_MSG:
                 onToDeviceSessionMsg((BasicActorSystemToDeviceSessionActorMsg) msg);
+                break;
             default:
                 return false;
         }

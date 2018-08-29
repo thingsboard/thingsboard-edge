@@ -48,6 +48,7 @@ public class JSUplinkEvaluator extends AbstractJSEvaluator {
     }
 
     public String execute(byte[] data, UplinkMetaData metadata) throws Exception {
+        validateSuccessfulScriptLazyInit();
         return sandboxService.invokeFunction(this.scriptId, data, metadata.getKvMap()).get().toString();
     }
 

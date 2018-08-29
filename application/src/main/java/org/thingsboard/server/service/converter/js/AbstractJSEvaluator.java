@@ -30,34 +30,53 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.service.script.JsSandboxService;
 import org.thingsboard.server.service.script.JsScriptType;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 import java.util.UUID;
 
 @Slf4j
 public abstract class AbstractJSEvaluator {
 
     protected final JsSandboxService sandboxService;
-    protected final UUID scriptId;
+    private final JsScriptType scriptType;
+    private final String script;
+
+    protected volatile UUID scriptId;
+    private volatile boolean isErrorScript = false;
+
 
     public AbstractJSEvaluator(JsSandboxService sandboxService, JsScriptType scriptType, String script) {
         this.sandboxService = sandboxService;
-        try {
-            this.scriptId = this.sandboxService.eval(scriptType, script).get();
-        } catch (Exception e) {
-            log.warn("Failed to compile js script: {}", e.getMessage(), e);
-            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
-        }
+        this.scriptType = scriptType;
+        this.script = script;
     }
 
     public void destroy() {
         if (this.scriptId != null) {
             this.sandboxService.release(this.scriptId);
+        }
+    }
+
+    void validateSuccessfulScriptLazyInit() {
+        if (this.scriptId != null) {
+            return;
+        }
+
+        if (isErrorScript) {
+            throw new IllegalArgumentException("Can't compile uplink converter script ");
+        }
+
+        synchronized (this) {
+            if (this.scriptId != null) {
+                try {
+                    this.scriptId = this.sandboxService.eval(scriptType, script).get();
+                } catch (Exception e) {
+                    isErrorScript = true;
+                    throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
+                }
+            }
         }
     }
 

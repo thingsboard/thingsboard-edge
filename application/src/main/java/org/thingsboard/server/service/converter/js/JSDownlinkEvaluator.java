@@ -52,6 +52,7 @@ public class JSDownlinkEvaluator extends AbstractJSEvaluator {
 
     public JsonNode execute(TbMsg msg, IntegrationMetaData metadata) throws ScriptException {
         try {
+            validateSuccessfulScriptLazyInit();
             String[] inArgs = prepareArgs(msg, metadata);
             String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
             return mapper.readTree(eval);
