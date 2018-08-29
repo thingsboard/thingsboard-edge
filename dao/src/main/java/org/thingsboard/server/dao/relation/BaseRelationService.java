@@ -54,7 +54,6 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -107,10 +106,10 @@ public class BaseRelationService implements RelationService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.to, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup}")
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup, 'TO'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup, 'TO'}")
     })
     @Override
     public boolean saveRelation(EntityRelation relation) {
@@ -121,10 +120,10 @@ public class BaseRelationService implements RelationService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.to, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup}")
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup, 'TO'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup, 'TO'}")
     })
     @Override
     public ListenableFuture<Boolean> saveRelationAsync(EntityRelation relation) {
@@ -135,10 +134,10 @@ public class BaseRelationService implements RelationService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.to, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup}")
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup, 'TO'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup, 'TO'}")
     })
     @Override
     public boolean deleteRelation(EntityRelation relation) {
@@ -149,10 +148,10 @@ public class BaseRelationService implements RelationService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.to, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup}")
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.type, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.from, #relation.typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.typeGroup, 'TO'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#relation.to, #relation.type, #relation.typeGroup, 'TO'}")
     })
     @Override
     public ListenableFuture<Boolean> deleteRelationAsync(EntityRelation relation) {
@@ -163,10 +162,10 @@ public class BaseRelationService implements RelationService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #to, #relationType, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup}")
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup, 'TO'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup, 'TO'}")
     })
     @Override
     public boolean deleteRelation(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
@@ -177,10 +176,10 @@ public class BaseRelationService implements RelationService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #to, #relationType, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup}"),
-            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup}")
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#from, #typeGroup, 'FROM'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup, 'TO'}"),
+            @CacheEvict(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup, 'TO'}")
     })
     @Override
     public ListenableFuture<Boolean> deleteRelationAsync(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
@@ -263,26 +262,30 @@ public class BaseRelationService implements RelationService {
         fromTypeAndTypeGroup.add(relation.getFrom());
         fromTypeAndTypeGroup.add(relation.getType());
         fromTypeAndTypeGroup.add(relation.getTypeGroup());
+        fromTypeAndTypeGroup.add(EntitySearchDirection.FROM.name());
         cache.evict(fromTypeAndTypeGroup);
 
         List<Object> fromAndTypeGroup = new ArrayList<>();
         fromAndTypeGroup.add(relation.getFrom());
         fromAndTypeGroup.add(relation.getTypeGroup());
+        fromAndTypeGroup.add(EntitySearchDirection.FROM.name());
         cache.evict(fromAndTypeGroup);
 
         List<Object> toAndTypeGroup = new ArrayList<>();
         toAndTypeGroup.add(relation.getTo());
         toAndTypeGroup.add(relation.getTypeGroup());
+        toAndTypeGroup.add(EntitySearchDirection.TO.name());
         cache.evict(toAndTypeGroup);
 
         List<Object> toTypeAndTypeGroup = new ArrayList<>();
-        fromTypeAndTypeGroup.add(relation.getTo());
-        fromTypeAndTypeGroup.add(relation.getType());
-        fromTypeAndTypeGroup.add(relation.getTypeGroup());
+        toTypeAndTypeGroup.add(relation.getTo());
+        toTypeAndTypeGroup.add(relation.getType());
+        toTypeAndTypeGroup.add(relation.getTypeGroup());
+        toTypeAndTypeGroup.add(EntitySearchDirection.TO.name());
         cache.evict(toTypeAndTypeGroup);
     }
 
-    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#from, #typeGroup}")
+    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#from, #typeGroup, 'FROM'}")
     @Override
     public List<EntityRelation> findByFrom(EntityId from, RelationTypeGroup typeGroup) {
         validate(from);
@@ -303,6 +306,7 @@ public class BaseRelationService implements RelationService {
         List<Object> fromAndTypeGroup = new ArrayList<>();
         fromAndTypeGroup.add(from);
         fromAndTypeGroup.add(typeGroup);
+        fromAndTypeGroup.add(EntitySearchDirection.FROM.name());
 
         Cache cache = cacheManager.getCache(RELATIONS_CACHE);
         List<EntityRelation> fromCache = cache.get(fromAndTypeGroup, List.class);
@@ -341,7 +345,7 @@ public class BaseRelationService implements RelationService {
                 });
     }
 
-    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup}")
+    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup, 'FROM'}")
     @Override
     public List<EntityRelation> findByFromAndType(EntityId from, String relationType, RelationTypeGroup typeGroup) {
         try {
@@ -360,7 +364,7 @@ public class BaseRelationService implements RelationService {
         return relationDao.findAllByFromAndType(from, relationType, typeGroup);
     }
 
-    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup}")
+    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup, 'TO'}")
     @Override
     public List<EntityRelation> findByTo(EntityId to, RelationTypeGroup typeGroup) {
         validate(to);
@@ -381,6 +385,7 @@ public class BaseRelationService implements RelationService {
         List<Object> toAndTypeGroup = new ArrayList<>();
         toAndTypeGroup.add(to);
         toAndTypeGroup.add(typeGroup);
+        toAndTypeGroup.add(EntitySearchDirection.TO.name());
 
         Cache cache = cacheManager.getCache(RELATIONS_CACHE);
         List<EntityRelation> fromCache = cache.get(toAndTypeGroup, List.class);
@@ -430,7 +435,7 @@ public class BaseRelationService implements RelationService {
         });
     }
 
-    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup}")
+    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup, 'TO'}")
     @Override
     public List<EntityRelation> findByToAndType(EntityId to, String relationType, RelationTypeGroup typeGroup) {
         try {
