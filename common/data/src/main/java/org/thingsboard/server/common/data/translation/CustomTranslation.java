@@ -60,15 +60,17 @@ public class CustomTranslation {
         }
         List<String> languages = new ArrayList<>();
         languages.addAll(translationMap.keySet());
-        languages.addAll(otherCL.getTranslationMap().keySet());
-        for (String lang : languages) {
-            JsonNode node = safeParse(translationMap.get(lang));
-            JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
-            node = JacksonUtils.merge(node, otherNode);
-            try {
-                translationMap.put(lang, mapper.writeValueAsString(node));
-            } catch (JsonProcessingException e) {
-                log.warn("Can't write object as json string", e);
+        if (otherCL != null && otherCL.getTranslationMap() != null) {
+            languages.addAll(otherCL.getTranslationMap().keySet());
+            for (String lang : languages) {
+                JsonNode node = safeParse(translationMap.get(lang));
+                JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
+                node = JacksonUtils.merge(node, otherNode);
+                try {
+                    translationMap.put(lang, mapper.writeValueAsString(node));
+                } catch (JsonProcessingException e) {
+                    log.warn("Can't write object as json string", e);
+                }
             }
         }
         return this;
