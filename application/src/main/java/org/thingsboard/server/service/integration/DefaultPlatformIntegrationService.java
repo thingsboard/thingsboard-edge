@@ -32,7 +32,8 @@ package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.*;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -78,10 +79,7 @@ import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -125,6 +123,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private long statisticsPersistFrequency;
 
     private ScheduledExecutorService statisticsExecutorService;
+    private ListeningExecutorService refreshExecutorService;
 
     private ConcurrentMap<IntegrationId, ThingsboardPlatformIntegration> integrationsByIdMap;
     private ConcurrentMap<String, ThingsboardPlatformIntegration> integrationsByRoutingKeyMap;
@@ -135,6 +134,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
         discoveryService.addListener(this);
+        refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(4));
         refreshAllIntegrations();
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -152,6 +152,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
         integrationsByIdMap.clear();
         integrationsByRoutingKeyMap.clear();
+        refreshExecutorService.shutdownNow();
     }
 
     @Override
@@ -364,16 +365,29 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 }
             }
         }
-        integrationService.findAllIntegrations().forEach(configuration -> {
-            try {
-                //Initialize the integration that belongs to current node only
-                if (!clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
-                    createIntegration(configuration);
-                }
-            } catch (Exception e) {
-                log.error("[{}] Unable to initialize integration {}", configuration.getId(), configuration.getName(), e);
+
+        List<Integration> allIntegrations = integrationService.findAllIntegrations();
+        try {
+            List<ListenableFuture<Void>> futures = Lists.newArrayList();
+            for (Integration integration : allIntegrations) {
+                futures.add(refreshExecutorService.submit(() -> {
+                    try {
+                        //Initialize the integration that belongs to current node only
+                        if (!clusterRoutingService.resolveById(integration.getId()).isPresent()) {
+                            createIntegration(integration);
+                        }
+                    } catch (Exception e) {
+                        log.error("[{}] Unable to initialize integration {}", integration.getId(), integration.getName(), e);
+                    }
+                    return null;
+                }));
             }
-        });
+            Futures.allAsList(futures).get();
+            log.info("{} Integrations refreshed", allIntegrations.size());
+        } catch (Throwable th) {
+            log.error("Could not init integrations", th);
+        }
+
     }
 
 }
