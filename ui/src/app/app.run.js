@@ -68,8 +68,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
 
     initWatchers();
 
-    var fullLoadLanguageFiles = true;
-
     var skipStateChange = false;
 
     function initWatchers() {
@@ -201,7 +199,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     }
 
     function loadCustomTranslations() {
-        customLocalizationService.loadCustomTranslation().then(
+        customTranslationService.loadCustomTranslation().then(
             function success(response) {
                 Object.keys(response.translationMap).forEach(function(key) {
                     if (response.translationMap[key]) {
