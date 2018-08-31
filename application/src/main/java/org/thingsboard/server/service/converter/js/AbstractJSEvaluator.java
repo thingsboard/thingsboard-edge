@@ -69,7 +69,7 @@ public abstract class AbstractJSEvaluator {
         }
 
         synchronized (this) {
-            if (this.scriptId != null) {
+            if (this.scriptId == null) {
                 try {
                     this.scriptId = this.sandboxService.eval(scriptType, script).get();
                 } catch (Exception e) {
