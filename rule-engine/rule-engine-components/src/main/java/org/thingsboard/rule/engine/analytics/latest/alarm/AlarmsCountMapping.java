@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -72,15 +72,15 @@ public class AlarmsCountMapping {
                 return Futures.successfulAsList(alarmFutures);
             }, ctx.getDbCallbackExecutor());
             return Futures.transform(alarmsFuture,
-                    alarms -> Optional.of(prepareResult(alarms.stream().filter(createAlarmFilter()).count())),
+                    alarms -> Optional.of(prepareResult(alarms.stream().filter(createAlarmFilter()).map(AlarmInfo::getId).distinct().count())),
                     ctx.getDbCallbackExecutor());
         } else if (executeTimeFilter) {
             long maxTime = System.currentTimeMillis() - latestInterval;
             return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().filter(relation ->
-                UUIDs.unixTimestamp(relation.getTo().getId()) >= maxTime
-            ).count())), ctx.getDbCallbackExecutor());
+                    UUIDs.unixTimestamp(relation.getTo().getId()) >= maxTime
+            ).map(EntityRelation::getTo).distinct().count())), ctx.getDbCallbackExecutor());
         } else {
-            return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.size())), ctx.getDbCallbackExecutor());
+            return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().map(EntityRelation::getTo).distinct().count())), ctx.getDbCallbackExecutor());
         }
     }
 
@@ -111,7 +111,7 @@ public class AlarmsCountMapping {
         };
     }
 
-    private <T> boolean matches (List<T> filterList, T value) {
+    private <T> boolean matches(List<T> filterList, T value) {
         if (filterList != null && !filterList.isEmpty()) {
             return filterList.contains(value);
         } else {
