@@ -31,17 +31,20 @@
 .tb-attribute-kv-table {
   span.no-data-found {
     position: relative;
+    display: flex;
     height: 40px;
     text-transform: uppercase;
-    display: flex;
+
     &.disabled {
-      color: rgba(0,0,0,0.38);
+      color: rgba(0, 0, 0, .38);
     }
+
     &.required {
-      color: rgb(221,44,0);
+      color: rgb(221, 44, 0);
     }
   }
+
   md-input-container {
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
 }

@@ -28,20 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 .tb-entity-filter-view {
   .entity-filter-empty {
-    color: rgba(221, 44, 0, 0.87);
     font-size: 14px;
     line-height: 16px;
+    color: rgba(221, 44, 0, .87);
   }
+
   .entity-filter-type {
     font-size: 14px;
     line-height: 16px;
-    color: rgba(0, 0, 0, 0.570588);
+    color: rgba(0, 0, 0, .570588);
   }
+
   .entity-filter-value {
     font-size: 14px;
     line-height: 16px;
-    color: rgba(0, 0, 0, 0.570588);
+    color: rgba(0, 0, 0, .570588);
   }
 }

@@ -29,28 +29,27 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 .tb-entity-group-column {
-
   md-select {
-    margin: 0px;
+    margin: 0;
   }
 
   md-checkbox {
-     margin-bottom: 0px;
-     width: 20px;
+    width: 20px;
+    margin-bottom: 0;
   }
 
   .md-button {
     &.md-icon-button {
-      margin: 0px;
+      margin: 0;
     }
   }
 
   md-input-container {
-    margin: 0px;
+    margin: 0;
+
     .md-errors-spacer {
-        height: 0px;
-        min-height: 0px;
+      height: 0;
+      min-height: 0;
     }
   }
-
 }

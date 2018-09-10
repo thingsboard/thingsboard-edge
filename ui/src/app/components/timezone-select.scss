@@ -30,14 +30,17 @@
  */
 .tb-timezone-select {
   padding-bottom: 10px;
+
   md-autocomplete {
     padding: 6px;
   }
+
   .tb-timezone-autocomplete {
     .tb-timezone-item {
       display: block;
       height: 48px;
     }
+
     li {
       height: auto !important;
       white-space: normal !important;
@@ -46,12 +49,12 @@
 
   .md-caption {
     padding-bottom: 5px;
-    &.tb-required:after {
-      content: ' *';
+
+    &.tb-required::after {
       font-size: 10px;
+      color: rgba(0, 0, 0, .54);
       vertical-align: top;
-      color: rgba(0,0,0,0.54);
+      content: " *";
     }
   }
-
 }

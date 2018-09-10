@@ -29,20 +29,20 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 .tb-entity-group-columns {
-
   .tb-header {
-      font-size: 12px;
-      color: rgba(0,0,0,0.57);
-      font-weight: 700;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, .57);
   }
 
   .tb-columns {
-      font-size: 13px;
-      &.tb-readonly {
-          span {
-            color: rgba(0,0,0,0.38);
-          }
+    font-size: 13px;
+
+    &.tb-readonly {
+      span {
+        color: rgba(0, 0, 0, .38);
       }
+    }
   }
 
   .tb-columns ul[dnd-list],
@@ -52,7 +52,7 @@
 
   .tb-columns ul[dnd-list] {
     min-height: 42px;
-    padding-left: 0px;
+    padding-left: 0;
   }
 
   .tb-columns ul[dnd-list] .dndDraggingSource {
@@ -61,8 +61,8 @@
 
   .tb-columns ul[dnd-list] .dndPlaceholder {
     display: block;
-    background-color: #ddd;
     min-height: 42px;
+    background-color: #ddd;
   }
 
   .tb-columns ul[dnd-list] li {

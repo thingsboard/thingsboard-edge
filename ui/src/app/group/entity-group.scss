@@ -30,36 +30,42 @@
  */
 .tb-entity-group-table {
   .group-table-title {
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .group-table-entities-title {
     white-space: nowrap;
+  }
+
+  .group-table-entities-title {
     padding-right: 20px;
+    white-space: nowrap;
   }
+
   md-toolbar.md-table-toolbar {
-      button.md-icon-button {
-        width: 40px;
-        min-width: 40px;
-      }
-      button.fetch-more {
-        width: 100px;
-        min-width: 100px;
-      }
+    button.md-icon-button {
+      width: 40px;
+      min-width: 40px;
+    }
+
+    button.fetch-more {
+      width: 100px;
+      min-width: 100px;
+    }
   }
+
   &.tb-data-table {
     .tb-entity-group-table-content {
       background: #fff;
     }
-    table.md-table, table.md-table.md-row-select {
+
+    table.md-table,
+    table.md-table.md-row-select {
       tbody {
         tr {
           td {
             &.tb-action-cell {
+              width: 36px;
               min-width: 36px;
               max-width: 36px;
-              width: 36px;
             }
           }
         }

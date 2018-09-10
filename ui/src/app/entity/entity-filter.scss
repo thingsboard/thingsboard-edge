@@ -28,10 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-entity-filter {
 
+.tb-entity-filter {
   #relationsQueryFilter {
     padding-top: 20px;
+
     tb-entity-select {
       min-height: 92px;
     }
@@ -39,12 +40,13 @@
 
   .tb-root-state-entity-switch {
     padding-left: 10px;
+
     .root-state-entity-switch {
       margin: 0;
     }
+
     .root-state-entity-label {
       margin: 5px 0;
     }
   }
-
 }

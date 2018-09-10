@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+@import "../../scss/constants";
 
 .tb-datasource-func {
   @media (min-width: $layout-breakpoint-sm) {
@@ -37,19 +37,22 @@
 
   md-input-container.tb-datasource-name {
     .md-errors-spacer {
-        display: none;
+      display: none;
     }
   }
 
-  .tb-func-datakey-autocomplete, .tb-alarm-datakey-autocomplete {
+  .tb-func-datakey-autocomplete,
+  .tb-alarm-datakey-autocomplete {
     .tb-not-found {
       display: block;
-      line-height: 1.5;
       height: 48px;
+      line-height: 1.5;
+
       .tb-no-entries {
         line-height: 48px;
       }
     }
+
     li {
       height: auto !important;
       white-space: normal !important;
