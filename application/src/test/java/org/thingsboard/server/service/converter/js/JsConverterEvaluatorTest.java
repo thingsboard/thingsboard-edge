@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
@@ -63,6 +64,7 @@ public class JsConverterEvaluatorTest {
     final ObjectMapper mapper = new ObjectMapper();
 
     private TestNashornJsSandboxService jsSandboxService;
+    private ConverterId converterId = new ConverterId(UUIDs.timeBased());
 
     @Before
     public void beforeTest() throws Exception {
@@ -117,12 +119,12 @@ public class JsConverterEvaluatorTest {
 
     private JSUplinkEvaluator createUplinkEvaluator(String scriptName) {
         InputStream src = JsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSUplinkEvaluator(jsSandboxService, read(src));
+        return new JSUplinkEvaluator(jsSandboxService, converterId, read(src));
     }
 
     private JSDownlinkEvaluator createDownlinkEvaluator(String scriptName) {
         InputStream src = JsConverterEvaluatorTest.class.getClassLoader().getResourceAsStream(scriptName);
-        return new JSDownlinkEvaluator(jsSandboxService, read(src));
+        return new JSDownlinkEvaluator(jsSandboxService, converterId, read(src));
     }
 
     public static String read(InputStream input) {

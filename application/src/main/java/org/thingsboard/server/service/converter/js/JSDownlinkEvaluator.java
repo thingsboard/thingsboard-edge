@@ -33,6 +33,7 @@ package org.thingsboard.server.service.converter.js;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.script.JsSandboxService;
@@ -46,15 +47,15 @@ public class JSDownlinkEvaluator extends AbstractJSEvaluator {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public JSDownlinkEvaluator(JsSandboxService sandboxService, String script) {
-        super(sandboxService, JsScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
+    public JSDownlinkEvaluator(JsSandboxService sandboxService, EntityId entityId, String script) {
+        super(sandboxService, entityId, JsScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
     }
 
     public JsonNode execute(TbMsg msg, IntegrationMetaData metadata) throws ScriptException {
         try {
             validateSuccessfulScriptLazyInit();
             String[] inArgs = prepareArgs(msg, metadata);
-            String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
+            String eval = sandboxService.invokeFunction(this.scriptId, this.entityId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {

@@ -57,15 +57,13 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private final UUID scriptId;
     private final EntityId entityId;
 
-<<<<<<< HEAD
-    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, String script, String... argNames) {
-        this(sandboxService, JsScriptType.RULE_NODE_SCRIPT, script, argNames);
+    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, EntityId entityId, String script,
+                                  String... argNames) {
+        this(sandboxService, entityId, JsScriptType.RULE_NODE_SCRIPT, script, argNames);
     }
 
-    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, JsScriptType scriptType, String script, String... argNames) {
-=======
-    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, EntityId entityId, String script, String... argNames) {
->>>>>>> upstream/master
+    public RuleNodeJsScriptEngine(JsSandboxService sandboxService, EntityId entityId, JsScriptType scriptType, String script,
+                                  String... argNames) {
         this.sandboxService = sandboxService;
         this.entityId = entityId;
         try {
@@ -214,16 +212,16 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private JsonNode executeAttributesScript(Map<String,String> attributes) throws ScriptException {
         try {
             String attributesStr = mapper.writeValueAsString(attributes);
-            String eval = sandboxService.invokeFunction(this.scriptId, attributesStr).get().toString();
+            String eval = sandboxService.invokeFunction(this.scriptId, this.entityId, attributesStr).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {
                 throw (ScriptException)e.getCause();
             } else {
-                throw new ScriptException("Failed to execute js script: " + e.getMessage());
+                throw new ScriptException(e);
             }
         } catch (Exception e) {
-            throw new ScriptException("Failed to execute js script: " + e.getMessage());
+            throw new ScriptException(e);
         }
     }
 

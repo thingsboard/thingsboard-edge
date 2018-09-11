@@ -137,7 +137,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public ScriptEngine createAttributesJsScriptEngine(String script) {
-        return new RuleNodeJsScriptEngine(mainCtx.getJsSandbox(), JsScriptType.ATTRIBUTES_SCRIPT, script);
+        return new RuleNodeJsScriptEngine(mainCtx.getJsSandbox(), nodeCtx.getSelf().getId(), JsScriptType.ATTRIBUTES_SCRIPT, script);
     }
 
     @Override

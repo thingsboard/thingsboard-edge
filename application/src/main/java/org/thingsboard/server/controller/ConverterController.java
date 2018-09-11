@@ -241,7 +241,7 @@ public class ConverterController extends BaseController {
             String errorText = "";
             JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
-                jsUplinkEvaluator = new JSUplinkEvaluator(jsSandboxService, decoder);
+                jsUplinkEvaluator = new JSUplinkEvaluator(jsSandboxService, getCurrentUser().getId(), decoder);
                 output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
@@ -281,7 +281,7 @@ public class ConverterController extends BaseController {
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
                 TbMsg inMsg = TbMsg.createNewMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadataMap), data);
-                jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, encoder);
+                jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, getCurrentUser().getId(), encoder);
                 output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
                 validateDownLinkOutput(output);
             } catch (Exception e) {
