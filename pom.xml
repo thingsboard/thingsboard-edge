@@ -303,6 +303,7 @@
                             <exclude>src/main/scripts/control/**</exclude>
                             <exclude>src/main/scripts/windows/**</exclude>
                             <exclude>**/*.tpl.txt</exclude>
+                            <exclude>**/src/index.html</exclude>
                             <exclude>**/public/static/rulenode/**</exclude>
                         </excludes>
                         <mapping>

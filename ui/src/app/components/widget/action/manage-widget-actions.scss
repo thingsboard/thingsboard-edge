@@ -28,18 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 .tb-manage-widget-actions {
   table.md-table {
     tbody {
       tr {
         td {
           &.tb-action-cell {
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            min-width: 100px;
-            max-width: 100px;
-            width: 100px;
           }
         }
       }

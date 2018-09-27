@@ -28,29 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-$previewSize: 100px;
+$previewSize: 100px !default;
 
 .tb-file-select-container {
   position: relative;
-  height: $previewSize;
   width: 100%;
+  height: $previewSize;
 }
 
 .tb-file-preview {
-  max-width: $previewSize;
-  max-height: $previewSize;
   width: auto;
+  max-width: $previewSize;
   height: auto;
+  max-height: $previewSize;
 }
 
 .tb-file-clear-container {
-  width: 48px;
-  height: $previewSize;
   position: relative;
   float: right;
+  width: 48px;
+  height: $previewSize;
 }
+
 .tb-file-clear-btn {
   position: absolute !important;
   top: 50%;
-  transform: translate(0%,-50%) !important;
+  transform: translate(0%, -50%) !important;
 }

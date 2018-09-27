@@ -30,7 +30,8 @@
  */
 .tb-originator-select {
   &.optional {
-    .tb-entity-select, .tb-entity-group-select {
+    .tb-entity-select,
+    .tb-entity-group-select {
       height: 60px;
     }
   }

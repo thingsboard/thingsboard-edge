@@ -31,13 +31,15 @@
 .tb-entity-group-autocomplete {
   .tb-not-found {
     display: block;
-    line-height: 1.5;
     height: 48px;
+    line-height: 1.5;
   }
+
   .tb-entity-group-item {
     display: block;
     height: 48px;
   }
+
   li {
     height: auto !important;
     white-space: normal !important;
