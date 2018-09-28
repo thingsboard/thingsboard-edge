@@ -578,8 +578,29 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
     }
 
     function customTranslation(translationValue, defaultValue) {
+        if (translationValue.includes("{{" + types.translate.i18nPrefix)) {
+            var i18nRegExp = new RegExp('{{' + types.translate.i18nPrefix + ':[^{]+}}', 'g');
+            var matches = translationValue.match(i18nRegExp);
+            var result = translationValue;
+            for (var i = 0; i < matches.length; i++) {
+                var match = matches[i];
+                var translationId = match.substring(7, match.length - 2);
+                result = result.replace(match, doTranslate(translationId, match));
+            }
+            return result;
+        } else {
+            return doTranslate(translationValue, defaultValue, types.translate.customTranslationsPrefix);
+        }
+    }
+
+    function doTranslate(translationValue, defaultValue, prefix) {
         var result = '';
-        var translationId = types.translate.customTranslationsPrefix + translationValue;
+        var translationId;
+        if (prefix) {
+            translationId = prefix + translationValue;
+        } else {
+            translationId = translationValue;
+        }
         var translation = $translate.instant(translationId);
         if (translation != translationId) {
             result = translation + '';
