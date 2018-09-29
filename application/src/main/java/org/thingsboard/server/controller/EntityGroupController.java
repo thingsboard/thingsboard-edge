@@ -34,17 +34,28 @@ import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -217,7 +228,7 @@ public class EntityGroupController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
-    public EntityView getGroupEntity(
+    public ShortEntityView getGroupEntity(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
             @PathVariable("entityId") String strEntityId) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
@@ -230,7 +241,7 @@ public class EntityGroupController extends BaseController {
             checkEntityGroupType(entityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
             checkEntityId(entityId);
-            EntityView result = null;
+            ShortEntityView result = null;
             if (entityType == EntityType.CUSTOMER) {
                 result = customerService.findGroupCustomer(entityGroupId, entityId);
             } else if (entityType == EntityType.ASSET) {
@@ -247,7 +258,7 @@ public class EntityGroupController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<EntityView> getEntities(
+    public TimePageData<ShortEntityView> getEntities(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
             @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
             @RequestParam(required = false) Long startTime,
@@ -262,7 +273,7 @@ public class EntityGroupController extends BaseController {
         checkEntityGroupType(entityType);
         try {
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            ListenableFuture<TimePageData<EntityView>> asyncResult = null;
+            ListenableFuture<TimePageData<ShortEntityView>> asyncResult = null;
             if (entityType == EntityType.CUSTOMER) {
                 if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                     throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
