@@ -86,6 +86,8 @@ public class EntityIdFactory {
                 return new SchedulerEventId(uuid);
             case BLOB_ENTITY:
                 return new BlobEntityId(uuid);
+            case ENTITY_VIEW:
+                return new EntityViewId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }

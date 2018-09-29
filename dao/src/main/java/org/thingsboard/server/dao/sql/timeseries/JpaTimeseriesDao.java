@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -59,6 +60,7 @@ import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.timeseries.TimeseriesDao;
 import org.thingsboard.server.dao.timeseries.TsInsertExecutorType;
 import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -75,7 +77,7 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 
 @Component
 @Slf4j
-@SqlDao
+@SqlTsDao
 public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService implements TimeseriesDao {
 
     @Value("${sql.ts_inserts_executor_type}")
@@ -259,7 +261,9 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
                                 query.getKey(),
                                 query.getStartTs(),
                                 query.getEndTs(),
-                                new PageRequest(0, query.getLimit()))));
+                                new PageRequest(0, query.getLimit(),
+                                        new Sort(Sort.Direction.fromString(
+                                                query.getOrderBy()), "ts")))));
     }
 
     @Override

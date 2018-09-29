@@ -30,76 +30,64 @@
  */
 package org.thingsboard.server.common.data;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.thingsboard.server.common.data.group.EntityField;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * Created by Victor Basanets on 8/27/2017.
+ */
 
-public class EntityView implements HasId<EntityId>, HasName {
+@Data
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
+        implements HasName, HasTenantId, HasCustomerId {
 
-    private final EntityId id;
-    private Map<String, String> properties = new HashMap<>();
+    private static final long serialVersionUID = 5582010124562018986L;
 
-    @JsonIgnore
-    private boolean skipEntity = false;
+    private EntityId entityId;
+    private TenantId tenantId;
+    private CustomerId customerId;
+    private String name;
+    private TelemetryEntityView keys;
+    private long startTimeMs;
+    private long endTimeMs;
 
-    public EntityView(EntityId id) {
+    public EntityView() {
         super();
-        this.id = id;
+    }
+
+    public EntityView(EntityViewId id) {
+        super(id);
+    }
+
+    public EntityView(EntityView entityView) {
+        super(entityView);
     }
 
     @Override
-    public EntityId getId() {
-        return id;
-    }
-
-    @JsonAnyGetter
-    public Map<String, String> properties() {
-        return this.properties;
-    }
-
-    @JsonAnySetter
-    public void put(String name, String value) {
-        this.properties.put(name, value);
+    public String getSearchText() {
+        return getName() /*What the ...*/;
     }
 
     @Override
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public CustomerId getCustomerId() {
+        return customerId;
+    }
+
+    @Override
     public String getName() {
-        return this.properties.get(EntityField.NAME.name().toLowerCase());
-    }
-
-    public boolean isSkipEntity() {
-        return skipEntity;
-    }
-
-    public void setSkipEntity(boolean skipEntity) {
-        this.skipEntity = skipEntity;
+        return name;
     }
 
     @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (id != null ? id.hashCode() : 0);
-        return result;
+    public TenantId getTenantId() {
+        return tenantId;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        EntityView that = (EntityView) o;
-
-        return id != null ? id.equals(that.id) : that.id == null;
-
-    }
-
 }

@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -87,6 +88,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private EntityViewService entityViewService;
 
     @Autowired
     private DashboardService dashboardService;
@@ -135,6 +139,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         dashboardService.unassignCustomerDashboards(customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
+        entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
         deleteEntityRelations(customerId);
         customerDao.removeById(customerId.getId());

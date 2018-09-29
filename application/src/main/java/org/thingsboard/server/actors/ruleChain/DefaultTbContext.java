@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -256,6 +257,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RelationService getRelationService() {
         return mainCtx.getRelationService();
+    }
+
+    @Override
+    public EntityViewService getEntityViewService() {
+        return mainCtx.getEntityViewService();
     }
 
     @Override
