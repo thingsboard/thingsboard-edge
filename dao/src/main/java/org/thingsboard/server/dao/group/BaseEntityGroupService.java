@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.*;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -279,8 +279,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public EntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
-                                                        BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
+    public ShortEntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
+                                                        BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
@@ -304,9 +304,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>>
+    public ListenableFuture<TimePageData<ShortEntityView>>
                             findEntities(EntityGroupId entityGroupId,
-                                         TimePageLink pageLink, BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
+                                         TimePageLink pageLink, BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
@@ -319,18 +319,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
         ListenableFuture<List<EntityId>> entityIds = findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<EntityView>>() {
+        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<ShortEntityView>>() {
             @Nullable
             @Override
-            public TimePageData<EntityView> apply(@Nullable List<EntityId> entityIds) {
-                List<EntityView> entities = new ArrayList<>();
+            public TimePageData<ShortEntityView> apply(@Nullable List<EntityId> entityIds) {
+                List<ShortEntityView> entities = new ArrayList<>();
                 if (entityIds != null) {
                     entityIds.forEach(entityId -> {
-                        EntityView entityView = toEntityView(entityId, columnsInfo, transformFunction);
+                        ShortEntityView entityView = toEntityView(entityId, columnsInfo, transformFunction);
                         entities.add(entityView);
                     });
                 }
-                TimePageData<EntityView> result = new TimePageData<>(entities, pageLink);
+                TimePageData<ShortEntityView> result = new TimePageData<>(entities, pageLink);
                 result.getData().removeIf(entity -> entity.isSkipEntity());
                 return result;
             }
@@ -427,9 +427,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         keys.add(column.getKey());
     }
 
-    private EntityView toEntityView(EntityId entityId, EntityGroupColumnsInfo columnsInfo,
-                                    BiFunction<EntityView, List<EntityField>, EntityView> transformFunction) {
-        EntityView entityView = new EntityView(entityId);
+    private ShortEntityView toEntityView(EntityId entityId, EntityGroupColumnsInfo columnsInfo,
+                                    BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
+        ShortEntityView entityView = new ShortEntityView(entityId);
         for (EntityField entityField : columnsInfo.commonEntityFields) {
             if (entityField == EntityField.CREATED_TIME) {
                 long timestamp = UUIDs.unixTimestamp(entityId.getId());
@@ -445,7 +445,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         return entityView;
     }
 
-    private void fetchEntityAttributes(EntityView entityView,
+    private void fetchEntityAttributes(ShortEntityView entityView,
                                        Map<String, List<String>> attributeScopeToKeysMap,
                                        List<String> timeseriesKeys) {
         EntityId entityId = entityView.getId();

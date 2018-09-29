@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
@@ -280,7 +280,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public EntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupAsset, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
@@ -288,14 +288,14 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         return entityGroupService.findEntities(entityGroupId, pageLink, new AssetViewFunction(customerId));
     }
 
-    class AssetViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
+    class AssetViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
 
         private final CustomerId customerId;
 
@@ -308,7 +308,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         }
 
         @Override
-        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
+        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
             Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
             if (this.customerId != null && !this.customerId.isNullUid()
                     && !this.customerId.equals(asset.getCustomerId())) {
