@@ -256,6 +256,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                         assetGroups,
                         deviceGroups,
                         {
+                            name: 'entity-view.entity-views',
+                            type: 'link',
+                            state: 'home.entityViews',
+                            icon: 'view_stream'
+                        },
+                        {
                             name: 'widget.widget-library',
                             type: 'link',
                             state: 'home.widgets-bundles',
@@ -378,6 +384,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 ]
                             },
                             {
+                                name: 'entity-view.management',
+                                places: [
+                                    {
+                                        name: 'entity-view.entity-views',
+                                        icon: 'view_stream',
+                                        state: 'home.entityViews'
+                                    }
+                                ]
+                            },
+                            {
                                 name: 'dashboard.management',
                                 places: [
                                     {
@@ -458,6 +474,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'devices_other'
                         },
                         {
+                            name: 'entity-view.entity-views',
+                            type: 'link',
+                            state: 'home.entityViews',
+                            icon: 'view_stream'
+                        },
+                        {
                             name: 'dashboard.dashboards',
                             type: 'link',
                             state: 'home.dashboards',
@@ -512,41 +534,51 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                 }
                             ]
                         },
-                            {
-                                name: 'dashboard.view-dashboards',
+                        {
+                            name: 'entity-view.management',
                                 places: [
-                                    {
-                                        name: 'dashboard.dashboards',
-                                        icon: 'dashboard',
-                                        state: 'home.dashboards'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'scheduler.management',
-                                places: [
-                                    {
-                                        name: 'scheduler.scheduler',
-                                        icon: 'schedule',
-                                        state: 'home.scheduler'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'admin.system-settings',
-                                places: [
-                                    {
-                                        name: 'white-labeling.white-labeling',
-                                        icon: 'format_paint',
-                                        state: 'home.settings.whiteLabel'
-                                    },
-                                    {
-                                        name: 'white-labeling.login-white-labeling',
-                                        icon: 'format_paint',
-                                        state: 'home.settings.loginWhiteLabel'
-                                    }
-                                ]
-                            }];
+                                {
+                                    name: 'entity-view.entity-views',
+                                    icon: 'view_stream',
+                                    state: 'home.entityViews'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'dashboard.view-dashboards',
+                            places: [
+                                {
+                                    name: 'dashboard.dashboards',
+                                    icon: 'dashboard',
+                                    state: 'home.dashboards'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'scheduler.management',
+                            places: [
+                                {
+                                    name: 'scheduler.scheduler',
+                                    icon: 'schedule',
+                                    state: 'home.scheduler'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'admin.system-settings',
+                            places: [
+                                {
+                                    name: 'white-labeling.white-labeling',
+                                    icon: 'format_paint',
+                                    state: 'home.settings.whiteLabel'
+                                },
+                                {
+                                    name: 'white-labeling.login-white-labeling',
+                                    icon: 'format_paint',
+                                    state: 'home.settings.loginWhiteLabel'
+                                }
+                            ]
+                        }];
                 }
             }
             if (authority === 'TENANT_ADMIN') {

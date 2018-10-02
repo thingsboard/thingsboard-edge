@@ -31,9 +31,13 @@
 package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -74,8 +78,8 @@ public interface UserService {
 
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
-	EntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId);
+	ShortEntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId);
 
-	ListenableFuture<TimePageData<EntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

@@ -440,7 +440,8 @@ export default angular.module('thingsboard.types', [])
                 rulechain: "RULE_CHAIN",
                 rulenode: "RULE_NODE",
                 schedulerEvent: "SCHEDULER_EVENT",
-                blobEntity: "BLOB_ENTITY"
+                blobEntity: "BLOB_ENTITY",
+                entityView: "ENTITY_VIEW"
             },
             entityGroup: {
                 sortOrder: {
@@ -636,6 +637,12 @@ export default angular.module('thingsboard.types', [])
                     group: 'asset.group',
                     groupList: 'asset.list-of-groups',
                     groupNameStartsWith: 'asset.group-name-starts-with'
+                },
+                "ENTITY_VIEW": {
+                    type: 'entity.type-entity-view',
+                    typePlural: 'entity.type-entity-views',
+                    list: 'entity.list-of-entity-views',
+                    nameStartsWith: 'entity.entity-view-name-starts-with'
                 },
                 "TENANT": {
                     type: 'entity.type-tenant',

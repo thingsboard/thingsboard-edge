@@ -32,12 +32,13 @@ package org.thingsboard.server.dao.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -82,8 +83,8 @@ public interface DeviceService {
 
     ListenableFuture<List<EntitySubtype>> findDeviceTypesByTenantId(TenantId tenantId);
 
-    EntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId);
+    ShortEntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink);
 
 }

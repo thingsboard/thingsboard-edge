@@ -39,7 +39,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                        assetService, tenantService, customerService,
                        ruleChainService, dashboardService, entityGroupService,
                        converterService, integrationService, schedulerEventService, blobEntityService,
-                       entityRelationService, attributeService, types, utils) {
+                       entityRelationService, attributeService, entityViewService, types, utils) {
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
@@ -72,6 +72,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.asset:
                 promise = assetService.getAsset(entityId, true, config);
+                break;
+            case types.entityType.entityView:
+                promise = entityViewService.getEntityView(entityId, true, config);
                 break;
             case types.entityType.tenant:
                 promise = tenantService.getTenant(entityId, config);
@@ -350,6 +353,13 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     promise = assetService.getCustomerAssets(customerId, pageLink, false, config, subType);
                 } else {
                     promise = assetService.getTenantAssets(pageLink, false, config, subType);
+                }
+                break;
+            case types.entityType.entityView:
+                if (user.authority === 'CUSTOMER_USER') {
+                    promise = entityViewService.getCustomerEntityViews(customerId, pageLink, false, config, subType);
+                } else {
+                    promise = entityViewService.getTenantEntityViews(pageLink, false, config, subType);
                 }
                 break;
             case types.entityType.tenant:
@@ -1006,6 +1016,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case 'TENANT_ADMIN':
                 entityTypes.device = types.entityType.device;
                 entityTypes.asset = types.entityType.asset;
+                entityTypes.entityView = types.entityType.entityView;
                 entityTypes.tenant = types.entityType.tenant;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
@@ -1020,6 +1031,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case 'CUSTOMER_USER':
                 entityTypes.device = types.entityType.device;
                 entityTypes.asset = types.entityType.asset;
+                entityTypes.entityView = types.entityType.entityView;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
                 entityTypes.schedulerEvent = types.entityType.schedulerEvent;

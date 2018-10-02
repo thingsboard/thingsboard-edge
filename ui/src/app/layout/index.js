@@ -64,6 +64,7 @@ import thingsboardAdmin from '../admin';
 import thingsboardProfile from '../profile';
 import thingsboardAsset from '../asset';
 import thingsboardDevice from '../device';
+import thingsboardEntityView from '../entity-view';
 import thingsboardWidgetLibrary from '../widget';
 import thingsboardDashboard from '../dashboard';
 import thingsboardEntityGroup from '../group';
@@ -100,6 +101,7 @@ export default angular.module('thingsboard.home', [
     thingsboardProfile,
     thingsboardAsset,
     thingsboardDevice,
+    thingsboardEntityView,
     thingsboardWidgetLibrary,
     thingsboardDashboard,
     thingsboardEntityGroup,

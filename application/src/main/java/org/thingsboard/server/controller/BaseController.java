@@ -80,6 +80,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -185,6 +186,9 @@ public abstract class BaseController {
 
     @Autowired
     protected SchedulerService schedulerService;
+
+    @Autowired
+    protected EntityViewService entityViewService;
 
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
@@ -396,6 +400,9 @@ public abstract class BaseController {
                 case BLOB_ENTITY:
                     checkBlobEntityInfoId(new BlobEntityId(entityId.getId()));
                     return;
+                case ENTITY_VIEW:
+                    checkEntityViewId(new EntityViewId(entityId.getId()));
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -420,6 +427,25 @@ public abstract class BaseController {
         checkTenantId(device.getTenantId());
         if (device.getCustomerId() != null && !device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
             checkCustomerId(device.getCustomerId());
+        }
+    }
+
+    protected EntityView checkEntityViewId(EntityViewId entityViewId) throws ThingsboardException {
+        try {
+            validateId(entityViewId, "Incorrect entityViewId " + entityViewId);
+            EntityView entityView = entityViewService.findEntityViewById(entityViewId);
+            checkEntityView(entityView);
+            return entityView;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkEntityView(EntityView entityView) throws ThingsboardException {
+        checkNotNull(entityView);
+        checkTenantId(entityView.getTenantId());
+        if (entityView.getCustomerId() != null && !entityView.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+            checkCustomerId(entityView.getCustomerId());
         }
     }
 
