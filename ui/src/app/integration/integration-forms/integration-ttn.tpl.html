@@ -32,16 +32,36 @@
 -->
 <section ng-form name="ttnIntegrationForm" layout="column">
     <fieldset ng-disabled="$root.loading || !isEdit">
-        <div layout="row">
-            <md-input-container flex="30" class="md-block">
-                <label translate>integration.region</label>
-                <input required name="region" ng-model="configuration.clientConfiguration.host">
-                <div ng-messages="ttnIntegrationForm.region.$error">
-                    <div translate ng-message="required">integration.region-required</div>
+        <div layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.host-type</label>
+                <md-select required ng-model="currentHostType" name="currentHostType">
+                    <md-option ng-repeat="(key, value) in hostTypes" ng-value="value">
+                        {{value}}
+                    </md-option>
+                </md-select>
+                <div ng-messages="ttnIntegrationForm.currentHostType.$error">
+                    <div translate ng-message="required">integration.host-type-required</div>
                 </div>
             </md-input-container>
-            <div flex="70" layout="column" layout-align="center start">
-                <label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</label>
+            <div flex="50" layout="row">
+                <md-input-container ng-show="currentHostType == hostTypes.region" flex="60" class="md-block">
+                    <label translate>integration.region</label>
+                    <input required name="region" ng-model="hostRegion" ng-change="buildHostName()">
+                    <div ng-messages="ttnIntegrationForm.region.$error">
+                        <div translate ng-message="required">integration.region-required</div>
+                    </div>
+                </md-input-container>
+                <div ng-show="currentHostType == hostTypes.region" flex="40" layout="column" layout-align="center start">
+                    <label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</label>
+                </div>
+                <md-input-container ng-show="currentHostType == hostTypes.custom" flex="100" class="md-block">
+                    <label translate>integration.custom-host</label>
+                    <input required name="hostCustom" ng-model="hostCustom" ng-change="buildHostName()">
+                    <div ng-messages="ttnIntegrationForm.hostCustom.$error">
+                        <div translate ng-message="required">integration.custom-host-required</div>
+                    </div>
+                </md-input-container>
             </div>
         </div>
         <md-input-container class="md-block">
