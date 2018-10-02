@@ -61,6 +61,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 import java.util.List;
@@ -99,6 +100,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private DashboardService dashboardService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Override
     public Customer findCustomerById(CustomerId customerId) {
@@ -141,6 +145,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (customer == null) {
             throw new IncorrectParameterException("Unable to delete non-existent customer.");
         }
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(customerId);
         dashboardService.unassignCustomerDashboards(customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);

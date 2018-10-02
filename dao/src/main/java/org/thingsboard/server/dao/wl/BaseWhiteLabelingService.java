@@ -290,6 +290,15 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
                 merge(getSystemWhiteLabelingParams());
     }
 
+    @Override
+    public void deleteDomainWhiteLabelingByEntityId(EntityId entityId) {
+        LoginWhiteLabelingParams params = getEntityLoginWhiteLabelParams(entityId);
+        if (!StringUtils.isEmpty(params.getDomainName())) {
+            String loginWhiteLabelKey = constructLoginWhileLabelKey(params.getDomainName());
+            adminSettingsService.deleteAdminSettingsByKey(loginWhiteLabelKey);
+        }
+    }
+
     private WhiteLabelingParams constructWlParams(String json) {
         WhiteLabelingParams result = null;
         if (!StringUtils.isEmpty(json)) {

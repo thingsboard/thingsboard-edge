@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
 
@@ -108,6 +109,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private BlobEntityService blobEntityService;
 
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
@@ -143,6 +147,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
