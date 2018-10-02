@@ -58,8 +58,6 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
         scope.$watch('currentHostType', function () {
             scope.hostRegion = "";
             scope.hostCustom = "";
-            scope.ttnIntegrationForm.region.$setUntouched();
-            scope.ttnIntegrationForm.hostCustom.$setUntouched();
         });
 
         ngModelCtrl.$render = function () {

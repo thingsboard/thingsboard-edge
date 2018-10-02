@@ -45,19 +45,19 @@
                 </div>
             </md-input-container>
             <div flex="50" layout="row">
-                <md-input-container ng-show="currentHostType == hostTypes.region" flex="60" class="md-block">
+                <md-input-container ng-if="currentHostType == hostTypes.region" flex="60" class="md-block">
                     <label translate>integration.region</label>
-                    <input required name="region" ng-model="hostRegion" ng-change="buildHostName()">
+                    <input required name="region" ng-model="$parent.hostRegion" ng-change="buildHostName()">
                     <div ng-messages="ttnIntegrationForm.region.$error">
                         <div translate ng-message="required">integration.region-required</div>
                     </div>
                 </md-input-container>
-                <div ng-show="currentHostType == hostTypes.region" flex="40" layout="column" layout-align="center start">
+                <div ng-if="currentHostType == hostTypes.region" flex="40" layout="column" layout-align="center start">
                     <label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</label>
                 </div>
-                <md-input-container ng-show="currentHostType == hostTypes.custom" flex="100" class="md-block">
+                <md-input-container ng-if="currentHostType == hostTypes.custom" flex="100" class="md-block">
                     <label translate>integration.custom-host</label>
-                    <input required name="hostCustom" ng-model="hostCustom" ng-change="buildHostName()">
+                    <input required name="hostCustom" ng-model="$parent.hostCustom" ng-change="buildHostName()">
                     <div ng-messages="ttnIntegrationForm.hostCustom.$error">
                         <div translate ng-message="required">integration.custom-host-required</div>
                     </div>
