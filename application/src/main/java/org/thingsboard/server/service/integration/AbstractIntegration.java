@@ -182,7 +182,14 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
-        return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
+        try {
+            return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
+            }
+            throw e;
+        }
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
@@ -204,6 +211,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
+            if (log.isDebugEnabled()) {
+                log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());
+            }
             if (configuration.isDebugMode()) {
                 try {
                     persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
