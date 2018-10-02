@@ -39,9 +39,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.DataUpdateService;
-import org.thingsboard.server.service.install.DatabaseSchemaService;
 import org.thingsboard.server.service.install.DatabaseUpgradeService;
+import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
+import org.thingsboard.server.service.install.TsDatabaseSchemaService;
 
 @Service
 @Profile("install")
@@ -58,7 +59,10 @@ public class ThingsboardInstallService {
     private Boolean loadDemo;
 
     @Autowired
-    private DatabaseSchemaService databaseSchemaService;
+    private EntityDatabaseSchemaService entityDatabaseSchemaService;
+
+    @Autowired
+    private TsDatabaseSchemaService tsDatabaseSchemaService;
 
     @Autowired
     private DatabaseUpgradeService databaseUpgradeService;
@@ -138,9 +142,13 @@ public class ThingsboardInstallService {
 
                 log.info("Starting ThingsBoard Installation...");
 
-                log.info("Installing DataBase schema...");
+                log.info("Installing DataBase schema for entities...");
 
-                databaseSchemaService.createDatabaseSchema();
+                entityDatabaseSchemaService.createDatabaseSchema();
+
+                log.info("Installing DataBase schema for timeseries...");
+
+                tsDatabaseSchemaService.createDatabaseSchema();
 
                 log.info("Loading system data...");
 

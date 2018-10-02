@@ -97,7 +97,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
             doProcess(context, msg);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
-            log.warn("Failed to apply data converter function", e);
+            log.warn("Failed to apply data converter function: {}", e.getMessage(), e);
             exception = e;
             status = "ERROR";
         }

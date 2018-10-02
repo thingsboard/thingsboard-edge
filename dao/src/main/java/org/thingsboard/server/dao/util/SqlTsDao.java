@@ -28,45 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.dao.util;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.cassandra.CassandraInstallCluster;
-import org.thingsboard.server.dao.util.NoSqlDao;
-import org.thingsboard.server.service.install.cql.CQLStatementsParser;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-
-@Service
-@NoSqlDao
-@Profile("install")
-@Slf4j
-public class CassandraDatabaseSchemaService implements DatabaseSchemaService {
-
-    private static final String CASSANDRA_DIR = "cassandra";
-    private static final String SCHEMA_CQL = "schema.cql";
-
-    @Autowired
-    private CassandraInstallCluster cluster;
-
-    @Autowired
-    private InstallScripts installScripts;
-
-    @Override
-    public void createDatabaseSchema() throws Exception {
-        log.info("Installing Cassandra DataBase schema...");
-        Path schemaFile = Paths.get(installScripts.getDataDir(), CASSANDRA_DIR, SCHEMA_CQL);
-        loadCql(schemaFile);
-
-    }
-
-    private void loadCql(Path cql) throws Exception {
-        List<String> statements = new CQLStatementsParser(cql).getStatements();
-        statements.forEach(statement -> cluster.getSession().execute(statement));
-    }
+@ConditionalOnProperty(prefix = "database.ts", value = "type", havingValue = "sql")
+public @interface SqlTsDao {
 }

@@ -37,9 +37,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -48,6 +53,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -55,6 +61,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 import java.util.List;
@@ -89,7 +96,13 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private DeviceService deviceService;
 
     @Autowired
+    private EntityViewService entityViewService;
+
+    @Autowired
     private DashboardService dashboardService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Override
     public Customer findCustomerById(CustomerId customerId) {
@@ -132,9 +145,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (customer == null) {
             throw new IncorrectParameterException("Unable to delete non-existent customer.");
         }
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(customerId);
         dashboardService.unassignCustomerDashboards(customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
+        entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
         deleteEntityRelations(customerId);
         customerDao.removeById(customerId.getId());
@@ -177,7 +192,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public EntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupCustomer, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
@@ -185,14 +200,14 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         return entityGroupService.findEntities(entityGroupId, pageLink, customerViewFunction);
     }
 
-    private BiFunction<EntityView, List<EntityField>, EntityView> customerViewFunction = ((entityView, entityFields) -> {
+    private BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> customerViewFunction = ((entityView, entityFields) -> {
         Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
         entityView.put(EntityField.NAME.name().toLowerCase(), customer.getName());
         for (EntityField field : entityFields) {
