@@ -139,6 +139,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         } else {
             result = getSystemLoginWhiteLabelingParams();
         }
+        result.merge(getSystemWhiteLabelingParams());
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
