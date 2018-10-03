@@ -262,12 +262,6 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'view_stream'
                         },
                         {
-                            name: 'entity-view.entity-views',
-                            type: 'link',
-                            state: 'home.entityViews',
-                            icon: 'view_stream'
-                        },
-                        {
                             name: 'widget.widget-library',
                             type: 'link',
                             state: 'home.widgets-bundles',
@@ -386,16 +380,6 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         icon: 'devices_other',
                                         //state: 'home.devices',
                                         state: 'home.deviceGroups'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'entity-view.management',
-                                places: [
-                                    {
-                                        name: 'entity-view.entity-views',
-                                        icon: 'view_stream',
-                                        state: 'home.entityViews'
                                     }
                                 ]
                             },

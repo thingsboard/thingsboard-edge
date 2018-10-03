@@ -439,6 +439,7 @@ audit_log:
       "entity_group": "${AUDIT_LOG_MASK_ENTITY_GROUP:W}"
       "scheduler_event": "${AUDIT_LOG_MASK_SCHEDULER_EVENT:W}"
       "blob_entity": "${AUDIT_LOG_MASK_BLOB_ENTITY:W}"
+      "entity_view": "${AUDIT_LOG_MASK_RULE_CHAIN:W}"
   sink:
     # Type of external sink. possible options: none, elasticsearch
     type: "${AUDIT_LOG_SINK_TYPE:none}"
