@@ -151,6 +151,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
+        entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);

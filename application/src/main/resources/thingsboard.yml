@@ -175,9 +175,9 @@ quota:
 
 database:
   entities:
-    type: "${DATABASE_TS_TYPE:sql}" # cassandra OR sql
+    type: "${DATABASE_ENTITIES_TYPE:sql}" # cassandra OR sql
   ts:
-    type: "${DATABASE_CASSANDRA_TYPE:sql}" # cassandra OR sql (for hybrid mode, only this value should be cassandra)
+    type: "${DATABASE_TS_TYPE:sql}" # cassandra OR sql (for hybrid mode, only this value should be cassandra)
 
 
 # Cassandra driver configuration parameters
@@ -439,6 +439,7 @@ audit_log:
       "entity_group": "${AUDIT_LOG_MASK_ENTITY_GROUP:W}"
       "scheduler_event": "${AUDIT_LOG_MASK_SCHEDULER_EVENT:W}"
       "blob_entity": "${AUDIT_LOG_MASK_BLOB_ENTITY:W}"
+      "entity_view": "${AUDIT_LOG_MASK_RULE_CHAIN:W}"
   sink:
     # Type of external sink. possible options: none, elasticsearch
     type: "${AUDIT_LOG_SINK_TYPE:none}"

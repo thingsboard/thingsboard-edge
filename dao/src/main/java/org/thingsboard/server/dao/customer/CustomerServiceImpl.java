@@ -147,6 +147,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         }
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(customerId);
         dashboardService.unassignCustomerDashboards(customerId);
+        entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
         entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);

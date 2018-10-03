@@ -536,7 +536,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                         },
                         {
                             name: 'entity-view.management',
-                                places: [
+                            places: [
                                 {
                                     name: 'entity-view.entity-views',
                                     icon: 'view_stream',
