@@ -35,7 +35,7 @@
         <div layout="column" layout-gt-sm="row">
             <md-input-container flex="50" class="md-block">
                 <label translate>integration.host-type</label>
-                <md-select required ng-model="currentHostType" name="currentHostType">
+                <md-select required ng-disabled="$root.loading || !isEdit" ng-model="currentHostType" name="currentHostType">
                     <md-option ng-repeat="(key, value) in hostTypes" ng-value="value">
                         {{value}}
                     </md-option>
