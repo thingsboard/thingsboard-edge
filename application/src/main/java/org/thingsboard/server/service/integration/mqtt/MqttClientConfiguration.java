@@ -40,6 +40,7 @@ import org.thingsboard.server.service.integration.mqtt.credentials.MqttClientCre
 public class MqttClientConfiguration {
 
     private String host;
+    private boolean customHost;
     private int port;
     private int connectTimeoutSec;
     private String clientId;
