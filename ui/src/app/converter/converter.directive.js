@@ -143,6 +143,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             converter: '=',
             isEdit: '=',
             theForm: '=',
+            isCreate: '<',
             onExportConverter: '&',
             onDeleteConverter: '&'
         }
