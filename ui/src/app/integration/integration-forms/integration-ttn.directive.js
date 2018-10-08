@@ -41,7 +41,12 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
         var template = $templateCache.get(integrationTtnTemplate);
         element.html(template);
 
+        const hostRegionSuffix = ".thethings.network";
         scope.types = types;
+        scope.hostTypes = {
+            region: "Region",
+            custom: "Custom"
+        };
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
@@ -49,9 +54,22 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
             }
         });
 
+        scope.$watch('currentHostType', function (newHostType) {
+            if (newHostType == scope.hostTypes.region) {
+                scope.hostCustom = "";
+            } else if (newHostType == scope.hostTypes.custom) {
+                scope.hostRegion = "";
+            }
+        });
+
         ngModelCtrl.$render = function () {
             scope.configuration = ngModelCtrl.$viewValue;
             setupTtnConfiguration();
+        };
+
+        scope.buildHostName = function () {
+            scope.configuration.clientConfiguration.host = (scope.currentHostType === scope.hostTypes.region) ? (scope.hostRegion + hostRegionSuffix) : scope.hostCustom;
+            scope.configuration.clientConfiguration.customHost = (scope.currentHostType === scope.hostTypes.custom);
         };
 
         function setupTtnConfiguration() {
@@ -90,8 +108,17 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
                 }
                 scope.configuration.downlinkTopicPattern = ttnAppId + "/devices/${devId}/down";
             }
+            scope.currentHostType = (scope.configuration.clientConfiguration.customHost) ? scope.hostTypes.custom : scope.hostTypes.region;
+            if (scope.currentHostType === scope.hostTypes.custom) {
+                scope.hostCustom = scope.configuration.clientConfiguration.host;
+            } else if (scope.currentHostType === scope.hostTypes.region) {
+                if (scope.configuration.clientConfiguration.host) {
+                    scope.hostRegion = scope.configuration.clientConfiguration.host.slice(0, -hostRegionSuffix.length);
+                } else {
+                    scope.hostRegion = scope.configuration.clientConfiguration.host;
+                }
+            }
         }
-
         $compile(element.contents())(scope);
     };
 
