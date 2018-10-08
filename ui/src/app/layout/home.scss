@@ -57,7 +57,7 @@
     border: none;
     opacity: .75;
 
-    @include transition(opacity .35s);
+    transition: opacity .35s;
   }
 
   a:hover,

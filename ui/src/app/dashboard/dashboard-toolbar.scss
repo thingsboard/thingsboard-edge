@@ -46,7 +46,7 @@ tb-dashboard-toolbar {
           &.md-fab {
             opacity: 1;
 
-            @include transition(opacity .3s cubic-bezier(.55,0,.55,.2));
+            transition: opacity .3s cubic-bezier(.55, 0, .55, .2);
           }
         }
       }
@@ -61,7 +61,7 @@ tb-dashboard-toolbar {
           line-height: 36px;
           opacity: .5;
 
-          @include transition(opacity .3s cubic-bezier(.55,0,.55,.2) .2s);
+          transition: opacity .3s cubic-bezier(.55, 0, .55, .2) .2s;
 
           md-icon {
             position: absolute;

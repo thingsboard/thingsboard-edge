@@ -28,36 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "~compass-sass-mixins/lib/animate";
+package org.thingsboard.server.transport.mqtt.session;
 
-@keyframes tbMoveFromTopFade {
-  from {
-    opacity: 0;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.transport.SessionMsgProcessor;
+import org.thingsboard.server.common.transport.auth.DeviceAuthService;
+import org.thingsboard.server.common.transport.session.DeviceAwareSessionContext;
 
-    transform: translate(0, -100%);
-  }
-}
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
-@keyframes tbMoveToTopFade {
-  to {
-    opacity: 0;
+/**
+ * Created by ashvayka on 30.08.18.
+ */
+public abstract class MqttDeviceAwareSessionContext extends DeviceAwareSessionContext {
 
-    transform: translate(0, -100%);
-  }
-}
+    private final ConcurrentMap<String, Integer> mqttQoSMap;
 
-@keyframes tbMoveFromBottomFade {
-  from {
-    opacity: 0;
+    public MqttDeviceAwareSessionContext(SessionMsgProcessor processor, DeviceAuthService authService, ConcurrentMap<String, Integer> mqttQoSMap) {
+        super(processor, authService);
+        this.mqttQoSMap = mqttQoSMap;
+    }
 
-    transform: translate(0, 100%);
-  }
-}
+    public MqttDeviceAwareSessionContext(SessionMsgProcessor processor, DeviceAuthService authService, Device device, ConcurrentMap<String, Integer> mqttQoSMap) {
+        super(processor, authService, device);
+        this.mqttQoSMap = mqttQoSMap;
+    }
 
-@keyframes tbMoveToBottomFade {
-  to {
-    opacity: 0;
+    public ConcurrentMap<String, Integer> getMqttQoSMap() {
+        return mqttQoSMap;
+    }
 
-    transform: translate(0, 150%);
-  }
+    public MqttQoS getQoSForTopic(String topic) {
+        Integer qos = mqttQoSMap.get(topic);
+        if (qos != null) {
+            return MqttQoS.valueOf(qos);
+        } else {
+            return MqttQoS.AT_LEAST_ONCE;
+        }
+    }
+
 }
