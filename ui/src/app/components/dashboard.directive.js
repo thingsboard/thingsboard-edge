@@ -220,6 +220,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.exportWidget = exportWidget;
     vm.removeWidget = removeWidget;
     vm.loading = loading;
+    vm.getWidgetTitle = getWidgetTitle;
 
     vm.openDashboardContextMenu = openDashboardContextMenu;
     vm.openWidgetContextMenu = openWidgetContextMenu;
@@ -1104,6 +1105,9 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         return !vm.ignoreLoading && $rootScope.loading;
     }
 
+    function getWidgetTitle(widget) {
+        return utils.customTranslation(vm.widgetTitle(widget), vm.widgetTitle(widget));
+    }
 }
 
 /* eslint-enable angular/angularelement */

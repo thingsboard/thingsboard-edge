@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,37 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/*@ngInject*/
-export default function BreadcrumbLabel($translate, utils) {
-    var labels = {};
+package org.thingsboard.server.dao.translation;
 
-    var breadcrumbLabel = function (bLabel) {
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 
-        var labelObj;
-        labelObj = angular.fromJson(bLabel);
-        if (labelObj) {
-            var translate = !(labelObj.translate && labelObj.translate === 'false');
-            var key = translate ? $translate.use() : 'orig';
-            if (!labels[labelObj.label]) {
-                labels[labelObj.label] = {};
-            }
-            if (!labels[labelObj.label][key]) {
-                labels[labelObj.label][key] = labelObj.label;
-                if (translate) {
-                    $translate([labelObj.label]).then(
-                        function (translations) {
-                            labels[labelObj.label][key] = translations[labelObj.label];
-                        }
-                    )
-                }
-            }
-            return utils.customTranslation(labels[labelObj.label][key], labels[labelObj.label][key]);
-        } else {
-            return '';
-        }
-    };
+public interface CustomTranslationService {
 
-    breadcrumbLabel.$stateful = true;
+    CustomTranslation getSystemCustomTranslation();
 
-    return breadcrumbLabel;
+    CustomTranslation getTenantCustomTranslation(TenantId tenantId);
+
+    CustomTranslation getCustomerCustomTranslation(CustomerId customerId);
+
+    CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId);
+
+    CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
+
+    CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation);
+
+    CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation);
+
+    CustomTranslation saveCustomerCustomTranslation(CustomerId customerId, CustomTranslation customTranslation);
+
 }

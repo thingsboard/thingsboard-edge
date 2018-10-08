@@ -1315,7 +1315,8 @@ export default angular.module('thingsboard.types', [])
                 cards: "cards"
             },
             translate: {
-                customTranslationsPrefix: "custom."
+                customTranslationsPrefix: "custom.",
+                i18nPrefix: "i18n"
             }
         }
     ).name;

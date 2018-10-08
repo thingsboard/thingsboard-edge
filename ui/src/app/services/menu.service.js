@@ -146,7 +146,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '160px',
+                            height: '200px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -172,6 +172,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    type: 'link',
+                                    state: 'home.settings.customTranslation',
+                                    icon: 'language'
                                 }
                             ]
                         }];
@@ -223,6 +229,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         name: 'white-labeling.login-white-labeling',
                                         icon: 'format_paint',
                                         state: 'home.settings.loginWhiteLabel'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'custom-translation.custom-translation',
+                                places: [
+                                    {
+                                        name: 'custom-translation.custom-translation',
+                                        icon: 'language',
+                                        state: 'home.settings.customTranslation'
                                     }
                                 ]
                             }];
@@ -283,7 +299,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '160px',
+                            height: '200px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -309,6 +325,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    type: 'link',
+                                    state: 'home.settings.customTranslation',
+                                    icon: 'language'
                                 }
                             ]
                         },
@@ -452,6 +474,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                         state: 'home.auditLogs'
                                     }
                                 ]
+                            },
+                            {
+                                name: 'custom-translation.custom-translation',
+                                places: [
+                                    {
+                                        name: 'custom-translation.custom-translation',
+                                        icon: 'language',
+                                        state: 'home.settings.customTranslation'
+                                    }
+                                ]
                             }];
                 } else if (authority === 'CUSTOMER_USER') {
                     sections = [
@@ -495,7 +527,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             name: 'admin.system-settings',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '80px',
+                            height: '120px',
                             icon: 'settings',
                             pages: [
                                 {
@@ -509,6 +541,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     type: 'link',
                                     state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint'
+                                },
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    type: 'link',
+                                    state: 'home.settings.customTranslation',
+                                    icon: 'language'
                                 }
                             ]
                         }];
@@ -576,6 +614,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     name: 'white-labeling.login-white-labeling',
                                     icon: 'format_paint',
                                     state: 'home.settings.loginWhiteLabel'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'custom-translation.custom-translation',
+                            places: [
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    icon: 'language',
+                                    state: 'home.settings.customTranslation'
                                 }
                             ]
                         }];

@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,70 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import './legend.scss';
+package org.thingsboard.server.common.data;
 
-/* eslint-disable import/no-unresolved, import/default */
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import legendTemplate from './legend.tpl.html';
+import java.util.Iterator;
 
-/* eslint-enable import/no-unresolved, import/default */
+public class JacksonUtils {
 
-
-export default angular.module('thingsboard.directives.legend', [])
-    .directive('tbLegend', Legend)
-    .name;
-
-/*@ngInject*/
-function Legend($compile, $templateCache, types, utils) {
-
-    var linker = function (scope, element) {
-        var template = $templateCache.get(legendTemplate);
-        element.html(template);
-
-        scope.displayHeader = function() {
-            return scope.legendConfig.showMin === true ||
-                   scope.legendConfig.showMax === true ||
-                   scope.legendConfig.showAvg === true ||
-                   scope.legendConfig.showTotal === true;
-        }
-
-        scope.isHorizontal = scope.legendConfig.position === types.position.bottom.value ||
-            scope.legendConfig.position === types.position.top.value;
-
-        scope.toggleHideData = function(index) {
-            scope.legendData.keys[index].dataKey.hidden = !scope.legendData.keys[index].dataKey.hidden;
-        }
-
-        scope.getDataKeyLabel = function(text) {
-            return utils.customTranslation(text, text);
-        }
-
-        $compile(element.contents())(scope);
-
+    private JacksonUtils() {
     }
 
-    /*    scope.legendData = {
-     keys: [],
-     data: []
+    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
 
-     key: {
-       dataKey: dataKey,
-       dataIndex: 0
-     }
-     data: {
-       min: null,
-       max: null,
-       avg: null,
-       total: null
-     }
-     };*/
+        while (fieldNames.hasNext()) {
 
-    return {
-        restrict: "E",
-        link: linker,
-        scope: {
-            legendConfig: '=',
-            legendData: '='
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    merge(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+
+                    if (value.isNull()) {
+                        continue;
+                    }
+
+                    if (value.isIntegralNumber() && value.toString().equals("0")) {
+                        continue;
+                    }
+
+                    if (value.isFloatingPointNumber() && value.toString().equals("0.0")) {
+                        continue;
+                    }
+
+                    ((ObjectNode) mainNode).put(fieldName, value);
+                }
+            }
         }
-    };
+
+        return mainNode;
+    }
 }

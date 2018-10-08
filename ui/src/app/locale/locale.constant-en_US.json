@@ -481,6 +481,17 @@
         "default-customer": "Default customer",
         "default-customer-required": "Default customer is required in order to debug dashboard on Tenant level"
     },
+    "custom-translation": {
+        "custom-translation": "Custom Translation",
+        "translation-map": "Translation map",
+        "key": "Translation Key",
+        "import": "Import translation",
+        "export": "Export translation",
+        "export-data": "Export translation data",
+        "import-data": "Import translation data",
+        "translation-file": "Translation file",
+        "invalid-translation-file-error": "Unable to import translation file: Invalid translation data structure."
+    },
     "datetime": {
         "date-from": "Date from",
         "time-from": "Time from",
@@ -1300,7 +1311,8 @@
     },
     "import": {
         "no-file": "No file selected",
-        "drop-file": "Drop a JSON file or click to select a file to upload."
+        "drop-file": "Drop a JSON file or click to select a file to upload.",
+        "drop-csv-file": "Drop a CSV file or click to select a file to upload."
     },
     "integration": {
         "integration": "Integration",

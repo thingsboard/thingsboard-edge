@@ -28,70 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import './legend.scss';
-
-/* eslint-disable import/no-unresolved, import/default */
-
-import legendTemplate from './legend.tpl.html';
-
-/* eslint-enable import/no-unresolved, import/default */
-
-
-export default angular.module('thingsboard.directives.legend', [])
-    .directive('tbLegend', Legend)
-    .name;
 
 /*@ngInject*/
-function Legend($compile, $templateCache, types, utils) {
+export default function CustomTranslationController(types, customTranslationService) {
 
-    var linker = function (scope, element) {
-        var template = $templateCache.get(legendTemplate);
-        element.html(template);
+    var vm = this;
 
-        scope.displayHeader = function() {
-            return scope.legendConfig.showMin === true ||
-                   scope.legendConfig.showMax === true ||
-                   scope.legendConfig.showAvg === true ||
-                   scope.legendConfig.showTotal === true;
-        }
+    vm.types = types;
+    vm.customTranslation = {};
+    vm.customTranslation.translationMap = {};
+    vm.save = save;
 
-        scope.isHorizontal = scope.legendConfig.position === types.position.bottom.value ||
-            scope.legendConfig.position === types.position.top.value;
+    vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
 
-        scope.toggleHideData = function(index) {
-            scope.legendData.keys[index].dataKey.hidden = !scope.legendData.keys[index].dataKey.hidden;
-        }
+    vm.currentLang = vm.languageList[0];
 
-        scope.getDataKeyLabel = function(text) {
-            return utils.customTranslation(text, text);
-        }
+    getCurrentCustomTranslation();
 
-        $compile(element.contents())(scope);
-
+    function getCurrentCustomTranslation() {
+        var loadPromise = customTranslationService.getCurrentCustomTranslation();
+        loadPromise.then(
+            function success(customTranslation) {
+                vm.customTranslation = customTranslation;
+            });
     }
 
-    /*    scope.legendData = {
-     keys: [],
-     data: []
-
-     key: {
-       dataKey: dataKey,
-       dataIndex: 0
-     }
-     data: {
-       min: null,
-       max: null,
-       avg: null,
-       total: null
-     }
-     };*/
-
-    return {
-        restrict: "E",
-        link: linker,
-        scope: {
-            legendConfig: '=',
-            legendData: '='
-        }
-    };
+    function save() {
+        var savePromise = customTranslationService.saveCustomTranslation(vm.customTranslation);
+        savePromise.then(
+            function success() {
+                vm.customTranslationForm.$setPristine();
+            });
+    }
 }

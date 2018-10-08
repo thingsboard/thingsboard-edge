@@ -70,7 +70,9 @@ export default function AppConfig($provide,
                       .registerAvailableLanguageKeys(SUPPORTED_LANGS, getLanguageAliases(SUPPORTED_LANGS)) //eslint-disable-line
                       .fallbackLanguage('en_US') // must be before determinePreferredLanguage   
                       .uniformLanguageTag('java')  // must be before determinePreferredLanguage
-                      .determinePreferredLanguage();                
+                      .determinePreferredLanguage();
+
+    $provide.value('$translateProvider', $translateProvider);
 
     $httpProvider.interceptors.push('globalInterceptor');
 
