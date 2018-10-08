@@ -905,6 +905,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         var colsHead;
         var colsData;
         if (data && data.length) {
+            formatDataAccordingToLocale(data);
             colsHead = Object.keys(data[0]).map(key => [key]).join(';');
             colsData = data.map(obj => [ // obj === row
                 Object.keys(obj).map(col => [
@@ -923,6 +924,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         var colsHead;
         var colsData;
         if (data && data.length) {
+            formatDataAccordingToLocale(data);
             colsHead = `<tr>${Object.keys(data[0]).map(key => `<td><b>${key}</b></td>`).join('')}</tr>`;
             colsData = data.map(obj => [`<tr>
                 ${Object.keys(obj).map(col => `<td>${obj[col] ? obj[col] : ''}</td>`).join('')}
@@ -959,6 +961,15 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         }
     }
 
+    function formatDataAccordingToLocale(data) {
+        for (var i = 0; i < data.length; i++) {
+            for (var key in data[i]) {
+                if (angular.isNumber(data[i][key])) {
+                    data[i][key] = data[i][key].toLocaleString(undefined, {maximumFractionDigits: 14});
+                }
+            }
+        }
+    }
 }
 
 /* eslint-enable no-undef, angular/window-service, angular/document-service */
