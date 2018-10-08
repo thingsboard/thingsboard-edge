@@ -33,7 +33,7 @@ import UrlHandler from './url.handler';
 
 /*@ngInject*/
 export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
-                               whiteLabelingService, loginService, userService, $translate, $translateProvider, customTranslationService) {
+                               whiteLabelingService, loginService, userService, $translate) {
 
     $window.Flow = Flow;
     var frame = null;
@@ -157,7 +157,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             $state.go('dashboard', params);
                         }
                     }
-                    loadCustomTranslations();
                 } else {
                     if (publicId && publicId.length > 0) {
                         evt.preventDefault();
@@ -196,18 +195,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             var pageTitle = $state.current.data ? $state.current.data.pageTitle : '';
             updatePageTitle(pageTitle);
         });
-    }
-
-    function loadCustomTranslations() {
-        customTranslationService.loadCustomTranslation().then(
-            function success(response) {
-                Object.keys(response.translationMap).forEach(function(key) {
-                    if (response.translationMap[key]) {
-                        $translateProvider.translations(key, angular.fromJson(response.translationMap[key]));
-                    }
-                });
-            }
-        )
     }
 
     function updateFavicon() {

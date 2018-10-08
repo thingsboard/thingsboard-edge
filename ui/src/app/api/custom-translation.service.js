@@ -34,10 +34,10 @@ export default angular.module('thingsboard.api.customTranslation', [])
     .name;
 
 /*@ngInject*/
-function CustomTranslationService($rootScope, $q, $http) {
+function CustomTranslationService($rootScope, $q, $http, $translateProvider) {
 
     var service = {
-        loadCustomTranslation: loadCustomTranslation,
+        updateCustomTranslations: updateCustomTranslations,
         getCurrentCustomTranslation: getCurrentCustomTranslation,
         saveCustomTranslation: saveCustomTranslation
     };
@@ -57,6 +57,24 @@ function CustomTranslationService($rootScope, $q, $http) {
         return deferred.promise;
     }
 
+    function updateCustomTranslations() {
+        var deferred = $q.defer();
+        loadCustomTranslation().then(
+            (response) => {
+                Object.keys(response.translationMap).forEach(function(key) {
+                    if (response.translationMap[key]) {
+                        $translateProvider.translations(key, angular.fromJson(response.translationMap[key]));
+                    }
+                });
+                deferred.resolve();
+            },
+            () => {
+                deferred.reject();
+            }
+        )
+        return deferred.promise;
+    }
+
     function getCurrentCustomTranslation() {
         var deferred = $q.defer();
         var url = '/api/customTranslation/currentCustomTranslation';
@@ -71,17 +89,20 @@ function CustomTranslationService($rootScope, $q, $http) {
     function saveCustomTranslation(customTranslation) {
         var deferred = $q.defer();
         var url = '/api/customTranslation/customTranslation';
-        $http.post(url, customTranslation).then(function success() {
-            getCurrentCustomTranslation().then(
-                function success() {
-                    deferred.resolve();
-                }, function fail() {
-                    deferred.reject();
-                }
-            );
-        }, function fail() {
-            deferred.reject();
-        });
+        $http.post(url, customTranslation).then(
+            () => {
+                updateCustomTranslations().then(
+                    () => {
+                        deferred.resolve();
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            },
+            () => {
+                deferred.reject();
+            });
         return deferred.promise;
     }
 }

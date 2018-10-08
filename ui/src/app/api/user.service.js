@@ -37,7 +37,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
+function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, customTranslationService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -414,6 +414,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     function loadSystemParams() {
         var promises = [];
         promises.push(loadIsUserTokenAccessEnabled());
+        promises.push(customTranslationService.updateCustomTranslations());
         promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
         return $q.all(promises);
     }
