@@ -30,7 +30,7 @@
  */
 
 /*@ngInject*/
-export default function CustomTranslationController(types, customTranslationService) {
+export default function CustomTranslationController($scope, $translate, utils, toast, types, customTranslationService) {
 
     var vm = this;
 
@@ -43,6 +43,11 @@ export default function CustomTranslationController(types, customTranslationServ
 
     vm.currentLang = vm.languageList[0];
 
+    vm.showError = function (error) {
+        var toastParent = angular.element('#tb-custom-translation-panel');
+        toast.showError(error, toastParent, 'top left');
+    };
+
     getCurrentCustomTranslation();
 
     function getCurrentCustomTranslation() {
@@ -53,11 +58,38 @@ export default function CustomTranslationController(types, customTranslationServ
             });
     }
 
+    function validate() {
+        for (var lang in vm.customTranslation.translationMap) {
+            var translation = vm.customTranslation.translationMap[lang];
+            if (translation) {
+                try {
+                    angular.fromJson(translation);
+                } catch (e) {
+                    var details = utils.parseException(e);
+                    var errorInfo = 'Error parsing JSON for ' + $translate.instant('language.locales.' + lang) + ' language:';
+                    if (details.name) {
+                        errorInfo += ' ' + details.name + ':';
+                    }
+                    if (details.message) {
+                        errorInfo += ' ' + details.message;
+                    }
+                    vm.showError(errorInfo);
+                    return false;
+                }
+            } else {
+                delete vm.customTranslation.translationMap[lang];
+            }
+        }
+        return true;
+    }
+
     function save() {
-        var savePromise = customTranslationService.saveCustomTranslation(vm.customTranslation);
-        savePromise.then(
-            function success() {
-                vm.customTranslationForm.$setPristine();
-            });
+        if (validate()) {
+            var savePromise = customTranslationService.saveCustomTranslation(vm.customTranslation);
+            savePromise.then(
+                function success() {
+                    vm.customTranslationForm.$setPristine();
+                });
+        }
     }
 }

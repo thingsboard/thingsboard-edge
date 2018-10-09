@@ -112,7 +112,7 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
             if (scope.currentHostType === scope.hostTypes.custom) {
                 scope.hostCustom = scope.configuration.clientConfiguration.host;
             } else if (scope.currentHostType === scope.hostTypes.region) {
-                if (scope.configuration.clientConfiguration.host) {
+                if (scope.configuration.clientConfiguration.host && scope.configuration.clientConfiguration.host.endsWith(hostRegionSuffix)) {
                     scope.hostRegion = scope.configuration.clientConfiguration.host.slice(0, -hostRegionSuffix.length);
                 } else {
                     scope.hostRegion = scope.configuration.clientConfiguration.host;

@@ -63,7 +63,13 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider) {
             (response) => {
                 Object.keys(response.translationMap).forEach(function(key) {
                     if (response.translationMap[key]) {
-                        $translateProvider.translations(key, angular.fromJson(response.translationMap[key]));
+                        var translationMap;
+                        try {
+                            translationMap = angular.fromJson(response.translationMap[key]);
+                        } catch (e) {
+                            //
+                        }
+                        $translateProvider.translations(key, translationMap);
                     }
                 });
                 deferred.resolve();

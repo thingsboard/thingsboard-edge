@@ -37,9 +37,6 @@
 .tb-scheduler-event-metadata-panel-group {
   .tb-panel-title {
     min-width: 90px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 
     @media (min-width: $layout-breakpoint-sm) {

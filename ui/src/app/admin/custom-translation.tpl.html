@@ -51,7 +51,7 @@
                 </md-select>
             </md-input-container>
             <form name="vm.customTranslationForm" ng-submit="vm.save()" tb-confirm-on-exit confirm-form="vm.customTranslationForm">
-                <div flex layout="column">
+                <div id="tb-custom-translation-panel" flex layout="column">
                     <fieldset ng-disabled="$root.loading">
                         <md-input-container class="md-block" style="height: 500px;">
                             <tb-json-content ng-model="vm.customTranslation.translationMap[vm.currentLang]"
