@@ -46,7 +46,7 @@ import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
-import org.thingsboard.server.service.script.TestNashornJsSandboxService;
+import org.thingsboard.server.service.script.TestNashornJsInvokeService;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -63,12 +63,12 @@ public class JsConverterEvaluatorTest {
 
     final ObjectMapper mapper = new ObjectMapper();
 
-    private TestNashornJsSandboxService jsSandboxService;
+    private TestNashornJsInvokeService jsSandboxService;
     private ConverterId converterId = new ConverterId(UUIDs.timeBased());
 
     @Before
     public void beforeTest() throws Exception {
-        jsSandboxService = new TestNashornJsSandboxService(false, 1, 100, 3);
+        jsSandboxService = new TestNashornJsInvokeService(false, 1, 100, 3);
     }
 
     @After

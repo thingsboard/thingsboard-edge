@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
 import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;
@@ -54,7 +54,7 @@ public class DefaultDataConverterService implements DataConverterService {
     private ConverterService converterService;
 
     @Autowired
-    private JsSandboxService jsSandbox;
+    private JsInvokeService jsSandbox;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 

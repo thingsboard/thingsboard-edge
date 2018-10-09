@@ -218,7 +218,7 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private JsonNode executeAttributesScript(Map<String,String> attributes) throws ScriptException {
         try {
             String attributesStr = mapper.writeValueAsString(attributes);
-            String eval = sandboxService.invokeFunction(this.scriptId, this.entityId, attributesStr).get().toString();
+            String eval = sandboxService.invokeFunction(this.scriptId, attributesStr).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {

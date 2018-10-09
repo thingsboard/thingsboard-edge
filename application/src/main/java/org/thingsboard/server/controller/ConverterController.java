@@ -60,7 +60,7 @@ import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSDownlinkEvaluator;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 import java.util.Base64;
 import java.util.List;
@@ -78,7 +78,7 @@ public class ConverterController extends BaseController {
     private EventService eventService;
 
     @Autowired
-    private JsSandboxService jsSandboxService;
+    private JsInvokeService jsSandboxService;
 
     public static final String CONVERTER_ID = "converterId";
 

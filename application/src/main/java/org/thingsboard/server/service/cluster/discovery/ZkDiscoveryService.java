@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -102,6 +103,10 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     @Autowired
     @Lazy
     protected SchedulerService schedulerService;
+
+    @Autowired
+    @Lazy
+    private PlatformIntegrationService platformIntegrationService;
 
     @Autowired
     @Lazy
@@ -264,10 +269,12 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                 tsSubService.onClusterUpdate();
                 deviceStateService.onClusterUpdate();
                 schedulerService.onClusterUpdate();
+                platformIntegrationService.onServerAdded(instance);
                 actorService.onServerAdded(instance);
                 break;
             case CHILD_UPDATED:
                 routingService.onServerUpdated(instance);
+                platformIntegrationService.onServerUpdated(instance);
                 actorService.onServerUpdated(instance);
                 break;
             case CHILD_REMOVED:
@@ -275,6 +282,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                 tsSubService.onClusterUpdate();
                 deviceStateService.onClusterUpdate();
                 schedulerService.onClusterUpdate();
+                platformIntegrationService.onServerRemoved(instance);
                 actorService.onServerRemoved(instance);
                 break;
             default:

@@ -35,17 +35,17 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
-    private final JsSandboxService sandboxService;
+    private final JsInvokeService sandboxService;
     private JSDownlinkEvaluator evaluator;
 
-    public JSDownlinkDataConverter(JsSandboxService sandboxService) {
+    public JSDownlinkDataConverter(JsInvokeService sandboxService) {
         this.sandboxService = sandboxService;
     }
 

@@ -33,17 +33,17 @@ package org.thingsboard.server.service.converter.js;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.service.converter.AbstractUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkMetaData;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
-    private final JsSandboxService sandboxService;
+    private final JsInvokeService sandboxService;
     private JSUplinkEvaluator evaluator;
 
-    public JSUplinkDataConverter(JsSandboxService sandboxService) {
+    public JSUplinkDataConverter(JsInvokeService sandboxService) {
         this.sandboxService = sandboxService;
     }
 

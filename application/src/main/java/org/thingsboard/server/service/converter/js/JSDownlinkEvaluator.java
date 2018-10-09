@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 import org.thingsboard.server.service.script.JsScriptType;
 
 import javax.script.ScriptException;
@@ -47,7 +47,7 @@ public class JSDownlinkEvaluator extends AbstractJSEvaluator {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public JSDownlinkEvaluator(JsSandboxService sandboxService, EntityId entityId, String script) {
+    public JSDownlinkEvaluator(JsInvokeService sandboxService, EntityId entityId, String script) {
         super(sandboxService, entityId, JsScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
     }
 
@@ -55,7 +55,7 @@ public class JSDownlinkEvaluator extends AbstractJSEvaluator {
         try {
             validateSuccessfulScriptLazyInit();
             String[] inArgs = prepareArgs(msg, metadata);
-            String eval = sandboxService.invokeFunction(this.scriptId, this.entityId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
+            String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {

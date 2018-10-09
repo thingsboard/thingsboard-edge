@@ -32,7 +32,7 @@ package org.thingsboard.server.service.converter.js;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 import org.thingsboard.server.service.script.JsScriptType;
 
 import java.util.UUID;
@@ -40,7 +40,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class AbstractJSEvaluator {
 
-    protected final JsSandboxService sandboxService;
+    protected final JsInvokeService sandboxService;
     private final JsScriptType scriptType;
     private final String script;
     protected final EntityId entityId;
@@ -49,7 +49,7 @@ public abstract class AbstractJSEvaluator {
     private volatile boolean isErrorScript = false;
 
 
-    public AbstractJSEvaluator(JsSandboxService sandboxService, EntityId entityId, JsScriptType scriptType, String script) {
+    public AbstractJSEvaluator(JsInvokeService sandboxService, EntityId entityId, JsScriptType scriptType, String script) {
         this.sandboxService = sandboxService;
         this.scriptType = scriptType;
         this.script = script;
@@ -58,7 +58,7 @@ public abstract class AbstractJSEvaluator {
 
     public void destroy() {
         if (this.scriptId != null) {
-            this.sandboxService.release(this.scriptId, this.entityId);
+            this.sandboxService.release(this.scriptId);
         }
     }
 

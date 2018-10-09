@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.Optional;
@@ -41,7 +42,7 @@ import java.util.Optional;
 /**
  * Created by ashvayka on 02.12.17.
  */
-public interface PlatformIntegrationService {
+public interface PlatformIntegrationService extends DiscoveryServiceListener {
 
     ThingsboardPlatformIntegration createIntegration(Integration integration) throws Exception;
 

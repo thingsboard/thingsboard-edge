@@ -55,7 +55,6 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
@@ -87,7 +86,7 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Service
-public class DefaultPlatformIntegrationService implements PlatformIntegrationService, DiscoveryServiceListener {
+public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
     public static EventLoopGroup EVENT_LOOP_GROUP;
 
@@ -133,7 +132,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         integrationsByIdMap = new ConcurrentHashMap<>();
         integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
-        discoveryService.addListener(this);
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(4));
         refreshAllIntegrations();
         if (statisticsEnabled) {
