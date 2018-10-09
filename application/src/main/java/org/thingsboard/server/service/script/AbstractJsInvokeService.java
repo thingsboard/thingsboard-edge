@@ -101,6 +101,12 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
         switch (scriptType) {
             case RULE_NODE_SCRIPT:
                 return RuleNodeScriptFactory.generateRuleNodeScript(functionName, scriptBody, argNames);
+            case ATTRIBUTES_SCRIPT:
+                return AttributesScriptFactory.generateAttributesScript(functionName, scriptBody);
+            case UPLINK_CONVERTER_SCRIPT:
+                return UplinkConverterScriptFactory.generateUplinkConverterScript(functionName, scriptBody);
+            case DOWNLINK_CONVERTER_SCRIPT:
+                return DownlinkConverterScriptFactory.generateDownlinkConverterScript(functionName, scriptBody);
             default:
                 throw new RuntimeException("No script factory implemented for scriptType: " + scriptType);
         }
