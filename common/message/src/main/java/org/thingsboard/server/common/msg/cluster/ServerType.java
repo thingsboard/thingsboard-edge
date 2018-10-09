@@ -28,45 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.server.common.msg.cluster;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-@Slf4j
-@Service
-public class NashornJsSandboxService extends AbstractNashornJsSandboxService {
-
-    @Value("${actors.rule.js_sandbox.use_js_sandbox}")
-    private boolean useJsSandbox;
-
-    @Value("${actors.rule.js_sandbox.monitor_thread_pool_size}")
-    private int monitorThreadPoolSize;
-
-    @Value("${actors.rule.js_sandbox.max_cpu_time}")
-    private long maxCpuTime;
-
-    @Value("${actors.rule.js_sandbox.max_errors}")
-    private int maxErrors;
-
-    @Override
-    protected boolean useJsSandbox() {
-        return useJsSandbox;
-    }
-
-    @Override
-    protected int getMonitorThreadPoolSize() {
-        return monitorThreadPoolSize;
-    }
-
-    @Override
-    protected long getMaxCpuTime() {
-        return maxCpuTime;
-    }
-
-    @Override
-    protected int getMaxErrors() {
-        return maxErrors;
-    }
+/**
+ * Created by ashvayka on 23.09.18.
+ */
+public enum ServerType {
+    //Should match content of enum in discovery.proto.
+    CORE, JS_EVALUATOR
 }

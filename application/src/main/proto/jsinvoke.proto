@@ -1,0 +1,102 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+syntax = "proto3";
+package js;
+
+option java_package = "org.thingsboard.server.gen.js";
+option java_outer_classname = "JsInvokeProtos";
+
+enum JsInvokeErrorCode {
+  COMPILATION_ERROR = 0;
+  RUNTIME_ERROR = 1;
+  TIMEOUT_ERROR = 2;
+}
+
+message RemoteJsRequest {
+  string responseTopic = 1;
+  int64 requestIdMSB = 2;
+  int64 requestIdLSB = 3;
+  JsCompileRequest compileRequest = 4;
+  JsInvokeRequest invokeRequest = 5;
+  JsReleaseRequest releaseRequest = 6;
+}
+
+message RemoteJsResponse {
+  int64 requestIdMSB = 1;
+  int64 requestIdLSB = 2;
+  JsCompileResponse compileResponse = 3;
+  JsInvokeResponse invokeResponse = 4;
+  JsReleaseResponse releaseResponse = 5;
+}
+
+message JsCompileRequest {
+  int64 scriptIdMSB = 1;
+  int64 scriptIdLSB = 2;
+  string functionName = 3;
+  string scriptBody = 4;
+}
+
+message JsReleaseRequest {
+  int64 scriptIdMSB = 1;
+  int64 scriptIdLSB = 2;
+  string functionName = 3;
+}
+
+message JsReleaseResponse {
+  bool success = 1;
+  int64 scriptIdMSB = 2;
+  int64 scriptIdLSB = 3;
+}
+
+message JsCompileResponse {
+  bool success = 1;
+  int64 scriptIdMSB = 2;
+  int64 scriptIdLSB = 3;
+  JsInvokeErrorCode errorCode = 4;
+  string errorDetails = 5;
+}
+
+message JsInvokeRequest {
+  int64 scriptIdMSB = 1;
+  int64 scriptIdLSB = 2;
+  string functionName = 3;
+  string scriptBody = 4;
+  int32 timeout = 5;
+  repeated string args = 6;
+}
+
+message JsInvokeResponse {
+  bool success = 1;
+  string result = 2;
+  JsInvokeErrorCode errorCode = 3;
+  string errorDetails = 4;
+}
+

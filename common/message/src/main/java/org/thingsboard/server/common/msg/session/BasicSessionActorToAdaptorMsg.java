@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.common.msg.session;
 
-import java.util.Optional;
-
 public class BasicSessionActorToAdaptorMsg extends BasicSessionMsg implements SessionActorToAdaptorMsg {
 
     private final ToDeviceMsg msg;

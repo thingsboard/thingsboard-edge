@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,19 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+const fs = require('fs');
+const fse = require('fs-extra');
+const path = require('path');
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
+let _projectRoot = null;
 
-import java.util.UUID;
 
-public interface JsSandboxService {
+(async() => {
+    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-ui-linux'),
+                   path.join(targetPackageDir('linux'), 'bin', 'tb-web-ui'),
+                   {overwrite: true});
+    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-ui-win.exe'),
+                   path.join(targetPackageDir('windows'), 'bin', 'tb-web-ui.exe'),
+                   {overwrite: true});
+})();
 
-    ListenableFuture<UUID> eval(JsScriptType scriptType, String scriptBody, String... argNames);
 
-    ListenableFuture<Object> invokeFunction(UUID scriptId, EntityId entityId, Object... args);
+function projectRoot() {
+    if (!_projectRoot) {
+        _projectRoot = __dirname;
+    }
+    return _projectRoot;
+}
 
-    ListenableFuture<Void> release(UUID scriptId, EntityId entityId);
-
+function targetPackageDir(platform) {
+    return path.join(projectRoot(), 'target', 'package', platform);
 }

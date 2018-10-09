@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.common.msg.session;
 
-import org.thingsboard.server.common.msg.aware.SessionAwareMsg;
+import org.thingsboard.server.common.data.id.SessionId;
 import org.thingsboard.server.common.msg.session.ex.SessionException;
 
-public interface SessionContext extends SessionAwareMsg {
+public interface SessionContext {
+
+    SessionId getSessionId();
 
     SessionType getSessionType();
 

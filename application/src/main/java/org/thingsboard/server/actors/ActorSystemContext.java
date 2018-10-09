@@ -89,7 +89,7 @@ import org.thingsboard.server.service.rpc.DeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
-import org.thingsboard.server.service.script.JsSandboxService;
+import org.thingsboard.server.service.script.JsInvokeService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -197,7 +197,7 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private JsSandboxService jsSandbox;
+    private JsInvokeService jsSandbox;
 
     @Autowired
     @Getter

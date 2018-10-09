@@ -53,13 +53,13 @@ import static org.junit.Assert.*;
 public class RuleNodeJsScriptEngineTest {
 
     private ScriptEngine scriptEngine;
-    private TestNashornJsSandboxService jsSandboxService;
+    private TestNashornJsInvokeService jsSandboxService;
 
     private EntityId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
 
     @Before
     public void beforeTest() throws Exception {
-        jsSandboxService = new TestNashornJsSandboxService(false, 1, 100, 3);
+        jsSandboxService = new TestNashornJsInvokeService(false, 1, 100, 3);
     }
 
     @After
@@ -251,8 +251,8 @@ public class RuleNodeJsScriptEngineTest {
                 startLatch.await();
                 UUID scriptId = jsSandboxService.eval(JsScriptType.RULE_NODE_SCRIPT, code).get();
                 scriptIds.put(scriptId, new Object());
-                jsSandboxService.invokeFunction(scriptId, ruleNodeId, "{}", "{}", "TEXT").get();
-                jsSandboxService.release(scriptId, ruleNodeId).get();
+                jsSandboxService.invokeFunction(scriptId, "{}", "{}", "TEXT").get();
+                jsSandboxService.release(scriptId).get();
             }
         } catch (Throwable th) {
             failedCount.incrementAndGet();

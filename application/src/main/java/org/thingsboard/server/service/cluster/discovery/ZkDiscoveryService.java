@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.cluster.discovery;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.SerializationException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -52,8 +53,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.service.scheduler.SchedulerService;
+import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.MiscUtils;
@@ -62,7 +65,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -101,16 +103,24 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     @Lazy
     protected SchedulerService schedulerService;
 
-    private final List<DiscoveryServiceListener> listeners = new CopyOnWriteArrayList<>();
+    @Autowired
+    @Lazy
+    private ActorService actorService;
+
+    @Autowired
+    @Lazy
+    private ClusterRoutingService routingService;
 
     private CuratorFramework client;
     private PathChildrenCache cache;
     private String nodePath;
-
+    //TODO: make persistent?
+    private String nodeId;
 
     @PostConstruct
     public void init() {
         log.info("Initializing...");
+        this.nodeId = RandomStringUtils.randomAlphabetic(10);
         Assert.hasLength(zkUrl, MiscUtils.missingProperty("zk.url"));
         Assert.notNull(zkRetryInterval, MiscUtils.missingProperty("zk.retry_interval_ms"));
         Assert.notNull(zkConnectionTimeout, MiscUtils.missingProperty("zk.connection_timeout_ms"));
@@ -194,6 +204,11 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     }
 
     @Override
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    @Override
     public ServerInstance getCurrentServer() {
         return serverInstance.getSelf();
     }
@@ -211,16 +226,6 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                     }
                 })
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean addListener(DiscoveryServiceListener listener) {
-        return listeners.add(listener);
-    }
-
-    @Override
-    public boolean removeListener(DiscoveryServiceListener listener) {
-        return listeners.remove(listener);
     }
 
     @Override
@@ -255,19 +260,22 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
         log.info("Processing [{}] event for [{}:{}]", pathChildrenCacheEvent.getType(), instance.getHost(), instance.getPort());
         switch (pathChildrenCacheEvent.getType()) {
             case CHILD_ADDED:
+                routingService.onServerAdded(instance);
                 tsSubService.onClusterUpdate();
                 deviceStateService.onClusterUpdate();
                 schedulerService.onClusterUpdate();
-                listeners.forEach(listener -> listener.onServerAdded(instance));
+                actorService.onServerAdded(instance);
                 break;
             case CHILD_UPDATED:
-                listeners.forEach(listener -> listener.onServerUpdated(instance));
+                routingService.onServerUpdated(instance);
+                actorService.onServerUpdated(instance);
                 break;
             case CHILD_REMOVED:
+                routingService.onServerRemoved(instance);
                 tsSubService.onClusterUpdate();
                 deviceStateService.onClusterUpdate();
                 schedulerService.onClusterUpdate();
-                listeners.forEach(listener -> listener.onServerRemoved(instance));
+                actorService.onServerRemoved(instance);
                 break;
             default:
                 break;

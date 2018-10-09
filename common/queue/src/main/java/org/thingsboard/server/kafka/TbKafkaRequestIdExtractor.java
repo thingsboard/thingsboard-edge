@@ -28,49 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.server.kafka;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import delight.nashornsandbox.NashornSandbox;
-import delight.nashornsandbox.NashornSandboxes;
-
-import javax.script.ScriptException;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-public class TestNashornJsSandboxService extends AbstractNashornJsSandboxService {
+public interface TbKafkaRequestIdExtractor<T> {
 
-    private boolean useJsSandbox;
-    private final int monitorThreadPoolSize;
-    private final long maxCpuTime;
-    private final int maxErrors;
+    UUID extractRequestId(T value);
 
-    public TestNashornJsSandboxService(boolean useJsSandbox, int monitorThreadPoolSize, long maxCpuTime, int maxErrors) {
-        this.useJsSandbox = useJsSandbox;
-        this.monitorThreadPoolSize = monitorThreadPoolSize;
-        this.maxCpuTime = maxCpuTime;
-        this.maxErrors = maxErrors;
-        init();
-    }
-
-    @Override
-    protected boolean useJsSandbox() {
-        return useJsSandbox;
-    }
-
-    @Override
-    protected int getMonitorThreadPoolSize() {
-        return monitorThreadPoolSize;
-    }
-
-    @Override
-    protected long getMaxCpuTime() {
-        return maxCpuTime;
-    }
-
-    @Override
-    protected int getMaxErrors() {
-        return maxErrors;
-    }
 }

@@ -1,0 +1,128 @@
+#
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+#
+# Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
+#
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
+#
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+#
+
+
+version: '2'
+
+services:
+  zookeeper:
+    restart: always
+    image: "wurstmeister/zookeeper"
+    ports:
+      - "2181"
+  kafka:
+    restart: always
+    image: "wurstmeister/kafka"
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INSIDE://:9093,OUTSIDE://:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9093,OUTSIDE://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_CREATE_TOPICS: "${KAFKA_TOPICS}"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    depends_on:
+      - zookeeper
+  tb-js-executor:
+    restart: always
+    image: "${DOCKER_REPO}/${JS_EXECUTOR_DOCKER_NAME}:${TB_VERSION}"
+    environment:
+      TB_KAFKA_SERVERS: kafka:9092
+    env_file:
+      - tb-js-executor.env
+    depends_on:
+      - kafka
+  tb:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_NODE_DOCKER_NAME}:${TB_VERSION}"
+    ports:
+      - "8080"
+      - "1883:1883"
+      - "5683:5683/udp"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "6g"
+        max-file: "30"
+    env_file:
+      - tb-node.env
+    environment:
+      ZOOKEEPER_URL: zk:2181
+      TB_KAFKA_SERVERS: kafka:9092
+      JS_EVALUATOR: remote
+    volumes:
+      - ./tb-node/db:/usr/share/thingsboard/data/db
+      - ./tb-node/conf:/config
+      - ./tb-node/log:/var/log/thingsboard
+    depends_on:
+      - kafka
+  tb-web-ui1:
+    restart: always
+    image: "${DOCKER_REPO}/${WEB_UI_DOCKER_NAME}:${TB_VERSION}"
+    ports:
+      - "8080"
+    environment:
+      TB_HOST: tb
+      TB_PORT: 8080
+    env_file:
+      - tb-web-ui.env
+  tb-web-ui2:
+    restart: always
+    image: "${DOCKER_REPO}/${WEB_UI_DOCKER_NAME}:${TB_VERSION}"
+    ports:
+      - "8080"
+    environment:
+      TB_HOST: tb
+      TB_PORT: 8080
+    env_file:
+      - tb-web-ui.env
+  web:
+    restart: always
+    container_name: haproxy-certbot
+    image: nmarus/haproxy-certbot
+    volumes:
+     - ./haproxy/config:/config
+     - ./haproxy/letsencrypt:/etc/letsencrypt
+     - ./haproxy/certs.d:/usr/local/etc/haproxy/certs.d
+    ports:
+     - "80:80"
+     - "443:443"
+     - "9999:9999"
+    cap_add:
+     - NET_ADMIN
+    environment:
+      HTTP_PORT: 80
+      HTTPS_PORT: 443
+    links:
+        - tb-web-ui1
+        - tb-web-ui2

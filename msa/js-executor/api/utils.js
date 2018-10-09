@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,14 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-syntax = "proto3";
-package discovery;
+'use strict';
 
-option java_package = "org.thingsboard.server.gen.discovery";
-option java_outer_classname = "ServerInstanceProtos";
+const Long = require('long'),
+      uuidParse = require('uuid-parse');
 
-message ServerInfo {
-  string host = 1;
-  int32 port = 2;
-  int64 ts = 3;
+var logger = require('../config/logger')('Utils');
+
+exports.toUUIDString = function(mostSigBits, leastSigBits) {
+    var msbBytes = Long.fromValue(mostSigBits, false).toBytes(false);
+    var lsbBytes = Long.fromValue(leastSigBits, false).toBytes(false);
+    var uuidBytes = msbBytes.concat(lsbBytes);
+    var buff = new Buffer(uuidBytes, 'utf8');
+    return uuidParse.unparse(uuidBytes);
+}
+
+exports.UUIDToBits = function(uuidString) {
+    const bytes = uuidParse.parse(uuidString);
+    var msb = Long.fromBytes(bytes.slice(0,8), false, false).toString();
+    var lsb = Long.fromBytes(bytes.slice(-8), false, false).toString();
+    return [msb, lsb];
 }
