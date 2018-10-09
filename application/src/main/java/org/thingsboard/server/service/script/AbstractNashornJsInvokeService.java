@@ -82,6 +82,11 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     protected abstract long getMaxCpuTime();
 
     @Override
+    protected boolean isLocal() {
+        return true;
+    }
+
+    @Override
     protected ListenableFuture<UUID> doEval(UUID scriptId, String functionName, String jsScript) {
         try {
             if (useJsSandbox()) {

@@ -31,6 +31,8 @@
 'use strict';
 
 const vm = require('vm');
+const btoa = require('btoa');
+const atob = require('atob');
 
 function JsExecutor() {
 }
@@ -52,6 +54,8 @@ JsExecutor.prototype.executeScript = function(script, args, timeout) {
         try {
             var sandbox = Object.create(null);
             sandbox.args = args;
+            sandbox.btoa = btoa;
+            sandbox.atob = atob;
             var result = script.runInNewContext(sandbox, {timeout: timeout});
             resolve(result);
         } catch (err) {

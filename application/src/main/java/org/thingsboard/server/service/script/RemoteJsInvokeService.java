@@ -141,6 +141,11 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
     }
 
     @Override
+    protected boolean isLocal() {
+        return false;
+    }
+
+    @Override
     protected ListenableFuture<UUID> doEval(UUID scriptId, String functionName, String scriptBody) {
         JsInvokeProtos.JsCompileRequest jsRequest = JsInvokeProtos.JsCompileRequest.newBuilder()
                 .setScriptIdMSB(scriptId.getMostSignificantBits())

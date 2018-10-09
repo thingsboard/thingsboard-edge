@@ -93,6 +93,8 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
 
     protected abstract int getMaxErrors();
 
+    protected abstract boolean isLocal();
+
     protected void onScriptExecutionError(UUID scriptId) {
         blackListedFunctions.computeIfAbsent(scriptId, key -> new AtomicInteger(0)).incrementAndGet();
     }
@@ -104,9 +106,9 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
             case ATTRIBUTES_SCRIPT:
                 return AttributesScriptFactory.generateAttributesScript(functionName, scriptBody);
             case UPLINK_CONVERTER_SCRIPT:
-                return UplinkConverterScriptFactory.generateUplinkConverterScript(functionName, scriptBody);
+                return UplinkConverterScriptFactory.generateUplinkConverterScript(functionName, scriptBody, isLocal());
             case DOWNLINK_CONVERTER_SCRIPT:
-                return DownlinkConverterScriptFactory.generateDownlinkConverterScript(functionName, scriptBody);
+                return DownlinkConverterScriptFactory.generateDownlinkConverterScript(functionName, scriptBody, isLocal());
             default:
                 throw new RuntimeException("No script factory implemented for scriptType: " + scriptType);
         }

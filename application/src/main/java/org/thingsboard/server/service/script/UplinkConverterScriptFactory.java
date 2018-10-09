@@ -35,23 +35,32 @@ package org.thingsboard.server.service.script;
  */
 public class UplinkConverterScriptFactory {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(bytes, metadata) { " +
-            "    var payload = convertBytes(bytes); " +
+    private static final String JS_HELPERS_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); ";
+
+    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "function %s(bytesBase64, metadataStr) { " +
+            "    var payload = convertBytesBase64(bytesBase64); " +
+            "    var metadata = JSON.parse(metadataStr); " +
             "    return JSON.stringify(Decoder(payload, metadata));" +
             "    function Decoder(payload, metadata) {";
 
     private static final String JS_WRAPPER_SUFFIX = "}" +
-            "    function convertBytes(bytes) {\n" +
+            "    function convertBytesBase64(bytesBase64) {\n" +
+            "       var binary_string = atob(bytesBase64);\n" +
+            "       var len = binary_string.length;\n"+
             "       var payload = [];\n" +
-            "       for (var i = 0; i < bytes.length; i++) {\n" +
-            "           payload.push(bytes[i]);\n" +
+            "       for (var i = 0; i < len; i++) {\n" +
+            "           payload.push(binary_string.charCodeAt(i));\n" +
             "       }\n" +
             "       return payload;\n" +
             "    }\n" +
             "\n}";
 
-    public static String generateUplinkConverterScript(String functionName, String scriptBody) {
+    public static String generateUplinkConverterScript(String functionName, String scriptBody, boolean isLocal) {
         String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, functionName);
-        return jsWrapperPrefix + scriptBody + JS_WRAPPER_SUFFIX;
+        String result = jsWrapperPrefix + scriptBody + JS_WRAPPER_SUFFIX;
+        if (isLocal) {
+            result = JS_HELPERS_PREFIX_TEMPLATE + result;
+        }
+        return result;
     }
 }
