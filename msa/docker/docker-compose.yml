@@ -80,12 +80,27 @@ services:
       ZOOKEEPER_URL: zk:2181
       TB_KAFKA_SERVERS: kafka:9092
       JS_EVALUATOR: remote
+      REPORTS_SERVER_ENDPOINT_URL: http://web:8383
     volumes:
       - ./tb-node/db:/usr/share/thingsboard/data/db
       - ./tb-node/conf:/config
       - ./tb-node/log:/var/log/thingsboard
     depends_on:
       - kafka
+  tb-web-report1:
+    restart: always
+    image: "${DOCKER_REPO}/${WEB_REPORT_DOCKER_NAME}:${TB_VERSION}"
+    ports:
+      - "8383"
+    env_file:
+      - tb-web-report.env
+  tb-web-report2:
+    restart: always
+    image: "${DOCKER_REPO}/${WEB_REPORT_DOCKER_NAME}:${TB_VERSION}"
+    ports:
+      - "8383"
+    env_file:
+      - tb-web-report.env
   tb-web-ui1:
     restart: always
     image: "${DOCKER_REPO}/${WEB_UI_DOCKER_NAME}:${TB_VERSION}"
@@ -118,11 +133,15 @@ services:
      - "80:80"
      - "443:443"
      - "9999:9999"
+     - "8383"
     cap_add:
      - NET_ADMIN
     environment:
       HTTP_PORT: 80
       HTTPS_PORT: 443
+      WEBREPORT_PORT: 8383
     links:
         - tb-web-ui1
         - tb-web-ui2
+        - tb-web-report1
+        - tb-web-report2

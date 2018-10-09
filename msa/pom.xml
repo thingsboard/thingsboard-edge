@@ -54,6 +54,7 @@
     <modules>
         <module>js-executor</module>
         <module>web-ui</module>
+        <module>web-report</module>
         <module>tb-node</module>
     </modules>
 
