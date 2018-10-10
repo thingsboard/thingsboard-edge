@@ -50,14 +50,11 @@ import java.util.Map;
 @Log4j
 public class CustomTranslation {
 
-    private Map<String, String> translationMap;
+    private Map<String, String> translationMap = new HashMap<>();
 
     private static ObjectMapper mapper = new ObjectMapper();
 
     public CustomTranslation merge(CustomTranslation otherCL) {
-        if (translationMap == null) {
-            translationMap = new HashMap<>();
-        }
         List<String> languages = new ArrayList<>();
         languages.addAll(translationMap.keySet());
         if (otherCL != null && otherCL.getTranslationMap() != null) {
