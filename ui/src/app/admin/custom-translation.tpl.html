@@ -42,21 +42,26 @@
         <md-progress-linear md-mode="indeterminate" ng-disabled="!$root.loading" ng-show="$root.loading"></md-progress-linear>
         <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
         <md-card-content>
-            <md-input-container class="md-block">
-                <label translate>language.language</label>
-                <md-select name="language" ng-model="vm.currentLang">
-                    <md-option ng-repeat="lang in vm.languageList" ng-value="lang">
-                        {{ lang ? ('language.locales.' + lang | translate) : ''}}
-                    </md-option>
-                </md-select>
-            </md-input-container>
+            <div layout="row" style="width: 100%;" layout-align="start center">
+                <md-input-container flex class="md-block">
+                    <label translate>language.language</label>
+                    <md-select name="language" ng-model="vm.currentLang">
+                        <md-option ng-repeat="lang in vm.languageList" ng-value="lang">
+                            {{ lang ? ('language.locales.' + lang | translate) : ''}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                <md-button ng-click="vm.downloadLocaleJson()" class="md-raised">{{'custom-translation.download-locale-file' | translate }}</md-button>
+            </div>
             <form name="vm.customTranslationForm" ng-submit="vm.save()" tb-confirm-on-exit confirm-form="vm.customTranslationForm">
                 <div id="tb-custom-translation-panel" flex layout="column">
+                    <div class="tb-hint" translate>custom-translation.custom-translation-hint</div>
                     <fieldset ng-disabled="$root.loading">
                         <md-input-container class="md-block" style="height: 500px;">
                             <tb-json-content ng-model="vm.customTranslation.translationMap[vm.currentLang]"
                                              label="{{'custom-translation.translation-map' | translate}}"
                                              content-type="vm.types.contentType.JSON.value"
+                                             tb-placeholder="vm.translationPlaceholder"
                                              fill-height="true">
                             </tb-json-content>
                         </md-input-container>

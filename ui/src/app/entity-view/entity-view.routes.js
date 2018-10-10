@@ -57,7 +57,7 @@ export default function EntityViewRoutes($stateProvider, types) {
                 pageTitle: 'entity-view.entity-views'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "view_stream", "label": "entity-view.entity-views"}'
+                label: '{"icon": "view_quilt", "label": "entity-view.entity-views"}'
             }
         })
         .state('home.customers.entityViews', {
@@ -80,7 +80,7 @@ export default function EntityViewRoutes($stateProvider, types) {
                 pageTitle: 'customer.entity-views'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "view_stream", "label": "{{ vm.customerEntityViewsTitle }}", "translate": "false"}'
+                label: '{"icon": "view_quilt", "label": "{{ vm.customerEntityViewsTitle }}", "translate": "false"}'
             }
         });
 

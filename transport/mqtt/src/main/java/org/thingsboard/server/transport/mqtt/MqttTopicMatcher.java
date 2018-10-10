@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,37 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/*@ngInject*/
-export default function BreadcrumbLabel($translate, utils) {
-    var labels = {};
+package org.thingsboard.server.transport.mqtt;
 
-    var breadcrumbLabel = function (bLabel) {
+import java.util.regex.Pattern;
 
-        var labelObj;
-        labelObj = angular.fromJson(bLabel);
-        if (labelObj) {
-            var translate = !(labelObj.translate && labelObj.translate === 'false');
-            var key = translate ? $translate.use() : 'orig';
-            if (!labels[labelObj.label]) {
-                labels[labelObj.label] = {};
-            }
-            if (!labels[labelObj.label][key]) {
-                labels[labelObj.label][key] = labelObj.label;
-                if (translate) {
-                    $translate([labelObj.label]).then(
-                        function (translations) {
-                            labels[labelObj.label][key] = translations[labelObj.label];
-                        }
-                    )
-                }
-            }
-            return utils.customTranslation(labels[labelObj.label][key], labels[labelObj.label][key]);
-        } else {
-            return '';
+public class MqttTopicMatcher {
+
+    private final String topic;
+    private final Pattern topicRegex;
+
+    MqttTopicMatcher(String topic) {
+        if(topic == null){
+            throw new NullPointerException("topic");
         }
-    };
+        this.topic = topic;
+        this.topicRegex = Pattern.compile(topic.replace("+", "[^/]+").replace("#", ".+") + "$");
+    }
 
-    breadcrumbLabel.$stateful = true;
+    public String getTopic() {
+        return topic;
+    }
 
-    return breadcrumbLabel;
+    public boolean matches(String topic){
+        return this.topicRegex.matcher(topic).matches();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MqttTopicMatcher that = (MqttTopicMatcher) o;
+
+        return topic.equals(that.topic);
+    }
+
+    @Override
+    public int hashCode() {
+        return topic.hashCode();
+    }
 }

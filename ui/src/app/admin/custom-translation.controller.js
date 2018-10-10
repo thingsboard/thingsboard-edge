@@ -39,9 +39,32 @@ export default function CustomTranslationController($scope, $translate, utils, t
     vm.customTranslation.translationMap = {};
     vm.save = save;
 
+    vm.downloadLocaleJson = downloadLocaleJson;
+
     vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
 
     vm.currentLang = vm.languageList[0];
+
+    vm.translationPlaceholder =
+        '******* Example of custom translation ******** \n\n' +
+        angular.toJson(
+            {
+                "home": {
+                    "home": "My Home"
+                },
+                "custom": {
+                    "my-dashboard": {
+                        "title": "This is custom dashboard title",
+                        "comment": "You can use it in your dashboard title using the following expression: {i18n:custom.my-dashboard.title}"
+                    },
+                    "my-widget": {
+                        "legend-text": "This is custom legend text",
+                        "comment": "You can use it in your dashboard widgets using the following expression: {i18n:custom.my-widget.legend-text}"
+                    }
+                }
+            },
+            2
+        );
 
     vm.showError = function (error) {
         var toastParent = angular.element('#tb-custom-translation-panel');
@@ -91,5 +114,9 @@ export default function CustomTranslationController($scope, $translate, utils, t
                     vm.customTranslationForm.$setPristine();
                 });
         }
+    }
+
+    function downloadLocaleJson() {
+        customTranslationService.downloadLocaleJson(vm.currentLang);
     }
 }

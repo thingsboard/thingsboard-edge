@@ -289,6 +289,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'deviceType',
                     name: 'alias.filter-type-device-type'
                 },
+                entityViewType: {
+                    value: 'entityViewType',
+                    name: 'alias.filter-type-entity-view-type'
+                },
                 relationsQuery: {
                     value: 'relationsQuery',
                     name: 'alias.filter-type-relations-query'
@@ -300,6 +304,10 @@ export default angular.module('thingsboard.types', [])
                 deviceSearchQuery: {
                     value: 'deviceSearchQuery',
                     name: 'alias.filter-type-device-search-query'
+                },
+                entityViewSearchQuery: {
+                    value: 'entityViewSearchQuery',
+                    name: 'alias.filter-type-entity-view-search-query'
                 }
             },
             position: {

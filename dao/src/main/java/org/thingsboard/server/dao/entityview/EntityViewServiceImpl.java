@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.entityview;
 
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -44,6 +45,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
@@ -69,6 +72,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -78,6 +83,7 @@ import static org.thingsboard.server.common.data.CacheConstants.RELATIONS_CACHE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 /**
  * Created by Victor Basanets on 8/28/2017.
@@ -173,6 +179,16 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     }
 
     @Override
+    public TextPageData<EntityView> findEntityViewByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type) {
+        log.trace("Executing findEntityViewByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        validateString(type, "Incorrect type " + type);
+        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
+        return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
     public TextPageData<EntityView> findEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId,
                                                                            TextPageLink pageLink) {
         log.trace("Executing findEntityViewByTenantIdAndCustomerId, tenantId [{}], customerId [{}]," +
@@ -182,6 +198,19 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(),
                 customerId.getId(), pageLink);
+        return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
+    public TextPageData<EntityView> findEntityViewsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, TextPageLink pageLink, String type) {
+        log.trace("Executing findEntityViewsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}]," +
+                " pageLink [{}], type [{}]", tenantId, customerId, pageLink, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        validateString(type, "Incorrect type " + type);
+        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId.getId(),
+                customerId.getId(), type, pageLink);
         return new TextPageData<>(entityViews, pageLink);
     }
 
@@ -199,6 +228,15 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             }
             return Futures.successfulAsList(futures);
         });
+
+        entityViews = Futures.transform(entityViews, new Function<List<EntityView>, List<EntityView>>() {
+            @Nullable
+            @Override
+            public List<EntityView> apply(@Nullable List<EntityView> entityViewList) {
+                return entityViewList == null ? Collections.emptyList() : entityViewList.stream().filter(entityView -> query.getEntityViewTypes().contains(entityView.getType())).collect(Collectors.toList());
+            }
+        });
+
         return entityViews;
     }
 
@@ -231,6 +269,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                         public void onSuccess(@Nullable List<EntityView> result) {
                             cache.putIfAbsent(tenantIdAndEntityId, result);
                         }
+
                         @Override
                         public void onFailure(Throwable t) {
                             log.error("Error while finding entity views by tenantId and entityId", t);
@@ -256,6 +295,18 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         log.trace("Executing deleteEntityViewsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantEntityViewRemover.removeEntities(tenantId);
+    }
+
+    @Override
+    public ListenableFuture<List<EntitySubtype>> findEntityViewTypesByTenantId(TenantId tenantId) {
+        log.trace("Executing findEntityViewTypesByTenantId, tenantId [{}]", tenantId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        ListenableFuture<List<EntitySubtype>> tenantEntityViewTypes = entityViewDao.findTenantEntityViewTypesAsync(tenantId.getId());
+        return Futures.transform(tenantEntityViewTypes,
+                entityViewTypes -> {
+                    entityViewTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    return entityViewTypes;
+                });
     }
 
     private ListenableFuture<List<Void>> copyAttributesFromEntityToEntityView(EntityView entityView, String scope, Collection<String> keys) {
@@ -311,6 +362,9 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
 
                 @Override
                 protected void validateDataImpl(EntityView entityView) {
+                    if (StringUtils.isEmpty(entityView.getType())) {
+                        throw new DataValidationException("Entity View type should be specified!");
+                    }
                     if (StringUtils.isEmpty(entityView.getName())) {
                         throw new DataValidationException("Entity view name should be specified!");
                     }

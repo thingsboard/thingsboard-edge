@@ -56,6 +56,7 @@ import javax.persistence.Enumerated;
 import java.io.IOException;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.DEVICE_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_TABLE_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
@@ -85,6 +86,10 @@ public class EntityViewEntity implements SearchTextEntity<EntityView> {
     @PartitionKey(value = 2)
     @Column(name = ModelConstants.ENTITY_VIEW_CUSTOMER_ID_PROPERTY)
     private UUID customerId;
+
+    @PartitionKey(value = 3)
+    @Column(name = DEVICE_TYPE_PROPERTY)
+    private String type;
 
     @Column(name = ModelConstants.ENTITY_VIEW_ENTITY_ID_PROPERTY)
     private UUID entityId;
@@ -128,6 +133,7 @@ public class EntityViewEntity implements SearchTextEntity<EntityView> {
         if (entityView.getCustomerId() != null) {
             this.customerId = entityView.getCustomerId().getId();
         }
+        this.type = entityView.getType();
         this.name = entityView.getName();
         try {
             this.keys = mapper.writeValueAsString(entityView.getKeys());
@@ -158,6 +164,7 @@ public class EntityViewEntity implements SearchTextEntity<EntityView> {
         if (customerId != null) {
             entityView.setCustomerId(new CustomerId(customerId));
         }
+        entityView.setType(type);
         entityView.setName(name);
         try {
             entityView.setKeys(mapper.readValue(keys, TelemetryEntityView.class));
