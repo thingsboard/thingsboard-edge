@@ -37,7 +37,7 @@ import entitySubtypeListTemplate from './entity-subtype-list.tpl.html';
 import './entity-subtype-list.scss';
 
 /*@ngInject*/
-export default function EntitySubtypeListDirective($compile, $templateCache, $q, $mdUtil, $translate, $filter, types, assetService, deviceService) {
+export default function EntitySubtypeListDirective($compile, $templateCache, $q, $mdUtil, $translate, $filter, types, assetService, deviceService, entityViewService) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
 
@@ -112,6 +112,8 @@ export default function EntitySubtypeListDirective($compile, $templateCache, $q,
                     entitySubtypesPromise = assetService.getAssetTypes({ignoreLoading: true});
                 } else if (scope.entityType == types.entityType.device) {
                     entitySubtypesPromise = deviceService.getDeviceTypes({ignoreLoading: true});
+                } else if (scope.entityType == types.entityType.entityView) {
+                    entitySubtypesPromise = entityViewService.getEntityViewTypes({ignoreLoading: true});
                 }
                 if (entitySubtypesPromise) {
                     entitySubtypesPromise.then(
