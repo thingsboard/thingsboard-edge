@@ -53,7 +53,7 @@ export default angular.module('thingsboard.directives.jsonContent', [])
     .name;
 
 /*@ngInject*/
-function JsonContent($compile, $templateCache, toast, types, utils) {
+function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(jsonContentTemplate);
@@ -83,6 +83,31 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
             }
         }
 
+        function updateEditorPlaceholder() {
+            var shouldShow = !scope.json_editor.session.getValue().length;
+            var node = scope.json_editor.renderer.emptyMessageNode;
+            if (!shouldShow && node) {
+                scope.json_editor.renderer.scroller.removeChild(scope.json_editor.renderer.emptyMessageNode);
+                scope.json_editor.renderer.emptyMessageNode = null;
+            } else if (shouldShow && !node) {
+                var placeholderElement = angular.element("<textarea></textarea>");
+                placeholderElement.text(scope.tbPlaceholder);
+                placeholderElement.addClass("ace_invisible ace_emptyMessage");
+                placeholderElement.css("padding", "0 9px");
+                placeholderElement.css("width", "100%");
+                placeholderElement.css("border", "none");
+                var rows = scope.tbPlaceholder.split('\n').length;
+                placeholderElement.attr("rows", rows);
+                node = scope.json_editor.renderer.emptyMessageNode = placeholderElement[0];
+                scope.json_editor.renderer.scroller.appendChild(node);
+            }
+        }
+
+        function createPlaceholder() {
+            scope.json_editor.on("input", updateEditorPlaceholder);
+            $timeout(updateEditorPlaceholder, 100);
+        }
+
         var mode;
         if (scope.contentType) {
             mode = types.contentType[scope.contentType].code;
@@ -104,6 +129,9 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
                     scope.cleanupJsonErrors();
                 });
                 fixAceEditor(_ace);
+                if (scope.tbPlaceholder && scope.tbPlaceholder.length) {
+                    createPlaceholder();
+                }
             }
         };
 
@@ -192,7 +220,8 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
             contentType: '=',
             validateContent: '=?',
             readonly:'=ngReadonly',
-            fillHeight:'=?'
+            fillHeight:'=?',
+            tbPlaceholder:'=?'
         },
         link: linker
     };

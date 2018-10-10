@@ -34,13 +34,16 @@ export default angular.module('thingsboard.api.customTranslation', [])
     .name;
 
 /*@ngInject*/
-function CustomTranslationService($rootScope, $q, $http, $translateProvider) {
+function CustomTranslationService($rootScope, $q, $http, $translateProvider, $translate, userService, importExport) {
 
     var service = {
         updateCustomTranslations: updateCustomTranslations,
         getCurrentCustomTranslation: getCurrentCustomTranslation,
-        saveCustomTranslation: saveCustomTranslation
+        saveCustomTranslation: saveCustomTranslation,
+        downloadLocaleJson: downloadLocaleJson
     };
+
+    service.translationMap = null;
 
     return service;
 
@@ -57,28 +60,51 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider) {
         return deferred.promise;
     }
 
-    function updateCustomTranslations() {
-        var deferred = $q.defer();
-        loadCustomTranslation().then(
-            (response) => {
-                Object.keys(response.translationMap).forEach(function(key) {
-                    if (response.translationMap[key]) {
+    function updateCustomTranslations(forceUpdate) {
+        if (userService.isUserLoaded() === true) {
+            if (userService.isAuthenticated()) {
+                if (service.translateLoadPromise) {
+                    return;
+                }
+                service.translateLoadPromise = (service.translationMap && !forceUpdate) ? $q.when({ translationMap: service.translationMap }) : loadCustomTranslation();
+                service.translateLoadPromise.then(
+                    (response) => {
+                        service.translateLoadPromise = null;
+                        service.translationMap = response.translationMap;
+                        var langKey = $translate.use();
                         var translationMap;
-                        try {
-                            translationMap = angular.fromJson(response.translationMap[key]);
-                        } catch (e) {
-                            //
+                        if (response.translationMap[langKey]) {
+                            try {
+                                translationMap = angular.fromJson(response.translationMap[langKey]);
+                            } catch (e) {
+                                //
+                            }
                         }
-                        $translateProvider.translations(key, translationMap);
+                        if (forceUpdate) {
+                            var targetLocale = PUBLIC_PATH + 'locale/locale.constant-'+langKey+'.json'; //eslint-disable-line
+                            $http.get(targetLocale, null).then(function success(response) {
+                                var localeJson = response.data;
+                                $translateProvider.translations(langKey, localeJson);
+                                $translateProvider.translations(langKey, translationMap);
+                            });
+                        } else {
+                            $translateProvider.translations(langKey, translationMap);
+                        }
+                    },
+                    () => {
+                        service.translateLoadPromise = null;
                     }
-                });
-                deferred.resolve();
-            },
-            () => {
-                deferred.reject();
+                )
             }
-        )
-        return deferred.promise;
+        } else {
+            if (!service.userLoadedHandle) {
+                service.userLoadedHandle = $rootScope.$on('userLoaded', function () {
+                    service.userLoadedHandle();
+                    service.userLoadedHandle = null;
+                    updateCustomTranslations();
+                });
+            }
+        }
     }
 
     function getCurrentCustomTranslation() {
@@ -97,18 +123,47 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider) {
         var url = '/api/customTranslation/customTranslation';
         $http.post(url, customTranslation).then(
             () => {
-                updateCustomTranslations().then(
-                    () => {
-                        deferred.resolve();
-                    },
-                    () => {
-                        deferred.reject();
-                    }
-                );
+                updateCustomTranslations(true);
+                deferred.resolve();
             },
             () => {
                 deferred.reject();
             });
+        return deferred.promise;
+    }
+
+    function downloadLocaleJson(langKey) {
+        var deferred = $q.defer();
+        var engLocale = PUBLIC_PATH + 'locale/locale.constant-en_US.json'; //eslint-disable-line
+        $http.get(engLocale, null).then(function success(response) {
+            var engJson = response.data;
+            var targetLocale = PUBLIC_PATH + 'locale/locale.constant-'+langKey+'.json'; //eslint-disable-line
+            var targetLocalePromise = langKey === 'en_US' ? $q.when({data: engLocale}) : $http.get(targetLocale, null);
+            targetLocalePromise.then(function success(response) {
+                var targetJson = response.data;
+                var localeJson = angular.merge(engJson, targetJson);
+                if (service.translationMap && service.translationMap[langKey]) {
+                    var translationMap;
+                    try {
+                        translationMap = angular.fromJson(service.translationMap[langKey]);
+                    } catch (e) {
+                        //
+                    }
+                    if (translationMap) {
+                        localeJson = angular.merge(localeJson, translationMap);
+                    }
+                }
+                var data = angular.toJson(localeJson, 2);
+                var fileName = 'locale-'+langKey;
+                importExport.exportToPc(data, fileName);
+                deferred.resolve();
+            }, function fail() {
+                deferred.reject();
+            });
+
+        }, function fail() {
+            deferred.reject();
+        });
         return deferred.promise;
     }
 }

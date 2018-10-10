@@ -495,7 +495,9 @@
         "export-data": "Export translation data",
         "import-data": "Import translation data",
         "translation-file": "Translation file",
-        "invalid-translation-file-error": "Unable to import translation file: Invalid translation data structure."
+        "invalid-translation-file-error": "Unable to import translation file: Invalid translation data structure.",
+        "custom-translation-hint": "Define custom translation JSON below. This JSON will overwrite default translation. Click 'Download locale file' to get existing translation. You may also use the downloaded file as a reference to available translation key-value pairs.",
+        "download-locale-file": "Download locale file"
     },
     "datetime": {
         "date-from": "Date from",

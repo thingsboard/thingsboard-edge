@@ -33,7 +33,7 @@ import UrlHandler from './url.handler';
 
 /*@ngInject*/
 export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
-                               whiteLabelingService, loginService, userService, $translate) {
+                               whiteLabelingService, loginService, userService, customTranslationService, $translate) {
 
     $window.Flow = Flow;
     var frame = null;
@@ -194,6 +194,14 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             updateFavicon();
             var pageTitle = $state.current.data ? $state.current.data.pageTitle : '';
             updatePageTitle(pageTitle);
+        });
+
+        $rootScope.globalTranslateOnReadyListener = $rootScope.$on('$translateReady', function () {
+            customTranslationService.updateCustomTranslations();
+        });
+
+        $rootScope.globalTranslateOnChangeListener = $rootScope.$on('$translateChangeEnd', function () {
+            customTranslationService.updateCustomTranslations();
         });
     }
 
