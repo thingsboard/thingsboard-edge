@@ -118,7 +118,7 @@ public class ThingsboardInstallService {
                         databaseUpgradeService.upgradeDatabase("2.1.1");
 
                     case "2.1.2": // to 2.1.3PE
-                        log.info("Upgrading ThingsBoard from version 2.1.1 to 2.1.3PE ...");
+                        log.info("Upgrading ThingsBoard from version 2.1.2 to 2.1.3PE ...");
 
                         databaseUpgradeService.upgradeDatabase("2.1.2");
 
