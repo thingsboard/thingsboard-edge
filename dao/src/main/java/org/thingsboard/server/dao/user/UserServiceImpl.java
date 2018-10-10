@@ -236,7 +236,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public EntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupUser, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
@@ -244,14 +244,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         return entityGroupService.findEntities(entityGroupId, pageLink, userViewFunction);
     }
 
-    private BiFunction<EntityView, List<EntityField>, EntityView> userViewFunction = ((entityView, entityFields) -> {
+    private BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> userViewFunction = ((entityView, entityFields) -> {
         User user = findUserById(new UserId(entityView.getId().getId()));
         entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
         for (EntityField field : entityFields) {

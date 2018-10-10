@@ -42,10 +42,20 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -57,13 +67,18 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -71,7 +86,11 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -95,6 +114,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
     @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private EntityViewService entityViewService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -156,18 +178,31 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     @Override
     public void deleteDevice(DeviceId deviceId) {
         log.trace("Executing deleteDevice [{}]", deviceId);
-        Cache cache = cacheManager.getCache(DEVICE_CACHE);
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
+
+        Device device = deviceDao.findById(deviceId.getId());
+        try {
+            List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(device.getTenantId(), deviceId).get();
+            if (entityViews != null && !entityViews.isEmpty()) {
+                throw new DataValidationException("Can't delete device that is assigned to entity views!");
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Exception while finding entity views for deviceId [{}]", deviceId, e);
+            throw new RuntimeException("Exception while finding entity views for deviceId [" + deviceId + "]", e);
+        }
+
         DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(deviceId);
         if (deviceCredentials != null) {
             deviceCredentialsService.deleteDeviceCredentials(deviceCredentials);
         }
         deleteEntityRelations(deviceId);
-        Device device = deviceDao.findById(deviceId.getId());
+
         List<Object> list = new ArrayList<>();
         list.add(device.getTenantId());
         list.add(device.getName());
+        Cache cache = cacheManager.getCache(DEVICE_CACHE);
         cache.evict(list);
+
         deviceDao.removeById(deviceId.getId());
     }
 
@@ -284,7 +319,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public EntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
@@ -292,14 +327,14 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         return entityGroupService.findEntities(entityGroupId, pageLink, new DeviceViewFunction(customerId));
     }
 
-    class DeviceViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
+    class DeviceViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
 
         private final CustomerId customerId;
 
@@ -312,7 +347,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         }
 
         @Override
-        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
+        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
             Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
             if (this.customerId != null && !this.customerId.isNullUid()
                     && !this.customerId.equals(device.getCustomerId())) {

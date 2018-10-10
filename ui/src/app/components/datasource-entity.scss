@@ -28,17 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+@import "../../scss/constants";
 
-.tb-entity-alias-autocomplete, .tb-timeseries-datakey-autocomplete, .tb-attribute-datakey-autocomplete, .tb-alarm-datakey-autocomplete {
+.tb-entity-alias-autocomplete,
+.tb-timeseries-datakey-autocomplete,
+.tb-attribute-datakey-autocomplete,
+.tb-alarm-datakey-autocomplete {
   .tb-not-found {
     display: block;
-    line-height: 1.5;
     height: 48px;
+    line-height: 1.5;
+
     .tb-no-entries {
       line-height: 48px;
     }
   }
+
   li {
     height: auto !important;
     white-space: normal !important;
@@ -47,9 +52,10 @@
 
 tb-datasource-entity {
   @media (min-width: $layout-breakpoint-sm) {
-    padding-left: 4px;
     padding-right: 4px;
+    padding-left: 4px;
   }
+
   tb-entity-alias-select {
     @media (min-width: $layout-breakpoint-sm) {
       width: 200px;

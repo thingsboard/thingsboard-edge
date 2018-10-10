@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.wl;
 
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -75,4 +76,5 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 
+    void deleteDomainWhiteLabelingByEntityId(EntityId entityId);
 }

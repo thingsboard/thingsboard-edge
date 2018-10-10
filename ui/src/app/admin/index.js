@@ -38,6 +38,7 @@ import thingsboardToast from '../services/toast';
 import AdminRoutes from './admin.routes';
 import AdminController from './admin.controller';
 import WhiteLabelingController from './white-labeling.controller';
+import CustomTranslationController from './custom-translation.controller';
 
 export default angular.module('thingsboard.admin', [
     uiRouter,
@@ -50,4 +51,5 @@ export default angular.module('thingsboard.admin', [
     .config(AdminRoutes)
     .controller('AdminController', AdminController)
     .controller('WhiteLabelingController', WhiteLabelingController)
+    .controller('CustomTranslationController', CustomTranslationController)
     .name;

@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -105,6 +107,10 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
     @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private EntityViewService entityViewService;
+
     @Autowired
     private CacheManager cacheManager;
 
@@ -163,11 +169,21 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
         deleteEntityRelations(assetId);
 
-        Cache cache = cacheManager.getCache(ASSET_CACHE);
         Asset asset = assetDao.findById(assetId.getId());
+        try {
+            List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(asset.getTenantId(), assetId).get();
+            if (entityViews != null && !entityViews.isEmpty()) {
+                throw new DataValidationException("Can't delete asset that is assigned to entity views!");
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Exception while finding entity views for assetId [{}]", assetId, e);
+            throw new RuntimeException("Exception while finding entity views for assetId [" + assetId + "]", e);
+        }
+
         List<Object> list = new ArrayList<>();
         list.add(asset.getTenantId());
         list.add(asset.getName());
+        Cache cache = cacheManager.getCache(ASSET_CACHE);
         cache.evict(list);
 
         assetDao.removeById(assetId.getId());
@@ -280,7 +296,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public EntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupAsset, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
@@ -288,14 +304,14 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         return entityGroupService.findEntities(entityGroupId, pageLink, new AssetViewFunction(customerId));
     }
 
-    class AssetViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
+    class AssetViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
 
         private final CustomerId customerId;
 
@@ -308,7 +324,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         }
 
         @Override
-        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
+        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
             Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
             if (this.customerId != null && !this.customerId.isNullUid()
                     && !this.customerId.equals(asset.getCustomerId())) {

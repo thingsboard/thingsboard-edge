@@ -28,10 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-#tb-audit-log-action-data, #tb-audit-log-failure-details {
-  min-width: 400px;
-  min-height: 50px;
+
+#tb-audit-log-action-data,
+#tb-audit-log-failure-details {
   width: 100%;
+  min-width: 400px;
   height: 100%;
-  border: 1px solid #C0C0C0;
+  min-height: 50px;
+  border: 1px solid #c0c0c0;
 }

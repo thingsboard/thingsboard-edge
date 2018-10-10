@@ -99,6 +99,7 @@ import thingsboardClipboard from './services/clipboard.service';
 import thingsboardHome from './layout';
 import thingsboardApiLogin from './api/login.service';
 import thingsboardApiDevice from './api/device.service';
+import thingsboardApiEntityView from './api/entity-view.service';
 import thingsboardApiUser from './api/user.service';
 import thingsboardApiEntityRelation from './api/entity-relation.service';
 import thingsboardApiAsset from './api/asset.service';
@@ -115,6 +116,7 @@ import thingsboardApiRuleChain from './api/rule-chain.service';
 import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
 import thingsboardApiReport from './api/report.service';
 import thingsboardApiBlobEntity from './api/blob-entity.service';
+import thingsboardApiCustomTranslation from './api/custom-translation.service';
 
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -177,6 +179,7 @@ angular.module('thingsboard', [
     thingsboardHome,
     thingsboardApiLogin,
     thingsboardApiDevice,
+    thingsboardApiEntityView,
     thingsboardApiUser,
     thingsboardApiEntityRelation,
     thingsboardApiAsset,
@@ -193,6 +196,7 @@ angular.module('thingsboard', [
     thingsboardApiSchedulerEvent,
     thingsboardApiReport,
     thingsboardApiBlobEntity,
+    thingsboardApiCustomTranslation,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

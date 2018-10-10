@@ -282,6 +282,14 @@ export default class Subscription {
         } else {
             this.startWatchingTimewindow();
         }
+        registration = this.ctx.$scope.$watch(function () {
+            return subscription.alarmSearchStatus;
+        }, function (newAlarmSearchStatus, prevAlarmSearchStatus) {
+            if (!angular.equals(newAlarmSearchStatus, prevAlarmSearchStatus)) {
+                subscription.update();
+            }
+        }, true);
+        this.registrations.push(registration);
     }
 
     initDataSubscription() {
@@ -314,6 +322,7 @@ export default class Subscription {
             for (var a = 0; a < datasource.dataKeys.length; a++) {
                 var dataKey = datasource.dataKeys[a];
                 dataKey.hidden = false;
+                dataKey.label = this.ctx.utils.customTranslation(dataKey.label,dataKey.label);
                 dataKey.pattern = angular.copy(dataKey.label);
                 var datasourceData = {
                     datasource: datasource,

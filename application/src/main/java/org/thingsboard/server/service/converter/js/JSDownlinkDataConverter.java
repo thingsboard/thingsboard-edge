@@ -53,7 +53,7 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
     public void init(Converter configuration) {
         super.init(configuration);
         String encoder = configuration.getConfiguration().get("encoder").asText();
-        this.evaluator = new JSDownlinkEvaluator(sandboxService, encoder);
+        this.evaluator = new JSDownlinkEvaluator(sandboxService, configuration.getId(), encoder);
     }
 
     @Override

@@ -144,6 +144,7 @@ export default angular.module('thingsboard.help', [])
                 customers: helpBaseUrl + "/docs/user-guide/ui/customers",
                 assets: helpBaseUrl + "/docs/user-guide/ui/assets",
                 devices: helpBaseUrl + "/docs/user-guide/ui/devices",
+                entityViews: helpBaseUrl + "/docs/user-guide/ui/entity-views",
                 dashboards: helpBaseUrl + "/docs/user-guide/ui/dashboards",
                 users: helpBaseUrl + "/docs/user-guide/ui/users",
                 widgetsBundles: helpBaseUrl + "/docs/user-guide/ui/widget-library#bundles",
@@ -169,6 +170,7 @@ export default angular.module('thingsboard.help', [])
                 integrationOpcUa:  helpBaseUrl +  "/docs/user-guide/integrations/opc-ua",
                 whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
                 entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
+                customTranslation: helpBaseUrl +  "/docs/user-guide/custom-translation"
             },
             getRuleNodeLink: function(ruleNode) {
                 if (ruleNode && ruleNode.component) {

@@ -28,54 +28,61 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+@import "../../scss/constants";
 
 .tb-integration-panel-group {
   .tb-panel-title {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
     min-width: 90px;
+    user-select: none;
+
     @media (min-width: $layout-breakpoint-sm) {
       min-width: 180px;
     }
   }
+
   .tb-panel-prompt {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
-    white-space: nowrap;
     overflow: hidden;
+    font-size: 14px;
+    color: rgba(0, 0, 0, .87);
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
+
   &.disabled {
-    .tb-panel-title, .tb-panel-prompt {
-      color: rgba(0, 0, 0, 0.38);
+    .tb-panel-title,
+    .tb-panel-prompt {
+      color: rgba(0, 0, 0, .38);
     }
   }
+
   md-icon.md-expansion-panel-icon {
-    margin-right: 0px;
+    margin-right: 0;
   }
+
   span.no-data-found {
     position: relative;
+    display: flex;
     height: 40px;
     text-transform: uppercase;
-    display: flex;
+
     &.disabled {
-      color: rgba(0,0,0,0.38);
+      color: rgba(0, 0, 0, .38);
     }
   }
 }
 
 .tb-integration-form {
   .tb-container {
-    width:100%;
+    width: 100%;
   }
+
   .dropdown-messages {
     .tb-error-message {
       padding: 5px 0 0 0;
     }
   }
+
   .dropdown-section {
+    /* empty */
   }
 }

@@ -289,6 +289,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'deviceType',
                     name: 'alias.filter-type-device-type'
                 },
+                entityViewType: {
+                    value: 'entityViewType',
+                    name: 'alias.filter-type-entity-view-type'
+                },
                 relationsQuery: {
                     value: 'relationsQuery',
                     name: 'alias.filter-type-relations-query'
@@ -300,6 +304,10 @@ export default angular.module('thingsboard.types', [])
                 deviceSearchQuery: {
                     value: 'deviceSearchQuery',
                     name: 'alias.filter-type-device-search-query'
+                },
+                entityViewSearchQuery: {
+                    value: 'entityViewSearchQuery',
+                    name: 'alias.filter-type-entity-view-search-query'
                 }
             },
             position: {
@@ -440,7 +448,8 @@ export default angular.module('thingsboard.types', [])
                 rulechain: "RULE_CHAIN",
                 rulenode: "RULE_NODE",
                 schedulerEvent: "SCHEDULER_EVENT",
-                blobEntity: "BLOB_ENTITY"
+                blobEntity: "BLOB_ENTITY",
+                entityView: "ENTITY_VIEW"
             },
             entityGroup: {
                 sortOrder: {
@@ -636,6 +645,12 @@ export default angular.module('thingsboard.types', [])
                     group: 'asset.group',
                     groupList: 'asset.list-of-groups',
                     groupNameStartsWith: 'asset.group-name-starts-with'
+                },
+                "ENTITY_VIEW": {
+                    type: 'entity.type-entity-view',
+                    typePlural: 'entity.type-entity-views',
+                    list: 'entity.list-of-entity-views',
+                    nameStartsWith: 'entity.entity-view-name-starts-with'
                 },
                 "TENANT": {
                     type: 'entity.type-tenant',
@@ -1308,7 +1323,8 @@ export default angular.module('thingsboard.types', [])
                 cards: "cards"
             },
             translate: {
-                customTranslationsPrefix: "custom."
+                customTranslationsPrefix: "custom.",
+                i18nPrefix: "i18n"
             }
         }
     ).name;

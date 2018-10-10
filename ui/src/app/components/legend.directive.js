@@ -42,7 +42,7 @@ export default angular.module('thingsboard.directives.legend', [])
     .name;
 
 /*@ngInject*/
-function Legend($compile, $templateCache, types) {
+function Legend($compile, $templateCache, types, utils) {
 
     var linker = function (scope, element) {
         var template = $templateCache.get(legendTemplate);
@@ -60,6 +60,10 @@ function Legend($compile, $templateCache, types) {
 
         scope.toggleHideData = function(index) {
             scope.legendData.keys[index].dataKey.hidden = !scope.legendData.keys[index].dataKey.hidden;
+        }
+
+        scope.getDataKeyLabel = function(text) {
+            return utils.customTranslation(text, text);
         }
 
         $compile(element.contents())(scope);

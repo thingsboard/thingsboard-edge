@@ -46,7 +46,7 @@
             <td class="tb-legend-label"
                 ng-click="toggleHideData(legendKey.dataIndex)"
                 ng-class="{ 'tb-hidden-label': legendData.keys[legendKey.dataIndex].dataKey.hidden, 'tb-horizontal': isHorizontal }">
-                {{ legendKey.dataKey.label }}
+                {{ getDataKeyLabel(legendKey.dataKey.label) }}
             </td>
             <td class="tb-legend-value" ng-if="legendConfig.showMin === true">{{ legendData.data[legendKey.dataIndex].min }}</td>
             <td class="tb-legend-value" ng-if="legendConfig.showMax === true">{{ legendData.data[legendKey.dataIndex].max }}</td>

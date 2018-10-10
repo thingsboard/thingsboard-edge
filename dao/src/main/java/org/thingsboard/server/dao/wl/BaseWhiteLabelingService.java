@@ -139,6 +139,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         } else {
             result = getSystemLoginWhiteLabelingParams();
         }
+        result.merge(getSystemWhiteLabelingParams());
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
@@ -287,6 +288,15 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     public WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         return whiteLabelingParams.merge(getTenantWhiteLabelingParams(tenantId)).
                 merge(getSystemWhiteLabelingParams());
+    }
+
+    @Override
+    public void deleteDomainWhiteLabelingByEntityId(EntityId entityId) {
+        LoginWhiteLabelingParams params = getEntityLoginWhiteLabelParams(entityId);
+        if (!StringUtils.isEmpty(params.getDomainName())) {
+            String loginWhiteLabelKey = constructLoginWhileLabelKey(params.getDomainName());
+            adminSettingsService.deleteAdminSettingsByKey(loginWhiteLabelKey);
+        }
     }
 
     private WhiteLabelingParams constructWlParams(String json) {

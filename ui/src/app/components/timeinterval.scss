@@ -28,25 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 tb-timeinterval {
   min-width: 355px;
+
   md-input-container {
-    margin-bottom: 0px;
+    margin-bottom: 0;
+
     .md-errors-spacer {
-      min-height: 0px;
+      min-height: 0;
     }
   }
+
   mdp-date-picker {
     .md-input {
       width: 150px;
     }
   }
+
   .md-input {
     width: 70px !important;
   }
+
   .advanced-switch {
     margin-top: 0;
   }
+
   .advanced-label {
     margin: 5px 0;
   }

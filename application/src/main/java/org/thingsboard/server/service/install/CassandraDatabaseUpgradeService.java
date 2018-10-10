@@ -56,10 +56,19 @@ import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATIO
 import static org.thingsboard.server.service.install.DatabaseHelper.CUSTOMER_ID;
 import static org.thingsboard.server.service.install.DatabaseHelper.DASHBOARD;
 import static org.thingsboard.server.service.install.DatabaseHelper.DEVICE;
+import static org.thingsboard.server.service.install.DatabaseHelper.END_TS;
+import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_ID;
+import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_TYPE;
+import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_VIEW;
+import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_VIEWS;
 import static org.thingsboard.server.service.install.DatabaseHelper.ID;
+import static org.thingsboard.server.service.install.DatabaseHelper.KEYS;
+import static org.thingsboard.server.service.install.DatabaseHelper.NAME;
 import static org.thingsboard.server.service.install.DatabaseHelper.SEARCH_TEXT;
+import static org.thingsboard.server.service.install.DatabaseHelper.START_TS;
 import static org.thingsboard.server.service.install.DatabaseHelper.TENANT_ID;
 import static org.thingsboard.server.service.install.DatabaseHelper.TITLE;
+import static org.thingsboard.server.service.install.DatabaseHelper.TYPE;
 
 @Service
 @NoSqlDao
@@ -225,8 +234,46 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 break;
 
             case "2.0.0":
+
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.0pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.1", SCHEMA_UPDATE_CQL);
+                loadCql(schemaUpdateFile);
+                log.info("Schema updated.");
+
+                break;
+
+            case "2.1.1":
+
+                log.info("Upgrading Cassandra DataBase from version {} to 2.1.2 ...", fromVersion);
+
+                cluster.getSession();
+
+                ks = cluster.getCluster().getMetadata().getKeyspace(cluster.getKeyspaceName());
+
+                log.info("Dumping entity views ...");
+                Path entityViewsDump = CassandraDbHelper.dumpCfIfExists(ks, cluster.getSession(), ENTITY_VIEWS,
+                        new String[]{ID, ENTITY_ID, ENTITY_TYPE, TENANT_ID, CUSTOMER_ID, NAME, TYPE, KEYS, START_TS, END_TS, SEARCH_TEXT, ADDITIONAL_INFO},
+                        new String[]{"", "", "", "", "", "", "default", "", "0", "0", "", ""},
+                        "tb-entity-views");
+                log.info("Entity views dumped.");
+
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.2", SCHEMA_UPDATE_CQL);
+                loadCql(schemaUpdateFile);
+                log.info("Schema updated.");
+
+                log.info("Restoring entity views ...");
+                if (entityViewsDump != null) {
+                    CassandraDbHelper.loadCf(ks, cluster.getSession(), ENTITY_VIEW,
+                            new String[]{ID, ENTITY_ID, ENTITY_TYPE, TENANT_ID, CUSTOMER_ID, NAME, TYPE, KEYS, START_TS, END_TS, SEARCH_TEXT, ADDITIONAL_INFO}, entityViewsDump);
+                    Files.deleteIfExists(entityViewsDump);
+                }
+                log.info("Entity views restored.");
+
+                break;
+            case "2.1.2":
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.3pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
@@ -254,6 +301,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
                 log.info("Converters updated.");
                 break;
+
             default:
                 throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);
         }

@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.converter.js;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.service.script.JsSandboxService;
 import org.thingsboard.server.service.script.JsScriptType;
 
@@ -42,20 +43,22 @@ public abstract class AbstractJSEvaluator {
     protected final JsSandboxService sandboxService;
     private final JsScriptType scriptType;
     private final String script;
+    protected final EntityId entityId;
 
     protected volatile UUID scriptId;
     private volatile boolean isErrorScript = false;
 
 
-    public AbstractJSEvaluator(JsSandboxService sandboxService, JsScriptType scriptType, String script) {
+    public AbstractJSEvaluator(JsSandboxService sandboxService, EntityId entityId, JsScriptType scriptType, String script) {
         this.sandboxService = sandboxService;
         this.scriptType = scriptType;
         this.script = script;
+        this.entityId = entityId;
     }
 
     public void destroy() {
         if (this.scriptId != null) {
-            this.sandboxService.release(this.scriptId);
+            this.sandboxService.release(this.scriptId, this.entityId);
         }
     }
 

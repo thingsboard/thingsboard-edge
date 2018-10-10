@@ -72,15 +72,15 @@ public class AlarmsCountMapping {
                 return Futures.successfulAsList(alarmFutures);
             }, ctx.getDbCallbackExecutor());
             return Futures.transform(alarmsFuture,
-                    alarms -> Optional.of(prepareResult(alarms.stream().filter(createAlarmFilter()).count())),
+                    alarms -> Optional.of(prepareResult(alarms.stream().filter(createAlarmFilter()).map(AlarmInfo::getId).distinct().count())),
                     ctx.getDbCallbackExecutor());
         } else if (executeTimeFilter) {
             long maxTime = System.currentTimeMillis() - latestInterval;
             return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().filter(relation ->
-                UUIDs.unixTimestamp(relation.getTo().getId()) >= maxTime
-            ).count())), ctx.getDbCallbackExecutor());
+                    UUIDs.unixTimestamp(relation.getTo().getId()) >= maxTime
+            ).map(EntityRelation::getTo).distinct().count())), ctx.getDbCallbackExecutor());
         } else {
-            return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.size())), ctx.getDbCallbackExecutor());
+            return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().map(EntityRelation::getTo).distinct().count())), ctx.getDbCallbackExecutor());
         }
     }
 
@@ -111,7 +111,7 @@ public class AlarmsCountMapping {
         };
     }
 
-    private <T> boolean matches (List<T> filterList, T value) {
+    private <T> boolean matches(List<T> filterList, T value) {
         if (filterList != null && !filterList.isEmpty()) {
             return filterList.contains(value);
         } else {

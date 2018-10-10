@@ -30,19 +30,14 @@
  */
 package org.thingsboard.server.dao.group;
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.group.ColumnConfiguration;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasUUID;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
@@ -82,11 +77,11 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    EntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
-                               BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
+    ShortEntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
+                               BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction);
 
-    ListenableFuture<TimePageData<EntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                            BiFunction<EntityView, List<EntityField>, EntityView> transformFunction);
+    ListenableFuture<TimePageData<ShortEntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
+                                                            BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction);
 
     ListenableFuture<List<EntityId>> findAllEntityIds(EntityGroupId entityGroupId, TimePageLink pageLink);
 

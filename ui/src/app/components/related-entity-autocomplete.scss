@@ -28,16 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 .tb-related-entity-autocomplete {
   .tb-not-found {
     display: block;
-    line-height: 1.5;
     height: 48px;
+    line-height: 1.5;
   }
+
   .tb-entity-item {
     display: block;
     height: 48px;
   }
+
   li {
     height: auto !important;
     white-space: normal !important;

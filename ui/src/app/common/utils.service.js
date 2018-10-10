@@ -182,7 +182,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         base64toString: base64toString,
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults,
-        loadImageAspect: loadImageAspect
+        loadImageAspect: loadImageAspect,
+        translateText: translateText
     }
 
     return service;
@@ -577,8 +578,29 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
     }
 
     function customTranslation(translationValue, defaultValue) {
+        if (translationValue.includes("{" + types.translate.i18nPrefix)) {
+            var i18nRegExp = new RegExp('{' + types.translate.i18nPrefix + ':[^{}]+}', 'g');
+            var matches = translationValue.match(i18nRegExp);
+            var result = translationValue;
+            for (var i = 0; i < matches.length; i++) {
+                var match = matches[i];
+                var translationId = match.substring(6, match.length - 1);
+                result = result.replace(match, doTranslate(translationId, match));
+            }
+            return result;
+        } else {
+            return doTranslate(translationValue, defaultValue, types.translate.customTranslationsPrefix);
+        }
+    }
+
+    function doTranslate(translationValue, defaultValue, prefix) {
         var result = '';
-        var translationId = types.translate.customTranslationsPrefix + translationValue;
+        var translationId;
+        if (prefix) {
+            translationId = prefix + translationValue;
+        } else {
+            translationId = translationValue;
+        }
         var translation = $translate.instant(translationId);
         if (translation != translationId) {
             result = translation + '';
@@ -740,6 +762,14 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             deferred.resolve(0);
         }
         return deferred.promise;
+    }
+
+    function translateText(text) {
+        if (text.startsWith("${") && text.endsWith("}")) {
+            return $translate.instant(text.substring(2, text.length - 1))
+        } else {
+            return text;
+        }
     }
 
 }

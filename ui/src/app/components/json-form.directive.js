@@ -97,6 +97,7 @@ function JsonForm($compile, $templateCache, $mdColorPicker, whiteLabelingService
                     val = undefined;
                 }
                 selectOrSet(key, scope.model, val);
+                scope.formProps.model = scope.model;
             },
             onColorClick: function(event, key, val) {
                 scope.showColorPicker(event, val);

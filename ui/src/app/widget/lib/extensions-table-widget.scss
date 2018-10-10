@@ -28,15 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 tb-extension-table {
   md-content {
     background-color: #fff;
   }
 }
+
 md-tabs.hide-tabs-menu {
   md-tabs-wrapper {
     display: none;
   }
+
   md-tabs-content-wrapper {
     top: 0 !important;
   }

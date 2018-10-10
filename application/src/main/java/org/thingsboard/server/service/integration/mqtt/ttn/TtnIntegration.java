@@ -77,8 +77,12 @@ public class TtnIntegration extends BasicMqttIntegration {
 
         this.appId = basicCredentials.getUsername();
 
-        String region = mqttClientConfiguration.getHost();
-        mqttClientConfiguration.setHost(region + "." + TTN_ENDPOINT);
+        if (!mqttClientConfiguration.isCustomHost()) {
+            String region = mqttClientConfiguration.getHost();
+            if (!region.endsWith(TTN_ENDPOINT)) {
+                mqttClientConfiguration.setHost(region + "." + TTN_ENDPOINT);
+            }
+        }
         mqttClientConfiguration.setPort(8883);
     }
 
