@@ -72,6 +72,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -286,6 +287,34 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
                 return new TimePageData<>(alarms, query.getPageLink());
             }
         });
+    }
+
+    @Override
+    public List<Long> findAlarmCounts(AlarmQuery query, List<Predicate<AlarmInfo>> filters) {
+        List<Long> alarmCounts = new ArrayList<>();
+        for (Predicate filter : filters) {
+            alarmCounts.add(0l);
+        }
+        TimePageData<AlarmInfo> alarms;
+        do {
+            try {
+                alarms = findAlarms(query).get();
+                for (int i = 0; i < filters.size(); i++) {
+                    Predicate<AlarmInfo> filter = filters.get(i);
+                    long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
+                    alarmCounts.set(i, count);
+                }
+                if (alarms.hasNext()) {
+                    query = new AlarmQuery(query.getAffectedEntityId(),
+                            alarms.getNextPageLink(),
+                            query.getSearchStatus(), query.getStatus(), false);
+                }
+            } catch (ExecutionException | InterruptedException e) {
+                log.warn("Failed to find alarms by query. Query: [{}]", query);
+                throw new RuntimeException(e);
+            }
+        } while (alarms.hasNext());
+        return alarmCounts;
     }
 
     @Override

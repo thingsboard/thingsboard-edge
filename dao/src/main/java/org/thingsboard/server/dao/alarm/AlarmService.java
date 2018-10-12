@@ -43,6 +43,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 
+import java.util.List;
+import java.util.function.Predicate;
+
 /**
  * Created by ashvayka on 11.05.17.
  */
@@ -59,6 +62,8 @@ public interface AlarmService {
     ListenableFuture<AlarmInfo> findAlarmInfoByIdAsync(AlarmId alarmId);
 
     ListenableFuture<TimePageData<AlarmInfo>> findAlarms(AlarmQuery query);
+
+    List<Long> findAlarmCounts(AlarmQuery query, List<Predicate<AlarmInfo>> filters);
 
     AlarmSeverity findHighestAlarmSeverity(EntityId entityId, AlarmSearchStatus alarmSearchStatus,
                                            AlarmStatus alarmStatus);

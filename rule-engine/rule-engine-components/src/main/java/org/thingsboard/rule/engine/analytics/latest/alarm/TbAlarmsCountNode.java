@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,10 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNode;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -48,6 +52,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 @Slf4j
 @RuleNode(
@@ -96,11 +101,34 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
         Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> result = new HashMap<>();
         entityIds.forEach(entityId -> {
             List<ListenableFuture<Optional<JsonObject>>> aggregateFutures = new ArrayList<>();
-            this.config.getAlarmsCountMappings().
-                    forEach(alarmsCountMapping -> aggregateFutures.add(alarmsCountMapping.countAlarms(ctx, entityId)));
+            JsonObject data = countAlarms(ctx, entityId);
+            aggregateFutures.add(Futures.immediateFuture(Optional.of(data)));
             result.put(entityId, aggregateFutures);
         });
         return result;
+    }
+
+    private JsonObject countAlarms(TbContext ctx, EntityId entityId) {
+        List<AlarmsCountMapping> mappings = this.config.getAlarmsCountMappings();
+        List<Predicate<AlarmInfo>> filters = new ArrayList<>();
+        long interval = 0;
+        for (AlarmsCountMapping mapping : mappings) {
+            filters.add(mapping.createAlarmFilter());
+            interval = Math.max(interval, mapping.getLatestInterval());
+        }
+        TimePageLink pageLink;
+        if (interval > 0) {
+            pageLink = new TimePageLink(100, System.currentTimeMillis() - interval);
+        } else {
+            pageLink = new TimePageLink(100);
+        }
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
+        List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(alarmQuery, filters);
+        JsonObject obj = new JsonObject();
+        for (int i=0;i<mappings.size();i++) {
+            obj.addProperty(mappings.get(i).getTarget(), alarmCounts.get(i));
+        }
+        return obj;
     }
 
     @Override

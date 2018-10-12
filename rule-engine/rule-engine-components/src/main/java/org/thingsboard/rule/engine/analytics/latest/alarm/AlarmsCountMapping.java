@@ -58,39 +58,7 @@ public class AlarmsCountMapping {
     private List<AlarmStatus> statusList;
     private long latestInterval;
 
-    public ListenableFuture<Optional<JsonObject>> countAlarms(TbContext ctx, EntityId entityId) {
-        ListenableFuture<List<EntityRelation>> relationsFuture =
-                ctx.getRelationService().findByFromAsync(entityId, RelationTypeGroup.ALARM);
-        boolean executeFilter = (typesList != null && !typesList.isEmpty()) ||
-                (severityList != null && !severityList.isEmpty()) ||
-                (statusList != null && !statusList.isEmpty());
-        boolean executeTimeFilter = latestInterval > 0;
-        if (executeFilter) {
-            ListenableFuture<List<AlarmInfo>> alarmsFuture = Futures.transformAsync(relationsFuture, relations -> {
-                List<ListenableFuture<AlarmInfo>> alarmFutures = new ArrayList<>(relations.size());
-                relations.forEach(relation -> alarmFutures.add(ctx.getAlarmService().findAlarmInfoByIdAsync(new AlarmId(relation.getTo().getId()))));
-                return Futures.successfulAsList(alarmFutures);
-            }, ctx.getDbCallbackExecutor());
-            return Futures.transform(alarmsFuture,
-                    alarms -> Optional.of(prepareResult(alarms.stream().filter(createAlarmFilter()).map(AlarmInfo::getId).distinct().count())),
-                    ctx.getDbCallbackExecutor());
-        } else if (executeTimeFilter) {
-            long maxTime = System.currentTimeMillis() - latestInterval;
-            return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().filter(relation ->
-                    UUIDs.unixTimestamp(relation.getTo().getId()) >= maxTime
-            ).map(EntityRelation::getTo).distinct().count())), ctx.getDbCallbackExecutor());
-        } else {
-            return Futures.transform(relationsFuture, relations -> Optional.of(prepareResult(relations.stream().map(EntityRelation::getTo).distinct().count())), ctx.getDbCallbackExecutor());
-        }
-    }
-
-    private JsonObject prepareResult(Number number) {
-        JsonObject obj = new JsonObject();
-        obj.addProperty(target, number);
-        return obj;
-    }
-
-    private Predicate<AlarmInfo> createAlarmFilter() {
+    public Predicate<AlarmInfo> createAlarmFilter() {
         long maxTime = System.currentTimeMillis() - latestInterval;
         return alarmInfo -> {
             if (!matches(typesList, alarmInfo.getType())) {
@@ -103,7 +71,7 @@ public class AlarmsCountMapping {
                 return false;
             }
             if (latestInterval > 0) {
-                if (alarmInfo.getCreatedTime() >= maxTime) {
+                if (alarmInfo.getCreatedTime() < maxTime) {
                     return false;
                 }
             }

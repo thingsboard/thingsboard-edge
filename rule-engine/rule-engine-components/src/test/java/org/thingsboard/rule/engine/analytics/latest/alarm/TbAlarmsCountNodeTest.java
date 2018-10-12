@@ -43,8 +43,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.Mock;
+import org.mockito.internal.matchers.Any;
 import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -52,11 +54,10 @@ import org.mockito.stubbing.Stubber;
 import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
-import org.thingsboard.server.common.data.alarm.AlarmId;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.alarm.*;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.*;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -66,7 +67,9 @@ import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -161,6 +164,13 @@ public class TbAlarmsCountNodeTest {
         executorAnswer.when(executor).execute(Matchers.any(Runnable.class));
 
         when(ctx.getRelationService()).thenReturn(relationService);
+
+        doAnswer((Answer<List<Long>>) invocationOnMock -> {
+            AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[0];
+            List<Predicate<AlarmInfo>> filters = (List<Predicate<AlarmInfo>>) (invocationOnMock.getArguments())[1];
+            return findAlarmCounts(alarmService, query, filters);
+        }).when(alarmService).findAlarmCounts(Matchers.any(AlarmQuery.class), Matchers.any(List.class));
+
         when(ctx.getAlarmService()).thenReturn(alarmService);
 
         relationsQuery = new RelationsQuery();
@@ -270,7 +280,7 @@ public class TbAlarmsCountNodeTest {
         int totalEntities = parentCount + totalChildCount;
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(totalEntities*3)).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(totalEntities)).tellNext(captor.capture(), eq(SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -335,12 +345,18 @@ public class TbAlarmsCountNodeTest {
             alarm.setPropagate(true);
             alarms.add(alarm);
             alarmRelations.add(createAlarmRelation(entityId, alarm.getId()));
-            when(alarmService.findAlarmInfoByIdAsync(alarm.getId())).thenReturn(Futures.immediateFuture(alarm));
         }
         for (int i=0;i<childAlarms.size();i++) {
             alarmRelations.add(createAlarmRelation(entityId, childAlarms.get(i).getId()));
         }
         when(relationService.findByFromAsync(entityId, RelationTypeGroup.ALARM)).thenReturn(Futures.immediateFuture(alarmRelations));
+        TimePageData<AlarmInfo> pageData = new TimePageData<>(alarms, new TimePageLink(alarms.size()+1));
+        when(alarmService.findAlarms(argThat(new ArgumentMatcher<AlarmQuery>() {
+                                                 @Override
+                                                 public boolean matches(Object query) {
+                                                     return query != null && ((AlarmQuery) query).getAffectedEntityId().equals(entityId);
+                                                 }
+                                             }))).thenReturn(Futures.immediateFuture(pageData));
         alarms.addAll(childAlarms);
         return alarms;
     }
@@ -403,6 +419,33 @@ public class TbAlarmsCountNodeTest {
         query.setParameters(parameters);
         query.setFilters(relationsQuery.getFilters());
         return query;
+    }
+
+    private static List<Long> findAlarmCounts(AlarmService service, AlarmQuery query, List<Predicate<AlarmInfo>> filters) {
+        List<Long> alarmCounts = new ArrayList<>();
+        for (Predicate filter : filters) {
+            alarmCounts.add(0l);
+        }
+        TimePageData<AlarmInfo> alarms;
+        do {
+            try {
+                alarms = service.findAlarms(query).get();
+                for (int i = 0; i < filters.size(); i++) {
+                    Predicate<AlarmInfo> filter = filters.get(i);
+                    long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
+                    alarmCounts.set(i, count);
+                }
+                if (alarms.hasNext()) {
+                    query = new AlarmQuery(query.getAffectedEntityId(),
+                            alarms.getNextPageLink(),
+                            query.getSearchStatus(), query.getStatus(), false);
+                }
+            } catch (ExecutionException | InterruptedException e) {
+                log.warn("Failed to find alarms by query. Query: [{}]", query);
+                throw new RuntimeException(e);
+            }
+        } while (alarms.hasNext());
+        return alarmCounts;
     }
 
 
