@@ -111,10 +111,17 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
     private JsonObject countAlarms(TbContext ctx, EntityId entityId) {
         List<AlarmsCountMapping> mappings = this.config.getAlarmsCountMappings();
         List<Predicate<AlarmInfo>> filters = new ArrayList<>();
-        long interval = 0;
         for (AlarmsCountMapping mapping : mappings) {
             filters.add(mapping.createAlarmFilter());
-            interval = Math.max(interval, mapping.getLatestInterval());
+        }
+        long interval = 0;
+        for (AlarmsCountMapping mapping : mappings) {
+            if (mapping.getLatestInterval() == 0) {
+                interval = 0;
+                break;
+            } else {
+                interval = Math.max(interval, mapping.getLatestInterval());
+            }
         }
         TimePageLink pageLink;
         if (interval > 0) {
