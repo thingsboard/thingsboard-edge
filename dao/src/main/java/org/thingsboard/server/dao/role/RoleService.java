@@ -28,11 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.role;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY, ENTITY_VIEW, ROLE, GROUP_PERMISSION
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleSearchQuery;
+
+import java.util.List;
+
+public interface RoleService {
+
+    Role saveRole(Role role);
+
+    Role findRoleById(RoleId roleId);
+
+    TextPageData<Role> findRoleByTenantId(TenantId tenantId, TextPageLink pageLink);
+
+    TextPageData<Role> findRoleByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type);
+
+    ListenableFuture<List<Role>> findRolesByQuery(RoleSearchQuery query);
+
+    ListenableFuture<Role> findRoleByIdAsync(RoleId roleId);
+
+    void deleteRole(RoleId roleId);
+
+    void deleteRolesByTenantId(TenantId tenantId);
+
+    ListenableFuture<List<EntitySubtype>> findRoleTypesByTenantId(TenantId tenantId);
 }

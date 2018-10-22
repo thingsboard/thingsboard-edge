@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -99,6 +100,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Autowired
     private BlobEntityService blobEntityService;
 
+    @Autowired
+    private RoleService roleService;
+
     @Override
     public void deleteEntityRelations(EntityId entityId) {
         super.deleteEntityRelations(entityId);
@@ -148,6 +152,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case BLOB_ENTITY:
                 hasName = blobEntityService.findBlobEntityInfoByIdAsync(new BlobEntityId(entityId.getId()));
+                break;
+            case ROLE:
+                hasName = roleService.findRoleByIdAsync(new RoleId(entityId.getId()));
                 break;
             default:
                 throw new IllegalStateException("Not Implemented!");

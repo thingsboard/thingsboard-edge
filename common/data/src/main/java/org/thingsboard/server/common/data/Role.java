@@ -30,9 +30,49 @@
  */
 package org.thingsboard.server.common.data;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY, ENTITY_VIEW, ROLE, GROUP_PERMISSION
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.role.RolePermissions;
+
+@Data
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, HasTenantId {
+
+    private static final long serialVersionUID = 5582010124562018986L;
+
+    private TenantId tenantId;
+    private String name;
+    private String type;
+    private RolePermissions permissions;
+
+    public Role() {
+        super();
+    }
+
+    public Role(RoleId id) {
+        super(id);
+    }
+
+    public Role(Role role) {
+        super(role);
+    }
+
+    @Override
+    public String getSearchText() {
+        return getName();
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public TenantId getTenantId() {
+        return tenantId;
+    }
 }

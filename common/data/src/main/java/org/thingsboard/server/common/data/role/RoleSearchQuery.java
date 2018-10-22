@@ -28,11 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.role;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY, ENTITY_VIEW, ROLE, GROUP_PERMISSION
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+
+import java.util.Collections;
+import java.util.List;
+
+@Data
+public class RoleSearchQuery {
+
+    private RelationsSearchParameters parameters;
+    private String relationType;
+    private List<String> roleTypes;
+
+    public EntityRelationsQuery toEntitySearchQuery() {
+        EntityRelationsQuery query = new EntityRelationsQuery();
+        query.setParameters(parameters);
+        query.setFilters(
+                Collections.singletonList(new EntityTypeFilter(relationType == null ? EntityRelation.CONTAINS_TYPE : relationType,
+                        Collections.singletonList(EntityType.ROLE))));
+        return query;
+    }
 }

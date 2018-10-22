@@ -88,6 +88,8 @@ public class EntityIdFactory {
                 return new BlobEntityId(uuid);
             case ENTITY_VIEW:
                 return new EntityViewId(uuid);
+            case ROLE:
+                return new RoleId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }

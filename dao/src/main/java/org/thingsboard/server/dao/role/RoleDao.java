@@ -28,11 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.role;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY, ENTITY_VIEW, ROLE, GROUP_PERMISSION
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.dao.Dao;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface RoleDao extends Dao<Role> {
+
+    Role save(Role role);
+
+    List<Role> findRolesByTenantId(UUID tenantId, TextPageLink pageLink);
+
+    List<Role> findRolesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink);
+
+    Optional<Role> findRoleByTenantIdAndName(UUID tenantId, String name);
+
+    ListenableFuture<List<EntitySubtype>> findTenantRoleTypesAsync(UUID tenantId);
 }

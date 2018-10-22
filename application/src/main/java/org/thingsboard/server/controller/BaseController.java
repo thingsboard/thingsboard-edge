@@ -41,7 +41,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.thingsboard.server.actors.service.ActorService;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -53,7 +62,24 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
@@ -88,6 +114,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -191,6 +218,9 @@ public abstract class BaseController {
 
     @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected RoleService roleService;
 
     @Autowired
     protected TelemetrySubscriptionService tsSubService;
@@ -411,6 +441,9 @@ public abstract class BaseController {
                 case ENTITY_VIEW:
                     checkEntityViewId(new EntityViewId(entityId.getId()));
                     return;
+                case ROLE:
+                    checkRoleId(new RoleId(entityId.getId()));
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -455,6 +488,22 @@ public abstract class BaseController {
         if (entityView.getCustomerId() != null && !entityView.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
             checkCustomerId(entityView.getCustomerId());
         }
+    }
+
+    protected Role checkRoleId(RoleId roleId) throws ThingsboardException {
+        try {
+            validateId(roleId, "Incorrect roleId " + roleId);
+            Role role = roleService.findRoleById(roleId);
+            checkRole(role);
+            return role;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected void checkRole(Role role) throws ThingsboardException {
+        checkNotNull(role);
+        checkTenantId(role.getTenantId());
     }
 
     Asset checkAssetId(AssetId assetId) throws ThingsboardException {

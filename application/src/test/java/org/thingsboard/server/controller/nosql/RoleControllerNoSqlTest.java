@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.controller.nosql;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP, CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY, ENTITY_VIEW, ROLE, GROUP_PERMISSION
+import org.thingsboard.server.controller.BaseRoleControllerTest;
+import org.thingsboard.server.dao.service.DaoNoSqlTest;
+
+@DaoNoSqlTest
+public class RoleControllerNoSqlTest extends BaseRoleControllerTest {
 }
