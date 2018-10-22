@@ -906,7 +906,11 @@
         "type-integration": "Integration",
         "type-integrations": "Integrations",
         "list-of-integrations": "{ count, plural, 1 {One integration} other {List of # integrations} }",
-        "integration-name-starts-with": "Integrations whose names start with '{{prefix}}'"
+        "integration-name-starts-with": "Integrations whose names start with '{{prefix}}'",
+        "type-role": "Role",
+        "type-roles": "Roles",
+        "list-of-roles": "{ count, plural, 1 {One role} other {List of # roles} }",
+        "role-name-starts-with": "Roles whose names start with '{{prefix}}'"
     },
     "entity-group": {
         "entity-group": "Entity group",

@@ -170,7 +170,8 @@ export default angular.module('thingsboard.help', [])
                 integrationOpcUa:  helpBaseUrl +  "/docs/user-guide/integrations/opc-ua",
                 whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
                 entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
-                customTranslation: helpBaseUrl +  "/docs/user-guide/custom-translation"
+                customTranslation: helpBaseUrl +  "/docs/user-guide/custom-translation",
+                roles: helpBaseUrl + "/docs/user-guide/ui/roles"
             },
             getRuleNodeLink: function(ruleNode) {
                 if (ruleNode && ruleNode.component) {

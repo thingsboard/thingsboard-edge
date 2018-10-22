@@ -268,6 +268,12 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             state: 'home.integrations',
                             icon: 'input'
                         },
+                        {
+                            name: 'role.roles',
+                            type: 'link',
+                            state: 'home.role',
+                            icon: 'security'
+                        },
                         customerGroups,
                         assetGroups,
                         deviceGroups,
@@ -369,6 +375,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     name: 'integration.integrations',
                                     icon: 'input',
                                     state: 'home.integrations'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'role.management',
+                            places: [
+                                {
+                                    name: 'role.roles',
+                                    icon: 'security',
+                                    state: 'home.roles'
                                 }
                             ]
                         },
