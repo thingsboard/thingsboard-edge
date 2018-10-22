@@ -43,7 +43,9 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         lastPublicDashboardId = null,
         allowedDashboardIds = [],
         userTokenAccessEnabled = false,
-        userLoaded = false;
+        userLoaded = false,
+        whiteLabelingAllowed = false,
+        customerWhiteLabelingAllowed = false;
 
     var refreshTokenQueue = [];
 
@@ -78,7 +80,9 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         logout: logout,
         reloadUser: reloadUser,
         isUserTokenAccessEnabled: isUserTokenAccessEnabled,
-        loginAsUser: loginAsUser
+        loginAsUser: loginAsUser,
+        isWhiteLabelingAllowed: isWhiteLabelingAllowed,
+        isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed
     }
 
     reloadUser();
@@ -263,6 +267,18 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         }
     }
 
+    function isWhiteLabelingAllowed() {
+        return whiteLabelingAllowed;
+    }
+
+    function isCustomerWhiteLabelingAllowed() {
+        if (currentUser.authority === 'TENANT_ADMIN') {
+            return customerWhiteLabelingAllowed;
+        } else {
+            return false;
+        }
+    }
+
     function getPublicId() {
         if (isPublic()) {
             return currentUser.sub;
@@ -411,11 +427,42 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         return deferred.promise;
     }
 
+    function checkIsWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        whiteLabelingService.isWhiteLabelingAllowed().then(
+            (response) => {
+                whiteLabelingAllowed = !!response;
+                if (currentUser.authority === 'TENANT_ADMIN') {
+                    whiteLabelingService.isCustomerWhiteLabelingAllowed().then(
+                        (response) => {
+                            customerWhiteLabelingAllowed = !!response;
+                            deferred.resolve();
+                        },
+                        () => {
+                            whiteLabelingAllowed = false;
+                            deferred.reject();
+                        }
+                    )
+                } else {
+                    deferred.resolve();
+                }
+            },
+            () => {
+                whiteLabelingAllowed = false;
+                deferred.reject();
+            }
+        )
+        return deferred.promise;
+    }
+
     function loadSystemParams() {
         var promises = [];
         promises.push(loadIsUserTokenAccessEnabled());
         promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
         promises.push(timeService.loadMaxDatapointsLimit());
+        if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
+            promises.push(checkIsWhiteLabelingAllowed());
+        }
         return $q.all(promises);
     }
 

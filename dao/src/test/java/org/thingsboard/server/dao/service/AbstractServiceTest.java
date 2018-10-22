@@ -72,6 +72,7 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -141,6 +142,9 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected RuleChainService ruleChainService;
+
+    @Autowired
+    protected WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private ComponentDescriptorService componentDescriptorService;

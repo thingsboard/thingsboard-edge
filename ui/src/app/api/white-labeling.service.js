@@ -100,7 +100,9 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
         getCurrentLoginWhiteLabelParams: getCurrentLoginWhiteLabelParams,
         saveWhiteLabelParams: saveWhiteLabelParams,
-        saveLoginWhiteLabelParams: saveLoginWhiteLabelParams
+        saveLoginWhiteLabelParams: saveLoginWhiteLabelParams,
+        isWhiteLabelingAllowed: isWhiteLabelingAllowed,
+        isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed
     };
 
     return service;
@@ -568,4 +570,25 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         return [parseInt(red, 16), parseInt(grn, 16), parseInt(blu, 16)];
     }
 
+    function isWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        var url = '/api/whiteLabel/isWhiteLabelingAllowed';
+        $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function isCustomerWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        var url = '/api/whiteLabel/isCustomerWhiteLabelingAllowed';
+        $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 }

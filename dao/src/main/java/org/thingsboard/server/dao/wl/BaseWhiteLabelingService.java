@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.wl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -50,8 +54,10 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -73,11 +79,20 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
 
+    private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
+    private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
     @Autowired
     private AttributesService attributesService;
+
+    @Autowired
+    private TenantService tenantService;
+
+    @Autowired
+    private CustomerService customerService;
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams() {
@@ -316,7 +331,12 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private WhiteLabelingParams getEntityWhiteLabelParams(EntityId entityId) {
-        String json = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
+        String json;
+        if (isWhiteLabelingAllowed(entityId)) {
+            json = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
+        } else {
+            json = "";
+        }
         return constructWlParams(json);
     }
 
@@ -337,12 +357,63 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(EntityId entityId) {
-        String json = getEntityAttributeValue(entityId, LOGIN_WHITE_LABEL_PARAMS);
+        String json;
+        if (isWhiteLabelingAllowed(entityId)) {
+            json = getEntityAttributeValue(entityId, LOGIN_WHITE_LABEL_PARAMS);
+        } else {
+            json = "";
+        }
         return constructLoginWlParams(json);
     }
 
+    public boolean isWhiteLabelingAllowed(EntityId entityId) {
+        if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
+            Customer customer = customerService.findCustomerById((CustomerId) entityId);
+            if (isCustomerWhiteLabelingAllowed(customer.getTenantId())) {
+                JsonNode allowWhiteLabelJsonNode = customer.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+                if (allowWhiteLabelJsonNode == null) {
+                    return true;
+                } else {
+                    return allowWhiteLabelJsonNode.asBoolean();
+                }
+            } else {
+                return false;
+            }
+        } else if (entityId.getEntityType().equals(EntityType.TENANT)) {
+            Tenant tenant = tenantService.findTenantById((TenantId) entityId);
+            JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+            if (allowWhiteLabelJsonNode == null) {
+                return true;
+            } else {
+                return allowWhiteLabelJsonNode.asBoolean();
+            }
+        }
+        log.error("Unsupported entity type [{}]!", entityId.getEntityType().name());
+        throw new IncorrectParameterException("Unsupported entity type [" + entityId.getEntityType().name() + "]!");
+    }
+
+    @Override
+    public boolean isCustomerWhiteLabelingAllowed(TenantId tenantId) {
+        Tenant tenant = tenantService.findTenantById(tenantId);
+        JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+        if (allowWhiteLabelJsonNode == null) {
+            return true;
+        } else {
+            if (allowWhiteLabelJsonNode.asBoolean()) {
+                JsonNode allowCustomerWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_CUSTOMER_WHITE_LABELING);
+                if (allowCustomerWhiteLabelJsonNode == null) {
+                    return true;
+                } else {
+                    return allowCustomerWhiteLabelJsonNode.asBoolean();
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
     private String getEntityAttributeValue(EntityId entityId, String key) {
-        List<AttributeKvEntry> attributeKvEntries = null;
+        List<AttributeKvEntry> attributeKvEntries;
         try {
             attributeKvEntries = attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         } catch (Exception e) {
