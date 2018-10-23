@@ -64,5 +64,25 @@
             <label translate>role.description</label>
             <textarea ng-model="role.additionalInfo.description" rows="2"></textarea>
         </md-input-container>
+		<md-expansion-panel-group class="tb-integration-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="permissionsPanelGroup">
+			<md-expansion-panel md-component-id="{{permissionsPanelId}}">
+				<md-expansion-panel-collapsed>
+					<div class="tb-panel-title">{{ 'role.permissions' | translate }}</div>
+					<span flex></span>
+					<md-expansion-panel-icon></md-expansion-panel-icon>
+				</md-expansion-panel-collapsed>
+				<md-expansion-panel-expanded>
+					<md-expansion-panel-header ng-click="$mdExpansionPanel(permissionsPanelId).collapse()">
+						<div class="tb-panel-title">{{ 'role.permissions' | translate }}</div>
+						<span flex></span>
+						<md-expansion-panel-icon></md-expansion-panel-icon>
+					</md-expansion-panel-header>
+					<md-expansion-panel-content>
+						<tb-checkbox-list ng-disabled="$root.loading || !isEdit"
+										  checkbox-list="role.permissions"></tb-checkbox-list>
+					</md-expansion-panel-content>
+				</md-expansion-panel-expanded>
+			</md-expansion-panel>
+		</md-expansion-panel-group>
 	</fieldset>
 </md-content>

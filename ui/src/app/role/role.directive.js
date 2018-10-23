@@ -43,22 +43,23 @@ export default function RoleDirective($q, $compile, $templateCache, $filter, toa
         var template = $templateCache.get(roleFieldsetTemplate);
         element.html(template);
 
-        scope.attributesPanelId = (Math.random()*1000).toFixed(0);
-        scope.timeseriesPanelId = (Math.random()*1000).toFixed(0);
+        scope.permissionsPanelId = (Math.random()*1000).toFixed(0);
         scope.$mdExpansionPanel = $mdExpansionPanel;
-
         scope.types = types;
 
         var semicolon = 186;
         scope.separatorKeys = [$mdConstant.KEY_CODE.ENTER, $mdConstant.KEY_CODE.COMMA, semicolon];
 
         scope.$watch('role', function(newVal) {
-            if (newVal) {}
+            if (newVal) {
+                if (!scope.role.permissions) {
+                    scope.role.permissions = {};
+                }
+            }
         });
 
-
         scope.onRoleIdCopied = function() {
-            toast.showSuccess($translate.instant('entity-view.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+            toast.showSuccess($translate.instant('role.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
         };
 
         $compile(element.contents())(scope);

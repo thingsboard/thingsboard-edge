@@ -41,7 +41,6 @@ import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.Role;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.role.RolePermissions;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
@@ -50,7 +49,6 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.io.IOException;
 
 import static org.thingsboard.server.dao.model.ModelConstants.ROLE_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ROLE_PERMISSIONS_PROPERTY;
@@ -75,8 +73,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
     @Column(name = ROLE_NAME_PROPERTY)
     private String name;
 
+    @Type(type = "json")
     @Column(name = ROLE_PERMISSIONS_PROPERTY)
-    private String permissions;
+    private JsonNode permissions;
 
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
@@ -100,11 +99,7 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         }
         this.type = role.getType();
         this.name = role.getName();
-        try {
-            this.permissions = mapper.writeValueAsString(role.getPermissions());
-        } catch (IOException e) {
-            log.error("Unable to serialize role permissions!", e);
-        }
+        this.permissions = role.getPermissions();
         this.searchText = role.getSearchText();
         this.additionalInfo = role.getAdditionalInfo();
     }
@@ -129,11 +124,7 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         }
         role.setType(type);
         role.setName(name);
-        try {
-            role.setPermissions(mapper.readValue(permissions, RolePermissions.class));
-        } catch (IOException e) {
-            log.error("Unable to read role keys!", e);
-        }
+        role.setPermissions(permissions);
         role.setAdditionalInfo(additionalInfo);
         return role;
     }

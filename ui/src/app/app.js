@@ -198,6 +198,7 @@ angular.module('thingsboard', [
     thingsboardApiReport,
     thingsboardApiBlobEntity,
     thingsboardApiCustomTranslation,
+    thingsboardApiRole,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

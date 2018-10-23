@@ -232,6 +232,12 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
                     scope.entityRequiredText = 'blob-entity.blob-entity-required'
                     break;
+                case types.entityType.role:
+                    scope.selectEntityText = 'role.select-role';
+                    scope.entityText = 'role.role';
+                    scope.noEntitiesMatchingText = 'role.no-roles-matching';
+                    scope.entityRequiredText = 'role.role-required';
+                    break;
             }
             if (scope.labelText && scope.labelText.length) {
                 scope.entityText = scope.labelText;

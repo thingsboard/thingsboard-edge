@@ -308,6 +308,10 @@ export default angular.module('thingsboard.types', [])
                 entityViewSearchQuery: {
                     value: 'entityViewSearchQuery',
                     name: 'alias.filter-type-entity-view-search-query'
+                },
+                roleType: {
+                    value: 'roleType',
+                    name: 'alias.filter-type-role-type'
                 }
             },
             position: {

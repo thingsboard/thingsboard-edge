@@ -47,7 +47,7 @@
                                 entity-id="vm.grid.operatingItem().id.id"
                                 entity-type="{{vm.types.entityType.role}}"
                                 entity-name="vm.grid.operatingItem().name"
-                                default-attribute-scope="{{vm.types.attributesScope.client.value}}">
+                                default-attribute-scope="{{vm.types.attributesScope.server.value}}">
             </tb-attribute-table>
         </md-tab>
         <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">

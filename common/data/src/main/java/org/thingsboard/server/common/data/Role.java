@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.role.RolePermissions;
 
 @Data
 @AllArgsConstructor
@@ -47,7 +47,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     private TenantId tenantId;
     private String name;
     private String type;
-    private RolePermissions permissions;
+    private transient JsonNode permissions;
 
     public Role() {
         super();

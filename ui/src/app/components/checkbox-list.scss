@@ -28,26 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.role;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+.tb-checkbox-list {
+  span.no-data-found {
+    position: relative;
+    display: flex;
+    height: 40px;
+    text-transform: uppercase;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-public class RolePermissions {
-
-    //TODO
-    private List<String> permissions;
-
-    public RolePermissions(List<String> permissions) {
-        this.permissions = new ArrayList<>(permissions);
+    &.disabled {
+      color: rgba(0, 0, 0, .38);
     }
-
-    public RolePermissions(RolePermissions obj) {
-        this(obj.getPermissions());
-    }
+  }
 }

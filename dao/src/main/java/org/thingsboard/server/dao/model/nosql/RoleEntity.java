@@ -44,10 +44,9 @@ import org.hibernate.annotations.Type;
 import org.thingsboard.server.common.data.Role;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.role.RolePermissions;
 import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.type.JsonCodec;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
@@ -81,8 +80,8 @@ public class RoleEntity implements SearchTextEntity<Role> {
     @Column(name = ROLE_NAME_PROPERTY)
     private String name;
 
-    @Column(name = ROLE_PERMISSIONS_PROPERTY)
-    private String permissions;
+    @Column(name = ROLE_PERMISSIONS_PROPERTY, codec = JsonCodec.class)
+    private JsonNode permissions;
 
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
@@ -106,11 +105,7 @@ public class RoleEntity implements SearchTextEntity<Role> {
         }
         this.type = role.getType();
         this.name = role.getName();
-        try {
-            this.permissions = mapper.writeValueAsString(role.getPermissions());
-        } catch (IOException e) {
-            log.error("Unable to serialize role permissions!", e);
-        }
+        this.permissions = role.getPermissions();
         this.searchText = role.getSearchText();
         this.additionalInfo = role.getAdditionalInfo();
     }
@@ -129,11 +124,7 @@ public class RoleEntity implements SearchTextEntity<Role> {
         }
         role.setType(type);
         role.setName(name);
-        try {
-            role.setPermissions(mapper.readValue(permissions, RolePermissions.class));
-        } catch (IOException e) {
-            log.error("Unable to read entity view keys!", e);
-        }
+        role.setPermissions(permissions);
         role.setAdditionalInfo(additionalInfo);
         return role;
     }

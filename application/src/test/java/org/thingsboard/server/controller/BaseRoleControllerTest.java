@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.role.RolePermissions;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.ArrayList;
@@ -187,7 +186,6 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         role.setTenantId(savedTenant.getId());
         role.setName(name);
         role.setType("default");
-        role.setPermissions(new RolePermissions());
         return role;
     }
 

@@ -271,7 +271,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                         {
                             name: 'role.roles',
                             type: 'link',
-                            state: 'home.role',
+                            state: 'home.roles',
                             icon: 'security'
                         },
                         customerGroups,

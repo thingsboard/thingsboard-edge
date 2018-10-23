@@ -78,9 +78,9 @@ export function RoleController($rootScope, userService, roleService, $state, $st
 
         addItemTemplateUrl: addRoleTemplate,
 
-        addItemText: function() { return $translate.instant('entity-view.add-entity-view-text') },
-        noItemsText: function() { return $translate.instant('entity-view.no-entity-views-text') },
-        itemDetailsText: function() { return $translate.instant('entity-view.entity-view-details') }
+        addItemText: function() { return $translate.instant('role.add-role-text') },
+        noItemsText: function() { return $translate.instant('role.no-roles-text') },
+        itemDetailsText: function() { return $translate.instant('role.role-details') }
     };
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
@@ -98,10 +98,10 @@ export function RoleController($rootScope, userService, roleService, $state, $st
         var deleteRoleFunction = null;
         var refreshRolesParamsFunction = null;
 
-        var user = userService.getCurrentUser();
+        // var user = userService.getCurrentUser(); dsfas
 
         fetchRolesFunction = function (pageLink, roleType) {
-            return roleService.getTenantRoles(pageLink, true, null, roleType);
+            return roleService.getTenantRoles(pageLink, true, roleType);
         };
         deleteRoleFunction = function (roleId) {
             return roleService.deleteRole(roleId);
@@ -116,7 +116,7 @@ export function RoleController($rootScope, userService, roleService, $state, $st
                     vm.grid.deleteItem($event, item);
                 },
                 name: function() { return $translate.instant('action.delete') },
-                details: function() { return $translate.instant('entity-view.delete') },
+                details: function() { return $translate.instant('role.delete') },
                 icon: "delete"
             }
         );
@@ -126,7 +126,7 @@ export function RoleController($rootScope, userService, roleService, $state, $st
                 onAction: function ($event) {
                     vm.grid.deleteItems($event);
                 },
-                name: function() { return $translate.instant('entity-view.delete-entity-views') },
+                name: function() { return $translate.instant('role.delete-roles') },
                 details: deleteRolesActionTitle,
                 icon: "delete"
             }
@@ -138,23 +138,23 @@ export function RoleController($rootScope, userService, roleService, $state, $st
     }
 
     function deleteRoleTitle(role) {
-        return $translate.instant('entity-view.delete-entity-view-title', {roleName: role.name});
+        return $translate.instant('role.delete-role-title', {roleName: role.name});
     }
 
     function deleteRoleText() {
-        return $translate.instant('entity-view.delete-entity-view-text');
+        return $translate.instant('role.delete-role-text');
     }
 
     function deleteRolesTitle(selectedCount) {
-        return $translate.instant('entity-view.delete-entity-views-title', {count: selectedCount}, 'messageformat');
+        return $translate.instant('role.delete-roles-title', {count: selectedCount}, 'messageformat');
     }
 
     function deleteRolesActionTitle(selectedCount) {
-        return $translate.instant('entity-view.delete-entity-views-action-title', {count: selectedCount}, 'messageformat');
+        return $translate.instant('role.delete-roles-action-title', {count: selectedCount}, 'messageformat');
     }
 
     function deleteRolesText () {
-        return $translate.instant('entity-view.delete-entity-views-text');
+        return $translate.instant('role.delete-roles-text');
     }
 
     function gridInited(grid) {
