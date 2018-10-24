@@ -45,10 +45,12 @@ export default angular.module('thingsboard.directives.menuLink', [thingsboardMen
     .name;
 
 /*@ngInject*/
-function MenuLink($compile, $templateCache, menu) {
+function MenuLink($compile, $templateCache, menu, utils) {
 
     var linker = function (scope, element) {
         var template;
+
+        scope.utils = utils;
 
         if (scope.section.type === 'link') {
             template = $templateCache.get(menulinkTemplate);

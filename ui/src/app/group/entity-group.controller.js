@@ -79,10 +79,10 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
     if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
-        vm.tableTitle = vm.settings.groupTableTitle;
+        vm.tableTitle = utils.customTranslation(vm.settings.groupTableTitle, vm.settings.groupTableTitle);
         vm.entitiesTitle = '';
     } else {
-        vm.tableTitle = vm.entityGroup.name;
+        vm.tableTitle = utils.customTranslation(vm.entityGroup.name, vm.entityGroup.name);
         vm.entitiesTitle = ': ' + $translate.instant(types.entityTypeTranslations[vm.entityType].typePlural);
     }
 
@@ -467,6 +467,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     function cellContent(entity, column) {
         var content;
         var value = entity[column.key];
+        value = utils.customTranslation(value, value);
         if (column.cellContentFunction) {
             var strContent = '';
             if (angular.isDefined(value)) {

@@ -37,7 +37,7 @@ import entityGroupAutocompleteTemplate from './entity-group-autocomplete.tpl.htm
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityGroupAutocompleteDirective($compile, $templateCache, $q, $filter, entityGroupService) {
+export default function EntityGroupAutocompleteDirective($compile, $templateCache, $q, $filter, entityGroupService, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(entityGroupAutocompleteTemplate);
@@ -46,6 +46,8 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
         scope.entityGroup = null;
         scope.entityGroupSearchText = '';
+
+        scope.utils = utils;
 
         scope.allEntityGroups = null;
 
