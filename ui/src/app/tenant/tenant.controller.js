@@ -36,7 +36,7 @@ import tenantCard from './tenant-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function TenantController(tenantService, $state, $stateParams, $translate, types) {
+export default function TenantController(tenantService, $state, $stateParams, $translate, types, utils) {
 
     var tenantActionsList = [
         {
@@ -137,7 +137,7 @@ export default function TenantController(tenantService, $state, $stateParams, $t
     }
 
     function getTenantTitle(tenant) {
-        return tenant ? tenant.title : '';
+        return tenant ? utils.customTranslation(tenant.name, tenant.name) : '';
     }
 
     function openTenantUsers($event, tenant) {

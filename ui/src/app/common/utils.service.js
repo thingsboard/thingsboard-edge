@@ -578,18 +578,22 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
     }
 
     function customTranslation(translationValue, defaultValue) {
-        if (translationValue.includes("{" + types.translate.i18nPrefix)) {
-            var i18nRegExp = new RegExp('{' + types.translate.i18nPrefix + ':[^{}]+}', 'g');
-            var matches = translationValue.match(i18nRegExp);
-            var result = translationValue;
-            for (var i = 0; i < matches.length; i++) {
-                var match = matches[i];
-                var translationId = match.substring(6, match.length - 1);
-                result = result.replace(match, doTranslate(translationId, match));
+        if (translationValue && angular.isString(translationValue)) {
+            if (translationValue.includes("{" + types.translate.i18nPrefix)) {
+                var i18nRegExp = new RegExp('{' + types.translate.i18nPrefix + ':[^{}]+}', 'g');
+                var matches = translationValue.match(i18nRegExp);
+                var result = translationValue;
+                for (var i = 0; i < matches.length; i++) {
+                    var match = matches[i];
+                    var translationId = match.substring(6, match.length - 1);
+                    result = result.replace(match, doTranslate(translationId, match));
+                }
+                return result;
+            } else {
+                return doTranslate(translationValue, defaultValue, types.translate.customTranslationsPrefix);
             }
-            return result;
         } else {
-            return doTranslate(translationValue, defaultValue, types.translate.customTranslationsPrefix);
+            return translationValue;
         }
     }
 

@@ -37,7 +37,7 @@ import auditLogRowTemplate from './audit-log-row.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function AuditLogRowDirective($compile, $templateCache, types, $mdDialog, $document) {
+export default function AuditLogRowDirective($compile, $templateCache, types, $mdDialog, $document, utils) {
 
     var linker = function (scope, element, attrs) {
 
@@ -47,6 +47,7 @@ export default function AuditLogRowDirective($compile, $templateCache, types, $m
         scope.auditLog = attrs.auditLog;
         scope.auditLogMode = attrs.auditLogMode;
         scope.types = types;
+        scope.utils = utils;
 
         scope.showAuditLogDetails = function($event) {
             var onShowingCallback = {

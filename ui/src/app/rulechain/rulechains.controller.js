@@ -37,7 +37,7 @@ import ruleChainCard from './rulechain-card.tpl.html';
 
 /*@ngInject*/
 export default function RuleChainsController(ruleChainService, userService, importExport, $state,
-                                             $stateParams, $filter, $translate, $mdDialog, types) {
+                                             $stateParams, $filter, $translate, $mdDialog, types, utils) {
 
     var ruleChainActionsList = [
         {
@@ -193,7 +193,7 @@ export default function RuleChainsController(ruleChainService, userService, impo
     }
 
     function getRuleChainTitle(ruleChain) {
-        return ruleChain ? ruleChain.name : '';
+        return ruleChain ? utils.customTranslation(ruleChain.name, ruleChain.name) : '';
     }
 
     function isRootRuleChain(ruleChain) {
