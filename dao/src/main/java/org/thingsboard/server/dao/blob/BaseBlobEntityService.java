@@ -76,24 +76,24 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     private CustomerDao customerDao;
 
     @Override
-    public BlobEntity findBlobEntityById(BlobEntityId blobEntityId) {
+    public BlobEntity findBlobEntityById(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityById [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
-        return blobEntityDao.findById(blobEntityId.getId());
+        return blobEntityDao.findById(tenantId, blobEntityId.getId());
     }
 
     @Override
-    public BlobEntityInfo findBlobEntityInfoById(BlobEntityId blobEntityId) {
+    public BlobEntityInfo findBlobEntityInfoById(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityInfoById [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
-        return blobEntityInfoDao.findById(blobEntityId.getId());
+        return blobEntityInfoDao.findById(tenantId, blobEntityId.getId());
     }
 
     @Override
-    public ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(BlobEntityId blobEntityId) {
+    public ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityInfoByIdAsync [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
-        return blobEntityInfoDao.findByIdAsync(blobEntityId.getId());
+        return blobEntityInfoDao.findByIdAsync(tenantId, blobEntityId.getId());
     }
 
     @Override
@@ -123,36 +123,35 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     @Override
     public BlobEntity saveBlobEntity(BlobEntity blobEntity) {
         log.trace("Executing saveBlobEntity [{}]", blobEntity);
-        blobEntityValidator.validate(blobEntity);
-        BlobEntity savedBlobEntity = blobEntityDao.save(blobEntity);
-        return savedBlobEntity;
+        blobEntityValidator.validate(blobEntity, BlobEntity::getTenantId);
+        return blobEntityDao.save(blobEntity.getTenantId(), blobEntity);
     }
 
     @Override
-    public void deleteBlobEntity(BlobEntityId blobEntityId) {
+    public void deleteBlobEntity(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing deleteBlobEntity [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
-        deleteEntityRelations(blobEntityId);
-        blobEntityDao.removeById(blobEntityId.getId());
+        deleteEntityRelations(tenantId, blobEntityId);
+        blobEntityDao.removeById(tenantId, blobEntityId.getId());
     }
 
     @Override
     public void deleteBlobEntitiesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteBlobEntitiesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantBlobEntitiesRemover.removeEntities(tenantId);
+        tenantBlobEntitiesRemover.removeEntities(tenantId, tenantId);
     }
 
     private DataValidator<BlobEntity> blobEntityValidator =
             new DataValidator<BlobEntity>() {
 
                 @Override
-                protected void validateUpdate(BlobEntity blobEntity) {
+                protected void validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
                     throw new DataValidationException("Update of BlobEntity is prohibited!");
                 }
 
                 @Override
-                protected void validateDataImpl(BlobEntity blobEntity) {
+                protected void validateDataImpl(TenantId tenantId, BlobEntity blobEntity) {
                     if (org.springframework.util.StringUtils.isEmpty(blobEntity.getType())) {
                         throw new DataValidationException("BlobEntity type should be specified!");
                     }
@@ -168,7 +167,7 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
                     if (blobEntity.getTenantId() == null) {
                         throw new DataValidationException("BlobEntity should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(blobEntity.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, blobEntity.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("BlobEntity is referencing to non-existent tenant!");
                         }
@@ -176,7 +175,7 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
                     if (blobEntity.getCustomerId() == null) {
                         blobEntity.setCustomerId(new CustomerId(NULL_UUID));
                     } else if (!blobEntity.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(blobEntity.getCustomerId().getId());
+                        Customer customer = customerDao.findById(tenantId, blobEntity.getCustomerId().getId());
                         if (customer == null) {
                             throw new DataValidationException("Can't assign blobEntity to non-existent customer!");
                         }
@@ -191,13 +190,13 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
             new TimePaginatedRemover<TenantId, BlobEntityInfo>() {
 
                 @Override
-                protected List<BlobEntityInfo> findEntities(TenantId id, TimePageLink pageLink) {
+                protected List<BlobEntityInfo> findEntities(TenantId tenantId, TenantId id, TimePageLink pageLink) {
                     return blobEntityInfoDao.findBlobEntitiesByTenantId(id.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(BlobEntityInfo entity) {
-                    deleteBlobEntity(new BlobEntityId(entity.getId().getId()));
+                protected void removeEntity(TenantId tenantId, BlobEntityInfo entity) {
+                    deleteBlobEntity(tenantId, new BlobEntityId(entity.getId().getId()));
                 }
             };
 }

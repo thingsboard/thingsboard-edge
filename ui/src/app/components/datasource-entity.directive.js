@@ -201,7 +201,7 @@ function DatasourceEntity($compile, $templateCache, $q, $mdDialog, $window, $doc
                 random: tinycolor.random(),
                 clickOutsideToClose: false,
                 hasBackdrop: false,
-                skipHide: true,
+                multiple: true,
                 preserveScope: false,
 
                 mdColorAlphaChannel: true,
@@ -235,7 +235,7 @@ function DatasourceEntity($compile, $templateCache, $q, $mdDialog, $window, $doc
                 parent: angular.element($document[0].body),
                 fullscreen: true,
                 targetEvent: event,
-                skipHide: true,
+                multiple: true,
                 onComplete: function () {
                     var w = angular.element($window);
                     w.triggerHandler('resize');

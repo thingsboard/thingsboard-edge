@@ -41,13 +41,13 @@ public interface ConverterService {
 
     Converter saveConverter(Converter converter);
 
-    Converter findConverterById(ConverterId converterId);
+    Converter findConverterById(TenantId tenantId, ConverterId converterId);
 
-    ListenableFuture<Converter> findConverterByIdAsync(ConverterId converterId);
+    ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
 
     TextPageData<Converter> findTenantConverters(TenantId tenantId, TextPageLink pageLink);
 
-    void deleteConverter(ConverterId converterId);
+    void deleteConverter(TenantId tenantId, ConverterId converterId);
 
     void deleteConvertersByTenantId(TenantId tenantId);
 

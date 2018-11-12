@@ -86,7 +86,7 @@ public class EntityGroupController extends BaseController {
         try {
             checkEntityGroupType(entityGroup.getType());
 
-            EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getCurrentUser().getTenantId(), entityGroup));
+            EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getTenantId(), getTenantId(), entityGroup));
 
             logEntityAction(savedEntityGroup.getId(), savedEntityGroup,
                     null,
@@ -112,7 +112,7 @@ public class EntityGroupController extends BaseController {
                 throw new ThingsboardException("Unable to remove entity group: " +
                         "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
             }
-            entityGroupService.deleteEntityGroup(entityGroupId);
+            entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
             logEntityAction(entityGroupId, entityGroup,
                     null,
@@ -137,7 +137,7 @@ public class EntityGroupController extends BaseController {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(entityGroupService.findEntityGroupsByType(tenantId, groupType).get());
+            return checkNotNull(entityGroupService.findEntityGroupsByType(getTenantId(), tenantId, groupType).get());
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -164,7 +164,7 @@ public class EntityGroupController extends BaseController {
                 checkEntityId(entityId);
                 entityIds.add(entityId);
             }
-            entityGroupService.addEntitiesToEntityGroup(entityGroupId, entityIds);
+            entityGroupService.addEntitiesToEntityGroup(getTenantId(), entityGroupId, entityIds);
             for (EntityId entityId : entityIds) {
                 logEntityAction((UUIDBased & EntityId)entityId, null,
                         null,
@@ -205,7 +205,7 @@ public class EntityGroupController extends BaseController {
                 checkEntityId(entityId);
                 entityIds.add(entityId);
             }
-            entityGroupService.removeEntitiesFromEntityGroup(entityGroupId, entityIds);
+            entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
             for (EntityId entityId : entityIds) {
                 logEntityAction((UUIDBased & EntityId)entityId, null,
                         null,
@@ -243,11 +243,11 @@ public class EntityGroupController extends BaseController {
             checkEntityId(entityId);
             ShortEntityView result = null;
             if (entityType == EntityType.CUSTOMER) {
-                result = customerService.findGroupCustomer(entityGroupId, entityId);
+                result = customerService.findGroupCustomer(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.ASSET) {
-                result = assetService.findGroupAsset(entityGroupId, entityId);
+                result = assetService.findGroupAsset(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.DEVICE) {
-                result = deviceService.findGroupDevice(entityGroupId, entityId);
+                result = deviceService.findGroupDevice(getTenantId(), entityGroupId, entityId);
             }
             return checkNotNull(result);
         } catch (Exception e) {
@@ -279,11 +279,11 @@ public class EntityGroupController extends BaseController {
                     throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
                             ThingsboardErrorCode.PERMISSION_DENIED);
                 }
-                asyncResult = customerService.findCustomersByEntityGroupId(entityGroupId, pageLink);
+                asyncResult = customerService.findCustomersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.ASSET) {
-                asyncResult = assetService.findAssetsByEntityGroupIdAndCustomerId(entityGroupId, getCurrentUser().getCustomerId(), pageLink);
+                asyncResult = assetService.findAssetsByEntityGroupIdAndCustomerId(getTenantId(), entityGroupId, getCurrentUser().getCustomerId(), pageLink);
             } else if (entityType == EntityType.DEVICE) {
-                asyncResult = deviceService.findDevicesByEntityGroupIdAndCustomerId(entityGroupId, getCurrentUser().getCustomerId(), pageLink);
+                asyncResult = deviceService.findDevicesByEntityGroupIdAndCustomerId(getTenantId(), entityGroupId, getCurrentUser().getCustomerId(), pageLink);
             }
             checkNotNull(asyncResult);
             if (asyncResult != null) {
@@ -308,7 +308,7 @@ public class EntityGroupController extends BaseController {
             EntityType entityType = checkStrEntityGroupType("entityType", strEntityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
             checkEntityId(entityId);
-            return checkNotNull(entityGroupService.findEntityGroupsForEntity(entityId).get());
+            return checkNotNull(entityGroupService.findEntityGroupsForEntity(getTenantId(), entityId).get());
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -175,7 +175,7 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
                       showingCallback: onShowingCallback},
             targetEvent: $event,
             fullscreen: true,
-            skipHide: true,
+            multiple: true,
             onShowing: function(scope, element) {
                 onShowingCallback.onShowing(scope, element);
             }

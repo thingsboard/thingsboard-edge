@@ -276,7 +276,7 @@ public class TbAggLatestTelemetryNodeTest {
                         expectedDeviceCount++;
                     }
                 }
-                when(timeseriesService.findLatest(childEntityId, Collections.singletonList("temperature"))).thenReturn(
+                when(timeseriesService.findLatest(Matchers.any(), Matchers.eq(childEntityId), Matchers.eq(Collections.singletonList("temperature")))).thenReturn(
                     Futures.immediateFuture(kvEntry != null ? Collections.singletonList(kvEntry) : Collections.emptyList())
                 );
 
@@ -292,10 +292,10 @@ public class TbAggLatestTelemetryNodeTest {
             expectedAvgTempMap.put(parentEntityId,
                 sum.divide(BigDecimal.valueOf(childCount), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
 
-            when(relationService.findByQuery(buildQuery(parentEntityId, relationsQuery))).thenReturn(Futures.immediateFuture(childRelations));
+            when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
         }
 
-        when(relationService.findByQuery(buildQuery(rootEntityId, relationsQuery))).thenReturn(Futures.immediateFuture(parentEntityRelations));
+        when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
 
         node.init(ctx, nodeConfiguration);
 
@@ -354,7 +354,7 @@ public class TbAggLatestTelemetryNodeTest {
                 }
 
                 TsKvEntry kvEntry = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry("temperature", temperatureString));
-                when(timeseriesService.findLatest(childEntityId, Collections.singletonList("temperature"))).thenReturn(
+                when(timeseriesService.findLatest(Matchers.any(), Matchers.eq(childEntityId), Matchers.eq(Collections.singletonList("temperature")))).thenReturn(
                         Futures.immediateFuture(Collections.singletonList(kvEntry))
                 );
 
@@ -365,10 +365,10 @@ public class TbAggLatestTelemetryNodeTest {
             expectedAvgTempMap.put(parentEntityId,
                     sum.divide(BigDecimal.valueOf(childCount), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
 
-            when(relationService.findByQuery(buildQuery(parentEntityId, relationsQuery))).thenReturn(Futures.immediateFuture(childRelations));
+            when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
         }
 
-        when(relationService.findByQuery(buildQuery(rootEntityId, relationsQuery))).thenReturn(Futures.immediateFuture(parentEntityRelations));
+        when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
 
         node.init(ctx, nodeConfiguration);
 

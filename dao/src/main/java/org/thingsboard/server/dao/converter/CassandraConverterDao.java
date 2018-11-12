@@ -34,6 +34,7 @@ import com.datastax.driver.core.querybuilder.Select;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.nosql.ConverterEntity;
@@ -67,7 +68,7 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
     @Override
     public List<Converter> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find converters by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<ConverterEntity> converterEntities = findPageWithTextSearch(CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<ConverterEntity> converterEntities = findPageWithTextSearch(new TenantId(tenantId), CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Collections.singletonList(eq(CONVERTER_TENANT_ID_PROPERTY, tenantId)), pageLink);
 
         log.trace("Found converters [{}] by tenantId [{}] and pageLink [{}]", converterEntities, tenantId, pageLink);
@@ -80,7 +81,7 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
         Select.Where query = select.where();
         query.and(eq(CONVERTER_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(CONVERTER_NAME_PROPERTY, converterName));
-        ConverterEntity converterEntity = findOneByStatement(query);
+        ConverterEntity converterEntity = findOneByStatement(new TenantId(tenantId), query);
         return Optional.ofNullable(DaoUtil.getData(converterEntity));
     }
 

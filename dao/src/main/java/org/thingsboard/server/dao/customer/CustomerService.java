@@ -46,15 +46,15 @@ import java.util.Optional;
 
 public interface CustomerService {
 
-    Customer findCustomerById(CustomerId customerId);
+    Customer findCustomerById(TenantId tenantId, CustomerId customerId);
 
     Optional<Customer> findCustomerByTenantIdAndTitle(TenantId tenantId, String title);
 
-    ListenableFuture<Customer> findCustomerByIdAsync(CustomerId customerId);
+    ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId);
 
     Customer saveCustomer(Customer customer);
 
-    void deleteCustomer(CustomerId customerId);
+    void deleteCustomer(TenantId tenantId, CustomerId customerId);
 
     Customer findOrCreatePublicCustomer(TenantId tenantId);
 
@@ -62,8 +62,8 @@ public interface CustomerService {
 
     void deleteCustomersByTenantId(TenantId tenantId);
 
-    ShortEntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId);
+    ShortEntityView findGroupCustomer(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

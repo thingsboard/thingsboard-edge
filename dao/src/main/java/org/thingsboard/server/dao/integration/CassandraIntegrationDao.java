@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.integration;
 import com.datastax.driver.core.querybuilder.Select;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -67,7 +68,7 @@ public class CassandraIntegrationDao extends CassandraAbstractSearchTextDao<Inte
     @Override
     public List<Integration> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find integrations by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<IntegrationEntity> integrationEntities = findPageWithTextSearch(INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<IntegrationEntity> integrationEntities = findPageWithTextSearch(new TenantId(tenantId), INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Collections.singletonList(eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId)), pageLink);
 
         log.trace("Found integrations [{}] by tenantId [{}] and pageLink [{}]", integrationEntities, tenantId, pageLink);
@@ -75,19 +76,19 @@ public class CassandraIntegrationDao extends CassandraAbstractSearchTextDao<Inte
     }
 
     @Override
-    public Optional<Integration> findByRoutingKey(String routingKey) {
+    public Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey) {
         log.debug("Search integration by routing key [{}]", routingKey);
         Select.Where query = select().from(INTEGRATION_BY_ROUTING_KEY_VIEW_NAME).where(eq(INTEGRATION_ROUTING_KEY_PROPERTY, routingKey));
-        IntegrationEntity integrationEntity = findOneByStatement(query);
+        IntegrationEntity integrationEntity = findOneByStatement(new TenantId(tenantId), query);
         log.trace("Found integration [{}] by routing key [{}]", integrationEntity, routingKey);
         return Optional.ofNullable(DaoUtil.getData(integrationEntity));
     }
 
     @Override
-    public List<Integration> findByConverterId(UUID converterId) {
+    public List<Integration> findByConverterId(UUID tenantId, UUID converterId) {
         log.debug("Search integrations by converterId [{}]", converterId);
         Select.Where query = select().from(INTEGRATION_BY_CONVERTER_ID_VIEW_NAME).where(eq(INTEGRATION_CONVERTER_ID_PROPERTY, converterId));
-        List<IntegrationEntity> integrationEntities = findListByStatement(query);
+        List<IntegrationEntity> integrationEntities = findListByStatement(new TenantId(tenantId), query);
         log.trace("Found integrations [{}] by converterId [{}]", integrationEntities, converterId);
         return DaoUtil.convertDataList(integrationEntities);
     }

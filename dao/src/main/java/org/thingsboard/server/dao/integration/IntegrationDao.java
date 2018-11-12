@@ -59,7 +59,7 @@ public interface IntegrationDao extends Dao<Integration> {
      * @param routingKey the integration routingKey
      * @return the optional integration object
      */
-    Optional<Integration> findByRoutingKey(String routingKey);
+    Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey);
 
     /**
      * Find integrations by converterId.
@@ -67,6 +67,6 @@ public interface IntegrationDao extends Dao<Integration> {
      * @param converterId the converterId
      * @return the list of integration objects
      */
-    List<Integration> findByConverterId(UUID converterId);
+    List<Integration> findByConverterId(UUID tenantId, UUID converterId);
 
 }

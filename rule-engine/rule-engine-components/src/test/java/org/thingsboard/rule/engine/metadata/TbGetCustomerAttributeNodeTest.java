@@ -63,6 +63,8 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,10 +120,10 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getUserService()).thenReturn(userService);
-        when(userService.findUserByIdAsync(userId)).thenReturn(Futures.immediateFuture(user));
+        when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(user));
 
         when(ctx.getAttributesService()).thenReturn(attributesService);
-        when(attributesService.find(customerId, SERVER_SCOPE, Collections.singleton("temperature")))
+        when(attributesService.find(any(), eq(customerId), eq(SERVER_SCOPE), eq(Collections.singleton("temperature"))))
                 .thenThrow(new IllegalStateException("something wrong"));
 
         node.onMsg(ctx, msg);
@@ -143,10 +145,10 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getUserService()).thenReturn(userService);
-        when(userService.findUserByIdAsync(userId)).thenReturn(Futures.immediateFuture(user));
+        when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(user));
 
         when(ctx.getAttributesService()).thenReturn(attributesService);
-        when(attributesService.find(customerId, SERVER_SCOPE, Collections.singleton("temperature")))
+        when(attributesService.find(any(), eq(customerId), eq(SERVER_SCOPE), eq(Collections.singleton("temperature"))))
                 .thenReturn(Futures.immediateFailedFuture(new IllegalStateException("something wrong")));
 
         node.onMsg(ctx, msg);
@@ -168,7 +170,7 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getUserService()).thenReturn(userService);
-        when(userService.findUserByIdAsync(userId)).thenReturn(Futures.immediateFuture(null));
+        when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(null));
 
 
         node.onMsg(ctx, msg);
@@ -193,7 +195,7 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getUserService()).thenReturn(userService);
-        when(userService.findUserByIdAsync(userId)).thenReturn(Futures.immediateFuture(user));
+        when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(user));
 
         entityAttributeFetched(customerId);
     }
@@ -208,7 +210,7 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", assetId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getAssetService()).thenReturn(assetService);
-        when(assetService.findAssetByIdAsync(assetId)).thenReturn(Futures.immediateFuture(asset));
+        when(assetService.findAssetByIdAsync(any(), eq(assetId))).thenReturn(Futures.immediateFuture(asset));
 
         entityAttributeFetched(customerId);
     }
@@ -223,7 +225,7 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", deviceId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getDeviceService()).thenReturn(deviceService);
-        when(deviceService.findDeviceByIdAsync(deviceId)).thenReturn(Futures.immediateFuture(device));
+        when(deviceService.findDeviceByIdAsync(any(), eq(deviceId))).thenReturn(Futures.immediateFuture(device));
 
         entityAttributeFetched(customerId);
     }
@@ -250,12 +252,12 @@ public class TbGetCustomerAttributeNodeTest {
         msg = new TbMsg(UUIDs.timeBased(), "USER", deviceId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
 
         when(ctx.getDeviceService()).thenReturn(deviceService);
-        when(deviceService.findDeviceByIdAsync(deviceId)).thenReturn(Futures.immediateFuture(device));
+        when(deviceService.findDeviceByIdAsync(any(), eq(deviceId))).thenReturn(Futures.immediateFuture(device));
 
         List<TsKvEntry> timeseries = Lists.newArrayList(new BasicTsKvEntry(1L, new StringDataEntry("temperature", "highest")));
 
         when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
-        when(timeseriesService.findLatest(customerId, Collections.singleton("temperature")))
+        when(timeseriesService.findLatest(any(), eq(customerId), eq(Collections.singleton("temperature"))))
                 .thenReturn(Futures.immediateFuture(timeseries));
 
         node.onMsg(ctx, msg);
@@ -267,7 +269,7 @@ public class TbGetCustomerAttributeNodeTest {
         List<AttributeKvEntry> attributes = Lists.newArrayList(new BaseAttributeKvEntry(new StringDataEntry("temperature", "high"), 1L));
 
         when(ctx.getAttributesService()).thenReturn(attributesService);
-        when(attributesService.find(customerId, SERVER_SCOPE, Collections.singleton("temperature")))
+        when(attributesService.find(any(), eq(customerId), eq(SERVER_SCOPE), eq(Collections.singleton("temperature"))))
                 .thenReturn(Futures.immediateFuture(attributes));
 
         node.onMsg(ctx, msg);

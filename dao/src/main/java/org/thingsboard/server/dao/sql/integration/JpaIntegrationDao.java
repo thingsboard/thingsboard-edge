@@ -68,13 +68,13 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
-    public Optional<Integration> findByRoutingKey(String routingKey) {
+    public Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey) {
         Integration integration = DaoUtil.getData(integrationRepository.findByRoutingKey(routingKey));
         return Optional.ofNullable(integration);
     }
 
     @Override
-    public List<Integration> findByConverterId(UUID converterId) {
+    public List<Integration> findByConverterId(UUID tenantId, UUID converterId) {
         return DaoUtil.convertDataList(integrationRepository.findByConverterId(fromTimeUUID(converterId)));
     }
 

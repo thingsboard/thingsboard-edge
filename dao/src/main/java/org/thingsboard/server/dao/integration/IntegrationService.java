@@ -45,19 +45,19 @@ public interface IntegrationService {
 
     Integration saveIntegration(Integration integration);
 
-    Integration findIntegrationById(IntegrationId integrationId);
+    Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId);
 
-    ListenableFuture<Integration> findIntegrationByIdAsync(IntegrationId integrationId);
+    ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId);
 
-    Optional<Integration> findIntegrationByRoutingKey(String routingKey);
+    Optional<Integration> findIntegrationByRoutingKey(TenantId tenantId, String routingKey);
 
-    List<Integration> findAllIntegrations();
+    List<Integration> findAllIntegrations(TenantId tenantId);
 
-    List<Integration> findIntegrationsByConverterId(ConverterId converterId);
+    List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId);
 
     TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink);
 
-    void deleteIntegration(IntegrationId integrationId);
+    void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
 

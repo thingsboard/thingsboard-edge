@@ -91,7 +91,7 @@ public class TbIntegrationDownlinkNode implements TbNode {
             throw new TbNodeException("Integration id is not set in the rule node configuration!");
         }
         this.integrationId = new IntegrationId(config.getIntegrationId());
-        Integration integration = ctx.getPeContext().getIntegrationService().findIntegrationById(integrationId);
+        Integration integration = ctx.getPeContext().getIntegrationService().findIntegrationById(ctx.getTenantId(), integrationId);
         if (integration == null) {
             throw new TbNodeException("Integration with ID [" + integrationId + "] not found!");
         } else if (!integration.getTenantId().equals(ctx.getTenantId())) {

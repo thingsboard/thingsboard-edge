@@ -33,6 +33,7 @@ package org.thingsboard.server.service.telemetry.sub;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.telemetry.TelemetryFeature;
 
 import java.util.Map;
@@ -45,6 +46,7 @@ public class SubscriptionState {
 
     @Getter private final String wsSessionId;
     @Getter private final int subscriptionId;
+    @Getter private final TenantId tenantId;
     @Getter private final EntityId entityId;
     @Getter private final TelemetryFeature type;
     @Getter private final boolean allKeys;

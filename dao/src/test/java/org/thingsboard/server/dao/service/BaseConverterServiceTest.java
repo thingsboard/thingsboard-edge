@@ -87,10 +87,10 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         savedConverter.setName("My new converter");
 
         converterService.saveConverter(savedConverter);
-        Converter foundConverter = converterService.findConverterById(savedConverter.getId());
+        Converter foundConverter = converterService.findConverterById(savedConverter.getTenantId(), savedConverter.getId());
         Assert.assertEquals(foundConverter.getName(), savedConverter.getName());
 
-        converterService.deleteConverter(savedConverter.getId());
+        converterService.deleteConverter(savedConverter.getTenantId(), savedConverter.getId());
     }
 
     @Test(expected = DataValidationException.class)
@@ -126,10 +126,10 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
-        Converter foundConverter = converterService.findConverterById(savedConverter.getId());
+        Converter foundConverter = converterService.findConverterById(savedConverter.getTenantId(), savedConverter.getId());
         Assert.assertNotNull(foundConverter);
         Assert.assertEquals(savedConverter, foundConverter);
-        converterService.deleteConverter(savedConverter.getId());
+        converterService.deleteConverter(savedConverter.getTenantId(), savedConverter.getId());
     }
 
     @Test
@@ -140,10 +140,10 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
-        Converter foundConverter = converterService.findConverterById(savedConverter.getId());
+        Converter foundConverter = converterService.findConverterById(savedConverter.getTenantId(), savedConverter.getId());
         Assert.assertNotNull(foundConverter);
-        converterService.deleteConverter(savedConverter.getId());
-        foundConverter = converterService.findConverterById(savedConverter.getId());
+        converterService.deleteConverter(savedConverter.getTenantId(), savedConverter.getId());
+        foundConverter = converterService.findConverterById(savedConverter.getTenantId(), savedConverter.getId());
         Assert.assertNull(foundConverter);
     }
 

@@ -834,7 +834,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                 }
             },
             parent: angular.element($document[0].body),
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (updatedEntityAliases) {
@@ -961,6 +961,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         }
     }
 
+
     function formatDataAccordingToLocale(data) {
         for (var i = 0; i < data.length; i++) {
             for (var key in data[i]) {
@@ -969,6 +970,28 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                 }
             }
         }
+    }
+
+    function openImportDialog($event, importTitle, importFileLabel) {
+        var deferred = $q.defer();
+        $mdDialog.show({
+            controller: 'ImportDialogController',
+            controllerAs: 'vm',
+            templateUrl: importDialogTemplate,
+            locals: {
+                importTitle: importTitle,
+                importFileLabel: importFileLabel
+            },
+            parent: angular.element($document[0].body),
+            multiple: true,
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function (importData) {
+            deferred.resolve(importData);
+        }, function () {
+            deferred.reject();
+        });
+        return deferred.promise;
     }
 }
 

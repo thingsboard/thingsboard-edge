@@ -45,9 +45,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.*;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -93,24 +95,24 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private TimeseriesService timeseriesService;
 
     @Override
-    public EntityGroup findEntityGroupById(EntityGroupId entityGroupId) {
+    public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupById [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        return entityGroupDao.findById(entityGroupId.getId());
+        return entityGroupDao.findById(tenantId, entityGroupId.getId());
     }
 
     @Override
-    public ListenableFuture<EntityGroup> findEntityGroupByIdAsync(EntityGroupId entityGroupId) {
+    public ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupByIdAsync [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        return entityGroupDao.findByIdAsync(entityGroupId.getId());
+        return entityGroupDao.findByIdAsync(tenantId, entityGroupId.getId());
     }
 
     @Override
-    public EntityGroup saveEntityGroup(EntityId parentEntityId, EntityGroup entityGroup) {
+    public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        new EntityGroupValidator(parentEntityId).validate(entityGroup);
+        new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
@@ -120,29 +122,29 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             jsonConfiguration.putObject("actions");
             entityGroup.setConfiguration(jsonConfiguration);
         }
-        EntityGroup savedEntityGroup = entityGroupDao.save(entityGroup);
+        EntityGroup savedEntityGroup = entityGroupDao.save(tenantId, entityGroup);
         if (entityGroup.getId() == null) {
             EntityRelation entityRelation = new EntityRelation();
             entityRelation.setFrom(parentEntityId);
             entityRelation.setTo(savedEntityGroup.getId());
             entityRelation.setTypeGroup(RelationTypeGroup.TO_ENTITY_GROUP);
             entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX+savedEntityGroup.getType().name());
-            relationService.saveRelation(entityRelation);
+            relationService.saveRelation(tenantId, entityRelation);
         }
         return savedEntityGroup;
     }
 
     @Override
-    public ListenableFuture<Boolean> checkEntityGroup(EntityId parentEntityId, EntityGroup entityGroup) {
+    public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing checkEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        return relationService.checkRelation(parentEntityId, entityGroup.getId(),
+        return relationService.checkRelation(tenantId, parentEntityId, entityGroup.getId(),
                 ENTITY_GROUP_RELATION_PREFIX + entityGroup.getType().name()
                 , RelationTypeGroup.TO_ENTITY_GROUP);
     }
 
     @Override
-    public EntityGroup createEntityGroupAll(EntityId parentEntityId, EntityType groupType) {
+    public EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType) {
         log.trace("Executing createEntityGroupAll, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
@@ -151,70 +153,70 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(EntityGroup.GROUP_ALL_NAME);
         entityGroup.setType(groupType);
-        return saveEntityGroup(parentEntityId, entityGroup);
+        return saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
     @Override
-    public void deleteEntityGroup(EntityGroupId entityGroupId) {
+    public void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing deleteEntityGroup [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        deleteEntityRelations(entityGroupId);
-        entityGroupDao.removeById(entityGroupId.getId());
+        deleteEntityRelations(tenantId, entityGroupId);
+        entityGroupDao.removeById(tenantId, entityGroupId.getId());
     }
 
     @Override
-    public ListenableFuture<List<EntityGroup>> findAllEntityGroups(EntityId parentEntityId) {
+    public ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
         log.trace("Executing findAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFrom(parentEntityId, RelationTypeGroup.TO_ENTITY_GROUP);
-        return relationsToEntityGroups(relations);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFrom(tenantId, parentEntityId, RelationTypeGroup.TO_ENTITY_GROUP);
+        return relationsToEntityGroups(tenantId, relations);
     }
 
     @Override
-    public void deleteAllEntityGroups(EntityId parentEntityId) {
+    public void deleteAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        ListenableFuture<List<EntityGroup>> entityGroupsFuture = findAllEntityGroups(parentEntityId);
+        ListenableFuture<List<EntityGroup>> entityGroupsFuture = findAllEntityGroups(tenantId, parentEntityId);
         try {
             List<EntityGroup> entityGroups = entityGroupsFuture.get();
-            entityGroups.forEach(entityGroup -> deleteEntityGroup(entityGroup.getId()));
+            entityGroups.forEach(entityGroup -> deleteEntityGroup(tenantId, entityGroup.getId()));
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unable to delete entity groups", e);
         }
     }
 
     @Override
-    public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(EntityId parentEntityId, EntityType groupType) {
+    public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType) {
         log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(parentEntityId, relationType, RelationTypeGroup.TO_ENTITY_GROUP);
-        return relationsToEntityGroups(relations);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(tenantId, parentEntityId, relationType, RelationTypeGroup.TO_ENTITY_GROUP);
+        return relationsToEntityGroups(tenantId, relations);
     }
 
-    private ListenableFuture<List<EntityGroup>> relationsToEntityGroups(ListenableFuture<List<EntityRelation>> relations) {
+    private ListenableFuture<List<EntityGroup>> relationsToEntityGroups(TenantId tenantId, ListenableFuture<List<EntityRelation>> relations) {
         return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<EntityGroup>> entityGroupFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
-                entityGroupFutures.add(entityGroupDao.findByIdAsync(relation.getTo().getId()));
+                entityGroupFutures.add(entityGroupDao.findByIdAsync(tenantId, relation.getTo().getId()));
             }
             return Futures.successfulAsList(entityGroupFutures);
         });
     }
 
     @Override
-    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(EntityId parentEntityId, EntityType groupType, String name) {
+    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validateString(name, "Incorrect name " + name);
-        ListenableFuture<List<EntityGroup>> entityGroups = findEntityGroupsByType(parentEntityId, groupType);
-        return Futures.transform(entityGroups, (Function<List<EntityGroup>, Optional<EntityGroup>>) input -> {
+        ListenableFuture<List<EntityGroup>> entityGroups = findEntityGroupsByType(tenantId, parentEntityId, groupType);
+        return Futures.transform(entityGroups, input -> {
             for (EntityGroup entityGroup : input) {
                 if (entityGroup.getName().equals(name)) {
                     return Optional.of(entityGroup);
@@ -225,7 +227,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public void addEntityToEntityGroup(EntityGroupId entityGroupId, EntityId entityId) {
+    public void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
@@ -234,18 +236,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         entityRelation.setTo(entityId);
         entityRelation.setTypeGroup(RelationTypeGroup.FROM_ENTITY_GROUP);
         entityRelation.setType(EntityRelation.CONTAINS_TYPE);
-        relationService.saveRelation(entityRelation);
+        relationService.saveRelation(tenantId, entityRelation);
     }
 
     @Override
-    public void addEntityToEntityGroupAll(EntityId parentEntityId, EntityId entityId) {
+    public void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         try {
-            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
+            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
             if (entityGroup.isPresent()) {
-                addEntityToEntityGroup(entityGroup.get().getId(), entityId);
+                addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
             } else {
                 throw new DataValidationException("Group All of type " + entityId.getEntityType() + " is absent for entityId " + parentEntityId);
             }
@@ -257,36 +259,36 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
 
     @Override
-    public void addEntitiesToEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds) {
+    public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        entityIds.forEach(entityId -> addEntityToEntityGroup(entityGroupId, entityId));
+        entityIds.forEach(entityId -> addEntityToEntityGroup(tenantId, entityGroupId, entityId));
     }
 
     @Override
-    public void removeEntityFromEntityGroup(EntityGroupId entityGroupId, EntityId entityId) {
+    public void removeEntityFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing removeEntityFromEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
-        relationService.deleteRelation(entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+        relationService.deleteRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
     }
 
     @Override
-    public void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds) {
+    public void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing removeEntitiesFromEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        entityIds.forEach(entityId -> removeEntityFromEntityGroup(entityGroupId, entityId));
+        entityIds.forEach(entityId -> removeEntityFromEntityGroup(tenantId, entityGroupId, entityId));
     }
 
     @Override
-    public ShortEntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
+    public ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
                                                         BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
 
         try {
-            if (!relationService.checkRelation(entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP).get()) {
+            if (!relationService.checkRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP).get()) {
                 return null;
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -295,17 +297,17 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
-        EntityGroup entityGroup = findEntityGroupById(entityGroupId);
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        return toEntityView(entityId, columnsInfo, transformFunction);
+        return toEntityView(tenantId, entityId, columnsInfo, transformFunction);
     }
 
     @Override
     public ListenableFuture<TimePageData<ShortEntityView>>
-                            findEntities(EntityGroupId entityGroupId,
+                            findEntities(TenantId tenantId, EntityGroupId entityGroupId,
                                          TimePageLink pageLink, BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
@@ -313,12 +315,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
-        EntityGroup entityGroup = findEntityGroupById(entityGroupId);
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        ListenableFuture<List<EntityId>> entityIds = findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
+        ListenableFuture<List<EntityId>> entityIds = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
         return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<ShortEntityView>>() {
             @Nullable
             @Override
@@ -326,33 +328,33 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 List<ShortEntityView> entities = new ArrayList<>();
                 if (entityIds != null) {
                     entityIds.forEach(entityId -> {
-                        ShortEntityView entityView = toEntityView(entityId, columnsInfo, transformFunction);
+                        ShortEntityView entityView = toEntityView(tenantId, entityId, columnsInfo, transformFunction);
                         entities.add(entityView);
                     });
                 }
                 TimePageData<ShortEntityView> result = new TimePageData<>(entities, pageLink);
-                result.getData().removeIf(entity -> entity.isSkipEntity());
+                result.getData().removeIf(ShortEntityView::isSkipEntity);
                 return result;
             }
         });
     }
 
     @Override
-    public ListenableFuture<List<EntityId>> findAllEntityIds(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        EntityGroup entityGroup = findEntityGroupById(entityGroupId);
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
-        return findEntityIds(entityGroupId, entityGroup.getType(), pageLink);
+        return findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
     }
 
     @Override
-    public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(EntityId entityId) {
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(entityId,
+    public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId) {
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(tenantId, entityId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
-        return Futures.transform(relations, (Function<List<EntityRelation>, List<EntityGroupId>>) input -> {
+        return Futures.transform(relations, input -> {
             List<EntityGroupId> entityGroupIds = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
                 entityGroupIds.add(new EntityGroupId(relation.getFrom().getId()));
@@ -361,10 +363,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         });
     }
 
-    private ListenableFuture<List<EntityId>> findEntityIds(EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(entityGroupId,
+    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
-        return Futures.transform(relations, (Function<List<EntityRelation>, List<EntityId>>) input -> {
+        return Futures.transform(relations, input -> {
             List<EntityId> entityIds = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
                 entityIds.add(relation.getTo());
@@ -427,8 +429,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         keys.add(column.getKey());
     }
 
-    private ShortEntityView toEntityView(EntityId entityId, EntityGroupColumnsInfo columnsInfo,
-                                    BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
+    private ShortEntityView toEntityView(TenantId tenantId, EntityId entityId, EntityGroupColumnsInfo columnsInfo,
+                                         BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
         ShortEntityView entityView = new ShortEntityView(entityId);
         for (EntityField entityField : columnsInfo.commonEntityFields) {
             if (entityField == EntityField.CREATED_TIME) {
@@ -440,18 +442,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             entityView = transformFunction.apply(entityView, columnsInfo.entityFields);
         }
         if (!entityView.isSkipEntity()) {
-            fetchEntityAttributes(entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
+            fetchEntityAttributes(tenantId, entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
         }
         return entityView;
     }
 
-    private void fetchEntityAttributes(ShortEntityView entityView,
+    private void fetchEntityAttributes(TenantId tenantId, ShortEntityView entityView,
                                        Map<String, List<String>> attributeScopeToKeysMap,
                                        List<String> timeseriesKeys) {
         EntityId entityId = entityView.getId();
         attributeScopeToKeysMap.forEach( (scope, attributeKeys) -> {
             try {
-                List<AttributeKvEntry> attributeKvEntries = attributesService.find(entityId, scope, attributeKeys).get();
+                List<AttributeKvEntry> attributeKvEntries = attributesService.find(tenantId, entityId, scope, attributeKeys).get();
                 attributeKvEntries.forEach(attributeKvEntry -> {
                     entityView.put(attributeKvEntry.getKey(), attributeKvEntry.getValueAsString());
                 });
@@ -461,7 +463,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         });
         if (!timeseriesKeys.isEmpty()) {
             try {
-                List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(entityId, timeseriesKeys).get();
+                List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(tenantId, entityId, timeseriesKeys).get();
                 tsKvEntries.forEach(tsKvEntry -> {
                     entityView.put(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
                 });
@@ -487,9 +489,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
 
         @Override
-        protected void validateCreate(EntityGroup entityGroup) {
+        protected void validateCreate(TenantId tenantId, EntityGroup entityGroup) {
             try {
-                findEntityGroupByTypeAndName(this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
+                findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
                         d -> {
                             throw new DataValidationException("Entity group with such name already present in " +
                                     this.parentEntityId.getEntityType().toString() + "!");
@@ -501,9 +503,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
 
         @Override
-        protected void validateUpdate(EntityGroup entityGroup) {
+        protected void validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
             try {
-                findEntityGroupByTypeAndName(this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
+                findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
                         d -> {
                             if (!d.getId().equals(entityGroup.getId())) {
                                 throw new DataValidationException("Entity group with such name already present in " +
@@ -517,7 +519,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
 
         @Override
-        protected void validateDataImpl(EntityGroup entityGroup) {
+        protected void validateDataImpl(TenantId tenantId, EntityGroup entityGroup) {
             if (entityGroup.getType() == null) {
                 throw new DataValidationException("Entity group type should be specified!");
             }

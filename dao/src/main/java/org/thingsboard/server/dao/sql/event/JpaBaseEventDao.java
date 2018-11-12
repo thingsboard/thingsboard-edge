@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EventId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.event.EventDao;
@@ -86,7 +87,7 @@ public class JpaBaseEventDao extends JpaAbstractSearchTimeDao<EventEntity, Event
     }
 
     @Override
-    public Event save(Event event) {
+    public Event save(TenantId tenantId, Event event) {
         log.debug("Save event [{}] ", event);
         if (event.getId() == null) {
             event.setId(new EventId(UUIDs.timeBased()));

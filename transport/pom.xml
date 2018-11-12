@@ -50,23 +50,8 @@
 
     <modules>
         <module>http</module>
-        <module>coap</module>
         <module>mqtt</module>
+        <module>coap</module>
     </modules>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.thingsboard</groupId>
-            <artifactId>dao</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-        </dependency>
-    </dependencies>
 
 </project>

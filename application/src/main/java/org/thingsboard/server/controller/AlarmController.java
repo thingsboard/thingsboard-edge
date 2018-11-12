@@ -115,7 +115,7 @@ public class AlarmController extends BaseController {
         try {
             AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
             Alarm alarm = checkAlarmId(alarmId);
-            alarmService.ackAlarm(alarmId, System.currentTimeMillis()).get();
+            alarmService.ackAlarm(getCurrentUser().getTenantId(), alarmId, System.currentTimeMillis()).get();
             logEntityAction(alarmId, alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_ACK, null);
         } catch (Exception e) {
             throw handleException(e);
@@ -130,7 +130,7 @@ public class AlarmController extends BaseController {
         try {
             AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
             Alarm alarm = checkAlarmId(alarmId);
-            alarmService.clearAlarm(alarmId, null, System.currentTimeMillis()).get();
+            alarmService.clearAlarm(getCurrentUser().getTenantId(), alarmId, null, System.currentTimeMillis()).get();
             logEntityAction(alarmId, alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_CLEAR, null);
         } catch (Exception e) {
             throw handleException(e);
@@ -164,7 +164,7 @@ public class AlarmController extends BaseController {
         checkEntityId(entityId);
         try {
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(alarmService.findAlarms(new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator)).get());
+            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator)).get());
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -190,7 +190,7 @@ public class AlarmController extends BaseController {
         }
         checkEntityId(entityId);
         try {
-            return alarmService.findHighestAlarmSeverity(entityId, alarmSearchStatus, alarmStatus);
+            return alarmService.findHighestAlarmSeverity(getCurrentUser().getTenantId(), entityId, alarmSearchStatus, alarmStatus);
         } catch (Exception e) {
             throw handleException(e);
         }

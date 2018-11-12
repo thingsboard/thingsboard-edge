@@ -85,7 +85,7 @@ public class ReportController extends BaseController {
                 publicId = currentUser.getUserPrincipal().getValue();
             }
             reportService.
-                    generateDashboardReport(baseUrl, dashboardId, currentUser.getId(), publicId, name, reportParams,
+                    generateDashboardReport(baseUrl, dashboardId, getTenantId(), currentUser.getId(), publicId, name, reportParams,
                             reportData -> {
                                 ByteArrayResource resource = new ByteArrayResource(reportData.getData());
                                 ResponseEntity<Resource> response = ResponseEntity.ok().
@@ -119,7 +119,9 @@ public class ReportController extends BaseController {
             checkDashboardInfoId(dashboardId);
 
             reportService.
-                    generateReport(reportConfig,
+                    generateReport(
+                            getTenantId(),
+                            reportConfig,
                             reportsServerEndpointUrl,
                             reportData -> {
                                 ByteArrayResource resource = new ByteArrayResource(reportData.getData());

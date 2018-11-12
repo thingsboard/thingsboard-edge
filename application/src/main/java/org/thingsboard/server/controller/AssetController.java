@@ -119,7 +119,7 @@ public class AssetController extends BaseController {
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             Asset asset = checkAssetId(assetId);
-            assetService.deleteAsset(assetId);
+            assetService.deleteAsset(getTenantId(), assetId);
 
             logEntityAction(assetId, asset,
                     asset.getCustomerId(),
@@ -148,7 +148,7 @@ public class AssetController extends BaseController {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             checkAssetId(assetId);
 
-            Asset savedAsset = checkNotNull(assetService.assignAssetToCustomer(assetId, customerId));
+            Asset savedAsset = checkNotNull(assetService.assignAssetToCustomer(getTenantId(), assetId, customerId));
 
             logEntityAction(assetId, savedAsset,
                     savedAsset.getCustomerId(),
@@ -181,7 +181,7 @@ public class AssetController extends BaseController {
                 customerName = customer.getName();
             }
 
-            Asset savedAsset = checkNotNull(assetService.unassignAssetFromCustomer(assetId));
+            Asset savedAsset = checkNotNull(assetService.unassignAssetFromCustomer(getTenantId(), assetId));
 
             logEntityAction(assetId, asset,
                     asset.getCustomerId(),
@@ -207,7 +207,7 @@ public class AssetController extends BaseController {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             Asset asset = checkAssetId(assetId);
             Customer publicCustomer = customerService.findOrCreatePublicCustomer(asset.getTenantId());
-            Asset savedAsset = checkNotNull(assetService.assignAssetToCustomer(assetId, publicCustomer.getId()));
+            Asset savedAsset = checkNotNull(assetService.assignAssetToCustomer(getTenantId(), assetId, publicCustomer.getId()));
 
             logEntityAction(assetId, savedAsset,
                     savedAsset.getCustomerId(),
@@ -320,7 +320,7 @@ public class AssetController extends BaseController {
         checkNotNull(query.getAssetTypes());
         checkEntityId(query.getParameters().getEntityId());
         try {
-            List<Asset> assets = checkNotNull(assetService.findAssetsByQuery(query).get());
+            List<Asset> assets = checkNotNull(assetService.findAssetsByQuery(getTenantId(), query).get());
             assets = assets.stream().filter(asset -> {
                 try {
                     checkAsset(asset);

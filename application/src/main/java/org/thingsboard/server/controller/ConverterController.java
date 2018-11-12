@@ -148,7 +148,7 @@ public class ConverterController extends BaseController {
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId);
-            converterService.deleteConverter(converterId);
+            converterService.deleteConverter(getTenantId(), converterId);
             dataConverterService.deleteConverter(converterId);
 
             logEntityAction(converterId, converter,
