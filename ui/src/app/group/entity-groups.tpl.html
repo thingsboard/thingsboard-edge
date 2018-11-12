@@ -69,6 +69,15 @@
                 </tb-manage-widget-actions>
             </div>
         </md-tab>
+        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.roles' | translate }}" ng-show="vm.isUserGroup">
+            <tb-user-group-roles
+                    columns="vm.grid.operatingItem().configuration.columns"
+                    entity-type="vm.grid.operatingItem().type"
+                    is-edit="vm.grid.detailsConfig.isDetailsEditMode"
+                    is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"
+                    the-form="vm.grid.detailsForm">
+            </tb-user-group-roles>
+        </md-tab>
         <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode  && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
             <tb-attribute-table flex
                                 entity-id="vm.grid.operatingItem().id.id"

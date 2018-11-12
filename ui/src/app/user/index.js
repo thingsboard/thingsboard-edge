@@ -38,6 +38,7 @@ import UserController from './user.controller';
 import AddUserController from './add-user.controller';
 import ActivationLinkDialogController from './activation-link.controller';
 import UserDirective from './user.directive';
+import UserGroupConfig from './user-group.config';
 
 export default angular.module('thingsboard.user', [
     uiRouter,
@@ -50,4 +51,5 @@ export default angular.module('thingsboard.user', [
     .controller('AddUserController', AddUserController)
     .controller('ActivationLinkDialogController', ActivationLinkDialogController)
     .directive('tbUser', UserDirective)
+    .factory('userGroupConfig', UserGroupConfig)
     .name;

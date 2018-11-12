@@ -70,6 +70,15 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         pages: []
     };
 
+    var userGroups = {
+        name: 'entity-group.user-groups',
+        type: 'toggle',
+        state: 'home.userGroups',
+        height: '0px',
+        icon: 'domain',
+        pages: []
+    };
+
     var service = {
         getHomeSections: getHomeSections,
         getSections: getSections,
@@ -277,6 +286,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                         customerGroups,
                         assetGroups,
                         deviceGroups,
+                        userGroups,
                         {
                             name: 'entity-view.entity-views',
                             type: 'link',
@@ -670,6 +680,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         tasks.push(loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account'));
         tasks.push(loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain'));
         tasks.push(loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other'));
+        tasks.push(loadGroups(userGroups, types.entityType.user, 'home.userGroups.userGroup', 'devices_other'));
         return $q.all(tasks);
     }
 

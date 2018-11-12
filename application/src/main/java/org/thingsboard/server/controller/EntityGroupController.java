@@ -133,7 +133,7 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/tenant/entityGroups/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroup> getTenantEntityGroups(
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             TenantId tenantId = getCurrentUser().getTenantId();
@@ -248,6 +248,8 @@ public class EntityGroupController extends BaseController {
                 result = assetService.findGroupAsset(entityGroupId, entityId);
             } else if (entityType == EntityType.DEVICE) {
                 result = deviceService.findGroupDevice(entityGroupId, entityId);
+            } else if (entityType == EntityType.USER) {
+                result = userService.findGroupUser(entityGroupId, entityId);
             }
             return checkNotNull(result);
         } catch (Exception e) {
@@ -284,6 +286,8 @@ public class EntityGroupController extends BaseController {
                 asyncResult = assetService.findAssetsByEntityGroupIdAndCustomerId(entityGroupId, getCurrentUser().getCustomerId(), pageLink);
             } else if (entityType == EntityType.DEVICE) {
                 asyncResult = deviceService.findDevicesByEntityGroupIdAndCustomerId(entityGroupId, getCurrentUser().getCustomerId(), pageLink);
+            } else if (entityType == EntityType.USER) {
+                asyncResult = userService.findUsersByEntityGroupId(entityGroupId, pageLink);
             }
             checkNotNull(asyncResult);
             if (asyncResult != null) {
@@ -300,7 +304,7 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroups/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupId> getEntityGroupsForEntity(
-            @ApiParam(value = "Entity type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE") @PathVariable("entityType") String strEntityType,
+            @ApiParam(value = "Entity type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER") @PathVariable("entityType") String strEntityType,
             @PathVariable("entityId") String strEntityId) throws ThingsboardException {
         checkParameter("entityType", strEntityType);
         checkParameter("entityId", strEntityId);

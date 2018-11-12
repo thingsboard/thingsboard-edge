@@ -75,6 +75,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
     var vm = this;
 
     vm.types = types;
+    vm.isUserGroup = groupType === types.entityType.user;
 
     vm.actionSources = {
         'actionCellButton': {
@@ -215,6 +216,8 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
             targetState = 'home.deviceGroups.deviceGroup';
         } else if (entityGroup.type == types.entityType.customer) {
             targetState = 'home.customerGroups.customerGroup';
+        } else if (entityGroup.type == types.entityType.user) {
+            targetState = 'home.userGroups.userGroup';
         }
         if (targetState) {
             $state.go(targetState, {entityGroupId: entityGroup.id.id});

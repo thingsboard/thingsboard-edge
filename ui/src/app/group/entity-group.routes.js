@@ -178,6 +178,53 @@ export default function EntityGroupRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
+        })
+        .state('home.userGroups', {
+            url: '/userGroups',
+            params: {'groupType': types.entityType.user, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controller: 'EntityGroupsController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.user-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "entity-group.user-groups"}'
+            }
+        })
+        .state('home.userGroups.userGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup:
+                /*@ngInject*/
+                    function($stateParams, $q, entityGroupService, userGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, userGroupConfig);
+                    }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.user-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
         });
 
 

@@ -28,27 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import thingsboardGrid from '../components/grid.directive';
-import thingsboardApiUser from '../api/user.service';
-import thingsboardApiRole from '../api/role.service';
+/*@ngInject*/
+export default function AddUserGroupRoleDialogController($scope, $mdDialog, types, attributeService, entityType, entityId, attributeScope) {
 
-import RoleRoutes from './role.routes';
-import {RoleController, RoleCardController} from './role.controller';
-import AddUserGroupRoleDialogController from './add-user-group-role-dialog.controller';
-import RoleDirective from './role.directive';
-import UserGroupRoles from './user-group-roles.directive';
+    var vm = this;
 
-export default angular.module('thingsboard.role', [
-    uiRouter,
-    thingsboardGrid,
-    thingsboardApiUser,
-    thingsboardApiRole
-])
-    .config(RoleRoutes)
-    .controller('RoleController', RoleController)
-    .controller('RoleCardController', RoleCardController)
-    .controller('AddUserGroupRoleDialogController', AddUserGroupRoleDialogController)
-    .directive('tbRole', RoleDirective)
-    .directive('tbUserGroupRoles', UserGroupRoles)
-    .name;
+    vm.attribute = {};
+
+    vm.valueTypes = types.valueType;
+
+    vm.valueType = types.valueType.string;
+
+    vm.add = add;
+    vm.cancel = cancel;
+
+    function cancel() {
+        $mdDialog.cancel();
+    }
+
+    function add() {
+        $scope.theForm.$setPristine();
+        attributeService.saveEntityAttributes(entityType, entityId, attributeScope, [vm.attribute]).then(
+            function success() {
+                $mdDialog.hide();
+            }
+        );
+    }
+
+    $scope.$watch('vm.valueType', function() {
+        if (vm.valueType === types.valueType.boolean) {
+            vm.attribute.value = false;
+        } else {
+            vm.attribute.value = null;
+        }
+    });
+}

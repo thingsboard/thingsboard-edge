@@ -948,6 +948,8 @@
         "customer-groups": "Customer groups",
         "device-group": "Device group",
         "asset-group": "Asset group",
+        "user-group": "User group",
+        "user-groups": "User groups",
         "customer-group": "Customer group",
         "fetch-more": "Fetch more",
         "column-type": {
@@ -1014,7 +1016,8 @@
         "entity-group-list": "Entity group list",
         "entity-group-list-empty": "No entity groups selected.",
         "name-starts-with": "Entity group name starts with",
-        "entity-group-name-filter-required": "Entity group name filter is required."
+        "entity-group-name-filter-required": "Entity group name filter is required.",
+        "roles": "Roles"
     },
     "entity-view": {
         "entity-view": "Entity View",
@@ -1743,6 +1746,14 @@
         "copyId": "Copy role Id",
         "idCopiedMessage": "Role Id has been copied to clipboard",
         "permissions": "Permissions"
+    },
+    "user-group": {
+        "role-type": "Role type",
+        "role-name": "Role name",
+        "group-type": "Group type",
+        "group-name": "Group name",
+        "edit": "Edit role group",
+        "delete": "Delete role group"
     },
     "scheduler": {
         "scheduler": "Scheduler",

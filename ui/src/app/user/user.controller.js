@@ -66,6 +66,8 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
         }
     ];
 
+    var userGroupActionsList = [];
+
     var vm = this;
 
     vm.types = types;
@@ -83,6 +85,7 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
         itemCardTemplateUrl: userCard,
 
         actionsList: userActionsList,
+        groupActionsList: userGroupActionsList,
 
         onGridInited: gridInited,
 
@@ -128,6 +131,17 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
             refreshUsersParamsFunction = function () {
                 return {"tenantId": tenantId, "topIndex": vm.topIndex};
             };
+
+            userGroupActionsList.push(
+                {
+                    onAction: function ($event) {
+                        vm.grid.deleteItems($event);
+                    },
+                    name: function() { return $translate.instant('user.delete-users') },
+                    details: deleteUsersActionTitle,
+                    icon: "delete"
+                }
+            );
 
         } else if (usersType === 'customer') {
             fetchUsersFunction = function (pageLink) {

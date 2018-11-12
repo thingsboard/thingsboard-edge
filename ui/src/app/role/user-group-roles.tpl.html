@@ -1,0 +1,227 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-content flex class="md-padding tb-absolute-fill" layout="column">
+    <div class="md-whiteframe-z1 toolbarsContainer" ng-class="{flex: mode==='widget'}">
+        <md-toolbar class="md-table-toolbar md-default" ng-show="mode==='default'
+                                                                 && !selectedAttributes.length
+                                                                 && query.search === null">
+            <div class="md-toolbar-tools">
+                <md-button class="md-icon-button" ng-click="addAttribute($event)">
+                    <md-icon>add</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.add' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button class="md-icon-button" ng-click="enterFilterMode($event)">
+                    <md-icon>search</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.search' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button class="md-icon-button" ng-click="getEntityAttributes()">
+                    <md-icon>refresh</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.refresh' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-toolbar class="md-table-toolbar md-default" ng-show="mode==='default'
+                                                                 && !selectedAttributes.length
+                                                                 && query.search != null">
+            <div class="md-toolbar-tools">
+                <md-button class="md-icon-button" aria-label="{{ 'action.search' | translate }}">
+                    <md-icon aria-label="{{ 'action.search' | translate }}" class="material-icons">search</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.search' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-input-container flex>
+                    <label>&nbsp;</label>
+                    <input ng-model="query.search" class="searchInput" placeholder="{{ 'common.enter-search' | translate }}"/>
+                </md-input-container>
+                <md-button class="md-icon-button" aria-label="{{ 'action.back' | translate }}" ng-click="exitFilterMode()">
+                    <md-icon aria-label="{{ 'action.close' | translate }}" class="material-icons">close</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.close' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-toolbar class="md-table-toolbar alternate" ng-show="mode==='default' && selectedAttributes.length">
+            <div class="md-toolbar-tools">
+                <span translate="{{attributeScope === types.latestTelemetry
+                                    ? 'attribute.selected-telemetry'
+                                    : 'attribute.selected-attributes'}}"
+                      translate-values="{count: selectedAttributes.length}"
+                      translate-interpolation="messageformat"></span>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="deleteAttributes($event)">
+                    <md-icon>delete</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.delete' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button class="md-accent md-hue-2 md-raised" ng-click="enterWidgetMode()">
+                    <md-tooltip md-direction="top">
+                        {{ 'attribute.show-on-widget' | translate }}
+                    </md-tooltip>
+                    <md-icon>now_widgets</md-icon>
+                    <span translate>attribute.show-on-widget</span>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-toolbar class="md-table-toolbar alternate" ng-show="mode==='widget'">
+            <div class="md-toolbar-tools">
+                <div flex layout="row" layout-align="start">
+                    <span class="tb-details-subtitle">{{ 'widgets-bundle.current' | translate }}</span>
+                    <tb-widgets-bundle-select flex-offset="5"
+                                              flex
+                                              ng-model="widgetsBundle"
+                                              select-first-bundle="false"
+                                              select-bundle-alias="selectedWidgetsBundleAlias">
+                    </tb-widgets-bundle-select>
+                </div>
+                <md-button ng-show="widgetsList.length > 0" class="md-accent md-hue-2 md-raised" ng-click="addWidgetToDashboard($event)">
+                    <md-tooltip md-direction="top">
+                        {{ 'attribute.add-to-dashboard' | translate }}
+                    </md-tooltip>
+                    <md-icon>dashboard</md-icon>
+                    <span translate>attribute.add-to-dashboard</span>
+                </md-button>
+                <md-button class="md-icon-button" aria-label="{{ 'action.back' | translate }}" ng-click="exitWidgetMode()">
+                    <md-icon aria-label="{{ 'action.close' | translate }}" class="material-icons">close</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'action.close' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-table-container ng-show="mode!='widget'">
+            <table class="tb-attribute-table" md-table md-row-select multiple="" ng-model="selectedAttributes" md-progress="attributesDeferred.promise">
+                <thead md-head md-order="query.order" md-on-reorder="onReorder">
+                <tr md-row>
+                    <th md-column><span translate>user-group.role-type</span></th>
+                    <th md-column><span translate>user-group.role-name</span></th>
+                    <th md-column><span translate>user-group.group-type</span></th>
+                    <th md-column><span translate>user-group.group-name</span></th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row md-select="attribute" md-select-id="key" md-auto-select ng-repeat="attribute in attributes.data">
+                    <td md-cell>{{attribute.key}}</td>
+                    <td md-cell>{{attribute.key}}</td>
+                    <td md-cell>{{attribute.key}}</td>
+                    <td md-cell>{{attribute.key}}</td>
+                    <td md-cell class="tb-action-cell">
+                        <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}" ng-click="vm.editRelation($event, relation)">
+                            <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
+                            <md-tooltip md-direction="top">
+                                {{ 'user-group.edit' | translate }}
+                            </md-tooltip>
+                        </md-button>
+                        <md-button class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="vm.deleteRelation($event, relation)">
+                            <md-icon aria-label="{{ 'action.delete' | translate }}" class="material-icons">delete</md-icon>
+                            <md-tooltip md-direction="top">
+                                {{ 'user-group.delete' | translate }}
+                            </md-tooltip>
+                        </md-button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+        <md-table-pagination ng-show="mode!='widget'" md-limit="query.limit" md-limit-options="[5, 10, 15]"
+                             md-page="query.page" md-total="{{attributes.count}}"
+                             md-on-paginate="onPaginate" md-page-select>
+        </md-table-pagination>
+        <ul flex rn-carousel ng-if="mode==='widget'" class="widgets-carousel"
+            rn-carousel-index="widgetsCarousel.index"
+            rn-carousel-buffered
+            rn-carousel-transition="fadeAndSlide"
+            rn-swipe-disabled="true">
+            <li ng-repeat="widgets in widgetsList">
+                <tb-dashboard
+                        embedded="true"
+                        alias-controller="aliasController"
+                        widgets="widgets"
+                        columns="20"
+                        is-edit="false"
+                        is-mobile-disabled="true"
+                        is-edit-action-enabled="false"
+                        is-remove-action-enabled="false">
+                </tb-dashboard>
+            </li>
+            <span translate ng-if="widgetsLoaded &&
+                                   widgetsList.length === 0 &&
+                                   widgetsBundle"
+                  layout-align="center center"
+                  style="text-transform: uppercase; display: flex;"
+                  class="md-headline tb-absolute-fill">widgets-bundle.empty</span>
+            <span translate ng-if="!widgetsBundle"
+                  layout-align="center center"
+                  style="text-transform: uppercase; display: flex;"
+                  class="md-headline tb-absolute-fill">widget.select-widgets-bundle</span>
+            <div ng-show="widgetsList.length > 1"
+                 style="position: absolute; left: 0; height: 100%;" layout="column" layout-align="center">
+                <md-button ng-show="widgetsCarousel.index > 0"
+                           class="md-icon-button"
+                           ng-click="prevWidget()">
+                    <md-icon>navigate_before</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'attribute.prev-widget' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+            <div ng-show="widgetsList.length > 1"
+                 style="position: absolute; right: 0; height: 100%;" layout="column" layout-align="center">
+                <md-button ng-show="widgetsCarousel.index < widgetsList.length-1"
+                           class="md-icon-button"
+                           ng-click="nextWidget()">
+                    <md-icon>navigate_next</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'attribute.next-widget' | translate }}
+                    </md-tooltip>
+                </md-button>
+            </div>
+            <div style="position: absolute; bottom: 0; width: 100%; font-size: 24px;" layout="row" layout-align="center">
+                <div rn-carousel-indicators
+                     ng-if="widgetsList.length > 1"
+                     slides="widgetsList"
+                     rn-carousel-index="widgetsCarousel.index">
+                </div>
+            </div>
+        </ul>
+    </div>
+</md-content>
+

@@ -56,12 +56,10 @@ $edit-toolbar-height: 40px !default;
 
   .gutter.gutter-horizontal {
     cursor: col-resize;
-    background-image: url("../../../node_modules/split.js/grips/vertical.png");
   }
 
   .gutter.gutter-vertical {
     cursor: row-resize;
-    background-image: url("../../../node_modules/split.js/grips/horizontal.png");
   }
 
   .tb-split.tb-split-horizontal,

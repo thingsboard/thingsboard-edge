@@ -28,27 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import thingsboardGrid from '../components/grid.directive';
-import thingsboardApiUser from '../api/user.service';
-import thingsboardApiRole from '../api/role.service';
+/*@ngInject*/
+export default function EditUserGroupRoleController($scope, $q, $element, types, attributeValue, save) {
 
-import RoleRoutes from './role.routes';
-import {RoleController, RoleCardController} from './role.controller';
-import AddUserGroupRoleDialogController from './add-user-group-role-dialog.controller';
-import RoleDirective from './role.directive';
-import UserGroupRoles from './user-group-roles.directive';
+    $scope.valueTypes = types.valueType;
 
-export default angular.module('thingsboard.role', [
-    uiRouter,
-    thingsboardGrid,
-    thingsboardApiUser,
-    thingsboardApiRole
-])
-    .config(RoleRoutes)
-    .controller('RoleController', RoleController)
-    .controller('RoleCardController', RoleCardController)
-    .controller('AddUserGroupRoleDialogController', AddUserGroupRoleDialogController)
-    .directive('tbRole', RoleDirective)
-    .directive('tbUserGroupRoles', UserGroupRoles)
-    .name;
+    $scope.model = {};
+
+    $scope.model.value = attributeValue;
+
+    if ($scope.model.value === true || $scope.model.value === false) {
+        $scope.valueType = types.valueType.boolean;
+    } else if (angular.isNumber($scope.model.value)) {
+        if ($scope.model.value.toString().indexOf('.') == -1) {
+            $scope.valueType = types.valueType.integer;
+        } else {
+            $scope.valueType = types.valueType.double;
+        }
+    } else {
+        $scope.valueType = types.valueType.string;
+    }
+
+    $scope.submit = submit;
+    $scope.dismiss = dismiss;
+
+    function dismiss() {
+        $element.remove();
+    }
+
+    function update() {
+        if($scope.editDialog.$invalid) {
+            return $q.reject();
+        }
+
+        if(angular.isFunction(save)) {
+            return $q.when(save($scope.model));
+        }
+
+        return $q.resolve();
+    }
+
+    function submit() {
+        update().then(function () {
+            $scope.dismiss();
+        });
+    }
+
+    $scope.$watch('valueType', function(newVal, prevVal) {
+        if (newVal != prevVal) {
+            if ($scope.valueType === types.valueType.boolean) {
+                $scope.model.value = false;
+            } else {
+                $scope.model.value = null;
+            }
+        }
+    });
+}

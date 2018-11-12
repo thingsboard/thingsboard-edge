@@ -71,6 +71,7 @@ data:
   database.type: "cassandra"
   cache.type: "redis"
   redis.host: "redis-service"
+  tb-web-report.host: "tb-web-report-service:8383"
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
@@ -159,6 +160,11 @@ spec:
             configMapKeyRef:
               name: tb-config
               key: redis.host
+        - name: REPORTS_SERVER_ENDPOINT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: tb-config
+              key: tb-web-report.host
         command:
         - sh
         - -c
