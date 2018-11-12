@@ -87,9 +87,6 @@ public class IntegrationContext {
     @Autowired
     private ActorService actorService;
 
-    @Value("${http.request_timeout}")
-    private long defaultHttpTimeout;
-
     @Lazy
     @Autowired
     private ConverterContext converterContext;
