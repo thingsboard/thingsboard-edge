@@ -31,11 +31,6 @@
 
 FROM debian:stretch
 
-COPY start-web-report.sh ${pkg.name}.deb /tmp/
-
-RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-web-report.sh /usr/bin
-
 RUN apt-get update \
     && apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
                         libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
@@ -44,6 +39,11 @@ RUN apt-get update \
                         ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget fonts-roboto \
     && apt-get clean \
     && rm -r /var/lib/apt/lists/*
+
+COPY start-web-report.sh ${pkg.name}.deb /tmp/
+
+RUN chmod a+x /tmp/*.sh \
+    && mv /tmp/start-web-report.sh /usr/bin
 
 RUN dpkg -i /tmp/${pkg.name}.deb
 
