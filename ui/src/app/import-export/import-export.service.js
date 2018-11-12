@@ -972,27 +972,6 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         }
     }
 
-    function openImportDialog($event, importTitle, importFileLabel) {
-        var deferred = $q.defer();
-        $mdDialog.show({
-            controller: 'ImportDialogController',
-            controllerAs: 'vm',
-            templateUrl: importDialogTemplate,
-            locals: {
-                importTitle: importTitle,
-                importFileLabel: importFileLabel
-            },
-            parent: angular.element($document[0].body),
-            multiple: true,
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function (importData) {
-            deferred.resolve(importData);
-        }, function () {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
 }
 
 /* eslint-enable no-undef, angular/window-service, angular/document-service */
