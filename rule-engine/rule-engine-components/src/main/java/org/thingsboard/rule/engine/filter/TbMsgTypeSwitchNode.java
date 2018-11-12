@@ -45,7 +45,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "Activity Event", "Inactivity Event",
                 "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
-                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Added to Group", "Removed from Group", "REST API request", "Generate Report", "Other"},
+                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Added to Group", "Removed from Group", "REST API request", "Generate Report", "Other"},
         nodeDescription = "Route incoming messages by Message Type",
         nodeDetails = "Sends messages with message types <b>\"Post attributes\", \"Post telemetry\", \"RPC Request\"</b> etc. via corresponding chain, otherwise <b>Other</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -90,6 +90,10 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Attributes Updated";
         } else if (msg.getType().equals(DataConstants.ATTRIBUTES_DELETED)) {
             relationType = "Attributes Deleted";
+        } else if (msg.getType().equals(DataConstants.ALARM_ACK)) {
+            relationType = "Alarm Acknowledged";
+        } else if (msg.getType().equals(DataConstants.ALARM_CLEAR)) {
+            relationType = "Alarm Cleared";
         } else if (msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE)) {
             relationType = "RPC Request to Device";
         } else if (msg.getType().equals(DataConstants.ADDED_TO_ENTITY_GROUP)) {

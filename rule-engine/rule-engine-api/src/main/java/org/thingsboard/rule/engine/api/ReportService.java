@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
@@ -42,6 +43,7 @@ public interface ReportService {
 
     void generateDashboardReport(String baseUrl,
                                  DashboardId dashboardId,
+                                 TenantId tenantId,
                                  UserId userId,
                                  String publicId,
                                  String reportName,
@@ -49,7 +51,7 @@ public interface ReportService {
                                  Consumer<ReportData> onSuccess,
                                  Consumer<Throwable> onFailure);
 
-    void generateReport(ReportConfig reportConfig,
+    void generateReport(TenantId tenantId, ReportConfig reportConfig,
                         String reportsServerEndpointUrl,
                         Consumer<ReportData> onSuccess,
                         Consumer<Throwable> onFailure);

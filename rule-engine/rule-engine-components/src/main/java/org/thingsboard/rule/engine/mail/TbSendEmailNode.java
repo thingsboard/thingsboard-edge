@@ -119,7 +119,7 @@ public class TbSendEmailNode implements TbNode {
             helper.setSubject(email.getSubject());
             helper.setText(email.getBody());
             for (BlobEntityId blobEntityId : email.getAttachments()) {
-                BlobEntity blobEntity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(blobEntityId);
+                BlobEntity blobEntity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(ctx.getTenantId(), blobEntityId);
                 if (blobEntity != null) {
                     DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
                     helper.addAttachment(blobEntity.getName(), dataSource);

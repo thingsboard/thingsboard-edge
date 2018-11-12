@@ -182,7 +182,7 @@ function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
                 .cancel($translate.instant('action.no'))
                 .ok($translate.instant('action.yes'));
 
-            confirm._options.skipHide = true;
+            confirm._options.multiple = true;
             confirm._options.fullscreen = true;
 
             $mdDialog.show(confirm).then(function () {
@@ -233,7 +233,7 @@ function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
                 widgetActions: vm.widgetActions,
                 customFunctionArgs: vm.customFunctionArgs,
                 action: angular.copy(action)},
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (action) {

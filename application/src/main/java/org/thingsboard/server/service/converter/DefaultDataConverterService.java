@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
 import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
@@ -89,20 +90,20 @@ public class DefaultDataConverterService implements DataConverterService {
     }
 
     @Override
-    public Optional<TBUplinkDataConverter> getUplinkConverterById(ConverterId converterId) {
-        return Optional.of((TBUplinkDataConverter) getConverterById(converterId));
+    public Optional<TBUplinkDataConverter> getUplinkConverterById(TenantId tenantId, ConverterId converterId) {
+        return Optional.of((TBUplinkDataConverter) getConverterById(tenantId, converterId));
     }
 
     @Override
-    public Optional<TBDownlinkDataConverter> getDownlinkConverterById(ConverterId converterId) {
-        return Optional.ofNullable((TBDownlinkDataConverter) getConverterById(converterId));
+    public Optional<TBDownlinkDataConverter> getDownlinkConverterById(TenantId tenantId, ConverterId converterId) {
+        return Optional.ofNullable((TBDownlinkDataConverter) getConverterById(tenantId, converterId));
     }
 
-    private TBDataConverter getConverterById(ConverterId converterId) {
+    private TBDataConverter getConverterById(TenantId tenantId, ConverterId converterId) {
         if (converterId == null) return null;
         TBDataConverter converter = convertersByIdMap.get(converterId);
         if (converter == null) {
-            Converter configuration = converterService.findConverterById(converterId);
+            Converter configuration = converterService.findConverterById(tenantId, converterId);
             if (configuration != null) {
                 converter = createConverter(configuration);
             }

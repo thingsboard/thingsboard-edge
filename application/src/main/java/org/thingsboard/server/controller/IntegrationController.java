@@ -76,7 +76,7 @@ public class IntegrationController extends BaseController {
     public Integration getIntegrationByRoutingKey(
             @PathVariable("routingKey") String routingKey) throws ThingsboardException {
         try {
-            Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(routingKey));
+            Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
             return checkIntegration(integration);
         } catch (Exception e) {
             throw handleException(e);
@@ -92,7 +92,7 @@ public class IntegrationController extends BaseController {
             boolean create = integration.getId() == null;
             Integration old = null;
             if (!create) {
-                old = checkNotNull(integrationService.findIntegrationById(integration.getId()));
+                old = checkNotNull(integrationService.findIntegrationById(getTenantId(), integration.getId()));
             }
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
             try {
@@ -103,7 +103,7 @@ public class IntegrationController extends BaseController {
                 }
             } catch (Exception e) {
                 if (create) {
-                    integrationService.deleteIntegration(result.getId()); e.printStackTrace();
+                    integrationService.deleteIntegration(getTenantId(), result.getId()); e.printStackTrace();
                 } else {
                     integrationService.saveIntegration(old);
                     platformIntegrationService.updateIntegration(old);
@@ -149,7 +149,7 @@ public class IntegrationController extends BaseController {
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             Integration integration = checkIntegrationId(integrationId);
-            integrationService.deleteIntegration(integrationId);
+            integrationService.deleteIntegration(getTenantId(), integrationId);
             platformIntegrationService.deleteIntegration(integrationId);
 
             logEntityAction(integrationId, integration,

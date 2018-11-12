@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.role;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
 
@@ -42,7 +43,7 @@ import java.util.UUID;
 
 public interface RoleDao extends Dao<Role> {
 
-    Role save(Role role);
+    Role save(TenantId tenantId, Role role);
 
     List<Role> findRolesByTenantId(UUID tenantId, TextPageLink pageLink);
 

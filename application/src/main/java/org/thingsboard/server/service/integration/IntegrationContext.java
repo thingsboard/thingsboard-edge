@@ -61,6 +61,10 @@ public class IntegrationContext {
 
     @Lazy
     @Autowired
+    private PlatformIntegrationService integrationService;
+
+    @Lazy
+    @Autowired
     private SessionMsgProcessor sessionMsgProcessor;
 
     @Lazy

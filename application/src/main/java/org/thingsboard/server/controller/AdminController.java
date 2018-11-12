@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.update.UpdateService;
 import org.thingsboard.server.service.update.model.UpdateMessage;
@@ -81,7 +82,7 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                return checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+                return checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
                 return getTenantAdminSettings(key, systemByDefault);
             }
@@ -97,7 +98,7 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(adminSettings));
+                adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
             } else {
                 adminSettings = saveTenantAdminSettings(adminSettings);
             }
@@ -142,7 +143,7 @@ public class AdminController extends BaseController {
         }
         if (jsonValue == null) {
             if (systemByDefault) {
-                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(getTenantId(), key));
                 jsonValue = systemAdminSettings.getJsonValue();
             } else {
                 jsonValue = objectMapper.createObjectNode();
@@ -171,7 +172,7 @@ public class AdminController extends BaseController {
 
     private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                attributesService.find(getTenantId(), entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();
@@ -184,7 +185,7 @@ public class AdminController extends BaseController {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
-        attributesService.save(entityId, DataConstants.SERVER_SCOPE, attributes).get();
+        attributesService.save(getTenantId(), entityId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
 }

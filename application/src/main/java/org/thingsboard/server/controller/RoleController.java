@@ -82,7 +82,7 @@ public class RoleController extends BaseController {
     public Role saveRole(@RequestBody Role role) throws ThingsboardException {
         try {
             role.setTenantId(getCurrentUser().getTenantId());
-            Role savedRole = checkNotNull(roleService.saveRole(role));
+            Role savedRole = checkNotNull(roleService.saveRole(getTenantId(), role));
             logEntityAction(savedRole.getId(), savedRole, null,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
             return savedRole;
@@ -101,7 +101,7 @@ public class RoleController extends BaseController {
         try {
             RoleId roleId = new RoleId(toUUID(strRoleId));
             Role role = checkRoleId(roleId);
-            roleService.deleteRole(roleId);
+            roleService.deleteRole(getTenantId(), roleId);
             logEntityAction(roleId, role, null, ActionType.DELETED, null, strRoleId);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ROLE),
@@ -144,7 +144,7 @@ public class RoleController extends BaseController {
         checkNotNull(query.getRoleTypes());
         checkEntityId(query.getParameters().getEntityId());
         try {
-            List<Role> roles = checkNotNull(roleService.findRolesByQuery(query).get());
+            List<Role> roles = checkNotNull(roleService.findRolesByQuery(getTenantId(), query).get());
             roles = roles.stream().filter(role -> {
                 try {
                     checkRole(role);

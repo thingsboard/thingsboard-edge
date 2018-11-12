@@ -42,9 +42,17 @@ import com.datastax.driver.core.TypeCodec;
 import com.datastax.driver.core.exceptions.CodecNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
-import org.thingsboard.server.dao.model.type.*;
-import org.thingsboard.server.dao.util.BufferedRateLimiter;
+import org.thingsboard.server.dao.model.type.AuthorityCodec;
+import org.thingsboard.server.dao.model.type.ComponentLifecycleStateCodec;
+import org.thingsboard.server.dao.model.type.ComponentScopeCodec;
+import org.thingsboard.server.dao.model.type.ComponentTypeCodec;
+import org.thingsboard.server.dao.model.type.ConverterTypeCodec;
+import org.thingsboard.server.dao.model.type.DeviceCredentialsTypeCodec;
+import org.thingsboard.server.dao.model.type.EntityTypeCodec;
+import org.thingsboard.server.dao.model.type.IntegrationTypeCodec;
+import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -58,7 +66,7 @@ public abstract class CassandraAbstractDao {
     private ConcurrentMap<String, PreparedStatement> preparedStatementMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private BufferedRateLimiter rateLimiter;
+    private CassandraBufferedRateExecutor rateLimiter;
 
     private Session session;
 
@@ -96,42 +104,42 @@ public abstract class CassandraAbstractDao {
         }
     }
 
-    protected ResultSet executeRead(Statement statement) {
-        return execute(statement, defaultReadLevel);
+    protected ResultSet executeRead(TenantId tenantId, Statement statement) {
+        return execute(tenantId, statement, defaultReadLevel);
     }
 
-    protected ResultSet executeWrite(Statement statement) {
-        return execute(statement, defaultWriteLevel);
+    protected ResultSet executeWrite(TenantId tenantId, Statement statement) {
+        return execute(tenantId, statement, defaultWriteLevel);
     }
 
-    protected ResultSetFuture executeAsyncRead(Statement statement) {
-        return executeAsync(statement, defaultReadLevel);
+    protected ResultSetFuture executeAsyncRead(TenantId tenantId, Statement statement) {
+        return executeAsync(tenantId, statement, defaultReadLevel);
     }
 
-    protected ResultSetFuture executeAsyncWrite(Statement statement) {
-        return executeAsync(statement, defaultWriteLevel);
+    protected ResultSetFuture executeAsyncWrite(TenantId tenantId, Statement statement) {
+        return executeAsync(tenantId, statement, defaultWriteLevel);
     }
 
-    private ResultSet execute(Statement statement, ConsistencyLevel level) {
+    private ResultSet execute(TenantId tenantId, Statement statement, ConsistencyLevel level) {
         if (log.isDebugEnabled()) {
             log.debug("Execute cassandra statement {}", statementToString(statement));
         }
-        return executeAsync(statement, level).getUninterruptibly();
+        return executeAsync(tenantId, statement, level).getUninterruptibly();
     }
 
-    private ResultSetFuture executeAsync(Statement statement, ConsistencyLevel level) {
+    private ResultSetFuture executeAsync(TenantId tenantId, Statement statement, ConsistencyLevel level) {
         if (log.isDebugEnabled()) {
             log.debug("Execute cassandra async statement {}", statementToString(statement));
         }
         if (statement.getConsistencyLevel() == null) {
             statement.setConsistencyLevel(level);
         }
-        return new RateLimitedResultSetFuture(getSession(), rateLimiter, statement);
+        return rateLimiter.submit(new CassandraStatementTask(tenantId, getSession(), statement));
     }
 
     private static String statementToString(Statement statement) {
         if (statement instanceof BoundStatement) {
-            return ((BoundStatement)statement).preparedStatement().getQueryString();
+            return ((BoundStatement) statement).preparedStatement().getQueryString();
         } else {
             return statement.toString();
         }

@@ -35,7 +35,5 @@ import org.thingsboard.server.dao.Dao;
 
 public interface EntityGroupDao extends Dao<EntityGroup> {
 
-    EntityGroup save(EntityGroup entityGroup);
-
 }
 

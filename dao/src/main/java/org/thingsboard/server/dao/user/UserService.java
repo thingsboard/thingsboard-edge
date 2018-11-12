@@ -46,27 +46,27 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 
 public interface UserService {
 	
-	User findUserById(UserId userId);
+	User findUserById(TenantId tenantId, UserId userId);
 
-	ListenableFuture<User> findUserByIdAsync(UserId userId);
+	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
 
-	User findUserByEmail(String email);
+	User findUserByEmail(TenantId tenantId, String email);
 
 	User saveUser(User user);
 
-	UserCredentials findUserCredentialsByUserId(UserId userId);
+	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 	
-	UserCredentials findUserCredentialsByActivateToken(String activateToken);
+	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
-	UserCredentials findUserCredentialsByResetToken(String resetToken);
+	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
-	UserCredentials saveUserCredentials(UserCredentials userCredentials);
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 	
-	UserCredentials activateUserCredentials(String activateToken, String password);
+	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
-	UserCredentials requestPasswordReset(String email);
+	UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
-	void deleteUser(UserId userId);
+	void deleteUser(TenantId tenantId, UserId userId);
 	
 	TextPageData<User> findTenantAdmins(TenantId tenantId, TextPageLink pageLink);
 	
@@ -78,8 +78,8 @@ public interface UserService {
 
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
-	ShortEntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId);
+	ShortEntityView findGroupUser(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

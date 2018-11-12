@@ -38,15 +38,15 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 public interface WhiteLabelingService {
 
-    WhiteLabelingParams getSystemWhiteLabelingParams();
+    WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId);
 
-    LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams();
+    LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId);
 
     WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId);
 
-    WhiteLabelingParams getCustomerWhiteLabelingParams(CustomerId customerId);
+    WhiteLabelingParams getCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId);
 
-    WhiteLabelingParams getMergedSystemWhiteLabelingParams(String logoImageChecksum, String faviconChecksum);
+    WhiteLabelingParams getMergedSystemWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
 
     WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
 
@@ -54,27 +54,27 @@ public interface WhiteLabelingService {
 
     LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId);
 
-    LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(CustomerId customerId);
+    LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId);
 
-    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String domainName, String logoImageChecksum, String faviconChecksum);
+    LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum);
 
     WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 
     WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 
-    WhiteLabelingParams saveCustomerWhiteLabelingParams(CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
+    WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
 
     LoginWhiteLabelingParams saveSystemLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams);
 
     LoginWhiteLabelingParams saveTenantLoginWhiteLabelingParams(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams);
 
-    LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams);
+    LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams);
 
     WhiteLabelingParams mergeSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
 
-    WhiteLabelingParams mergeTenantWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams);
+    WhiteLabelingParams mergeTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 
     WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 
-    void deleteDomainWhiteLabelingByEntityId(EntityId entityId);
+    void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId);
 }

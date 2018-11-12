@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -148,7 +149,7 @@ public class DefaultSchedulerService implements SchedulerService {
         if (proto.getDeleted()) {
             queueExecutor.submit(() -> onSchedulerEventDeletedSync(tenantId, eventId));
         } else {
-            SchedulerEventInfo eventInfo = schedulerEventService.findSchedulerEventInfoById(eventId);
+            SchedulerEventInfo eventInfo = schedulerEventService.findSchedulerEventInfoById(tenantId, eventId);
             if (eventInfo != null) {
                 if (proto.getAdded()) {
                     onSchedulerEventAdded(eventInfo);
@@ -203,7 +204,7 @@ public class DefaultSchedulerService implements SchedulerService {
         long eventTs = md.getNextEventTime(ts);
         if (eventTs != 0L) {
             long eventDelay = eventTs - ts;
-            md.setNextTaskFuture(queueExecutor.schedule(() -> processEvent(event.getId()), eventDelay, TimeUnit.MILLISECONDS));
+            md.setNextTaskFuture(queueExecutor.schedule(() -> processEvent(event.getTenantId(), event.getId()), eventDelay, TimeUnit.MILLISECONDS));
         }
     }
 
@@ -222,10 +223,10 @@ public class DefaultSchedulerService implements SchedulerService {
         return new SchedulerEventMetaData(event, startTime, repeat);
     }
 
-    private void processEvent(SchedulerEventId eventId) {
+    private void processEvent(TenantId tenantId, SchedulerEventId eventId) {
         SchedulerEventMetaData md = eventsMetaData.get(eventId);
         if (md != null) {
-            SchedulerEvent event = schedulerEventService.findSchedulerEventById(eventId);
+            SchedulerEvent event = schedulerEventService.findSchedulerEventById(tenantId, eventId);
             if (event != null) {
                 try {
                     JsonNode configuration = event.getConfiguration();
@@ -235,7 +236,7 @@ public class DefaultSchedulerService implements SchedulerService {
                     TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), msgType, originatorId, tbMsgMD,
                             TbMsgDataType.JSON, getMsgBody(event.getConfiguration()),
                             null, null, 0L);
-                    actorService.onMsg(new ServiceToRuleEngineMsg(event.getTenantId(), tbMsg));
+                    actorService.onMsg(new SendToClusterMsg(event.getTenantId(), new ServiceToRuleEngineMsg(event.getTenantId(), tbMsg)));
                 } catch (Exception e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
                 }

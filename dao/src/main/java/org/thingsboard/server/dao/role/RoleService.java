@@ -44,19 +44,19 @@ import java.util.List;
 
 public interface RoleService {
 
-    Role saveRole(Role role);
+    Role saveRole(TenantId tenantId, Role role);
 
-    Role findRoleById(RoleId roleId);
+    Role findRoleById(TenantId tenantId, RoleId roleId);
 
     TextPageData<Role> findRoleByTenantId(TenantId tenantId, TextPageLink pageLink);
 
     TextPageData<Role> findRoleByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type);
 
-    ListenableFuture<List<Role>> findRolesByQuery(RoleSearchQuery query);
+    ListenableFuture<List<Role>> findRolesByQuery(TenantId tenantId, RoleSearchQuery query);
 
-    ListenableFuture<Role> findRoleByIdAsync(RoleId roleId);
+    ListenableFuture<Role> findRoleByIdAsync(TenantId tenantId, RoleId roleId);
 
-    void deleteRole(RoleId roleId);
+    void deleteRole(TenantId tenantId, RoleId roleId);
 
     void deleteRolesByTenantId(TenantId tenantId);
 

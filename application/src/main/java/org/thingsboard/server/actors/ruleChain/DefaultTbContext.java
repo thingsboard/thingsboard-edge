@@ -35,6 +35,16 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.FutureCallback;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.*;
+import org.springframework.util.StringUtils;
+import org.thingsboard.rule.engine.api.ListeningExecutor;
+import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
+import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcResponse;
+import org.thingsboard.rule.engine.api.RuleEngineRpcService;
+import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
+import org.thingsboard.rule.engine.api.ScriptEngine;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -47,6 +57,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -127,7 +138,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, "ACK", null);
         }
-        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
+//        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
     }
 
     @Override
@@ -274,16 +285,22 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return new RuleEngineRpcService() {
             @Override
             public void sendRpcReply(DeviceId deviceId, int requestId, String body) {
-                mainCtx.getDeviceRpcService().sendRpcReplyToDevice(nodeCtx.getTenantId(), deviceId, requestId, body);
+                mainCtx.getDeviceRpcService().sendReplyToRpcCallFromDevice(nodeCtx.getTenantId(), deviceId, requestId, body);
             }
 
             @Override
             public void sendRpcRequest(RuleEngineDeviceRpcRequest src, Consumer<RuleEngineDeviceRpcResponse> consumer) {
                 ToDeviceRpcRequest request = new ToDeviceRpcRequest(src.getRequestUUID(), nodeCtx.getTenantId(), src.getDeviceId(),
                         src.isOneway(), src.getExpirationTime(), new ToDeviceRpcRequestBody(src.getMethod(), src.getBody()));
-                mainCtx.getDeviceRpcService().processRpcRequestToDevice(request, response -> {
+                mainCtx.getDeviceRpcService().forwardServerSideRPCRequestToDeviceActor(request, response -> {
                     if (src.isRestApiCall()) {
-                        mainCtx.getDeviceRpcService().processRestAPIRpcResponseFromRuleEngine(response);
+                        ServerAddress requestOriginAddress;
+                        if (!StringUtils.isEmpty(src.getOriginHost())) {
+                            requestOriginAddress = new ServerAddress(src.getOriginHost(), src.getOriginPort(), ServerType.CORE);
+                        } else {
+                            requestOriginAddress = mainCtx.getRoutingService().getCurrentServer();
+                        }
+                        mainCtx.getDeviceRpcService().processResponseToServerSideRPCRequestFromRuleEngine(requestOriginAddress, response);
                     }
                     consumer.accept(RuleEngineDeviceRpcResponse.builder()
                             .deviceId(src.getDeviceId())
@@ -346,8 +363,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
             @Override
             public void onSuccess(@Nullable Void aVoid) {
                 if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, mainCtx.getRoutingService().getCurrentServer(), null, null);
-                    mainCtx.getDeviceRpcService().processRestAPIRpcResponseFromRuleEngine(response);
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID,null, null);
+                    mainCtx.getDeviceRpcService().processResponseToServerSideRPCRequestFromRuleEngine(mainCtx.getRoutingService().getCurrentServer(), response);
                 }
                 callback.onSuccess(aVoid);
             }
@@ -355,8 +372,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
             @Override
             public void onFailure(Throwable throwable) {
                 if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, mainCtx.getRoutingService().getCurrentServer(), null, RpcError.INTERNAL);
-                    mainCtx.getDeviceRpcService().processRestAPIRpcResponseFromRuleEngine(response);
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
+                    mainCtx.getDeviceRpcService().processResponseToServerSideRPCRequestFromRuleEngine(mainCtx.getRoutingService().getCurrentServer(), response);
                 }
                 callback.onFailure(throwable);
             }

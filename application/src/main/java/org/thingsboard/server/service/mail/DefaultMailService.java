@@ -32,7 +32,6 @@ package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +56,14 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
 import javax.activation.DataSource;
+import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 @Service
 @Slf4j
@@ -191,7 +195,7 @@ public class DefaultMailService implements MailService {
             helper.setText(body);
             if (attachments != null) {
                 for (BlobEntityId blobEntityId : attachments) {
-                    BlobEntity blobEntity = blobEntityService.findBlobEntityById(blobEntityId);
+                    BlobEntity blobEntity = blobEntityService.findBlobEntityById(tenantId, blobEntityId);
                     if (blobEntity != null) {
                         DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
                         helper.addAttachment(blobEntity.getName(), dataSource);
@@ -270,7 +274,7 @@ public class DefaultMailService implements MailService {
         try {
             JsonNode jsonConfig = null;
             if (tenantId != null && !tenantId.isNullUid()) {
-                String jsonString = getEntityAttributeValue(tenantId, key);
+                String jsonString = getEntityAttributeValue(tenantId, tenantId, key);
                 if (!StringUtils.isEmpty(jsonString)) {
                     try {
                         jsonConfig = objectMapper.readTree(jsonString);
@@ -288,7 +292,7 @@ public class DefaultMailService implements MailService {
                 if (!allowSystemMailService) {
                     throw new RuntimeException("Access to System Mail Service is forbidden!");
                 }
-                AdminSettings settings = adminSettingsService.findAdminSettingsByKey(key);
+                AdminSettings settings = adminSettingsService.findAdminSettingsByKey(tenantId, key);
                 if (settings != null) {
                     jsonConfig = settings.getJsonValue();
                 }
@@ -302,9 +306,9 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
+    private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();

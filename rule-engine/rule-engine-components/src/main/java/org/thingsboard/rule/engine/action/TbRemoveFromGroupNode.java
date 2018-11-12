@@ -65,6 +65,6 @@ public class TbRemoveFromGroupNode extends TbAbstractGroupActionNode<TbRemoveFro
 
     @Override
     protected void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {
-        ctx.getPeContext().getEntityGroupService().removeEntityFromEntityGroup(entityGroupId, msg.getOriginator());
+        ctx.getPeContext().getEntityGroupService().removeEntityFromEntityGroup(ctx.getTenantId(), entityGroupId, msg.getOriginator());
     }
 }

@@ -79,42 +79,42 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     @Override
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
-        integrationValidator.validate(integration);
-        return integrationDao.save(integration);
+        integrationValidator.validate(integration, Integration::getTenantId);
+        return integrationDao.save(integration.getTenantId(), integration);
     }
 
     @Override
-    public Integration findIntegrationById(IntegrationId integrationId) {
+    public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        return integrationDao.findById(integrationId.getId());
+        return integrationDao.findById(tenantId, integrationId.getId());
     }
 
     @Override
-    public ListenableFuture<Integration> findIntegrationByIdAsync(IntegrationId integrationId) {
+    public ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationByIdAsync [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        return integrationDao.findByIdAsync(integrationId.getId());
+        return integrationDao.findByIdAsync(tenantId, integrationId.getId());
     }
 
     @Override
-    public Optional<Integration> findIntegrationByRoutingKey(String routingKey) {
+    public Optional<Integration> findIntegrationByRoutingKey(TenantId tenantId, String routingKey) {
         log.trace("Executing findIntegrationByRoutingKey [{}]", routingKey);
         Validator.validateString(routingKey, "Incorrect integration routingKey for search request.");
-        return integrationDao.findByRoutingKey(routingKey);
+        return integrationDao.findByRoutingKey(tenantId.getId(), routingKey);
     }
 
     @Override
-    public List<Integration> findAllIntegrations() {
+    public List<Integration> findAllIntegrations(TenantId tenantId) {
         log.trace("Executing findAllIntegrations");
-        return integrationDao.find();
+        return integrationDao.find(tenantId);
     }
 
     @Override
-    public List<Integration> findIntegrationsByConverterId(ConverterId converterId) {
+    public List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findIntegrationsByConverterId [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        return integrationDao.findByConverterId(converterId.getId());
+        return integrationDao.findByConverterId(tenantId.getId(), converterId.getId());
     }
 
     @Override
@@ -127,26 +127,26 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    public void deleteIntegration(IntegrationId integrationId) {
+    public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        deleteEntityRelations(integrationId);
-        integrationDao.removeById(integrationId.getId());
+        deleteEntityRelations(tenantId, integrationId);
+        integrationDao.removeById(tenantId, integrationId.getId());
     }
 
     @Override
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantIntegrationsRemover.removeEntities(tenantId);
+        tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
     private DataValidator<Integration> integrationValidator =
             new DataValidator<Integration>() {
 
                 @Override
-                protected void validateCreate(Integration integration) {
-                    integrationDao.findByRoutingKey(integration.getRoutingKey()).ifPresent(
+                protected void validateCreate(TenantId tenantId, Integration integration) {
+                    integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
                             d -> {
                                 throw new DataValidationException("Integration with such routing key already exists!");
                             }
@@ -154,8 +154,8 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
                 }
 
                 @Override
-                protected void validateUpdate(Integration integration) {
-                    integrationDao.findByRoutingKey(integration.getRoutingKey()).ifPresent(
+                protected void validateUpdate(TenantId tenantId, Integration integration) {
+                    integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
                             d -> {
                                 if (!d.getId().equals(integration.getId())) {
                                     throw new DataValidationException("Integration with such routing key already exists!");
@@ -165,7 +165,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
                 }
 
                 @Override
-                protected void validateDataImpl(Integration integration) {
+                protected void validateDataImpl(TenantId tenantId, Integration integration) {
                     if (StringUtils.isEmpty(integration.getName())) {
                         throw new DataValidationException("Integration name should be specified!");
                     }
@@ -178,7 +178,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
                     if (integration.getTenantId() == null || integration.getTenantId().isNullUid()) {
                         throw new DataValidationException("Integration should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(integration.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, integration.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Integration is referencing to non-existent tenant!");
                         }
@@ -186,7 +186,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
                     if (integration.getDefaultConverterId() == null || integration.getDefaultConverterId().isNullUid()) {
                         throw new DataValidationException("Integration default converter should be specified!");
                     } else {
-                        Converter converter = converterDao.findById(integration.getDefaultConverterId().getId());
+                        Converter converter = converterDao.findById(tenantId, integration.getDefaultConverterId().getId());
                         if (converter == null) {
                             throw new DataValidationException("Integration is referencing to non-existent converter!");
                         }
@@ -201,13 +201,13 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
             new PaginatedRemover<TenantId, Integration>() {
 
                 @Override
-                protected List<Integration> findEntities(TenantId id, TextPageLink pageLink) {
+                protected List<Integration> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
                     return integrationDao.findByTenantIdAndPageLink(id.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(Integration entity) {
-                    deleteIntegration(new IntegrationId(entity.getId().getId()));
+                protected void removeEntity(TenantId tenantId, Integration entity) {
+                    deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
                 }
             };
 

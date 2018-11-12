@@ -34,6 +34,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -66,7 +67,7 @@ public class CassandraBlobEntityInfoDao extends CassandraAbstractSearchTimeDao<B
     @Override
     public List<BlobEntityInfo> findBlobEntitiesByTenantId(UUID tenantId, TimePageLink pageLink) {
         log.trace("Try to find blob entities by tenant [{}] and pageLink [{}]", tenantId, pageLink);
-        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(BLOB_ENTITY_BY_TENANT_COLUMN_FAMILY_NAME,
+        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), BLOB_ENTITY_BY_TENANT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.BLOB_ENTITY_TENANT_ID_PROPERTY, tenantId)),
                 pageLink);
         log.trace("Found blob entities by tenant [{}] and pageLink [{}]", tenantId, pageLink);
@@ -76,7 +77,7 @@ public class CassandraBlobEntityInfoDao extends CassandraAbstractSearchTimeDao<B
     @Override
     public List<BlobEntityInfo> findBlobEntitiesByTenantIdAndType(UUID tenantId, String type, TimePageLink pageLink) {
         log.trace("Try to find blob entities by tenant [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
-        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(BLOB_ENTITY_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME,
+        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), BLOB_ENTITY_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.BLOB_ENTITY_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.BLOB_ENTITY_TYPE_PROPERTY, type)),
                 pageLink.isAscOrder() ? QueryBuilder.asc(ModelConstants.BLOB_ENTITY_TYPE_PROPERTY) :
@@ -89,7 +90,7 @@ public class CassandraBlobEntityInfoDao extends CassandraAbstractSearchTimeDao<B
     @Override
     public List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink) {
         log.trace("Try to find blob entities by tenant [{}], customer [{}] and pageLink [{}]", tenantId, customerId, pageLink);
-        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(BLOB_ENTITY_BY_CUSTOMER_COLUMN_FAMILY_NAME,
+        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), BLOB_ENTITY_BY_CUSTOMER_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.BLOB_ENTITY_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.BLOB_ENTITY_CUSTOMER_ID_PROPERTY, customerId)),
                 pageLink);
@@ -100,7 +101,7 @@ public class CassandraBlobEntityInfoDao extends CassandraAbstractSearchTimeDao<B
     @Override
     public List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink) {
         log.trace("Try to find blob entities by tenant [{}], customer [{}], type [{}] and pageLink [{}]", tenantId, customerId, type, pageLink);
-        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(BLOB_ENTITY_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME,
+        List<BlobEntityInfoEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), BLOB_ENTITY_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.BLOB_ENTITY_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.BLOB_ENTITY_CUSTOMER_ID_PROPERTY, customerId),
                         eq(ModelConstants.BLOB_ENTITY_TYPE_PROPERTY, type)),

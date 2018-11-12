@@ -106,7 +106,7 @@ public class BlobEntityController extends BaseController {
         try {
             BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
             BlobEntityInfo blobEntityInfo = checkBlobEntityInfoId(blobEntityId);
-            blobEntityService.deleteBlobEntity(blobEntityId);
+            blobEntityService.deleteBlobEntity(getTenantId(), blobEntityId);
 
             logEntityAction(blobEntityId, blobEntityInfo,
                     blobEntityInfo.getCustomerId(),

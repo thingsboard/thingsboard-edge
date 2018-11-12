@@ -130,7 +130,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             pageLink = new TimePageLink(100);
         }
         AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
-        List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(alarmQuery, filters);
+        List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         JsonObject obj = new JsonObject();
         for (int i=0;i<mappings.size();i++) {
             obj.addProperty(mappings.get(i).getTarget(), alarmCounts.get(i));

@@ -63,7 +63,7 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.UPLINK);
         }
-        assertEquals(60, converterDao.find().size());
+        assertEquals(60, converterDao.find(TenantId.SYS_TENANT_ID).size());
 
         TextPageLink pageLink1 = new TextPageLink(20, "CONVERTER_");
         List<Converter> converters1 = converterDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
@@ -102,6 +102,6 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         converter.setTenantId(new TenantId(tenantId));
         converter.setName(name);
         converter.setType(type);
-        converterDao.save(converter);
+        converterDao.save(new TenantId(tenantId), converter);
     }
 }

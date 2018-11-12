@@ -134,7 +134,7 @@ public class SchedulerEventController extends BaseController {
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
             SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId);
-            schedulerEventService.deleteSchedulerEvent(schedulerEventId);
+            schedulerEventService.deleteSchedulerEvent(getTenantId(), schedulerEventId);
 
             logEntityAction(schedulerEventId, schedulerEvent,
                     schedulerEvent.getCustomerId(),

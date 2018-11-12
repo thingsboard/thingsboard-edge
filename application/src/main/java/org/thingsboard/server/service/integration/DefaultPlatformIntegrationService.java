@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration;
 
+import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -42,18 +43,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.transport.service.TbRateLimitsException;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
@@ -61,6 +69,7 @@ import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
 import org.thingsboard.server.service.converter.TBUplinkDataConverter;
+import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.service.integration.http.ffb.FfbHttpIntegration;
@@ -75,6 +84,7 @@ import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
+import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -114,6 +124,26 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Lazy
     private ClusterRpcService clusterRpcService;
 
+    @Autowired
+    @Lazy
+    private ClusterRoutingService routingService;
+
+    @Autowired
+    @Lazy
+    private DataDecodingEncodingService encodingService;
+
+    @Autowired
+    @Lazy
+    private ActorSystemContext actorContext;
+
+    @Value("${transport.rate_limits.enabled}")
+    private boolean rateLimitEnabled;
+
+    @Value("${transport.rate_limits.tenant}")
+    private String perTenantLimitsConf;
+
+    @Value("${transport.rate_limits.tenant}")
+    private String perDevicesLimitsConf;
 
     @Value("${integrations.statistics.enabled}")
     private boolean statisticsEnabled;
@@ -126,6 +156,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private ConcurrentMap<IntegrationId, ThingsboardPlatformIntegration> integrationsByIdMap;
     private ConcurrentMap<String, ThingsboardPlatformIntegration> integrationsByRoutingKeyMap;
+
+    private ConcurrentMap<TenantId, TbRateLimits> perTenantLimits = new ConcurrentHashMap<>();
+    private ConcurrentMap<DeviceId, TbRateLimits> perDeviceLimits = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -190,7 +223,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public Optional<ThingsboardPlatformIntegration> getIntegrationById(IntegrationId id) {
         ThingsboardPlatformIntegration result = integrationsByIdMap.get(id);
         if (result == null) {
-            Integration configuration = integrationService.findIntegrationById(id);
+            Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, id);
             if (configuration != null) {
                 try {
                     result = createIntegration(configuration);
@@ -206,7 +239,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public Optional<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key) {
         ThingsboardPlatformIntegration result = integrationsByRoutingKeyMap.get(key);
         if (result == null) {
-            Optional<Integration> configuration = integrationService.findIntegrationByRoutingKey(key);
+            Optional<Integration> configuration = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, key);
             if (configuration.isPresent()) {
                 try {
                     result = createIntegration(configuration.get());
@@ -228,7 +261,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 if (server.isPresent()) {
                     clusterRpcService.tell(server.get(), msg);
                 } else {
-                    Integration configuration = integrationService.findIntegrationById(integrationId);
+                    Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
                     onMsg(createIntegration(configuration), msg);
                 }
             } else {
@@ -322,12 +355,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     private TBUplinkDataConverter getUplinkDataConverter(Integration integration) {
-        return dataConverterService.getUplinkConverterById(integration.getDefaultConverterId())
+        return dataConverterService.getUplinkConverterById(integration.getTenantId(), integration.getDefaultConverterId())
                 .orElseThrow(() -> new ThingsboardRuntimeException("Converter not found!", ThingsboardErrorCode.ITEM_NOT_FOUND));
     }
 
     private TBDownlinkDataConverter getDownlinkDataConverter(Integration integration) {
-        return dataConverterService.getDownlinkConverterById(integration.getDownlinkConverterId())
+        return dataConverterService.getDownlinkConverterById(integration.getTenantId(), integration.getDownlinkConverterId())
                 .orElse(null);
     }
 
@@ -354,6 +387,77 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         refreshAllIntegrations();
     }
 
+    @Override
+    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.PostTelemetryMsg msg, TransportServiceCallback<Void> callback) {
+        if (checkLimits(sessionInfo, msg, callback)) {
+            forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostTelemetry(msg).build(), callback);
+        }
+    }
+
+    @Override
+    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.PostAttributeMsg msg, TransportServiceCallback<Void> callback) {
+        if (checkLimits(sessionInfo, msg, callback)) {
+            forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostAttributes(msg).build(), callback);
+        }
+    }
+
+    @Override
+    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.GetAttributeRequestMsg msg, TransportServiceCallback<Void> callback) {
+        if (checkLimits(sessionInfo, msg, callback)) {
+            forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setGetAttributes(msg).build(), callback);
+        }
+    }
+
+    private void forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg toDeviceActorMsg, TransportServiceCallback<Void> callback) {
+        TransportToDeviceActorMsgWrapper wrapper = new TransportToDeviceActorMsgWrapper(toDeviceActorMsg);
+        Optional<ServerAddress> address = routingService.resolveById(wrapper.getDeviceId());
+        if (address.isPresent()) {
+            clusterRpcService.tell(encodingService.convertToProtoDataMessage(address.get(), wrapper));
+        } else {
+            actorContext.getAppActor().tell(wrapper, ActorRef.noSender());
+        }
+        if (callback != null) {
+            callback.onSuccess(null);
+        }
+    }
+
+    private boolean checkLimits(TransportProtos.SessionInfoProto sessionInfo, Object msg, TransportServiceCallback<Void> callback) {
+        if (log.isTraceEnabled()) {
+            log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
+        }
+        if (!rateLimitEnabled) {
+            return true;
+        }
+        TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
+        TbRateLimits rateLimits = perTenantLimits.computeIfAbsent(tenantId, id -> new TbRateLimits(perTenantLimitsConf));
+        if (!rateLimits.tryConsume()) {
+            if (callback != null) {
+                callback.onError(new TbRateLimitsException(EntityType.TENANT));
+            }
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Tenant level rate limit detected: {}", toId(sessionInfo), tenantId, msg);
+            }
+            return false;
+        }
+        DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
+        rateLimits = perDeviceLimits.computeIfAbsent(deviceId, id -> new TbRateLimits(perDevicesLimitsConf));
+        if (!rateLimits.tryConsume()) {
+            if (callback != null) {
+                callback.onError(new TbRateLimitsException(EntityType.DEVICE));
+            }
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Device level rate limit detected: {}", toId(sessionInfo), deviceId, msg);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    protected UUID toId(TransportProtos.SessionInfoProto sessionInfo) {
+        return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
+    }
+
     private void refreshAllIntegrations() {
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
@@ -364,7 +468,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             }
         }
 
-        List<Integration> allIntegrations = integrationService.findAllIntegrations();
+        List<Integration> allIntegrations = integrationService.findAllIntegrations(TenantId.SYS_TENANT_ID);
         try {
             List<ListenableFuture<Void>> futures = Lists.newArrayList();
             for (Integration integration : allIntegrations) {

@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
@@ -134,16 +135,16 @@ public class DefaultReportService implements ReportService {
     }
 
     @Override
-    public void generateDashboardReport(String baseUrl, DashboardId dashboardId, UserId userId, String publicId,
+    public void generateDashboardReport(String baseUrl, DashboardId dashboardId, TenantId tenantId, UserId userId, String publicId,
                                         String reportName, JsonNode reportParams, Consumer<ReportData> onSuccess,
                                         Consumer<Throwable> onFailure) {
         log.trace("Executing generateDashboardReport, baseUrl [{}], dashboardId [{}], userId [{}]", baseUrl, dashboardId, userId);
 
         AccessJwtToken accessToken;
         if (StringUtils.isEmpty(publicId)) {
-            accessToken = calculateUserAccessToken(userId);
+            accessToken = calculateUserAccessToken(tenantId, userId);
         } else {
-            accessToken = calculateUserAccessTokenFromPublicId(publicId);
+            accessToken = calculateUserAccessTokenFromPublicId(tenantId, publicId);
             ((ObjectNode)reportParams).put("publicId", publicId);
         }
 
@@ -162,10 +163,10 @@ public class DefaultReportService implements ReportService {
     }
 
     @Override
-    public void generateReport(ReportConfig reportConfig, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess, Consumer<Throwable> onFailure) {
+    public void generateReport(TenantId tenantId, ReportConfig reportConfig, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess, Consumer<Throwable> onFailure) {
         log.trace("Executing generateReport, reportConfig [{}]", reportConfig);
 
-        JsonNode dashboardReportRequest = createDashboardReportRequest(reportConfig);
+        JsonNode dashboardReportRequest = createDashboardReportRequest(tenantId, reportConfig);
         requestReport(dashboardReportRequest, reportsServerEndpointUrl, onSuccess, onFailure);
     }
 
@@ -204,8 +205,8 @@ public class DefaultReportService implements ReportService {
         });
     }
 
-    private JsonNode createDashboardReportRequest(ReportConfig reportConfig) {
-        AccessJwtToken accessToken = calculateUserAccessToken(new UserId(UUID.fromString(reportConfig.getUserId())));
+    private JsonNode createDashboardReportRequest(TenantId tenantId, ReportConfig reportConfig) {
+        AccessJwtToken accessToken = calculateUserAccessToken(tenantId, new UserId(UUID.fromString(reportConfig.getUserId())));
         String token = accessToken.getToken();
         long expiration = accessToken.getClaims().getExpiration().getTime();
         TimeZone tz = TimeZone.getTimeZone(reportConfig.getTimezone());
@@ -245,22 +246,22 @@ public class DefaultReportService implements ReportService {
         return name;
     }
 
-    private AccessJwtToken calculateUserAccessToken(UserId userId) {
-        User user = userService.findUserById(userId);
-        UserCredentials credentials = userService.findUserCredentialsByUserId(userId);
+    private AccessJwtToken calculateUserAccessToken(TenantId tenantId, UserId userId) {
+        User user = userService.findUserById(tenantId, userId);
+        UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, userId);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal);
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 
-    private AccessJwtToken calculateUserAccessTokenFromPublicId(String publicId) {
+    private AccessJwtToken calculateUserAccessTokenFromPublicId(TenantId tenantId, String publicId) {
         CustomerId customerId;
         try {
             customerId = new CustomerId(UUID.fromString(publicId));
         } catch (Exception e) {
             throw new BadCredentialsException("Authentication Failed. Public Id is not valid.");
         }
-        Customer publicCustomer = customerService.findCustomerById(customerId);
+        Customer publicCustomer = customerService.findCustomerById(tenantId, customerId);
         if (publicCustomer == null) {
             throw new UsernameNotFoundException("Public entity not found: " + publicId);
         }

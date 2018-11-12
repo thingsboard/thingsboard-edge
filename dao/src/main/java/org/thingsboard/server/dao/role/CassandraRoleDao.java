@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.EntitySubtypeEntity;
@@ -87,12 +88,12 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     }
 
     @Override
-    public Role save(Role role) {
-        Role savedRole = super.save(role);
+    public Role save(TenantId tenantId ,Role role) {
+        Role savedRole = super.save(role.getTenantId(), role);
         EntitySubtype entitySubtype = new EntitySubtype(savedRole.getTenantId(), EntityType.ROLE, savedRole.getType());
         EntitySubtypeEntity entitySubtypeEntity = new EntitySubtypeEntity(entitySubtype);
         Statement saveStatement = cluster.getMapper(EntitySubtypeEntity.class).saveQuery(entitySubtypeEntity);
-        executeWrite(saveStatement);
+        executeWrite(savedRole.getTenantId(), saveStatement);
         return savedRole;
     }
 
@@ -100,7 +101,7 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     public List<Role> findRolesByTenantId(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find roles by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
         List<RoleEntity> roleEntities =
-                findPageWithTextSearch(ROLE_BY_TENANT_AND_SEARCH_TEXT_CF,
+                findPageWithTextSearch(new TenantId(tenantId), ROLE_BY_TENANT_AND_SEARCH_TEXT_CF,
                         Collections.singletonList(eq(ROLE_TENANT_ID_PROPERTY, tenantId)), pageLink);
         log.trace("Found roles [{}] by tenantId [{}] and pageLink [{}]",
                 roleEntities, tenantId, pageLink);
@@ -111,7 +112,7 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     public List<Role> findRolesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
         log.debug("Try to find roles by tenantId [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
         List<RoleEntity> roleEntities =
-                findPageWithTextSearch(ROLE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF,
+                findPageWithTextSearch(new TenantId(tenantId), ROLE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF,
                         Arrays.asList(eq(ROLE_TYPE_PROPERTY, type),
                                 eq(ROLE_TENANT_ID_PROPERTY, tenantId)), pageLink);
         log.trace("Found roles [{}] by tenantId [{}], type [{}] and pageLink [{}]",
@@ -124,7 +125,7 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
         Select.Where query = select().from(ROLE_BY_TENANT_AND_NAME).where();
         query.and(eq(ROLE_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ROLE_NAME_PROPERTY, name));
-        return Optional.ofNullable(DaoUtil.getData(findOneByStatement(query)));
+        return Optional.ofNullable(DaoUtil.getData(findOneByStatement(new TenantId(tenantId), query)));
     }
 
     @Override
@@ -134,7 +135,7 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
         query.and(eq(ENTITY_SUBTYPE_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY, EntityType.ROLE));
         query.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-        ResultSetFuture resultSetFuture = executeAsyncRead(query);
+        ResultSetFuture resultSetFuture = executeAsyncRead(new TenantId(tenantId), query);
         return Futures.transform(resultSetFuture, new Function<ResultSet, List<EntitySubtype>>() {
             @Nullable
             @Override

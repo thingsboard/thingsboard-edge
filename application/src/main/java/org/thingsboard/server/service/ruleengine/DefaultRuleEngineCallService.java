@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 
 import javax.annotation.PostConstruct;
@@ -96,7 +97,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg) {
-        actorService.onMsg(new ServiceToRuleEngineMsg(tenantId, msg));
+        actorService.onMsg(new SendToClusterMsg(msg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, msg)));
     }
 
     private void scheduleTimeout(TbMsg request, UUID requestId, ConcurrentMap<UUID, Consumer<TbMsg>> requestsMap) {

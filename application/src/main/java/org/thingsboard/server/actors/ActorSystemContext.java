@@ -46,6 +46,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -80,18 +81,20 @@ import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
+import org.thingsboard.server.service.executors.ClusterRpcCallbackExecutorService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
-import org.thingsboard.server.service.queue.MsgQueueService;
 import org.thingsboard.server.service.rpc.DeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.service.session.DeviceSessionCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+import org.thingsboard.server.service.transport.RuleEngineTransportService;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -224,6 +227,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private ClusterRpcCallbackExecutorService clusterRpcCallbackExecutor;
+
+    @Autowired
+    @Getter
     private DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
@@ -236,11 +243,16 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private MsgQueueService msgQueueService;
+    private DeviceStateService deviceStateService;
 
     @Autowired
     @Getter
-    private DeviceStateService deviceStateService;
+    private DeviceSessionCacheService deviceSessionCacheService;
+
+    @Lazy
+    @Autowired
+    @Getter
+    private RuleEngineTransportService ruleEngineTransportService;
 
     @Autowired
     @Getter
@@ -301,6 +313,14 @@ public class ActorSystemContext {
     @Getter
     private boolean allowSystemMailService;
 
+    @Value("${transport.sessions.inactivity_timeout}")
+    @Getter
+    private long sessionInactivityTimeout;
+
+    @Value("${transport.sessions.report_timeout}")
+    @Getter
+    private long sessionReportTimeout;
+
     @Getter
     @Setter
     private ActorSystem actorSystem;
@@ -308,10 +328,6 @@ public class ActorSystemContext {
     @Getter
     @Setter
     private ActorRef appActor;
-
-    @Getter
-    @Setter
-    private ActorRef sessionManagerActor;
 
     @Getter
     @Setter

@@ -72,7 +72,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
         EntityRelation relation = new EntityRelation(parentId, childId, EntityRelation.CONTAINS_TYPE);
 
-        Assert.assertTrue(relationService.saveRelationAsync(relation).get());
+        Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());
 
         long ts = System.currentTimeMillis();
         Alarm alarm = Alarm.builder().tenantId(tenantId).originator(childId)
@@ -98,7 +98,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(0L, created.getAckTs());
         Assert.assertEquals(0L, created.getClearTs());
 
-        Alarm fetched = alarmService.findAlarmByIdAsync(created.getId()).get();
+        Alarm fetched = alarmService.findAlarmByIdAsync(tenantId, created.getId()).get();
         Assert.assertEquals(created, fetched);
     }
 
@@ -109,7 +109,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
         EntityRelation relation = new EntityRelation(parentId, childId, EntityRelation.CONTAINS_TYPE);
 
-        Assert.assertTrue(relationService.saveRelationAsync(relation).get());
+        Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());
 
         long ts = System.currentTimeMillis();
         Alarm alarm = Alarm.builder().tenantId(tenantId).originator(childId)
@@ -121,7 +121,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Alarm created = alarmService.createOrUpdateAlarm(alarm);
 
         // Check child relation
-        TimePageData<AlarmInfo> alarms = alarmService.findAlarms(AlarmQuery.builder()
+        TimePageData<AlarmInfo> alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(childId)
                 .status(AlarmStatus.ACTIVE_UNACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)
@@ -131,7 +131,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(created, alarms.getData().get(0));
 
         // Check parent relation
-        alarms = alarmService.findAlarms(AlarmQuery.builder()
+        alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(parentId)
                 .status(AlarmStatus.ACTIVE_UNACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)
@@ -143,7 +143,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         created = alarmService.createOrUpdateAlarm(created);
 
         // Check child relation
-        alarms = alarmService.findAlarms(AlarmQuery.builder()
+        alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(childId)
                 .status(AlarmStatus.ACTIVE_UNACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)
@@ -153,7 +153,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(created, alarms.getData().get(0));
 
         // Check parent relation
-        alarms = alarmService.findAlarms(AlarmQuery.builder()
+        alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(parentId)
                 .status(AlarmStatus.ACTIVE_UNACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)
@@ -162,10 +162,10 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, alarms.getData().get(0));
 
-        alarmService.ackAlarm(created.getId(), System.currentTimeMillis()).get();
-        created = alarmService.findAlarmByIdAsync(created.getId()).get();
+        alarmService.ackAlarm(tenantId, created.getId(), System.currentTimeMillis()).get();
+        created = alarmService.findAlarmByIdAsync(tenantId, created.getId()).get();
 
-        alarms = alarmService.findAlarms(AlarmQuery.builder()
+        alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(childId)
                 .status(AlarmStatus.ACTIVE_ACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)
@@ -175,7 +175,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(created, alarms.getData().get(0));
 
         // Check not existing relation
-        alarms = alarmService.findAlarms(AlarmQuery.builder()
+        alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(childId)
                 .status(AlarmStatus.ACTIVE_UNACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)
@@ -183,10 +183,10 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(0, alarms.getData().size());
 
-        alarmService.clearAlarm(created.getId(), null, System.currentTimeMillis()).get();
-        created = alarmService.findAlarmByIdAsync(created.getId()).get();
+        alarmService.clearAlarm(tenantId, created.getId(), null, System.currentTimeMillis()).get();
+        created = alarmService.findAlarmByIdAsync(tenantId, created.getId()).get();
 
-        alarms = alarmService.findAlarms(AlarmQuery.builder()
+        alarms = alarmService.findAlarms(tenantId, AlarmQuery.builder()
                 .affectedEntityId(childId)
                 .status(AlarmStatus.CLEARED_ACK).pageLink(
                         new TimePageLink(1, 0L, System.currentTimeMillis(), false)

@@ -41,11 +41,11 @@ import java.util.List;
 
 public interface SchedulerEventService {
 
-    SchedulerEvent findSchedulerEventById(SchedulerEventId schedulerEventId);
+    SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId);
 
-    SchedulerEventInfo findSchedulerEventInfoById(SchedulerEventId schedulerEventId);
+    SchedulerEventInfo findSchedulerEventInfoById(TenantId tenantId, SchedulerEventId schedulerEventId);
 
-    ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(SchedulerEventId schedulerEventId);
+    ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(TenantId tenantId, SchedulerEventId schedulerEventId);
 
     List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId);
 
@@ -57,7 +57,7 @@ public interface SchedulerEventService {
 
     SchedulerEvent saveSchedulerEvent(SchedulerEvent schedulerEvent);
 
-    void deleteSchedulerEvent(SchedulerEventId schedulerEventId);
+    void deleteSchedulerEvent(TenantId tenantId, SchedulerEventId schedulerEventId);
 
     void deleteSchedulerEventsByTenantId(TenantId tenantId);
 

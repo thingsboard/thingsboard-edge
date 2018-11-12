@@ -38,7 +38,6 @@
         <version>2.2.0PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
-    <groupId>org.thingsboard</groupId>
     <artifactId>common</artifactId>
     <packaging>pom</packaging>
 
@@ -52,8 +51,8 @@
     <modules>
         <module>data</module>
         <module>message</module>
-	    <module>transport</module>
         <module>queue</module>
+        <module>transport</module>
     </modules>
 
 </project>

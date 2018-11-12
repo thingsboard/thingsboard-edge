@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.relation.RelationService;
 
 @Slf4j
@@ -45,13 +46,13 @@ public abstract class AbstractEntityService {
     @Autowired
     protected EntityGroupService entityGroupService;
 
-    protected void deleteEntityRelations(EntityId entityId) {
+    protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
-        relationService.deleteEntityRelations(entityId);
+        relationService.deleteEntityRelations(tenantId, entityId);
     }
 
-    protected void deleteEntityGroups(EntityId entityId) {
+    protected void deleteEntityGroups(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityGroups [{}]", entityId);
-        entityGroupService.deleteAllEntityGroups(entityId);
+        entityGroupService.deleteAllEntityGroups(tenantId, entityId);
     }
 }

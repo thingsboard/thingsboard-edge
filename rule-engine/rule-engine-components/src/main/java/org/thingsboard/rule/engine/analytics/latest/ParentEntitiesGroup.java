@@ -57,7 +57,7 @@ public class ParentEntitiesGroup implements ParentEntitiesQuery {
 
     @Override
     public ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(new EntityGroupId(parentEntityId.getId()),
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), new EntityGroupId(parentEntityId.getId()),
                 new TimePageLink(Integer.MAX_VALUE));
     }
 

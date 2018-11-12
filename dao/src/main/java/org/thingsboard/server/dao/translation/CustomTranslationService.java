@@ -36,11 +36,11 @@ import org.thingsboard.server.common.data.translation.CustomTranslation;
 
 public interface CustomTranslationService {
 
-    CustomTranslation getSystemCustomTranslation();
+    CustomTranslation getSystemCustomTranslation(TenantId tenantId);
 
     CustomTranslation getTenantCustomTranslation(TenantId tenantId);
 
-    CustomTranslation getCustomerCustomTranslation(CustomerId customerId);
+    CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
 
     CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId);
 
@@ -50,6 +50,6 @@ public interface CustomTranslationService {
 
     CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation);
 
-    CustomTranslation saveCustomerCustomTranslation(CustomerId customerId, CustomTranslation customTranslation);
+    CustomTranslation saveCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation);
 
 }

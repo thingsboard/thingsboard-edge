@@ -32,9 +32,7 @@ package org.thingsboard.server.service.converter;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.msg.core.GetAttributesRequest;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.AttributesUpdateRequest;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -45,8 +43,8 @@ public class UplinkData {
 
     private final String deviceName;
     private final String deviceType;
-    private final TelemetryUploadRequest telemetry;
-    private final AttributesUpdateRequest attributesUpdate;
-    private final GetAttributesRequest attributesRequest;
+    private final TransportProtos.PostTelemetryMsg telemetry;
+    private final TransportProtos.PostAttributeMsg attributesUpdate;
+    private final TransportProtos.GetAttributeRequestMsg attributesRequest;
 
 }

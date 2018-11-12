@@ -85,19 +85,19 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
     @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
     @Override
-    public Role saveRole(Role role) {
+    public Role saveRole(TenantId tenantId, Role role) {
         log.trace("Executing save role [{}]", role);
-        roleValidator.validate(role);
-        Role savedRole = roleDao.save(role);
+        roleValidator.validate(role, Role::getTenantId);
+        Role savedRole = roleDao.save(tenantId, role);
         return savedRole;
     }
 
     @Cacheable(cacheNames = ROLE_CACHE, key = "{#roleId}")
     @Override
-    public Role findRoleById(RoleId roleId) {
+    public Role findRoleById(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        return roleDao.findById(roleId.getId());
+        return roleDao.findById(tenantId, roleId.getId());
     }
 
     @Override
@@ -120,15 +120,15 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public ListenableFuture<List<Role>> findRolesByQuery(RoleSearchQuery query) {
-        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(query.toEntitySearchQuery());
+    public ListenableFuture<List<Role>> findRolesByQuery(TenantId tenantId, RoleSearchQuery query) {
+        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());
         ListenableFuture<List<Role>> roles = Futures.transformAsync(relations, r -> {
             EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();
             List<ListenableFuture<Role>> futures = new ArrayList<>();
             for (EntityRelation relation : r) {
                 EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();
                 if (entityId.getEntityType() == EntityType.ROLE) {
-                    futures.add(findRoleByIdAsync(new RoleId(entityId.getId())));
+                    futures.add(findRoleByIdAsync(tenantId, new RoleId(entityId.getId())));
                 }
             }
             return Futures.successfulAsList(futures);
@@ -146,26 +146,26 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public ListenableFuture<Role> findRoleByIdAsync(RoleId roleId) {
+    public ListenableFuture<Role> findRoleByIdAsync(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleByIdAsync [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        return roleDao.findByIdAsync(roleId.getId());
+        return roleDao.findByIdAsync(tenantId, roleId.getId());
     }
 
     @CacheEvict(cacheNames = ROLE_CACHE, key = "{#roleId}")
     @Override
-    public void deleteRole(RoleId roleId) {
+    public void deleteRole(TenantId tenantId, RoleId roleId) {
         log.trace("Executing deleteRole [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        deleteEntityRelations(roleId);
-        roleDao.removeById(roleId.getId());
+        deleteEntityRelations(tenantId, roleId);
+        roleDao.removeById(tenantId, roleId.getId());
     }
 
     @Override
     public void deleteRolesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteRolesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantRoleRemover.removeEntities(tenantId);
+        tenantRoleRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
@@ -184,7 +184,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
             new DataValidator<Role>() {
 
                 @Override
-                protected void validateCreate(Role role) {
+                protected void validateCreate(TenantId tenantId, Role role) {
                     roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
                             .ifPresent(e -> {
                                 throw new DataValidationException("Role with such name already exists!");
@@ -192,7 +192,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                 }
 
                 @Override
-                protected void validateUpdate(Role role) {
+                protected void validateUpdate(TenantId tenantId, Role role) {
                     roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
                             .ifPresent(e -> {
                                 if (!e.getUuidId().equals(role.getUuidId())) {
@@ -202,7 +202,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                 }
 
                 @Override
-                protected void validateDataImpl(Role role) {
+                protected void validateDataImpl(TenantId tenantId, Role role) {
                     if (StringUtils.isEmpty(role.getType())) {
                         throw new DataValidationException("Role type should be specified!");
                     }
@@ -212,7 +212,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                     if (role.getTenantId() == null) {
                         throw new DataValidationException("Role should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(role.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, role.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Role is referencing to non-existent tenant!");
                         }
@@ -224,13 +224,13 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
             new PaginatedRemover<TenantId, Role>() {
 
                 @Override
-                protected List<Role> findEntities(TenantId id, TextPageLink pageLink) {
+                protected List<Role> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
                     return roleDao.findRolesByTenantId(id.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(Role entity) {
-                    deleteRole(new RoleId(entity.getUuidId()));
+                protected void removeEntity(TenantId tenantId, Role entity) {
+                    deleteRole(tenantId, new RoleId(entity.getUuidId()));
                 }
             };
 }
