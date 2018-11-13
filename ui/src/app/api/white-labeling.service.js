@@ -30,7 +30,7 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import defaultImageUrl from '../../svg/logo_title_white.svg';
+import defaultImageUrl from '../../svg/logo_title_white_pe.svg';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -52,7 +52,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
 
     const defaultWLParams = {
         logoImageUrl: defaultImageUrl,
-        logoImageChecksum: '4a216f7cb9b76effe0d583ef5bddd98e377e2fa9',
+        logoImageChecksum: 'f4ef3e3d6f868a30946388f299bd8f4a36a89d45',
         logoImageHeight: 36,
         appTitle: 'ThingsBoard PE',
         favicon: {

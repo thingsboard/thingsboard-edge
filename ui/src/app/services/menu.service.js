@@ -71,7 +71,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
     };
 
     var tenantAdminSettingHomeSection = {
-        name: 'admin.system-settings',
+        name: 'white-labeling.white-labeling',
         places: []
     };
 
@@ -89,11 +89,11 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
     ];
 
     var tenantAdminSettingMenuSection = {
-        name: 'admin.system-settings',
+        name: 'white-labeling.white-labeling',
         type: 'toggle',
         state: 'home.settings',
         height: '0px',
-        icon: 'settings',
+        icon: 'format_paint',
         pages: []
     };
 
@@ -119,11 +119,11 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
     ];
 
     var customerAdminSettingMenuSection = {
-        name: 'admin.system-settings',
+        name: 'white-labeling.white-labeling',
         type: 'toggle',
         state: 'home.settings',
         height: '0px',
-        icon: 'settings',
+        icon: 'format_paint',
         pages: []
     };
 
@@ -164,7 +164,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
     ];
 
     var customerAdminSettingHomeSection = {
-        name: 'admin.system-settings',
+        name: 'white-labeling.white-labeling',
         places: [
             {
                 name: 'white-labeling.white-labeling',

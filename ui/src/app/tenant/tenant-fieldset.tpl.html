@@ -58,11 +58,13 @@
 		</md-input-container>
 		<md-input-container class="md-block">
 			<md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'tenant.allow-white-labeling' | translate }}"
-						 ng-model="tenant.additionalInfo.allowWhiteLabeling">{{ 'tenant.allow-white-labeling' | translate }}
+                         ng-change="onAllowWhitelabelingChanged('allowWhiteLabeling')"
+						 ng-model="allowWhiteLabeling">{{ 'tenant.allow-white-labeling' | translate }}
 			</md-checkbox>
-			<md-checkbox ng-disabled="$root.loading || !isEdit || !tenant.additionalInfo.allowWhiteLabeling"
+			<md-checkbox ng-disabled="$root.loading || !isEdit || !allowWhiteLabeling"
 						 aria-label="{{ 'tenant.allow-customer-white-labeling' | translate }}"
-						 ng-model="tenant.additionalInfo.allowCustomerWhiteLabeling">{{ 'tenant.allow-customer-white-labeling' | translate }}
+                         ng-change="onAllowWhitelabelingChanged('allowCustomerWhiteLabeling')"
+						 ng-model="allowCustomerWhiteLabeling">{{ 'tenant.allow-customer-white-labeling' | translate }}
 			</md-checkbox>
 		</md-input-container>
 		<tb-contact contact="tenant" the-form="theForm" is-edit="isEdit"></tb-contact>

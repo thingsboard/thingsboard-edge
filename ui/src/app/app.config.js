@@ -149,14 +149,48 @@ export default function AppConfig($provide,
             .dark();
     }
 
+    function peTheme() {
+        var tbPrimaryPalette = $mdThemingProvider.extendPalette('teal', {
+            '500': '#00695c'
+        });
+
+        var tbAccentPalette = $mdThemingProvider.extendPalette('deep-orange');
+
+        $mdThemingProvider.definePalette('tb-primary', tbPrimaryPalette);
+        $mdThemingProvider.definePalette('tb-accent', tbAccentPalette);
+
+        var tbDarkPrimaryPalette = $mdThemingProvider.extendPalette('teal', {
+            '500': '#00c3b6'
+        });
+
+        var tbDarkPrimaryBackgroundPalette = $mdThemingProvider.extendPalette('teal', {
+            '800': '#00695c'
+        });
+
+        $mdThemingProvider.definePalette('tb-dark-primary', tbDarkPrimaryPalette);
+        $mdThemingProvider.definePalette('tb-dark-primary-background', tbDarkPrimaryBackgroundPalette);
+
+        $mdThemingProvider.theme('default')
+            .primaryPalette('tb-primary')
+            .accentPalette('tb-accent');
+
+        $mdThemingProvider.theme('tb-dark')
+            .primaryPalette('tb-dark-primary')
+            .accentPalette('tb-accent')
+            .backgroundPalette('tb-dark-primary-background')
+            .dark();
+    }
+
     function configureTheme() {
         //white-labeling
         $mdThemingProvider.generateThemesOnDemand(true);
         $provide.value('themeProvider', $mdThemingProvider);
 
-        var theme = 'indigo';
+        var theme = 'pe';
 
-        if (theme === 'blueGray') {
+        if (theme === 'pe') {
+            peTheme();
+        } else if (theme === 'blueGray') {
             blueGrayTheme();
         } else {
             indigoTheme();

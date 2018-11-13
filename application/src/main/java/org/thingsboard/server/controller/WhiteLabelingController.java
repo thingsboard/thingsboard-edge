@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
@@ -82,27 +84,11 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(
-            @RequestHeader HttpHeaders headers,
             @RequestParam(required = false) String logoImageChecksum,
-            @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
+            @RequestParam(required = false) String faviconChecksum,
+            HttpServletRequest request) throws ThingsboardException {
         try {
-            String domainName;
-            String forwardedHost = headers.getFirst(X_FORWARDED_HOST_HEADER_KEY);
-            if (StringUtils.isNotBlank(forwardedHost)) {
-                if (forwardedHost.contains(":")) {
-                    domainName = forwardedHost.substring(0, forwardedHost.indexOf(":"));
-                } else {
-                    domainName = forwardedHost;
-                }
-            } else {
-                String host = headers.getFirst(HOST_HEADER_KEY);
-                if (host.contains(":")) {
-                    domainName = host.substring(0, host.indexOf(":"));
-                } else {
-                    domainName = host;
-                }
-            }
-            return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, domainName, logoImageChecksum, faviconChecksum);
+            return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, request.getServerName(), logoImageChecksum, faviconChecksum);
         } catch (Exception e) {
             throw handleException(e);
         }

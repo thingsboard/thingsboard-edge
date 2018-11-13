@@ -52,14 +52,21 @@ export default function CustomerDirective($compile, $templateCache, $translate, 
             if (newVal) {
                 if (scope.customer.additionalInfo) {
                     scope.isPublic = scope.customer.additionalInfo.isPublic;
-                    if (!scope.customer.additionalInfo.allowWhiteLabeling) {
-                        scope.customer.additionalInfo.allowWhiteLabeling = false;
-                    }
+                    scope.allowWhiteLabeling = angular.isUndefined(scope.customer.additionalInfo.allowWhiteLabeling) ||
+                        scope.customer.additionalInfo.allowWhiteLabeling === true;
                 } else {
                     scope.isPublic = false;
+                    scope.allowWhiteLabeling = true;
                 }
             }
         });
+
+        scope.onAllowWhitelabelingChanged = function () {
+            if (!scope.customer.additionalInfo) {
+                scope.customer.additionalInfo = {};
+            }
+            scope.customer.additionalInfo.allowWhiteLabeling = scope.allowWhiteLabeling;
+        };
 
         $compile(element.contents())(scope);
 
