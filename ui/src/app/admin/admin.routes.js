@@ -47,7 +47,7 @@ export default function AdminRoutes($stateProvider) {
             redirectTo: {
                 'SYS_ADMIN': 'home.settings.outgoing-mail',
                 'TENANT_ADMIN': 'home.settings.outgoing-mail',
-                'CUSTOMER_USER': 'home.settings.whiteLabel'},
+                'CUSTOMER_USER': 'home.settings.customTranslation'},
             ncyBreadcrumb: {
                 label: '{"icon": "settings", "label": "admin.system-settings"}'
             }
