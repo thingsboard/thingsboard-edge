@@ -87,7 +87,7 @@ export default function ReportConfigDirective($compile, $templateCache, $mdDialo
                     onShowingCallback: onShowingCallback
                 },
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 targetEvent: $event,
                 onComplete: () => {
                     onShowingCallback.onShowed();

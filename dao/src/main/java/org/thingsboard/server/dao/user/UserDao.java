@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.user;
 
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
 
@@ -45,7 +46,7 @@ public interface UserDao extends Dao<User> {
      * @param user the user object
      * @return saved user entity
      */
-    User save(User user);
+    User save(TenantId tenantId, User user);
 
     /**
      * Find user by email.
@@ -53,7 +54,7 @@ public interface UserDao extends Dao<User> {
      * @param email the email
      * @return the user entity
      */
-    User findByEmail(String email);
+    User findByEmail(TenantId tenantId, String email);
     
     /**
      * Find tenant admin users by tenantId and page link.

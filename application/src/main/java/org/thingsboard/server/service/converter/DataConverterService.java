@@ -32,6 +32,7 @@ package org.thingsboard.server.service.converter;
 
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Optional;
 
@@ -46,8 +47,8 @@ public interface DataConverterService {
 
     void deleteConverter(ConverterId converterId);
 
-    Optional<TBUplinkDataConverter> getUplinkConverterById(ConverterId converterId);
+    Optional<TBUplinkDataConverter> getUplinkConverterById(TenantId tenantId, ConverterId converterId);
 
-    Optional<TBDownlinkDataConverter> getDownlinkConverterById(ConverterId converterId);
+    Optional<TBDownlinkDataConverter> getDownlinkConverterById(TenantId tenantId, ConverterId converterId);
 
 }

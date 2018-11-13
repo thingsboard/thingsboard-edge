@@ -42,6 +42,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseEntity;
@@ -71,11 +72,11 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         return cluster.getMapper(getColumnFamilyClass());
     }
 
-    protected List<E> findListByStatement(Statement statement) {
+    protected List<E> findListByStatement(TenantId tenantId, Statement statement) {
         List<E> list = Collections.emptyList();
         if (statement != null) {
             statement.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-            ResultSet resultSet = executeRead(statement);
+            ResultSet resultSet = executeRead(tenantId, statement);
             Result<E> result = getMapper().map(resultSet);
             if (result != null) {
                 list = result.all();
@@ -84,10 +85,10 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         return list;
     }
 
-    protected ListenableFuture<List<D>> findListByStatementAsync(Statement statement) {
+    protected ListenableFuture<List<D>> findListByStatementAsync(TenantId tenantId, Statement statement) {
         if (statement != null) {
             statement.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-            ResultSetFuture resultSetFuture = executeAsyncRead(statement);
+            ResultSetFuture resultSetFuture = executeAsyncRead(tenantId, statement);
             return Futures.transform(resultSetFuture, new Function<ResultSet, List<D>>() {
                 @Nullable
                 @Override
@@ -105,11 +106,11 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         return Futures.immediateFuture(Collections.emptyList());
     }
 
-    protected E findOneByStatement(Statement statement) {
+    protected E findOneByStatement(TenantId tenantId, Statement statement) {
         E object = null;
         if (statement != null) {
             statement.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-            ResultSet resultSet = executeRead(statement);
+            ResultSet resultSet = executeRead(tenantId, statement);
             Result<E> result = getMapper().map(resultSet);
             if (result != null) {
                 object = result.one();
@@ -118,10 +119,10 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         return object;
     }
 
-    protected ListenableFuture<D> findOneByStatementAsync(Statement statement) {
+    protected ListenableFuture<D> findOneByStatementAsync(TenantId tenantId, Statement statement) {
         if (statement != null) {
             statement.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-            ResultSetFuture resultSetFuture = executeAsyncRead(statement);
+            ResultSetFuture resultSetFuture = executeAsyncRead(tenantId, statement);
             return Futures.transform(resultSetFuture, new Function<ResultSet, D>() {
                 @Nullable
                 @Override
@@ -143,16 +144,16 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         return getMapper().saveQuery(dto);
     }
 
-    protected EntityResultSet<E> saveWithResult(E entity) {
+    protected EntityResultSet<E> saveWithResult(TenantId tenantId, E entity) {
         log.debug("Save entity {}", entity);
         if (entity.getId() == null) {
             entity.setId(UUIDs.timeBased());
         } else if (isDeleteOnSave()) {
-            removeById(entity.getId());
+            removeById(tenantId, entity.getId());
         }
         Statement saveStatement = getSaveQuery(entity);
         saveStatement.setConsistencyLevel(cluster.getDefaultWriteConsistencyLevel());
-        ResultSet resultSet = executeWrite(saveStatement);
+        ResultSet resultSet = executeWrite(tenantId, saveStatement);
         return new EntityResultSet<>(resultSet, entity);
     }
 
@@ -161,7 +162,7 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
     }
 
     @Override
-    public D save(D domain) {
+    public D save(TenantId tenantId, D domain) {
         E entity;
         try {
             entity = getColumnFamilyClass().getConstructor(domain.getClass()).newInstance(domain);
@@ -171,48 +172,39 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         }
         entity = updateSearchTextIfPresent(entity);
         log.debug("Saving entity {}", entity);
-        entity = saveWithResult(entity).getEntity();
+        entity = saveWithResult(tenantId, entity).getEntity();
         return DaoUtil.getData(entity);
     }
 
     @Override
-    public D findById(UUID key) {
+    public D findById(TenantId tenantId, UUID key) {
         log.debug("Get entity by key {}", key);
         Select.Where query = select().from(getColumnFamilyName()).where(eq(ModelConstants.ID_PROPERTY, key));
         log.trace("Execute query {}", query);
-        E entity = findOneByStatement(query);
+        E entity = findOneByStatement(tenantId, query);
         return DaoUtil.getData(entity);
     }
 
     @Override
-    public ListenableFuture<D> findByIdAsync(UUID key) {
+    public ListenableFuture<D> findByIdAsync(TenantId tenantId, UUID key) {
         log.debug("Get entity by key {}", key);
         Select.Where query = select().from(getColumnFamilyName()).where(eq(ModelConstants.ID_PROPERTY, key));
         log.trace("Execute query {}", query);
-        return findOneByStatementAsync(query);
+        return findOneByStatementAsync(tenantId, query);
     }
 
     @Override
-    public boolean removeById(UUID key) {
+    public boolean removeById(TenantId tenantId, UUID key) {
         Statement delete = QueryBuilder.delete().all().from(getColumnFamilyName()).where(eq(ModelConstants.ID_PROPERTY, key));
         log.debug("Remove request: {}", delete.toString());
-        return executeWrite(delete).wasApplied();
+        return executeWrite(tenantId, delete).wasApplied();
     }
 
     @Override
-    public List<D> find() {
+    public List<D> find(TenantId tenantId) {
         log.debug("Get all entities from column family {}", getColumnFamilyName());
-        List<E> entities = findListByStatement(QueryBuilder.select().all().from(getColumnFamilyName()).setConsistencyLevel(cluster.getDefaultReadConsistencyLevel()));
+        List<E> entities = findListByStatement(tenantId, QueryBuilder.select().all().from(getColumnFamilyName()).setConsistencyLevel(cluster.getDefaultReadConsistencyLevel()));
         return DaoUtil.convertDataList(entities);
     }
-
-    protected static <T> Function<BaseEntity<T>, T> toDataFunction() {
-        return new Function<BaseEntity<T>, T>() {
-            @Nullable
-            @Override
-            public T apply(@Nullable BaseEntity<T> entity) {
-                return entity != null ? entity.toData() : null;
-            }
-        };
-    }
+    
 }

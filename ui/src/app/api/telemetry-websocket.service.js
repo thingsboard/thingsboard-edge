@@ -41,7 +41,7 @@ const WS_IDLE_TIMEOUT = 90000;
 const MAX_PUBLISH_COMMANDS = 10;
 
 /*@ngInject*/
-function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, types, userService) {
+function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, toast, types, userService) {
 
     var isOpening = false,
         isOpened = false,
@@ -180,7 +180,9 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
     function onMessage (message) {
         if (message.data) {
             var data = angular.fromJson(message.data);
-            if (data.subscriptionId) {
+            if (data.errorCode) {
+                showWsError(data.errorCode, data.errorMsg);
+            } else if (data.subscriptionId) {
                 var subscriber = subscribers[data.subscriptionId];
                 if (subscriber && data) {
                     var keys = fetchKeys(data.subscriptionId);
@@ -198,6 +200,16 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
             }
         }
         checkToClose();
+    }
+
+    function showWsError(errorCode, errorMsg) {
+        var message = 'WebSocket Error: ';
+        if (errorMsg) {
+            message += errorMsg;
+        } else {
+            message += "error code - " + errorCode + ".";
+        }
+        toast.showError(message);
     }
 
     function fetchKeys(subscriptionId) {

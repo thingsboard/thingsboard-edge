@@ -47,8 +47,6 @@ import java.util.UUID;
 public class FromDeviceRpcResponse {
     @Getter
     private final UUID id;
-    @Getter
-    private final ServerAddress serverAddress;
     private final String response;
     private final RpcError error;
 

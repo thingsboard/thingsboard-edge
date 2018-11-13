@@ -111,10 +111,10 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         savedIntegration.setName("My new integration");
 
         integrationService.saveIntegration(savedIntegration);
-        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertEquals(foundIntegration.getName(), savedIntegration.getName());
 
-        integrationService.deleteIntegration(savedIntegration.getId());
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
     }
 
     @Test(expected = DataValidationException.class)
@@ -172,10 +172,10 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
-        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNotNull(foundIntegration);
         Assert.assertEquals(savedIntegration, foundIntegration);
-        integrationService.deleteIntegration(savedIntegration.getId());
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
     }
 
     @Test
@@ -188,10 +188,10 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
-        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNotNull(foundIntegration);
-        integrationService.deleteIntegration(savedIntegration.getId());
-        foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
+        foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNull(foundIntegration);
     }
 

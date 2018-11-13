@@ -124,11 +124,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.4.0 to 2.0.0 ...");
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
-            case "2.1.2":
-                log.info("Updating data from version 2.1.2 to 2.1.3PE ...");
+            case "2.2.0":
+                log.info("Updating data from version 2.2.0 to 2.2.0PE ...");
                 tenantsGroupAllUpdater.updateEntities(null);
 
-                AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey("mailTemplates");
+                AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {
                     systemDataLoaderService.loadMailTemplates();
                 }
@@ -178,9 +178,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE};
                         for (EntityType groupType : entityGroupTypes) {
                             Optional<EntityGroup> entityGroupOptional =
-                                    entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
                             if (!entityGroupOptional.isPresent()) {
-                                entityGroupService.createEntityGroupAll(tenant.getId(), groupType);
+                                entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), groupType);
                                 switch (groupType) {
                                     case USER:
                                         usersGroupAllUpdater.updateEntities(tenant.getId());
@@ -210,7 +210,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         @Override
         protected void updateEntity(User entity) {
-            entityGroupService.addEntityToEntityGroupAll(entity.getTenantId(), entity.getId());
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entity.getId());
         }
     };
 
@@ -221,7 +221,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         @Override
         protected void updateEntity(Customer entity) {
-            entityGroupService.addEntityToEntityGroupAll(entity.getTenantId(), entity.getId());
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entity.getId());
         }
     };
 
@@ -232,7 +232,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         @Override
         protected void updateEntity(Asset entity) {
-            entityGroupService.addEntityToEntityGroupAll(entity.getTenantId(), entity.getId());
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entity.getId());
         }
     };
 
@@ -243,7 +243,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         @Override
         protected void updateEntity(Device entity) {
-            entityGroupService.addEntityToEntityGroupAll(entity.getTenantId(), entity.getId());
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entity.getId());
         }
     };
 
@@ -297,7 +297,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     }
 
     private void updateSystemWhiteLabelingParameters() {
-        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(WHITE_LABEL_PARAMS);
+        AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, WHITE_LABEL_PARAMS);
         JsonNode storedWl = null;
         String logoImageUrl = null;
         if (whiteLabelParamsSettings != null) {
@@ -310,14 +310,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
-        AdminSettings logoImageSettings = adminSettingsService.findAdminSettingsByKey(LOGO_IMAGE);
+        AdminSettings logoImageSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
         if (logoImageSettings != null) {
             logoImageUrl = logoImageSettings.getJsonValue().get("value").asText();
         }
         WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl);
         whiteLabelingService.saveSystemWhiteLabelingParams(preparedWhiteLabelingParams);
-        adminSettingsService.deleteAdminSettingsByKey(LOGO_IMAGE);
-        adminSettingsService.deleteAdminSettingsByKey(LOGO_IMAGE_CHECKSUM);
+        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
+        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE_CHECKSUM);
     }
 
     private void updateEntityWhiteLabelingParameters(EntityId entityId) {
@@ -328,7 +328,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
         }
         if (entityId.getEntityType() == EntityType.CUSTOMER) {
-            whiteLabelingService.saveCustomerWhiteLabelingParams(new CustomerId(entityId.getId()), preparedWhiteLabelingParams);
+            whiteLabelingService.saveCustomerWhiteLabelingParams(TenantId.SYS_TENANT_ID, new CustomerId(entityId.getId()), preparedWhiteLabelingParams);
         }
         deleteEntityAttribute(entityId, LOGO_IMAGE);
         deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);
@@ -413,7 +413,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private String getEntityAttributeValue(EntityId entityId, String key) {
         List<AttributeKvEntry> attributeKvEntries = null;
         try {
-            attributeKvEntries = attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+            attributeKvEntries = attributesService.find(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         } catch (Exception e) {
             log.error("Unable to find attribute for " + key + "!", e);
         }
@@ -427,7 +427,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private void deleteEntityAttribute(EntityId entityId, String key) {
         try {
-            attributesService.removeAll(entityId, DataConstants.SERVER_SCOPE,  Arrays.asList(key)).get();
+            attributesService.removeAll(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE,  Arrays.asList(key)).get();
         } catch (Exception e) {
             log.error("Unable to delete attribute for " + key + "!", e);
         }

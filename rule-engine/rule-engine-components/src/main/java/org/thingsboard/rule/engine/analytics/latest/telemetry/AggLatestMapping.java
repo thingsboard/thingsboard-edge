@@ -89,13 +89,13 @@ public class AggLatestMapping {
     private Optional<KvEntry> fetchValue(TbContext ctx, EntityId entityId) {
         try {
             if ("LATEST_TELEMETRY".equals(sourceScope)) {
-                ListenableFuture<List<TsKvEntry>> latest = ctx.getTimeseriesService().findLatest(entityId, Collections.singletonList(source));
+                ListenableFuture<List<TsKvEntry>> latest = ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, Collections.singletonList(source));
                 List<TsKvEntry> latestTs = latest.get();
                 if (latestTs != null && !latestTs.isEmpty()) {
                     return Optional.of(latestTs.get(0));
                 }
             } else {
-                ListenableFuture<Optional<AttributeKvEntry>> latest = ctx.getAttributesService().find(entityId, sourceScope, source);
+                ListenableFuture<Optional<AttributeKvEntry>> latest = ctx.getAttributesService().find(ctx.getTenantId(), entityId, sourceScope, source);
                 Optional<AttributeKvEntry> latestAttr = latest.get();
                 if (latestAttr.isPresent()) {
                     return Optional.of(latestAttr.get());

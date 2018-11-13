@@ -166,10 +166,10 @@ public class TbAlarmsCountNodeTest {
         when(ctx.getRelationService()).thenReturn(relationService);
 
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
-            AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[0];
-            List<Predicate<AlarmInfo>> filters = (List<Predicate<AlarmInfo>>) (invocationOnMock.getArguments())[1];
+            AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
+            List<Predicate<AlarmInfo>> filters = (List<Predicate<AlarmInfo>>) (invocationOnMock.getArguments())[2];
             return findAlarmCounts(alarmService, query, filters);
-        }).when(alarmService).findAlarmCounts(Matchers.any(AlarmQuery.class), Matchers.any(List.class));
+        }).when(alarmService).findAlarmCounts(Matchers.any(), Matchers.any(AlarmQuery.class), Matchers.any(List.class));
 
         when(ctx.getAlarmService()).thenReturn(alarmService);
 
@@ -249,7 +249,7 @@ public class TbAlarmsCountNodeTest {
 
             if (shouldFail) {
                 failureCount++;
-                when(relationService.findByQuery(buildQuery(parentEntityId, relationsQuery))).
+                when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).
                         thenReturn(Futures.immediateFailedFuture(new RuntimeException("Failed to fetch entities!")));
             } else {
                 List<EntityRelation> childRelations = new ArrayList<>();
@@ -266,14 +266,14 @@ public class TbAlarmsCountNodeTest {
                     expectedLastDayAlarmsCountMap.put(childEntityId, countLastDay(alarms));
                     childAlarms.addAll(alarms);
                 }
-                when(relationService.findByQuery(buildQuery(parentEntityId, relationsQuery))).thenReturn(Futures.immediateFuture(childRelations));
+                when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
             }
             List<AlarmInfo> alarms = generateAlarms(parentEntityId, childAlarms);
             expectedAllAlarmsCountMap.put(parentEntityId, alarms.size());
             expectedActiveAlarmsCountMap.put(parentEntityId, countActive(alarms));
             expectedLastDayAlarmsCountMap.put(parentEntityId, countLastDay(alarms));
         }
-        when(relationService.findByQuery(buildQuery(rootEntityId, relationsQuery))).thenReturn(Futures.immediateFuture(parentEntityRelations));
+        when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
 
         node.init(ctx, nodeConfiguration);
 
@@ -349,9 +349,9 @@ public class TbAlarmsCountNodeTest {
         for (int i=0;i<childAlarms.size();i++) {
             alarmRelations.add(createAlarmRelation(entityId, childAlarms.get(i).getId()));
         }
-        when(relationService.findByFromAsync(entityId, RelationTypeGroup.ALARM)).thenReturn(Futures.immediateFuture(alarmRelations));
+        when(relationService.findByFromAsync(Matchers.any(), Matchers.eq(entityId), Matchers.eq(RelationTypeGroup.ALARM))).thenReturn(Futures.immediateFuture(alarmRelations));
         TimePageData<AlarmInfo> pageData = new TimePageData<>(alarms, new TimePageLink(alarms.size()+1));
-        when(alarmService.findAlarms(argThat(new ArgumentMatcher<AlarmQuery>() {
+        when(alarmService.findAlarms(Matchers.any(), argThat(new ArgumentMatcher<AlarmQuery>() {
                                                  @Override
                                                  public boolean matches(Object query) {
                                                      return query != null && ((AlarmQuery) query).getAffectedEntityId().equals(entityId);
@@ -429,7 +429,7 @@ public class TbAlarmsCountNodeTest {
         TimePageData<AlarmInfo> alarms;
         do {
             try {
-                alarms = service.findAlarms(query).get();
+                alarms = service.findAlarms(TenantId.SYS_TENANT_ID, query).get();
                 for (int i = 0; i < filters.size(); i++) {
                     Predicate<AlarmInfo> filter = filters.get(i);
                     long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);

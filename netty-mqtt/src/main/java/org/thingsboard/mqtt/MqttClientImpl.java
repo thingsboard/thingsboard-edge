@@ -405,7 +405,9 @@ final class MqttClientImpl implements MqttClient {
     }
 
     public void onSuccessfulReconnect() {
-        callback.onSuccessfulReconnect();
+        if (callback != null) {
+            callback.onSuccessfulReconnect();
+        }
     }
 
 

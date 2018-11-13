@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -59,7 +60,7 @@ public class CustomTranslationController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             CustomTranslation customTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
-                customTranslation = customTranslationService.getSystemCustomTranslation();
+                customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
             } else if (authority == Authority.TENANT_ADMIN) {
                 customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
@@ -79,11 +80,11 @@ public class CustomTranslationController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             CustomTranslation customTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
-                customTranslation = customTranslationService.getSystemCustomTranslation();
+                customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
             } else if (authority == Authority.TENANT_ADMIN) {
-                customTranslation = customTranslationService.getTenantCustomTranslation(getCurrentUser().getTenantId());
+                customTranslation = customTranslationService.getTenantCustomTranslation(getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
-                customTranslation = customTranslationService.getCustomerCustomTranslation(getCurrentUser().getCustomerId());
+                customTranslation = customTranslationService.getCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId());
             }
             return customTranslation;
         } catch (Exception e) {
@@ -103,7 +104,7 @@ public class CustomTranslationController extends BaseController {
             } else if (authority == Authority.TENANT_ADMIN) {
                 savedCustomTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
             } else if (authority == Authority.CUSTOMER_USER) {
-                savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getCurrentUser().getCustomerId(), customTranslation);
+                savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
             }
             return savedCustomTranslation;
         } catch (Exception e) {

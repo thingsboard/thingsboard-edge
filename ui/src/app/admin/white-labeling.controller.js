@@ -308,7 +308,7 @@ export default function WhiteLabelingController($state, userService, $scope, $md
                 palette: angular.copy(palette)
             },
             fullscreen: true,
-            skipHide: true,
+            multiple: true,
             targetEvent: $event
         }).then((colors) => {
             if (angular.equals(colors, {})) {
@@ -381,7 +381,7 @@ function PaletteDialogController($scope, $mdDialog, $mdTheming, $mdColorPicker, 
             random: tinycolor.random(),
             clickOutsideToClose: false,
             hasBackdrop: false,
-            skipHide: true,
+            multiple: true,
             preserveScope: false,
 
             mdColorAlphaChannel: false,

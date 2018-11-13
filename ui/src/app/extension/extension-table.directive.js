@@ -223,7 +223,7 @@ function ExtensionTableController($scope, $filter, $document, $translate, $timeo
             bindToController: true,
             targetEvent: $event,
             fullscreen: true,
-            skipHide: true
+            multiple: true
         }).then(function() {
             reloadExtensions();
         }, function () {

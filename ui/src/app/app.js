@@ -47,6 +47,7 @@ import 'angular-translate-interpolation-messageformat';
 import 'md-color-picker';
 import mdPickers from 'mdPickers';
 import ngSanitize from 'angular-sanitize';
+import FBAngular from 'angular-fullscreen';
 import vAccordion from 'v-accordion';
 import 'angular-material-expansion-panel';
 import ngAnimate from 'angular-animate';
@@ -82,6 +83,23 @@ import 'fullcalendar/dist/fullcalendar.min.js';
 import 'angular-ui-calendar';
 import 'moment-timezone';
 
+import 'tinymce/skins/lightgray/skin.min.css';
+import 'tinymce/skins/lightgray/content.min.css';
+import 'typeface-roboto';
+import 'font-awesome/css/font-awesome.min.css';
+import 'angular-material/angular-material.min.css';
+import 'angular-material-icons/angular-material-icons.css';
+import 'angular-gridster/dist/angular-gridster.min.css';
+import 'v-accordion/dist/v-accordion.min.css'
+import 'md-color-picker/dist/mdColorPicker.min.css';
+import 'mdPickers/dist/mdPickers.min.css';
+import 'angular-hotkeys/build/hotkeys.min.css';
+import 'angular-carousel/dist/angular-carousel.min.css';
+import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
+import 'ngFlowchart/dist/flowchart.css';
+import '../scss/main.scss';
+
+import thingsboardThirdpartyFix from './common/thirdparty-fix';
 import thingsboardTranslateHandler from './locale/translate-handler';
 import thingsboardLogin from './login';
 import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
@@ -118,22 +136,6 @@ import thingsboardApiReport from './api/report.service';
 import thingsboardApiBlobEntity from './api/blob-entity.service';
 import thingsboardApiCustomTranslation from './api/custom-translation.service';
 
-import 'tinymce/skins/lightgray/skin.min.css';
-import 'tinymce/skins/lightgray/content.min.css';
-import 'typeface-roboto';
-import 'font-awesome/css/font-awesome.min.css';
-import 'angular-material/angular-material.min.css';
-import 'angular-material-icons/angular-material-icons.css';
-import 'angular-gridster/dist/angular-gridster.min.css';
-import 'v-accordion/dist/v-accordion.min.css'
-import 'md-color-picker/dist/mdColorPicker.min.css';
-import 'mdPickers/dist/mdPickers.min.css';
-import 'angular-hotkeys/build/hotkeys.min.css';
-import 'angular-carousel/dist/angular-carousel.min.css';
-import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
-import 'ngFlowchart/dist/flowchart.css';
-import '../scss/main.scss';
-
 import AppConfig from './app.config';
 import GlobalInterceptor from './global-interceptor.service';
 import AppRun from './app.run';
@@ -147,6 +149,7 @@ angular.module('thingsboard', [
     'mdColorPicker',
     mdPickers,
     ngSanitize,
+    FBAngular.name,
     vAccordion,
     'material.components.expansionPanels',
     ngAnimate,
@@ -162,6 +165,7 @@ angular.module('thingsboard', [
     'flow',
     'flowchart',
     'ui.calendar',
+    thingsboardThirdpartyFix,
     thingsboardTranslateHandler,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,

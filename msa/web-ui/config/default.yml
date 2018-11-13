@@ -35,6 +35,7 @@ server:
   # Server bind port
   port: "8090"
 thingsboard:
+  enableProxy: "false"
   # ThingsBoard node host
   host: "localhost"
   # ThingsBoard node port

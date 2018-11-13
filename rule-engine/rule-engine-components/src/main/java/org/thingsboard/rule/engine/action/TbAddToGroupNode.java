@@ -66,6 +66,6 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
 
     @Override
     protected void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {
-        ctx.getPeContext().getEntityGroupService().addEntityToEntityGroup(entityGroupId, msg.getOriginator());
+        ctx.getPeContext().getEntityGroupService().addEntityToEntityGroup(ctx.getTenantId(), entityGroupId, msg.getOriginator());
     }
 }

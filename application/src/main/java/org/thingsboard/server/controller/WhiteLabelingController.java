@@ -38,6 +38,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -64,7 +65,7 @@ public class WhiteLabelingController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             WhiteLabelingParams whiteLabelingParams = null;
             if (authority == Authority.SYS_ADMIN) {
-                whiteLabelingParams = whiteLabelingService.getMergedSystemWhiteLabelingParams(logoImageChecksum, faviconChecksum);
+                whiteLabelingParams = whiteLabelingService.getMergedSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID, logoImageChecksum, faviconChecksum);
             } else if (authority == Authority.TENANT_ADMIN) {
                 whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(getCurrentUser().getTenantId(),
                         logoImageChecksum, faviconChecksum);
@@ -101,7 +102,7 @@ public class WhiteLabelingController extends BaseController {
                     domainName = host;
                 }
             }
-            return whiteLabelingService.getMergedLoginWhiteLabelingParams(domainName, logoImageChecksum, faviconChecksum);
+            return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, domainName, logoImageChecksum, faviconChecksum);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -116,11 +117,11 @@ public class WhiteLabelingController extends BaseController {
             checkWhiteLabelingPermissions(authority);
             WhiteLabelingParams whiteLabelingParams = null;
             if (authority == Authority.SYS_ADMIN) {
-                whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams();
+                whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
             } else if (authority == Authority.TENANT_ADMIN) {
                 whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
-                whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getCurrentUser().getCustomerId());
+                whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId());
             }
             return whiteLabelingParams;
         } catch (Exception e) {
@@ -137,11 +138,11 @@ public class WhiteLabelingController extends BaseController {
             checkWhiteLabelingPermissions(authority);
             LoginWhiteLabelingParams loginWhiteLabelingParams = null;
             if (authority == Authority.SYS_ADMIN) {
-                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams();
+                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
             } else if (authority == Authority.TENANT_ADMIN) {
                 loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(getCurrentUser().getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
-                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(getCurrentUser().getCustomerId());
+                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId());
             }
             return loginWhiteLabelingParams;
         } catch (Exception e) {
@@ -162,7 +163,7 @@ public class WhiteLabelingController extends BaseController {
             } else if (authority == Authority.TENANT_ADMIN) {
                 savedWhiteLabelingParams = whiteLabelingService.saveTenantWhiteLabelingParams(getCurrentUser().getTenantId(), whiteLabelingParams);
             } else if (authority == Authority.CUSTOMER_USER) {
-                savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getCurrentUser().getCustomerId(), whiteLabelingParams);
+                savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams);
             }
             return savedWhiteLabelingParams;
         } catch (Exception e) {
@@ -183,7 +184,7 @@ public class WhiteLabelingController extends BaseController {
             } else if (authority == Authority.TENANT_ADMIN) {
                 savedLoginWhiteLabelingParams = whiteLabelingService.saveTenantLoginWhiteLabelingParams(getCurrentUser().getTenantId(), loginWhiteLabelingParams);
             } else if (authority == Authority.CUSTOMER_USER) {
-                savedLoginWhiteLabelingParams = whiteLabelingService.saveCustomerLoginWhiteLabelingParams(getCurrentUser().getCustomerId(), loginWhiteLabelingParams);
+                savedLoginWhiteLabelingParams = whiteLabelingService.saveCustomerLoginWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), loginWhiteLabelingParams);
             }
             return savedLoginWhiteLabelingParams;
         } catch (Exception e) {
@@ -202,7 +203,7 @@ public class WhiteLabelingController extends BaseController {
             if (authority == Authority.SYS_ADMIN) {
                 mergedWhiteLabelingParams = whiteLabelingService.mergeSystemWhiteLabelingParams(whiteLabelingParams);
             } else if (authority == Authority.TENANT_ADMIN) {
-                mergedWhiteLabelingParams = whiteLabelingService.mergeTenantWhiteLabelingParams(whiteLabelingParams);
+                mergedWhiteLabelingParams = whiteLabelingService.mergeTenantWhiteLabelingParams(getTenantId(), whiteLabelingParams);
             } else if (authority == Authority.CUSTOMER_USER) {
                 mergedWhiteLabelingParams = whiteLabelingService.mergeCustomerWhiteLabelingParams(getCurrentUser().getTenantId(), whiteLabelingParams);
             }
@@ -224,7 +225,7 @@ public class WhiteLabelingController extends BaseController {
             } else {
                 entityId = getCurrentUser().getCustomerId();
             }
-            return whiteLabelingService.isWhiteLabelingAllowed(entityId);
+            return whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), entityId);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -249,7 +250,7 @@ public class WhiteLabelingController extends BaseController {
             entityId = getCurrentUser().getCustomerId();
         }
         if (entityId != null) {
-            if (!whiteLabelingService.isWhiteLabelingAllowed(entityId)) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), entityId)) {
                 throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
                         ThingsboardErrorCode.PERMISSION_DENIED);
             }

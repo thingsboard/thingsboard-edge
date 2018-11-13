@@ -61,7 +61,7 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         UUID tenantId1 = UUIDs.timeBased();
         UUID converterId1 = UUIDs.timeBased();
         saveTernary(tenantId1, converterId1);
-        assertEquals(60, integrationDao.find().size());
+        assertEquals(60, integrationDao.find(TenantId.SYS_TENANT_ID).size());
 
         TextPageLink pageLink1 = new TextPageLink(20, "INTEGRATION_");
         List<Integration> integrations1 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
@@ -89,15 +89,15 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT);
         saveIntegration(integrationId2, tenantId2, converterId2, "TEST_INTEGRATION", routingKey2, IntegrationType.OCEANCONNECT);
 
-        Optional<Integration> integrationOpt1 = integrationDao.findByRoutingKey(routingKey);
+        Optional<Integration> integrationOpt1 = integrationDao.findByRoutingKey(tenantId1, routingKey);
         assertTrue("Optional expected to be non-empty", integrationOpt1.isPresent());
         assertEquals(integrationId1, integrationOpt1.get().getId().getId());
 
-        integrationOpt1 = integrationDao.findByRoutingKey(routingKey2);
+        integrationOpt1 = integrationDao.findByRoutingKey(tenantId2, routingKey2);
         assertTrue("Optional expected to be non-empty", integrationOpt1.isPresent());
         assertEquals(integrationId2, integrationOpt1.get().getId().getId());
 
-        Optional<Integration> integrationOpt2 = integrationDao.findByRoutingKey("NON_EXISTENT_ROUTING_KEY");
+        Optional<Integration> integrationOpt2 = integrationDao.findByRoutingKey(tenantId1, "NON_EXISTENT_ROUTING_KEY");
         assertFalse("Optional expected to be empty", integrationOpt2.isPresent());
     }
 
@@ -121,6 +121,6 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
-        integrationDao.save(integration);
+        integrationDao.save(new TenantId(tenantId), integration);
     }
 }

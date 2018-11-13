@@ -70,7 +70,7 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(detectTargetEntityGroupId(original), new TimePageLink(Integer.MAX_VALUE));
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(original), new TimePageLink(Integer.MAX_VALUE));
     }
 
     private EntityGroupId detectTargetEntityGroupId(EntityId original) {

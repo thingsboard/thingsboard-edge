@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.scheduler;
 
 import com.datastax.driver.core.querybuilder.Select;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.nosql.SchedulerEventInfoEntity;
@@ -64,7 +65,7 @@ public class CassandraSchedulerEventInfoDao extends CassandraAbstractSearchTextD
         Select select = select().from(SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME);
         Select.Where query = select.where();
         query.and(eq(SCHEDULER_EVENT_TENANT_ID_PROPERTY, tenantId));
-        return DaoUtil.convertDataList(findListByStatement(query));
+        return DaoUtil.convertDataList(findListByStatement(new TenantId(tenantId), query));
     }
 
     @Override
@@ -73,7 +74,7 @@ public class CassandraSchedulerEventInfoDao extends CassandraAbstractSearchTextD
         Select.Where query = select.where();
         query.and(eq(SCHEDULER_EVENT_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(SCHEDULER_EVENT_TYPE_PROPERTY, type));
-        return DaoUtil.convertDataList(findListByStatement(query));
+        return DaoUtil.convertDataList(findListByStatement(new TenantId(tenantId), query));
     }
 
     @Override
@@ -82,7 +83,7 @@ public class CassandraSchedulerEventInfoDao extends CassandraAbstractSearchTextD
         Select.Where query = select.where();
         query.and(eq(SCHEDULER_EVENT_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY, customerId));
-        return DaoUtil.convertDataList(findListByStatement(query));
+        return DaoUtil.convertDataList(findListByStatement(new TenantId(tenantId), query));
     }
 
     @Override
@@ -92,6 +93,6 @@ public class CassandraSchedulerEventInfoDao extends CassandraAbstractSearchTextD
         query.and(eq(SCHEDULER_EVENT_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY, customerId));
         query.and(eq(SCHEDULER_EVENT_TYPE_PROPERTY, type));
-        return DaoUtil.convertDataList(findListByStatement(query));
+        return DaoUtil.convertDataList(findListByStatement(new TenantId(tenantId), query));
     }
 }

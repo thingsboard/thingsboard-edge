@@ -105,10 +105,10 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private WhiteLabelingService whiteLabelingService;
 
     @Override
-    public Customer findCustomerById(CustomerId customerId) {
+    public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findCustomerById [{}]", customerId);
         Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        return customerDao.findById(customerId.getId());
+        return customerDao.findById(tenantId, customerId.getId());
     }
 
     @Override
@@ -119,40 +119,40 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public ListenableFuture<Customer> findCustomerByIdAsync(CustomerId customerId) {
+    public ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findCustomerByIdAsync [{}]", customerId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        return customerDao.findByIdAsync(customerId.getId());
+        return customerDao.findByIdAsync(tenantId, customerId.getId());
     }
 
     @Override
     public Customer saveCustomer(Customer customer) {
         log.trace("Executing saveCustomer [{}]", customer);
-        customerValidator.validate(customer);
-        Customer savedCustomer = customerDao.save(customer);
+        customerValidator.validate(customer, Customer::getTenantId);
+        Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
         if (customer.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId());
+            entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getTenantId(), savedCustomer.getId());
         }
-        dashboardService.updateCustomerDashboards(savedCustomer.getId());
+        dashboardService.updateCustomerDashboards(savedCustomer.getTenantId(), savedCustomer.getId());
         return savedCustomer;
     }
 
     @Override
-    public void deleteCustomer(CustomerId customerId) {
+    public void deleteCustomer(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteCustomer [{}]", customerId);
         Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        Customer customer = findCustomerById(customerId);
+        Customer customer = findCustomerById(tenantId, customerId);
         if (customer == null) {
             throw new IncorrectParameterException("Unable to delete non-existent customer.");
         }
-        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(customerId);
-        dashboardService.unassignCustomerDashboards(customerId);
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, customerId);
+        dashboardService.unassignCustomerDashboards(tenantId, customerId);
         entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
-        deleteEntityRelations(customerId);
-        customerDao.removeById(customerId.getId());
+        deleteEntityRelations(tenantId, customerId);
+        customerDao.removeById(tenantId, customerId.getId());
     }
 
     @Override
@@ -171,7 +171,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
             } catch (IOException e) {
                 throw new IncorrectParameterException("Unable to create public customer.", e);
             }
-            return customerDao.save(publicCustomer);
+            return customerDao.save(tenantId, publicCustomer);
         }
     }
 
@@ -188,68 +188,78 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public void deleteCustomersByTenantId(TenantId tenantId) {
         log.trace("Executing deleteCustomersByTenantId, tenantId [{}]", tenantId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        customersByTenantRemover.removeEntities(tenantId);
+        customersByTenantRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
-    public ShortEntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupCustomer(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupCustomer, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, customerViewFunction);
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new CustomerViewFunction(tenantId));
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, customerViewFunction);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new CustomerViewFunction(tenantId));
     }
 
-    private BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> customerViewFunction = ((entityView, entityFields) -> {
-        Customer customer = findCustomerById(new CustomerId(entityView.getId().getId()));
-        entityView.put(EntityField.NAME.name().toLowerCase(), customer.getName());
-        for (EntityField field : entityFields) {
-            String key = field.name().toLowerCase();
-            switch (field) {
-                case TITLE:
-                    entityView.put(key, customer.getTitle());
-                    break;
-                case EMAIL:
-                    entityView.put(key, customer.getEmail());
-                    break;
-                case COUNTRY:
-                    entityView.put(key, customer.getCountry());
-                    break;
-                case STATE:
-                    entityView.put(key, customer.getState());
-                    break;
-                case CITY:
-                    entityView.put(key, customer.getCity());
-                    break;
-                case ADDRESS:
-                    entityView.put(key, customer.getAddress());
-                    break;
-                case ADDRESS2:
-                    entityView.put(key, customer.getAddress2());
-                    break;
-                case ZIP:
-                    entityView.put(key, customer.getZip());
-                    break;
-                case PHONE:
-                    entityView.put(key, customer.getPhone());
-                    break;
-            }
+    class CustomerViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
+
+        private final TenantId tenantId;
+
+        CustomerViewFunction(TenantId tenantId) {
+            this.tenantId = tenantId;
         }
-        return entityView;
-    });
+
+        @Override
+        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
+            Customer customer = findCustomerById(tenantId, new CustomerId(entityView.getId().getId()));
+            entityView.put(EntityField.NAME.name().toLowerCase(), customer.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TITLE:
+                        entityView.put(key, customer.getTitle());
+                        break;
+                    case EMAIL:
+                        entityView.put(key, customer.getEmail());
+                        break;
+                    case COUNTRY:
+                        entityView.put(key, customer.getCountry());
+                        break;
+                    case STATE:
+                        entityView.put(key, customer.getState());
+                        break;
+                    case CITY:
+                        entityView.put(key, customer.getCity());
+                        break;
+                    case ADDRESS:
+                        entityView.put(key, customer.getAddress());
+                        break;
+                    case ADDRESS2:
+                        entityView.put(key, customer.getAddress2());
+                        break;
+                    case ZIP:
+                        entityView.put(key, customer.getZip());
+                        break;
+                    case PHONE:
+                        entityView.put(key, customer.getPhone());
+                        break;
+                }
+            }
+            return entityView;
+        }
+    }
 
     private DataValidator<Customer> customerValidator =
             new DataValidator<Customer>() {
 
                 @Override
-                protected void validateCreate(Customer customer) {
+                protected void validateCreate(TenantId tenantId, Customer customer) {
                     customerDao.findCustomersByTenantIdAndTitle(customer.getTenantId().getId(), customer.getTitle()).ifPresent(
                             c -> {
                                 throw new DataValidationException("Customer with such title already exists!");
@@ -258,7 +268,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                 }
 
                 @Override
-                protected void validateUpdate(Customer customer) {
+                protected void validateUpdate(TenantId tenantId, Customer customer) {
                     customerDao.findCustomersByTenantIdAndTitle(customer.getTenantId().getId(), customer.getTitle()).ifPresent(
                             c -> {
                                 if (!c.getId().equals(customer.getId())) {
@@ -269,7 +279,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                 }
 
                 @Override
-                protected void validateDataImpl(Customer customer) {
+                protected void validateDataImpl(TenantId tenantId, Customer customer) {
                     if (StringUtils.isEmpty(customer.getTitle())) {
                         throw new DataValidationException("Customer title should be specified!");
                     }
@@ -282,7 +292,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     if (customer.getTenantId() == null) {
                         throw new DataValidationException("Customer should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(customer.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, customer.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Customer is referencing to non-existent tenant!");
                         }
@@ -294,13 +304,13 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
             new PaginatedRemover<TenantId, Customer>() {
 
                 @Override
-                protected List<Customer> findEntities(TenantId id, TextPageLink pageLink) {
+                protected List<Customer> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
                     return customerDao.findCustomersByTenantId(id.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(Customer entity) {
-                    deleteCustomer(new CustomerId(entity.getUuidId()));
+                protected void removeEntity(TenantId tenantId, Customer entity) {
+                    deleteCustomer(tenantId, new CustomerId(entity.getUuidId()));
                 }
             };
 }

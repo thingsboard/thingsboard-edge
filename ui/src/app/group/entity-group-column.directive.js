@@ -128,7 +128,7 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
                 columnTypes: vm.columnTypes,
                 entityField: vm.entityField
             },
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (column) {

@@ -41,11 +41,11 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 
 public interface BlobEntityService {
 
-    BlobEntity findBlobEntityById(BlobEntityId blobEntityId);
+    BlobEntity findBlobEntityById(TenantId tenantId, BlobEntityId blobEntityId);
 
-    BlobEntityInfo findBlobEntityInfoById(BlobEntityId blobEntityId);
+    BlobEntityInfo findBlobEntityInfoById(TenantId tenantId, BlobEntityId blobEntityId);
 
-    ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(BlobEntityId blobEntityId);
+    ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(TenantId tenantId, BlobEntityId blobEntityId);
 
     TimePageData<BlobEntityInfo> findBlobEntitiesByTenantId(TenantId tenantId, TimePageLink pageLink);
 
@@ -57,7 +57,7 @@ public interface BlobEntityService {
 
     BlobEntity saveBlobEntity(BlobEntity blobEntity);
 
-    void deleteBlobEntity(BlobEntityId blobEntityId);
+    void deleteBlobEntity(TenantId tenantId, BlobEntityId blobEntityId);
 
     void deleteBlobEntitiesByTenantId(TenantId tenantId);
 

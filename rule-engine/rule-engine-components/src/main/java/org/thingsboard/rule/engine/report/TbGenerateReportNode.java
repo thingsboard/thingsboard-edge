@@ -94,10 +94,11 @@ public class TbGenerateReportNode implements TbNode {
                 reportsServerEndpointUrl = this.config.getReportsServerEndpointUrl();
             }
             ctx.getPeContext().getReportService().generateReport(
+                    ctx.getTenantId(),
                     reportConfig,
                     reportsServerEndpointUrl,
                     reportData -> {
-                        User user = ctx.getUserService().findUserById(new UserId(UUID.fromString(reportConfig.getUserId())));
+                        User user = ctx.getUserService().findUserById(ctx.getTenantId(), new UserId(UUID.fromString(reportConfig.getUserId())));
                         BlobEntity reportBlobEntity = new BlobEntity();
                         reportBlobEntity.setData(ByteBuffer.wrap(reportData.getData()));
                         reportBlobEntity.setContentType(reportData.getContentType());

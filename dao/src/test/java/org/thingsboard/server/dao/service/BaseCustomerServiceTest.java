@@ -80,10 +80,10 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
         savedCustomer.setTitle("My new customer");
 
         customerService.saveCustomer(savedCustomer);
-        Customer foundCustomer = customerService.findCustomerById(savedCustomer.getId());
+        Customer foundCustomer = customerService.findCustomerById(tenantId, savedCustomer.getId());
         Assert.assertEquals(foundCustomer.getTitle(), savedCustomer.getTitle());
 
-        customerService.deleteCustomer(savedCustomer.getId());
+        customerService.deleteCustomer(tenantId, savedCustomer.getId());
     }
 
     @Test
@@ -92,10 +92,10 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
         customer.setTenantId(tenantId);
         customer.setTitle("My customer");
         Customer savedCustomer = customerService.saveCustomer(customer);
-        Customer foundCustomer = customerService.findCustomerById(savedCustomer.getId());
+        Customer foundCustomer = customerService.findCustomerById(tenantId, savedCustomer.getId());
         Assert.assertNotNull(foundCustomer);
         Assert.assertEquals(savedCustomer, foundCustomer);
-        customerService.deleteCustomer(savedCustomer.getId());
+        customerService.deleteCustomer(tenantId, savedCustomer.getId());
     }
 
     @Test(expected = DataValidationException.class)
@@ -135,8 +135,8 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
         customer.setTitle("My customer");
         customer.setTenantId(tenantId);
         Customer savedCustomer = customerService.saveCustomer(customer);
-        customerService.deleteCustomer(savedCustomer.getId());
-        Customer foundCustomer = customerService.findCustomerById(savedCustomer.getId());
+        customerService.deleteCustomer(tenantId, savedCustomer.getId());
+        Customer foundCustomer = customerService.findCustomerById(tenantId, savedCustomer.getId());
         Assert.assertNull(foundCustomer);
     }
 
@@ -239,7 +239,7 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(customersTitle2, loadedCustomersTitle2);
 
         for (Customer customer : loadedCustomersTitle1) {
-            customerService.deleteCustomer(customer.getId());
+            customerService.deleteCustomer(tenantId, customer.getId());
         }
 
         pageLink = new TextPageLink(4, title1);
@@ -248,7 +248,7 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(0, pageData.getData().size());
 
         for (Customer customer : loadedCustomersTitle2) {
-            customerService.deleteCustomer(customer.getId());
+            customerService.deleteCustomer(tenantId, customer.getId());
         }
 
         pageLink = new TextPageLink(4, title2);

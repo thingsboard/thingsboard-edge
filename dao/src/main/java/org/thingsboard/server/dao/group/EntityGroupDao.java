@@ -45,7 +45,5 @@ import java.util.Optional;
 
 public interface EntityGroupDao extends Dao<EntityGroup> {
 
-    EntityGroup save(EntityGroup entityGroup);
-
 }
 

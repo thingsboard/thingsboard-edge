@@ -40,7 +40,7 @@ public interface TenantService {
 
     Tenant findTenantById(TenantId tenantId);
 
-    ListenableFuture<Tenant> findTenantByIdAsync(TenantId customerId);
+    ListenableFuture<Tenant> findTenantByIdAsync(TenantId callerId, TenantId tenantId);
     
     Tenant saveTenant(Tenant tenant);
     

@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
@@ -47,44 +48,44 @@ import java.util.function.BiFunction;
 
 public interface EntityGroupService {
 
-    EntityGroup findEntityGroupById(EntityGroupId entityGroupId);
+    EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId);
 
-    ListenableFuture<EntityGroup> findEntityGroupByIdAsync(EntityGroupId entityGroupId);
+    ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
 
-    ListenableFuture<Boolean> checkEntityGroup(EntityId parentEntityId, EntityGroup entityGroup);
+    ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
-    EntityGroup saveEntityGroup(EntityId parentEntityId, EntityGroup entityGroup);
+    EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
-    EntityGroup createEntityGroupAll(EntityId parentEntityId, EntityType groupType);
+    EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
-    void deleteEntityGroup(EntityGroupId entityGroupId);
+    void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId);
 
-    ListenableFuture<List<EntityGroup>> findAllEntityGroups(EntityId parentEntityId);
+    ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId);
 
-    void deleteAllEntityGroups(EntityId parentEntityId);
+    void deleteAllEntityGroups(TenantId tenantId, EntityId parentEntityId);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(EntityId parentEntityId, EntityType groupType);
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
-    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(EntityId parentEntityId, EntityType groupType, String name);
+    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
-    void addEntityToEntityGroup(EntityGroupId entityGroupId, EntityId entityId);
+    void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    void addEntityToEntityGroupAll(EntityId parentEntityId, EntityId entityId);
+    void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId);
 
-    void addEntitiesToEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds);
+    void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    void removeEntityFromEntityGroup(EntityGroupId entityGroupId, EntityId entityId);
+    void removeEntityFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    void removeEntitiesFromEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds);
+    void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    ShortEntityView findGroupEntity(EntityGroupId entityGroupId, EntityId entityId,
+    ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
                                BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction);
 
-    ListenableFuture<TimePageData<ShortEntityView>> findEntities(EntityGroupId entityGroupId, TimePageLink pageLink,
+    ListenableFuture<TimePageData<ShortEntityView>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
                                                             BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction);
 
-    ListenableFuture<List<EntityId>> findAllEntityIds(EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
-    ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(EntityId entityId);
+    ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
 
 }

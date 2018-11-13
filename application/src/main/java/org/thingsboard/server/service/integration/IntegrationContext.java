@@ -61,6 +61,10 @@ public class IntegrationContext {
 
     @Lazy
     @Autowired
+    private PlatformIntegrationService integrationService;
+
+    @Lazy
+    @Autowired
     private SessionMsgProcessor sessionMsgProcessor;
 
     @Lazy
@@ -82,9 +86,6 @@ public class IntegrationContext {
     @Lazy
     @Autowired
     private ActorService actorService;
-
-    @Value("${http.request_timeout}")
-    private long defaultHttpTimeout;
 
     @Lazy
     @Autowired

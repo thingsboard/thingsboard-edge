@@ -70,8 +70,8 @@ public class BaseCustomTranslationService implements CustomTranslationService {
     private AttributesService attributesService;
 
     @Override
-    public CustomTranslation getSystemCustomTranslation() {
-        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(CUSTOM_TRANSLATION_ATTR_NAME);
+    public CustomTranslation getSystemCustomTranslation(TenantId tenantId) {
+        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(tenantId, CUSTOM_TRANSLATION_ATTR_NAME);
         String json = null;
         if (customTranslationSettings != null) {
             json = customTranslationSettings.getJsonValue().get("value").asText();
@@ -81,31 +81,31 @@ public class BaseCustomTranslationService implements CustomTranslationService {
 
     @Override
     public CustomTranslation getTenantCustomTranslation(TenantId tenantId) {
-        return getEntityCustomTranslation(tenantId);
+        return getEntityCustomTranslation(tenantId, tenantId);
     }
 
     @Override
-    public CustomTranslation getCustomerCustomTranslation(CustomerId customerId) {
-        return getEntityCustomTranslation(customerId);
+    public CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId) {
+        return getEntityCustomTranslation(tenantId, customerId);
     }
 
     @Override
     public CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId) {
         CustomTranslation result = getTenantCustomTranslation(tenantId);
-        result.merge(getSystemCustomTranslation());
+        result.merge(getSystemCustomTranslation(tenantId));
         return result;
     }
 
     @Override
     public CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId) {
-        CustomTranslation result = getCustomerCustomTranslation(customerId);
-        result.merge(getTenantCustomTranslation(tenantId)).merge(getSystemCustomTranslation());
+        CustomTranslation result = getCustomerCustomTranslation(tenantId, customerId);
+        result.merge(getTenantCustomTranslation(tenantId)).merge(getSystemCustomTranslation(tenantId));
         return result;
     }
 
     @Override
     public CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation) {
-        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(CUSTOM_TRANSLATION_ATTR_NAME);
+        AdminSettings customTranslationSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, CUSTOM_TRANSLATION_ATTR_NAME);
         if (customTranslationSettings == null) {
             customTranslationSettings = new AdminSettings();
             customTranslationSettings.setKey(CUSTOM_TRANSLATION_ATTR_NAME);
@@ -120,20 +120,20 @@ public class BaseCustomTranslationService implements CustomTranslationService {
             throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
         ((ObjectNode) customTranslationSettings.getJsonValue()).put("value", json);
-        adminSettingsService.saveAdminSettings(customTranslationSettings);
-        return getSystemCustomTranslation();
+        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, customTranslationSettings);
+        return getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
     }
 
     @Override
     public CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation) {
-        saveEntityCustomTranslation(tenantId, customTranslation);
+        saveEntityCustomTranslation(tenantId, tenantId, customTranslation);
         return getTenantCustomTranslation(tenantId);
     }
 
     @Override
-    public CustomTranslation saveCustomerCustomTranslation(CustomerId customerId, CustomTranslation customTranslation) {
-        saveEntityCustomTranslation(customerId, customTranslation);
-        return getCustomerCustomTranslation(customerId);
+    public CustomTranslation saveCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation) {
+        saveEntityCustomTranslation(tenantId, customerId, customTranslation);
+        return getCustomerCustomTranslation(tenantId, customerId);
     }
 
     private CustomTranslation constructCustomTranslation(String json) {
@@ -152,15 +152,15 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         return result;
     }
 
-    private CustomTranslation getEntityCustomTranslation(EntityId entityId) {
-        String json = getEntityAttributeValue(entityId);
+    private CustomTranslation getEntityCustomTranslation(TenantId tenantId, EntityId entityId) {
+        String json = getEntityAttributeValue(tenantId, entityId);
         return constructCustomTranslation(json);
     }
 
-    private String getEntityAttributeValue(EntityId entityId) {
+    private String getEntityAttributeValue(TenantId tenantId, EntityId entityId) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_TRANSLATION_ATTR_NAME)).get();
+            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_TRANSLATION_ATTR_NAME)).get();
         } catch (Exception e) {
             log.error("Unable to read custom translation from attributes!", e);
             throw new IncorrectParameterException("Unable to read custom translation from attributes!");
@@ -173,7 +173,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         }
     }
 
-    private void saveEntityCustomTranslation(EntityId entityId, CustomTranslation customTranslation) {
+    private void saveEntityCustomTranslation(TenantId tenantId, EntityId entityId, CustomTranslation customTranslation) {
         String json;
         try {
             json = objectMapper.writeValueAsString(customTranslation);
@@ -181,15 +181,15 @@ public class BaseCustomTranslationService implements CustomTranslationService {
             log.error("Unable to convert custom translation to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
-        saveEntityAttribute(entityId, json);
+        saveEntityAttribute(tenantId, entityId, json);
     }
 
-    private void saveEntityAttribute(EntityId entityId, String value) {
+    private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(CUSTOM_TRANSLATION_ATTR_NAME, value), ts));
         try {
-            attributesService.save(entityId, DataConstants.SERVER_SCOPE, attributes).get();
+            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes).get();
         } catch (Exception e) {
             log.error("Unable to save custom translation to attributes!", e);
             throw new IncorrectParameterException("Unable to save custom translation to attributes!");

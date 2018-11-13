@@ -37,25 +37,19 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.AttributesUpdateRequest;
 import org.thingsboard.server.common.transport.adaptor.JsonConverter;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.ConverterContext;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ashvayka on 18.12.17.
  */
 @Slf4j
 public abstract class AbstractUplinkDataConverter extends AbstractDataConverter implements TBUplinkDataConverter {
-
-    private final AtomicInteger telemetryIdSeq = new AtomicInteger();
-    private final AtomicInteger attrRequestIdSeq = new AtomicInteger();
-
 
     @Override
     public void init(Converter configuration) {
@@ -106,16 +100,15 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         }
 
         //TODO: add support of attribute requests and client-side RPC.
-
         return builder.build();
     }
 
-    private TelemetryUploadRequest parseTelemetry(JsonElement src) {
-        return JsonConverter.convertToTelemetry(src, telemetryIdSeq.getAndIncrement());
+    private TransportProtos.PostTelemetryMsg parseTelemetry(JsonElement src) {
+        return JsonConverter.convertToTelemetryProto(src);
     }
 
-    private AttributesUpdateRequest parseAttributesUpdate(JsonElement src) {
-        return JsonConverter.convertToAttributes(src, attrRequestIdSeq.getAndIncrement());
+    private TransportProtos.PostAttributeMsg parseAttributesUpdate(JsonElement src) {
+        return JsonConverter.convertToAttributesProto(src);
     }
 
     private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,

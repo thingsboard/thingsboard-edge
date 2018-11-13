@@ -43,11 +43,12 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
-import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
-import org.thingsboard.server.common.msg.session.BasicTransportToDeviceSessionActorMsg;
-import org.thingsboard.server.service.converter.*;
-import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
+import org.thingsboard.server.service.converter.TBUplinkDataConverter;
+import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.io.IOException;
@@ -58,6 +59,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -122,14 +124,26 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected Device processUplinkData(IntegrationContext context, UplinkData data) {
         Device device = getOrCreateDevice(context, data);
 
+        UUID sessionId = UUID.randomUUID();
+        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+                .setSessionIdMSB(sessionId.getMostSignificantBits())
+                .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                .build();
+
         if (data.getTelemetry() != null) {
-            AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getTelemetry());
-            context.getSessionMsgProcessor().process(new BasicTransportToDeviceSessionActorMsg(device, msg));
+            context.getIntegrationService().process(sessionInfo, data.getTelemetry(), null);
         }
 
         if (data.getAttributesUpdate() != null) {
-            AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getAttributesUpdate());
-            context.getSessionMsgProcessor().process(new BasicTransportToDeviceSessionActorMsg(device, msg));
+            context.getIntegrationService().process(sessionInfo, data.getAttributesUpdate(), null);
+        }
+
+        if (data.getAttributesRequest() != null) {
+            context.getIntegrationService().process(sessionInfo, data.getAttributesRequest(), null);
         }
 
         return device;
@@ -148,7 +162,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             relation.setTo(device.getId());
             relation.setTypeGroup(RelationTypeGroup.COMMON);
             relation.setType(EntityRelation.INTEGRATION_TYPE);
-            context.getRelationService().saveRelation(relation);
+            context.getRelationService().saveRelation(configuration.getTenantId(), relation);
             context.getActorService().onDeviceAdded(device);
         }
         return device;

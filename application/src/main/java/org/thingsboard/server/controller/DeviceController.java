@@ -132,7 +132,7 @@ public class DeviceController extends BaseController {
         try {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             Device device = checkDeviceId(deviceId);
-            deviceService.deleteDevice(deviceId);
+            deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
 
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
@@ -162,7 +162,7 @@ public class DeviceController extends BaseController {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             checkDeviceId(deviceId);
 
-            Device savedDevice = checkNotNull(deviceService.assignDeviceToCustomer(deviceId, customerId));
+            Device savedDevice = checkNotNull(deviceService.assignDeviceToCustomer(getCurrentUser().getTenantId(), deviceId, customerId));
 
             logEntityAction(deviceId, savedDevice,
                     savedDevice.getCustomerId(),
@@ -192,7 +192,8 @@ public class DeviceController extends BaseController {
                 customerId = customer.getId().toString();
                 customerName = customer.getName();
             }
-            Device savedDevice = checkNotNull(deviceService.unassignDeviceFromCustomer(deviceId));
+
+            Device savedDevice = checkNotNull(deviceService.unassignDeviceFromCustomer(getTenantId(), deviceId));
 
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
@@ -216,7 +217,7 @@ public class DeviceController extends BaseController {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             Device device = checkDeviceId(deviceId);
             Customer publicCustomer = customerService.findOrCreatePublicCustomer(device.getTenantId());
-            Device savedDevice = checkNotNull(deviceService.assignDeviceToCustomer(deviceId, publicCustomer.getId()));
+            Device savedDevice = checkNotNull(deviceService.assignDeviceToCustomer(getCurrentUser().getTenantId(), deviceId, publicCustomer.getId()));
 
             logEntityAction(deviceId, savedDevice,
                     savedDevice.getCustomerId(),
@@ -239,7 +240,7 @@ public class DeviceController extends BaseController {
         try {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             Device device = checkDeviceId(deviceId);
-            DeviceCredentials deviceCredentials = checkNotNull(deviceCredentialsService.findDeviceCredentialsByDeviceId(deviceId));
+            DeviceCredentials deviceCredentials = checkNotNull(deviceCredentialsService.findDeviceCredentialsByDeviceId(getCurrentUser().getTenantId(), deviceId));
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_READ, null, strDeviceId);
@@ -259,7 +260,7 @@ public class DeviceController extends BaseController {
         checkNotNull(deviceCredentials);
         try {
             Device device = checkDeviceId(deviceCredentials.getDeviceId());
-            DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(deviceCredentials));
+            DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
             actorService.onCredentialsUpdate(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId());
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),
@@ -369,7 +370,7 @@ public class DeviceController extends BaseController {
         checkNotNull(query.getDeviceTypes());
         checkEntityId(query.getParameters().getEntityId());
         try {
-            List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(query).get());
+            List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(getCurrentUser().getTenantId(), query).get());
             devices = devices.stream().filter(device -> {
                 try {
                     checkDevice(device);

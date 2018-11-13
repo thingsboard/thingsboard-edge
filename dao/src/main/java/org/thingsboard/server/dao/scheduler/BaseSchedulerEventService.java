@@ -76,24 +76,24 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     private CustomerDao customerDao;
 
     @Override
-    public SchedulerEvent findSchedulerEventById(SchedulerEventId schedulerEventId) {
+    public SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventById [{}]", schedulerEventId);
         validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
-        return schedulerEventDao.findById(schedulerEventId.getId());
+        return schedulerEventDao.findById(tenantId, schedulerEventId.getId());
     }
 
     @Override
-    public SchedulerEventInfo findSchedulerEventInfoById(SchedulerEventId schedulerEventId) {
+    public SchedulerEventInfo findSchedulerEventInfoById(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventInfoById [{}]", schedulerEventId);
         validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
-        return schedulerEventInfoDao.findById(schedulerEventId.getId());
+        return schedulerEventInfoDao.findById(tenantId, schedulerEventId.getId());
     }
 
     @Override
-    public ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(SchedulerEventId schedulerEventId) {
+    public ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventInfoByIdAsync [{}]", schedulerEventId);
         validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
-        return schedulerEventInfoDao.findByIdAsync(schedulerEventId.getId());
+        return schedulerEventInfoDao.findByIdAsync(tenantId, schedulerEventId.getId());
     }
 
     @Override
@@ -131,17 +131,16 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Override
     public SchedulerEvent saveSchedulerEvent(SchedulerEvent schedulerEvent) {
         log.trace("Executing saveSchedulerEvent [{}]", schedulerEvent);
-        schedulerEventValidator.validate(schedulerEvent);
-        SchedulerEvent savedSchedulerEvent = schedulerEventDao.save(schedulerEvent);
-        return savedSchedulerEvent;
+        schedulerEventValidator.validate(schedulerEvent, SchedulerEventInfo::getTenantId);
+        return schedulerEventDao.save(schedulerEvent.getTenantId(), schedulerEvent);
     }
 
     @Override
-    public void deleteSchedulerEvent(SchedulerEventId schedulerEventId) {
+    public void deleteSchedulerEvent(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing deleteSchedulerEvent [{}]", schedulerEventId);
         validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
-        deleteEntityRelations(schedulerEventId);
-        schedulerEventDao.removeById(schedulerEventId.getId());
+        deleteEntityRelations(tenantId, schedulerEventId);
+        schedulerEventDao.removeById(tenantId, schedulerEventId.getId());
     }
 
     @Override
@@ -150,7 +149,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         List<SchedulerEventInfo> schedulerEvents = schedulerEventInfoDao.findSchedulerEventsByTenantId(tenantId.getId());
         for (SchedulerEventInfo schedulerEvent : schedulerEvents) {
-            deleteSchedulerEvent(schedulerEvent.getId());
+            deleteSchedulerEvent(tenantId, schedulerEvent.getId());
         }
     }
 
@@ -158,7 +157,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
             new DataValidator<SchedulerEvent>() {
 
                 @Override
-                protected void validateDataImpl(SchedulerEvent schedulerEvent) {
+                protected void validateDataImpl(TenantId tenantId, SchedulerEvent schedulerEvent) {
                     if (StringUtils.isEmpty(schedulerEvent.getType())) {
                         throw new DataValidationException("SchedulerEvent type should be specified!");
                     }
@@ -174,7 +173,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                     if (schedulerEvent.getTenantId() == null) {
                         throw new DataValidationException("SchedulerEvent should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(schedulerEvent.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, schedulerEvent.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("SchedulerEvent is referencing to non-existent tenant!");
                         }
@@ -182,7 +181,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                     if (schedulerEvent.getCustomerId() == null) {
                         schedulerEvent.setCustomerId(new CustomerId(NULL_UUID));
                     } else if (!schedulerEvent.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(schedulerEvent.getCustomerId().getId());
+                        Customer customer = customerDao.findById(tenantId, schedulerEvent.getCustomerId().getId());
                         if (customer == null) {
                             throw new DataValidationException("Can't assign schedulerEvent to non-existent customer!");
                         }
