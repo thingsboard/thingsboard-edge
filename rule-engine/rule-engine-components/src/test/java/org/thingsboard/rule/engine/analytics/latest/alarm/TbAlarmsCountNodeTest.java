@@ -166,8 +166,8 @@ public class TbAlarmsCountNodeTest {
         when(ctx.getRelationService()).thenReturn(relationService);
 
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
-            AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[0];
-            List<Predicate<AlarmInfo>> filters = (List<Predicate<AlarmInfo>>) (invocationOnMock.getArguments())[1];
+            AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
+            List<Predicate<AlarmInfo>> filters = (List<Predicate<AlarmInfo>>) (invocationOnMock.getArguments())[2];
             return findAlarmCounts(alarmService, query, filters);
         }).when(alarmService).findAlarmCounts(Matchers.any(), Matchers.any(AlarmQuery.class), Matchers.any(List.class));
 

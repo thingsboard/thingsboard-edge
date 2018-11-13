@@ -115,7 +115,7 @@
         <module>ui</module>
         <module>tools</module>
         <module>application</module>
-        <!--<module>msa</module>-->
+        <module>msa</module>
     </modules>
 
     <profiles>
