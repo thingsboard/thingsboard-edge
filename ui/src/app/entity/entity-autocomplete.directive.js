@@ -37,7 +37,7 @@ import entityAutocompleteTemplate from './entity-autocomplete.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityAutocomplete($compile, $templateCache, $q, $filter, entityService, types) {
+export default function EntityAutocomplete($compile, $templateCache, $q, $filter, entityService, types, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(entityAutocompleteTemplate);
@@ -46,6 +46,7 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
         scope.entity = null;
         scope.entitySearchText = '';
+        scope.utils = utils;
 
         scope.fetchEntities = function(searchText) {
             var deferred = $q.defer();
