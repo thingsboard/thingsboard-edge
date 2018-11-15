@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityField;
@@ -68,6 +69,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
+    @Value("${security.user_login_case_sensitive:true}")
+    private boolean userLoginCaseSensitive;
+
     @Autowired
     private UserDao userDao;
 
@@ -84,7 +88,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public User findUserByEmail(TenantId tenantId, String email) {
         log.trace("Executing findUserByEmail [{}]", email);
         validateString(email, "Incorrect email " + email);
-        return userDao.findByEmail(tenantId, email);
+        if (userLoginCaseSensitive) {
+            return userDao.findByEmail(tenantId, email);
+        } else {
+            return userDao.findByEmail(tenantId, email.toLowerCase());
+        }
     }
 
     @Override
@@ -105,6 +113,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public User saveUser(User user) {
         log.trace("Executing saveUser [{}]", user);
         userValidator.validate(user, User::getTenantId);
+        if (user.getId() == null && !userLoginCaseSensitive) {
+            user.setEmail(user.getEmail().toLowerCase());
+        }
         User savedUser = userDao.save(user.getTenantId(), user);
         if (user.getId() == null) {
             UserCredentials userCredentials = new UserCredentials();
