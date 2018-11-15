@@ -70,6 +70,115 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         pages: []
     };
 
+    var tenantAdminSettingHomeSection = {
+        name: 'white-labeling.white-labeling',
+        places: []
+    };
+
+    var defaultTenantAdminSettingHomeSectionPlaces = [
+        {
+            name: 'admin.outgoing-mail',
+            icon: 'mail',
+            state: 'home.settings.outgoing-mail'
+        },
+        {
+            name: 'admin.mail-templates',
+            icon: 'format_shapes',
+            state: 'home.settings.mail-template'
+        }
+    ];
+
+    var tenantAdminSettingMenuSection = {
+        name: 'white-labeling.white-labeling',
+        type: 'toggle',
+        state: 'home.settings',
+        height: '0px',
+        icon: 'format_paint',
+        pages: []
+    };
+
+    var defaultTenantAdminSettingSectionPages = [
+        {
+            name: 'admin.outgoing-mail',
+            type: 'link',
+            state: 'home.settings.outgoing-mail',
+            icon: 'mail'
+        },
+        {
+            name: 'admin.mail-templates',
+            type: 'link',
+            state: 'home.settings.mail-template',
+            icon: 'format_shapes'
+        },
+        {
+            name: 'custom-translation.custom-translation',
+            type: 'link',
+            state: 'home.settings.customTranslation',
+            icon: 'language'
+        }
+    ];
+
+    var customerAdminSettingMenuSection = {
+        name: 'white-labeling.white-labeling',
+        type: 'toggle',
+        state: 'home.settings',
+        height: '0px',
+        icon: 'format_paint',
+        pages: []
+    };
+
+    var defaultCustomerAdminSettingMenuSectionPages = [
+        {
+            name: 'custom-translation.custom-translation',
+            type: 'link',
+            state: 'home.settings.customTranslation',
+            icon: 'language'
+        }
+    ];
+
+    var whiteLabelingPages = [
+        {
+            name: 'white-labeling.white-labeling',
+            type: 'link',
+            state: 'home.settings.whiteLabel',
+            icon: 'format_paint'
+        },
+        {
+            name: 'white-labeling.login-white-labeling',
+            type: 'link',
+            state: 'home.settings.loginWhiteLabel',
+            icon: 'format_paint'
+        }];
+
+    var tenantWhiteLabelingPlaces = [
+        {
+            name: 'white-labeling.white-labeling',
+            icon: 'format_paint',
+            state: 'home.settings.whiteLabel'
+        },
+        {
+            name: 'white-labeling.login-white-labeling',
+            icon: 'format_paint',
+            state: 'home.settings.loginWhiteLabel'
+        }
+    ];
+
+    var customerAdminSettingHomeSection = {
+        name: 'white-labeling.white-labeling',
+        places: [
+            {
+                name: 'white-labeling.white-labeling',
+                icon: 'format_paint',
+                state: 'home.settings.whiteLabel'
+            },
+            {
+                name: 'white-labeling.login-white-labeling',
+                icon: 'format_paint',
+                state: 'home.settings.loginWhiteLabel'
+            }
+        ]
+    };
+
     var service = {
         getHomeSections: getHomeSections,
         getSections: getSections,
@@ -295,45 +404,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             state: 'home.scheduler',
                             icon: 'schedule'
                         },
-                        {
-                            name: 'admin.system-settings',
-                            type: 'toggle',
-                            state: 'home.settings',
-                            height: '200px',
-                            icon: 'settings',
-                            pages: [
-                                {
-                                    name: 'admin.outgoing-mail',
-                                    type: 'link',
-                                    state: 'home.settings.outgoing-mail',
-                                    icon: 'mail'
-                                },
-                                {
-                                    name: 'admin.mail-templates',
-                                    type: 'link',
-                                    state: 'home.settings.mail-template',
-                                    icon: 'format_shapes'
-                                },
-                                {
-                                    name: 'white-labeling.white-labeling',
-                                    type: 'link',
-                                    state: 'home.settings.whiteLabel',
-                                    icon: 'format_paint'
-                                },
-                                {
-                                    name: 'white-labeling.login-white-labeling',
-                                    type: 'link',
-                                    state: 'home.settings.loginWhiteLabel',
-                                    icon: 'format_paint'
-                                },
-                                {
-                                    name: 'custom-translation.custom-translation',
-                                    type: 'link',
-                                    state: 'home.settings.customTranslation',
-                                    icon: 'language'
-                                }
-                            ]
-                        },
+                        tenantAdminSettingMenuSection,
                         {
                             name: 'audit-log.audit-logs',
                             type: 'link',
@@ -440,31 +511,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     }
                                 ]
                             },
-                            {
-                                name: 'admin.system-settings',
-                                places: [
-                                    {
-                                        name: 'admin.outgoing-mail',
-                                        icon: 'mail',
-                                        state: 'home.settings.outgoing-mail'
-                                    },
-                                    {
-                                        name: 'admin.mail-templates',
-                                        icon: 'format_shapes',
-                                        state: 'home.settings.mail-template'
-                                    },
-                                    {
-                                        name: 'white-labeling.white-labeling',
-                                        icon: 'format_paint',
-                                        state: 'home.settings.whiteLabel'
-                                    },
-                                    {
-                                        name: 'white-labeling.login-white-labeling',
-                                        icon: 'format_paint',
-                                        state: 'home.settings.loginWhiteLabel'
-                                    }
-                                ]
-                            },
+                            tenantAdminSettingHomeSection,
                             {
                                 name: 'audit-log.audit',
                                 places: [
@@ -523,33 +570,8 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             state: 'home.scheduler',
                             icon: 'schedule'
                         },
-                        {
-                            name: 'admin.system-settings',
-                            type: 'toggle',
-                            state: 'home.settings',
-                            height: '120px',
-                            icon: 'settings',
-                            pages: [
-                                {
-                                    name: 'white-labeling.white-labeling',
-                                    type: 'link',
-                                    state: 'home.settings.whiteLabel',
-                                    icon: 'format_paint'
-                                },
-                                {
-                                    name: 'white-labeling.login-white-labeling',
-                                    type: 'link',
-                                    state: 'home.settings.loginWhiteLabel',
-                                    icon: 'format_paint'
-                                },
-                                {
-                                    name: 'custom-translation.custom-translation',
-                                    type: 'link',
-                                    state: 'home.settings.customTranslation',
-                                    icon: 'language'
-                                }
-                            ]
-                        }];
+                        customerAdminSettingMenuSection
+                    ];
 
                     homeSections =
                         [{
@@ -603,21 +625,6 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             ]
                         },
                         {
-                            name: 'admin.system-settings',
-                            places: [
-                                {
-                                    name: 'white-labeling.white-labeling',
-                                    icon: 'format_paint',
-                                    state: 'home.settings.whiteLabel'
-                                },
-                                {
-                                    name: 'white-labeling.login-white-labeling',
-                                    icon: 'format_paint',
-                                    state: 'home.settings.loginWhiteLabel'
-                                }
-                            ]
-                        },
-                        {
                             name: 'custom-translation.custom-translation',
                             places: [
                                 {
@@ -628,6 +635,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             ]
                         }];
                 }
+                checkWhiteLabelingPermissions();
             }
             if (authority === 'TENANT_ADMIN') {
                 reloadGroups().then(() => {
@@ -696,6 +704,42 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
 
     function sectionActive(section) {
         return $state.includes(section.state);
+    }
+
+    function checkWhiteLabelingPermissions() {
+        var places = [];
+        var pages = [];
+        if (authority === 'TENANT_ADMIN') {
+            if (userService.isWhiteLabelingAllowed()) {
+                places = places.concat(defaultTenantAdminSettingHomeSectionPlaces);
+                places = places.concat(tenantWhiteLabelingPlaces);
+                tenantAdminSettingHomeSection.places = places;
+                tenantAdminSettingMenuSection.height = '200px';
+                pages = pages.concat(defaultTenantAdminSettingSectionPages);
+                pages = pages.concat(whiteLabelingPages);
+                tenantAdminSettingMenuSection.pages = pages;
+            } else {
+                places = places.concat(defaultTenantAdminSettingHomeSectionPlaces);
+                tenantAdminSettingHomeSection.places = places;
+                tenantAdminSettingMenuSection.height = '120px';
+                pages = pages.concat(defaultTenantAdminSettingSectionPages);
+                tenantAdminSettingMenuSection.pages = pages;
+            }
+        }
+
+        if (authority === 'CUSTOMER_USER') {
+            if (userService.isWhiteLabelingAllowed()) {
+                homeSections.push(customerAdminSettingHomeSection);
+                customerAdminSettingMenuSection.height = '120px';
+                pages = pages.concat(defaultCustomerAdminSettingMenuSectionPages);
+                pages = pages.concat(whiteLabelingPages);
+                customerAdminSettingMenuSection.pages = pages;
+            } else {
+                customerAdminSettingMenuSection.height = '40px';
+                pages = pages.concat(defaultCustomerAdminSettingMenuSectionPages);
+                customerAdminSettingMenuSection.pages = pages;
+            }
+        }
     }
 
 }

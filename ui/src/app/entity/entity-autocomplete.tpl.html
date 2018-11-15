@@ -39,14 +39,14 @@
                  md-search-text="entitySearchText"
                  md-search-text-change="entitySearchTextChanged()"
                  md-items="item in fetchEntities(entitySearchText)"
-                 md-item-text="item.name"
+                 md-item-text="utils.customTranslation(item.name, item.name)"
                  md-min-length="0"
                  md-floating-label="{{ entityText | translate }}"
                  md-select-on-match="true"
                  md-menu-class="tb-entity-autocomplete">
     <md-item-template>
         <div class="tb-entity-item">
-            <span md-highlight-text="entitySearchText" md-highlight-flags="^i">{{item.name}}</span>
+            <span md-highlight-text="entitySearchText" md-highlight-flags="^i">{{utils.customTranslation(item.name, item.name)}}</span>
         </div>
     </md-item-template>
     <md-not-found>

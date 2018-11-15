@@ -47,6 +47,26 @@ server:
     # Alias that identifies the key in the key store
     key-alias: "${SSL_KEY_ALIAS:tomcat}"
   log_controller_error_stack_trace: "${HTTP_LOG_CONTROLLER_ERROR_STACK_TRACE:true}"
+  ws:
+    limits:
+      # Limit the amount of sessions and subscriptions available on each server. Put values to zero to disable particular limitation
+      max_sessions_per_tenant: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SESSIONS_PER_TENANT:0}"
+      max_sessions_per_customer: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SESSIONS_PER_CUSTOMER:0}"
+      max_sessions_per_regular_user: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SESSIONS_PER_REGULAR_USER:0}"
+      max_sessions_per_public_user: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SESSIONS_PER_PUBLIC_USER:0}"
+      max_subscriptions_per_tenant: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SUBSCRIPTIONS_PER_TENANT:0}"
+      max_subscriptions_per_customer: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SUBSCRIPTIONS_PER_CUSTOMER:0}"
+      max_subscriptions_per_regular_user: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SUBSCRIPTIONS_PER_REGULAR_USER:0}"
+      max_subscriptions_per_public_user: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_SUBSCRIPTIONS_PER_PUBLIC_USER:0}"
+      max_updates_per_session: "${TB_SERVER_WS_TENANT_RATE_LIMITS_MAX_UPDATES_PER_SESSION:300:1,3000:60}"
+  rest:
+    limits:
+      tenant:
+        enabled: "${TB_SERVER_REST_LIMITS_TENANT_ENABLED:false}"
+        configuration: "${TB_SERVER_REST_LIMITS_TENANT_CONFIGURATION:100:1,2000:60}"
+      customer:
+        enabled: "${TB_SERVER_REST_LIMITS_CUSTOMER_ENABLED:false}"
+        configuration: "${TB_SERVER_REST_LIMITS_CUSTOMER_CONFIGURATION:50:1,1000:60}"
 
 # Zookeeper connection parameters. Used for service discovery.
 zk:
@@ -200,16 +220,6 @@ actors:
     node:
       # Errors for particular actor are persisted once per specified amount of milliseconds
       error_persist_frequency: "${ACTORS_RULE_NODE_ERROR_FREQUENCY:3000}"
-<<<<<<< HEAD
-    queue:
-      # Message queue type (memory or db)
-      type: "${ACTORS_RULE_QUEUE_TYPE:memory}"
-      # Message queue maximum size (per tenant)
-      max_size: "${ACTORS_RULE_QUEUE_MAX_SIZE:100}"
-      # Message queue cleanup period in seconds
-      cleanup_period: "${ACTORS_RULE_QUEUE_CLEANUP_PERIOD:3600}"
-=======
->>>>>>> opensource/master
   statistics:
     # Enable/disable actor statistics
     enabled: "${ACTORS_STATISTICS_ENABLED:true}"
@@ -277,12 +287,9 @@ updates:
   # Enable/disable updates checking.
   enabled: "${UPDATES_ENABLED:true}"
 
-<<<<<<< HEAD
 # spring velocity configuration
 spring.velocity.checkTemplateLocation: "false"
 
-=======
->>>>>>> opensource/master
 # spring CORS configuration
 spring.mvc.cors:
    mappings:
@@ -363,16 +370,12 @@ audit_log:
       "user": "${AUDIT_LOG_MASK_USER:W}"
       "rule_chain": "${AUDIT_LOG_MASK_RULE_CHAIN:W}"
       "alarm": "${AUDIT_LOG_MASK_ALARM:W}"
-<<<<<<< HEAD
       "integration": "${AUDIT_LOG_MASK_INTEGRATION:W}"
       "converter": "${AUDIT_LOG_MASK_CONVERTER:W}"
       "entity_group": "${AUDIT_LOG_MASK_ENTITY_GROUP:W}"
       "scheduler_event": "${AUDIT_LOG_MASK_SCHEDULER_EVENT:W}"
       "blob_entity": "${AUDIT_LOG_MASK_BLOB_ENTITY:W}"
-      "entity_view": "${AUDIT_LOG_MASK_RULE_CHAIN:W}"
-=======
       "entity_view": "${AUDIT_LOG_MASK_ENTITY_VIEW:W}"
->>>>>>> opensource/master
   sink:
     # Type of external sink. possible options: none, elasticsearch
     type: "${AUDIT_LOG_SINK_TYPE:none}"

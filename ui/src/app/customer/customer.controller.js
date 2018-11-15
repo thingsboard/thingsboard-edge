@@ -36,7 +36,7 @@ import customerCard from './customer-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function CustomerController(customerService, $state, $stateParams, $translate, types) {
+export default function CustomerController(customerService, $state, $stateParams, $translate, types, utils) {
 
     var customerActionsList = [
         {
@@ -200,7 +200,7 @@ export default function CustomerController(customerService, $state, $stateParams
     }
 
     function getCustomerTitle(customer) {
-        return customer ? customer.title : '';
+        return customer ? utils.customTranslation(customer.title, customer.title) : '';
     }
 
     function openCustomerUsers($event, customer) {

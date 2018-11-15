@@ -484,7 +484,8 @@
         "group-name-starts-with": "Customer groups whose names start with '{{prefix}}'",
         "select-default-customer": "Select default customer",
         "default-customer": "Default customer",
-        "default-customer-required": "Default customer is required in order to debug dashboard on Tenant level"
+        "default-customer-required": "Default customer is required in order to debug dashboard on Tenant level",
+        "allow-white-labeling": "Allow White Labeling"
     },
     "custom-translation": {
         "custom-translation": "Custom Translation",
@@ -1879,7 +1880,9 @@
         "no-tenants-matching": "No tenants matching '{{entity}}' were found.",
         "tenant-required": "Tenant is required",
         "selected-tenants": "{ count, plural, 1 {1 tenant} other {# tenants} } selected",
-        "search": "Search tenants"
+        "search": "Search tenants",
+        "allow-white-labeling": "Allow White Labeling",
+        "allow-customer-white-labeling": "Allow Customer White Labeling"
     },
     "timeinterval": {
         "seconds-interval": "{ seconds, plural, 1 {1 second} other {# seconds} }",

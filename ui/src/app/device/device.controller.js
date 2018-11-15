@@ -62,7 +62,7 @@ export function DeviceCardController(types) {
 
 /*@ngInject*/
 export function DeviceController($rootScope, tbDialogs, userService, deviceService, customerService, $state, $stateParams,
-                                 $document, $mdDialog, $q, $translate, types) {
+                                 $document, $mdDialog, $q, $translate, types, utils) {
 
     var customerId = $stateParams.customerId;
 
@@ -375,7 +375,7 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
     }
 
     function getDeviceTitle(device) {
-        return device ? device.name : '';
+        return device ? utils.customTranslation(device.name, device.name) : '';
     }
 
     function saveDevice(device) {

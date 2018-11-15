@@ -44,7 +44,7 @@ export function ConverterCardController(types) {
 }
 
 /*@ngInject*/
-export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types, helpLinks) {
+export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types, helpLinks, utils) {
 
     var converterActionsList = [
         {
@@ -188,7 +188,7 @@ export function ConverterController(converterService, $state, $stateParams, $tra
     }
 
     function getConverterTitle(converter) {
-        return converter ? converter.name : '';
+        return converter ? utils.customTranslation(converter.name, converter.name) : '';
     }
 
     function exportConverter($event, converter) {

@@ -28,28 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.mapper;
+package org.thingsboard.server.dao.service.sql;
 
-import lombok.Data;
+import org.thingsboard.server.dao.service.BaseWhiteLabelingServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-@Data
-public class WsTelemetryResponse implements Serializable {
-    private int subscriptionId;
-    private int errorCode;
-    private String errorMsg;
-    private Map<String, List<List<Object>>> data;
-    private Map<String, Object> latestValues;
-
-    public List<Object> getDataValuesByKey(String key) {
-        return data.entrySet().stream()
-                .filter(e -> e.getKey().equals(key))
-                .flatMap(e -> e.getValue().stream().flatMap(Collection::stream))
-                .collect(Collectors.toList());
-    }
+@DaoSqlTest
+public class WhiteLabelingServiceSqlTest extends BaseWhiteLabelingServiceTest {
 }

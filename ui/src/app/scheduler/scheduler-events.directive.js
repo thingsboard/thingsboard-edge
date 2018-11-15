@@ -573,7 +573,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
               },
               targetEvent: $event,
               fullscreen: true,
-              skipHide: true,
+              multiple: true,
               onComplete: function () {
                   var w = angular.element($window);
                   w.triggerHandler('resize');

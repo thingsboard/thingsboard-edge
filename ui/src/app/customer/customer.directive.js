@@ -35,12 +35,14 @@ import customerFieldsetTemplate from './customer-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function CustomerDirective($compile, $templateCache, $translate, toast) {
+export default function CustomerDirective($compile, $templateCache, $translate, toast, userService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(customerFieldsetTemplate);
         element.html(template);
 
         scope.isPublic = false;
+
+        scope.allowCustomerWhiteLabeling = userService.isCustomerWhiteLabelingAllowed();
 
         scope.onCustomerIdCopied = function() {
             toast.showSuccess($translate.instant('customer.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
@@ -50,11 +52,21 @@ export default function CustomerDirective($compile, $templateCache, $translate, 
             if (newVal) {
                 if (scope.customer.additionalInfo) {
                     scope.isPublic = scope.customer.additionalInfo.isPublic;
+                    scope.allowWhiteLabeling = angular.isUndefined(scope.customer.additionalInfo.allowWhiteLabeling) ||
+                        scope.customer.additionalInfo.allowWhiteLabeling === true;
                 } else {
                     scope.isPublic = false;
+                    scope.allowWhiteLabeling = true;
                 }
             }
         });
+
+        scope.onAllowWhitelabelingChanged = function () {
+            if (!scope.customer.additionalInfo) {
+                scope.customer.additionalInfo = {};
+            }
+            scope.customer.additionalInfo.allowWhiteLabeling = scope.allowWhiteLabeling;
+        };
 
         $compile(element.contents())(scope);
 

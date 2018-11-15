@@ -28,26 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.common.msg.tools;
 
-import org.junit.ClassRule;
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
-import org.junit.runner.RunWith;
+import lombok.Getter;
+import org.thingsboard.server.common.data.EntityType;
 
-import java.util.Arrays;
+/**
+ * Created by ashvayka on 22.10.18.
+ */
+public class TbRateLimitsException extends RuntimeException {
+    @Getter
+    private final EntityType entityType;
 
-@RunWith(ClasspathSuite.class)
-@ClassnameFilters({
-        "org.thingsboard.server.dao.sql.*THIS_MUST_BE_FIXED_Test"
-})
-public class JpaDaoTestSuite {
-
-    @ClassRule
-    public static CustomSqlUnit sqlUnit = new CustomSqlUnit(
-            Arrays.asList("sql/schema-ts.sql", "sql/schema-entities.sql", "sql/system-data.sql"),
-            "sql/drop-all-tables.sql",
-            "sql-test.properties"
-    );
-
+    public TbRateLimitsException(EntityType entityType) {
+        this.entityType = entityType;
+    }
 }

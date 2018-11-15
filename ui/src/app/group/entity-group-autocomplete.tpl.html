@@ -39,13 +39,13 @@
                  md-search-text="entityGroupSearchText"
                  md-search-text-change="entityGroupSearchTextChanged()"
                  md-items="item in fetchEntityGroups(entityGroupSearchText)"
-                 md-item-text="item.name"
+                 md-item-text="utils.customTranslation(item.name, item.name)"
                  md-min-length="0"
                  md-floating-label="{{ placeholderText | translate }}"
                  md-menu-class="tb-entity-group-autocomplete">
     <md-item-template>
         <div class="tb-entity-group-item">
-            <span md-highlight-text="entityGroupSearchText" md-highlight-flags="^i">{{item.name}}</span>
+            <span md-highlight-text="entityGroupSearchText" md-highlight-flags="^i">{{utils.customTranslation(item.name, item.name)}}</span>
         </div>
     </md-item-template>
     <md-not-found>

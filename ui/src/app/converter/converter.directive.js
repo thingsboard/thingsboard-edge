@@ -116,7 +116,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     debugIn: debugIn
                 },
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 targetEvent: $event,
                 onComplete: () => {
                     onShowingCallback.onShowed();

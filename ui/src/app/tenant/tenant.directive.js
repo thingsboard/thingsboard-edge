@@ -44,6 +44,27 @@ export default function TenantDirective($compile, $templateCache, $translate, to
             toast.showSuccess($translate.instant('tenant.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
         };
 
+        scope.$watch('tenant', function() {
+            if (scope.tenant) {
+                if (scope.tenant.additionalInfo) {
+                    scope.allowWhiteLabeling = angular.isUndefined(scope.tenant.additionalInfo.allowWhiteLabeling) ||
+                                               scope.tenant.additionalInfo.allowWhiteLabeling === true;
+                    scope.allowCustomerWhiteLabeling = angular.isUndefined(scope.tenant.additionalInfo.allowCustomerWhiteLabeling) ||
+                                                       scope.tenant.additionalInfo.allowCustomerWhiteLabeling === true;
+                } else {
+                    scope.allowWhiteLabeling = true;
+                    scope.allowCustomerWhiteLabeling = true;
+                }
+            }
+        });
+
+        scope.onAllowWhitelabelingChanged = function (fieldName) {
+            if (!scope.tenant.additionalInfo) {
+                scope.tenant.additionalInfo = {};
+            }
+            scope.tenant.additionalInfo[fieldName] = scope[fieldName];
+        };
+
         $compile(element.contents())(scope);
     }
     return {

@@ -30,7 +30,7 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import defaultImageUrl from '../../svg/logo_title_white.svg';
+import defaultImageUrl from '../../svg/logo_title_white_pe.svg';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -52,7 +52,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
 
     const defaultWLParams = {
         logoImageUrl: defaultImageUrl,
-        logoImageChecksum: '4a216f7cb9b76effe0d583ef5bddd98e377e2fa9',
+        logoImageChecksum: 'f4ef3e3d6f868a30946388f299bd8f4a36a89d45',
         logoImageHeight: 36,
         appTitle: 'ThingsBoard PE',
         favicon: {
@@ -100,7 +100,9 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
         getCurrentLoginWhiteLabelParams: getCurrentLoginWhiteLabelParams,
         saveWhiteLabelParams: saveWhiteLabelParams,
-        saveLoginWhiteLabelParams: saveLoginWhiteLabelParams
+        saveLoginWhiteLabelParams: saveLoginWhiteLabelParams,
+        isWhiteLabelingAllowed: isWhiteLabelingAllowed,
+        isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed
     };
 
     return service;
@@ -418,17 +420,14 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             themeProvider.definePalette(accentPaletteName, customAccentPalette);
         }
 
-        cleanupThemes('tb-custom-theme-');
+        cleanupThemes('tbCustomTheme');
 
-        var themeName = 'tb-custom-theme-' + (Math.random()*1000).toFixed(0);
+        var themeName = 'tbCustomTheme' + (Math.random()*1000).toFixed(0);
         themeProvider.theme(themeName)
             .primaryPalette(primaryPaletteName)
             .accentPalette(accentPaletteName);
 
         $mdTheming.generateTheme(themeName);
-
-        $mdTheming.PALETTES = angular.extend({}, themeProvider._PALETTES);
-        $mdTheming.THEMES = angular.extend({}, themeProvider._THEMES);
 
         themeProvider.setDefaultTheme(themeName);
 
@@ -483,9 +482,9 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             prepareColors(backgroundPaletteColors, primaryPaletteName));
         themeProvider.definePalette(backgroundPaletteName, customLoginBackgroundPalette);
 
-        cleanupThemes('tb-custom-login-theme-');
+        cleanupThemes('tbCustomLoginTheme');
 
-        var themeName = 'tb-custom-login-theme-' + (Math.random()*1000).toFixed(0);
+        var themeName = 'tbCustomLoginTheme' + (Math.random()*1000).toFixed(0);
         var theme = themeProvider.theme(themeName)
             .primaryPalette(primaryPaletteName)
             .accentPalette(accentPaletteName)
@@ -498,9 +497,6 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         }
 
         $mdTheming.generateTheme(themeName);
-
-        $mdTheming.PALETTES = angular.extend({}, themeProvider._PALETTES);
-        $mdTheming.THEMES = angular.extend({}, themeProvider._THEMES);
 
         $rootScope.currentLoginTheme = themeName;
     }
@@ -568,4 +564,25 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         return [parseInt(red, 16), parseInt(grn, 16), parseInt(blu, 16)];
     }
 
+    function isWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        var url = '/api/whiteLabel/isWhiteLabelingAllowed';
+        $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function isCustomerWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        var url = '/api/whiteLabel/isCustomerWhiteLabelingAllowed';
+        $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 }
