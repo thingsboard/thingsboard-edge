@@ -28,34 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.rule.engine.action;
 
-md-toast.tb-info-toast .md-toast-content {
-  height: 100%;
-  max-height: 100%;
-  padding: 18px;
-  font-size: 18px;
-}
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-md-toast.tb-success-toast .md-toast-content {
-  height: 100%;
-  max-height: 100%;
-  font-size: 18px !important;
-  color: #fff;
-  background-color: #008000;
+@Data
+public class TbMsgCountNodeConfiguration implements NodeConfiguration<TbMsgCountNodeConfiguration> {
 
-  .md-button {
-    color: #fff;
-  }
-}
+    private String telemetryPrefix;
+    private int interval;
 
-md-toast.tb-error-toast .md-toast-content {
-  height: 100%;
-  max-height: 100%;
-  font-size: 18px !important;
-  color: #fff;
-  background-color: #800000;
-
-  .md-button {
-    color: #fff;
-  }
+    @Override
+    public TbMsgCountNodeConfiguration defaultConfiguration() {
+        TbMsgCountNodeConfiguration configuration = new TbMsgCountNodeConfiguration();
+        configuration.setInterval(1);
+        configuration.setTelemetryPrefix("messageCount");
+        return configuration;
+    }
 }

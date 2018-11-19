@@ -37,12 +37,14 @@ import entityGroupListTemplate from './entity-group-list.tpl.html';
 import './entity-group-list.scss';
 
 /*@ngInject*/
-export default function EntityGroupListDirective($compile, $templateCache, $q, $mdUtil, types, entityService) {
+export default function EntityGroupListDirective($compile, $templateCache, $q, $mdUtil, types, entityService, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
 
         var template = $templateCache.get(entityGroupListTemplate);
         element.html(template);
+
+        scope.utils = utils;
 
         scope.ngModelCtrl = ngModelCtrl;
 

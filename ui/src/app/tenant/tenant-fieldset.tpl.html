@@ -56,6 +56,17 @@
 			<label translate>tenant.description</label>
 			<textarea ng-model="tenant.additionalInfo.description" rows="2"></textarea>
 		</md-input-container>
+		<md-input-container class="md-block">
+			<md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'tenant.allow-white-labeling' | translate }}"
+                         ng-change="onAllowWhitelabelingChanged('allowWhiteLabeling')"
+						 ng-model="allowWhiteLabeling">{{ 'tenant.allow-white-labeling' | translate }}
+			</md-checkbox>
+			<md-checkbox ng-disabled="$root.loading || !isEdit || !allowWhiteLabeling"
+						 aria-label="{{ 'tenant.allow-customer-white-labeling' | translate }}"
+                         ng-change="onAllowWhitelabelingChanged('allowCustomerWhiteLabeling')"
+						 ng-model="allowCustomerWhiteLabeling">{{ 'tenant.allow-customer-white-labeling' | translate }}
+			</md-checkbox>
+		</md-input-container>
 		<tb-contact contact="tenant" the-form="theForm" is-edit="isEdit"></tb-contact>
 	</fieldset>
 </md-content>

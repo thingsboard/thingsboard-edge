@@ -63,7 +63,7 @@ export function EntityViewCardController(types) {
 
 /*@ngInject*/
 export function EntityViewController($rootScope, userService, entityViewService, customerService, $state, $stateParams,
-                                     $document, $mdDialog, $q, $translate, types) {
+                                     $document, $mdDialog, $q, $translate, types, utils) {
 
     var customerId = $stateParams.customerId;
 
@@ -317,7 +317,7 @@ export function EntityViewController($rootScope, userService, entityViewService,
     }
 
     function getEntityViewTitle(entityView) {
-        return entityView ? entityView.name : '';
+        return entityView ? utils.customTranslation(entityView.name, entityView.name) : '';
     }
 
     function saveEntityView(entityView) {

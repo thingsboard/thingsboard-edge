@@ -93,7 +93,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -281,7 +280,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                         } else if (customerSessions.size() < maxSubscriptionsPerCustomer) {
                             customerSessions.add(subId);
                         } else {
-                            log.info("[{}][{}][{}] Failed to start subscription. Max customer sessions limit reached"
+                            log.info("[{}][{}][{}] Failed to start subscription. Max customer subscriptions limit reached"
                                     , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), subId);
                             msgEndpoint.close(sessionRef, CloseStatus.POLICY_VIOLATION.withReason("Max customer subscriptions limit reached"));
                             return false;
@@ -294,7 +293,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                         if (regularUserSessions.size() < maxSubscriptionsPerRegularUser) {
                             regularUserSessions.add(subId);
                         } else {
-                            log.info("[{}][{}][{}] Failed to start subscription. Max user sessions limit reached"
+                            log.info("[{}][{}][{}] Failed to start subscription. Max regular user subscriptions limit reached"
                                     , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), subId);
                             msgEndpoint.close(sessionRef, CloseStatus.POLICY_VIOLATION.withReason("Max regular user subscriptions limit reached"));
                             return false;
@@ -307,7 +306,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                         if (publicUserSessions.size() < maxSubscriptionsPerPublicUser) {
                             publicUserSessions.add(subId);
                         } else {
-                            log.info("[{}][{}][{}] Failed to start subscription. Max user sessions limit reached"
+                            log.info("[{}][{}][{}] Failed to start subscription. Max public user subscriptions limit reached"
                                     , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), subId);
                             msgEndpoint.close(sessionRef, CloseStatus.POLICY_VIOLATION.withReason("Max public user subscriptions limit reached"));
                             return false;

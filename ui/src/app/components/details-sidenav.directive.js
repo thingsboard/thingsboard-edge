@@ -41,9 +41,11 @@ export default angular.module('thingsboard.directives.detailsSidenav', [])
     .name;
 
 /*@ngInject*/
-function DetailsSidenav($timeout, $mdUtil, $q, $animate) {
+function DetailsSidenav($timeout, $mdUtil, $q, $animate, utils) {
 
     var linker = function (scope, element, attrs) {
+
+        scope.utils = utils;
 
         if (angular.isUndefined(attrs.isReadOnly)) {
             attrs.isReadOnly = false;

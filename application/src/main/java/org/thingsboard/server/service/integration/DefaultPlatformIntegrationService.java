@@ -41,7 +41,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
@@ -55,8 +57,8 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.transport.service.TbRateLimitsException;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
@@ -166,7 +168,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(4));
-        refreshAllIntegrations();
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics,
@@ -372,18 +373,27 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+        log.info("Received application ready event. Refreshing all integrations.");
+        refreshAllIntegrations();
+    }
+
     @Override
     public void onServerAdded(ServerInstance server) {
+        log.info("Received server added event. Refreshing all integrations.");
         refreshAllIntegrations();
     }
 
     @Override
     public void onServerUpdated(ServerInstance server) {
+        log.info("Received server updated event. Refreshing all integrations.");
         refreshAllIntegrations();
     }
 
     @Override
     public void onServerRemoved(ServerInstance server) {
+        log.info("Received server removed event. Refreshing all integrations.");
         refreshAllIntegrations();
     }
 

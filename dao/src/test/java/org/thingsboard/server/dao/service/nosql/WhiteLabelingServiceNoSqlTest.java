@@ -28,26 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.dao.service.nosql;
 
-import org.junit.ClassRule;
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
-import org.junit.runner.RunWith;
+import org.thingsboard.server.dao.service.BaseWhiteLabelingServiceTest;
+import org.thingsboard.server.dao.service.DaoNoSqlTest;
 
-import java.util.Arrays;
-
-@RunWith(ClasspathSuite.class)
-@ClassnameFilters({
-        "org.thingsboard.server.dao.sql.*THIS_MUST_BE_FIXED_Test"
-})
-public class JpaDaoTestSuite {
-
-    @ClassRule
-    public static CustomSqlUnit sqlUnit = new CustomSqlUnit(
-            Arrays.asList("sql/schema-ts.sql", "sql/schema-entities.sql", "sql/system-data.sql"),
-            "sql/drop-all-tables.sql",
-            "sql-test.properties"
-    );
-
+@DaoNoSqlTest
+public class WhiteLabelingServiceNoSqlTest extends BaseWhiteLabelingServiceTest {
 }

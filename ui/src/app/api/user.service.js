@@ -42,8 +42,11 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         currentUserDetails = null,
         lastPublicDashboardId = null,
         allowedDashboardIds = [],
+        redirectParams = null,
         userTokenAccessEnabled = false,
-        userLoaded = false;
+        userLoaded = false,
+        whiteLabelingAllowed = false,
+        customerWhiteLabelingAllowed = false;
 
     var refreshTokenQueue = [];
 
@@ -72,13 +75,16 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         refreshTokenPending: refreshTokenPending,
         updateAuthorizationHeader: updateAuthorizationHeader,
         setAuthorizationRequestHeader: setAuthorizationRequestHeader,
+        setRedirectParams: setRedirectParams,
         gotoDefaultPlace: gotoDefaultPlace,
         forceDefaultPlace: forceDefaultPlace,
         updateLastPublicDashboardId: updateLastPublicDashboardId,
         logout: logout,
         reloadUser: reloadUser,
         isUserTokenAccessEnabled: isUserTokenAccessEnabled,
-        loginAsUser: loginAsUser
+        loginAsUser: loginAsUser,
+        isWhiteLabelingAllowed: isWhiteLabelingAllowed,
+        isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed
     }
 
     reloadUser();
@@ -263,6 +269,18 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         }
     }
 
+    function isWhiteLabelingAllowed() {
+        return whiteLabelingAllowed;
+    }
+
+    function isCustomerWhiteLabelingAllowed() {
+        if (currentUser.authority === 'TENANT_ADMIN') {
+            return customerWhiteLabelingAllowed;
+        } else {
+            return false;
+        }
+    }
+
     function getPublicId() {
         if (isPublic()) {
             return currentUser.sub;
@@ -411,11 +429,42 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         return deferred.promise;
     }
 
+    function checkIsWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        whiteLabelingService.isWhiteLabelingAllowed().then(
+            (response) => {
+                whiteLabelingAllowed = !!response;
+                if (currentUser.authority === 'TENANT_ADMIN') {
+                    whiteLabelingService.isCustomerWhiteLabelingAllowed().then(
+                        (response) => {
+                            customerWhiteLabelingAllowed = !!response;
+                            deferred.resolve();
+                        },
+                        () => {
+                            whiteLabelingAllowed = false;
+                            deferred.reject();
+                        }
+                    )
+                } else {
+                    deferred.resolve();
+                }
+            },
+            () => {
+                whiteLabelingAllowed = false;
+                deferred.reject();
+            }
+        )
+        return deferred.promise;
+    }
+
     function loadSystemParams() {
         var promises = [];
         promises.push(loadIsUserTokenAccessEnabled());
         promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
         promises.push(timeService.loadMaxDatapointsLimit());
+        if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
+            promises.push(checkIsWhiteLabelingAllowed());
+        }
         return $q.all(promises);
     }
 
@@ -586,9 +635,15 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         return false;
     }
 
+    function setRedirectParams(params) {
+        redirectParams = params;
+    }
+
     function gotoDefaultPlace(params) {
         if (currentUser && isAuthenticated()) {
-            var place = 'home.links';
+            var place = redirectParams ? redirectParams.toName : 'home.links';
+            params = redirectParams ? redirectParams.params : params;
+            redirectParams = null;
             if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
                 if (userHasDefaultDashboard()) {
                     place = $rootScope.forceFullscreen ? 'dashboard' : 'home.dashboards.dashboard';

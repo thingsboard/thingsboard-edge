@@ -36,7 +36,7 @@ import widgetsBundleCard from './widgets-bundle-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function WidgetsBundleController(widgetService, userService, importExport, $state, $stateParams, $filter, $translate, types) {
+export default function WidgetsBundleController(widgetService, userService, importExport, $state, $stateParams, $filter, $translate, types, utils) {
 
     var widgetsBundleActionsList = [
         {
@@ -176,7 +176,7 @@ export default function WidgetsBundleController(widgetService, userService, impo
     }
 
     function getWidgetsBundleTitle(widgetsBundle) {
-        return widgetsBundle ? widgetsBundle.title : '';
+        return widgetsBundle ? utils.customTranslation(widgetsBundle.title, widgetsBundle.title) : '';
     }
 
     function isWidgetsBundleEditable(widgetsBundle) {

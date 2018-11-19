@@ -28,34 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.server.dao.service.sql;
 
-md-toast.tb-info-toast .md-toast-content {
-  height: 100%;
-  max-height: 100%;
-  padding: 18px;
-  font-size: 18px;
-}
+import org.thingsboard.server.dao.service.BaseWhiteLabelingServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-md-toast.tb-success-toast .md-toast-content {
-  height: 100%;
-  max-height: 100%;
-  font-size: 18px !important;
-  color: #fff;
-  background-color: #008000;
-
-  .md-button {
-    color: #fff;
-  }
-}
-
-md-toast.tb-error-toast .md-toast-content {
-  height: 100%;
-  max-height: 100%;
-  font-size: 18px !important;
-  color: #fff;
-  background-color: #800000;
-
-  .md-button {
-    color: #fff;
-  }
+@DaoSqlTest
+public class WhiteLabelingServiceSqlTest extends BaseWhiteLabelingServiceTest {
 }

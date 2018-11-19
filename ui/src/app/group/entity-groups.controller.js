@@ -160,7 +160,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
     }
 
     function getEntityGroupTitle(entityGroup) {
-        return entityGroup ? entityGroup.name : '';
+        return entityGroup ? utils.customTranslation(entityGroup.name, entityGroup.name) : '';
     }
 
     function fetchEntityGroups(pageLink) {

@@ -44,11 +44,11 @@
                 md-selected-item="selectedEntity"
                 md-search-text="entitySearchText"
                 md-items="item in fetchEntities(entitySearchText, 10)"
-                md-item-text="item.name"
+                md-item-text="utils.customTranslation(item.name, item.name)"
                 md-min-length="0"
                 placeholder="{{ 'entity.entity-list' | translate }}">
             <md-item-template>
-                <span md-highlight-text="entitySearchText" md-highlight-flags="^i">{{item.name}}</span>
+                <span md-highlight-text="entitySearchText" md-highlight-flags="^i">{{utils.customTranslation(item.name, item.name)}}</span>
             </md-item-template>
             <md-not-found>
                 <span translate translate-values='{ entity: entitySearchText }'>entity.no-entities-matching</span>
@@ -56,7 +56,7 @@
         </md-autocomplete>
         <md-chip-template>
             <span>
-                <strong>{{$chip.name}}</strong>
+                <strong>{{utils.customTranslation($chip.name, $chip.name)}}</strong>
             </span>
         </md-chip-template>
     </md-chips>

@@ -62,7 +62,7 @@ export function AssetCardController(types) {
 
 /*@ngInject*/
 export function AssetController($rootScope, tbDialogs, userService, assetService, customerService, $state, $stateParams,
-                                $document, $mdDialog, $q, $translate, types) {
+                                $document, $mdDialog, $q, $translate, types, utils) {
 
     var customerId = $stateParams.customerId;
 
@@ -341,7 +341,7 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
     }
 
     function getAssetTitle(asset) {
-        return asset ? asset.name : '';
+        return asset ? utils.customTranslation(asset.name, asset.name) : '';
     }
 
     function saveAsset(asset) {

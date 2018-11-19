@@ -77,4 +77,9 @@ public interface WhiteLabelingService {
     WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams);
 
     void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId);
+
+    boolean isWhiteLabelingAllowed(TenantId tenantId, EntityId entityId);
+
+    boolean isCustomerWhiteLabelingAllowed(TenantId tenantId);
+
 }
