@@ -63,7 +63,6 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
             sandbox.allowNoBraces(false);
             sandbox.allowLoadFunctions(true);
             sandbox.setMaxPreparedStatements(30);
-            sandbox.allowLoadFunctions(true);
         } else {
             NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
             engine = factory.getScriptEngine(new String[]{"--no-java"});
