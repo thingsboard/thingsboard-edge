@@ -28,25 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.adaptor;
+package org.thingsboard.rule.engine.action;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-@Configuration
-@Slf4j
-public class JsonConverterConfig {
+@Data
+public class TbMsgCountNodeConfiguration implements NodeConfiguration<TbMsgCountNodeConfiguration> {
 
-    @Value("${transport.json.type_cast_enabled:true}")
-    public void setIsJsonTypeCastEnabled(boolean jsonTypeCastEnabled) {
-        JsonConverter.setTypeCastEnabled(jsonTypeCastEnabled);
-        log.info("JSON type cast enabled = {}", jsonTypeCastEnabled);
-    }
+    private String telemetryPrefix;
+    private int interval;
 
-    @Value("${transport.json.max_string_value_length:0}")
-    public void setMaxStringValueLength(int maxStringValueLength) {
-        JsonConverter.setMaxStringValueLength(maxStringValueLength);
-        log.info("JSON max string value length = {}", maxStringValueLength);
+    @Override
+    public TbMsgCountNodeConfiguration defaultConfiguration() {
+        TbMsgCountNodeConfiguration configuration = new TbMsgCountNodeConfiguration();
+        configuration.setInterval(1);
+        configuration.setTelemetryPrefix("messageCount");
+        return configuration;
     }
 }

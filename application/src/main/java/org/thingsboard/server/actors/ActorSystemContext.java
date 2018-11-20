@@ -76,6 +76,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.kafka.TbNodeIdProvider;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
@@ -328,6 +329,10 @@ public class ActorSystemContext {
     @Getter
     @Setter
     private ActorSystem actorSystem;
+
+    @Autowired
+    @Getter
+    private TbNodeIdProvider nodeIdProvider;
 
     @Getter
     @Setter

@@ -43,7 +43,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         // ie11 fix
     }
 
-    var unauthorizedDialog = null;
     var forbiddenDialog = null;
 
     $mdTheming.generateTheme('default');
@@ -163,11 +162,11 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                         reloadUserFromPublicId();
                     } else if (to.module === 'private') {
                         evt.preventDefault();
-                        if (to.url === '/home' || to.url === '/') {
-                            gotoPublicModule('login', params);
-                        } else {
-                            showUnauthorizedDialog();
-                        }
+                        var redirectParams = {};
+                        redirectParams.toName = to.name;
+                        redirectParams.params = params;
+                        userService.setRedirectParams(redirectParams);
+                        gotoPublicModule('login', params);
                     } else {
                         evt.preventDefault();
                         gotoPublicModule(to.name, params);
@@ -239,31 +238,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                 $state.go(name, params);
             }
         );
-    }
-
-    function showUnauthorizedDialog() {
-        if (unauthorizedDialog === null) {
-            $translate(['access.unauthorized-access',
-                        'access.unauthorized-access-text',
-                        'access.unauthorized',
-                        'action.cancel',
-                        'action.sign-in']).then(function (translations) {
-                if (unauthorizedDialog === null) {
-                    unauthorizedDialog = $mdDialog.confirm()
-                        .title(translations['access.unauthorized-access'])
-                        .textContent(translations['access.unauthorized-access-text'])
-                        .ariaLabel(translations['access.unauthorized'])
-                        .cancel(translations['action.cancel'])
-                        .ok(translations['action.sign-in']);
-                    $mdDialog.show(unauthorizedDialog).then(function () {
-                        unauthorizedDialog = null;
-                        gotoPublicModule('login');
-                    }, function () {
-                        unauthorizedDialog = null;
-                    });
-                }
-            });
-        }
     }
 
     function showForbiddenDialog() {
