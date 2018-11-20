@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
@@ -70,10 +71,7 @@ import java.util.Map;
 @RequestMapping("/api")
 @Slf4j
 public class ConverterController extends BaseController {
-
-    @Autowired
-    private DataConverterService dataConverterService;
-
+    
     @Autowired
     private EventService eventService;
 
@@ -103,13 +101,10 @@ public class ConverterController extends BaseController {
     public Converter saveConverter(@RequestBody Converter converter) throws ThingsboardException {
         try {
             converter.setTenantId(getCurrentUser().getTenantId());
-            boolean create = converter.getId() == null;
+            boolean created = converter.getId() == null;
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            if (create) {
-                dataConverterService.createConverter(result);
-            } else {
-                dataConverterService.updateConverter(result);
-            }
+            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(result.getId(), result,
                     null,
@@ -149,7 +144,7 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId);
             converterService.deleteConverter(getTenantId(), converterId);
-            dataConverterService.deleteConverter(converterId);
+            actorService.onEntityStateChange(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
 
             logEntityAction(converterId, converter,
                     null,
