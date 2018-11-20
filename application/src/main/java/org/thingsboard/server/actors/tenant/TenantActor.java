@@ -49,9 +49,13 @@ import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.actors.shared.rulechain.TenantRuleChainManager;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.msg.TbActorMsg;
@@ -59,6 +63,8 @@ import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import scala.concurrent.duration.Duration;
 
 import java.util.HashMap;
@@ -154,16 +160,45 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onComponentLifecycleMsg(ComponentLifecycleMsg msg) {
-        ActorRef target = getEntityActorRef(msg.getEntityId());
-        if (target != null) {
-            if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
-                RuleChain ruleChain = systemContext.getRuleChainService().
-                        findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
-                ruleChainManager.visit(ruleChain, target);
+        if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
+            IntegrationId integrationId = new IntegrationId(msg.getEntityId().getId());
+            PlatformIntegrationService platformIntegrationService = systemContext.getPlatformIntegrationService();
+            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+                platformIntegrationService.deleteIntegration(integrationId);
+            } else {
+                Integration integration = systemContext.getIntegrationService().findIntegrationById(msg.getTenantId(), integrationId);
+                if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+                    platformIntegrationService.createIntegration(integration);
+                } else {
+                    platformIntegrationService.updateIntegration(integration);
+                }
             }
-            target.tell(msg, ActorRef.noSender());
+        } else if (msg.getEntityId().getEntityType() == EntityType.CONVERTER) {
+            ConverterId converterById = new ConverterId(msg.getEntityId().getId());
+            DataConverterService dataConverterService = systemContext.getDataConverterService();
+            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+                dataConverterService.deleteConverter(converterById);
+            } else {
+                Converter converter = systemContext.getConverterService().findConverterById(tenantId, converterById);
+                if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+                    dataConverterService.createConverter(converter);
+                } else {
+                    dataConverterService.updateConverter(converter);
+                }
+            }
+
         } else {
-            log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
+            ActorRef target = getEntityActorRef(msg.getEntityId());
+            if (target != null) {
+                if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
+                    RuleChain ruleChain = systemContext.getRuleChainService().
+                            findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
+                    ruleChainManager.visit(ruleChain, target);
+                }
+                target.tell(msg, ActorRef.noSender());
+            } else {
+                log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
+            }
         }
     }
 

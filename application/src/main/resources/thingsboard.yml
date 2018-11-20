@@ -238,6 +238,9 @@ integrations:
     # Enable/disable integrations statistics
     enabled: "${INTEGRATIONS_STATISTICS_ENABLED:true}"
     persist_frequency: "${INTEGRATIONS_STATISTICS_PERSIST_FREQUENCY:3600000}"
+  reinit:
+    enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
+    frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
 
 # Reports parameters
 reports:

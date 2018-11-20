@@ -62,6 +62,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
             sandbox.setMaxCPUTime(getMaxCpuTime());
             sandbox.allowNoBraces(false);
             sandbox.setMaxPreparedStatements(30);
+            sandbox.allowLoadFunctions(true);
         } else {
             NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
             engine = factory.getScriptEngine(new String[]{"--no-java"});

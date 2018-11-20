@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration;
 
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -47,15 +48,13 @@ import java.util.Optional;
  */
 public interface PlatformIntegrationService extends DiscoveryServiceListener {
 
-    ThingsboardPlatformIntegration createIntegration(Integration integration) throws Exception;
+    ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
 
-    ThingsboardPlatformIntegration updateIntegration(Integration integration) throws Exception;
+    ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration integration);
 
-    void deleteIntegration(IntegrationId integration);
+    ListenableFuture<Void> deleteIntegration(IntegrationId integration);
 
-    Optional<ThingsboardPlatformIntegration> getIntegrationById(IntegrationId id);
-
-    Optional<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
+    ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
 
     void onDownlinkMsg(IntegrationDownlinkMsg msg, FutureCallback<Void> callback);
 
