@@ -235,15 +235,17 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return refreshExecutorService.submit(() -> {
             ThingsboardPlatformIntegration integration = integrationsByIdMap.get(configuration.getId());
             if (integration != null) {
-                try {
-                    integration.update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
-                    integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.UPDATED);
-                    return integration;
-                } catch (Exception e) {
-                    integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
-                    throw e;
+                synchronized (integration) {
+                    try {
+                        integration.update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
+                        actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
+                        integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.UPDATED);
+                        return integration;
+                    } catch (Exception e) {
+                        integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
+                        actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
+                        throw e;
+                    }
                 }
             } else {
                 return getOrCreateThingsboardPlatformIntegration(configuration, false);
