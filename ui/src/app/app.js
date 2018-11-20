@@ -56,6 +56,7 @@ import uiRouter from 'angular-ui-router';
 import angularJwt from 'angular-jwt';
 import 'angular-drag-and-drop-lists';
 import mdDataTable from 'angular-material-data-table';
+import fixedTableHeader from 'angular-fixed-table-header';
 import ngTouch from 'angular-touch';
 import 'tinymce/tinymce.min';
 import 'tinymce/themes/modern/theme.min';
@@ -157,6 +158,7 @@ angular.module('thingsboard', [
     angularJwt,
     'dndLists',
     mdDataTable,
+    fixedTableHeader,
     ngTouch,
     'ui.tinymce',
     'angular-carousel',
