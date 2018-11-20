@@ -35,7 +35,7 @@ import thingsboardApiRole from '../api/role.service';
 
 import RoleRoutes from './role.routes';
 import {RoleController, RoleCardController} from './role.controller';
-import AddUserGroupRoleDialogController from './add-user-group-role-dialog.controller';
+import UserGroupRoleDialogController from './user-group-role-dialog.controller';
 import RoleDirective from './role.directive';
 import UserGroupRoles from './user-group-roles.directive';
 
@@ -48,7 +48,7 @@ export default angular.module('thingsboard.role', [
     .config(RoleRoutes)
     .controller('RoleController', RoleController)
     .controller('RoleCardController', RoleCardController)
-    .controller('AddUserGroupRoleDialogController', AddUserGroupRoleDialogController)
+    .controller('UserGroupRoleDialogController', UserGroupRoleDialogController)
     .directive('tbRole', RoleDirective)
     .directive('tbUserGroupRoles', UserGroupRoles)
     .name;

@@ -34,11 +34,11 @@ import './user-group-roles.scss';
 /* eslint-disable import/no-unresolved, import/default */
 
 import userGroupRolesTemplate from './user-group-roles.tpl.html';
-import addUserGroupRoleDialogTemplate from './edit-user-group-role.tpl.html';
+import userGroupRoleDialogTemplate from './user-group-role-dialog.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import EditUserGroupRoleController from './edit-user-group-role.controller';
+import UserGroupRoleDialogController from './user-group-role-dialog.controller';
 
 /*@ngInject*/
 export default function UserGroupRoles($compile, $templateCache, $rootScope, $q, $mdEditDialog, $mdDialog,
@@ -61,6 +61,9 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
         };
 
         scope.selectedAttributes = [];
+        scope.aaa = [];
+        scope.aaa.push({roleType: "Pepsi", roleName: "Manager", groupType: "Device", groupName: "Class A Devices"});
+
         scope.mode = 'default'; // 'widget'
         scope.subscriptionId = null;
 
@@ -161,34 +164,34 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
             }
         }
 
-        scope.editAttribute = function ($event, attribute) {
+        scope.editAttribute = function ($event) {
             $event.stopPropagation();
-            $mdEditDialog.show({
-                controller: EditUserGroupRoleController,
-                templateUrl: addUserGroupRoleDialogTemplate,
+            $mdDialog.show({
+                controller: UserGroupRoleDialogController,
+                controllerAs: 'vm',
+                templateUrl: userGroupRoleDialogTemplate,
+                parent: angular.element($document[0].body),
                 locals: {
-                    save: function (model) {
-                        var updatedAttribute = angular.copy(attribute);
-                        updatedAttribute.value = model.value;
-                        attributeService.saveEntityAttributes(scope.entityType, scope.entityId, scope.attributeScope.value, [updatedAttribute]).then(
-                            function success() {
-                                scope.getEntityAttributes();
-                            }
-                        );
-                    }
+                    isAdd: false,
+                    entityType: scope.entityType,
+                    entityId: scope.entityId
                 },
+                fullscreen: true,
                 targetEvent: $event
+            }).then(function () {
+                scope.getEntityAttributes();
             });
         }
 
         scope.addAttribute = function ($event) {
             $event.stopPropagation();
             $mdDialog.show({
-                controller: 'AddUserGroupRoleDialogController',
+                controller: 'UserGroupRoleDialogController',
                 controllerAs: 'vm',
-                templateUrl: addUserGroupRoleDialogTemplate,
+                templateUrl: userGroupRoleDialogTemplate,
                 parent: angular.element($document[0].body),
                 locals: {
+                    isAdd: true,
                     entityType: scope.entityType,
                     entityId: scope.entityId
                 },

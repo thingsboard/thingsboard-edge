@@ -29,37 +29,55 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AddUserGroupRoleDialogController($scope, $mdDialog, types, attributeService, entityType, entityId, attributeScope) {
+export default function UserGroupRoleDialogController($scope, $q, $element, $mdDialog, types, isAdd, entityRelationService) {
 
     var vm = this;
 
-    vm.attribute = {};
+    vm.types = types;
+    vm.isAdd = isAdd;
 
-    vm.valueTypes = types.valueType;
+    vm.model = {};
 
-    vm.valueType = types.valueType.string;
+    vm.allowedEntityTypes = [types.entityType.entityView, types.entityType.role];
 
-    vm.add = add;
+    vm.save = save;
     vm.cancel = cancel;
 
     function cancel() {
         $mdDialog.cancel();
     }
 
-    function add() {
-        $scope.theForm.$setPristine();
-        attributeService.saveEntityAttributes(entityType, entityId, attributeScope, [vm.attribute]).then(
-            function success() {
-                $mdDialog.hide();
+    function save() {
+        if (vm.isAdd) {
+            if (vm.direction == vm.types.entitySearchDirection.from) {
+                vm.relation.to = vm.targetEntityId;
+            } else {
+                vm.relation.from = vm.targetEntityId;
             }
-        );
+        }
+        $scope.theForm.$setPristine();
+
+        var valid = true;
+        if (vm.additionalInfo && vm.additionalInfo.length) {
+            try {
+                vm.relation.additionalInfo = angular.fromJson(vm.additionalInfo);
+            } catch(e) {
+                valid = false;
+            }
+        } else {
+            vm.relation.additionalInfo = null;
+        }
+
+        $scope.theForm.$setValidity("additionalInfo", valid);
+
+        if (valid) {
+            entityRelationService.saveRelation(vm.relation).then(
+                function success() {
+                    $mdDialog.hide();
+                }
+            );
+        }
     }
 
-    $scope.$watch('vm.valueType', function() {
-        if (vm.valueType === types.valueType.boolean) {
-            vm.attribute.value = false;
-        } else {
-            vm.attribute.value = null;
-        }
-    });
+
 }

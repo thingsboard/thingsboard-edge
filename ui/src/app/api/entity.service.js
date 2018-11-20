@@ -451,7 +451,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = deferred.promise;
                 break;
             case types.entityType.role:
-                promise = roleService.getTenantRoles(pageLink, false, config, subType);
+                promise = roleService.getTenantRoles(pageLink, config, subType);
                 break;
         }
         return promise;

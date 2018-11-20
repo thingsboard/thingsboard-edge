@@ -138,11 +138,11 @@
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row md-select="attribute" md-select-id="key" md-auto-select ng-repeat="attribute in attributes.data">
-                    <td md-cell>{{attribute.key}}</td>
-                    <td md-cell>{{attribute.key}}</td>
-                    <td md-cell>{{attribute.key}}</td>
-                    <td md-cell>{{attribute.key}}</td>
+                <tr md-row md-select="attribute" md-select-id="key" md-auto-select ng-repeat="attribute in aaa">
+                    <td md-cell>{{attribute.roleType}}</td>
+                    <td md-cell>{{attribute.roleName}}</td>
+                    <td md-cell>{{attribute.groupType}}</td>
+                    <td md-cell>{{attribute.groupName}}</td>
                     <td md-cell class="tb-action-cell">
                         <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}" ng-click="vm.editRelation($event, relation)">
                             <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>

@@ -1752,7 +1752,11 @@
         "details": "Details",
         "copyId": "Copy role Id",
         "idCopiedMessage": "Role Id has been copied to clipboard",
-        "permissions": "Permissions"
+        "permissions": "Permissions",
+        "add-group-role": "Add group role",
+        "edit-group-role": "Edit group role",
+        "entity-group": "Entity group",
+        "role-required": "Role required"
     },
     "user-group": {
         "role-type": "Role type",
