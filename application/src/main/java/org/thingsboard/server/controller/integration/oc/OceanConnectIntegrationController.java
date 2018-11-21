@@ -32,11 +32,13 @@ package org.thingsboard.server.controller.integration.oc;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.integration.BaseIntegrationController;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
@@ -62,19 +64,22 @@ public class OceanConnectIntegrationController extends BaseIntegrationController
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        Optional<ThingsboardPlatformIntegration> integration = integrationService.getIntegrationByRoutingKey(routingKey);
+        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = integrationService.getIntegrationByRoutingKey(routingKey);
 
-        if (!integration.isPresent()) {
-            result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-            return result;
-        }
-
-        if (integration.get().getConfiguration().getType() != IntegrationType.OCEANCONNECT) {
-            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-            return result;
-        }
-
-        process(integration.get(), new HttpIntegrationMsg(requestHeaders, msg, result));
+        DonAsynchron.withCallback(integrationFuture, integration -> {
+            if (integration == null) {
+                result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                return;
+            }
+            if (integration.getConfiguration().getType() != IntegrationType.OCEANCONNECT) {
+                result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+                return;
+            }
+            process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+        }, failure -> {
+            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
+            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        }, callbackExecutorService);
 
         return result;
     }

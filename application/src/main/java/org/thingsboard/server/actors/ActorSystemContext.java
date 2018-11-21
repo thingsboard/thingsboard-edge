@@ -81,6 +81,7 @@ import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.ClusterRpcCallbackExecutorService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -269,6 +270,9 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter private PlatformIntegrationService platformIntegrationService;
+
+    @Autowired
+    @Getter private DataConverterService dataConverterService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter

@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
@@ -52,10 +53,6 @@ import org.thingsboard.server.service.integration.PlatformIntegrationService;
 public class IntegrationController extends BaseController {
 
     private static final String INTEGRATION_ID = "integrationId";
-
-    @Autowired
-    private PlatformIntegrationService platformIntegrationService;
-
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
@@ -89,32 +86,11 @@ public class IntegrationController extends BaseController {
     public Integration saveIntegration(@RequestBody Integration integration) throws ThingsboardException {
         try {
             integration.setTenantId(getCurrentUser().getTenantId());
-            boolean create = integration.getId() == null;
-            Integration old = null;
-            if (!create) {
-                old = checkNotNull(integrationService.findIntegrationById(getTenantId(), integration.getId()));
-            }
+            boolean created = integration.getId() == null;
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            try {
-                if (create) {
-                    platformIntegrationService.createIntegration(result);
-                } else {
-                    platformIntegrationService.updateIntegration(result);
-                }
-            } catch (Exception e) {
-                if (create) {
-                    integrationService.deleteIntegration(getTenantId(), result.getId()); e.printStackTrace();
-                } else {
-                    integrationService.saveIntegration(old);
-                    platformIntegrationService.updateIntegration(old);
-                }
-                throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-
-            logEntityAction(result.getId(), result,
-                    null,
-                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
+            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
             return result;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.INTEGRATION), integration,
@@ -150,7 +126,8 @@ public class IntegrationController extends BaseController {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             Integration integration = checkIntegrationId(integrationId);
             integrationService.deleteIntegration(getTenantId(), integrationId);
-            platformIntegrationService.deleteIntegration(integrationId);
+
+            actorService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(integrationId, integration,
                     null,

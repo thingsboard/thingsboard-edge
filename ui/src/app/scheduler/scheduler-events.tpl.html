@@ -116,12 +116,12 @@
         <div layout="column" flex ng-show="vm.mode === 'list'">
             <md-table-container flex>
                 <table md-table md-row-select multiple="" ng-model="vm.selectedSchedulerEvents" md-progress="vm.schedulerEventsDeferred.promise">
-                    <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
+                    <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                     <tr md-row>
                         <th ng-if="vm.displayCreatedTime" md-column md-order-by="createdTime"><span translate>scheduler.created-time</span></th>
                         <th md-column md-order-by="name"><span translate>scheduler.name</span></th>
                         <th ng-if="vm.displayType" md-column md-order-by="typeName"><span translate>scheduler.type</span></th>
-                        <th ng-if="vm.displayCustomer" md-column md-order-by="assignedCustomer.title"><span translate>scheduler.assigned_customer</span></th>
+                        <th ng-if="vm.displayCustomer" md-column md-order-by="assignedCustomer.title"><span translate>scheduler.created_customer</span></th>
                         <th md-column><span>&nbsp</span></th>
                     </tr>
                     </thead>
