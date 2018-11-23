@@ -55,7 +55,11 @@ if (process.env.NODE_ENV !== 'production' || process.env.DOCKER_MODE === 'true')
 }
 
 const tbFormat = printf(info => {
-    return `${info.timestamp} [${info.label}] ${info.level.toUpperCase()}: ${info.message}`;
+    var logMessage = `${info.timestamp} [${info.label}] ${info.level.toUpperCase()}: ${info.message}`;
+    if (info.stack) {
+        logMessage += ':\n' + info.stack;
+    }
+    return logMessage;
 });
 
 function _logger(moduleLabel) {
