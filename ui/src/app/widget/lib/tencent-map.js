@@ -239,7 +239,7 @@ export default class TbTencentMap {
     /* eslint-enable no-undef */
 
     /* eslint-disable no-undef */
-    createMarker(location, settings, onClickListener, markerArgs) {
+    createMarker(location, dsIndex, settings, onClickListener, markerArgs) {
         var marker = new qq.maps.Marker({
             position: location
         });
@@ -262,7 +262,7 @@ export default class TbTencentMap {
         });
 
         if (settings.displayTooltip) {
-            this.createTooltip(marker, settings.tooltipPattern, settings.tooltipReplaceInfo, settings.autocloseTooltip, markerArgs);
+            this.createTooltip(marker, dsIndex, settings, markerArgs);
         }
 
         if (onClickListener) {
@@ -283,13 +283,13 @@ export default class TbTencentMap {
     /* eslint-enable no-undef */
 
     /* eslint-disable no-undef */
-    createTooltip(marker, pattern, replaceInfo, autoClose, markerArgs) {
+    createTooltip(marker, dsIndex, settings, markerArgs) {
         var popup = new qq.maps.InfoWindow({
             map :this.map
         });
         var map = this;
         qq.maps.event.addListener(marker, 'click', function() {
-            if (autoClose) {
+            if (settings.autocloseTooltip) {
                 map.tooltips.forEach((tooltip) => {
                     tooltip.popup.close();
                 });
@@ -300,8 +300,8 @@ export default class TbTencentMap {
         this.tooltips.push( {
             markerArgs: markerArgs,
             popup: popup,
-            pattern: pattern,
-            replaceInfo: replaceInfo
+            locationSettings: settings,
+            dsIndex: dsIndex
         });
     }
     /* eslint-enable no-undef */
