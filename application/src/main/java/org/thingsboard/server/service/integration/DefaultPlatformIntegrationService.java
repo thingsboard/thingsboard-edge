@@ -190,8 +190,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @PostConstruct
     public void init() {
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
-        refreshExecutorService = MoreExecutors.listeningDecorator(
-                new ThreadPoolExecutor(0, 4, 1000L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()));
+        refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
             reinitExecutorService.scheduleAtFixedRate(this::reinitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
@@ -221,7 +220,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration, boolean forceReinit) {
         if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
-            return Futures.immediateFailedFuture(new ThingsboardException(ThingsboardErrorCode.INVALID_ARGUMENTS));
+            return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
         }
         return refreshExecutorService.submit(() -> getOrCreateThingsboardPlatformIntegration(configuration, forceReinit));
     }
@@ -230,7 +229,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Override
     public ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration configuration) {
         if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
-            return Futures.immediateFailedFuture(new ThingsboardException(ThingsboardErrorCode.INVALID_ARGUMENTS));
+            return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
         }
         return refreshExecutorService.submit(() -> {
             ThingsboardPlatformIntegration integration = integrationsByIdMap.get(configuration.getId());
@@ -280,11 +279,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             Optional<Integration> configuration = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, key);
             if (configuration.isPresent()) {
                 if (configuration.get().getType().isSingleton() && clusterRoutingService.resolveById(configuration.get().getId()).isPresent()) {
-                    return Futures.immediateFailedFuture(new ThingsboardException(ThingsboardErrorCode.INVALID_ARGUMENTS));
+                    return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
                 }
-                return Futures.immediateFailedFuture(new ThingsboardException(ThingsboardErrorCode.GENERAL));
+                return Futures.immediateFailedFuture(new ThingsboardException("Integration is not present in routing key map!", ThingsboardErrorCode.GENERAL));
             } else {
-                return Futures.immediateFailedFuture(new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND));
+                return Futures.immediateFailedFuture(new ThingsboardException("Failed to find integration by routing key!", ThingsboardErrorCode.ITEM_NOT_FOUND));
             }
         } else {
             return Futures.immediateFuture(result);

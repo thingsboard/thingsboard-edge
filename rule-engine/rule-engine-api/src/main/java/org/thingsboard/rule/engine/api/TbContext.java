@@ -40,6 +40,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -88,6 +89,8 @@ public interface TbContext {
     AssetService getAssetService();
 
     DeviceService getDeviceService();
+
+    DashboardService getDashboardService();
 
     AlarmService getAlarmService();
 
