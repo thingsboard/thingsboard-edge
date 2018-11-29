@@ -93,7 +93,7 @@
         </md-toolbar>
         <md-table-container flex>
             <table md-table md-row-select="vm.settings.enableSelection" multiple="" ng-model="vm.selectedEntities">
-                <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
+                <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
                     <th md-column ng-if="!column.mobileHide || vm.isGtMd" md-order-by="{{ column.key }}" ng-repeat="column in vm.columns"><span>{{ vm.getColumnTitle(column) }}</span></th>
                     <th md-column ng-if="vm.actionCellDescriptors.length"><span>&nbsp</span></th>

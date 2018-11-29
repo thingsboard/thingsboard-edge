@@ -34,7 +34,7 @@ export default angular.module('thingsboard.api.customTranslation', [])
     .name;
 
 /*@ngInject*/
-function CustomTranslationService($rootScope, $q, $http, $translateProvider, $translate, userService, importExport) {
+function CustomTranslationService($rootScope, $q, $http, $translateProvider, $translate, userService) {
 
     var service = {
         updateCustomTranslations: updateCustomTranslations,
@@ -155,7 +155,7 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider, $tr
                 }
                 var data = angular.toJson(localeJson, 2);
                 var fileName = 'locale-'+langKey;
-                importExport.exportToPc(data, fileName);
+                downloadJson(data, fileName);
                 deferred.resolve();
             }, function fail() {
                 deferred.reject();
@@ -166,4 +166,27 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider, $tr
         });
         return deferred.promise;
     }
+
+    /* eslint-disable no-undef, angular/window-service, angular/document-service */
+    function downloadJson(data, filename) {
+        if (!filename) {
+            filename = 'download';
+        }
+        filename += '.' + 'json';
+        var blob = new Blob([data], {type: 'text/json'});
+        // FOR IE:
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            var e = document.createEvent('MouseEvents'),
+                a = document.createElement('a');
+            a.download = filename;
+            a.href = window.URL.createObjectURL(blob);
+            a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
+            e.initEvent('click', true, false, window,
+                0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            a.dispatchEvent(e);
+        }
+    }
+    /* eslint-enable no-undef, angular/window-service, angular/document-service */
 }

@@ -45,6 +45,8 @@ public class WhiteLabelingParams {
     protected Favicon favicon;
     protected String faviconChecksum;
     protected PaletteSettings paletteSettings;
+    protected String helpLinkBaseUrl;
+    protected Boolean enableHelpLinks;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
@@ -65,6 +67,12 @@ public class WhiteLabelingParams {
             this.paletteSettings = otherWlParams.paletteSettings;
         } else if (otherWlParams.paletteSettings != null) {
             this.paletteSettings.merge(otherWlParams.paletteSettings);
+        }
+        if (otherWlParams.helpLinkBaseUrl != null) {
+            this.helpLinkBaseUrl = otherWlParams.helpLinkBaseUrl;
+        }
+        if (otherWlParams.enableHelpLinks != null) {
+            this.enableHelpLinks = otherWlParams.enableHelpLinks;
         }
         return this;
     }

@@ -1463,7 +1463,6 @@
         "type-ttn": "TheThingsNetwork",
         "type-azure-event-hub": "Azure Event Hub",
         "type-opc-ua": "OPC-UA",
-        "type-ffb": "FFB",
         "opc-ua-application-name": "Application name",
         "opc-ua-application-uri": "Application uri",
         "opc-ua-scan-period-in-seconds": "Scan period in seconds",
@@ -1723,7 +1722,7 @@
         "created-time": "Created time",
         "name": "Name",
         "type": "Type",
-        "assigned_customer": "Assigned customer",
+        "created_customer": "Created by Customer",
         "edit-scheduler-event": "Edit scheduler event",
         "delete-scheduler-event": "Delete scheduler event",
         "no-scheduler-events": "No scheduler events found",
@@ -1841,7 +1840,7 @@
         "created-time": "Created time",
         "name": "Name",
         "type": "Type",
-        "assigned_customer": "Assigned customer",
+        "created_customer": "Created by Customer",
         "download-blob-entity": "Download file",
         "delete-blob-entity": "Delete file",
         "delete-blob-entity-title": "Are you sure you want to delete file '{{blobEntityName}}'?",
@@ -2150,7 +2149,9 @@
         "hue3": "HUE 3",
         "page-background-color": "Page background color",
         "dark-foreground": "Dark foreground",
-        "domain-name": "Domain name"
+        "domain-name": "Domain name",
+        "help-link-base-url": "Help links base url",
+        "enable-help-links": "Enable help links"
     },
     "icon": {
         "icon": "Icon",

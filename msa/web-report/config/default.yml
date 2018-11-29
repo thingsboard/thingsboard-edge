@@ -35,6 +35,12 @@ server:
   # Server bind port
   port: "8383"
 
+browser:
+  # Default page navigation timeout (ms)
+  defaultPageNavigationTimeout: "30000"
+  # Dashboard load wait time (ms)
+  dashboardLoadWaitTime: "0"
+
 logger:
   level: "info"
   path: "logs"

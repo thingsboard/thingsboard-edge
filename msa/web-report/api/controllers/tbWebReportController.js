@@ -30,7 +30,11 @@
  */
 'use strict';
 
+var config = require('config');
 var logger = require('../../config/logger')('ReportController');
+
+const defaultPageNavigationTimeout = config.get('browser.defaultPageNavigationTimeout');
+const dashboardLoadWaitTime = config.get('browser.dashboardLoadWaitTime');
 
 exports.genDashboardReport = function(req, res, browser) {
     var body = req.body;
@@ -106,8 +110,11 @@ exports.genDashboardReport = function(req, res, browser) {
     }
 };
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 async function generateDashboardReport(browser, url, type, timewindow, tzOffset, token, expiration) {
     var page = await browser.newPage();
+    page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
     //page.on('console', msg => logger.info('PAGE LOG: %s', msg.text()));
     try {
         await page.setViewport({
@@ -144,6 +151,7 @@ async function generateDashboardReport(browser, url, type, timewindow, tzOffset,
         await page.evaluate(toEval);
 
         await page.reload({waitUntil: 'networkidle2'});
+        await sleep(dashboardLoadWaitTime);
 
         toEval = "var height = 0;\n" +
             "     var gridsterChild = document.getElementById('gridster-child');\n" +
