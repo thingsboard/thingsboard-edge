@@ -67,7 +67,9 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             accentPalette: {
                 type: 'tb-accent'
             }
-        }
+        },
+        helpLinkBaseUrl: "https://thingsboard.io",
+        enableHelpLinks: true
     };
 
     const defaultLoginWlParams = angular.copy(defaultWLParams);
@@ -95,6 +97,8 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         faviconType: faviconType,
         getPrimaryPalette: getPrimaryPalette,
         getAccentPalette: getAccentPalette,
+        getHelpLinkBaseUrl: getHelpLinkBaseUrl,
+        isEnableHelpLinks: isEnableHelpLinks,
         whiteLabelPreview: whiteLabelPreview,
         cancelWhiteLabelPreview: cancelWhiteLabelPreview,
         getCurrentWhiteLabelParams: getCurrentWhiteLabelParams,
@@ -137,6 +141,14 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
 
     function getAccentPalette() {
         return themeProvider._PALETTES[accentPaletteName];
+    }
+
+    function getHelpLinkBaseUrl() {
+        return getCurrentWlParams() ? getCurrentWlParams().helpLinkBaseUrl : '';
+    }
+
+    function isEnableHelpLinks() {
+        return getCurrentWlParams() ? getCurrentWlParams().enableHelpLinks : true;
     }
 
     function loadLoginWhiteLabelingParams() {
@@ -275,6 +287,12 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
             if (!wlParams.paletteSettings.accentPalette || !wlParams.paletteSettings.accentPalette.type) {
                 wlParams.paletteSettings.accentPalette = targetDefaultWlParams.paletteSettings.accentPalette;
             }
+        }
+        if (!wlParams.helpLinkBaseUrl && targetDefaultWlParams.helpLinkBaseUrl) {
+            wlParams.helpLinkBaseUrl = targetDefaultWlParams.helpLinkBaseUrl;
+        }
+        if (angular.isUndefined(wlParams.enableHelpLinks) && angular.isDefined(targetDefaultWlParams.enableHelpLinks)) {
+            wlParams.enableHelpLinks = targetDefaultWlParams.enableHelpLinks;
         }
         return wlParams;
     }

@@ -111,7 +111,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         if (whiteLabelParamsSettings != null) {
             json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
         }
-        return constructWlParams(json);
+        return constructWlParams(json, true);
     }
 
     @Override
@@ -316,11 +316,20 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
     }
 
-    private WhiteLabelingParams constructWlParams(String json) {
+    private WhiteLabelingParams constructWlParams(String json, boolean isSystem) {
         WhiteLabelingParams result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
                 result = objectMapper.readValue(json, WhiteLabelingParams.class);
+                if (isSystem) {
+                    JsonNode jsonNode = objectMapper.readTree(json);
+                    if (!jsonNode.has("helpLinkBaseUrl")) {
+                        result.setHelpLinkBaseUrl("https://thingsboard.io");
+                    }
+                    if (!jsonNode.has("enableHelpLinks")) {
+                        result.setEnableHelpLinks(true);
+                    }
+                }
             } catch (IOException e) {
                 log.error("Unable to read White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read White Labeling Params from JSON!");
@@ -328,6 +337,10 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
         if (result == null) {
             result = new WhiteLabelingParams();
+            if (isSystem) {
+                result.setHelpLinkBaseUrl("https://thingsboard.io");
+                result.setEnableHelpLinks(true);
+            }
         }
         return result;
     }
@@ -339,7 +352,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         } else {
             json = "";
         }
-        return constructWlParams(json);
+        return constructWlParams(json, false);
     }
 
     private LoginWhiteLabelingParams constructLoginWlParams(String json) {
