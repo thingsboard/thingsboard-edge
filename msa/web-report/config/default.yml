@@ -37,9 +37,9 @@ server:
 
 browser:
   # Default page navigation timeout (ms)
-  defaultPageNavigationTimeout: "30000"
+  defaultPageNavigationTimeout: "120000"
   # Dashboard load wait time (ms)
-  dashboardLoadWaitTime: "0"
+  dashboardLoadWaitTime: "3000"
 
 logger:
   level: "info"
