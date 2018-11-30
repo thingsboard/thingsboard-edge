@@ -56,7 +56,8 @@ var browser;
         var browserOptions = {
             headless: true,
             ignoreHTTPSErrors: true,
-            args: ['--no-sandbox']
+            args: ['--no-sandbox'],
+            timeout: Number(config.get('browser.launchTimeout'))
         };
         if (typeof process.env.CHROME_EXECUTABLE === 'string') {
             logger.info('Chrome headless browser executable: %s', process.env.CHROME_EXECUTABLE);

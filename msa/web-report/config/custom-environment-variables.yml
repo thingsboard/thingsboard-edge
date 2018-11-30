@@ -35,6 +35,8 @@ server:
   # Server bind port
   port: "HTTP_BIND_PORT"
 browser:
+  # Browser launch timeout (ms)
+  launchTimeout: "BROWSER_LAUNCH_TIMEOUT"
   # Default page navigation timeout (ms)
   defaultPageNavigationTimeout: "DEFAULT_PAGE_NAVIGATION_TIMEOUT"
   # Dashboard load wait time (ms)
