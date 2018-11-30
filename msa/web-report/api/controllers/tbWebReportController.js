@@ -33,16 +33,17 @@
 var config = require('config');
 var logger = require('../../config/logger')('ReportController');
 
-const defaultPageNavigationTimeout = config.get('browser.defaultPageNavigationTimeout');
-const dashboardLoadWaitTime = config.get('browser.dashboardLoadWaitTime');
+const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
+const dashboardLoadWaitTime = Number(config.get('browser.dashboardLoadWaitTime'));
 
 exports.genDashboardReport = function(req, res, browser) {
     var body = req.body;
     if (body.baseUrl && body.dashboardId) {
-        var url = body.baseUrl;
-        if (!url.endsWith("/")) {
-            url += "/";
+        var baseUrl = body.baseUrl;
+        if (!baseUrl.endsWith("/")) {
+            baseUrl += "/";
         }
+        var url = baseUrl;
         url += "dashboard/"+body.dashboardId;
         var token = body.token;
         var expiration = body.expiration;
@@ -91,7 +92,7 @@ exports.genDashboardReport = function(req, res, browser) {
             return;
         }
         logger.info('Generating dashboard report: %s', url);
-        generateDashboardReport(browser, url, type, timewindow, tzOffset, token, expiration).then(
+        generateDashboardReport(browser, baseUrl, url, type, timewindow, tzOffset, token, expiration).then(
             (reportBuffer) => {
                 res.attachment(name + ext);
                 res.contentType(contentType);
@@ -100,7 +101,7 @@ exports.genDashboardReport = function(req, res, browser) {
             },
             (e) => {
                 logger.error(e);
-                res.statusMessage = 'Failed to load dashboard page.';
+                res.statusMessage = 'Failed to load dashboard page: ' + e;
                 res.status(500).end();
             }
         );
@@ -110,9 +111,7 @@ exports.genDashboardReport = function(req, res, browser) {
     }
 };
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-async function generateDashboardReport(browser, url, type, timewindow, tzOffset, token, expiration) {
+async function generateDashboardReport(browser, baseUrl, url, type, timewindow, tzOffset, token, expiration) {
     var page = await browser.newPage();
     page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
     //page.on('console', msg => logger.info('PAGE LOG: %s', msg.text()));
@@ -127,7 +126,10 @@ async function generateDashboardReport(browser, url, type, timewindow, tzOffset,
 
         await page.emulateMedia('screen');
 
-        await page.goto(url);
+        const homeLoadResponse = await page.goto(baseUrl+'home', {waitUntil: 'networkidle2'});
+        if (homeLoadResponse._status >= 400) {
+            throw new Error("Home page load returned error status: " + homeLoadResponse._status);
+        }
 
         var toEval =
             `var prefix = 'tbReportStore.';\n` +
@@ -150,8 +152,12 @@ async function generateDashboardReport(browser, url, type, timewindow, tzOffset,
 
         await page.evaluate(toEval);
 
-        await page.reload({waitUntil: 'networkidle2'});
-        await sleep(dashboardLoadWaitTime);
+        const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
+        if (dashboardLoadResponse._status < 400) {
+            await page.waitFor(dashboardLoadWaitTime);
+        } else {
+            throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse._status);
+        }
 
         toEval = "var height = 0;\n" +
             "     var gridsterChild = document.getElementById('gridster-child');\n" +
