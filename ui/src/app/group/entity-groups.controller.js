@@ -164,7 +164,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function fetchEntityGroups(pageLink) {
         var deferred = $q.defer();
-        entityGroupService.getTenantEntityGroups(groupType).then(
+        entityGroupService.getEntityGroups(groupType).then(
             function success(entityGroups) {
                 utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
             },

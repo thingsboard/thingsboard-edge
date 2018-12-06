@@ -54,7 +54,7 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
         scope.fetchEntityGroups = function(searchText) {
             var deferred = $q.defer();
             if (!scope.allEntityGroups) {
-                entityGroupService.getTenantEntityGroups(scope.groupType, false, {ignoreLoading: true}).then(
+                entityGroupService.getEntityGroups(scope.groupType, false, {ignoreLoading: true}).then(
                     function success(entityGroups) {
                         if (scope.excludeGroupAll) {
                             scope.allEntityGroups = $filter('filter')(entityGroups, {groupAll: false});

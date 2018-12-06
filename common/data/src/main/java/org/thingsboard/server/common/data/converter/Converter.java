@@ -33,12 +33,13 @@ package org.thingsboard.server.common.data.converter;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Converter extends SearchTextBased<ConverterId> implements HasName {
+public class Converter extends SearchTextBased<ConverterId> implements HasName, HasTenantId {
 
     private static final long serialVersionUID = -1541581333235769915L;
 

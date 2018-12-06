@@ -47,6 +47,8 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 @RestController
 @RequestMapping("/api")
@@ -61,7 +63,7 @@ public class IntegrationController extends BaseController {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            return checkIntegrationId(integrationId);
+            return checkIntegrationId(integrationId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -74,7 +76,9 @@ public class IntegrationController extends BaseController {
             @PathVariable("routingKey") String routingKey) throws ThingsboardException {
         try {
             Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
-            return checkIntegration(integration);
+            checkNotNull(integration);
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
+            return integration;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -87,6 +91,12 @@ public class IntegrationController extends BaseController {
         try {
             integration.setTenantId(getCurrentUser().getTenantId());
             boolean created = integration.getId() == null;
+
+            Operation operation = created ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation,
+                    integration.getId(), integration);
+
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
             actorService.onEntityStateChange(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -124,7 +134,7 @@ public class IntegrationController extends BaseController {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            Integration integration = checkIntegrationId(integrationId);
+            Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
             actorService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);

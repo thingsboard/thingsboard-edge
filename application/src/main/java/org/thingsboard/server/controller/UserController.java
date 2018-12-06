@@ -64,6 +64,8 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -96,12 +98,7 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
-            SecurityUser authUser = getCurrentUser();
-            if (authUser.getAuthority() == Authority.CUSTOMER_USER && !authUser.getId().equals(userId)) {
-                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                        ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-            return checkUserId(userId);
+            return checkUserId(userId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -120,14 +117,13 @@ public class UserController extends BaseController {
     public JsonNode getUserToken(@PathVariable(USER_ID) String strUserId) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
         try {
-            UserId userId = new UserId(toUUID(strUserId));
-            SecurityUser authUser = getCurrentUser();
-            User user = userService.findUserById(authUser.getTenantId(), userId);
-            if (!userTokenAccessEnabled || (authUser.getAuthority() == Authority.SYS_ADMIN && user.getAuthority() != Authority.TENANT_ADMIN)
-                    || (authUser.getAuthority() == Authority.TENANT_ADMIN && !authUser.getTenantId().equals(user.getTenantId()))) {
+            if (!userTokenAccessEnabled) {
                 throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
                         ThingsboardErrorCode.PERMISSION_DENIED);
             }
+            UserId userId = new UserId(toUUID(strUserId));
+            SecurityUser authUser = getCurrentUser();
+            User user = checkUserId(userId, Operation.READ);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal);
@@ -150,17 +146,20 @@ public class UserController extends BaseController {
                          @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             HttpServletRequest request) throws ThingsboardException {
         try {
-            SecurityUser authUser = getCurrentUser();
-            if (authUser.getAuthority() == Authority.CUSTOMER_USER && !authUser.getId().equals(user.getId())) {
-                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                        ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-            boolean sendEmail = user.getId() == null && sendActivationMail;
+
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
                 user.setTenantId(getCurrentUser().getTenantId());
             }
+
+            Operation operation = user.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
+                    user.getId(), user);
+
+            boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
             if (sendEmail) {
+                SecurityUser authUser = getCurrentUser();
                 UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
                 String baseUrl = constructBaseUrl(request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
@@ -196,6 +195,10 @@ public class UserController extends BaseController {
             HttpServletRequest request) throws ThingsboardException {
         try {
             User user = checkNotNull(userService.findUserByEmail(getCurrentUser().getTenantId(), email));
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ,
+                    user.getId(), user);
+
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(getCurrentUser().getTenantId(), user.getId());
             if (!userCredentials.isEnabled()) {
                 String baseUrl = constructBaseUrl(request);
@@ -219,13 +222,9 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
+            User user = checkUserId(userId, Operation.READ);
             SecurityUser authUser = getCurrentUser();
-            if (authUser.getAuthority() == Authority.CUSTOMER_USER && !authUser.getId().equals(userId)) {
-                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                        ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-            User user = checkUserId(userId);
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(getCurrentUser().getTenantId(), user.getId());
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), user.getId());
             if (!userCredentials.isEnabled()) {
                 String baseUrl = constructBaseUrl(request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
@@ -246,7 +245,7 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
-            User user = checkUserId(userId);
+            User user = checkUserId(userId, Operation.DELETE);
             userService.deleteUser(getCurrentUser().getTenantId(), userId);
 
             logEntityAction(userId, user,
@@ -293,7 +292,7 @@ public class UserController extends BaseController {
         checkParameter("customerId", strCustomerId);
         try {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId);
+            checkCustomerId(customerId, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findCustomerUsers(tenantId, customerId, pageLink));

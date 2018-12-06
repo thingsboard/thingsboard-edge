@@ -304,11 +304,11 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupIdAndCustomerId(TenantId tenantId, EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new AssetViewFunction(tenantId, customerId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new AssetViewFunction(tenantId));
     }
 
     class AssetViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {

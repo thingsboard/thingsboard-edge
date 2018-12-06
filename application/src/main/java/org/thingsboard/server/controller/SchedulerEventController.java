@@ -59,6 +59,8 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +79,7 @@ public class SchedulerEventController extends BaseController {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            return checkSchedulerEventInfoId(schedulerEventId);
+            return checkSchedulerEventInfoId(schedulerEventId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -90,7 +92,7 @@ public class SchedulerEventController extends BaseController {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            return checkSchedulerEventId(schedulerEventId);
+            return checkSchedulerEventId(schedulerEventId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -105,6 +107,12 @@ public class SchedulerEventController extends BaseController {
             if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                 schedulerEvent.setCustomerId(getCurrentUser().getCustomerId());
             }
+
+            Operation operation = schedulerEvent.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation,
+                    schedulerEvent.getId(), schedulerEvent);
+
             SchedulerEvent savedSchedulerEvent = checkNotNull(schedulerEventService.saveSchedulerEvent(schedulerEvent));
 
             logEntityAction(savedSchedulerEvent.getId(), savedSchedulerEvent,
@@ -133,7 +141,7 @@ public class SchedulerEventController extends BaseController {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId);
+            SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.DELETE);
             schedulerEventService.deleteSchedulerEvent(getTenantId(), schedulerEventId);
 
             logEntityAction(schedulerEventId, schedulerEvent,

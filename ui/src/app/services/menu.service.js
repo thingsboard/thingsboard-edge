@@ -667,7 +667,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
 
     function loadGroups(section, groupType, groupState, icon) {
         var deferred = $q.defer();
-        entityGroupService.getTenantEntityGroups(groupType).then(
+        entityGroupService.getEntityGroups(groupType).then(
             function success(entityGroups) {
                 var pages = [];
                 entityGroups.forEach(function(entityGroup) {

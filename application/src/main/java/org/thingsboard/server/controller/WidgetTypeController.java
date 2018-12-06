@@ -46,6 +46,8 @@ import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.List;
 
@@ -60,7 +62,7 @@ public class WidgetTypeController extends BaseController {
         checkParameter("widgetTypeId", strWidgetTypeId);
         try {
             WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));
-            return checkWidgetTypeId(widgetTypeId, false);
+            return checkWidgetTypeId(widgetTypeId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -72,10 +74,16 @@ public class WidgetTypeController extends BaseController {
     public WidgetType saveWidgetType(@RequestBody WidgetType widgetType) throws ThingsboardException {
         try {
             if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                widgetType.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+                widgetType.setTenantId(TenantId.SYS_TENANT_ID);
             } else {
                 widgetType.setTenantId(getCurrentUser().getTenantId());
             }
+
+            Operation operation = widgetType.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, operation,
+                    widgetType.getId(), widgetType);
+
             return checkNotNull(widgetTypeService.saveWidgetType(widgetType));
         } catch (Exception e) {
             throw handleException(e);
@@ -89,7 +97,7 @@ public class WidgetTypeController extends BaseController {
         checkParameter("widgetTypeId", strWidgetTypeId);
         try {
             WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));
-            checkWidgetTypeId(widgetTypeId, true);
+            checkWidgetTypeId(widgetTypeId, Operation.DELETE);
             widgetTypeService.deleteWidgetType(getCurrentUser().getTenantId(), widgetTypeId);
         } catch (Exception e) {
             throw handleException(e);
@@ -105,7 +113,7 @@ public class WidgetTypeController extends BaseController {
         try {
             TenantId tenantId;
             if (isSystem) {
-                tenantId = new TenantId(ModelConstants.NULL_UUID);
+                tenantId = TenantId.SYS_TENANT_ID;
             } else {
                 tenantId = getCurrentUser().getTenantId();
             }
@@ -130,7 +138,8 @@ public class WidgetTypeController extends BaseController {
                 tenantId = getCurrentUser().getTenantId();
             }
             WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdBundleAliasAndAlias(tenantId, bundleAlias, alias);
-            checkWidgetType(widgetType, false);
+            checkNotNull(widgetType);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType);
             return widgetType;
         } catch (Exception e) {
             throw handleException(e);

@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.security.permission.Operation;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -73,7 +74,7 @@ public class ReportController extends BaseController {
         checkParameter(DASHBOARD_ID, strDashboardId);
         try {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            DashboardInfo dashboardInfo = checkDashboardInfoId(dashboardId);
+            DashboardInfo dashboardInfo = checkDashboardInfoId(dashboardId, Operation.READ);
             String baseUrl = constructBaseUrl(request);
 
             String name = dashboardInfo.getTitle();
@@ -116,7 +117,7 @@ public class ReportController extends BaseController {
             checkParameter(DASHBOARD_ID, strDashboardId);
 
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            checkDashboardInfoId(dashboardId);
+            checkDashboardInfoId(dashboardId, Operation.READ);
 
             reportService.
                     generateReport(

@@ -85,6 +85,6 @@ public interface DeviceService {
 
     ShortEntityView findGroupDevice(TenantId tenantId,EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupIdAndCustomerId(TenantId tenantId, EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

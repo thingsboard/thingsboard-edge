@@ -88,6 +88,10 @@ public class EntityIdFactory {
                 return new BlobEntityId(uuid);
             case ENTITY_VIEW:
                 return new EntityViewId(uuid);
+            case WIDGETS_BUNDLE:
+                return new WidgetsBundleId(uuid);
+            case WIDGET_TYPE:
+                return new WidgetTypeId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }

@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.security.permission.Operation;
 
 @RestController
 @RequestMapping("/api")
@@ -63,7 +64,7 @@ public class BlobEntityController extends BaseController {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         try {
             BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
-            return checkBlobEntityInfoId(blobEntityId);
+            return checkBlobEntityInfoId(blobEntityId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -76,7 +77,7 @@ public class BlobEntityController extends BaseController {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         try {
             BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
-            BlobEntity blobEntity = checkBlobEntityId(blobEntityId);
+            BlobEntity blobEntity = checkBlobEntityId(blobEntityId, Operation.READ);
             ByteArrayResource resource = new ByteArrayResource(blobEntity.getData().array());
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + blobEntity.getName())
@@ -105,7 +106,7 @@ public class BlobEntityController extends BaseController {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         try {
             BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
-            BlobEntityInfo blobEntityInfo = checkBlobEntityInfoId(blobEntityId);
+            BlobEntityInfo blobEntityInfo = checkBlobEntityInfoId(blobEntityId, Operation.DELETE);
             blobEntityService.deleteBlobEntity(getTenantId(), blobEntityId);
 
             logEntityAction(blobEntityId, blobEntityInfo,

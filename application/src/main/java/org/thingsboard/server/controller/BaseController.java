@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -102,6 +103,9 @@ import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.permission.AccessControlService;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -126,6 +130,9 @@ public abstract class BaseController {
 
     @Autowired
     private ThingsboardErrorResponseHandler errorResponseHandler;
+
+    @Autowired
+    protected AccessControlService accessControlService;
 
     @Autowired
     protected TenantService tenantService;
@@ -320,32 +327,23 @@ public abstract class BaseController {
         }
     }
 
-    void checkTenantId(TenantId tenantId) throws ThingsboardException {
+    void checkTenantId(TenantId tenantId, Operation operation) throws ThingsboardException {
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        SecurityUser authUser = getCurrentUser();
-        if (authUser.getAuthority() != Authority.SYS_ADMIN &&
-                (authUser.getTenantId() == null || !authUser.getTenantId().equals(tenantId))) {
-            throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                    ThingsboardErrorCode.PERMISSION_DENIED);
-        }
+        accessControlService.checkPermission(getCurrentUser(), tenantId, Resource.TENANT, operation, tenantId);
     }
 
     protected TenantId getTenantId() throws ThingsboardException {
         return getCurrentUser().getTenantId();
     }
 
-    Customer checkCustomerId(CustomerId customerId) throws ThingsboardException {
+    Customer checkCustomerId(CustomerId customerId, Operation operation) throws ThingsboardException {
         try {
-            SecurityUser authUser = getCurrentUser();
-            if (authUser.getAuthority() == Authority.SYS_ADMIN ||
-                    (authUser.getAuthority() != Authority.TENANT_ADMIN &&
-                            (authUser.getCustomerId() == null || !authUser.getCustomerId().equals(customerId)))) {
-                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                        ThingsboardErrorCode.PERMISSION_DENIED);
-            }
+            accessControlService.checkPermission(getCurrentUser(), getCurrentUser().getTenantId(), Resource.CUSTOMER, operation, customerId);
+
             if (customerId != null && !customerId.isNullUid()) {
-                Customer customer = customerService.findCustomerById(authUser.getTenantId(), customerId);
-                checkCustomer(customer);
+                Customer customer = customerService.findCustomerById(getTenantId(), customerId);
+                checkNotNull(customer);
+                accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, operation, customerId, customer);
                 return customer;
             } else {
                 return null;
@@ -355,74 +353,64 @@ public abstract class BaseController {
         }
     }
 
-    private void checkCustomer(Customer customer) throws ThingsboardException {
-        checkNotNull(customer);
-        checkTenantId(customer.getTenantId());
-    }
-
-    User checkUserId(UserId userId) throws ThingsboardException {
+    User checkUserId(UserId userId, Operation operation) throws ThingsboardException {
         try {
             validateId(userId, "Incorrect userId " + userId);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
-            checkUser(user);
+            checkNotNull(user);
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
             return user;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    private void checkUser(User user) throws ThingsboardException {
-        checkNotNull(user);
-        checkTenantId(user.getTenantId());
-        if (user.getAuthority() == Authority.CUSTOMER_USER) {
-            checkCustomerId(user.getCustomerId());
-        }
-    }
-
-    protected void checkEntityId(EntityId entityId) throws ThingsboardException {
+    protected void checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
         try {
             checkNotNull(entityId);
             validateId(entityId.getId(), "Incorrect entityId " + entityId);
-            SecurityUser authUser = getCurrentUser();
             switch (entityId.getEntityType()) {
                 case DEVICE:
-                    checkDevice(deviceService.findDeviceById(authUser.getTenantId(), new DeviceId(entityId.getId())));
+                    checkDeviceId(new DeviceId(entityId.getId()), operation);
                     return;
                 case CUSTOMER:
-                    checkCustomerId(new CustomerId(entityId.getId()));
+                    checkCustomerId(new CustomerId(entityId.getId()), operation);
                     return;
                 case TENANT:
-                    checkTenantId(new TenantId(entityId.getId()));
+                    checkTenantId(new TenantId(entityId.getId()), operation);
                     return;
                 case RULE_CHAIN:
-                    checkRuleChain(new RuleChainId(entityId.getId()));
+                    checkRuleChain(new RuleChainId(entityId.getId()), operation);
+                    return;
+                case RULE_NODE:
+                    checkRuleNode(new RuleNodeId(entityId.getId()), operation);
                     return;
                 case ASSET:
-                    checkAsset(assetService.findAssetById(authUser.getTenantId(), new AssetId(entityId.getId())));
+                    checkAssetId(new AssetId(entityId.getId()), operation);
                     return;
                 case INTEGRATION:
-                    checkIntegration(integrationService.findIntegrationById(getTenantId(), new IntegrationId(entityId.getId())));
+                    checkIntegrationId(new IntegrationId(entityId.getId()), operation);
                     return;
                 case CONVERTER:
-                    checkConverter(converterService.findConverterById(getTenantId(), new ConverterId(entityId.getId())));
+                    checkConverterId(new ConverterId(entityId.getId()), operation);
                     return;
                 case DASHBOARD:
-                    checkDashboardId(new DashboardId(entityId.getId()));
+                    checkDashboardId(new DashboardId(entityId.getId()), operation);
                     return;
                 case USER:
-                    checkUserId(new UserId(entityId.getId()));
+                    checkUserId(new UserId(entityId.getId()), operation);
                     return;
                 case ENTITY_GROUP:
-                    checkEntityGroupId(new EntityGroupId(entityId.getId()));
+                    checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
                     return;
                 case SCHEDULER_EVENT:
-                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()));
+                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
                     return;
                 case BLOB_ENTITY:
-                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()));
+                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
                     return;
                 case ENTITY_VIEW:
-                    checkEntityViewId(new EntityViewId(entityId.getId()));
+                    checkEntityViewId(new EntityViewId(entityId.getId()), operation);
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
@@ -432,193 +420,135 @@ public abstract class BaseController {
         }
     }
 
-    Device checkDeviceId(DeviceId deviceId) throws ThingsboardException {
+    Device checkDeviceId(DeviceId deviceId, Operation operation) throws ThingsboardException {
         try {
             validateId(deviceId, "Incorrect deviceId " + deviceId);
             Device device = deviceService.findDeviceById(getCurrentUser().getTenantId(), deviceId);
-            checkDevice(device);
+            checkNotNull(device);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation, deviceId, device);
             return device;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkDevice(Device device) throws ThingsboardException {
-        checkNotNull(device);
-        checkTenantId(device.getTenantId());
-        checkCustomerId(device.getCustomerId());
-    }
-
-    protected EntityView checkEntityViewId(EntityViewId entityViewId) throws ThingsboardException {
+    protected EntityView checkEntityViewId(EntityViewId entityViewId, Operation operation) throws ThingsboardException {
         try {
             validateId(entityViewId, "Incorrect entityViewId " + entityViewId);
             EntityView entityView = entityViewService.findEntityViewById(getCurrentUser().getTenantId(), entityViewId);
-            checkEntityView(entityView);
+            checkNotNull(entityView);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation, entityViewId, entityView);
             return entityView;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkEntityView(EntityView entityView) throws ThingsboardException {
-        checkNotNull(entityView);
-        checkTenantId(entityView.getTenantId());
-        checkCustomerId(entityView.getCustomerId());
-    }
-
-    Asset checkAssetId(AssetId assetId) throws ThingsboardException {
+    Asset checkAssetId(AssetId assetId, Operation operation) throws ThingsboardException {
         try {
             validateId(assetId, "Incorrect assetId " + assetId);
             Asset asset = assetService.findAssetById(getCurrentUser().getTenantId(), assetId);
-            checkAsset(asset);
+            checkNotNull(asset);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation, assetId, asset);
             return asset;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkAsset(Asset asset) throws ThingsboardException {
-        checkNotNull(asset);
-        checkTenantId(asset.getTenantId());
-        checkCustomerId(asset.getCustomerId());
-    }
-
-    Integration checkIntegrationId(IntegrationId integrationId) throws ThingsboardException {
+    Integration checkIntegrationId(IntegrationId integrationId, Operation operation) throws ThingsboardException {
         try {
             validateId(integrationId, "Incorrect integrationId " + integrationId);
             Integration integration = integrationService.findIntegrationById(getTenantId(), integrationId);
-            checkIntegration(integration);
+            checkNotNull(integration);
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation, integrationId, integration);
             return integration;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected Integration checkIntegration(Integration integration) throws ThingsboardException {
-        checkNotNull(integration);
-        checkTenantId(integration.getTenantId());
-        if (integration.getDefaultConverterId() != null && !integration.getDefaultConverterId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkConverterId(integration.getDefaultConverterId());
-        }
-        return integration;
-    }
-
-    Converter checkConverterId(ConverterId converterId) throws ThingsboardException {
+    Converter checkConverterId(ConverterId converterId, Operation operation) throws ThingsboardException {
         try {
             validateId(converterId, "Incorrect converterId " + converterId);
             Converter converter = converterService.findConverterById(getTenantId(), converterId);
-            checkConverter(converter);
+            checkNotNull(converter);
+            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, operation, converterId, converter);
             return converter;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkConverter(Converter converter) throws ThingsboardException {
-        checkNotNull(converter);
-        checkTenantId(converter.getTenantId());
-    }
-
-    Alarm checkAlarmId(AlarmId alarmId) throws ThingsboardException {
+    Alarm checkAlarmId(AlarmId alarmId, Operation operation) throws ThingsboardException {
         try {
             validateId(alarmId, "Incorrect alarmId " + alarmId);
             Alarm alarm = alarmService.findAlarmByIdAsync(getCurrentUser().getTenantId(), alarmId).get();
-            checkAlarm(alarm);
+            checkNotNull(alarm);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, operation, alarmId, alarm);
             return alarm;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    AlarmInfo checkAlarmInfoId(AlarmId alarmId) throws ThingsboardException {
+    AlarmInfo checkAlarmInfoId(AlarmId alarmId, Operation operation) throws ThingsboardException {
         try {
             validateId(alarmId, "Incorrect alarmId " + alarmId);
             AlarmInfo alarmInfo = alarmService.findAlarmInfoByIdAsync(getCurrentUser().getTenantId(), alarmId).get();
-            checkAlarm(alarmInfo);
+            checkNotNull(alarmInfo);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, operation, alarmId, alarmInfo);
             return alarmInfo;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkAlarm(Alarm alarm) throws ThingsboardException {
-        checkNotNull(alarm);
-        checkTenantId(alarm.getTenantId());
-    }
-
-    WidgetsBundle checkWidgetsBundleId(WidgetsBundleId widgetsBundleId, boolean modify) throws ThingsboardException {
+    WidgetsBundle checkWidgetsBundleId(WidgetsBundleId widgetsBundleId, Operation operation) throws ThingsboardException {
         try {
             validateId(widgetsBundleId, "Incorrect widgetsBundleId " + widgetsBundleId);
             WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(getCurrentUser().getTenantId(), widgetsBundleId);
-            checkWidgetsBundle(widgetsBundle, modify);
+            checkNotNull(widgetsBundle);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, operation, widgetsBundleId, widgetsBundle);
             return widgetsBundle;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    private void checkWidgetsBundle(WidgetsBundle widgetsBundle, boolean modify) throws ThingsboardException {
-        checkNotNull(widgetsBundle);
-        if (widgetsBundle.getTenantId() != null && !widgetsBundle.getTenantId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkTenantId(widgetsBundle.getTenantId());
-        } else if (modify && getCurrentUser().getAuthority() != Authority.SYS_ADMIN) {
-            throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                    ThingsboardErrorCode.PERMISSION_DENIED);
-        }
-    }
-
-    WidgetType checkWidgetTypeId(WidgetTypeId widgetTypeId, boolean modify) throws ThingsboardException {
+    WidgetType checkWidgetTypeId(WidgetTypeId widgetTypeId, Operation operation) throws ThingsboardException {
         try {
             validateId(widgetTypeId, "Incorrect widgetTypeId " + widgetTypeId);
             WidgetType widgetType = widgetTypeService.findWidgetTypeById(getCurrentUser().getTenantId(), widgetTypeId);
-            checkWidgetType(widgetType, modify);
+            checkNotNull(widgetType);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, operation, widgetTypeId, widgetType);
             return widgetType;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    void checkWidgetType(WidgetType widgetType, boolean modify) throws ThingsboardException {
-        checkNotNull(widgetType);
-        if (widgetType.getTenantId() != null && !widgetType.getTenantId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkTenantId(widgetType.getTenantId());
-        } else if (modify && getCurrentUser().getAuthority() != Authority.SYS_ADMIN) {
-            throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                    ThingsboardErrorCode.PERMISSION_DENIED);
-        }
-    }
-
-    Dashboard checkDashboardId(DashboardId dashboardId) throws ThingsboardException {
+    Dashboard checkDashboardId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
         try {
             validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
             Dashboard dashboard = dashboardService.findDashboardById(getCurrentUser().getTenantId(), dashboardId);
-            checkDashboard(dashboard);
+            checkNotNull(dashboard);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, operation, dashboardId, dashboard);
             return dashboard;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    DashboardInfo checkDashboardInfoId(DashboardId dashboardId) throws ThingsboardException {
+    DashboardInfo checkDashboardInfoId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
         try {
             validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
             DashboardInfo dashboardInfo = dashboardService.findDashboardInfoById(getCurrentUser().getTenantId(), dashboardId);
-            checkDashboard(dashboardInfo);
+            checkNotNull(dashboardInfo);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, operation, dashboardId, dashboardInfo);
             return dashboardInfo;
         } catch (Exception e) {
             throw handleException(e, false);
-        }
-    }
-
-    private void checkDashboard(DashboardInfo dashboard) throws ThingsboardException {
-        checkNotNull(dashboard);
-        checkTenantId(dashboard.getTenantId());
-        SecurityUser authUser = getCurrentUser();
-        if (authUser.getAuthority() == Authority.CUSTOMER_USER) {
-            if (!dashboard.isAssignedToCustomer(authUser.getCustomerId())) {
-                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                        ThingsboardErrorCode.PERMISSION_DENIED);
-            }
         }
     }
 
@@ -649,121 +579,80 @@ public abstract class BaseController {
         }
     }
 
-    protected RuleChain checkRuleChain(RuleChainId ruleChainId) throws ThingsboardException {
-        checkNotNull(ruleChainId);
-        return checkRuleChain(ruleChainService.findRuleChainById(getCurrentUser().getTenantId(), ruleChainId));
-    }
-
-    protected RuleChain checkRuleChain(RuleChain ruleChain) throws ThingsboardException {
+    protected RuleChain checkRuleChain(RuleChainId ruleChainId, Operation operation) throws ThingsboardException {
+        validateId(ruleChainId, "Incorrect ruleChainId " + ruleChainId);
+        RuleChain ruleChain = ruleChainService.findRuleChainById(getCurrentUser().getTenantId(), ruleChainId);
         checkNotNull(ruleChain);
-        SecurityUser authUser = getCurrentUser();
-        TenantId tenantId = ruleChain.getTenantId();
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        if (authUser.getAuthority() != Authority.TENANT_ADMIN ||
-                !authUser.getTenantId().equals(tenantId)) {
-            throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                    ThingsboardErrorCode.PERMISSION_DENIED);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, operation, ruleChainId, ruleChain);
         return ruleChain;
     }
 
-    protected EntityGroup checkEntityGroupId(EntityGroupId entityGroupId) throws ThingsboardException {
+    protected EntityGroup checkEntityGroupId(EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
         try {
             validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
             EntityGroup entityGroup = entityGroupService.findEntityGroupById(getTenantId(), entityGroupId);
-            checkEntityGroup(entityGroup);
+            checkNotNull(entityGroup);
+            accessControlService.checkEntityGroupPermission(getCurrentUser(), operation, entityGroup);
             return entityGroup;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkEntityGroup(EntityGroup entityGroup) throws ThingsboardException {
-        checkNotNull(entityGroup);
-        try {
-            if (!entityGroupService.checkEntityGroup(getTenantId(), getTenantId(), entityGroup).get()) {
-                throw new ThingsboardException("You don't have permission to perform this operation!",
-                        ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    SchedulerEvent checkSchedulerEventId(SchedulerEventId schedulerEventId) throws ThingsboardException {
+    SchedulerEvent checkSchedulerEventId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
         try {
             validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
             SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(getTenantId(),schedulerEventId);
-            checkSchedulerEvent(schedulerEvent);
+            checkNotNull(schedulerEvent);
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation, schedulerEventId, schedulerEvent);
             return schedulerEvent;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkSchedulerEvent(SchedulerEvent schedulerEvent) throws ThingsboardException {
-        checkNotNull(schedulerEvent);
-        checkTenantId(schedulerEvent.getTenantId());
-        if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkCustomerId(schedulerEvent.getCustomerId());
-        }
-    }
-
-    SchedulerEventInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId) throws ThingsboardException {
+    SchedulerEventInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
         try {
             validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
             SchedulerEventInfo schedulerEventInfo = schedulerEventService.findSchedulerEventInfoById(getTenantId(), schedulerEventId);
-            checkSchedulerEventInfo(schedulerEventInfo);
+            checkNotNull(schedulerEventInfo);
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation, schedulerEventId, schedulerEventInfo);
             return schedulerEventInfo;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkSchedulerEventInfo(SchedulerEventInfo schedulerEventInfo) throws ThingsboardException {
-        checkNotNull(schedulerEventInfo);
-        checkTenantId(schedulerEventInfo.getTenantId());
-        if (schedulerEventInfo.getCustomerId() != null && !schedulerEventInfo.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkCustomerId(schedulerEventInfo.getCustomerId());
-        }
-    }
-
-    BlobEntity checkBlobEntityId(BlobEntityId blobEntityId) throws ThingsboardException {
+    BlobEntity checkBlobEntityId(BlobEntityId blobEntityId, Operation operation) throws ThingsboardException {
         try {
             validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
             BlobEntity blobEntity = blobEntityService.findBlobEntityById(getTenantId(), blobEntityId);
-            checkBlobEntity(blobEntity);
+            checkNotNull(blobEntity);
+            accessControlService.checkPermission(getCurrentUser(), Resource.BLOB_ENTITY, operation, blobEntityId, blobEntity);
             return blobEntity;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkBlobEntity(BlobEntity blobEntity) throws ThingsboardException {
-        checkNotNull(blobEntity);
-        checkTenantId(blobEntity.getTenantId());
-        if (blobEntity.getCustomerId() != null && !blobEntity.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkCustomerId(blobEntity.getCustomerId());
-        }
-    }
-
-    BlobEntityInfo checkBlobEntityInfoId(BlobEntityId blobEntityId) throws ThingsboardException {
+    BlobEntityInfo checkBlobEntityInfoId(BlobEntityId blobEntityId, Operation operation) throws ThingsboardException {
         try {
             validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
             BlobEntityInfo blobEntityInfo = blobEntityService.findBlobEntityInfoById(getTenantId(), blobEntityId);
-            checkBlobEntityInfo(blobEntityInfo);
+            checkNotNull(blobEntityInfo);
+            accessControlService.checkPermission(getCurrentUser(), Resource.BLOB_ENTITY, operation, blobEntityId, blobEntityInfo);
             return blobEntityInfo;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected void checkBlobEntityInfo(BlobEntityInfo blobEntityInfo) throws ThingsboardException {
-        checkNotNull(blobEntityInfo);
-        checkTenantId(blobEntityInfo.getTenantId());
-        if (blobEntityInfo.getCustomerId() != null && !blobEntityInfo.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            checkCustomerId(blobEntityInfo.getCustomerId());
-        }
+    protected RuleNode checkRuleNode(RuleNodeId ruleNodeId, Operation operation) throws ThingsboardException {
+        validateId(ruleNodeId, "Incorrect ruleNodeId " + ruleNodeId);
+        RuleNode ruleNode = ruleChainService.findRuleNodeById(getTenantId(), ruleNodeId);
+        checkNotNull(ruleNode);
+        checkRuleChain(ruleNode.getRuleChainId(), operation);
+        return ruleNode;
     }
 
     protected String constructBaseUrl(HttpServletRequest request) {

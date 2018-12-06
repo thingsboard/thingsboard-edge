@@ -39,8 +39,8 @@ function EntityGroupService($http, $q, utils) {
         getEntityGroup: getEntityGroup,
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
-        getTenantEntityGroups: getTenantEntityGroups,
-        getTenantEntityGroupsByPageLink: getTenantEntityGroupsByPageLink,
+        getEntityGroups: getEntityGroups,
+        getEntityGroupsByPageLink: getEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
         removeEntityFromEntityGroup: removeEntityFromEntityGroup,
@@ -92,9 +92,9 @@ function EntityGroupService($http, $q, utils) {
         return deferred.promise;
     }
 
-    function getTenantEntityGroups(groupType, ignoreErrors, config) {
+    function getEntityGroups(groupType, ignoreErrors, config) {
         var deferred = $q.defer();
-        var url = '/api/tenant/entityGroups/' + groupType;
+        var url = '/api/entityGroups/' + groupType;
         if (!config) {
             config = {};
         }
@@ -107,9 +107,9 @@ function EntityGroupService($http, $q, utils) {
         return deferred.promise;
     }
 
-    function getTenantEntityGroupsByPageLink(pageLink, groupType, ignoreErrors, config) {
+    function getEntityGroupsByPageLink(pageLink, groupType, ignoreErrors, config) {
         var deferred = $q.defer();
-        getTenantEntityGroups(groupType, ignoreErrors, config).then(
+        getEntityGroups(groupType, ignoreErrors, config).then(
             function success(entityGroups) {
                 utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
             },
