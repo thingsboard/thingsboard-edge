@@ -2205,7 +2205,9 @@
         "hue3": "HUE 3",
         "page-background-color": "Page background color",
         "dark-foreground": "Dark foreground",
-        "domain-name": "Domain name"
+        "domain-name": "Domain name",
+        "help-link-base-url": "Help links base url",
+        "enable-help-links": "Enable help links"
     },
     "icon": {
         "icon": "Icon",

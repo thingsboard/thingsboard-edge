@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,27 +68,33 @@ public class EntityGroupController extends BaseController {
 
     public static final String ENTITY_GROUP_ID = "entityGroupId";
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroup getEntityGroupById(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            return checkEntityGroupId(entityGroupId);
+            return checkEntityGroupId(entityGroupId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup", method = RequestMethod.POST)
     @ResponseBody
     public EntityGroup saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
         try {
             checkEntityGroupType(entityGroup.getType());
 
-            EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getTenantId(), getTenantId(), entityGroup));
+            Operation operation = entityGroup.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkEntityGroupPermission(getCurrentUser(), operation, entityGroup);
+
+            EntityId parentEntityId = getCurrentUser().isTenantAdmin() ? getCurrentUser().getTenantId() : getCurrentUser().getCustomerId();
+
+            EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getTenantId(), parentEntityId, entityGroup));
 
             logEntityAction(savedEntityGroup.getId(), savedEntityGroup,
                     null,
@@ -100,14 +108,14 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.DELETE);
             if (entityGroup.isGroupAll()) {
                 throw new ThingsboardException("Unable to remove entity group: " +
                         "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
@@ -129,21 +137,23 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/entityGroups/{groupType}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroups/{groupType}", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntityGroup> getTenantEntityGroups(
+    public List<EntityGroup> getEntityGroupsByType(
             @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(entityGroupService.findEntityGroupsByType(getTenantId(), tenantId, groupType).get());
+
+            EntityId parentEntityId = getCurrentUser().isTenantAdmin() ? getCurrentUser().getTenantId() : getCurrentUser().getCustomerId();
+
+            return checkNotNull(entityGroupService.findEntityGroupsByType(getTenantId(), parentEntityId, groupType).get());
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/addEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void addEntitiesToEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
@@ -153,7 +163,7 @@ public class EntityGroupController extends BaseController {
         EntityGroup entityGroup = null;
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            entityGroup = checkEntityGroupId(entityGroupId);
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.ADD_TO_GROUP);
             if (entityGroup.isGroupAll()) {
                 throw new ThingsboardException("Unable to add entities to entity group: " +
                         "Addition to entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
@@ -161,7 +171,7 @@ public class EntityGroupController extends BaseController {
             List<EntityId> entityIds = new ArrayList<>();
             for (String strEntityId : strEntityIds) {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(entityGroup.getType(), strEntityId);
-                checkEntityId(entityId);
+                checkEntityId(entityId, Operation.READ);
                 entityIds.add(entityId);
             }
             entityGroupService.addEntitiesToEntityGroup(getTenantId(), entityGroupId, entityIds);
@@ -184,7 +194,7 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/deleteEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void removeEntitiesFromEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
@@ -194,7 +204,7 @@ public class EntityGroupController extends BaseController {
         EntityGroup entityGroup = null;
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            entityGroup = checkEntityGroupId(entityGroupId);
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.REMOVE_FROM_GROUP);
             if (entityGroup.isGroupAll()) {
                 throw new ThingsboardException("Unable to remove entities from entity group: " +
                         "Removal from entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
@@ -202,7 +212,7 @@ public class EntityGroupController extends BaseController {
             List<EntityId> entityIds = new ArrayList<>();
             for (String strEntityId : strEntityIds) {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(entityGroup.getType(), strEntityId);
-                checkEntityId(entityId);
+                checkEntityId(entityId, Operation.READ);
                 entityIds.add(entityId);
             }
             entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
@@ -236,11 +246,11 @@ public class EntityGroupController extends BaseController {
 
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
             EntityType entityType = entityGroup.getType();
             checkEntityGroupType(entityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
-            checkEntityId(entityId);
+            checkEntityId(entityId, Operation.READ);
             ShortEntityView result = null;
             if (entityType == EntityType.CUSTOMER) {
                 result = customerService.findGroupCustomer(getTenantId(), entityGroupId, entityId);
@@ -270,22 +280,18 @@ public class EntityGroupController extends BaseController {
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-        EntityGroup entityGroup = checkEntityGroupId(entityGroupId);
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             ListenableFuture<TimePageData<ShortEntityView>> asyncResult = null;
             if (entityType == EntityType.CUSTOMER) {
-                if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
-                    throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
-                            ThingsboardErrorCode.PERMISSION_DENIED);
-                }
                 asyncResult = customerService.findCustomersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.ASSET) {
-                asyncResult = assetService.findAssetsByEntityGroupIdAndCustomerId(getTenantId(), entityGroupId, getCurrentUser().getCustomerId(), pageLink);
+                asyncResult = assetService.findAssetsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.DEVICE) {
-                asyncResult = deviceService.findDevicesByEntityGroupIdAndCustomerId(getTenantId(), entityGroupId, getCurrentUser().getCustomerId(), pageLink);
+                asyncResult = deviceService.findDevicesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.USER) {
                 asyncResult = userService.findUsersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             }
@@ -300,7 +306,7 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupId> getEntityGroupsForEntity(
@@ -311,7 +317,7 @@ public class EntityGroupController extends BaseController {
         try {
             EntityType entityType = checkStrEntityGroupType("entityType", strEntityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
-            checkEntityId(entityId);
+            checkEntityId(entityId, Operation.READ);
             return checkNotNull(entityGroupService.findEntityGroupsForEntity(getTenantId(), entityId).get());
         } catch (Exception e) {
             throw handleException(e);

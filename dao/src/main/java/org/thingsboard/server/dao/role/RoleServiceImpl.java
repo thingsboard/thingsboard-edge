@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Role;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -74,6 +75,7 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class RoleServiceImpl extends AbstractEntityService implements RoleService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ROLE_ID = "Incorrect roleId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
 
@@ -101,8 +103,8 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public TextPageData<Role> findRoleByTenantId(TenantId tenantId, TextPageLink pageLink) {
-        log.trace("Executing findRoleByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public TextPageData<Role> findRolesByTenantId(TenantId tenantId, TextPageLink pageLink) {
+        log.trace("Executing findRolesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<Role> roles = roleDao.findRolesByTenantId(tenantId.getId(), pageLink);
@@ -110,8 +112,8 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public TextPageData<Role> findRoleByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type) {
-        log.trace("Executing findRoleByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
+    public TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type) {
+        log.trace("Executing findRolesByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         validateString(type, "Incorrect type " + type);
@@ -166,6 +168,27 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         log.trace("Executing deleteRolesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantRoleRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
+        log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Role> roles = roleDao.findRolesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+        return new TextPageData<>(roles, pageLink);
+    }
+
+    @Override
+    public TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink) {
+        log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Role> roles = roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
+        return new TextPageData<>(roles, pageLink);
     }
 
     @Override

@@ -54,6 +54,8 @@ public interface EntityGroupService {
 
     ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
+    ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroupId entityGroupId, EntityType groupType);
+
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);

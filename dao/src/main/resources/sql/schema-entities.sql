@@ -318,6 +318,7 @@ CREATE TABLE IF NOT EXISTS entity_view (
 CREATE TABLE IF NOT EXISTS role (
     id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
     tenant_id varchar(31),
+    customer_id varchar(31),
     name varchar(255),
     type varchar(255),
     search_text varchar(255),

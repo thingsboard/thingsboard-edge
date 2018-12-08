@@ -87,6 +87,9 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.permission.AccessControlService;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
@@ -151,6 +154,9 @@ public class AccessValidator {
     @Autowired
     protected RoleService roleService;
 
+    @Autowired
+    protected AccessControlService accessControlService;
+
     private ExecutorService executor;
 
     @PostConstruct
@@ -165,30 +171,30 @@ public class AccessValidator {
         }
     }
 
-    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, String entityType, String entityIdStr,
+    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, Operation operation, String entityType, String entityIdStr,
                                                                     ThreeConsumer<DeferredResult<ResponseEntity>, TenantId, EntityId> onSuccess) throws ThingsboardException {
-        return validateEntityAndCallback(currentUser, entityType, entityIdStr, onSuccess, (result, t) -> handleError(t, result, HttpStatus.INTERNAL_SERVER_ERROR));
+        return validateEntityAndCallback(currentUser, operation, entityType, entityIdStr, onSuccess, (result, t) -> handleError(t, result, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, String entityType, String entityIdStr,
+    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, Operation operation, String entityType, String entityIdStr,
                                                                     ThreeConsumer<DeferredResult<ResponseEntity>, TenantId, EntityId> onSuccess,
                                                                     BiConsumer<DeferredResult<ResponseEntity>, Throwable> onFailure) throws ThingsboardException {
-        return validateEntityAndCallback(currentUser, EntityIdFactory.getByTypeAndId(entityType, entityIdStr),
+        return validateEntityAndCallback(currentUser, operation, EntityIdFactory.getByTypeAndId(entityType, entityIdStr),
                 onSuccess, onFailure);
     }
 
-    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, EntityId entityId,
+    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, Operation operation, EntityId entityId,
                                                                     ThreeConsumer<DeferredResult<ResponseEntity>, TenantId, EntityId> onSuccess) throws ThingsboardException {
-        return validateEntityAndCallback(currentUser, entityId, onSuccess, (result, t) -> handleError(t, result, HttpStatus.INTERNAL_SERVER_ERROR));
+        return validateEntityAndCallback(currentUser, operation, entityId, onSuccess, (result, t) -> handleError(t, result, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, EntityId entityId,
+    public DeferredResult<ResponseEntity> validateEntityAndCallback(SecurityUser currentUser, Operation operation, EntityId entityId,
                                                                     ThreeConsumer<DeferredResult<ResponseEntity>, TenantId, EntityId> onSuccess,
                                                                     BiConsumer<DeferredResult<ResponseEntity>, Throwable> onFailure) throws ThingsboardException {
 
         final DeferredResult<ResponseEntity> response = new DeferredResult<>();
 
-        validate(currentUser, entityId, new HttpValidationCallback(response,
+        validate(currentUser, operation, entityId, new HttpValidationCallback(response,
                 new FutureCallback<DeferredResult<ResponseEntity>>() {
                     @Override
                     public void onSuccess(@Nullable DeferredResult<ResponseEntity> result) {
@@ -204,46 +210,46 @@ public class AccessValidator {
         return response;
     }
 
-    public void validate(SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    public void validate(SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         switch (entityId.getEntityType()) {
             case DEVICE:
-                validateDevice(currentUser, entityId, callback);
+                validateDevice(currentUser, operation, entityId, callback);
                 return;
             case ASSET:
-                validateAsset(currentUser, entityId, callback);
+                validateAsset(currentUser, operation, entityId, callback);
                 return;
             case RULE_CHAIN:
-                validateRuleChain(currentUser, entityId, callback);
+                validateRuleChain(currentUser, operation, entityId, callback);
                 return;
             case CUSTOMER:
-                validateCustomer(currentUser, entityId, callback);
+                validateCustomer(currentUser, operation, entityId, callback);
                 return;
             case TENANT:
-                validateTenant(currentUser, entityId, callback);
+                validateTenant(currentUser, operation, entityId, callback);
                 return;
             case CONVERTER:
-                validateConverter(currentUser, entityId, callback);
+                validateConverter(currentUser, operation, entityId, callback);
                 return;
             case INTEGRATION:
-                validateIntegration(currentUser, entityId, callback);
+                validateIntegration(currentUser, operation, entityId, callback);
                 return;
             case USER:
-                validateUser(currentUser, entityId, callback);
+                validateUser(currentUser, operation, entityId, callback);
                 return;
             case SCHEDULER_EVENT:
-                validateSchedulerEvent(currentUser, entityId, callback);
+                validateSchedulerEvent(currentUser, operation, entityId, callback);
                 return;
             case BLOB_ENTITY:
-                validateBlobEntity(currentUser, entityId, callback);
+                validateBlobEntity(currentUser, operation, entityId, callback);
                 return;
             case ENTITY_GROUP:
-                validateEntityGroup(currentUser, entityId, callback);
+                validateEntityGroup(currentUser, operation, entityId, callback);
                 return;
             case ENTITY_VIEW:
-                validateEntityView(currentUser, entityId, callback);
+                validateEntityView(currentUser, operation, entityId, callback);
                 return;
             case ROLE:
-                validateRole(currentUser, entityId, callback);
+                validateRole(currentUser, operation, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -251,22 +257,23 @@ public class AccessValidator {
         }
     }
 
-    private void validateUser(SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateUser(SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         ListenableFuture<User> userFuture = userService.findUserByIdAsync(currentUser.getTenantId(), new UserId(entityId.getId()));
         Futures.addCallback(userFuture, getCallback(callback, user -> {
             if (user == null) {
                 return ValidationResult.entityNotFound(USER_WITH_REQUESTED_ID_NOT_FOUND);
             } else {
-                if (user.getId().equals(currentUser.getId())) {
-                    return ValidationResult.ok(user);
-                } else {
-                    return ValidationResult.accessDenied("Users mismatch!");
+                try {
+                    accessControlService.checkPermission(currentUser, Resource.USER, operation, entityId, user);
+                } catch (ThingsboardException e) {
+                    return ValidationResult.accessDenied(e.getMessage());
                 }
+                return ValidationResult.ok(user);
             }
         }), executor);
     }
 
-    private void validateDevice(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateDevice(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -275,19 +282,18 @@ public class AccessValidator {
                 if (device == null) {
                     return ValidationResult.entityNotFound(DEVICE_WITH_REQUESTED_ID_NOT_FOUND);
                 } else {
-                    if (!device.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Device doesn't belong to the current Tenant!");
-                    } else if (currentUser.isCustomerUser() && !device.getCustomerId().equals(currentUser.getCustomerId())) {
-                        return ValidationResult.accessDenied("Device doesn't belong to the current Customer!");
-                    } else {
-                        return ValidationResult.ok(device);
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.DEVICE, operation, entityId, device);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(device);
                 }
             }), executor);
         }
     }
 
-    private void validateAsset(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateAsset(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -296,19 +302,18 @@ public class AccessValidator {
                 if (asset == null) {
                     return ValidationResult.entityNotFound("Asset with requested id wasn't found!");
                 } else {
-                    if (!asset.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Asset doesn't belong to the current Tenant!");
-                    } else if (currentUser.isCustomerUser() && !asset.getCustomerId().equals(currentUser.getCustomerId())) {
-                        return ValidationResult.accessDenied("Asset doesn't belong to the current Customer!");
-                    } else {
-                        return ValidationResult.ok(asset);
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.ASSET, operation, entityId, asset);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(asset);
                 }
             }), executor);
         }
     }
 
-    private void validateRuleChain(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateRuleChain(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isCustomerUser()) {
             callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -317,19 +322,18 @@ public class AccessValidator {
                 if (ruleChain == null) {
                     return ValidationResult.entityNotFound("Rule chain with requested id wasn't found!");
                 } else {
-                    if (currentUser.isTenantAdmin() && !ruleChain.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Rule chain doesn't belong to the current Tenant!");
-                    } else if (currentUser.isSystemAdmin() && !ruleChain.getTenantId().isNullUid()) {
-                        return ValidationResult.accessDenied("Rule chain is not in system scope!");
-                    } else {
-                        return ValidationResult.ok(ruleChain);
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.RULE_CHAIN, operation, entityId, ruleChain);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(ruleChain);
                 }
             }), executor);
         }
     }
 
-    private void validateRule(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateRule(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isCustomerUser()) {
             callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -343,19 +347,18 @@ public class AccessValidator {
                 } else {
                     //TODO: make async
                     RuleChain ruleChain = ruleChainService.findRuleChainById(currentUser.getTenantId(), ruleNode.getRuleChainId());
-                    if (currentUser.isTenantAdmin() && !ruleChain.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Rule chain doesn't belong to the current Tenant!");
-                    } else if (currentUser.isSystemAdmin() && !ruleChain.getTenantId().isNullUid()) {
-                        return ValidationResult.accessDenied("Rule chain is not in system scope!");
-                    } else {
-                        return ValidationResult.ok(ruleNode);
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.RULE_CHAIN, operation, ruleNode.getRuleChainId(), ruleChain);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(ruleNode);
                 }
             }), executor);
         }
     }
 
-    private void validateCustomer(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateCustomer(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -364,19 +367,18 @@ public class AccessValidator {
                 if (customer == null) {
                     return ValidationResult.entityNotFound("Customer with requested id wasn't found!");
                 } else {
-                    if (!customer.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Customer doesn't belong to the current Tenant!");
-                    } else if (currentUser.isCustomerUser() && !customer.getId().equals(currentUser.getCustomerId())) {
-                        return ValidationResult.accessDenied("Customer doesn't relate to the currently authorized customer user!");
-                    } else {
-                        return ValidationResult.ok(customer);
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.CUSTOMER, operation, entityId, customer);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(customer);
                 }
             }), executor);
         }
     }
 
-    private void validateTenant(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateTenant(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isCustomerUser()) {
             callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else if (currentUser.isSystemAdmin()) {
@@ -386,16 +388,19 @@ public class AccessValidator {
             Futures.addCallback(tenantFuture, getCallback(callback, tenant -> {
                 if (tenant == null) {
                     return ValidationResult.entityNotFound("Tenant with requested id wasn't found!");
-                } else if (!tenant.getId().equals(currentUser.getTenantId())) {
-                    return ValidationResult.accessDenied("Tenant doesn't relate to the currently authorized user!");
-                } else {
-                    return ValidationResult.ok(tenant);
                 }
+                try {
+                    accessControlService.checkPermission(currentUser, Resource.TENANT, operation, entityId, tenant);
+                } catch (ThingsboardException e) {
+                    return ValidationResult.accessDenied(e.getMessage());
+                }
+                return ValidationResult.ok(tenant);
+
             }), executor);
         }
     }
 
-    private void validateConverter(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateConverter(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isCustomerUser()) {
             callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else if (currentUser.isSystemAdmin()) {
@@ -405,16 +410,19 @@ public class AccessValidator {
             Futures.addCallback(converterFuture, getCallback(callback, converter -> {
                 if (converter == null) {
                     return ValidationResult.entityNotFound("Converter with requested id wasn't found!");
-                } else if (!converter.getTenantId().equals(currentUser.getTenantId())) {
-                    return ValidationResult.accessDenied("Converter doesn't belong to the current Tenant!");
                 } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.CONVERTER, operation, entityId, converter);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
                     return ValidationResult.ok(converter);
                 }
             }), executor);
         }
     }
 
-    private void validateIntegration(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateIntegration(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isCustomerUser()) {
             callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else if (currentUser.isSystemAdmin()) {
@@ -424,16 +432,19 @@ public class AccessValidator {
             Futures.addCallback(integrationFuture, getCallback(callback, integration -> {
                 if (integration == null) {
                     return ValidationResult.entityNotFound("Integration with requested id wasn't found!");
-                } else if (!integration.getTenantId().equals(currentUser.getTenantId())) {
-                    return ValidationResult.accessDenied("Integration doesn't belong to the current Tenant!");
                 } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.INTEGRATION, operation, entityId, integration);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
                     return ValidationResult.ok(integration);
                 }
             }), executor);
         }
     }
 
-    private void validateSchedulerEvent(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateSchedulerEvent(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -442,18 +453,19 @@ public class AccessValidator {
             Futures.addCallback(schedulerEventInfoFuture, getCallback(callback, schedulerEventInfo -> {
                 if (schedulerEventInfo == null) {
                     return ValidationResult.entityNotFound("Scheduler event with requested id wasn't found!");
-                } else if (!schedulerEventInfo.getTenantId().equals(currentUser.getTenantId())) {
-                    return ValidationResult.accessDenied("Scheduler event doesn't belong to the current Tenant!");
-                } else if (currentUser.isCustomerUser() && !schedulerEventInfo.getCustomerId().equals(currentUser.getCustomerId())) {
-                    return ValidationResult.accessDenied("Scheduler event doesn't belong to the current Customer!");
                 } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.SCHEDULER_EVENT, operation, entityId, schedulerEventInfo);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
                     return ValidationResult.ok(schedulerEventInfo);
                 }
             }), executor);
         }
     }
 
-    private void validateBlobEntity(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateBlobEntity(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -462,48 +474,39 @@ public class AccessValidator {
             Futures.addCallback(blobEntityInfoFuture, getCallback(callback, blobEntityInfo -> {
                 if (blobEntityInfo == null) {
                     return ValidationResult.entityNotFound("Blob entity with requested id wasn't found!");
-                } else if (!blobEntityInfo.getTenantId().equals(currentUser.getTenantId())) {
-                    return ValidationResult.accessDenied("Blob entity doesn't belong to the current Tenant!");
-                } else if (currentUser.isCustomerUser() && !blobEntityInfo.getCustomerId().equals(currentUser.getCustomerId())) {
-                    return ValidationResult.accessDenied("Blob entity doesn't belong to the current Customer!");
                 } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.BLOB_ENTITY, operation, entityId, blobEntityInfo);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
                     return ValidationResult.ok(blobEntityInfo);
                 }
             }), executor);
         }
     }
 
-    private void validateEntityGroup(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
-        if (currentUser.isCustomerUser()) {
-            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
-        } else if (currentUser.isSystemAdmin()) {
+    private void validateEntityGroup(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
             ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(currentUser.getTenantId(), new EntityGroupId(entityId.getId()));
-            ListenableFuture<Pair<EntityGroup, Boolean>> entityGroupCheckPairFuture =
-                    Futures.transformAsync(entityGroupFuture, entityGroup -> {
-                        ListenableFuture<Boolean> entityGroupCheckFuture;
-                        if (entityGroup != null) {
-                            entityGroupCheckFuture =
-                                    entityGroupService.checkEntityGroup(currentUser.getTenantId(), currentUser.getTenantId(), entityGroup);
-                        } else {
-                            entityGroupCheckFuture = Futures.immediateFuture(false);
-                        }
-                        return Futures.transform(entityGroupCheckFuture, result -> Pair.of(entityGroup, result));
-                    }, executor);
-            Futures.addCallback(entityGroupCheckPairFuture, getCallback(callback, entityGroupCheckPair -> {
-                if (entityGroupCheckPair.getFirst() == null) {
+            Futures.addCallback(entityGroupFuture, getCallback(callback, entityGroup -> {
+                if (entityGroup == null) {
                     return ValidationResult.entityNotFound("Entity group with requested id wasn't found!");
-                } else if (!entityGroupCheckPair.getSecond()) {
-                    return ValidationResult.accessDenied("Entity group doesn't belong to the current Tenant!");
                 } else {
-                    return ValidationResult.ok(entityGroupCheckPair.getFirst());
+                    try {
+                        accessControlService.checkEntityGroupPermission(currentUser, operation, entityGroup);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(entityGroup);
                 }
             }), executor);
         }
     }
 
-    private void validateEntityView(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateEntityView(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
@@ -512,32 +515,33 @@ public class AccessValidator {
                 if (entityView == null) {
                     return ValidationResult.entityNotFound(ENTITY_VIEW_WITH_REQUESTED_ID_NOT_FOUND);
                 } else {
-                    if (!entityView.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Entity-view doesn't belong to the current Tenant!");
-                    } else if (currentUser.isCustomerUser() && !entityView.getCustomerId().equals(currentUser.getCustomerId())) {
-                        return ValidationResult.accessDenied("Entity-view doesn't belong to the current Customer!");
-                    } else {
-                        return ValidationResult.ok(entityView);
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.ENTITY_VIEW, operation, entityId, entityView);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(entityView);
                 }
             }), executor);
         }
     }
 
-    private void validateRole(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
-        if (currentUser.isSystemAdmin() || currentUser.isCustomerUser()) {
-            callback.onSuccess(ValidationResult.accessDenied("Only Tenant User is able to perform this operation"));
+    private void validateRole(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
             ListenableFuture<Role> roleFuture = roleService.findRoleByIdAsync(currentUser.getTenantId(), new RoleId(entityId.getId()));
             Futures.addCallback(roleFuture, getCallback(callback, role -> {
                 if (role == null) {
                     return ValidationResult.entityNotFound(ROLE_WITH_REQUESTED_ID_NOT_FOUND);
                 } else {
-                    if (!role.getTenantId().equals(currentUser.getTenantId())) {
-                        return ValidationResult.accessDenied("Role doesn't belong to the current Tenant!");
-                    } else {
-                        return ValidationResult.ok(role);
+
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.ROLE, operation, entityId, role);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
                     }
+                    return ValidationResult.ok(role);
                 }
             }), executor);
         }

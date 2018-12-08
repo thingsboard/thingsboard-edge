@@ -110,6 +110,12 @@
                         <label translate>white-labeling.logo-height</label>
                         <input type="number" step="1" min="1" ng-model="vm.whiteLabelingParams.logoImageHeight">
                     </md-input-container>
+                    <md-checkbox ng-if="!vm.isLoginWl && vm.isSysAdmin" ng-disabled="$root.loading"
+                                 aria-label="{{ 'white-labeling.enable-help-links' | translate }}" ng-model="vm.whiteLabelingParams.enableHelpLinks">{{ 'white-labeling.enable-help-links' | translate }}</md-checkbox>
+                    <md-input-container flex class="md-block" ng-if="!vm.isLoginWl && vm.isSysAdmin && vm.whiteLabelingParams.enableHelpLinks">
+                        <label translate>white-labeling.help-link-base-url</label>
+                        <input ng-model="vm.whiteLabelingParams.helpLinkBaseUrl">
+                    </md-input-container>
                     <div layout="row">
                         <md-input-container flex class="md-block">
                             <label translate>white-labeling.primary-palette</label>

@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -111,6 +112,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     private BlobEntityService blobEntityService;
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private WhiteLabelingService whiteLabelingService;
 
     @Override
@@ -162,6 +166,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         ruleChainService.deleteRuleChainsByTenantId(tenantId);
         schedulerEventService.deleteSchedulerEventsByTenantId(tenantId);
         blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
+        roleService.deleteRolesByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         deleteEntityGroups(tenantId, tenantId);
         deleteEntityRelations(tenantId,tenantId);

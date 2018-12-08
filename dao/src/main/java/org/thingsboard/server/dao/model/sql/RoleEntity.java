@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -50,11 +51,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_NAME_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_PERMISSIONS_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -66,6 +63,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
 
     @Column(name = ROLE_TENANT_ID_PROPERTY)
     private String tenantId;
+
+    @Column(name = ROLE_CUSTOMER_ID_PROPERTY)
+    private String customerId;
 
     @Column(name = ROLE_TYPE_PROPERTY)
     private String type;
@@ -97,6 +97,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         if (role.getTenantId() != null) {
             this.tenantId = toString(role.getTenantId().getId());
         }
+        if (role.getCustomerId() != null) {
+            this.customerId = toString(role.getCustomerId().getId());
+        }
         this.type = role.getType();
         this.name = role.getName();
         this.permissions = role.getPermissions();
@@ -121,6 +124,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
 
         if (tenantId != null) {
             role.setTenantId(new TenantId(toUUID(tenantId)));
+        }
+        if (customerId != null) {
+            role.setCustomerId(new CustomerId(toUUID(customerId)));
         }
         role.setType(type);
         role.setName(name);

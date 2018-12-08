@@ -105,6 +105,29 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
         return service.submit(() -> convertTenantRoleTypesToDto(tenantId, roleRepository.findTenantRoleTypes(fromTimeUUID(tenantId))));
     }
 
+    @Override
+    public List<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink) {
+        return DaoUtil.convertDataList(roleRepository
+                .findByTenantIdAndCustomerId(
+                        fromTimeUUID(tenantId),
+                        fromTimeUUID(customerId),
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
+                        new PageRequest(0, pageLink.getLimit())));
+    }
+
+    @Override
+    public List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
+        return DaoUtil.convertDataList(roleRepository
+                .findByTenantIdAndCustomerIdAndType(
+                        fromTimeUUID(tenantId),
+                        fromTimeUUID(customerId),
+                        type,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
+                        new PageRequest(0, pageLink.getLimit())));
+    }
+
     private List<EntitySubtype> convertTenantRoleTypesToDto(UUID tenantId, List<String> types) {
         List<EntitySubtype> list = Collections.emptyList();
         if (types != null && !types.isEmpty()) {

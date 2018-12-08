@@ -171,7 +171,7 @@ public class DefaultSchedulerService implements SchedulerService {
         List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
         for (Tenant tenant : tenants) {
             if (routingService.resolveById(tenant.getId()).isPresent()) {
-                break;
+                continue;
             }
             addEventsForTenant(ts, tenant);
         }
@@ -347,7 +347,6 @@ public class DefaultSchedulerService implements SchedulerService {
                         }
                     }
                 }
-                break;
             } else {
                 List<SchedulerEventId> eventIds = tenantEvents.get(tenant.getId());
                 if (eventIds == null) {

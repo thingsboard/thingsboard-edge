@@ -87,3 +87,14 @@ CREATE TABLE IF NOT EXISTS blob_entity (
     data varchar(10485760),
     additional_info varchar
 );
+
+CREATE TABLE IF NOT EXISTS role (
+    id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    customer_id varchar(31),
+    name varchar(255),
+    type varchar(255),
+    search_text varchar(255),
+    permissions varchar(10000000),
+    additional_info varchar
+);

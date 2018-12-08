@@ -34,17 +34,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, HasTenantId {
+public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, HasTenantId, HasCustomerId {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
     private TenantId tenantId;
+    private CustomerId customerId;
     private String name;
     private String type;
     private transient JsonNode permissions;
@@ -66,13 +68,4 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
         return getName();
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return tenantId;
-    }
 }

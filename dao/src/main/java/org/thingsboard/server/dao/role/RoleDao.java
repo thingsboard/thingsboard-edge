@@ -52,4 +52,8 @@ public interface RoleDao extends Dao<Role> {
     Optional<Role> findRoleByTenantIdAndName(UUID tenantId, String name);
 
     ListenableFuture<List<EntitySubtype>> findTenantRoleTypesAsync(UUID tenantId);
+
+    List<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink);
+
+    List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink);
 }

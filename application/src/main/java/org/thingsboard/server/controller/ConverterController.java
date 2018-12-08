@@ -62,6 +62,8 @@ import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSDownlinkEvaluator;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
 import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.Base64;
 import java.util.List;
@@ -89,7 +91,7 @@ public class ConverterController extends BaseController {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            return checkConverterId(converterId);
+            return checkConverterId(converterId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -102,6 +104,12 @@ public class ConverterController extends BaseController {
         try {
             converter.setTenantId(getCurrentUser().getTenantId());
             boolean created = converter.getId() == null;
+
+            Operation operation = created ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, operation,
+                    converter.getId(), converter);
+
             Converter result = checkNotNull(converterService.saveConverter(converter));
             actorService.onEntityStateChange(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -142,7 +150,7 @@ public class ConverterController extends BaseController {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            Converter converter = checkConverterId(converterId);
+            Converter converter = checkConverterId(converterId, Operation.DELETE);
             converterService.deleteConverter(getTenantId(), converterId);
             actorService.onEntityStateChange(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
 
@@ -168,8 +176,8 @@ public class ConverterController extends BaseController {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            TenantId tenantId = getCurrentUser().getTenantId();
-            List<Event> events = eventService.findLatestEvents(tenantId, converterId, DataConstants.DEBUG_CONVERTER, 1);
+            checkConverterId(converterId, Operation.READ);
+            List<Event> events = eventService.findLatestEvents(getTenantId(), converterId, DataConstants.DEBUG_CONVERTER, 1);
             JsonNode result = null;
             if (events != null && !events.isEmpty()) {
                 Event event = events.get(0);

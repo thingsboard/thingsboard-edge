@@ -59,6 +59,7 @@ import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
@@ -118,7 +119,7 @@ public class RuleEngineController extends BaseController {
             //Check that this is a valid JSON
             jsonMapper.readTree(requestBody);
             final DeferredResult<ResponseEntity> response = new DeferredResult<>();
-            accessValidator.validate(currentUser, entityId, new HttpValidationCallback(response, new FutureCallback<DeferredResult<ResponseEntity>>() {
+            accessValidator.validate(currentUser, Operation.WRITE, entityId, new HttpValidationCallback(response, new FutureCallback<DeferredResult<ResponseEntity>>() {
                 @Override
                 public void onSuccess(@Nullable DeferredResult<ResponseEntity> result) {
                     long expTime = System.currentTimeMillis() + timeout;

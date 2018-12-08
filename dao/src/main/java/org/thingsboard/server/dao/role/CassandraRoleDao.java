@@ -61,16 +61,7 @@ import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_BY_TENANT_AND_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_BY_TENANT_AND_SEARCH_TEXT_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_NAME_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TABLE_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Component
 @Slf4j
@@ -152,5 +143,30 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
                 }
             }
         });
+    }
+
+    @Override
+    public List<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink) {
+        log.debug("Try to find roles by tenantId [{}], customerId[{}] and pageLink [{}]", tenantId, customerId, pageLink);
+        List<RoleEntity> roleEntities = findPageWithTextSearch(new TenantId(tenantId), ROLE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(ROLE_CUSTOMER_ID_PROPERTY, customerId),
+                        eq(ROLE_TENANT_ID_PROPERTY, tenantId)),
+                pageLink);
+
+        log.trace("Found roles [{}] by tenantId [{}], customerId [{}] and pageLink [{}]", roleEntities, tenantId, customerId, pageLink);
+        return DaoUtil.convertDataList(roleEntities);
+    }
+
+    @Override
+    public List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
+        log.debug("Try to find roles by tenantId [{}], customerId [{}], type [{}] and pageLink [{}]", tenantId, customerId, type, pageLink);
+        List<RoleEntity> roleEntities = findPageWithTextSearch(new TenantId(tenantId), ROLE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(ROLE_TYPE_PROPERTY, type),
+                        eq(ROLE_CUSTOMER_ID_PROPERTY, customerId),
+                        eq(ROLE_TENANT_ID_PROPERTY, tenantId)),
+                pageLink);
+
+        log.trace("Found roles [{}] by tenantId [{}], customerId [{}], type [{}] and pageLink [{}]", roleEntities, tenantId, customerId, type, pageLink);
+        return DaoUtil.convertDataList(roleEntities);
     }
 }

@@ -414,11 +414,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 $log.error('Get Alarm Entities is not implemented!');
                 break;
             case types.entityType.entityGroup:
-                if (user.authority === 'TENANT_ADMIN') {
-                    promise = entityGroupService.getTenantEntityGroupsByPageLink(pageLink, subType, false, config);
-               } else {
-                    $log.error('Get Customer Entity Groups is not implemented!');
-                }
+                promise = entityGroupService.getEntityGroupsByPageLink(pageLink, subType, false, config);
                 break;
             case types.entityType.converter:
                 promise = converterService.getConverters(pageLink, config);

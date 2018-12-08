@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.role;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,9 +50,9 @@ public interface RoleService {
 
     Role findRoleById(TenantId tenantId, RoleId roleId);
 
-    TextPageData<Role> findRoleByTenantId(TenantId tenantId, TextPageLink pageLink);
+    TextPageData<Role> findRolesByTenantId(TenantId tenantId, TextPageLink pageLink);
 
-    TextPageData<Role> findRoleByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type);
+    TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type);
 
     ListenableFuture<List<Role>> findRolesByQuery(TenantId tenantId, RoleSearchQuery query);
 
@@ -59,6 +61,10 @@ public interface RoleService {
     void deleteRole(TenantId tenantId, RoleId roleId);
 
     void deleteRolesByTenantId(TenantId tenantId);
+
+    TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
+
+    TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
 
     ListenableFuture<List<EntitySubtype>> findRoleTypesByTenantId(TenantId tenantId);
 }

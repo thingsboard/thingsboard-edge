@@ -125,7 +125,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
             case "2.2.0":
-                log.info("Updating data from version 2.2.0 to 2.2.0PE ...");
+                log.info("Updating data from version 2.2.0 to 2.3.0PE ...");
                 tenantsGroupAllUpdater.updateEntities(null);
 
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");

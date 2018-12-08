@@ -42,6 +42,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.SearchTextEntity;
@@ -49,14 +50,7 @@ import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_ADDITIONAL_INFO_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_NAME_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_PERMISSIONS_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TABLE_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
 @Table(name = ROLE_TABLE_FAMILY_NAME)
@@ -74,6 +68,10 @@ public class RoleEntity implements SearchTextEntity<Role> {
     private UUID tenantId;
 
     @PartitionKey(value = 2)
+    @Column(name = ROLE_CUSTOMER_ID_PROPERTY)
+    private UUID customerId;
+
+    @PartitionKey(value = 3)
     @Column(name = ROLE_TYPE_PROPERTY)
     private String type;
 
@@ -103,6 +101,9 @@ public class RoleEntity implements SearchTextEntity<Role> {
         if (role.getTenantId() != null) {
             this.tenantId = role.getTenantId().getId();
         }
+        if (role.getCustomerId() != null) {
+            this.customerId = role.getCustomerId().getId();
+        }
         this.type = role.getType();
         this.name = role.getName();
         this.permissions = role.getPermissions();
@@ -121,6 +122,9 @@ public class RoleEntity implements SearchTextEntity<Role> {
         role.setCreatedTime(UUIDs.unixTimestamp(id));
         if (tenantId != null) {
             role.setTenantId(new TenantId(tenantId));
+        }
+        if (customerId != null) {
+            role.setCustomerId(new CustomerId(customerId));
         }
         role.setType(type);
         role.setName(name);

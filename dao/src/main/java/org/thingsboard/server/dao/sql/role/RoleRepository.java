@@ -64,4 +64,27 @@ public interface RoleRepository extends CrudRepository<RoleEntity, String> {
 
     @Query("SELECT DISTINCT r.type FROM RoleEntity r WHERE r.tenantId = :tenantId")
     List<String> findTenantRoleTypes(@Param("tenantId") String tenantId);
+
+    @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
+            "AND r.customerId = :customerId " +
+            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
+            "AND r.id > :idOffset ORDER BY r.id")
+    List<RoleEntity> findByTenantIdAndCustomerId(@Param("tenantId") String tenantId,
+                                                  @Param("customerId") String customerId,
+                                                  @Param("textSearch") String textSearch,
+                                                  @Param("idOffset") String idOffset,
+                                                  Pageable pageable);
+
+    @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
+            "AND r.customerId = :customerId AND r.type = :type " +
+            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
+            "AND r.id > :idOffset ORDER BY r.id")
+    List<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
+                                                         @Param("customerId") String customerId,
+                                                         @Param("type") String type,
+                                                         @Param("textSearch") String textSearch,
+                                                         @Param("idOffset") String idOffset,
+                                                         Pageable pageable);
+
+
 }
