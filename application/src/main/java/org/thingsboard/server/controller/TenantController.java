@@ -87,8 +87,8 @@ public class TenantController extends BaseController {
 
             Operation operation = newTenant ? Operation.CREATE : Operation.WRITE;
 
-            accessControlService.checkPermission(getCurrentUser(), tenant.getId(), Resource.TENANT, operation,
-                    tenant.getId());
+            accessControlService.checkPermission(getCurrentUser(), Resource.TENANT, operation,
+                    tenant.getId(), tenant);
 
             tenant = checkNotNull(tenantService.saveTenant(tenant));
             if (newTenant) {

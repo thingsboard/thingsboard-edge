@@ -39,15 +39,11 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component(value="tenantAdminPermissions")
@@ -83,15 +79,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
     }
 
-    public static final PermissionChecker tenantEntityPermissionChecker = new PermissionChecker<HasTenantId, EntityId>() {
-
-        @Override
-        public boolean hasPermission(SecurityUser user, TenantId tenantId, Operation operation, EntityId entityId) {
-            if (!user.getTenantId().equals(tenantId)) {
-                return false;
-            }
-            return true;
-        }
+    public static final PermissionChecker tenantEntityPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
@@ -104,11 +92,11 @@ public class TenantAdminPermissions extends AbstractPermissions {
     };
 
     public static final PermissionChecker tenantPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES) {
+            new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_ATTRIBUTES) {
 
                 @Override
-                public boolean hasPermission(SecurityUser user, TenantId tenantId, Operation operation, EntityId entityId) {
-                    if (!super.hasPermission(user, tenantId, operation, entityId)) {
+                public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+                    if (!super.hasPermission(user, operation, entityId, entity)) {
                         return false;
                     }
                     if (!user.getTenantId().equals(entityId)) {
@@ -119,7 +107,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
             };
 
-    private static final PermissionChecker userPermissionChecker = new PermissionChecker<User, UserId>() {
+    private static final PermissionChecker userPermissionChecker = new PermissionChecker<UserId, User>() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity) {
@@ -134,7 +122,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     };
 
-    private static final PermissionChecker widgetsPermissionChecker = new PermissionChecker<HasTenantId, EntityId>() {
+    private static final PermissionChecker widgetsPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
@@ -179,7 +167,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
     private final PermissionChecker tenantWhiteLabelingPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, TenantId tenantId, Operation operation) {
+        public boolean hasPermission(SecurityUser user, Operation operation) {
             return whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getTenantId());
         }
 

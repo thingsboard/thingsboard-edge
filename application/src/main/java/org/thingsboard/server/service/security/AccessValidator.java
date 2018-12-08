@@ -358,7 +358,7 @@ public class AccessValidator {
                     return ValidationResult.entityNotFound("Customer with requested id wasn't found!");
                 } else {
                     try {
-                        accessControlService.checkPermission(currentUser, customer.getTenantId(), Resource.CUSTOMER, operation, entityId);
+                        accessControlService.checkPermission(currentUser, Resource.CUSTOMER, operation, entityId, customer);
                     } catch (ThingsboardException e) {
                         return ValidationResult.accessDenied(e.getMessage());
                     }
@@ -380,7 +380,7 @@ public class AccessValidator {
                     return ValidationResult.entityNotFound("Tenant with requested id wasn't found!");
                 }
                 try {
-                    accessControlService.checkPermission(currentUser, new TenantId(entityId.getId()), Resource.TENANT, operation, entityId);
+                    accessControlService.checkPermission(currentUser, Resource.TENANT, operation, entityId, tenant);
                 } catch (ThingsboardException e) {
                     return ValidationResult.accessDenied(e.getMessage());
                 }

@@ -34,13 +34,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.HashMap;
-import java.util.Optional;
 
 @Component(value="sysAdminPermissions")
 public class SysAdminPermissions extends AbstractPermissions {
@@ -57,15 +53,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, PermissionChecker.allowAllPermissionChecker);
     }
 
-    private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker<HasTenantId, EntityId>() {
-
-        @Override
-        public boolean hasPermission(SecurityUser user, TenantId tenantId, Operation operation, EntityId entityId) {
-            if (tenantId != null && !tenantId.isNullUid()) {
-                return false;
-            }
-            return true;
-        }
+    private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
@@ -77,7 +65,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         }
     };
 
-    private static final PermissionChecker userPermissionChecker = new PermissionChecker<User, UserId>() {
+    private static final PermissionChecker userPermissionChecker = new PermissionChecker<UserId, User>() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity) {

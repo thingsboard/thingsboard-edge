@@ -231,6 +231,6 @@ public class WhiteLabelingController extends BaseController {
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), getTenantId(), Resource.WHITE_LABELING, operation);
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, operation);
     }
 }

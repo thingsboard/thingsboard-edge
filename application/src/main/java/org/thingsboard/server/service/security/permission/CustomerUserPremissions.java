@@ -35,13 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.HashMap;
 
 @Slf4j
 @Component(value="customerUserPermissions")
@@ -73,7 +74,7 @@ public class CustomerUserPremissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
     }
 
-    public static final PermissionChecker customerEntityPermissionChecker =
+    private static final PermissionChecker customerEntityPermissionChecker =
             new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY) {
 
         @Override
@@ -115,11 +116,11 @@ public class CustomerUserPremissions extends AbstractPermissions {
 
 
     private static final PermissionChecker customerPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY) {
+            new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_ATTRIBUTES) {
 
                 @Override
-                public boolean hasPermission(SecurityUser user, TenantId tenantId, Operation operation, EntityId entityId) {
-                    if (!super.hasPermission(user, tenantId, operation, entityId)) {
+                public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+                    if (!super.hasPermission(user, operation, entityId, entity)) {
                         return false;
                     }
                     if (!user.getCustomerId().equals(entityId)) {
@@ -131,7 +132,7 @@ public class CustomerUserPremissions extends AbstractPermissions {
             };
 
     private static final PermissionChecker customerDashboardPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker<DashboardInfo, DashboardId>(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY) {
+            new PermissionChecker.GenericPermissionChecker<DashboardId, DashboardInfo>(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY) {
 
                 @Override
                 public boolean hasPermission(SecurityUser user, Operation operation, DashboardId dashboardId, DashboardInfo dashboard) {
@@ -150,7 +151,7 @@ public class CustomerUserPremissions extends AbstractPermissions {
 
             };
 
-    private static final PermissionChecker userPermissionChecker = new PermissionChecker<User, UserId>() {
+    private static final PermissionChecker userPermissionChecker = new PermissionChecker<UserId, User>() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity) {
@@ -172,8 +173,11 @@ public class CustomerUserPremissions extends AbstractPermissions {
             if (!super.hasPermission(user, operation, entityId, entity)) {
                 return false;
             }
-            if (entity.getTenantId() == null || entity.getTenantId().isNullUid() || user.getTenantId().equals(entity.getTenantId())) {
+            if (entity.getTenantId() == null || entity.getTenantId().isNullUid()) {
                 return true;
+            }
+            if (!user.getTenantId().equals(entity.getTenantId())) {
+                return false;
             }
             return true;
         }
@@ -210,7 +214,7 @@ public class CustomerUserPremissions extends AbstractPermissions {
     private final PermissionChecker customerWhiteLabelingPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, TenantId tenantId, Operation operation) {
+        public boolean hasPermission(SecurityUser user, Operation operation) {
             return whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId());
         }
 

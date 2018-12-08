@@ -42,11 +42,9 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface AccessControlService {
 
-    void checkPermission(SecurityUser user, TenantId tenantId, Resource resource, Operation operation) throws ThingsboardException;
+    void checkPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException;
 
-    void checkPermission(SecurityUser user, TenantId tenantId, Resource resource, Operation operation, EntityId entityId) throws ThingsboardException;
-
-    <T extends HasTenantId, I extends EntityId> void checkPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException;
+    <I extends EntityId, T extends HasTenantId> void checkPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException;
 
     void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
 

@@ -84,7 +84,7 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                accessControlService.checkPermission(getCurrentUser(), TenantId.SYS_TENANT_ID, Resource.ADMIN_SETTINGS, Operation.READ);
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
                 return checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
                 return getTenantAdminSettings(key, systemByDefault);
@@ -101,7 +101,7 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                accessControlService.checkPermission(getCurrentUser(), TenantId.SYS_TENANT_ID, Resource.ADMIN_SETTINGS, Operation.WRITE);
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
                 adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
             } else {
                 adminSettings = saveTenantAdminSettings(adminSettings);
@@ -118,9 +118,9 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                accessControlService.checkPermission(getCurrentUser(), TenantId.SYS_TENANT_ID, Resource.ADMIN_SETTINGS, Operation.READ);
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
             } else {
-                accessControlService.checkPermission(getCurrentUser(), getTenantId(), Resource.TENANT, Operation.READ);
+                checkTenantId(getTenantId(), Operation.READ_ATTRIBUTES);
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
@@ -144,7 +144,7 @@ public class AdminController extends BaseController {
     }
 
     private AdminSettings getTenantAdminSettings(String key, boolean systemByDefault) throws Exception {
-        accessControlService.checkPermission(getCurrentUser(), getTenantId(), Resource.TENANT, Operation.READ_ATTRIBUTES, getTenantId());
+        checkTenantId(getTenantId(), Operation.READ_ATTRIBUTES);
         String jsonString = getEntityAttributeValue(getTenantId(), key);
         JsonNode jsonValue = null;
         if (!StringUtils.isEmpty(jsonString)) {
@@ -167,7 +167,7 @@ public class AdminController extends BaseController {
     }
 
     private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
-        accessControlService.checkPermission(getCurrentUser(), getTenantId(), Resource.TENANT, Operation.WRITE_ATTRIBUTES, getTenantId());
+        checkTenantId(getTenantId(), Operation.WRITE_ATTRIBUTES);
         JsonNode jsonValue = adminSettings.getJsonValue();
         String jsonString = null;
         if (jsonValue != null) {
