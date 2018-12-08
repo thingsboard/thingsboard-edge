@@ -28,32 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.state;
+package org.thingsboard.server.common.msg;
 
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
 
-/**
- * Created by ashvayka on 01.05.18.
- */
-public interface DeviceStateService {
+import java.io.Serializable;
+import java.util.UUID;
 
-    void onDeviceAdded(Device device);
+@Data
+public final class TbMsgTransactionData implements Serializable {
 
-    void onDeviceUpdated(Device device);
+    private final UUID transactionId;
+    private final EntityId originatorId;
 
-    void onDeviceDeleted(Device device);
-
-    void onDeviceConnect(DeviceId deviceId);
-
-    void onDeviceActivity(DeviceId deviceId);
-
-    void onDeviceDisconnect(DeviceId deviceId);
-
-    void onDeviceInactivityTimeoutUpdate(DeviceId deviceId, long inactivityTimeout);
-
-    void onClusterUpdate();
-
-    void onRemoteMsg(ServerAddress serverAddress, byte[] bytes);
 }

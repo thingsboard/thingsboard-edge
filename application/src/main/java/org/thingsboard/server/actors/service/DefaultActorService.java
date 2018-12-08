@@ -71,12 +71,8 @@ import scala.concurrent.duration.Duration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import java.util.Arrays;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.gen.cluster.ClusterAPIProtos.MessageType.CLUSTER_ACTOR_MESSAGE;
 
@@ -255,6 +251,9 @@ public class DefaultActorService implements ActorService {
                 break;
             case CLUSTER_INTEGRATION_DOWNLINK_MESSAGE:
                 actorContext.getPlatformIntegrationService().onRemoteDownlinkMsg(serverAddress, msg.getPayload().toByteArray());
+                break;
+            case CLUSTER_TRANSACTION_SERVICE_MESSAGE:
+                actorContext.getRuleChainTransactionService().onRemoteTransactionMsg(serverAddress, msg.getPayload().toByteArray());
                 break;
         }
     }

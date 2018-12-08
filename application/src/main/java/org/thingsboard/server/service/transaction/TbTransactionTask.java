@@ -28,32 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.state;
+package org.thingsboard.server.service.transaction;
 
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.server.common.msg.TbMsg;
 
-/**
- * Created by ashvayka on 01.05.18.
- */
-public interface DeviceStateService {
+import java.util.function.Consumer;
 
-    void onDeviceAdded(Device device);
+@Data
+@AllArgsConstructor
+public final class TbTransactionTask {
 
-    void onDeviceUpdated(Device device);
+    private final TbMsg msg;
+    private final Consumer<TbMsg> onStart;
+    private final Consumer<TbMsg> onEnd;
+    private final Consumer<Throwable> onFailure;
+    private final long expirationTime;
 
-    void onDeviceDeleted(Device device);
+    private boolean isCompleted;
 
-    void onDeviceConnect(DeviceId deviceId);
-
-    void onDeviceActivity(DeviceId deviceId);
-
-    void onDeviceDisconnect(DeviceId deviceId);
-
-    void onDeviceInactivityTimeoutUpdate(DeviceId deviceId, long inactivityTimeout);
-
-    void onClusterUpdate();
-
-    void onRemoteMsg(ServerAddress serverAddress, byte[] bytes);
+    public TbTransactionTask(TbMsg msg, Consumer<TbMsg> onStart, Consumer<TbMsg> onEnd, Consumer<Throwable> onFailure, long expirationTime) {
+        this.msg = msg;
+        this.onStart = onStart;
+        this.onEnd = onEnd;
+        this.onFailure = onFailure;
+        this.expirationTime = expirationTime;
+        this.isCompleted = false;
+    }
 }
