@@ -50,13 +50,15 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 @Slf4j
 @RuleNode(
         type = ComponentType.ACTION,
-        name = "transaction start",
+        name = "synchronization start",
         configClazz = EmptyNodeConfiguration.class,
-        nodeDescription = "",
-        nodeDetails = "",
+        nodeDescription = "Starts synchronization of message processing based on message originator",
+        nodeDetails = "This node should be used together with \"synchronization end\" node. \n This node will put messages into queue based on message originator id. \n" +
+                "Subsequent messages will not be processed until the previous message processing is completed or timeout event occurs.\n" +
+                "Size of the queue per originator and timeout values are configurable on a system level",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbNodeEmptyConfig")
-public class TbTransactionBeginNode implements TbNode {
+public class TbSynchronizationBeginNode implements TbNode {
 
     private EmptyNodeConfiguration config;
 
@@ -66,7 +68,7 @@ public class TbTransactionBeginNode implements TbNode {
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+    public void onMsg(TbContext ctx, TbMsg msg) {
         log.trace("Msg enters transaction - [{}][{}]", msg.getId(), msg.getType());
 
         TbMsgTransactionData transactionData = new TbMsgTransactionData(msg.getId(), msg.getOriginator());
@@ -78,7 +80,7 @@ public class TbTransactionBeginNode implements TbNode {
                     ctx.tellNext(startMsg, SUCCESS);
                 }, endMsg -> log.trace("Transaction ended successfully...[{}][{}]", endMsg.getId(), endMsg.getType()),
                 throwable -> {
-                    log.error("Transaction failed! [{}][{}]", tbMsg.getId(), tbMsg.getType(), throwable);
+                    log.trace("Transaction failed! [{}][{}]", tbMsg.getId(), tbMsg.getType(), throwable);
                     ctx.tellFailure(tbMsg, throwable);
                 });
     }
