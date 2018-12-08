@@ -51,7 +51,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseRoleControllerTest extends AbstractControllerTest {
+public abstract class BaseGroupPermissionControllerTest extends AbstractControllerTest {
 
     private IdComparator<Role> idComparator;
     private Tenant savedTenant;
@@ -193,6 +193,14 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         Tenant tenant = new Tenant();
         tenant.setTitle(title);
         return tenant;
+    }
+
+    private List<Role> fillListOf(int limit, String partOfName, String urlTemplate) throws Exception {
+        List<Role> roles = new ArrayList<>();
+        for (Role role : fillListOf(limit, partOfName)) {
+            roles.add(doPost(urlTemplate + role.getId().getId().toString(), Role.class));
+        }
+        return roles;
     }
 
     private List<Role> fillListOf(int limit, String partOfName) throws Exception {

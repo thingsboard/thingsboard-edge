@@ -53,9 +53,6 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 
-    private static final String HOST_HEADER_KEY = "host";
-    private static final String X_FORWARDED_HOST_HEADER_KEY = "x-forwarded-host";
-
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 

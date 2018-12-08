@@ -34,14 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Role;
@@ -52,13 +45,11 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.role.RoleSearchQuery;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -160,35 +151,11 @@ public class RoleController extends BaseController {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            if (type != null && type.trim().length()>0) {
+            if (type != null && type.trim().length() > 0) {
                 return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
             } else {
                 return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/roles", method = RequestMethod.POST)
-    @ResponseBody
-    public List<Role> findByQuery(@RequestBody RoleSearchQuery query) throws ThingsboardException {
-        checkNotNull(query);
-        checkNotNull(query.getParameters());
-        checkNotNull(query.getRoleTypes());
-        checkEntityId(query.getParameters().getEntityId(), Operation.READ);
-        try {
-            List<Role> roles = checkNotNull(roleService.findRolesByQuery(getTenantId(), query).get());
-            roles = roles.stream().filter(role -> {
-                try {
-                    accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ, role.getId(), role);
-                    return true;
-                } catch (ThingsboardException e) {
-                    return false;
-                }
-            }).collect(Collectors.toList());
-            return roles;
         } catch (Exception e) {
             throw handleException(e);
         }

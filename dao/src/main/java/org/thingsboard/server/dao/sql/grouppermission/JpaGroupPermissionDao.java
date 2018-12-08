@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -28,38 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.role;
+package org.thingsboard.server.dao.sql.grouppermission;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.Role;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.GroupPermission;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionDao;
+import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface RoleService {
+@Component
+@SqlDao
+public class JpaGroupPermissionDao extends JpaAbstractSearchTextDao<GroupPermissionEntity, GroupPermission> implements GroupPermissionDao {
 
-    Role saveRole(TenantId tenantId, Role role);
+    @Autowired
+    private GroupPermissionRepository groupPermissionRepository;
 
-    Role findRoleById(TenantId tenantId, RoleId roleId);
+    @Override
+    protected Class<GroupPermissionEntity> getEntityClass() {
+        return GroupPermissionEntity.class;
+    }
 
-    TextPageData<Role> findRolesByTenantId(TenantId tenantId, TextPageLink pageLink);
+    @Override
+    protected CrudRepository<GroupPermissionEntity, String> getCrudRepository() {
+        return groupPermissionRepository;
+    }
 
-    TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type);
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantId(UUID tenantId, TimePageLink pageLink) {
+        // TODO: voba - add implementation
+        return null;
+    }
 
-    ListenableFuture<Role> findRoleByIdAsync(TenantId tenantId, RoleId roleId);
-
-    void deleteRole(TenantId tenantId, RoleId roleId);
-
-    void deleteRolesByTenantId(TenantId tenantId);
-
-    TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
-
-    TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
-
-    ListenableFuture<List<EntitySubtype>> findRoleTypesByTenantId(TenantId tenantId);
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupId(UUID tenantId, UUID userGroupId, TimePageLink pageLink) {
+        // TODO: voba - add implementation
+        return null;
+    }
 }

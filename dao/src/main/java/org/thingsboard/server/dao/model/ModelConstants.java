@@ -452,8 +452,15 @@ public class ModelConstants {
     public static final String ROLE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_customer_and_search_text";
     public static final String ROLE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_customer_by_type_and_search_text";
 
-
     public static final String ROLE_BY_TENANT_AND_NAME = "role_by_tenant_and_name";
+
+    /**
+     * Group permission constants.
+     */
+    public static final String GROUP_PERMISSION_TABLE_FAMILY_NAME = "group_permission";
+    public static final String GROUP_PERMISSION_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String GROUP_PERMISSION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+
     /**
      * Cassandra attributes and timeseries constants.
      */

@@ -28,38 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.role;
+package org.thingsboard.server.common.data;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.Role;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.*;
 
-import java.util.List;
+@Data
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class GroupPermission extends BaseData<GroupPermissionId> implements HasName, HasTenantId {
 
-public interface RoleService {
+    private static final long serialVersionUID = 5582010124562018986L;
 
-    Role saveRole(TenantId tenantId, Role role);
+    private TenantId tenantId;
+    private EntityGroupId userGroupId;
+    private EntityGroupId entityGroupId;
+    private EntityType entityGroupType;
+    private RoleId roleId;
 
-    Role findRoleById(TenantId tenantId, RoleId roleId);
+    public GroupPermission() {
+        super();
+    }
 
-    TextPageData<Role> findRolesByTenantId(TenantId tenantId, TextPageLink pageLink);
+    public GroupPermission(GroupPermissionId id) {
+        super(id);
+    }
 
-    TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type);
+    public GroupPermission(GroupPermission groupPermission) {
+        super(groupPermission);
+    }
 
-    ListenableFuture<Role> findRoleByIdAsync(TenantId tenantId, RoleId roleId);
+    @Override
+    public TenantId getTenantId() {
+        return tenantId;
+    }
 
-    void deleteRole(TenantId tenantId, RoleId roleId);
-
-    void deleteRolesByTenantId(TenantId tenantId);
-
-    TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
-
-    TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
-
-    ListenableFuture<List<EntitySubtype>> findRoleTypesByTenantId(TenantId tenantId);
+    @Override
+    public String getName() {
+        return String.format("%s_%s_%s_%s", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
+    }
 }
