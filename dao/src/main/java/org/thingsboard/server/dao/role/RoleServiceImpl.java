@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.role;
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -40,35 +39,24 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Role;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.role.RoleSearchQuery;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validatePageLink;
-import static org.thingsboard.server.dao.service.Validator.validateString;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
 @Slf4j
@@ -119,32 +107,6 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         validateString(type, "Incorrect type " + type);
         List<Role> roles = roleDao.findRolesByTenantIdAndType(tenantId.getId(), type, pageLink);
         return new TextPageData<>(roles, pageLink);
-    }
-
-    @Override
-    public ListenableFuture<List<Role>> findRolesByQuery(TenantId tenantId, RoleSearchQuery query) {
-        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());
-        ListenableFuture<List<Role>> roles = Futures.transformAsync(relations, r -> {
-            EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();
-            List<ListenableFuture<Role>> futures = new ArrayList<>();
-            for (EntityRelation relation : r) {
-                EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();
-                if (entityId.getEntityType() == EntityType.ROLE) {
-                    futures.add(findRoleByIdAsync(tenantId, new RoleId(entityId.getId())));
-                }
-            }
-            return Futures.successfulAsList(futures);
-        });
-
-        roles = Futures.transform(roles, new Function<List<Role>, List<Role>>() {
-            @Nullable
-            @Override
-            public List<Role> apply(@Nullable List<Role> roleList) {
-                return roleList == null ? Collections.emptyList() : roleList.stream().filter(role -> query.getRoleTypes().contains(role.getType())).collect(Collectors.toList());
-            }
-        });
-
-        return roles;
     }
 
     @Override

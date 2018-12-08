@@ -325,3 +325,12 @@ CREATE TABLE IF NOT EXISTS role (
     permissions varchar(10000000),
     additional_info varchar
 );
+
+CREATE TABLE IF NOT EXISTS group_permission (
+    id varchar(31) NOT NULL CONSTRAINT group_permission_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    role_id varchar(31),
+    user_group_id varchar(31),
+    entity_group_id varchar(31),
+    entity_group_type varchar(255)
+);

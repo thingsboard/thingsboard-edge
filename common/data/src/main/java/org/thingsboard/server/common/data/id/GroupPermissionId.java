@@ -28,31 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.role;
+package org.thingsboard.server.common.data.id;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
-import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 
-@Data
-public class RoleSearchQuery {
+public class GroupPermissionId extends UUIDBased implements EntityId {
 
-    private RelationsSearchParameters parameters;
-    private String relationType;
-    private List<String> roleTypes;
+    private static final long serialVersionUID = 1L;
 
-    public EntityRelationsQuery toEntitySearchQuery() {
-        EntityRelationsQuery query = new EntityRelationsQuery();
-        query.setParameters(parameters);
-        query.setFilters(
-                Collections.singletonList(new EntityTypeFilter(relationType == null ? EntityRelation.CONTAINS_TYPE : relationType,
-                        Collections.singletonList(EntityType.ROLE))));
-        return query;
+    @JsonCreator
+    public GroupPermissionId(@JsonProperty("id") UUID id) {
+        super(id);
+    }
+
+    public static GroupPermissionId fromString(String roleId) {
+        return new GroupPermissionId(UUID.fromString(roleId));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.GROUP_PERMISSION;
     }
 }
