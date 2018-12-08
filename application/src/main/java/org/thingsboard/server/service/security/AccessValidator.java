@@ -43,6 +43,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Role;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -60,6 +61,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -79,6 +81,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -107,6 +110,7 @@ public class AccessValidator {
     public static final String DEVICE_WITH_REQUESTED_ID_NOT_FOUND = "Device with requested id wasn't found!";
     public static final String USER_WITH_REQUESTED_ID_NOT_FOUND = "User with requested id wasn't found!";
     public static final String ENTITY_VIEW_WITH_REQUESTED_ID_NOT_FOUND = "Entity-view with requested id wasn't found!";
+    public static final String ROLE_WITH_REQUESTED_ID_NOT_FOUND = "Role with requested id wasn't found!";
 
     @Autowired
     protected TenantService tenantService;
@@ -146,6 +150,9 @@ public class AccessValidator {
 
     @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected RoleService roleService;
 
     @Autowired
     protected AccessControlService accessControlService;
@@ -240,6 +247,9 @@ public class AccessValidator {
                 return;
             case ENTITY_VIEW:
                 validateEntityView(currentUser, operation, entityId, callback);
+                return;
+            case ROLE:
+                validateRole(currentUser, operation, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -511,6 +521,27 @@ public class AccessValidator {
                         return ValidationResult.accessDenied(e.getMessage());
                     }
                     return ValidationResult.ok(entityView);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateRole(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Role> roleFuture = roleService.findRoleByIdAsync(currentUser.getTenantId(), new RoleId(entityId.getId()));
+            Futures.addCallback(roleFuture, getCallback(callback, role -> {
+                if (role == null) {
+                    return ValidationResult.entityNotFound(ROLE_WITH_REQUESTED_ID_NOT_FOUND);
+                } else {
+
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.ROLE, operation, entityId, role);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(role);
                 }
             }), executor);
         }

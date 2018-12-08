@@ -37,7 +37,7 @@ import entitySubtypeListTemplate from './entity-subtype-list.tpl.html';
 import './entity-subtype-list.scss';
 
 /*@ngInject*/
-export default function EntitySubtypeListDirective($compile, $templateCache, $q, $mdUtil, $translate, $filter, types, assetService, deviceService, entityViewService) {
+export default function EntitySubtypeListDirective($compile, $templateCache, $q, $mdUtil, $translate, $filter, types, assetService, deviceService, entityViewService, roleService) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
 
@@ -68,6 +68,12 @@ export default function EntitySubtypeListDirective($compile, $templateCache, $q,
             scope.secondaryPlaceholder = '+' + $translate.instant('entity-view.entity-view-type');
             scope.noSubtypesMathingText = 'entity-view.no-entity-view-types-matching';
             scope.subtypeListEmptyText = 'entity-view.entity-view-type-list-empty';
+        }  else if (scope.entityType == types.entityType.role) {
+            scope.placeholder = scope.tbRequired ? $translate.instant('role.enter-role-type')
+                : $translate.instant('role.any-role');
+            scope.secondaryPlaceholder = '+' + $translate.instant('role.role-type');
+            scope.noSubtypesMathingText = 'role.no-role-types-matching';
+            scope.subtypeListEmptyText = 'role.role-type-list-empty';
         }
 
         scope.$watch('tbRequired', function () {
@@ -120,6 +126,8 @@ export default function EntitySubtypeListDirective($compile, $templateCache, $q,
                     entitySubtypesPromise = deviceService.getDeviceTypes({ignoreLoading: true});
                 } else if (scope.entityType == types.entityType.entityView) {
                     entitySubtypesPromise = entityViewService.getEntityViewTypes({ignoreLoading: true});
+                } else if (scope.entityType == types.entityType.role) {
+                    entitySubtypesPromise = roleService.getRoleTypes({ignoreLoading: true});
                 }
                 if (entitySubtypesPromise) {
                     entitySubtypesPromise.then(

@@ -438,6 +438,23 @@ public class ModelConstants {
     public static final String BLOB_ENTITY_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_customer_and_type";
 
     /**
+     * Cassandra role constants.
+     */
+    public static final String ROLE_TABLE_FAMILY_NAME = "role";
+    public static final String ROLE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String ROLE_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String ROLE_NAME_PROPERTY = DEVICE_NAME_PROPERTY;
+    public static final String ROLE_TYPE_PROPERTY = "type";
+    public static final String ROLE_PERMISSIONS_PROPERTY = "permissions";
+    public static final String ROLE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String ROLE_BY_TENANT_AND_SEARCH_TEXT_CF = "role_by_tenant_and_search_text";
+    public static final String ROLE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF = "role_by_tenant_by_type_and_search_text";
+    public static final String ROLE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_customer_and_search_text";
+    public static final String ROLE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_customer_by_type_and_search_text";
+
+
+    public static final String ROLE_BY_TENANT_AND_NAME = "role_by_tenant_and_name";
+    /**
      * Cassandra attributes and timeseries constants.
      */
     public static final String ATTRIBUTES_KV_CF = "attributes_kv_cf";

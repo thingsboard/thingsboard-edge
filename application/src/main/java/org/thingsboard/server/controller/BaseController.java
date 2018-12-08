@@ -93,6 +93,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -204,6 +205,9 @@ public abstract class BaseController {
     protected EntityViewService entityViewService;
 
     @Autowired
+    protected RoleService roleService;
+
+    @Autowired
     protected TelemetrySubscriptionService tsSubService;
 
     @Autowired
@@ -291,8 +295,8 @@ public abstract class BaseController {
         if (groupType == null) {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET && groupType != EntityType.DEVICE) {
-            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET' or 'DEVICE' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET && groupType != EntityType.DEVICE && groupType != EntityType.USER) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE' or 'USER' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
     }
@@ -414,6 +418,9 @@ public abstract class BaseController {
                 case ENTITY_VIEW:
                     checkEntityViewId(new EntityViewId(entityId.getId()), operation);
                     return;
+                case ROLE:
+                    checkRoleId(new RoleId(entityId.getId()), operation);
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -441,6 +448,18 @@ public abstract class BaseController {
             checkNotNull(entityView);
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation, entityViewId, entityView);
             return entityView;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected Role checkRoleId(RoleId roleId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(roleId, "Incorrect roleId " + roleId);
+            Role role = roleService.findRoleById(getTenantId(), roleId);
+            checkNotNull(role);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, operation, roleId, role);
+            return role;
         } catch (Exception e) {
             throw handleException(e, false);
         }

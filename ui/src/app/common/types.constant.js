@@ -310,6 +310,10 @@ export default angular.module('thingsboard.types', [])
                 entityViewSearchQuery: {
                     value: 'entityViewSearchQuery',
                     name: 'alias.filter-type-entity-view-search-query'
+                },
+                roleType: {
+                    value: 'roleType',
+                    name: 'alias.filter-type-role-type'
                 }
             },
             position: {
@@ -446,7 +450,8 @@ export default angular.module('thingsboard.types', [])
                 rulenode: "RULE_NODE",
                 schedulerEvent: "SCHEDULER_EVENT",
                 blobEntity: "BLOB_ENTITY",
-                entityView: "ENTITY_VIEW"
+                entityView: "ENTITY_VIEW",
+                role: "ROLE"
             },
             entityGroup: {
                 sortOrder: {
@@ -750,6 +755,12 @@ export default angular.module('thingsboard.types', [])
                     typePlural: 'entity.type-blob-entities',
                     list: 'entity.list-of-blob-entities',
                     nameStartsWith: 'entity.blob-entity-name-starts-with'
+                },
+                "ROLE": {
+                    type: 'entity.type-role',
+                    typePlural: 'entity.type-roles',
+                    list: 'entity.list-of-roles',
+                    nameStartsWith: 'entity.role-name-starts-with'
                 }
             },
             entitySearchDirection: {

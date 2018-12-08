@@ -47,6 +47,7 @@ import thingsboardKvMap from '../components/kv-map.directive';
 import thingsboardJsonObjectEdit from '../components/json-object-edit.directive';
 import thingsboardJsonContent from '../components/json-content.directive';
 import thingsboardTimezoneSelect from '../components/timezone-select.directive';
+import thingsboardCheckboxList from '../components/checkbox-list.directive';
 
 import thingsboardUserMenu from './user-menu.directive';
 
@@ -72,6 +73,7 @@ import thingsboardIntegration from '../integration';
 import thingsboardRuleChain from '../rulechain';
 import thingsboardScheduler from '../scheduler';
 import thingsboardBlobEntity from '../blob-entity';
+import thingsboardRole from '../role';
 
 import thingsboardJsonForm from '../jsonform';
 
@@ -108,6 +110,7 @@ export default angular.module('thingsboard.home', [
     thingsboardRuleChain,
     thingsboardScheduler,
     thingsboardBlobEntity,
+    thingsboardRole,
     thingsboardJsonForm,
     thingsboardApiDevice,
     thingsboardApiLogin,
@@ -117,6 +120,7 @@ export default angular.module('thingsboard.home', [
     thingsboardSideMenu,
     thingsboardDashboardAutocomplete,
     thingsboardKvMap,
+    thingsboardCheckboxList,
     thingsboardJsonObjectEdit,
     thingsboardJsonContent,
     thingsboardTimezoneSelect

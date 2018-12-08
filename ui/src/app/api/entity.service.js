@@ -39,7 +39,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                        assetService, tenantService, customerService,
                        ruleChainService, dashboardService, entityGroupService,
                        converterService, integrationService, schedulerEventService, blobEntityService,
-                       entityRelationService, attributeService, entityViewService, types, utils) {
+                       entityRelationService, attributeService, entityViewService, roleService, types, utils) {
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
@@ -106,6 +106,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.blobEntity:
                 promise = blobEntityService.getBlobEntityInfo(entityId, config);
                 break;
+            case types.entityType.role:
+                promise = roleService.getRole(entityId, true, config);
+                break;
         }
         return promise;
     }
@@ -152,6 +155,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.schedulerEvent:
                 promise = schedulerEventService.saveSchedulerEvent(entity);
+                break;
+            case types.entityType.role:
+                promise = roleService.saveRole(entity);
                 break;
         }
         return promise;
@@ -272,6 +278,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.blobEntity:
                 promise = getEntitiesByIdsPromise(
                     (id) => blobEntityService.getBlobEntityInfo(id, config), entityIds);
+                break;
+            case types.entityType.role:
+                promise = getEntitiesByIdsPromise(
+                    (id) => roleService.getRole(id, config), entityIds);
                 break;
         }
         return promise;
@@ -435,6 +445,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 promise = deferred.promise;
+                break;
+            case types.entityType.role:
+                promise = roleService.getTenantRoles(pageLink, config, subType);
                 break;
         }
         return promise;
@@ -832,6 +845,21 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 break;
+            case types.aliasFilterType.roleType.value:
+                getEntitiesByNameFilter(types.entityType.role, filter.roleNameFilter, maxItems, {ignoreLoading: true}, filter.roleType).then(
+                    function success(entities) {
+                        if (entities && entities.length || !failOnEmpty) {
+                            result.entities = entitiesToEntitiesInfo(entities);
+                            deferred.resolve(result);
+                        } else {
+                            deferred.reject();
+                        }
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+                break;
             case types.aliasFilterType.relationsQuery.value:
                 result.stateEntity = filter.rootStateEntity;
                 var rootEntityType;
@@ -964,6 +992,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     return entityTypes.indexOf(types.entityType.device)  > -1 ? true : false;
                 case types.aliasFilterType.entityViewType.value:
                     return entityTypes.indexOf(types.entityType.entityView)  > -1 ? true : false;
+                case types.aliasFilterType.roleType.value:
+                    return entityTypes.indexOf(types.entityType.role)  > -1 ? true : false;
                 case types.aliasFilterType.relationsQuery.value:
                     if (filter.filters && filter.filters.length) {
                         var match = false;
@@ -1018,6 +1048,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 return entityType === types.entityType.device;
             case types.aliasFilterType.entityViewType.value:
                 return entityType === types.entityType.entityView;
+            case types.aliasFilterType.roleType.value:
+                return entityType === types.entityType.role;
             case types.aliasFilterType.relationsQuery.value:
                 return true;
             case types.aliasFilterType.assetSearchQuery.value:
@@ -1074,6 +1106,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.integration = types.entityType.integration;
                 entityTypes.schedulerEvent = types.entityType.schedulerEvent;
                 entityTypes.blobEntity = types.entityType.blobEntity;
+                entityTypes.role = types.entityType.role;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
                 }
@@ -1384,6 +1417,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             return deviceService.deleteDevice(entityId.id);
         } else if (entityId.entityType == types.entityType.entityView) {
             return entityViewService.deleteEntityView(entityId.id);
+        } else if (entityId.entityType == types.entityType.role) {
+            return roleService.deleteRole(entityId.id);
         }
     }
 
@@ -1607,6 +1642,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             searchQuery.deviceTypes = entitySubTypes;
         } else if (entityType == types.entityType.entityView) {
             searchQuery.entityViewTypes = entitySubTypes;
+        } else if (entityType == types.entityType.role) {
+            searchQuery.roleTypes = entitySubTypes;
         } else {
             return null; //Not supported
         }

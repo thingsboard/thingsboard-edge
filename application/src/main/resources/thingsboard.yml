@@ -283,6 +283,9 @@ caffeine:
     entityViews:
       timeToLiveInMinutes: 1440
       maxSize: 100000
+    roles:
+      timeToLiveInMinutes: 1440
+      maxSize: 100000
 
 redis:
   # standalone or cluster
@@ -387,6 +390,7 @@ audit_log:
       "scheduler_event": "${AUDIT_LOG_MASK_SCHEDULER_EVENT:W}"
       "blob_entity": "${AUDIT_LOG_MASK_BLOB_ENTITY:W}"
       "entity_view": "${AUDIT_LOG_MASK_ENTITY_VIEW:W}"
+      "role": "${AUDIT_LOG_MASK_ROLE:W}"
   sink:
     # Type of external sink. possible options: none, elasticsearch
     type: "${AUDIT_LOG_SINK_TYPE:none}"

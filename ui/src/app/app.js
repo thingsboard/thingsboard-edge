@@ -136,6 +136,7 @@ import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
 import thingsboardApiReport from './api/report.service';
 import thingsboardApiBlobEntity from './api/blob-entity.service';
 import thingsboardApiCustomTranslation from './api/custom-translation.service';
+import thingsboardApiRole from './api/role.service';
 
 import AppConfig from './app.config';
 import GlobalInterceptor from './global-interceptor.service';
@@ -203,6 +204,7 @@ angular.module('thingsboard', [
     thingsboardApiReport,
     thingsboardApiBlobEntity,
     thingsboardApiCustomTranslation,
+    thingsboardApiRole,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

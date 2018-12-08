@@ -57,6 +57,7 @@ public enum Resource {
     DEVICE_GROUP(EntityType.ENTITY_GROUP),
     ASSET_GROUP(EntityType.ENTITY_GROUP),
     USER_GROUP(EntityType.ENTITY_GROUP),
+    ROLE(EntityType.ROLE),
     WHITE_LABELING();
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
