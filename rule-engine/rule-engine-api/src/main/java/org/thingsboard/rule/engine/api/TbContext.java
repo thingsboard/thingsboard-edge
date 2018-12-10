@@ -126,4 +126,6 @@ public interface TbContext {
 
     String getNodeId();
 
+    RuleChainTransactionService getRuleChainTransactionService();
+
 }

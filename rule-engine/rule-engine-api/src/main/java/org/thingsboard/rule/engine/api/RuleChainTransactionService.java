@@ -28,32 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.state;
+package org.thingsboard.rule.engine.api;
 
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
-/**
- * Created by ashvayka on 01.05.18.
- */
-public interface DeviceStateService {
+import java.util.function.Consumer;
 
-    void onDeviceAdded(Device device);
+public interface RuleChainTransactionService {
 
-    void onDeviceUpdated(Device device);
+    void beginTransaction(TbMsg msg, Consumer<TbMsg> onStart, Consumer<TbMsg> onEnd, Consumer<Throwable> onFailure);
 
-    void onDeviceDeleted(Device device);
+    void endTransaction(TbMsg msg, Consumer<TbMsg> onSuccess, Consumer<Throwable> onFailure);
 
-    void onDeviceConnect(DeviceId deviceId);
+    void onRemoteTransactionMsg(ServerAddress serverAddress, byte[] bytes);
 
-    void onDeviceActivity(DeviceId deviceId);
-
-    void onDeviceDisconnect(DeviceId deviceId);
-
-    void onDeviceInactivityTimeoutUpdate(DeviceId deviceId, long inactivityTimeout);
-
-    void onClusterUpdate();
-
-    void onRemoteMsg(ServerAddress serverAddress, byte[] bytes);
 }

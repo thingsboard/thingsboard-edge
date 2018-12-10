@@ -76,9 +76,11 @@ enum MessageType {
 
   CLUSTER_DEVICE_STATE_SERVICE_MESSAGE = 13;
 
+  CLUSTER_TRANSACTION_SERVICE_MESSAGE = 14;
+
   // Messages related to TB PE
-  CLUSTER_INTEGRATION_DOWNLINK_MESSAGE = 14;
-  CLUSTER_SCHEDULER_SERVICE_MESSAGE = 15;
+  CLUSTER_INTEGRATION_DOWNLINK_MESSAGE = 15;
+  CLUSTER_SCHEDULER_SERVICE_MESSAGE = 16;
 }
 
 // Messages related to CLUSTER_TELEMETRY_MESSAGE
@@ -160,6 +162,14 @@ message DeviceStateServiceMsgProto {
     bool added = 5;
     bool updated = 6;
     bool deleted = 7;
+}
+
+message TransactionEndServiceMsgProto {
+    string entityType = 1;
+    int64 originatorIdMSB = 2;
+    int64 originatorIdLSB = 3;
+    int64 transactionIdMSB = 4;
+    int64 transactionIdLSB = 5;
 }
 
 message IntegrationDownlinkProto {
