@@ -105,7 +105,9 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
             this.setId(customer.getId().getId());
         }
         this.tenantId = UUIDConverter.fromTimeUUID(customer.getTenantId().getId());
-        this.parentCustomerId = UUIDConverter.fromTimeUUID(customer.getParentCustomerId().getId());
+        if (customer.getParentCustomerId() != null) {
+            this.parentCustomerId = UUIDConverter.fromTimeUUID(customer.getParentCustomerId().getId());
+        }
         this.title = customer.getTitle();
         this.country = customer.getCountry();
         this.state = customer.getState();
