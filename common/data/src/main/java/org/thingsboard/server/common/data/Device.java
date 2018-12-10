@@ -33,12 +33,13 @@ package org.thingsboard.server.common.data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements HasName, HasTenantId, HasCustomerId {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -77,6 +78,11 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
 
     public void setCustomerId(CustomerId customerId) {
         this.customerId = customerId;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     @Override

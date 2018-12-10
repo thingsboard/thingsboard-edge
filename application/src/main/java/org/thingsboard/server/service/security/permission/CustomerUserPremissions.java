@@ -72,6 +72,8 @@ public class CustomerUserPremissions extends AbstractPermissions {
         put(Resource.DEVICE_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.ASSET_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.USER_GROUP, customerEntityGroupPermissionChecker);
+        put(Resource.ENTITY_VIEW_GROUP, customerEntityGroupPermissionChecker);
+        put(Resource.DASHBOARD_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
     }
 

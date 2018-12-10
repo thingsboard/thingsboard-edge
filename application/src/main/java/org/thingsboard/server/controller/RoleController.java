@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
@@ -58,7 +59,7 @@ public class RoleController extends BaseController {
 
     public static final String ROLE_ID = "roleId";
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.GET)
     @ResponseBody
     public Role getRoleById(@PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
@@ -70,7 +71,7 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role", method = RequestMethod.POST)
     @ResponseBody
     public Role saveRole(@RequestBody Role role) throws ThingsboardException {
@@ -78,6 +79,10 @@ public class RoleController extends BaseController {
             role.setTenantId(getCurrentUser().getTenantId());
 
             Operation operation = role.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                role.setCustomerId(getCurrentUser().getCustomerId());
+            }
 
             accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, operation,
                     role.getId(), role);
@@ -93,7 +98,7 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteRole(@PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {

@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName, HasTenantId, HasCustomerId {
+public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -85,6 +85,11 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements H
 
     public void setCustomerId(CustomerId customerId) {
         this.customerId = customerId;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     public String getEmail() {

@@ -80,6 +80,8 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
     public static final String CONVERTER = "converter";
     public static final String INTEGRATION = "integration";
+    public static final String CUSTOMER = "customer";
+    public static final String DASHBOARD = "dashboard";
 
     @Autowired
     private CassandraCluster cluster;
@@ -281,6 +283,18 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
                 try {
                     cluster.getSession().execute(updateIntegrationTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
+                String updateCustomerTableStmt = "alter table "+CUSTOMER+" add parent_customer_id timeuuid";
+                try {
+                    cluster.getSession().execute(updateCustomerTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
+                String updateDashboardTableStmt = "alter table "+DASHBOARD+" add customer_id timeuuid";
+                try {
+                    cluster.getSession().execute(updateDashboardTableStmt);
                     Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
 

@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.UUID;
 
@@ -54,7 +55,7 @@ public class GroupPermissionController extends BaseController {
 
     public static final String GROUP_PERMISSION_ID = "groupPermissionId";
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission/{groupPermissionId}", method = RequestMethod.GET)
     @ResponseBody
     public GroupPermission getGroupPermissionById(@PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId) throws ThingsboardException {
@@ -66,12 +67,18 @@ public class GroupPermissionController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission", method = RequestMethod.POST)
     @ResponseBody
     public GroupPermission saveGroupPermission(@RequestBody GroupPermission groupPermission) throws ThingsboardException {
         try {
             groupPermission.setTenantId(getCurrentUser().getTenantId());
+
+            Operation operation = groupPermission.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation,
+                    groupPermission.getId(), groupPermission);
+
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
             logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
@@ -83,7 +90,7 @@ public class GroupPermissionController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission/{groupPermissionId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteGroupPermission(@PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId) throws ThingsboardException {
@@ -102,10 +109,10 @@ public class GroupPermissionController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/groupPermissions/{userGroupId}", params = {"limit"}, method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "groupPermissions/{userGroupId}", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<GroupPermission> getTenantGroupPermissions(
+    public TimePageData<GroupPermission> getGroupPermissions(
             @RequestParam int limit,
             @PathVariable("userGroupId") String strUserGroupId,
             @RequestParam(required = false) Long startTime,
@@ -116,6 +123,7 @@ public class GroupPermissionController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
+            checkEntityGroupId(userGroupId, Operation.READ);
             return checkNotNull(groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(tenantId, userGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);

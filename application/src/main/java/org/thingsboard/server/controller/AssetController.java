@@ -92,6 +92,9 @@ public class AssetController extends BaseController {
             asset.setTenantId(getCurrentUser().getTenantId());
 
             Operation operation = asset.getId() == null ? Operation.CREATE : Operation.WRITE;
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                asset.setCustomerId(getCurrentUser().getCustomerId());
+            }
 
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation,
                     asset.getId(), asset);

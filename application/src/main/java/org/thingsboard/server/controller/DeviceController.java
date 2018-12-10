@@ -94,6 +94,10 @@ public class DeviceController extends BaseController {
 
             Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
 
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                device.setCustomerId(getCurrentUser().getCustomerId());
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation,
                     device.getId(), device);
 

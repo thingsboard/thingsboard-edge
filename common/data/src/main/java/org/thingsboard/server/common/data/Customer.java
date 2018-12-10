@@ -34,16 +34,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class Customer extends ContactBased<CustomerId> implements HasName, HasTenantId {
+public class Customer extends ContactBased<CustomerId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
     
     private static final long serialVersionUID = -1599722990298929275L;
     
     private String title;
     private TenantId tenantId;
+    private CustomerId parentCustomerId;
 
     public Customer() {
         super();
@@ -66,7 +68,25 @@ public class Customer extends ContactBased<CustomerId> implements HasName, HasTe
     public void setTenantId(TenantId tenantId) {
         this.tenantId = tenantId;
     }
-    
+
+    public CustomerId getParentCustomerId() {
+        return parentCustomerId;
+    }
+
+    public void setParentCustomerId(CustomerId parentCustomerId) {
+        this.parentCustomerId = parentCustomerId;
+    }
+
+    @Override
+    public CustomerId getCustomerId() {
+        return parentCustomerId;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return parentCustomerId != null && !parentCustomerId.isNullUid() ? parentCustomerId : tenantId;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -163,4 +183,5 @@ public class Customer extends ContactBased<CustomerId> implements HasName, HasTe
         builder.append("]");
         return builder.toString();
     }
+
 }

@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS customer (
     search_text varchar(255),
     state varchar(255),
     tenant_id varchar(31),
+    parent_customer_id varchar(31),
     title varchar(255),
     zip varchar(255)
 );
@@ -148,6 +149,7 @@ CREATE TABLE IF NOT EXISTS dashboard (
     assigned_customers varchar(1000000),
     search_text varchar(255),
     tenant_id varchar(31),
+    customer_id varchar(31),
     title varchar(255)
 );
 

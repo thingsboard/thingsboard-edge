@@ -43,6 +43,7 @@ import org.hibernate.annotations.TypeDef;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -71,6 +72,9 @@ public final class DashboardEntity extends BaseSqlEntity<Dashboard> implements S
     @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
     private String tenantId;
 
+    @Column(name = ModelConstants.DASHBOARD_CUSTOMER_ID_PROPERTY)
+    private String customerId;
+
     @Column(name = ModelConstants.DASHBOARD_TITLE_PROPERTY)
     private String title;
     
@@ -94,6 +98,9 @@ public final class DashboardEntity extends BaseSqlEntity<Dashboard> implements S
         }
         if (dashboard.getTenantId() != null) {
             this.tenantId = toString(dashboard.getTenantId().getId());
+        }
+        if (dashboard.getCustomerId() != null) {
+            this.customerId = toString(dashboard.getCustomerId().getId());
         }
         this.title = dashboard.getTitle();
         if (dashboard.getAssignedCustomers() != null) {
@@ -122,6 +129,9 @@ public final class DashboardEntity extends BaseSqlEntity<Dashboard> implements S
         dashboard.setCreatedTime(UUIDs.unixTimestamp(this.getId()));
         if (tenantId != null) {
             dashboard.setTenantId(new TenantId(toUUID(tenantId)));
+        }
+        if (customerId != null) {
+            dashboard.setCustomerId(new CustomerId(toUUID(customerId)));
         }
         dashboard.setTitle(title);
         if (!StringUtils.isEmpty(assignedCustomers)) {

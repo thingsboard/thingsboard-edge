@@ -136,6 +136,7 @@ public class ModelConstants {
      */
     public static final String CUSTOMER_COLUMN_FAMILY_NAME = "customer";
     public static final String CUSTOMER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String CUSTOMER_PARENT_CUSTOMER_ID_PROPERTY = "parent_customer_id";
     public static final String CUSTOMER_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String CUSTOMER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
@@ -345,6 +346,7 @@ public class ModelConstants {
      */
     public static final String DASHBOARD_COLUMN_FAMILY_NAME = "dashboard";
     public static final String DASHBOARD_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String DASHBOARD_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
     public static final String DASHBOARD_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String DASHBOARD_CONFIGURATION_PROPERTY = "configuration";
     public static final String DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY = "assigned_customers";

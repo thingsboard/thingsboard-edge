@@ -35,10 +35,11 @@ import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements HasName, HasTenantId, HasCustomerId {
+public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -77,6 +78,11 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
 
     public void setCustomerId(CustomerId customerId) {
         this.customerId = customerId;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     @Override

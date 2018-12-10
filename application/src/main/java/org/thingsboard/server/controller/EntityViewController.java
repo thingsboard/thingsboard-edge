@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -105,6 +106,10 @@ public class EntityViewController extends BaseController {
             entityView.setTenantId(getCurrentUser().getTenantId());
 
             Operation operation = entityView.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                entityView.setCustomerId(getCurrentUser().getCustomerId());
+            }
 
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation,
                     entityView.getId(), entityView);

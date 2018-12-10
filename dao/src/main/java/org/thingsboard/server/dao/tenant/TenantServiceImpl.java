@@ -142,8 +142,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CONVERTER);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.INTEGRATION);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
         }
         return savedTenant;
     }
@@ -159,7 +159,6 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
-        entityViewService.deleteEntityViewsByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
         converterService.deleteConvertersByTenantId(tenantId);

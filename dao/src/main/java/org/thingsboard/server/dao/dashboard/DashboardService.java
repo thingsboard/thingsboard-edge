@@ -33,9 +33,8 @@ package org.thingsboard.server.dao.dashboard;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -68,5 +67,10 @@ public interface DashboardService {
     void unassignCustomerDashboards(TenantId tenantId, CustomerId customerId);
 
     void updateCustomerDashboards(TenantId tenantId, CustomerId customerId);
+
+    ShortEntityView findGroupDashboard(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
+
+    ListenableFuture<TimePageData<ShortEntityView>> findDashboardsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+
 
 }

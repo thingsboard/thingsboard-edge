@@ -45,20 +45,7 @@ import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ADDRESS2_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ADDRESS_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CITY_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.COUNTRY_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ADDITIONAL_INFO_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_TITLE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EMAIL_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.PHONE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.STATE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ZIP_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Table(name = CUSTOMER_COLUMN_FAMILY_NAME)
 @EqualsAndHashCode
@@ -72,6 +59,9 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
     @PartitionKey(value = 1)
     @Column(name = CUSTOMER_TENANT_ID_PROPERTY)
     private UUID tenantId;
+
+    @Column(name = CUSTOMER_PARENT_CUSTOMER_ID_PROPERTY)
+    private UUID parentCustomerId;
     
     @Column(name = CUSTOMER_TITLE_PROPERTY)
     private String title;
@@ -115,6 +105,9 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
             this.id = customer.getId().getId();
         }
         this.tenantId = customer.getTenantId().getId();
+        if (customer.getParentCustomerId() != null) {
+            this.parentCustomerId = customer.getParentCustomerId().getId();
+        }
         this.title = customer.getTitle();
         this.country = customer.getCountry();
         this.state = customer.getState();
@@ -141,6 +134,14 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
 
     public void setTenantId(UUID tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public UUID getParentCustomerId() {
+        return parentCustomerId;
+    }
+
+    public void setParentCustomerId(UUID parentCustomerId) {
+        this.parentCustomerId = parentCustomerId;
     }
 
     public String getTitle() {
@@ -242,6 +243,9 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
         Customer customer = new Customer(new CustomerId(id));
         customer.setCreatedTime(UUIDs.unixTimestamp(id));
         customer.setTenantId(new TenantId(tenantId));
+        if (parentCustomerId != null) {
+            customer.setParentCustomerId(new CustomerId(parentCustomerId));
+        }
         customer.setTitle(title);
         customer.setCountry(country);
         customer.setState(state);

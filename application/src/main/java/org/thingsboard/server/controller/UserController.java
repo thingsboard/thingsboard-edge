@@ -147,11 +147,15 @@ public class UserController extends BaseController {
             HttpServletRequest request) throws ThingsboardException {
         try {
 
-            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+            if (getCurrentUser().getAuthority() != Authority.SYS_ADMIN) {
                 user.setTenantId(getCurrentUser().getTenantId());
             }
 
             Operation operation = user.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                user.setCustomerId(getCurrentUser().getCustomerId());
+            }
 
             accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
                     user.getId(), user);

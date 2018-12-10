@@ -156,7 +156,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
             deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
             deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
-            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getTenantId(), savedDevice.getId());
+            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         return savedDevice;
     }
@@ -337,42 +337,20 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     class DeviceViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
 
         private final TenantId tenantId;
-        private final CustomerId customerId;
 
         DeviceViewFunction(TenantId tenantId) {
-            this(tenantId, null);
-        }
-
-        DeviceViewFunction(TenantId tenantId, CustomerId customerId) {
             this.tenantId = tenantId;
-            this.customerId = customerId;
         }
 
         @Override
         public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
             Device device = findDeviceById(tenantId, new DeviceId(entityView.getId().getId()));
-            if (this.customerId != null && !this.customerId.isNullUid()
-                    && !this.customerId.equals(device.getCustomerId())) {
-                entityView.setSkipEntity(true);
-                return entityView;
-            }
             entityView.put(EntityField.NAME.name().toLowerCase(), device.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();
                 switch (field) {
                     case TYPE:
                         entityView.put(key, device.getType());
-                        break;
-                    case ASSIGNED_CUSTOMER:
-                        String assignedCustomerName = "";
-                        if(!device.getCustomerId().isNullUid()) {
-                            try {
-                                assignedCustomerName = entityService.fetchEntityNameAsync(tenantId, device.getCustomerId()).get();
-                            } catch (InterruptedException | ExecutionException e) {
-                                log.error("Failed to fetch assigned customer name!", e);
-                            }
-                        }
-                        entityView.put(key, assignedCustomerName);
                         break;
                 }
             }

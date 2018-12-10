@@ -57,6 +57,8 @@ public enum Resource {
     DEVICE_GROUP(EntityType.ENTITY_GROUP),
     ASSET_GROUP(EntityType.ENTITY_GROUP),
     USER_GROUP(EntityType.ENTITY_GROUP),
+    ENTITY_VIEW_GROUP(EntityType.ENTITY_GROUP),
+    DASHBOARD_GROUP(EntityType.ENTITY_GROUP),
     ROLE(EntityType.ROLE),
     GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
     WHITE_LABELING();
@@ -67,6 +69,8 @@ public enum Resource {
         groupResourceByGroupType.put(EntityType.DEVICE, DEVICE_GROUP);
         groupResourceByGroupType.put(EntityType.ASSET, ASSET_GROUP);
         groupResourceByGroupType.put(EntityType.USER, USER_GROUP);
+        groupResourceByGroupType.put(EntityType.ENTITY_VIEW, ENTITY_VIEW_GROUP);
+        groupResourceByGroupType.put(EntityType.DASHBOARD, DASHBOARD_GROUP);
     }
 
     public static Resource groupResourceFromGroupType(EntityType groupType) {

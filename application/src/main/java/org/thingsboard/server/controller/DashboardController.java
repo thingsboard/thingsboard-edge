@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
 
@@ -112,7 +113,7 @@ public class DashboardController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard", method = RequestMethod.POST)
     @ResponseBody 
     public Dashboard saveDashboard(@RequestBody Dashboard dashboard) throws ThingsboardException {
@@ -120,6 +121,10 @@ public class DashboardController extends BaseController {
             dashboard.setTenantId(getCurrentUser().getTenantId());
 
             Operation operation = dashboard.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                dashboard.setCustomerId(getCurrentUser().getCustomerId());
+            }
 
             accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, operation,
                     dashboard.getId(), dashboard);

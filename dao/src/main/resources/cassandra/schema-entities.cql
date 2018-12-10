@@ -146,6 +146,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.tenant_by_region_and_search_t
 CREATE TABLE IF NOT EXISTS thingsboard.customer (
 	id timeuuid,
 	tenant_id timeuuid,
+	parent_customer_id timeuuid,
 	title text,
 	search_text text,
 	country text,
@@ -476,6 +477,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.widget_type_by_tenant_and_ali
 CREATE TABLE IF NOT EXISTS thingsboard.dashboard (
 	id timeuuid,
 	tenant_id timeuuid,
+	customer_id timeuuid,
 	title text,
 	search_text text,
 	assigned_customers text,

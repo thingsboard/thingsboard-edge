@@ -37,13 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -62,8 +58,11 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
@@ -115,7 +114,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public Dashboard saveDashboard(Dashboard dashboard) {
         log.trace("Executing saveDashboard [{}]", dashboard);
         dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
-        return dashboardDao.save(dashboard.getTenantId(), dashboard);
+        Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
+        if (dashboard.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+        }
+        return savedDashboard;
     }
     
     @Override
@@ -192,7 +195,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public TextPageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, TextPageLink pageLink) {
         log.trace("Executing findDashboardsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
         List<DashboardInfo> dashboards = dashboardInfoDao.findDashboardsByTenantId(tenantId.getId(), pageLink);
         return new TextPageData<>(dashboards, pageLink);
     }
@@ -209,7 +212,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing findDashboardsByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validateId(customerId, "Incorrect customerId " + customerId);
-        Validator.validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
         ListenableFuture<List<DashboardInfo>> dashboards = dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
 
         return Futures.transform(dashboards, new Function<List<DashboardInfo>, TimePageData<DashboardInfo>>() {
@@ -241,6 +244,46 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             throw new DataValidationException("Can't update dashboards for non-existent customer!");
         }
         new CustomerDashboardsUpdater(customer).removeEntities(tenantId, customer);
+    }
+
+    @Override
+    public ShortEntityView findGroupDashboard(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupDashboard, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new DashboardViewFunction(tenantId));
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<ShortEntityView>> findDashboardsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findDashboardsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new DashboardViewFunction(tenantId));
+    }
+
+    class DashboardViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
+
+        private final TenantId tenantId;
+
+        DashboardViewFunction(TenantId tenantId) {
+            this.tenantId = tenantId;
+        }
+
+        @Override
+        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
+            DashboardInfo dashboard = findDashboardInfoById(tenantId, new DashboardId(entityView.getId().getId()));
+            entityView.put(EntityField.NAME.name().toLowerCase(), dashboard.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TITLE:
+                        entityView.put(key, dashboard.getTitle());
+                        break;
+                }
+            }
+            return entityView;
+        }
     }
 
     private DataValidator<Dashboard> dashboardValidator =

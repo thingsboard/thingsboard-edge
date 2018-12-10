@@ -28,13 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.grouppermission;
+package org.thingsboard.server.common.data;
 
-import org.springframework.data.repository.CrudRepository;
-import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
-import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.server.common.data.id.EntityId;
 
-@SqlDao
-public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, String> {
+public interface HasOwnerId {
+
+    EntityId getOwnerId();
 
 }

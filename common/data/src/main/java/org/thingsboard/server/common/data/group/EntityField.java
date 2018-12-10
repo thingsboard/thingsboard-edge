@@ -51,16 +51,17 @@ public enum EntityField {
     ADDRESS2,
     ZIP,
     PHONE,
-    TYPE,
-    ASSIGNED_CUSTOMER;
+    TYPE;
 
     protected static final Map<EntityType, EntityField[]> defaultFieldsByEntityType =
             new HashMap<>();
     static {
-        defaultFieldsByEntityType.put(EntityType.USER, new EntityField[]{CREATED_TIME, FIRST_NAME, LAST_NAME, EMAIL, AUTHORITY});
+        defaultFieldsByEntityType.put(EntityType.USER, new EntityField[]{CREATED_TIME, FIRST_NAME, LAST_NAME, EMAIL});
         defaultFieldsByEntityType.put(EntityType.CUSTOMER, new EntityField[]{CREATED_TIME, TITLE, EMAIL, COUNTRY, CITY});
-        defaultFieldsByEntityType.put(EntityType.ASSET, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
-        defaultFieldsByEntityType.put(EntityType.DEVICE, new EntityField[]{CREATED_TIME, NAME, TYPE, ASSIGNED_CUSTOMER});
+        defaultFieldsByEntityType.put(EntityType.ASSET, new EntityField[]{CREATED_TIME, NAME, TYPE});
+        defaultFieldsByEntityType.put(EntityType.DEVICE, new EntityField[]{CREATED_TIME, NAME, TYPE});
+        defaultFieldsByEntityType.put(EntityType.ENTITY_VIEW, new EntityField[]{CREATED_TIME, TYPE, NAME});
+        defaultFieldsByEntityType.put(EntityType.DASHBOARD, new EntityField[]{CREATED_TIME, TITLE});
     }
 
 }

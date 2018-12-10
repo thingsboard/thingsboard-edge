@@ -141,7 +141,7 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroups/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroup> getEntityGroupsByType(
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
 
@@ -260,6 +260,10 @@ public class EntityGroupController extends BaseController {
                 result = deviceService.findGroupDevice(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.USER) {
                 result = userService.findGroupUser(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.ENTITY_VIEW) {
+                result = entityViewService.findGroupEntityView(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.DASHBOARD) {
+                result = dashboardService.findGroupDashboard(getTenantId(), entityGroupId, entityId);
             }
             return checkNotNull(result);
         } catch (Exception e) {
@@ -294,6 +298,10 @@ public class EntityGroupController extends BaseController {
                 asyncResult = deviceService.findDevicesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.USER) {
                 asyncResult = userService.findUsersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.ENTITY_VIEW) {
+                asyncResult = entityViewService.findEntityViewsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.DASHBOARD) {
+                asyncResult = dashboardService.findDashboardsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             }
             checkNotNull(asyncResult);
             if (asyncResult != null) {
@@ -310,7 +318,7 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroups/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupId> getEntityGroupsForEntity(
-            @ApiParam(value = "Entity type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER") @PathVariable("entityType") String strEntityType,
+            @ApiParam(value = "Entity type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("entityType") String strEntityType,
             @PathVariable("entityId") String strEntityId) throws ThingsboardException {
         checkParameter("entityType", strEntityType);
         checkParameter("entityId", strEntityId);

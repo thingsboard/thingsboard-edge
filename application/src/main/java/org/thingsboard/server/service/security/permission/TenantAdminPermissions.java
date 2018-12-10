@@ -77,6 +77,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.DEVICE_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.ASSET_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.USER_GROUP, tenantEntityGroupPermissionChecker);
+        put(Resource.ENTITY_VIEW_GROUP, tenantEntityGroupPermissionChecker);
+        put(Resource.DASHBOARD_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
     }
 

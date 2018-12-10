@@ -44,7 +44,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName {
 
     public static final String GROUP_ALL_NAME = "All";
 
-    @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER")
+    @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD")
     private EntityType type;
 
     @ApiModelProperty(required = true)

@@ -144,7 +144,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         assetValidator.validate(asset, Asset::getTenantId);
         Asset savedAsset = assetDao.save(asset.getTenantId(), asset);
         if (asset.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getTenantId(), savedAsset.getId());
+            entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
         }
         return savedAsset;
     }
@@ -314,42 +314,20 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     class AssetViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
 
         private final TenantId tenantId;
-        private final CustomerId customerId;
 
         AssetViewFunction(TenantId tenantId) {
-            this(tenantId, null);
-        }
-
-        AssetViewFunction(TenantId tenantId, CustomerId customerId) {
             this.tenantId = tenantId;
-            this.customerId = customerId;
         }
 
         @Override
         public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
             Asset asset = findAssetById(tenantId, new AssetId(entityView.getId().getId()));
-            if (this.customerId != null && !this.customerId.isNullUid()
-                    && !this.customerId.equals(asset.getCustomerId())) {
-                entityView.setSkipEntity(true);
-                return entityView;
-            }
             entityView.put(EntityField.NAME.name().toLowerCase(), asset.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();
                 switch (field) {
                     case TYPE:
                         entityView.put(key, asset.getType());
-                        break;
-                    case ASSIGNED_CUSTOMER:
-                        String assignedCustomerName = "";
-                        if(!asset.getCustomerId().isNullUid()) {
-                            try {
-                                assignedCustomerName = entityService.fetchEntityNameAsync(tenantId, asset.getCustomerId()).get();
-                            } catch (InterruptedException | ExecutionException e) {
-                                log.error("Failed to fetch assigned customer name!", e);
-                            }
-                        }
-                        entityView.put(key, assignedCustomerName);
                         break;
                 }
             }

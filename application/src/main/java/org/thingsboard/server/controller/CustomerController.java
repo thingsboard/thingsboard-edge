@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
 
@@ -106,14 +107,20 @@ public class CustomerController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
     public Customer saveCustomer(@RequestBody Customer customer) throws ThingsboardException {
         try {
             customer.setTenantId(getCurrentUser().getTenantId());
 
+
             Operation operation = customer.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                customer.setParentCustomerId(getCurrentUser().getCustomerId());
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, operation, customer.getId(), customer);
 
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));

@@ -43,18 +43,14 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.customer.CustomerDao;
@@ -71,13 +67,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_VIEW_CACHE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validatePageLink;
-import static org.thingsboard.server.dao.service.Validator.validateString;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 /**
  * Created by Victor Basanets on 8/28/2017.
@@ -112,6 +108,9 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         log.trace("Executing save entity view [{}]", entityView);
         entityViewValidator.validate(entityView, EntityView::getTenantId);
         EntityView savedEntityView = entityViewDao.save(entityView.getTenantId(), entityView);
+        if (entityView.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
+        }
         return savedEntityView;
     }
 
@@ -295,6 +294,46 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                     entityViewTypes.sort(Comparator.comparing(EntitySubtype::getType));
                     return entityViewTypes;
                 });
+    }
+
+    @Override
+    public ShortEntityView findGroupEntityView(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupEntityView, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new EntityViewViewFunction(tenantId));
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<ShortEntityView>> findEntityViewsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findEntityViewsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new EntityViewViewFunction(tenantId));
+    }
+
+    class EntityViewViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
+
+        private final TenantId tenantId;
+
+        EntityViewViewFunction(TenantId tenantId) {
+            this.tenantId = tenantId;
+        }
+
+        @Override
+        public ShortEntityView apply(ShortEntityView shortEntityView, List<EntityField> entityFields) {
+            EntityView entityView = findEntityViewById(tenantId, new EntityViewId(shortEntityView.getId().getId()));
+            shortEntityView.put(EntityField.NAME.name().toLowerCase(), entityView.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TYPE:
+                        shortEntityView.put(key, entityView.getType());
+                        break;
+                }
+            }
+            return shortEntityView;
+        }
     }
 
     private DataValidator<EntityView> entityViewValidator =

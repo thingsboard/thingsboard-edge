@@ -33,14 +33,14 @@ package org.thingsboard.server.dao.entityview;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
 
@@ -80,4 +80,9 @@ public interface EntityViewService {
     void deleteEntityViewsByTenantId(TenantId tenantId);
 
     ListenableFuture<List<EntitySubtype>> findEntityViewTypesByTenantId(TenantId tenantId);
+
+    ShortEntityView findGroupEntityView(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
+
+    ListenableFuture<TimePageData<ShortEntityView>> findEntityViewsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+
 }

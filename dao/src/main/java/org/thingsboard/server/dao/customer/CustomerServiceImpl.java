@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityField;
@@ -131,7 +132,14 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         customerValidator.validate(customer, Customer::getTenantId);
         Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
         if (customer.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getTenantId(), savedCustomer.getId());
+            entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
+            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
+            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
+            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
+            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
+            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
+            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
+            //TODO (Security): // create default roles and user groups
         }
         dashboardService.updateCustomerDashboards(savedCustomer.getTenantId(), savedCustomer.getId());
         return savedCustomer;
@@ -151,8 +159,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
-        deleteEntityRelations(tenantId, customerId);
         customerDao.removeById(tenantId, customerId.getId());
+        deleteEntityGroups(tenantId, customerId);
+        deleteEntityRelations(tenantId, customerId);
     }
 
     @Override
