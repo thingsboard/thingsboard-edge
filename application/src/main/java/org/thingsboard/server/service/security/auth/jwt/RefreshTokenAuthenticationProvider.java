@@ -42,13 +42,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.RefreshAuthenticationToken;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -56,6 +54,8 @@ import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.model.token.RawAccessJwtToken;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -63,11 +63,14 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
     private final JwtTokenFactory tokenFactory;
     private final UserService userService;
+    private final EntityGroupService entityGroupService;
     private final CustomerService customerService;
 
     @Autowired
-    public RefreshTokenAuthenticationProvider(final UserService userService, final CustomerService customerService, final JwtTokenFactory tokenFactory) {
+    public RefreshTokenAuthenticationProvider(final UserService userService, final EntityGroupService entityGroupService,
+                                              final CustomerService customerService, final JwtTokenFactory tokenFactory) {
         this.userService = userService;
+        this.entityGroupService = entityGroupService;
         this.customerService = customerService;
         this.tokenFactory = tokenFactory;
     }
@@ -107,7 +110,14 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
 
-        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal);
+        List<EntityGroupId> userGroupIds;
+        try {
+            userGroupIds = entityGroupService.findEntityGroupsForEntity(systemId, user.getId()).get();
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user groups", e);
+        }
+
+        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, new HashSet<>(userGroupIds));
 
         return securityUser;
     }
@@ -139,7 +149,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId);
 
-        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal);
+        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, new HashSet<>());
 
         return securityUser;
     }

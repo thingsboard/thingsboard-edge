@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -68,6 +69,8 @@ import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -126,7 +129,8 @@ public class UserController extends BaseController {
             User user = checkUserId(userId, Operation.READ);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
-            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal);
+            List<EntityGroupId> userGroupIds = entityGroupService.findEntityGroupsForEntity(authUser.getTenantId(), user.getId()).get();
+            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, new HashSet<>(userGroupIds));
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
             JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
             ObjectMapper objectMapper = new ObjectMapper();

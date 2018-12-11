@@ -56,16 +56,13 @@ import org.springframework.web.client.ResponseExtractor;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -79,10 +76,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -100,6 +94,9 @@ public class DefaultReportService implements ReportService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     @Autowired
     private CustomerService customerService;
@@ -250,7 +247,13 @@ public class DefaultReportService implements ReportService {
         User user = userService.findUserById(tenantId, userId);
         UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, userId);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-        SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal);
+        List<EntityGroupId> userGroupIds;
+        try {
+            userGroupIds = entityGroupService.findEntityGroupsForEntity(tenantId, user.getId()).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get user groups", e);
+        }
+        SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, new HashSet<>(userGroupIds));
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 
@@ -276,7 +279,7 @@ public class DefaultReportService implements ReportService {
         user.setFirstName("Public");
         user.setLastName("Public");
 
-        SecurityUser securityUser = new SecurityUser(user, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId));
+        SecurityUser securityUser = new SecurityUser(user, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId), new HashSet<>());
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 

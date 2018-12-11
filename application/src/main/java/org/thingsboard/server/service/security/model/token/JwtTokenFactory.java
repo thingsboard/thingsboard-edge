@@ -38,25 +38,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.JwtSettings;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenFactory {
 
     private static final String SCOPES = "scopes";
+    private static final String USER_GROUP_IDS = "userGroupIds";
     private static final String USER_ID = "userId";
     private static final String FIRST_NAME = "firstName";
     private static final String LAST_NAME = "lastName";
@@ -97,6 +93,7 @@ public class JwtTokenFactory {
         if (securityUser.getCustomerId() != null) {
             claims.put(CUSTOMER_ID, securityUser.getCustomerId().getId().toString());
         }
+        claims.put(USER_GROUP_IDS, securityUser.getUserGroupIds().stream().map(UUIDBased::getId).map(UUID::toString).collect(Collectors.toList()));
 
         ZonedDateTime currentTime = ZonedDateTime.now();
 
@@ -119,7 +116,6 @@ public class JwtTokenFactory {
         if (scopes == null || scopes.isEmpty()) {
             throw new IllegalArgumentException("JWT Token doesn't have any scopes");
         }
-
         SecurityUser securityUser = new SecurityUser(new UserId(UUID.fromString(claims.get(USER_ID, String.class))));
         securityUser.setEmail(subject);
         securityUser.setAuthority(Authority.parse(scopes.get(0)));
@@ -137,6 +133,15 @@ public class JwtTokenFactory {
         if (customerId != null) {
             securityUser.setCustomerId(new CustomerId(UUID.fromString(customerId)));
         }
+        List<String> strUserGroupIds = claims.get(USER_GROUP_IDS, List.class);
+        Set<EntityGroupId> userGroupIds = new HashSet<>();
+        if (strUserGroupIds != null) {
+            strUserGroupIds.forEach(strUserGroupId -> {
+                EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
+                userGroupIds.add(userGroupId);
+            });
+        }
+        securityUser.setUserGroupIds(userGroupIds);
 
         return securityUser;
     }

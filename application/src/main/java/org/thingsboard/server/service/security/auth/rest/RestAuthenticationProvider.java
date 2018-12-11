@@ -44,17 +44,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -62,11 +62,14 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
     private final BCryptPasswordEncoder encoder;
     private final UserService userService;
+    private final EntityGroupService entityGroupService;
     private final CustomerService customerService;
 
     @Autowired
-    public RestAuthenticationProvider(final UserService userService, final CustomerService customerService, final BCryptPasswordEncoder encoder) {
+    public RestAuthenticationProvider(final UserService userService, final EntityGroupService entityGroupService,
+                                      final CustomerService customerService, final BCryptPasswordEncoder encoder) {
         this.userService = userService;
+        this.entityGroupService = entityGroupService;
         this.customerService = customerService;
         this.encoder = encoder;
     }
@@ -112,7 +115,13 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
         if (user.getAuthority() == null) throw new InsufficientAuthenticationException("User has no authority assigned");
 
-        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal);
+        List<EntityGroupId> userGroupIds;
+        try {
+            userGroupIds = entityGroupService.findEntityGroupsForEntity(TenantId.SYS_TENANT_ID, user.getId()).get();
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user groups", e);
+        }
+        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, new HashSet<>(userGroupIds));
 
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }
@@ -139,7 +148,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         user.setFirstName("Public");
         user.setLastName("Public");
 
-        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal);
+        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, new HashSet<>());
 
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }

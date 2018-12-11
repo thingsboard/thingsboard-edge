@@ -33,9 +33,11 @@ package org.thingsboard.server.service.security.model;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.UserId;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,6 +48,7 @@ public class SecurityUser extends User {
     private Collection<GrantedAuthority> authorities;
     private boolean enabled;
     private UserPrincipal userPrincipal;
+    private Set<EntityGroupId> userGroupIds;
 
     public SecurityUser() {
         super();
@@ -55,10 +58,11 @@ public class SecurityUser extends User {
         super(id);
     }
 
-    public SecurityUser(User user, boolean enabled, UserPrincipal userPrincipal) {
+    public SecurityUser(User user, boolean enabled, UserPrincipal userPrincipal, Set<EntityGroupId> userGroupIds) {
         super(user);
         this.enabled = enabled;
         this.userPrincipal = userPrincipal;
+        this.userGroupIds = userGroupIds;
     }
 
     public Collection<GrantedAuthority> getAuthorities() {
@@ -84,6 +88,14 @@ public class SecurityUser extends User {
 
     public void setUserPrincipal(UserPrincipal userPrincipal) {
         this.userPrincipal = userPrincipal;
+    }
+
+    public void setUserGroupIds(Set<EntityGroupId> userGroupIds) {
+        this.userGroupIds = userGroupIds;
+    }
+
+    public Set<EntityGroupId> getUserGroupIds() {
+        return userGroupIds;
     }
 
 }
