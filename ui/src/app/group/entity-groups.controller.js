@@ -220,6 +220,8 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
             targetState = 'home.userGroups.userGroup';
         } else if (entityGroup.type == types.entityType.entityView) {
             targetState = 'home.entityViewGroups.entityViewGroup';
+        } else if (entityGroup.type == types.entityType.dashboard) {
+            targetState = 'home.dashboardGroups.dashboardGroup';
         }
         if (targetState) {
             $state.go(targetState, {entityGroupId: entityGroup.id.id});

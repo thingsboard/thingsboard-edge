@@ -42,7 +42,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             url: '/customerGroups',
             params: {'groupType': types.entityType.customer, 'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: entityGroupsTemplate,
@@ -62,7 +62,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             url: '/:entityGroupId',
             reloadOnSearch: false,
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: entityGroupTemplate,
@@ -242,7 +242,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.entity-view-groups'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "domain", "label": "entity-group.entity-view-groups"}'
+                label: '{"icon": "view_quilt", "label": "entity-group.entity-view-groups"}'
             }
         })
         .state('home.entityViewGroups.entityViewGroup', {
@@ -269,7 +269,53 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.entity-view-group'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+                label: '{"icon": "view_quilt", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        }).state('home.dashboardGroups', {
+            url: '/dashboardGroups',
+            params: {'groupType': types.entityType.dashboard, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controller: 'EntityGroupsController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.dashboard-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "entity-group.dashboard-groups"}'
+            }
+        })
+        .state('home.dashboardGroups.dashboardGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup:
+                /*@ngInject*/
+                    function($stateParams, $q, entityGroupService, dashboardGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, dashboardGroupConfig);
+                    }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.dashboard-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         });
 

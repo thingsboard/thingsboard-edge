@@ -117,10 +117,10 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/roles", params = {"limit"}, method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/roles", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Role> getTenantRoles(
+    public TextPageData<Role> getRoles(
             @RequestParam int limit,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
@@ -131,9 +131,17 @@ public class RoleController extends BaseController {
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
 
             if (type != null && type.trim().length() > 0) {
-                return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, type));
+                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                    return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, type));
+                } else {
+                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), type, pageLink));
+                }
             } else {
-                return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
+                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                    return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
+                } else {
+                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
+                }
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -166,7 +174,7 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/types", method = RequestMethod.GET)
     @ResponseBody
     public List<EntitySubtype> getRoleTypes() throws ThingsboardException {

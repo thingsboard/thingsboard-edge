@@ -69,6 +69,7 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
         case types.entityType.user:
         case types.entityType.customer:
         case types.entityType.asset:
+        case types.entityType.dashboard:
             vm.columnTypes.serverAttribute = types.entityGroup.columnType.serverAttribute;
             vm.columnTypes.timeseries = types.entityGroup.columnType.timeseries;
             vm.columnTypes.entityField = types.entityGroup.columnType.entityField;
@@ -105,6 +106,9 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
         case types.entityType.entityView:
             vm.entityField.type = types.entityGroup.entityField.type;
             vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
+            break;
+        case types.entityType.dashboard:
+            vm.entityField.title = types.entityGroup.entityField.title;
             break;
     }
 

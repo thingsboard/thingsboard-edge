@@ -41,7 +41,7 @@ export default function RoleRoutes($stateProvider, types) {
             url: '/roles',
             params: {'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: rolesTemplate,

@@ -352,7 +352,7 @@
                     </md-button>
                 </md-fab-actions>
             </md-fab-speed-dial>
-            <md-button ng-if="(vm.isTenantAdmin() || vm.isSystemAdmin()) && !forceFullscreen" ng-show="vm.isEdit && !vm.isAddingWidget && !$root.loading" ng-disabled="$root.loading"
+            <md-button ng-if="vm.canEdit() && !forceFullscreen" ng-show="vm.isEdit && !vm.isAddingWidget && !$root.loading" ng-disabled="$root.loading"
                        class="tb-btn-footer md-accent md-hue-2 md-fab"
                        aria-label="{{ 'action.apply' | translate }}"
                        ng-click="vm.saveDashboard()">
@@ -362,7 +362,7 @@
                 <ng-md-icon icon="done"></ng-md-icon>
             </md-button>
             <md-button ng-show="!vm.isAddingWidget && !$root.loading"
-                       ng-if="(vm.isTenantAdmin() || vm.isSystemAdmin()) && !forceFullscreen" ng-disabled="$root.loading"
+                       ng-if="vm.canEdit() && !forceFullscreen" ng-disabled="$root.loading"
                        class="tb-btn-footer md-accent md-hue-2 md-fab"
                        aria-label="{{ 'action.edit-mode' | translate }}"
                        ng-click="vm.toggleDashboardEditMode()">

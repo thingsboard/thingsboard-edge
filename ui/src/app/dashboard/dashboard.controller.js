@@ -193,6 +193,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.isPublicUser = isPublicUser;
     vm.isTenantAdmin = isTenantAdmin;
     vm.isSystemAdmin = isSystemAdmin;
+    vm.canEdit = canEdit;
     vm.dashboardConfigurationError = dashboardConfigurationError;
     vm.showDashboardToolbar = showDashboardToolbar;
     vm.onAddWidgetClosed = onAddWidgetClosed;
@@ -453,12 +454,20 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         return vm.user.isPublic === true;
     }
 
+    function isCustomerUser() {
+        return vm.user.authority === 'CUSTOMER_USER';
+    }
+
     function isTenantAdmin() {
         return vm.user.authority === 'TENANT_ADMIN';
     }
 
     function isSystemAdmin() {
         return vm.user.authority === 'SYS_ADMIN';
+    }
+
+    function canEdit() {
+        return isTenantAdmin() || isCustomerUser();
     }
 
     function dashboardConfigurationError() {

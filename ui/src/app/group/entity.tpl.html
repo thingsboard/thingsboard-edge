@@ -92,4 +92,15 @@
           hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
           hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
 </tb-entity-view>
-
+<tb-dashboard-details  ng-if="vm.entityType == vm.types.entityType.dashboard"
+                 dashboard="vm.entity"
+                 is-edit="vm.isEdit"
+                 dashboard-scope="vm.entityGroupConfig.entityScope"
+                 the-form="vm.theForm"
+                 on-delete-dashboard="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
+                 on-open-dashboard="vm.entityGroupConfig.onOpenDashboard(event, vm.entity)"
+                 on-export-dashboard="vm.entityGroupConfig.onExportDashboard(event, vm.entity)"
+                 hide-open="false"
+                 hide-assignment-actions="true"
+                 hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
+</tb-dashboard-details>

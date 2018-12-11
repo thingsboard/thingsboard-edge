@@ -191,5 +191,32 @@ export default function DashboardRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "customer.dashboard"}'
             }
+        })
+        .state('home.dashboardGroups.dashboardGroup.dashboard', {
+            url: '/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller, entityGroup) {
+                            var ctrl = $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            data: {
+                widgetEditMode: false,
+                searchEnabled: false,
+                pageTitle: 'dashboard.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
+            }
         });
 }

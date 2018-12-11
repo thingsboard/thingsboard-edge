@@ -93,7 +93,7 @@ function EntityDetailsSidenavController($scope, $window, types, userService, ent
     }
 
     function loadEntity() {
-        entityService.getEntity(vm.entityType, vm.entityId).then(
+        entityService.getEntity(vm.entityType, vm.entityId, {loadEntityDetails: true}).then(
             function success(entity) {
                 vm.entity = entity;
                 vm.editingEntity = angular.copy(vm.entity);

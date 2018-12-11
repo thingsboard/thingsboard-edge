@@ -30,24 +30,27 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
+<md-button ng-click="onOpenDashboard({event: $event})"
+           ng-show="!hideOpen && !isEdit"
+           class="md-raised md-primary">{{ 'dashboard.open-dashboard' | translate }}</md-button>
 <md-button ng-click="onExportDashboard({event: $event})"
-		   ng-show="!isEdit && dashboardScope === 'tenant'"
+		   ng-show="!isEdit"
 		   class="md-raised md-primary">{{ 'dashboard.export' | translate }}</md-button>
 <md-button ng-click="onMakePublic({event: $event})"
-		   ng-show="!isEdit && dashboardScope === 'tenant' && !dashboard.publicCustomerId"
+		   ng-show="!hideAssignmentActions && !isEdit && dashboardScope === 'tenant' && !dashboard.publicCustomerId"
 		   class="md-raised md-primary">{{ 'dashboard.make-public' | translate }}</md-button>
 <md-button ng-click="onMakePrivate({event: $event})"
-		   ng-show="!isEdit && ((dashboardScope === 'tenant' && dashboard.publicCustomerId ||
+		   ng-show="!hideAssignmentActions && !isEdit && ((dashboardScope === 'tenant' && dashboard.publicCustomerId ||
 		   						dashboardScope === 'customer' && customerId == dashboard.publicCustomerId))"
 		   class="md-raised md-primary">{{ 'dashboard.make-private' | translate }}</md-button>
 <md-button ng-click="onManageAssignedCustomers({event: $event})"
-		   ng-show="!isEdit && dashboardScope === 'tenant'"
+		   ng-show="!hideAssignmentActions && !isEdit && dashboardScope === 'tenant'"
 		   class="md-raised md-primary">{{ 'dashboard.manage-assigned-customers' | translate }}</md-button>
 <md-button ng-click="onUnassignFromCustomer({event: $event})"
-		   ng-show="!isEdit && dashboardScope === 'customer' && customerId != dashboard.publicCustomerId"
+		   ng-show="!hideAssignmentActions && !isEdit && dashboardScope === 'customer' && customerId != dashboard.publicCustomerId"
 		   class="md-raised md-primary">{{ 'dashboard.unassign-from-customer' | translate }}</md-button>
 <md-button ng-click="onDeleteDashboard({event: $event})"
-		   ng-show="!isEdit && dashboardScope === 'tenant'"
+		   ng-show="!hideDelete && !isEdit && dashboardScope === 'tenant'"
 		   class="md-raised md-primary">{{ 'dashboard.delete' | translate }}</md-button>
 <md-content class="md-padding" layout="column">
 	<md-input-container class="md-block"

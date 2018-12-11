@@ -719,7 +719,16 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-dashboards',
                     nameStartsWith: 'entity.dashboard-name-starts-with',
                     details: 'dashboard.dashboard-details',
-                    add: 'dashboard.add'
+                    add: 'dashboard.add',
+                    noEntities: 'dashboard.no-dashboards-text',
+                    selectedEntities: 'dashboard.selected-dashboards',
+                    search: 'dashboard.search',
+                    selectGroupToAdd: 'dashboard.select-group-to-add',
+                    selectGroupToMove: 'dashboard.select-group-to-move',
+                    removeFromGroup: 'dashboard.remove-dashboards-from-group',
+                    group: 'dashboard.group',
+                    groupList: 'dashboard.list-of-groups',
+                    groupNameStartsWith: 'dashboard.group-name-starts-with'
                 },
                 "ALARM": {
                     type: 'entity.type-alarm',

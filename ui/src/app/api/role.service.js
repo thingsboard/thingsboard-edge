@@ -40,7 +40,7 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
     var service = {
         deleteRole: deleteRole,
         getRole: getRole,
-        getTenantRoles: getTenantRoles,
+        getRoles: getRoles,
         saveRole: saveRole,
         getRoleAttributes: getRoleAttributes,
         subscribeForRoleAttributes: subscribeForRoleAttributes,
@@ -51,9 +51,9 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
 
     return service;
 
-    function getTenantRoles(pageLink, config, type) {
+    function getRoles(pageLink, config, type) {
         var deferred = $q.defer();
-        var url = '/api/tenant/roles?limit=' + pageLink.limit;
+        var url = '/api/roles?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
             url += '&textSearch=' + pageLink.textSearch;
         }

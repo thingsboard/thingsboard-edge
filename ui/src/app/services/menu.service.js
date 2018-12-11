@@ -88,6 +88,15 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         pages: []
     };
 
+    var dashboardGroups = {
+        name: 'entity-group.dashboard-groups',
+        type: 'toggle',
+        state: 'home.dashboardGroups',
+        height: '0px',
+        icon: 'dashboard',
+        pages: []
+    };
+
     var tenantAdminSettingHomeSection = {
         name: 'white-labeling.white-labeling',
         places: []
@@ -401,10 +410,10 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             state: 'home.roles',
                             icon: 'security'
                         },
+                        userGroups,
                         customerGroups,
                         assetGroups,
                         deviceGroups,
-                        userGroups,
                         entityViewGroups,
                         {
                             name: 'widget.widget-library',
@@ -412,12 +421,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             state: 'home.widgets-bundles',
                             icon: 'now_widgets'
                         },
-                        {
-                            name: 'dashboard.dashboards',
-                            type: 'link',
-                            state: 'home.dashboards',
-                            icon: 'dashboards'
-                        },
+                        dashboardGroups,
                         {
                             name: 'scheduler.scheduler',
                             type: 'link',
@@ -470,6 +474,17 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     name: 'role.roles',
                                     icon: 'security',
                                     state: 'home.roles'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'user.management',
+                            places: [
+                                {
+                                    name: 'user.users',
+                                    icon: 'supervisor_account',
+                                    //state: 'home.customers',
+                                    state: 'home.userGroups'
                                 }
                             ]
                         },
@@ -528,7 +543,8 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     {
                                         name: 'dashboard.dashboards',
                                         icon: 'dashboard',
-                                        state: 'home.dashboards'
+                                        //state: 'home.dashboards',
+                                        state: 'home.dashboardGroups'
                                     }
                                 ]
                             },
@@ -572,6 +588,18 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             icon: 'home'
                         },
                         {
+                            name: 'role.roles',
+                            type: 'link',
+                            state: 'home.roles',
+                            icon: 'security'
+                        },
+                        userGroups,
+                        customerGroups,
+                        assetGroups,
+                        deviceGroups,
+                        entityViewGroups,
+                        dashboardGroups,
+                        /*{
                             name: 'asset.assets',
                             type: 'link',
                             state: 'home.assets',
@@ -594,7 +622,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                             type: 'link',
                             state: 'home.dashboards',
                             icon: 'dashboard'
-                        },
+                        },*/
                         {
                             name: 'scheduler.scheduler',
                             type: 'link',
@@ -606,6 +634,82 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
 
                     homeSections =
                         [{
+                            name: 'role.management',
+                            places: [
+                                {
+                                    name: 'role.roles',
+                                    icon: 'security',
+                                    state: 'home.roles'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'user.management',
+                            places: [
+                                {
+                                    name: 'user.users',
+                                    icon: 'supervisor_account',
+                                    //state: 'home.customers',
+                                    state: 'home.userGroups'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'customer.management',
+                            places: [
+                                {
+                                    name: 'customer.customers',
+                                    icon: 'supervisor_account',
+                                    //state: 'home.customers',
+                                    state: 'home.customerGroups'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'asset.management',
+                            places: [
+                                {
+                                    name: 'asset.assets',
+                                    icon: 'domain',
+                                    //state: 'home.assets'
+                                    state: 'home.assetGroups'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'device.management',
+                            places: [
+                                {
+                                    name: 'device.devices',
+                                    icon: 'devices_other',
+                                    //state: 'home.devices',
+                                    state: 'home.deviceGroups'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'entity-view.management',
+                            places: [
+                                {
+                                    name: 'entity-view.entity-views',
+                                    icon: 'view_quilt',
+                                    //state: 'home.entityViews',
+                                    state: 'home.entityViewGroups'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'dashboard.management',
+                            places: [
+                                {
+                                    name: 'dashboard.dashboards',
+                                    icon: 'dashboard',
+                                    //state: 'home.dashboards',
+                                    state: 'home.dashboardGroups'
+                                }
+                            ]
+                        },
+                        /*{
                             name: 'asset.view-assets',
                             places: [
                                 {
@@ -644,7 +748,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     state: 'home.dashboards'
                                 }
                             ]
-                        },
+                        },*/
                         {
                             name: 'scheduler.management',
                             places: [
@@ -668,7 +772,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                 }
                 checkWhiteLabelingPermissions();
             }
-            if (authority === 'TENANT_ADMIN') {
+            if (authority === 'TENANT_ADMIN' || authority === 'CUSTOMER_USER') {
                 reloadGroups().then(() => {
                     onMenuReady();
                 });
@@ -695,6 +799,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         tasks.push(loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other'));
         tasks.push(loadGroups(userGroups, types.entityType.user, 'home.userGroups.userGroup', 'supervisor_account'));
         tasks.push(loadGroups(entityViewGroups, types.entityType.entityView, 'home.entityViewGroups.entityViewGroup', 'view_quilt'));
+        tasks.push(loadGroups(dashboardGroups, types.entityType.dashboard, 'home.dashboardGroups.dashboardGroup', 'dashboard'));
         return $q.all(tasks);
     }
 
