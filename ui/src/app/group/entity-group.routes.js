@@ -196,7 +196,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.user-groups'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "domain", "label": "entity-group.user-groups"}'
+                label: '{"icon": "supervisor_account", "label": "entity-group.user-groups"}'
             }
         })
         .state('home.userGroups.userGroup', {
@@ -221,6 +221,52 @@ export default function EntityGroupRoutes($stateProvider, types) {
             data: {
                 searchEnabled: false,
                 pageTitle: 'entity-group.user-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        }).state('home.entityViewGroups', {
+            url: '/entityViewGroups',
+            params: {'groupType': types.entityType.entityView, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controller: 'EntityGroupsController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.entity-view-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "entity-group.entity-view-groups"}'
+            }
+        })
+        .state('home.entityViewGroups.entityViewGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup:
+                /*@ngInject*/
+                    function($stateParams, $q, entityGroupService, entityViewGroupConfig) {
+                        return constructGroupConfig($stateParams, $q, entityGroupService, entityViewGroupConfig);
+                    }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.entity-view-group'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'

@@ -709,7 +709,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         if (angular.isUndefined(settings.defaultPageSize)) {
             settings.defaultPageSize = 10;
         }
-        if (entityType == types.entityType.device || entityType == types.entityType.asset) {
+        if (entityType == types.entityType.device || entityType == types.entityType.asset || entityType == types.entityType.entityView) {
             if (angular.isUndefined(settings.enableAssignment)) {
                 settings.enableAssignment = true;
             }

@@ -957,6 +957,8 @@
         "user-group": "User group",
         "user-groups": "User groups",
         "customer-group": "Customer group",
+        "entity-view-groups": "Entity view groups",
+        "entity-view-group": "Entity view group",
         "fetch-more": "Fetch more",
         "column-type": {
             "column-type": "Column type",
@@ -1064,6 +1066,8 @@
         "assign-entity-views": "Assign entity views",
         "assign-entity-views-text": "Assign { count, plural, 1 {1 entityView} other {# entityViews} } to customer",
         "delete-entity-views": "Delete entity views",
+        "make-public": "Make entity view public",
+        "make-private": "Make entity view private",
         "unassign-from-customer": "Unassign from customer",
         "unassign-entity-views": "Unassign entity views",
         "unassign-entity-views-action-title": "Unassign { count, plural, 1 {1 entityView} other {# entityViews} } from customer",
@@ -1073,6 +1077,10 @@
         "delete-entity-views-title": "Are you sure you want to entity view { count, plural, 1 {1 entityView} other {# entityViews} }?",
         "delete-entity-views-action-title": "Delete { count, plural, 1 {1 entityView} other {# entityViews} }",
         "delete-entity-views-text": "Be careful, after the confirmation all selected entity views will be removed and all related data will become unrecoverable.",
+        "make-public-entity-view-title": "Are you sure you want to make the entity view '{{entityViewName}}' public?",
+        "make-public-entity-view-text": "After the confirmation the entity view and all its data will be made public and accessible by others.",
+        "make-private-entity-view-title": "Are you sure you want to make the entity view '{{entityViewName}}' private?",
+        "make-private-entity-view-text": "After the confirmation the entity view and all its data will be made private and won't be accessible by others.",
         "unassign-entity-view-title": "Are you sure you want to unassign the entity view '{{entityViewName}}'?",
         "unassign-entity-view-text": "After the confirmation the entity view will be unassigned and won't be accessible by the customer.",
         "unassign-entity-view": "Unassign entity view",
@@ -1115,7 +1123,15 @@
         "attributes-propagation": "Attributes propagation",
         "attributes-propagation-hint": "Entity View will automatically copy specified attributes from Target Entity each time you save or update this entity view. For performance reasons target entity attributes are not propagated to entity view on each attribute change. You can enable automatic propagation by configuring \"copy to view\" rule node in your rule chain and linking \"Post attributes\" and \"Attributes Updated\" messages to the new rule node.",
         "timeseries-data": "Timeseries data",
-        "timeseries-data-hint": "Configure timeseries data keys of the target entity that will be accessible to the entity view. This timeseries data is read-only."
+        "timeseries-data-hint": "Configure timeseries data keys of the target entity that will be accessible to the entity view. This timeseries data is read-only.",
+        "selected-entity-viewa": "{ count, plural, 1 {1 entity view} other {# entity views} } selected",
+        "search": "Search entity views",
+        "select-group-to-add": "Select target group to add selected entity views",
+        "select-group-to-move": "Select target group to move selected entity views",
+        "remove-entity-views-from-group": "Are you sure you want to remove { count, plural, 1 {1 entity view} other {# entity views} } from group '{entityGroup}'?",
+        "group": "Group of entity views",
+        "list-of-groups": "{ count, plural, 1 {One entity view group} other {List of # entity view groups} }",
+        "group-name-starts-with": "Entity view groups whose names start with '{{prefix}}'"
     },
     "event": {
         "events": "Events",
@@ -1978,6 +1994,7 @@
         "add-user-text": "Add new user",
         "no-users-text": "No users found",
         "user-details": "User details",
+        "delete-users": "Delete users",
         "delete-user-title": "Are you sure you want to delete the user '{{userEmail}}'?",
         "delete-user-text": "Be careful, after the confirmation the user and all related data will become unrecoverable.",
         "delete-users-title": "Are you sure you want to delete { count, plural, 1 {1 user} other {# users} }?",
@@ -2007,7 +2024,13 @@
         "search": "Search users",
         "details": "Details",
         "login-as-tenant-admin": "Login as Tenant Admin",
-        "login-as-customer-user": "Login as Customer User"
+        "login-as-customer-user": "Login as Customer User",
+        "select-group-to-add": "Select target group to add selected users",
+        "select-group-to-move": "Select target group to move selected users",
+        "remove-users-from-group": "Are you sure you want to remove { count, plural, 1 {1 user} other {# users} } from group '{entityGroup}'?",
+        "group": "Group of users",
+        "list-of-groups": "{ count, plural, 1 {One user group} other {List of # user groups} }",
+        "group-name-starts-with": "User groups whose names start with '{{prefix}}'"
     },
     "value": {
         "type": "Value type",

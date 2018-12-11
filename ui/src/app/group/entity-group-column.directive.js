@@ -74,6 +74,7 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
             vm.columnTypes.entityField = types.entityGroup.columnType.entityField;
             break;
         case types.entityType.device:
+        case types.entityType.entityView:
             vm.columnTypes = types.entityGroup.columnType;
             break;
     }
@@ -101,6 +102,7 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
             break;
         case types.entityType.asset:
         case types.entityType.device:
+        case types.entityType.entityView:
             vm.entityField.type = types.entityGroup.entityField.type;
             vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
             break;

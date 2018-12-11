@@ -75,7 +75,16 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         type: 'toggle',
         state: 'home.userGroups',
         height: '0px',
-        icon: 'domain',
+        icon: 'supervisor_account',
+        pages: []
+    };
+
+    var entityViewGroups = {
+        name: 'entity-group.entity-view-groups',
+        type: 'toggle',
+        state: 'home.entityViewGroups',
+        height: '0px',
+        icon: 'view_quilt',
         pages: []
     };
 
@@ -396,12 +405,7 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                         assetGroups,
                         deviceGroups,
                         userGroups,
-                        {
-                            name: 'entity-view.entity-views',
-                            type: 'link',
-                            state: 'home.entityViews',
-                            icon: 'view_quilt'
-                        },
+                        entityViewGroups,
                         {
                             name: 'widget.widget-library',
                             type: 'link',
@@ -508,7 +512,8 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
                                     {
                                         name: 'entity-view.entity-views',
                                         icon: 'view_quilt',
-                                        state: 'home.entityViews'
+                                        //state: 'home.entityViews',
+                                        state: 'home.entityViewGroups'
                                     }
                                 ]
                             },
@@ -688,7 +693,8 @@ function Menu(userService, $state, $rootScope, $q, types, entityGroupService) {
         tasks.push(loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account'));
         tasks.push(loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain'));
         tasks.push(loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other'));
-        tasks.push(loadGroups(userGroups, types.entityType.user, 'home.userGroups.userGroup', 'devices_other'));
+        tasks.push(loadGroups(userGroups, types.entityType.user, 'home.userGroups.userGroup', 'supervisor_account'));
+        tasks.push(loadGroups(entityViewGroups, types.entityType.entityView, 'home.entityViewGroups.entityViewGroup', 'view_quilt'));
         return $q.all(tasks);
     }
 

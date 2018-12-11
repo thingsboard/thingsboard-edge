@@ -608,6 +608,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "RULE_CHAIN": {
                     helpId: 'rulechains'
+                },
+                "ENTITY_VIEW": {
+                    helpId: 'entityViews'
                 }
             },
             aliasEntityType: {
@@ -652,7 +655,18 @@ export default angular.module('thingsboard.types', [])
                     type: 'entity.type-entity-view',
                     typePlural: 'entity.type-entity-views',
                     list: 'entity.list-of-entity-views',
-                    nameStartsWith: 'entity.entity-view-name-starts-with'
+                    nameStartsWith: 'entity.entity-view-name-starts-with',
+                    details: 'entity-view.entity-view-details',
+                    add: 'entity-view.add',
+                    noEntities: 'entity-view.no-entity-views-text',
+                    selectedEntities: 'entity-view.selected-entity-views',
+                    search: 'entity-view.search',
+                    selectGroupToAdd: 'entity-view.select-group-to-add',
+                    selectGroupToMove: 'entity-view.select-group-to-move',
+                    removeFromGroup: 'entity-view.remove-entity-views-from-group',
+                    group: 'entity-view.group',
+                    groupList: 'entity-view.list-of-groups',
+                    groupNameStartsWith: 'entity-view.group-name-starts-with'
                 },
                 "TENANT": {
                     type: 'entity.type-tenant',
@@ -691,7 +705,13 @@ export default angular.module('thingsboard.types', [])
                     add: 'user.add',
                     noEntities: 'user.no-users-text',
                     selectedEntities: 'user.selected-users',
-                    search: 'user.search'
+                    search: 'user.search',
+                    selectGroupToAdd: 'user.select-group-to-add',
+                    selectGroupToMove: 'user.select-group-to-move',
+                    removeFromGroup: 'user.remove-users-from-group',
+                    group: 'user.group',
+                    groupList: 'user.list-of-groups',
+                    groupNameStartsWith: 'user.group-name-starts-with'
                 },
                 "DASHBOARD": {
                     type: 'entity.type-dashboard',

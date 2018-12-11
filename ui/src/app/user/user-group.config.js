@@ -28,8 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
+
 /*@ngInject*/
-export default function UserGroupConfig($q, $translate, tbDialogs, utils, types, userService) {
+export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, toast, userService) {
 
     var service = {
         createConfig: createConfig
@@ -79,7 +82,7 @@ export default function UserGroupConfig($q, $translate, tbDialogs, utils, types,
                 return settings.enableDelete;
             },
             deleteEntityTitle: (entity) => {
-                return $translate.instant('user.delete-user-title', {userName: entity.name});
+                return $translate.instant('user.delete-user-title', {userEmail: entity.email});
             },
             deleteEntityContent: (/*entity*/) => {
                 return $translate.instant('user.delete-user-text');
@@ -92,10 +95,44 @@ export default function UserGroupConfig($q, $translate, tbDialogs, utils, types,
             }
         };
 
+        groupConfig.onDisplayActivationLink = (event, user) => {
+            userService.getActivationLink(user.id.id).then(
+                function success(activationLink) {
+                    openActivationLinkDialog(event, activationLink);
+                }
+            );
+        };
+
+        groupConfig.onResendActivation = (user) => {
+            userService.sendActivationEmail(user.email).then(function success() {
+                toast.showSuccess($translate.instant('user.activation-email-sent-message'));
+            });
+        };
+
+        groupConfig.onLoginAsUser = (user) => {
+            userService.loginAsUser(user.id.id);
+        };
+
         utils.groupConfigDefaults(groupConfig);
 
         deferred.resolve(groupConfig);
         return deferred.promise;
     }
+
+    function openActivationLinkDialog(event, activationLink) {
+        $mdDialog.show({
+            controller: 'ActivationLinkDialogController',
+            controllerAs: 'vm',
+            templateUrl: activationLinkDialogTemplate,
+            locals: {
+                activationLink: activationLink
+            },
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            multiple: true,
+            targetEvent: event
+        });
+    }
+
 
 }

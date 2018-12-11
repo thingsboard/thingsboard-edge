@@ -286,7 +286,7 @@ public abstract class BaseController {
         try {
             groupType = EntityType.valueOf(strGroupType);
         } catch (IllegalArgumentException e) {
-            throw new ThingsboardException("Unsupported entityGroup type '" + strGroupType + "'! Only 'CUSTOMER', 'ASSET' or 'DEVICE' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            throw new ThingsboardException("Unsupported entityGroup type '" + strGroupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return checkEntityGroupType(groupType);
     }
@@ -295,8 +295,10 @@ public abstract class BaseController {
         if (groupType == null) {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET && groupType != EntityType.DEVICE && groupType != EntityType.USER) {
-            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE' or 'USER' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET
+                && groupType != EntityType.DEVICE && groupType != EntityType.USER
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
     }
