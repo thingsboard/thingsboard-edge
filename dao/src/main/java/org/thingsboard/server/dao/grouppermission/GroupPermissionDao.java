@@ -46,4 +46,8 @@ public interface GroupPermissionDao extends Dao<GroupPermission> {
 
     List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupId(UUID tenantId, UUID userGroupId, TimePageLink pageLink);
 
+    List<GroupPermission> findGroupPermissionsByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, TimePageLink pageLink);
+
+    List<GroupPermission> findGroupPermissionsByTenantIdAndRoleId(UUID tenantId, UUID roleId, TimePageLink pageLink);
+
 }

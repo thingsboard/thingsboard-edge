@@ -65,23 +65,25 @@ import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 @Slf4j
 public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
 
+    @PartitionKey(value = 0)
     @Column(name = ID_PROPERTY)
     private UUID id;
 
-    @PartitionKey
+    @PartitionKey(value = 1)
     @Column(name = GROUP_PERMISSION_TENANT_ID_PROPERTY)
     private UUID tenantId;
-
-    @PartitionKey(value = 1)
-    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
-    private UUID roleId;
 
     @PartitionKey(value = 2)
     @Column(name = GROUP_PERMISSION_USER_GROUP_ID_PROPERTY)
     private UUID userGroupId;
 
+    @PartitionKey(value = 3)
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY)
     private UUID entityGroupId;
+
+    @PartitionKey(value = 4)
+    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
+    private UUID roleId;
 
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY, codec = EntityTypeCodec.class)
     private EntityType entityGroupType;

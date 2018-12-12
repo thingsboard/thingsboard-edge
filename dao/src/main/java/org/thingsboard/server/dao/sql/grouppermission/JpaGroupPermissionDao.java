@@ -73,10 +73,33 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
 
     @Override
     public List<GroupPermission> findGroupPermissionsByTenantId(UUID tenantId, TimePageLink pageLink) {
-        return findGroupPermissionsByTenantIdAndUserGroupId(tenantId, null, pageLink);
+        return findGroupPermissions(tenantId, null, null, null, pageLink);
     }
 
-    private Specification<GroupPermissionEntity> getEntityFieldsSpec(UUID tenantId, UUID userGroupId) {
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupId(UUID tenantId, UUID userGroupId, TimePageLink pageLink) {
+        return findGroupPermissions(tenantId, userGroupId, null, null, pageLink);
+    }
+
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, TimePageLink pageLink) {
+        return findGroupPermissions(tenantId, null, entityGroupId, null, pageLink);
+    }
+
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndRoleId(UUID tenantId, UUID roleId, TimePageLink pageLink) {
+        return findGroupPermissions(tenantId, null, null, roleId, pageLink);
+    }
+
+    private List<GroupPermission> findGroupPermissions(UUID tenantId, UUID userGroupId, UUID entityGroupId, UUID roleId, TimePageLink pageLink) {
+        Specification<GroupPermissionEntity> timeSearchSpec = JpaAbstractSearchTimeDao.getTimeSearchPageSpec(pageLink, "id");
+        Specification<GroupPermissionEntity> fieldsSpec = getEntityFieldsSpec(tenantId, userGroupId, entityGroupId, roleId);
+        Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = new PageRequest(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
+        return DaoUtil.convertDataList(groupPermissionRepository.findAll(where(timeSearchSpec).and(fieldsSpec), pageable).getContent());
+    }
+
+    private Specification<GroupPermissionEntity> getEntityFieldsSpec(UUID tenantId, UUID userGroupId, UUID entityGroupId, UUID roleId) {
         return (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (tenantId != null) {
@@ -87,16 +110,16 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
                 Predicate userGroupIdPredicate = criteriaBuilder.equal(root.get("userGroupId"), UUIDConverter.fromTimeUUID(userGroupId));
                 predicates.add(userGroupIdPredicate);
             }
+            if (entityGroupId != null) {
+                Predicate entityGroupIdPredicate = criteriaBuilder.equal(root.get("entityGroupId"), UUIDConverter.fromTimeUUID(entityGroupId));
+                predicates.add(entityGroupIdPredicate);
+            }
+            if (roleId != null) {
+                Predicate roleIdPredicate = criteriaBuilder.equal(root.get("roleId"), UUIDConverter.fromTimeUUID(roleId));
+                predicates.add(roleIdPredicate);
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[]{}));
         };
     }
 
-    @Override
-    public List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupId(UUID tenantId, UUID userGroupId, TimePageLink pageLink) {
-        Specification<GroupPermissionEntity> timeSearchSpec = JpaAbstractSearchTimeDao.getTimeSearchPageSpec(pageLink, "id");
-        Specification<GroupPermissionEntity> fieldsSpec = getEntityFieldsSpec(tenantId, userGroupId);
-        Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = new PageRequest(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
-        return DaoUtil.convertDataList(groupPermissionRepository.findAll(where(timeSearchSpec).and(fieldsSpec), pageable).getContent());
-    }
 }

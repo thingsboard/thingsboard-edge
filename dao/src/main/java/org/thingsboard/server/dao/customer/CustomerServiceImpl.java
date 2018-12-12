@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -104,6 +105,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private RoleService roleService;
 
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
@@ -153,15 +157,17 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (customer == null) {
             throw new IncorrectParameterException("Unable to delete non-existent customer.");
         }
+        //TODO (Security): // recursively delete subcustomers
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, customerId);
         dashboardService.unassignCustomerDashboards(tenantId, customerId);
         entityViewService.unassignCustomerEntityViews(customer.getTenantId(), customerId);
         assetService.unassignCustomerAssets(customer.getTenantId(), customerId);
         deviceService.unassignCustomerDevices(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
-        customerDao.removeById(tenantId, customerId.getId());
         deleteEntityGroups(tenantId, customerId);
         deleteEntityRelations(tenantId, customerId);
+        roleService.deleteRolesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
+        customerDao.removeById(tenantId, customerId.getId());
     }
 
     @Override

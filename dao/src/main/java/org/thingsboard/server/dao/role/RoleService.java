@@ -58,6 +58,8 @@ public interface RoleService {
 
     void deleteRolesByTenantId(TenantId tenantId);
 
+    void deleteRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
     TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 
     TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, TextPageLink pageLink);

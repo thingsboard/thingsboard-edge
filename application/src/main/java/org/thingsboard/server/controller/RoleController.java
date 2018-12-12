@@ -37,6 +37,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -109,6 +113,12 @@ public class RoleController extends BaseController {
         try {
             RoleId roleId = new RoleId(toUUID(strRoleId));
             Role role = checkRoleId(roleId, Operation.DELETE);
+
+            TimePageData<GroupPermission> groupPermissions =
+                    groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), role.getId(), new TimePageLink(1));
+            if (!groupPermissions.getData().isEmpty()) {
+                throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
+            }
             roleService.deleteRole(getTenantId(), roleId);
             logEntityAction(roleId, role, null, ActionType.DELETED, null, strRoleId);
         } catch (Exception e) {

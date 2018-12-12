@@ -69,14 +69,14 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Column(name = GROUP_PERMISSION_TENANT_ID_PROPERTY)
     private String tenantId;
 
-    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
-    private String roleId;
-
     @Column(name = GROUP_PERMISSION_USER_GROUP_ID_PROPERTY)
     private String userGroupId;
 
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY)
     private String entityGroupId;
+
+    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
+    private String roleId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY)

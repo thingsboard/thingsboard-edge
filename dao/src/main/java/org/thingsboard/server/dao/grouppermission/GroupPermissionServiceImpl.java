@@ -35,20 +35,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.GroupPermissionId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.group.EntityGroupDao;
+import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.TimePaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -59,6 +62,8 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_USER_GROUP_ID = "Incorrect userGroupId ";
+    public static final String INCORRECT_ENTITY_GROUP_ID = "Incorrect entityGroupId ";
+    public static final String INCORRECT_ROLE_ID = "Incorrect roleId ";
     public static final String INCORRECT_GROUP_PERMISSION_ID = "Incorrect groupPermissionId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
 
@@ -67,6 +72,12 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
 
     @Autowired
     private TenantDao tenantDao;
+
+    @Autowired
+    private EntityGroupDao entityGroupDao;
+
+    @Autowired
+    private RoleDao roleDao;
 
     @Override
     public GroupPermission saveGroupPermission(TenantId tenantId, GroupPermission groupPermission) {
@@ -84,8 +95,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
 
     @Override
     public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId, TimePageLink pageLink) {
-        log.trace("Executing findGroupPermissionByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        log.trace("Executing findGroupPermissionByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}], pageLink [{}]", tenantId, userGroupId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), pageLink);
         return new TimePageData<>(groupPermissions, pageLink);
@@ -97,6 +109,26 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
         return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
+    }
+
+    @Override
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findGroupPermissionByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}], pageLink [{}]", tenantId, entityGroupId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
+    }
+
+    @Override
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndRoleId(TenantId tenantId, RoleId roleId, TimePageLink pageLink) {
+        log.trace("Executing findGroupPermissionByTenantIdAndRuleId, tenantId [{}], ruleId [{}], pageLink [{}]", tenantId, roleId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(roleId, INCORRECT_ROLE_ID + roleId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndRoleId(tenantId.getId(), roleId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
     }
 
     @Override
@@ -118,7 +150,23 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public void deleteGroupPermissionsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteGroupPermissionsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantGroupPermissionRemover.removeEntities(tenantId);
+        tenantGroupPermissionRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteGroupPermissionsByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId) {
+        log.trace("Executing deleteGroupPermissionsByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
+        userGroupPermissionRemover.removeEntities(tenantId, userGroupId);
+    }
+
+    @Override
+    public void deleteGroupPermissionsByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing deleteGroupPermissionsByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        entityGroupPermissionRemover.removeEntities(tenantId, entityGroupId);
     }
 
     private DataValidator<GroupPermission> groupPermissionValidator =
@@ -145,39 +193,75 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                             throw new DataValidationException("Group Permission is referencing to non-existent tenant!");
                         }
                     }
+                    if (groupPermission.getUserGroupId() == null || groupPermission.getUserGroupId().isNullUid()) {
+                        throw new DataValidationException("Group Permission userGroupId should be specified!");
+                    } else {
+                        EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getUserGroupId().getId());
+                        if (entityGroup == null) {
+                            throw new DataValidationException("Group Permission is referencing to non-existent user group!");
+                        } else if (entityGroup.getType() != EntityType.USER) {
+                            throw new DataValidationException("Group Permission is referencing to user group with non user group type!");
+                        }
+                    }
+                    if (groupPermission.getRoleId() == null || groupPermission.getRoleId().isNullUid()) {
+                        throw new DataValidationException("Group Permission roleId should be specified!");
+                    } else {
+                        Role role = roleDao.findById(tenantId, groupPermission.getRoleId().getId());
+                        if (role == null) {
+                            throw new DataValidationException("Group Permission is referencing to non-existent role!");
+                        }
+                    }
+                    if (groupPermission.getEntityGroupId() == null) {
+                        groupPermission.setEntityGroupId(new EntityGroupId(EntityId.NULL_UUID));
+                    }
+
+                    if (!groupPermission.getEntityGroupId().isNullUid()) {
+                        EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getEntityGroupId().getId());
+                        if (entityGroup == null) {
+                            throw new DataValidationException("Group Permission is referencing to non-existent entity group!");
+                        }
+                        groupPermission.setEntityGroupType(entityGroup.getType());
+                    } else {
+                        groupPermission.setEntityGroupType(null);
+                    }
                 }
             };
 
-    private PaginatedRemover tenantGroupPermissionRemover = new PaginatedRemover();
-
-    private class PaginatedRemover {
-        public void removeEntities(TenantId tenantId) {
-            TimePageLink pageLink = new TimePageLink(100);
-            boolean hasNext = true;
-            while (hasNext) {
-                List<GroupPermission> entities = findEntities(tenantId, pageLink);
-                for (GroupPermission entity : entities) {
-                    removeEntity(tenantId, entity);
-                }
-                hasNext = entities.size() == pageLink.getLimit();
-                if (hasNext) {
-                    int index = entities.size() - 1;
-                    UUID idOffset = entities.get(index).getUuidId();
-                    pageLink.setIdOffset(idOffset);
-                }
-            }
-        }
-
-        protected List<GroupPermission> findEntities(TenantId tenantId, TimePageLink pageLink) {
+    private TimePaginatedRemover<TenantId, GroupPermission> tenantGroupPermissionRemover = new TimePaginatedRemover<TenantId, GroupPermission>() {
+        @Override
+        protected List<GroupPermission> findEntities(TenantId tenantId, TenantId id, TimePageLink pageLink) {
             return groupPermissionDao.findGroupPermissionsByTenantId(tenantId.getId(), pageLink);
         }
 
+        @Override
         protected void removeEntity(TenantId tenantId, GroupPermission entity) {
-            deleteGroupPermission(tenantId, new GroupPermissionId(entity.getUuidId()));
+            deleteGroupPermission(tenantId, entity.getId());
         }
-    }
+    };
 
-    ;
+    private TimePaginatedRemover<EntityGroupId, GroupPermission> userGroupPermissionRemover = new TimePaginatedRemover<EntityGroupId, GroupPermission>() {
+        @Override
+        protected List<GroupPermission> findEntities(TenantId tenantId, EntityGroupId userGroupId, TimePageLink pageLink) {
+            return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, GroupPermission entity) {
+            deleteGroupPermission(tenantId, entity.getId());
+        }
+    };
+
+    private TimePaginatedRemover<EntityGroupId, GroupPermission> entityGroupPermissionRemover = new TimePaginatedRemover<EntityGroupId, GroupPermission>() {
+        @Override
+        protected List<GroupPermission> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+            return groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, GroupPermission entity) {
+            deleteGroupPermission(tenantId, entity.getId());
+        }
+    };
 
 
 }

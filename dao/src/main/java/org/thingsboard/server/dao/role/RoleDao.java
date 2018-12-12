@@ -50,6 +50,8 @@ public interface RoleDao extends Dao<Role> {
 
     Optional<Role> findRoleByTenantIdAndName(UUID tenantId, String name);
 
+    Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(UUID tenantId, UUID customerId, String name);
+
     List<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink);
 
     List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, TextPageLink pageLink);

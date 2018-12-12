@@ -43,28 +43,7 @@ import java.util.List;
 @SqlDao
 public interface RoleRepository extends CrudRepository<RoleEntity, String> {
 
-    @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
-            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND r.id > :idOffset ORDER BY r.id")
-    List<RoleEntity> findByTenantId(@Param("tenantId") String tenantId,
-                                    @Param("textSearch") String textSearch,
-                                    @Param("idOffset") String idOffset,
-                                    Pageable pageable);
-
-    @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
-            "AND r.type = :type " +
-            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND r.id > :idOffset ORDER BY r.id")
-    List<RoleEntity> findByTenantIdAndType(@Param("tenantId") String tenantId,
-                                           @Param("type") RoleType type,
-                                           @Param("textSearch") String textSearch,
-                                           @Param("idOffset") String idOffset,
-                                           Pageable pageable);
-
-    RoleEntity findByTenantIdAndName(String tenantId, String name);
-
-    @Query("SELECT DISTINCT r.type FROM RoleEntity r WHERE r.tenantId = :tenantId")
-    List<String> findTenantRoleTypes(@Param("tenantId") String tenantId);
+    RoleEntity findByTenantIdAndCustomerIdAndName(String tenantId, String customerId, String name);
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId " +

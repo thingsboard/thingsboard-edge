@@ -137,6 +137,14 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
+    public void deleteRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerRoleRemover.removeEntities(tenantId, customerId);
+    }
+
+    @Override
     public TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
         log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -161,20 +169,36 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
                 @Override
                 protected void validateCreate(TenantId tenantId, Role role) {
-                    roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
-                            .ifPresent(e -> {
-                                throw new DataValidationException("Role with such name already exists!");
-                            });
+                    if (role.getCustomerId() == null || role.getCustomerId().isNullUid()) {
+                        roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
+                                .ifPresent(e -> {
+                                    throw new DataValidationException("Role with such name already exists!");
+                                });
+                    } else {
+                        roleDao.findRoleByByTenantIdAndCustomerIdAndName(role.getTenantId().getId(), role.getCustomerId().getId(), role.getName())
+                                .ifPresent(e -> {
+                                    throw new DataValidationException("Role with such name already exists!");
+                                });
+                    }
                 }
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Role role) {
-                    roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
-                            .ifPresent(e -> {
-                                if (!e.getUuidId().equals(role.getUuidId())) {
-                                    throw new DataValidationException("Role with such name already exists!");
-                                }
-                            });
+                    if (role.getCustomerId() == null || role.getCustomerId().isNullUid()) {
+                        roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
+                                .ifPresent(e -> {
+                                    if (!e.getUuidId().equals(role.getUuidId())) {
+                                        throw new DataValidationException("Role with such name already exists!");
+                                    }
+                                });
+                    } else {
+                        roleDao.findRoleByByTenantIdAndCustomerIdAndName(role.getTenantId().getId(), role.getCustomerId().getId(), role.getName())
+                                .ifPresent(e -> {
+                                    if (!e.getUuidId().equals(role.getUuidId())) {
+                                        throw new DataValidationException("Role with such name already exists!");
+                                    }
+                                });
+                    }
                 }
 
                 @Override
@@ -213,6 +237,20 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                 @Override
                 protected List<Role> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
                     return roleDao.findRolesByTenantId(id.getId(), pageLink);
+                }
+
+                @Override
+                protected void removeEntity(TenantId tenantId, Role entity) {
+                    deleteRole(tenantId, new RoleId(entity.getUuidId()));
+                }
+            };
+
+    private PaginatedRemover<CustomerId, Role> customerRoleRemover =
+            new PaginatedRemover<CustomerId, Role>() {
+
+                @Override
+                protected List<Role> findEntities(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
+                    return roleDao.findRolesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
                 }
 
                 @Override

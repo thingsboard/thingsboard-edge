@@ -68,7 +68,7 @@ public class CassandraGroupPermissionDao extends CassandraAbstractSearchTimeDao<
         log.trace("Try to find group permissions by tenant [{}] and pageLink [{}]", tenantId, pageLink);
         List<GroupPermissionEntity> entities = findPageWithTimeSearch(
                 new TenantId(tenantId),
-                "group_permission_by_tenant_id",
+                ModelConstants.GROUP_PERMISSION_BY_TENANT_ID_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY, tenantId)),
                 pageLink);
         log.trace("Found group permissions by tenant [{}] and pageLink [{}]", tenantId, pageLink);
@@ -80,11 +80,38 @@ public class CassandraGroupPermissionDao extends CassandraAbstractSearchTimeDao<
         log.trace("Try to find group permissions by tenant [{}], userGroupId [{}] and pageLink [{}]", tenantId, userGroupId, pageLink);
         List<GroupPermissionEntity> entities = findPageWithTimeSearch(
                 new TenantId(tenantId),
-                "group_permission_by_user_group_id",
+                ModelConstants.GROUP_PERMISSION_BY_USER_GROUP_ID_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY, userGroupId)),
                 pageLink);
         log.trace("Found group permissions by tenant [{}], userGroupId [{}] and pageLink [{}]", tenantId, userGroupId, pageLink);
         return DaoUtil.convertDataList(entities);
     }
+
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, TimePageLink pageLink) {
+        log.trace("Try to find group permissions by tenant [{}], entityGroupId [{}] and pageLink [{}]", tenantId, entityGroupId, pageLink);
+        List<GroupPermissionEntity> entities = findPageWithTimeSearch(
+                new TenantId(tenantId),
+                ModelConstants.GROUP_PERMISSION_BY_ENTITY_GROUP_ID_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY, tenantId),
+                        eq(ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY, entityGroupId)),
+                pageLink);
+        log.trace("Found group permissions by tenant [{}], entityGroupId [{}] and pageLink [{}]", tenantId, entityGroupId, pageLink);
+        return DaoUtil.convertDataList(entities);
+    }
+
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndRoleId(UUID tenantId, UUID roleId, TimePageLink pageLink) {
+        log.trace("Try to find group permissions by tenant [{}], roleId [{}] and pageLink [{}]", tenantId, roleId, pageLink);
+        List<GroupPermissionEntity> entities = findPageWithTimeSearch(
+                new TenantId(tenantId),
+                ModelConstants.GROUP_PERMISSION_BY_ROLE_ID_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY, tenantId),
+                        eq(ModelConstants.GROUP_PERMISSION_ROLE_ID_PROPERTY, roleId)),
+                pageLink);
+        log.trace("Found group permissions by tenant [{}], roleId [{}] and pageLink [{}]", tenantId, roleId, pageLink);
+        return DaoUtil.convertDataList(entities);
+    }
+
 }

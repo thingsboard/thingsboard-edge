@@ -169,11 +169,11 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         ruleChainService.deleteRuleChainsByTenantId(tenantId);
         schedulerEventService.deleteSchedulerEventsByTenantId(tenantId);
         blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
-        roleService.deleteRolesByTenantId(tenantId);
-        groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
-        tenantDao.removeById(tenantId, tenantId.getId());
         deleteEntityGroups(tenantId, tenantId);
         deleteEntityRelations(tenantId,tenantId);
+        groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
+        roleService.deleteRolesByTenantId(tenantId);
+        tenantDao.removeById(tenantId, tenantId.getId());
     }
 
     @Override

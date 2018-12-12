@@ -452,12 +452,10 @@ public class ModelConstants {
     public static final String ROLE_TYPE_PROPERTY = "type";
     public static final String ROLE_PERMISSIONS_PROPERTY = "permissions";
     public static final String ROLE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
-    public static final String ROLE_BY_TENANT_AND_SEARCH_TEXT_CF = "role_by_tenant_and_search_text";
-    public static final String ROLE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF = "role_by_tenant_by_type_and_search_text";
-    public static final String ROLE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_customer_and_search_text";
-    public static final String ROLE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_customer_by_type_and_search_text";
 
-    public static final String ROLE_BY_TENANT_AND_NAME = "role_by_tenant_and_name";
+    public static final String ROLE_BY_TENANT_AND_CUSTOMER_AND_NAME_COLUMN_FAMILY_NAME = "role_by_tenant_and_customer_and_name";
+    public static final String ROLE_BY_TENANT_AND_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_tenant_and_customer_and_search_text";
+    public static final String ROLE_BY_TENANT_CUSTOMER_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_tenant_customer_type_and_search_text";
 
     /**
      * Group permission constants.
@@ -468,6 +466,11 @@ public class ModelConstants {
     public static final String GROUP_PERMISSION_USER_GROUP_ID_PROPERTY = "user_group_id";
     public static final String GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
     public static final String GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY = "entity_group_type";
+
+    public static final String GROUP_PERMISSION_BY_TENANT_ID_COLUMN_FAMILY_NAME = "group_permission_by_tenant_id";
+    public static final String GROUP_PERMISSION_BY_USER_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_user_group_id";
+    public static final String GROUP_PERMISSION_BY_ENTITY_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_entity_group_id";
+    public static final String GROUP_PERMISSION_BY_ROLE_ID_COLUMN_FAMILY_NAME = "group_permission_by_role_id";
 
     /**
      * Cassandra attributes and timeseries constants.
