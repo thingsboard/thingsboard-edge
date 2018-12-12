@@ -43,7 +43,7 @@ import UserGroupRoleDialogController from './user-group-role-dialog.controller';
 /*@ngInject*/
 export default function UserGroupRoles($compile, $templateCache, $rootScope, $q, $mdEditDialog, $mdDialog,
                                        $mdUtil, $document, $translate, $filter, $timeout, utils, types, dashboardUtils,
-                                       entityService, attributeService) {
+                                       entityService, roleService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -55,12 +55,12 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
 
         scope.entityType = attrs.entityType;
 
-        scope.attributes = {
+        scope.groupPermissions = {
             count: 0,
             data: []
         };
 
-        scope.selectedAttributes = [];
+        scope.selectedGroupPermissions = [];
         scope.aaa = [];
         scope.aaa.push({roleType: "Pepsi", roleName: "Manager", groupType: "Device", groupName: "Class A Devices"});
 
@@ -77,23 +77,14 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
         scope.$watch("entityId", function (newVal) {
             if (newVal) {
                 scope.resetFilter();
-                scope.getEntityAttributes(false, true);
-            }
-        });
-
-        scope.$watch("attributeScope", function (newVal, prevVal) {
-            if (newVal && !angular.equals(newVal, prevVal)) {
-                scope.mode = 'default';
-                scope.query.search = null;
-                scope.selectedAttributes = [];
-                scope.getEntityAttributes(false, true);
+                scope.getGroupPermissions(false, true);
             }
         });
 
         scope.resetFilter = function () {
             scope.mode = 'default';
             scope.query.search = null;
-            scope.selectedAttributes = [];
+            scope.selectedGroupPermissions = [];
         }
 
         scope.enterFilterMode = function (event) {
@@ -109,62 +100,27 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
 
         scope.exitFilterMode = function () {
             scope.query.search = null;
-            scope.getEntityAttributes();
+            scope.getGroupPermissions();
         }
 
         scope.$watch("query.search", function (newVal, prevVal) {
             if (!angular.equals(newVal, prevVal) && scope.query.search != null) {
-                scope.getEntityAttributes();
+                scope.getGroupPermissions();
             }
         });
 
-        function success(attributes, update, apply) {
-            scope.attributes = attributes;
-            if (!update) {
-                scope.selectedAttributes = [];
-            }
-            if (apply) {
-                scope.$digest();
-            }
-        }
-
         scope.onReorder = function () {
-            scope.getEntityAttributes(false, false);
+            scope.getGroupPermissions();
         }
 
         scope.onPaginate = function () {
-            scope.getEntityAttributes(false, false);
+            scope.getGroupPermissions();
         }
 
-        scope.getEntityAttributes = function (forceUpdate, reset) {
-            if (scope.attributesDeferred) {
-                scope.attributesDeferred.resolve();
-            }
-            if (scope.entityId && scope.entityType && scope.attributeScope) {
-                if (reset) {
-                    scope.attributes = {
-                        count: 0,
-                        data: []
-                    };
-                }
-                scope.checkSubscription();
-                scope.attributesDeferred = attributeService.getEntityAttributes(scope.entityType, scope.entityId, scope.attributeScope.value,
-                    scope.query, function (attributes, update, apply) {
-                        success(attributes, update || forceUpdate, apply);
-                    }
-                );
-            } else {
-                var deferred = $q.defer();
-                scope.attributesDeferred = deferred;
-                success({
-                    count: 0,
-                    data: []
-                });
-                deferred.resolve();
-            }
+        scope.getGroupPermissions = function () {
         }
 
-        scope.editAttribute = function ($event) {
+        scope.editGroupPermission = function ($event) {
             $event.stopPropagation();
             $mdDialog.show({
                 controller: UserGroupRoleDialogController,
@@ -179,11 +135,11 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
                 fullscreen: true,
                 targetEvent: $event
             }).then(function () {
-                scope.getEntityAttributes();
+                scope.getGroupPermissions();
             });
         }
 
-        scope.addAttribute = function ($event) {
+        scope.addGroupPermission = function ($event) {
             $event.stopPropagation();
             $mdDialog.show({
                 controller: 'UserGroupRoleDialogController',
@@ -198,24 +154,24 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
                 fullscreen: true,
                 targetEvent: $event
             }).then(function () {
-                scope.getEntityAttributes();
+                scope.getGroupPermissions();
             });
         }
 
-        scope.deleteAttributes = function ($event) {
+        scope.deleteGroupPermissions = function ($event) {
             $event.stopPropagation();
             var confirm = $mdDialog.confirm()
                 .targetEvent($event)
-                .title($translate.instant('attribute.delete-attributes-title', {count: scope.selectedAttributes.length}, 'messageformat'))
-                .htmlContent($translate.instant('attribute.delete-attributes-text'))
-                .ariaLabel($translate.instant('attribute.delete-attributes'))
+                .title($translate.instant('role.delete-group-permission-title', {count: scope.selectedGroupPermissions.length}, 'messageformat'))
+                .htmlContent($translate.instant('role.delete-group-permissions-text'))
+                .ariaLabel($translate.instant('role.delete-group-permissions'))
                 .cancel($translate.instant('action.no'))
                 .ok($translate.instant('action.yes'));
             $mdDialog.show(confirm).then(function () {
-                attributeService.deleteEntityAttributes(scope.entityType, scope.entityId, scope.attributeScope.value, scope.selectedAttributes).then(
+                roleService.deleteGroupPermissions().then(
                     function success() {
-                        scope.selectedAttributes = [];
-                        scope.getEntityAttributes();
+                        scope.selectedGroupPermissions = [];
+                        scope.getGroupPermissions();
                     }
                 )
             });

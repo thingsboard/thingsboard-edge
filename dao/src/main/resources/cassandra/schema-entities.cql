@@ -934,3 +934,28 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.role_by_customer_by_type_and_
     WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
     PRIMARY KEY ( customer_id, tenant_id, type, search_text, id )
     WITH CLUSTERING ORDER BY ( tenant_id DESC, type ASC, search_text ASC, id DESC );
+
+CREATE TABLE IF NOT EXISTS thingsboard.group_permission (
+    id timeuuid,
+    tenant_id timeuuid,
+    role_id timeuuid,
+    user_group_id timeuuid,
+    entity_group_id timeuuid,
+    entity_group_type text,
+    PRIMARY KEY (id, tenant_id, user_group_id, role_id)
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_tenant_id AS
+    SELECT *
+    from thingsboard.group_permission
+    WHERE tenant_id IS NOT NULL AND id IS NOT NULL AND user_group_id IS NOT NULL AND role_id IS NOT NULL
+    PRIMARY KEY (tenant_id, id, user_group_id, role_id)
+    WITH CLUSTERING ORDER BY (id DESC, user_group_id DESC, role_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_user_group_id AS
+    SELECT *
+    from thingsboard.group_permission
+    WHERE tenant_id IS NOT NULL AND user_group_id IS NOT NULL AND id IS NOT NULL AND role_id IS NOT NULL
+    PRIMARY KEY ((tenant_id, user_group_id), id, role_id)
+    WITH CLUSTERING ORDER BY (id DESC, role_id DESC);
+

@@ -33,8 +33,14 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -65,7 +71,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ASSET, customerEntityPermissionChecker);
         put(Resource.DEVICE, customerEntityPermissionChecker);
         put(Resource.CUSTOMER, customerPermissionChecker);
-        put(Resource.DASHBOARD, customerDashboardPermissionChecker);
+        put(Resource.DASHBOARD, customerEntityPermissionChecker);
         put(Resource.ENTITY_VIEW, customerEntityPermissionChecker);
         put(Resource.ROLE, customerEntityPermissionChecker);
         put(Resource.USER, userPermissionChecker);
@@ -83,7 +89,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
     }
 
     private static final PermissionChecker customerEntityPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_CREDENTIALS, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY) {
+            new PermissionChecker.GenericPermissionChecker(Operation.ALL) {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
@@ -124,17 +130,17 @@ public class CustomerUserPermissions extends AbstractPermissions {
 
 
     private static final PermissionChecker customerPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_ATTRIBUTES) {
+            new PermissionChecker.GenericPermissionChecker<CustomerId, Customer>(Operation.ALL) {
 
                 @Override
-                public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+                public boolean hasPermission(SecurityUser user, Operation operation, CustomerId entityId, Customer entity) {
                     if (!super.hasPermission(user, operation, entityId, entity)) {
                         return false;
                     }
-                    if (!user.getCustomerId().equals(entityId)) {
-                        return false;
+                    if (user.getCustomerId().equals(entity.getParentCustomerId()) || user.getCustomerId().equals(entityId)) {
+                        return true;
                     }
-                    return true;
+                    return false;
                 }
 
             };
@@ -165,7 +171,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (userEntity.getAuthority() != Authority.CUSTOMER_USER) {
                 return false;
             }
-            if (!user.getId().equals(userId)) {
+            if (!user.getCustomerId().equals(userEntity.getCustomerId())) {
                 return false;
             }
             return true;

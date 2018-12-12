@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -282,13 +283,24 @@ public abstract class BaseController {
         }
     }
 
+    RoleType checkStrRoleType(String name, String strGroupType) throws ThingsboardException {
+        checkParameter(name, strGroupType);
+        RoleType groupType;
+        try {
+            groupType = RoleType.valueOf(strGroupType);
+        } catch (IllegalArgumentException e) {
+            throw new ThingsboardException("Unsupported role type '" + strGroupType + "'! Only 'GENERIC' or 'GROUP' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
     EntityType checkStrEntityGroupType(String name, String strGroupType) throws ThingsboardException {
         checkParameter(name, strGroupType);
         EntityType groupType;
         try {
             groupType = EntityType.valueOf(strGroupType);
         } catch (IllegalArgumentException e) {
-            throw new ThingsboardException("Unsupported entityGroup type '" + strGroupType + "'! Only 'CUSTOMER', 'ASSET' or 'DEVICE' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            throw new ThingsboardException("Unsupported entityGroup type '" + strGroupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return checkEntityGroupType(groupType);
     }
@@ -297,8 +309,10 @@ public abstract class BaseController {
         if (groupType == null) {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET && groupType != EntityType.DEVICE && groupType != EntityType.USER) {
-            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE' or 'USER' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET
+                && groupType != EntityType.DEVICE && groupType != EntityType.USER
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
     }

@@ -36,6 +36,9 @@ import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.util.UUID;
 
 public class ModelConstants {
@@ -461,7 +464,10 @@ public class ModelConstants {
      */
     public static final String GROUP_PERMISSION_TABLE_FAMILY_NAME = "group_permission";
     public static final String GROUP_PERMISSION_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
-    public static final String GROUP_PERMISSION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String GROUP_PERMISSION_ROLE_ID_PROPERTY = "role_id";
+    public static final String GROUP_PERMISSION_USER_GROUP_ID_PROPERTY = "user_group_id";
+    public static final String GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
+    public static final String GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY = "entity_group_type";
 
     /**
      * Cassandra attributes and timeseries constants.

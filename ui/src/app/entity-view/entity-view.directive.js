@@ -160,7 +160,9 @@ export default function EntityViewDirective($q, $compile, $templateCache, $filte
             onAssignToCustomer: '&',
             onMakePublic: '&',
             onUnassignFromCustomer: '&',
-            onDeleteEntityView: '&'
+            onDeleteEntityView: '&',
+            hideAssignmentActions: '=',
+            hideDelete: '='
         }
     };
 }

@@ -110,7 +110,7 @@ public class GroupPermissionController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "groupPermissions/{userGroupId}", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/groupPermissions/{userGroupId}", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<GroupPermission> getGroupPermissions(
             @RequestParam int limit,

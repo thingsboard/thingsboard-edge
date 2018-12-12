@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.Tenant;
@@ -46,6 +47,8 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -56,6 +59,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
@@ -72,6 +76,9 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
     @Autowired
     private TenantDao tenantDao;
+
+    @Autowired
+    private CustomerDao customerDao;
 
     @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
     @Override
@@ -100,11 +107,10 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type) {
+    public TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, RoleType type) {
         log.trace("Executing findRolesByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        validateString(type, "Incorrect type " + type);
         List<Role> roles = roleDao.findRolesByTenantIdAndType(tenantId.getId(), type, pageLink);
         return new TextPageData<>(roles, pageLink);
     }
@@ -143,11 +149,10 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink) {
+    public TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, TextPageLink pageLink) {
         log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<Role> roles = roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
         return new TextPageData<>(roles, pageLink);
@@ -188,7 +193,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
                 @Override
                 protected void validateDataImpl(TenantId tenantId, Role role) {
-                    if (StringUtils.isEmpty(role.getType())) {
+                    if (role.getType() == null) {
                         throw new DataValidationException("Role type should be specified!");
                     }
                     if (StringUtils.isEmpty(role.getName())) {
@@ -200,6 +205,17 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                         Tenant tenant = tenantDao.findById(tenantId, role.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Role is referencing to non-existent tenant!");
+                        }
+                    }
+                    if (role.getCustomerId() == null) {
+                        role.setCustomerId(new CustomerId(NULL_UUID));
+                    } else if (!role.getCustomerId().getId().equals(NULL_UUID)) {
+                        Customer customer = customerDao.findById(tenantId, role.getCustomerId().getId());
+                        if (customer == null) {
+                            throw new DataValidationException("Can't assign role to non-existent customer!");
+                        }
+                        if (!customer.getTenantId().equals(role.getTenantId())) {
+                            throw new DataValidationException("Can't assign role to customer from different tenant!");
                         }
                     }
                 }

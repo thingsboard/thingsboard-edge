@@ -69,8 +69,12 @@ export default function DashboardDirective($compile, $templateCache, $translate,
             onMakePrivate: '&',
             onManageAssignedCustomers: '&',
             onUnassignFromCustomer: '&',
+            onOpenDashboard: '&',
             onExportDashboard: '&',
-            onDeleteDashboard: '&'
+            onDeleteDashboard: '&',
+            hideAssignmentActions: '=',
+            hideDelete: '=',
+            hideOpen: '='
         }
     };
 }

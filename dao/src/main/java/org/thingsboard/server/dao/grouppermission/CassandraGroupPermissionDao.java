@@ -33,20 +33,25 @@ package org.thingsboard.server.dao.grouppermission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.nosql.GroupPermissionEntity;
-import org.thingsboard.server.dao.nosql.CassandraAbstractModelDao;
+import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTimeDao;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TABLE_FAMILY_NAME;
 
 @Component
 @Slf4j
 @NoSqlDao
-public class CassandraGroupPermissionDao extends CassandraAbstractModelDao<GroupPermissionEntity, GroupPermission> implements GroupPermissionDao {
+public class CassandraGroupPermissionDao extends CassandraAbstractSearchTimeDao<GroupPermissionEntity, GroupPermission> implements GroupPermissionDao {
 
     @Override
     protected Class<GroupPermissionEntity> getColumnFamilyClass() {
@@ -60,13 +65,26 @@ public class CassandraGroupPermissionDao extends CassandraAbstractModelDao<Group
 
     @Override
     public List<GroupPermission> findGroupPermissionsByTenantId(UUID tenantId, TimePageLink pageLink) {
-        // TODO: voba - add implementation
-        return null;
+        log.trace("Try to find group permissions by tenant [{}] and pageLink [{}]", tenantId, pageLink);
+        List<GroupPermissionEntity> entities = findPageWithTimeSearch(
+                new TenantId(tenantId),
+                "group_permission_by_tenant_id",
+                Arrays.asList(eq(ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY, tenantId)),
+                pageLink);
+        log.trace("Found group permissions by tenant [{}] and pageLink [{}]", tenantId, pageLink);
+        return DaoUtil.convertDataList(entities);
     }
 
     @Override
     public List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupId(UUID tenantId, UUID userGroupId, TimePageLink pageLink) {
-        // TODO: voba - add implementation
-        return null;
+        log.trace("Try to find group permissions by tenant [{}], userGroupId [{}] and pageLink [{}]", tenantId, userGroupId, pageLink);
+        List<GroupPermissionEntity> entities = findPageWithTimeSearch(
+                new TenantId(tenantId),
+                "group_permission_by_user_group_id",
+                Arrays.asList(eq(ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY, tenantId),
+                        eq(ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY, userGroupId)),
+                pageLink);
+        log.trace("Found group permissions by tenant [{}], userGroupId [{}] and pageLink [{}]", tenantId, userGroupId, pageLink);
+        return DaoUtil.convertDataList(entities);
     }
 }

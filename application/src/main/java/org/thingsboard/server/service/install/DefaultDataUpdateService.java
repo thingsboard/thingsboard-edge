@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
@@ -336,7 +337,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             Role customerAdminsRole = new Role();
                             customerAdminsRole.setTenantId(customer.getTenantId());
                             customerAdminsRole.setCustomerId(customer.getId());
-                            customerAdminsRole.setType("Generic");
+                            customerAdminsRole.setType(RoleType.GENERIC);
                             customerAdminsRole.setName("Customer Admin");
                             //TODO (Security):
                             customerAdminsRole.setPermissions(new ObjectMapper().createObjectNode());

@@ -28,11 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
-
 /*@ngInject*/
-export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, toast, userService) {
+export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, utils, types, userService, importExport, dashboardService) {
 
     var service = {
         createConfig: createConfig
@@ -50,17 +47,17 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
             entityScope = 'customer_user';
         }
 
-        var settings = utils.groupSettingsDefaults(types.entityType.user, entityGroup.configuration.settings);
+        var settings = utils.groupSettingsDefaults(types.entityType.dashboard, entityGroup.configuration.settings);
 
         var groupConfig = {
 
             entityScope: entityScope,
 
-            tableTitle: entityGroup.name + ': ' + $translate.instant('user.users'),
+            tableTitle: entityGroup.name + ': ' + $translate.instant('dashboard.dashboards'),
 
-            loadEntity: (entityId) => {return userService.getUser(entityId)},
-            saveEntity: (entity) => {return userService.saveUser(entity)},
-            deleteEntity: (entityId) => {return userService.deleteUser(entityId)},
+            loadEntity: (entityId) => {return dashboardService.getDashboard(entityId)},
+            saveEntity: (entity) => {return dashboardService.saveDashboard(entity)},
+            deleteEntity: (entityId) => {return dashboardService.deleteDashboard(entityId)},
 
             addEnabled: () => {
                 return settings.enableAdd;
@@ -69,12 +66,6 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
             detailsReadOnly: () => {
                 return false;
             },
-            assignmentEnabled: () => {
-                return settings.enableAssignment;
-            },
-            manageCredentialsEnabled: () => {
-                return settings.enableCredentialsManagement;
-            },
             deleteEnabled: () => {
                 return settings.enableDelete;
             },
@@ -82,57 +73,50 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
                 return settings.enableDelete;
             },
             deleteEntityTitle: (entity) => {
-                return $translate.instant('user.delete-user-title', {userEmail: entity.email});
+                return $translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: entity.title});
             },
             deleteEntityContent: (/*entity*/) => {
-                return $translate.instant('user.delete-user-text');
+                return $translate.instant('dashboard.delete-dashboard-text');
             },
             deleteEntitiesTitle: (count) => {
-                return $translate.instant('user.delete-user-title', {count: count}, 'messageformat');
+                return $translate.instant('dashboard.delete-dashboards-title', {count: count}, 'messageformat');
             },
             deleteEntitiesContent: (/*count*/) => {
-                return $translate.instant('user.delete-users-text');
+                return $translate.instant('dashboard.delete-dashboards-text');
             }
         };
 
-        groupConfig.onDisplayActivationLink = (event, user) => {
-            userService.getActivationLink(user.id.id).then(
-                function success(activationLink) {
-                    openActivationLinkDialog(event, activationLink);
+        groupConfig.onExportDashboard = (event, entity)  => {
+            event.stopPropagation();
+            importExport.exportDashboard(entity.id.id);
+        };
+
+        groupConfig.onOpenDashboard = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            $state.go('home.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+        };
+
+        groupConfig.actionCellDescriptors = [
+            {
+                name: $translate.instant('dashboard.open-dashboard'),
+                icon: 'dashboard',
+                isEnabled: () => {
+                    return true;
+                },
+                onAction: ($event, entity) => {
+                    groupConfig.onOpenDashboard($event, entity);
                 }
-            );
-        };
+            }
+        ];
 
-        groupConfig.onResendActivation = (user) => {
-            userService.sendActivationEmail(user.email).then(function success() {
-                toast.showSuccess($translate.instant('user.activation-email-sent-message'));
-            });
-        };
-
-        groupConfig.onLoginAsUser = (user) => {
-            userService.loginAsUser(user.id.id);
-        };
+        groupConfig.groupActionDescriptors = [
+        ];
 
         utils.groupConfigDefaults(groupConfig);
 
         deferred.resolve(groupConfig);
         return deferred.promise;
     }
-
-    function openActivationLinkDialog(event, activationLink) {
-        $mdDialog.show({
-            controller: 'ActivationLinkDialogController',
-            controllerAs: 'vm',
-            templateUrl: activationLinkDialogTemplate,
-            locals: {
-                activationLink: activationLink
-            },
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            multiple: true,
-            targetEvent: event
-        });
-    }
-
-
 }

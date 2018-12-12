@@ -101,7 +101,7 @@ export function RoleController($rootScope, userService, roleService, $state, $st
         // var user = userService.getCurrentUser(); dsfas
 
         fetchRolesFunction = function (pageLink, roleType) {
-            return roleService.getTenantRoles(pageLink, true, roleType);
+            return roleService.getRoles(pageLink, true, roleType);
         };
         deleteRoleFunction = function (roleId) {
             return roleService.deleteRole(roleId);

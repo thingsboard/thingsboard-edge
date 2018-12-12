@@ -31,16 +31,16 @@
 
 -->
 <md-button ng-click="onMakePublic({event: $event})"
-           ng-show="!isEdit && entityViewScope === 'tenant' && !isAssignedToCustomer && !isPublic"
+           ng-show="!hideAssignmentActions && !isEdit && entityViewScope === 'tenant' && !isAssignedToCustomer && !isPublic"
            class="md-raised md-primary">{{ 'entity-view.make-public' | translate }}</md-button>
 <md-button ng-click="onAssignToCustomer({event: $event})"
-           ng-show="!isEdit && entityViewScope === 'tenant' && !isAssignedToCustomer"
+           ng-show="!hideAssignmentActions && !isEdit && entityViewScope === 'tenant' && !isAssignedToCustomer"
            class="md-raised md-primary">{{ 'entity-view.assign-to-customer' | translate }}</md-button>
 <md-button ng-click="onUnassignFromCustomer({event: $event})"
-           ng-show="!isEdit && (entityViewScope === 'customer' || entityViewScope === 'tenant') && isAssignedToCustomer"
-           class="md-raised md-primary">{{'entity-view.unassign-from-customer' | translate }}</md-button>
+           ng-show="!hideAssignmentActions && !isEdit && (entityViewScope === 'customer' || entityViewScope === 'tenant') && isAssignedToCustomer"
+           class="md-raised md-primary">{{ isPublic ? 'entity-view.make-private' : 'entity-view.unassign-from-customer' | translate }}</md-button>
 <md-button ng-click="onDeleteEntityView({event: $event})"
-           ng-show="!isEdit && entityViewScope === 'tenant'"
+           ng-show="!hideDelete && !isEdit && entityViewScope === 'tenant'"
            class="md-raised md-primary">{{ 'entity-view.delete' | translate }}</md-button>
 
 <div layout="row">

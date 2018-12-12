@@ -83,7 +83,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = customerService.getCustomer(entityId, config);
                 break;
             case types.entityType.dashboard:
-                promise = dashboardService.getDashboardInfo(entityId, config);
+                if (config && config.loadEntityDetails) {
+                    promise = dashboardService.getDashboard(entityId, config);
+                } else {
+                    promise = dashboardService.getDashboardInfo(entityId, config);
+                }
                 break;
             case types.entityType.user:
                 promise = userService.getUser(entityId, true, config);
@@ -447,7 +451,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = deferred.promise;
                 break;
             case types.entityType.role:
-                promise = roleService.getTenantRoles(pageLink, config, subType);
+                promise = roleService.getRoles(pageLink, config, subType);
                 break;
         }
         return promise;

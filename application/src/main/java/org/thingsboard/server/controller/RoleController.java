@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -77,7 +78,9 @@ public class RoleController extends BaseController {
     public Role saveRole(@RequestBody Role role) throws ThingsboardException {
         try {
             role.setTenantId(getCurrentUser().getTenantId());
-
+            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                role.setCustomerId(getCurrentUser().getCustomerId());
+            }
             Operation operation = role.getId() == null ? Operation.CREATE : Operation.WRITE;
 
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
@@ -117,10 +120,10 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/tenant/roles", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Role> getTenantRoles(
+    public TextPageData<Role> getRoles(
             @RequestParam int limit,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
@@ -131,9 +134,17 @@ public class RoleController extends BaseController {
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
 
             if (type != null && type.trim().length() > 0) {
-                return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, type));
+                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                    return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, RoleType.valueOf(type)));
+                } else {
+                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), checkStrRoleType("type", type), pageLink));
+                }
             } else {
-                return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
+                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                    return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
+                } else {
+                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
+                }
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -157,7 +168,7 @@ public class RoleController extends BaseController {
             checkCustomerId(customerId, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
-                return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, customerId, checkStrRoleType("type", type), pageLink));
             } else {
                 return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }
@@ -166,7 +177,7 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/types", method = RequestMethod.GET)
     @ResponseBody
     public List<EntitySubtype> getRoleTypes() throws ThingsboardException {

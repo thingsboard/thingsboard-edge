@@ -70,22 +70,22 @@
                                 <tb-entity-subtype-autocomplete
                                         tb-required="true"
                                         the-form="theForm"
-                                        ng-model="vm.model.roleType"
+                                        ng-model="vm.groupPermission.roleType"
                                         entity-type="vm.types.entityType.role">
                                 </tb-entity-subtype-autocomplete>
-                                <tb-entity-autocomplete flex ng-if="vm.model.roleType"
+                                <tb-entity-autocomplete flex ng-if="vm.groupPermission.roleType"
                                                         the-form="theForm"
                                                         tb-required="tbRequired"
-                                                        entity-subtype="vm.model.roleType"
+                                                        entity-subtype="vm.groupPermission.roleType"
                                                         entity-type="vm.types.entityType.role"
-                                                        ng-model="vm.model.roleId">
+                                                        ng-model="vm.groupPermission.roleId">
                                 </tb-entity-autocomplete>
                             </section>
                         </section>
                         <section layout="column">
                             <label translate class="tb-title no-padding">role.entity-group</label>
                             <tb-entity-group-select
-                                    ng-model="vm.model.entityGroupId"
+                                    ng-model="vm.groupPermission.entityGroupId"
                                     the-form="theForm"
                                     placeholder-text="entity-group.select-entity-group"
                                     not-found-text="entity-group.no-entity-groups-matching"

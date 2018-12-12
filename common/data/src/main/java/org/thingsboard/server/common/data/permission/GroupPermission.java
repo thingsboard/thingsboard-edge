@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data.permission;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -69,8 +71,13 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         return tenantId;
     }
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Override
     public String getName() {
-        return String.format("%s_%s_%s_%s", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
+        if (entityGroupId != null && entityGroupType != null) {
+            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
+        } else {
+            return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
+        }
     }
 }

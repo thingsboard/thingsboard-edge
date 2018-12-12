@@ -33,13 +33,14 @@
 import deviceCredentialsTemplate from './../device/device-credentials.tpl.html';
 import assignDevicesToCustomerTemplate from './../device/assign-to-customer.tpl.html';
 import assignAssetsToCustomerTemplate from './../asset/assign-to-customer.tpl.html';
+import assignEntityViewsToCustomerTemplate from './../entity-view/assign-to-customer.tpl.html';
 import selectEntityGroupTemplate from './select-entity-group.tpl.html';
 import progressTemplate from './progress.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function Dialogs($q, $translate, $mdDialog, $document, deviceService, assetService, customerService) {
+export default function Dialogs($q, $translate, $mdDialog, $document, deviceService, assetService, customerService, entityViewService) {
 
 
     var service = {
@@ -52,6 +53,10 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
         unassignAssetFromCustomer: unassignAssetFromCustomer,
         unassignAssetsFromCustomer: unassignAssetsFromCustomer,
         makeAssetPublic: makeAssetPublic,
+        assignEntityViewsToCustomer: assignEntityViewsToCustomer,
+        unassignEntityViewFromCustomer: unassignEntityViewFromCustomer,
+        unassignEntityViewsFromCustomer: unassignEntityViewsFromCustomer,
+        makeEntityViewPublic: makeEntityViewPublic,
         selectEntityGroup: selectEntityGroup,
         confirm: confirm,
         progress: progress
@@ -269,6 +274,107 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
             $translate.instant('asset.make-public')).then(
             () => {
                 assetService.makeAssetPublic(asset.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function assignEntityViewsToCustomer($event, entityViewIds) {
+        var deferred = $q.defer();
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var pageSize = 10;
+        customerService.getCustomers({limit: pageSize, textSearch: ''}).then(
+            function success(_customers) {
+                var customers = {
+                    pageSize: pageSize,
+                    data: _customers.data,
+                    nextPageLink: _customers.nextPageLink,
+                    selection: null,
+                    hasNext: _customers.hasNext,
+                    pending: false
+                };
+                if (customers.hasNext) {
+                    customers.nextPageLink.limit = pageSize;
+                }
+                $mdDialog.show({
+                    controller: 'AssignEntityViewToCustomerController',
+                    controllerAs: 'vm',
+                    templateUrl: assignEntityViewsToCustomerTemplate,
+                    locals: {entityViewIds: entityViewIds, customers: customers},
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event
+                }).then(function () {
+                    deferred.resolve();
+                }, function () {
+                    deferred.reject();
+                });
+            },
+            function fail() {
+                deferred.reject();
+            });
+        return deferred.promise;
+    }
+
+    function unassignEntityViewFromCustomer($event, entityView, isPublic) {
+        var deferred = $q.defer();
+        var title;
+        var content;
+        var label;
+        if (isPublic) {
+            title = $translate.instant('entity-view.make-private-entity-view-title', {entityViewName: entityView.name});
+            content = $translate.instant('entity-view.make-private-entity-view-text');
+            label = $translate.instant('entity-view.make-private');
+        } else {
+            title = $translate.instant('entity-view.unassign-entity-view-title', {entityViewName: entityView.name});
+            content = $translate.instant('entity-view.unassign-entity-view-text');
+            label = $translate.instant('entity-view.unassign-entity-view');
+        }
+        confirm($event, title, content, label).then(
+            () => {
+                entityViewService.unassignEntityViewFromCustomer(entityView.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function unassignEntityViewsFromCustomer($event, entityViewIds) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('entity-view.unassign-entity-views-title', {count: entityViewIds.length}, 'messageformat'),
+            $translate.instant('entity-view.unassign-entity-views-text'),
+            $translate.instant('entity-view.unassign-entity-view')).then(
+            () => {
+                var tasks = [];
+                entityViewIds.forEach((entityViewId) => {
+                    tasks.push(entityViewService.unassignEntityViewFromCustomer(entityViewId));
+                });
+                $q.all(tasks).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function makeEntityViewPublic($event, entityView) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('entity-view.make-public-entity-view-title', {entityViewName: entityView.name}),
+            $translate.instant('entity-view.make-public-entity-view-text'),
+            $translate.instant('entity-view.make-public')).then(
+            () => {
+                entityViewService.makeEntityViewPublic(entityView.id.id).then(
                     () => {
                         deferred.resolve();
                     }

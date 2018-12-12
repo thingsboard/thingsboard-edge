@@ -40,9 +40,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -67,6 +68,9 @@ import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
@@ -76,6 +80,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -87,8 +92,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
@@ -110,6 +113,7 @@ public class AccessValidator {
     public static final String USER_WITH_REQUESTED_ID_NOT_FOUND = "User with requested id wasn't found!";
     public static final String ENTITY_VIEW_WITH_REQUESTED_ID_NOT_FOUND = "Entity-view with requested id wasn't found!";
     public static final String ROLE_WITH_REQUESTED_ID_NOT_FOUND = "Role with requested id wasn't found!";
+    public static final String DASHBOARD_WITH_REQUESTED_ID_NOT_FOUND = "Dashboard with requested id wasn't found!";
 
     @Autowired
     protected TenantService tenantService;
@@ -152,6 +156,9 @@ public class AccessValidator {
 
     @Autowired
     protected RoleService roleService;
+
+    @Autowired
+    protected DashboardService dashboardService;
 
     @Autowired
     protected AccessControlService accessControlService;
@@ -249,6 +256,9 @@ public class AccessValidator {
                 return;
             case ROLE:
                 validateRole(currentUser, operation, entityId, callback);
+                return;
+            case DASHBOARD:
+                validateDashboard(currentUser, operation, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -541,6 +551,26 @@ public class AccessValidator {
                         return ValidationResult.accessDenied(e.getMessage());
                     }
                     return ValidationResult.ok(role);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateDashboard(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<DashboardInfo> dashboardFuture = dashboardService.findDashboardInfoByIdAsync(currentUser.getTenantId(), new DashboardId(entityId.getId()));
+            Futures.addCallback(dashboardFuture, getCallback(callback, dashboard -> {
+                if (dashboard == null) {
+                    return ValidationResult.entityNotFound(DASHBOARD_WITH_REQUESTED_ID_NOT_FOUND);
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.DASHBOARD, operation, entityId, dashboard);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(dashboard);
                 }
             }), executor);
         }

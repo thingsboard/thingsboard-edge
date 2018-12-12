@@ -140,10 +140,10 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         return stDiffPromise;
     }
 
-    function getDashboard(dashboardId) {
+    function getDashboard(dashboardId, config) {
         var deferred = $q.defer();
         var url = '/api/dashboard/' + dashboardId;
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(prepareDashboard(response.data));
         }, function fail() {
             deferred.reject();

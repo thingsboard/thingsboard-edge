@@ -30,21 +30,33 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ROLE_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -57,17 +69,17 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Column(name = GROUP_PERMISSION_TENANT_ID_PROPERTY)
     private String tenantId;
 
-    @Column(name = "role_id")
+    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
     private String roleId;
 
-    @Column(name = "user_group_id")
+    @Column(name = GROUP_PERMISSION_USER_GROUP_ID_PROPERTY)
     private String userGroupId;
 
-    @Column(name = "entity_group_id")
+    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY)
     private String entityGroupId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "entity_group_type")
+    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY)
     private EntityType entityGroupType;
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -98,15 +110,20 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Override
     public GroupPermission toData() {
         GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(getId()));
-//        role.setCreatedTime(UUIDs.unixTimestamp(getId()));
-//
-//        if (tenantId != null) {
-//            role.setTenantId(new TenantId(toUUID(tenantId)));
-//        }
-//        role.setType(type);
-//        role.setName(name);
-//        role.setPermissions(permissions);
-//        role.setAdditionalInfo(additionalInfo);
+        groupPermission.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        if (tenantId != null) {
+            groupPermission.setTenantId(new TenantId(toUUID(tenantId)));
+        }
+        if (roleId != null) {
+            groupPermission.setRoleId(new RoleId(toUUID(roleId)));
+        }
+        if (userGroupId != null) {
+            groupPermission.setUserGroupId(new EntityGroupId(toUUID(userGroupId)));
+        }
+        if (entityGroupId != null && entityGroupType != null) {
+            groupPermission.setEntityGroupId(new EntityGroupId(toUUID(entityGroupId)));
+            groupPermission.setEntityGroupType(entityGroupType);
+        }
         return groupPermission;
     }
 }
