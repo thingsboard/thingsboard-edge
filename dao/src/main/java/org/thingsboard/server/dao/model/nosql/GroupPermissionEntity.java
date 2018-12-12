@@ -41,15 +41,11 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
-import org.thingsboard.server.common.data.GroupPermission;
-import org.thingsboard.server.common.data.Role;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
-import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.SearchTextEntity;
-import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
 

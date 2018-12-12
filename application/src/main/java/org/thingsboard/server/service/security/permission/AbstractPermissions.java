@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.security.permission;
 
+import org.thingsboard.server.common.data.permission.Resource;
+
 import java.util.HashMap;
 import java.util.Optional;
 

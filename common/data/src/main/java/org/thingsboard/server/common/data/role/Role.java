@@ -28,14 +28,48 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.permission;
+package org.thingsboard.server.common.data.role;
 
-import org.thingsboard.server.common.data.permission.Resource;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Optional;
+@Data
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, HasTenantId, HasCustomerId {
 
-public interface Permissions {
+    private static final long serialVersionUID = 5582010124562018986L;
 
-    Optional<PermissionChecker> getPermissionChecker(Resource resource);
+    private TenantId tenantId;
+    private CustomerId customerId;
+    private String name;
+    private RoleType type;
+    private transient JsonNode permissions;
+
+    public Role() {
+        super();
+    }
+
+    public Role(RoleId id) {
+        super(id);
+    }
+
+    public Role(Role role) {
+        super(role);
+    }
+
+    @Override
+    public String getSearchText() {
+        return getName();
+    }
 
 }

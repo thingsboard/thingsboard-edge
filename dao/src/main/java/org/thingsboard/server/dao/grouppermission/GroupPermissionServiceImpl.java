@@ -35,8 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
@@ -59,6 +58,7 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 public class GroupPermissionServiceImpl extends AbstractEntityService implements GroupPermissionService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    public static final String INCORRECT_USER_GROUP_ID = "Incorrect userGroupId ";
     public static final String INCORRECT_GROUP_PERMISSION_ID = "Incorrect groupPermissionId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
 
@@ -89,6 +89,14 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), pageLink);
         return new TimePageData<>(groupPermissions, pageLink);
+    }
+
+    @Override
+    public List<GroupPermission> findGroupPermissionListByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId) {
+        log.trace("Executing findGroupPermissionListByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
+        return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
     }
 
     @Override

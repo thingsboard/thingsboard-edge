@@ -32,7 +32,7 @@ package org.thingsboard.server.dao.grouppermission;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.model.nosql.GroupPermissionEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractModelDao;

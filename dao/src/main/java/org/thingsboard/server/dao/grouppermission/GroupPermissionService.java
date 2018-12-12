@@ -31,12 +31,14 @@
 package org.thingsboard.server.dao.grouppermission;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+
+import java.util.List;
 
 public interface GroupPermissionService {
 
@@ -45,6 +47,8 @@ public interface GroupPermissionService {
     GroupPermission findGroupPermissionById(TenantId tenantId, GroupPermissionId groupPermissionId);
 
     TimePageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+
+    List<GroupPermission> findGroupPermissionListByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId entityGroupId);
 
     ListenableFuture<GroupPermission> findGroupPermissionByIdAsync(TenantId tenantId, GroupPermissionId groupPermissionId);
 

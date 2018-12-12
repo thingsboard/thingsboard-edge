@@ -39,6 +39,8 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -46,7 +48,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 @Slf4j
 @Component(value="customerUserPermissions")
-public class CustomerUserPremissions extends AbstractPermissions {
+public class CustomerUserPermissions extends AbstractPermissions {
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -54,7 +56,10 @@ public class CustomerUserPremissions extends AbstractPermissions {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public CustomerUserPremissions() {
+    @Autowired
+    private UserPermissionsService userPermissionsService;
+
+    public CustomerUserPermissions() {
         super();
         put(Resource.ALARM, TenantAdminPermissions.tenantEntityPermissionChecker);
         put(Resource.ASSET, customerEntityPermissionChecker);
@@ -139,7 +144,6 @@ public class CustomerUserPremissions extends AbstractPermissions {
 
                 @Override
                 public boolean hasPermission(SecurityUser user, Operation operation, DashboardId dashboardId, DashboardInfo dashboard) {
-
                     if (!super.hasPermission(user, operation, dashboardId, dashboard)) {
                         return false;
                     }
