@@ -38,10 +38,11 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
@@ -49,6 +50,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
@@ -67,8 +70,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
     @Column(name = ROLE_CUSTOMER_ID_PROPERTY)
     private String customerId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = ROLE_TYPE_PROPERTY)
-    private String type;
+    private RoleType type;
 
     @Column(name = ROLE_NAME_PROPERTY)
     private String name;

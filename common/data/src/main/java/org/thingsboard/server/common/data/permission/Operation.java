@@ -28,52 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.permission;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.*;
+public enum Operation {
 
-@Data
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class GroupPermission extends BaseData<GroupPermissionId> implements HasName, HasTenantId {
+    ALL, CREATE, READ, WRITE, DELETE, ASSIGN_TO_CUSTOMER, UNASSIGN_FROM_CUSTOMER, RPC_CALL,
+    READ_CREDENTIALS, WRITE_CREDENTIALS, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY, ADD_TO_GROUP, REMOVE_FROM_GROUP
 
-    private static final long serialVersionUID = 5582010124562018986L;
-
-    private TenantId tenantId;
-    private EntityGroupId userGroupId;
-    private RoleId roleId;
-    private EntityGroupId entityGroupId;
-    private EntityType entityGroupType;
-
-    public GroupPermission() {
-        super();
-    }
-
-    public GroupPermission(GroupPermissionId id) {
-        super(id);
-    }
-
-    public GroupPermission(GroupPermission groupPermission) {
-        super(groupPermission);
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return tenantId;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Override
-    public String getName() {
-        if (entityGroupId != null && entityGroupType != null) {
-            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
-        } else {
-            return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
-        }
-    }
 }

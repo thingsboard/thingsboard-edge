@@ -28,14 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.permission;
+package org.thingsboard.server.dao.model.type;
 
-import org.thingsboard.server.common.data.permission.Resource;
+import com.datastax.driver.extras.codecs.enums.EnumNameCodec;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.role.RoleType;
 
-import java.util.Optional;
+public class RoleTypeCodec extends EnumNameCodec<RoleType> {
 
-public interface Permissions {
-
-    Optional<PermissionChecker> getPermissionChecker(Resource resource);
-
+    public RoleTypeCodec() {
+        super(RoleType.class);
+    }
 }

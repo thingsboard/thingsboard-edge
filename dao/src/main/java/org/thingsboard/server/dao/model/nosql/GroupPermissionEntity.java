@@ -40,17 +40,23 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.GroupPermission;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.type.EntityTypeCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ROLE_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TABLE_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Data
 @Table(name = GROUP_PERMISSION_TABLE_FAMILY_NAME)

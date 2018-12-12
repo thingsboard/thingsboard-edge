@@ -56,14 +56,13 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSDownlinkEvaluator;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
 import org.thingsboard.server.service.script.JsInvokeService;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.Base64;
 import java.util.List;

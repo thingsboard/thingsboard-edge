@@ -82,7 +82,7 @@ import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.service.telemetry.AttributeData;
 import org.thingsboard.server.service.telemetry.TsData;
 import org.thingsboard.server.service.telemetry.exception.InvalidParametersException;

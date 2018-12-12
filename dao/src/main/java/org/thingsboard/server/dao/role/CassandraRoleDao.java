@@ -42,9 +42,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.EntitySubtypeEntity;
 import org.thingsboard.server.dao.model.nosql.RoleEntity;
@@ -79,16 +80,6 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     }
 
     @Override
-    public Role save(TenantId tenantId, Role role) {
-        Role savedRole = super.save(role.getTenantId(), role);
-        EntitySubtype entitySubtype = new EntitySubtype(savedRole.getTenantId(), EntityType.ROLE, savedRole.getType());
-        EntitySubtypeEntity entitySubtypeEntity = new EntitySubtypeEntity(entitySubtype);
-        Statement saveStatement = cluster.getMapper(EntitySubtypeEntity.class).saveQuery(entitySubtypeEntity);
-        executeWrite(savedRole.getTenantId(), saveStatement);
-        return savedRole;
-    }
-
-    @Override
     public List<Role> findRolesByTenantId(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find roles by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
         List<RoleEntity> roleEntities =
@@ -100,11 +91,11 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     }
 
     @Override
-    public List<Role> findRolesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
+    public List<Role> findRolesByTenantIdAndType(UUID tenantId, RoleType type, TextPageLink pageLink) {
         log.debug("Try to find roles by tenantId [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
         List<RoleEntity> roleEntities =
                 findPageWithTextSearch(new TenantId(tenantId), ROLE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF,
-                        Arrays.asList(eq(ROLE_TYPE_PROPERTY, type),
+                        Arrays.asList(eq(ROLE_TYPE_PROPERTY, type.name()),
                                 eq(ROLE_TENANT_ID_PROPERTY, tenantId)), pageLink);
         log.trace("Found roles [{}] by tenantId [{}], type [{}] and pageLink [{}]",
                 roleEntities, tenantId, type, pageLink);
@@ -158,10 +149,10 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     }
 
     @Override
-    public List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
+    public List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, TextPageLink pageLink) {
         log.debug("Try to find roles by tenantId [{}], customerId [{}], type [{}] and pageLink [{}]", tenantId, customerId, type, pageLink);
         List<RoleEntity> roleEntities = findPageWithTextSearch(new TenantId(tenantId), ROLE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
-                Arrays.asList(eq(ROLE_TYPE_PROPERTY, type),
+                Arrays.asList(eq(ROLE_TYPE_PROPERTY, type.name()),
                         eq(ROLE_CUSTOMER_ID_PROPERTY, customerId),
                         eq(ROLE_TENANT_ID_PROPERTY, tenantId)),
                 pageLink);

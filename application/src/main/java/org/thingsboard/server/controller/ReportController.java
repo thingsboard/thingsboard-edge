@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.common.data.permission.Operation;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;

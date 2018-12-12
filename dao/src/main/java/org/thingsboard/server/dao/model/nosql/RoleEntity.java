@@ -41,12 +41,15 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
-import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.type.IntegrationTypeCodec;
 import org.thingsboard.server.dao.model.type.JsonCodec;
+import org.thingsboard.server.dao.model.type.RoleTypeCodec;
 
 import java.util.UUID;
 
@@ -72,8 +75,8 @@ public class RoleEntity implements SearchTextEntity<Role> {
     private UUID customerId;
 
     @PartitionKey(value = 3)
-    @Column(name = ROLE_TYPE_PROPERTY)
-    private String type;
+    @Column(name = ROLE_TYPE_PROPERTY, codec = RoleTypeCodec.class)
+    private RoleType type;
 
     @Column(name = ROLE_NAME_PROPERTY)
     private String name;

@@ -37,9 +37,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
 import org.thingsboard.server.dao.role.RoleDao;
@@ -84,7 +85,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
-    public List<Role> findRolesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
+    public List<Role> findRolesByTenantIdAndType(UUID tenantId, RoleType type, TextPageLink pageLink) {
         return DaoUtil.convertDataList(
                 roleRepository.findByTenantIdAndType(
                         fromTimeUUID(tenantId),
@@ -117,7 +118,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
-    public List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
+    public List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, TextPageLink pageLink) {
         return DaoUtil.convertDataList(roleRepository
                 .findByTenantIdAndCustomerIdAndType(
                         fromTimeUUID(tenantId),

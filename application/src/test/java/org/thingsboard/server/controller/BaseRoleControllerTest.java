@@ -36,11 +36,12 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.ArrayList;
@@ -121,7 +122,7 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveRoleWithEmptyName() throws Exception {
         Role role = new Role();
-        role.setType("default");
+        role.setType(RoleType.GENERIC);
         doPost("/api/role", role)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Role name should be specified!")));
@@ -185,7 +186,7 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         Role role = new Role();
         role.setTenantId(savedTenant.getId());
         role.setName(name);
-        role.setType("default");
+        role.setType(RoleType.GENERIC);
         return role;
     }
 

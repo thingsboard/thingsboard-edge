@@ -28,44 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.permission;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 
-@Data
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, HasTenantId, HasCustomerId {
+import java.util.Map;
+import java.util.Set;
 
-    private static final long serialVersionUID = 5582010124562018986L;
+public final class MergedUserPermissions {
 
-    private TenantId tenantId;
-    private CustomerId customerId;
-    private String name;
-    private String type;
-    private transient JsonNode permissions;
+    private final Map<Resource, Set<Operation>> genericPermissions;
+    private final Map<EntityGroupId, Set<Operation>> groupPermissions;
 
-    public Role() {
-        super();
+    public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, Set<Operation>> groupPermissions) {
+        this.genericPermissions = genericPermissions;
+        this.groupPermissions = groupPermissions;
     }
-
-    public Role(RoleId id) {
-        super(id);
-    }
-
-    public Role(Role role) {
-        super(role);
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
-    }
-
 }

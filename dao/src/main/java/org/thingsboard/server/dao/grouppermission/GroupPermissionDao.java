@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.grouppermission;
 
-import org.thingsboard.server.common.data.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
@@ -45,4 +45,5 @@ public interface GroupPermissionDao extends Dao<GroupPermission> {
     List<GroupPermission> findGroupPermissionsByTenantId(UUID tenantId, TimePageLink pageLink);
 
     List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupId(UUID tenantId, UUID userGroupId, TimePageLink pageLink);
+
 }

@@ -34,6 +34,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -55,7 +56,7 @@ public interface RoleRepository extends CrudRepository<RoleEntity, String> {
             "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
             "AND r.id > :idOffset ORDER BY r.id")
     List<RoleEntity> findByTenantIdAndType(@Param("tenantId") String tenantId,
-                                           @Param("type") String type,
+                                           @Param("type") RoleType type,
                                            @Param("textSearch") String textSearch,
                                            @Param("idOffset") String idOffset,
                                            Pageable pageable);
@@ -81,7 +82,7 @@ public interface RoleRepository extends CrudRepository<RoleEntity, String> {
             "AND r.id > :idOffset ORDER BY r.id")
     List<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
                                                          @Param("customerId") String customerId,
-                                                         @Param("type") String type,
+                                                         @Param("type") RoleType type,
                                                          @Param("textSearch") String textSearch,
                                                          @Param("idOffset") String idOffset,
                                                          Pageable pageable);

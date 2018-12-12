@@ -37,7 +37,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -45,10 +45,11 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.List;
 
@@ -134,9 +135,9 @@ public class RoleController extends BaseController {
 
             if (type != null && type.trim().length() > 0) {
                 if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
-                    return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, type));
+                    return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, RoleType.valueOf(type)));
                 } else {
-                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), type, pageLink));
+                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), checkStrRoleType("type", type), pageLink));
                 }
             } else {
                 if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
@@ -167,7 +168,7 @@ public class RoleController extends BaseController {
             checkCustomerId(customerId, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
-                return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, customerId, checkStrRoleType("type", type), pageLink));
             } else {
                 return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }
