@@ -120,7 +120,7 @@ public class RoleController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/tenant/.roles", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/roles", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<Role> getRoles(
             @RequestParam int limit,
