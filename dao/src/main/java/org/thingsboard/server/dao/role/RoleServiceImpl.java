@@ -54,11 +54,13 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -68,6 +70,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ROLE_ID = "Incorrect roleId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
+    public static final String INCORRECT_ROLE_NAME = "Incorrect role name ";
 
     @Autowired
     private RoleDao roleDao;
@@ -93,6 +96,23 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
         return roleDao.findById(tenantId, roleId.getId());
+    }
+
+    @Override
+    public Optional<Role> findRoleByTenantIdAndName(TenantId tenantId, String name) {
+        log.trace("Executing findRoleByTenantIdAndName, tenantId [{}], name [{}]", tenantId, name);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(name, INCORRECT_ROLE_NAME + name);
+        return roleDao.findRoleByTenantIdAndName(tenantId.getId(), name);
+    }
+
+    @Override
+    public Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(TenantId tenantId, CustomerId customerId, String name) {
+        log.trace("Executing findRoleByByTenantIdAndCustomerIdAndName, tenantId [{}], customerId [{}], name [{}]", tenantId, customerId, name);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateString(name, INCORRECT_ROLE_NAME + name);
+        return roleDao.findRoleByByTenantIdAndCustomerIdAndName(tenantId.getId(), customerId.getId(), name);
     }
 
     @Override
@@ -210,8 +230,8 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                         throw new DataValidationException("Role name should be specified!");
                     }
                     if (role.getTenantId() == null) {
-                        throw new DataValidationException("Role should be assigned to tenant!");
-                    } else {
+                        role.setTenantId(new TenantId(NULL_UUID));
+                    } else if (!role.getTenantId().isNullUid()) { // not Sys admin level
                         Tenant tenant = tenantDao.findById(tenantId, role.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Role is referencing to non-existent tenant!");
@@ -219,7 +239,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                     }
                     if (role.getCustomerId() == null) {
                         role.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!role.getCustomerId().getId().equals(NULL_UUID)) {
+                    } else if (!role.getCustomerId().isNullUid()) {
                         Customer customer = customerDao.findById(tenantId, role.getCustomerId().getId());
                         if (customer == null) {
                             throw new DataValidationException("Can't assign role to non-existent customer!");

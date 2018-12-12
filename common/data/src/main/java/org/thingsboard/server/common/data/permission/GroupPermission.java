@@ -41,12 +41,30 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.*;
 
+import java.util.*;
+
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class GroupPermission extends BaseData<GroupPermissionId> implements HasName, HasTenantId {
 
     private static final long serialVersionUID = 5582010124562018986L;
+
+    public static final Map<Resource, List<Operation>> ALL_PERMISSIONS = new HashMap<>();
+    static {
+        ALL_PERMISSIONS.put(Resource.ALL, Collections.singletonList(Operation.ALL));
+    }
+
+    public static final Map<Resource, List<Operation>> READ_ONLY_PERMISSIONS = new HashMap<>();
+    static {
+        READ_ONLY_PERMISSIONS.put(Resource.ALL, Arrays.asList(
+                Operation.READ,
+                Operation.RPC_CALL,
+                Operation.READ_CREDENTIALS,
+                Operation.READ_ATTRIBUTES,
+                Operation.READ_TELEMETRY
+        ));
+    }
 
     private TenantId tenantId;
     private EntityGroupId userGroupId;

@@ -41,12 +41,17 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.role.RoleType;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RoleService {
 
     Role saveRole(TenantId tenantId, Role role);
 
     Role findRoleById(TenantId tenantId, RoleId roleId);
+
+    Optional<Role> findRoleByTenantIdAndName(TenantId tenantId, String name);
+
+    Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(TenantId tenantId, CustomerId customerId, String name);
 
     TextPageData<Role> findRolesByTenantId(TenantId tenantId, TextPageLink pageLink);
 

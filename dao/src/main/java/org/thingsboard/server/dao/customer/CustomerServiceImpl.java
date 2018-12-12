@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -50,6 +51,11 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -57,6 +63,7 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -67,6 +74,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
@@ -81,6 +89,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private static final String PUBLIC_CUSTOMER_TITLE = "Public";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private CustomerDao customerDao;
@@ -108,6 +118,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private GroupPermissionService groupPermissionService;
 
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
@@ -137,16 +150,57 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
         if (customer.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
-            entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
-            //TODO (Security): // create default roles and user groups
+
+            // User Group 'All' -> 'User' role -> Read only permissions
+            EntityGroup users = entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
+            Role userRole = getOrCreateGenericRole(savedCustomer, Role.ROLE_USER_NAME, GroupPermission.READ_ONLY_PERMISSIONS);
+            GroupPermission usersGroupPermission = new GroupPermission();
+            usersGroupPermission.setTenantId(savedCustomer.getTenantId());
+            usersGroupPermission.setUserGroupId(users.getId());
+            usersGroupPermission.setRoleId(userRole.getId());
+            groupPermissionService.saveGroupPermission(savedCustomer.getTenantId(), usersGroupPermission);
+
+            // User Group 'Admins' -> 'Admin' role -> All permissions
+            EntityGroup admins = entityGroupService.getOrCreateAdminsUserGroup(savedCustomer.getTenantId(), savedCustomer.getId());
+            Role adminRole = getOrCreateGenericRole(savedCustomer, Role.ROLE_ADMIN_NAME, GroupPermission.ALL_PERMISSIONS);
+            GroupPermission adminsGroupPermission = new GroupPermission();
+            adminsGroupPermission.setTenantId(savedCustomer.getTenantId());
+            adminsGroupPermission.setUserGroupId(admins.getId());
+            adminsGroupPermission.setRoleId(adminRole.getId());
+            groupPermissionService.saveGroupPermission(savedCustomer.getTenantId(), adminsGroupPermission);
+
         }
         dashboardService.updateCustomerDashboards(savedCustomer.getTenantId(), savedCustomer.getId());
         return savedCustomer;
+    }
+
+    private Role getOrCreateGenericRole(Customer customer, String name, Map<Resource, List<Operation>> permissions) {
+        Optional<Role> roleOptional;
+        if (customer.isSubCustomer()) {
+            roleOptional = roleService.findRoleByByTenantIdAndCustomerIdAndName(customer.getTenantId(), customer.getParentCustomerId(), name);
+        } else {
+            roleOptional = roleService.findRoleByTenantIdAndName(customer.getTenantId(), name);
+        }
+        if (!roleOptional.isPresent()) {
+            Role role = new Role();
+            role.setTenantId(customer.getTenantId());
+            if (customer.isSubCustomer()) {
+                role.setCustomerId(customer.getParentCustomerId());
+            } else {
+                role.setCustomerId(new CustomerId(EntityId.NULL_UUID));
+            }
+            role.setName(name);
+            role.setType(RoleType.GENERIC);
+            role.setPermissions(mapper.valueToTree(permissions));
+            return roleService.saveRole(customer.getTenantId(), role);
+        } else {
+            return roleOptional.get();
+        }
     }
 
     @Override

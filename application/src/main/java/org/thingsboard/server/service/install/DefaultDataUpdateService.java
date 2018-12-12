@@ -333,7 +333,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             //TODO (Security): validate
                             customerAdmins.setName("Customer Admins");
                             customerAdmins.setType(EntityType.USER);
-                            customerAdmins = entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
+                            customerAdmins = entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), customerAdmins);
                             Role customerAdminsRole = new Role();
                             customerAdminsRole.setTenantId(customer.getTenantId());
                             customerAdminsRole.setCustomerId(customer.getId());

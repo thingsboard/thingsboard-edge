@@ -174,6 +174,24 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public EntityGroup getOrCreateAdminsUserGroup(TenantId tenantId, EntityId parentEntityId) {
+        log.trace("Executing getOrCreateAdminsUserGroup, parentEntityId [{}]", parentEntityId);
+        try {
+            Optional<EntityGroup> adminsUserGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, EntityType.USER, EntityGroup.GROUP_ADMINS_NAME).get();
+            if (adminsUserGroupOptional.isPresent()) {
+                return adminsUserGroupOptional.get();
+            } else {
+                EntityGroup adminsUserGroup = new EntityGroup();
+                adminsUserGroup.setName(EntityGroup.GROUP_ADMINS_NAME);
+                adminsUserGroup.setType(EntityType.USER);
+                return saveEntityGroup(tenantId, parentEntityId, adminsUserGroup);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Unable find or create admins user group!", e);
+        }
+    }
+
+    @Override
     public void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing deleteEntityGroup [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);

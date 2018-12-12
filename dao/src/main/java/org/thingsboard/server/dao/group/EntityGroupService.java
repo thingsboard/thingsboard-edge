@@ -60,6 +60,8 @@ public interface EntityGroupService {
 
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
+    EntityGroup getOrCreateAdminsUserGroup(TenantId tenantId, EntityId parentEntityId);
+
     void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId);
 
     ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId);

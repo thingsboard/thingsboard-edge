@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public enum Resource {
+    ALL(),
     ADMIN_SETTINGS(),
     ALARM(EntityType.ALARM),
     DEVICE(EntityType.DEVICE),

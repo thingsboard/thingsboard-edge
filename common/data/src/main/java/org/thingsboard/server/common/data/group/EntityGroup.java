@@ -43,6 +43,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName {
     private static final long serialVersionUID = 2807349040519543363L;
 
     public static final String GROUP_ALL_NAME = "All";
+    public static final String GROUP_ADMINS_NAME = "Admins";
 
     @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD")
     private EntityType type;

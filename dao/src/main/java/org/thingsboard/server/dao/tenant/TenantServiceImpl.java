@@ -30,17 +30,26 @@
  */
 package org.thingsboard.server.dao.tenant;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -63,6 +72,8 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -72,6 +83,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private TenantDao tenantDao;
@@ -142,14 +155,47 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         tenantValidator.validate(tenant, Tenant::getId);
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         if (tenant.getId() == null) {
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
+
+            // User Group 'All' -> 'User' role -> Read only permissions
+            EntityGroup users = entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
+            Role userRole = getOrCreateGenericRole(Role.ROLE_USER_NAME, GroupPermission.READ_ONLY_PERMISSIONS);
+            GroupPermission usersGroupPermission = new GroupPermission();
+            usersGroupPermission.setTenantId(savedTenant.getId());
+            usersGroupPermission.setUserGroupId(users.getId());
+            usersGroupPermission.setRoleId(userRole.getId());
+            groupPermissionService.saveGroupPermission(TenantId.SYS_TENANT_ID, usersGroupPermission);
+
+            // User Group 'Admins' -> 'Admin' role -> All permissions
+            EntityGroup admins = entityGroupService.getOrCreateAdminsUserGroup(TenantId.SYS_TENANT_ID, savedTenant.getId());
+            Role adminRole = getOrCreateGenericRole(Role.ROLE_ADMIN_NAME, GroupPermission.ALL_PERMISSIONS);
+            GroupPermission adminsGroupPermission = new GroupPermission();
+            adminsGroupPermission.setTenantId(savedTenant.getId());
+            adminsGroupPermission.setUserGroupId(admins.getId());
+            adminsGroupPermission.setRoleId(adminRole.getId());
+            groupPermissionService.saveGroupPermission(TenantId.SYS_TENANT_ID, adminsGroupPermission);
         }
+
         return savedTenant;
+    }
+
+    private Role getOrCreateGenericRole(String name, Map<Resource, List<Operation>> permissions) {
+        Optional<Role> roleOptional = roleService.findRoleByTenantIdAndName(TenantId.SYS_TENANT_ID, name);
+        if (!roleOptional.isPresent()) {
+            Role role = new Role();
+            role.setTenantId(TenantId.SYS_TENANT_ID);
+            role.setCustomerId(new CustomerId(EntityId.NULL_UUID));
+            role.setName(name);
+            role.setType(RoleType.GENERIC);
+            role.setPermissions(mapper.valueToTree(permissions));
+            return roleService.saveRole(TenantId.SYS_TENANT_ID, role);
+        } else {
+            return roleOptional.get();
+        }
     }
 
     @Override

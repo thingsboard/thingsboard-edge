@@ -39,6 +39,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -89,6 +91,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Autowired
     private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     @Bean
     protected BCryptPasswordEncoder passwordEncoder() {
@@ -201,6 +206,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         userCredentials.setEnabled(true);
         userCredentials.setActivateToken(null);
         userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
+        if (authority == Authority.TENANT_ADMIN) {
+            EntityGroup admins = entityGroupService.getOrCreateAdminsUserGroup(TenantId.SYS_TENANT_ID, user.getTenantId());
+            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), user.getId());
+        }
         return user;
     }
 

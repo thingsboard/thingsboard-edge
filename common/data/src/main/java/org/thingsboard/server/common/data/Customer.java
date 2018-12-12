@@ -87,6 +87,11 @@ public class Customer extends ContactBased<CustomerId> implements HasName, HasTe
         return parentCustomerId != null && !parentCustomerId.isNullUid() ? parentCustomerId : tenantId;
     }
 
+    @JsonIgnore
+    public boolean isSubCustomer() {
+        return parentCustomerId != null && !parentCustomerId.isNullUid();
+    }
+
     public String getTitle() {
         return title;
     }
