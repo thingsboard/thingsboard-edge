@@ -69,7 +69,7 @@
                 </tb-manage-widget-actions>
             </div>
         </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.roles' | translate }}" ng-show="vm.isUserGroup">
+        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.roles' | translate }}" ng-if="vm.entityGroupGridConfig.isUserGroup()">
             <tb-user-group-roles
                     columns="vm.grid.operatingItem().configuration.columns"
                     entity-type="vm.grid.operatingItem().type"

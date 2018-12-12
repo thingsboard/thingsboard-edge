@@ -75,7 +75,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
     var vm = this;
 
     vm.types = types;
-    vm.isUserGroup = groupType === types.entityType.user;
+
 
     vm.actionSources = {
         'actionCellButton': {
@@ -124,6 +124,9 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         },
         isSelectionEnabled: function(entityGroup) {
             return !entityGroup.groupAll;
+        },
+        isUserGroup: function () {
+            return groupType === types.entityType.user;
         }
     };
 
