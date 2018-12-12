@@ -176,18 +176,4 @@ public class RoleController extends BaseController {
             throw handleException(e);
         }
     }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/role/types", method = RequestMethod.GET)
-    @ResponseBody
-    public List<EntitySubtype> getRoleTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> roleTypes = roleService.findRoleTypesByTenantId(tenantId);
-            return checkNotNull(roleTypes.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
 }

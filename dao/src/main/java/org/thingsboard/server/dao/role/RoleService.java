@@ -61,6 +61,4 @@ public interface RoleService {
     TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 
     TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, TextPageLink pageLink);
-
-    ListenableFuture<List<EntitySubtype>> findRoleTypesByTenantId(TenantId tenantId);
 }

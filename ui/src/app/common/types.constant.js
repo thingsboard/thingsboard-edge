@@ -310,10 +310,6 @@ export default angular.module('thingsboard.types', [])
                 entityViewSearchQuery: {
                     value: 'entityViewSearchQuery',
                     name: 'alias.filter-type-entity-view-search-query'
-                },
-                roleType: {
-                    value: 'roleType',
-                    name: 'alias.filter-type-role-type'
                 }
             },
             position: {
@@ -1043,6 +1039,10 @@ export default angular.module('thingsboard.types', [])
                     nodeClass: "tb-unknown-type",
                     icon: "help_outline"
                 }
+            },
+            roleType: {
+                generic: "GENERIC",
+                group: "GROUP"
             },
             messageType: {
                 'POST_ATTRIBUTES_REQUEST': {

@@ -53,14 +53,15 @@
 	      		<div translate ng-message="required">role.name-required</div>
 	    	</div>				
 		</md-input-container>
-        <tb-entity-subtype-autocomplete
-                ng-disabled="$root.loading || !isEdit"
-                tb-required="true"
-                the-form="theForm"
-                ng-model="role.type"
-                entity-type="types.entityType.role">
-        </tb-entity-subtype-autocomplete>
-        <md-input-container class="md-block">
+		<md-input-container class="md-block" style="width: 200px;">
+			<label translate>role.role-type</label>
+			<md-select ng-model="role.type" ng-disabled="$root.loading">
+				<md-option ng-repeat="type in types.roleType" ng-value="type">
+					{{ ('role.display-type.' + type) | translate }}
+				</md-option>
+			</md-select>
+		</md-input-container>
+		<md-input-container class="md-block">
             <label translate>role.description</label>
             <textarea ng-model="role.additionalInfo.description" rows="2"></textarea>
         </md-input-container>

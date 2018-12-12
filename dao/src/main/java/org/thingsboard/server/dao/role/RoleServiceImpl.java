@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.role;
 
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -39,14 +38,13 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -55,12 +53,12 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import java.util.Comparator;
 import java.util.List;
 
 import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
@@ -156,18 +154,6 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<Role> roles = roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
         return new TextPageData<>(roles, pageLink);
-    }
-
-    @Override
-    public ListenableFuture<List<EntitySubtype>> findRoleTypesByTenantId(TenantId tenantId) {
-        log.trace("Executing findRoleTypesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        ListenableFuture<List<EntitySubtype>> tenantRoleTypes = roleDao.findTenantRoleTypesAsync(tenantId.getId());
-        return Futures.transform(tenantRoleTypes,
-                roleTypes -> {
-                    roleTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                    return roleTypes;
-                });
     }
 
     private DataValidator<Role> roleValidator =

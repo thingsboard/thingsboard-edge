@@ -35,7 +35,7 @@ import rolesTemplate from './roles.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function RoleRoutes($stateProvider, types) {
+export default function RoleRoutes($stateProvider) {
     $stateProvider
         .state('home.roles', {
             url: '/roles',
@@ -50,10 +50,7 @@ export default function RoleRoutes($stateProvider, types) {
                 }
             },
             data: {
-                rolesType: 'tenant',
                 searchEnabled: true,
-                searchByEntitySubtype: true,
-                searchEntityType: types.entityType.role,
                 pageTitle: 'role.roles'
             },
             ncyBreadcrumb: {

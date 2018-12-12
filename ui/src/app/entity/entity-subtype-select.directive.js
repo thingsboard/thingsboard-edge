@@ -37,7 +37,7 @@ import entitySubtypeSelectTemplate from './entity-subtype-select.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntitySubtypeSelect($compile, $templateCache, $translate, assetService, deviceService, entityViewService, types, roleService) {
+export default function EntitySubtypeSelect($compile, $templateCache, $translate, assetService, deviceService, entityViewService, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(entitySubtypeSelectTemplate);
@@ -92,8 +92,6 @@ export default function EntitySubtypeSelect($compile, $templateCache, $translate
                 entitySubtypesPromise = deviceService.getDeviceTypes({ignoreLoading: true});
             } else if (scope.entityType == types.entityType.entityView) {
                 entitySubtypesPromise = entityViewService.getEntityViewTypes({ignoreLoading: true});
-            } else if (scope.entityType == types.entityType.role) {
-                entitySubtypesPromise = roleService.getRoleTypes({ignoreLoading: true});
             }
             if (entitySubtypesPromise) {
                 entitySubtypesPromise.then(
@@ -122,9 +120,6 @@ export default function EntitySubtypeSelect($compile, $templateCache, $translate
             } else if (scope.entityType == types.entityType.entityView) {
                 scope.entitySubtypeTitle = 'entity-view.entity-view-type';
                 scope.entitySubtypeRequiredText = 'entity-view.entity-view-type-required';
-            } else if (scope.entityType == types.entityType.role) {
-                scope.entitySubtypeTitle = 'role.role-type';
-                scope.entitySubtypeRequiredText = 'role.role-type-required';
             }
             scope.entitySubtypes.length = 0;
             if (scope.entitySubtypesList && scope.entitySubtypesList.length) {

@@ -30,35 +30,19 @@
  */
 package org.thingsboard.server.dao.role;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Select;
-import com.datastax.driver.mapping.Result;
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.model.EntitySubtypeEntity;
 import org.thingsboard.server.dao.model.nosql.RoleEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
@@ -108,32 +92,6 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
         query.and(eq(ROLE_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ROLE_NAME_PROPERTY, name));
         return Optional.ofNullable(DaoUtil.getData(findOneByStatement(new TenantId(tenantId), query)));
-    }
-
-    @Override
-    public ListenableFuture<List<EntitySubtype>> findTenantRoleTypesAsync(UUID tenantId) {
-        Select select = select().from(ENTITY_SUBTYPE_COLUMN_FAMILY_NAME);
-        Select.Where query = select.where();
-        query.and(eq(ENTITY_SUBTYPE_TENANT_ID_PROPERTY, tenantId));
-        query.and(eq(ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY, EntityType.ROLE));
-        query.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-        ResultSetFuture resultSetFuture = executeAsyncRead(new TenantId(tenantId), query);
-        return Futures.transform(resultSetFuture, new Function<ResultSet, List<EntitySubtype>>() {
-            @Nullable
-            @Override
-            public List<EntitySubtype> apply(@Nullable ResultSet resultSet) {
-                Result<EntitySubtypeEntity> result = cluster.getMapper(EntitySubtypeEntity.class).map(resultSet);
-                if (result != null) {
-                    List<EntitySubtype> entitySubtypes = new ArrayList<>();
-                    result.all().forEach((entitySubtypeEntity) ->
-                            entitySubtypes.add(entitySubtypeEntity.toEntitySubtype())
-                    );
-                    return entitySubtypes;
-                } else {
-                    return Collections.emptyList();
-                }
-            }
-        });
     }
 
     @Override

@@ -1784,7 +1784,11 @@
         "role-required": "Role required",
         "delete-group-permission-title": "Are you sure you want to delete the group permission '{{roleName}}'?",
         "delete-group-permission-text": "Be careful, after the confirmation the group permission and all related data will become unrecoverable.",
-        "delete-group-permission": "Delete group permission"
+        "delete-group-permission": "Delete group permission",
+        "display-type": {
+            "GENERIC": "Generic",
+            "GROUP": "Group"
+        }
     },
     "user-group": {
         "role-type": "Role type",

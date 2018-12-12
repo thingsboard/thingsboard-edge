@@ -32,6 +32,6 @@ package org.thingsboard.server.common.data.role;
 
 public enum RoleType {
 
-    GENERIC, GROUP;
+    GENERIC, GROUP
 
 }

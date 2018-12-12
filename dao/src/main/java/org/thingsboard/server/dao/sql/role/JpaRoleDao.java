@@ -30,16 +30,15 @@
  */
 package org.thingsboard.server.dao.sql.role;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
@@ -47,12 +46,7 @@ import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
@@ -99,11 +93,6 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     public Optional<Role> findRoleByTenantIdAndName(UUID tenantId, String name) {
         return Optional.ofNullable(
                 DaoUtil.getData(roleRepository.findByTenantIdAndName(fromTimeUUID(tenantId), name)));
-    }
-
-    @Override
-    public ListenableFuture<List<EntitySubtype>> findTenantRoleTypesAsync(UUID tenantId) {
-        return service.submit(() -> convertTenantRoleTypesToDto(tenantId, roleRepository.findTenantRoleTypes(fromTimeUUID(tenantId))));
     }
 
     @Override

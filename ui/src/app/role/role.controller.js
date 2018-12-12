@@ -94,19 +94,13 @@ export function RoleController($rootScope, userService, roleService, $state, $st
     initController();
 
     function initController() {
-        var fetchRolesFunction = null;
-        var deleteRoleFunction = null;
-        var refreshRolesParamsFunction = null;
-
-        // var user = userService.getCurrentUser(); dsfas
-
-        fetchRolesFunction = function (pageLink, roleType) {
+        var fetchRolesFunction = function (pageLink, roleType) {
             return roleService.getRoles(pageLink, true, roleType);
         };
-        deleteRoleFunction = function (roleId) {
+        var deleteRoleFunction = function (roleId) {
             return roleService.deleteRole(roleId);
         };
-        refreshRolesParamsFunction = function() {
+        var refreshRolesParamsFunction = function() {
             return {"topIndex": vm.topIndex};
         };
 

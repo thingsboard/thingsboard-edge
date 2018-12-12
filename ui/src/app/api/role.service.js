@@ -35,18 +35,14 @@ export default angular.module('thingsboard.api.role', [thingsboardTypes])
     .name;
 
 /*@ngInject*/
-function RoleService($http, $q, $window, userService, attributeService, types) {
+function RoleService($http, $q) {
 
     var service = {
         deleteRole: deleteRole,
         getRole: getRole,
         getRoles: getRoles,
         saveRole: saveRole,
-        getRoleAttributes: getRoleAttributes,
-        subscribeForRoleAttributes: subscribeForRoleAttributes,
-        unsubscribeForRoleAttributes: unsubscribeForRoleAttributes,
         findByQuery: findByQuery,
-        getRoleTypes: getRoleTypes,
         getGroupPermissions: getGroupPermissions,
         saveGroupPermission: saveGroupPermission,
         deleteGroupPermission: deleteGroupPermission,
@@ -117,18 +113,6 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
         return deferred.promise;
     }
 
-    function getRoleAttributes(roleId, attributeScope, query, successCallback, config) {
-        return attributeService.getEntityAttributes(types.entityType.role, roleId, attributeScope, query, successCallback, config);
-    }
-
-    function subscribeForRoleAttributes(roleId, attributeScope) {
-        return attributeService.subscribeForEntityAttributes(types.entityType.role, roleId, attributeScope);
-    }
-
-    function unsubscribeForRoleAttributes(subscriptionId) {
-        attributeService.unsubscribeForEntityAttributes(subscriptionId);
-    }
-
     function findByQuery(query, ignoreErrors, config) {
         var deferred = $q.defer();
         var url = '/api/roles';
@@ -137,17 +121,6 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.post(url, query, config).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function getRoleTypes(config) {
-        var deferred = $q.defer();
-        var url = '/api/role/types';
-        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
