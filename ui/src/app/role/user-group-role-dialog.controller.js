@@ -29,14 +29,14 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function UserGroupRoleDialogController($scope, $q, $element, $mdDialog, types, isAdd, entityRelationService) {
+export default function UserGroupRoleDialogController($scope, $q, $element, $mdDialog, types, isAdd, groupPermission, roleService) {
 
     var vm = this;
 
     vm.types = types;
     vm.isAdd = isAdd;
 
-    vm.model = {};
+    vm.groupPermission = groupPermission;
 
     vm.allowedEntityTypes = [types.entityType.entityView, types.entityType.role];
 
@@ -48,35 +48,20 @@ export default function UserGroupRoleDialogController($scope, $q, $element, $mdD
     }
 
     function save() {
-        if (vm.isAdd) {
-            if (vm.direction == vm.types.entitySearchDirection.from) {
-                vm.relation.to = vm.targetEntityId;
-            } else {
-                vm.relation.from = vm.targetEntityId;
+
+        // private EntityGroupId userGroupId;
+        // private EntityGroupId entityGroupId;
+        // private EntityType entityGroupType;
+        // private RoleId roleId;
+        //
+        // groupType
+        // groupId
+
+        roleService.saveGroupPermission(vm.groupPermission).then(
+            function success() {
+                $mdDialog.hide();
             }
-        }
-        $scope.theForm.$setPristine();
-
-        var valid = true;
-        if (vm.additionalInfo && vm.additionalInfo.length) {
-            try {
-                vm.relation.additionalInfo = angular.fromJson(vm.additionalInfo);
-            } catch(e) {
-                valid = false;
-            }
-        } else {
-            vm.relation.additionalInfo = null;
-        }
-
-        $scope.theForm.$setValidity("additionalInfo", valid);
-
-        if (valid) {
-            entityRelationService.saveRelation(vm.relation).then(
-                function success() {
-                    $mdDialog.hide();
-                }
-            );
-        }
+        );
     }
 
 

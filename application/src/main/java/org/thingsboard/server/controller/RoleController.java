@@ -77,7 +77,9 @@ public class RoleController extends BaseController {
     public Role saveRole(@RequestBody Role role) throws ThingsboardException {
         try {
             role.setTenantId(getCurrentUser().getTenantId());
-
+            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                role.setCustomerId(getCurrentUser().getCustomerId());
+            }
             Operation operation = role.getId() == null ? Operation.CREATE : Operation.WRITE;
 
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
@@ -118,7 +120,7 @@ public class RoleController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/roles", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/.roles", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<Role> getRoles(
             @RequestParam int limit,

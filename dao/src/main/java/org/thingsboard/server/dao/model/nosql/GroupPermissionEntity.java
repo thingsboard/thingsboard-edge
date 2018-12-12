@@ -34,52 +34,51 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Type;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupPermission;
-import org.thingsboard.server.common.data.Role;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.SearchTextEntity;
-import org.thingsboard.server.dao.model.type.JsonCodec;
+import org.thingsboard.server.dao.model.type.EntityTypeCodec;
 
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
-@Table(name = ROLE_TABLE_FAMILY_NAME)
+@Table(name = GROUP_PERMISSION_TABLE_FAMILY_NAME)
 @EqualsAndHashCode
 @ToString
 @Slf4j
 public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
 
-    @PartitionKey(value = 0)
     @Column(name = ID_PROPERTY)
     private UUID id;
 
-    @PartitionKey(value = 1)
-    @Column(name = ROLE_TENANT_ID_PROPERTY)
+    @PartitionKey
+    @Column(name = GROUP_PERMISSION_TENANT_ID_PROPERTY)
     private UUID tenantId;
 
+    @PartitionKey(value = 1)
+    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
+    private UUID roleId;
+
     @PartitionKey(value = 2)
-    @Column(name = ROLE_CUSTOMER_ID_PROPERTY)
-    private UUID customerId;
+    @Column(name = GROUP_PERMISSION_USER_GROUP_ID_PROPERTY)
+    private UUID userGroupId;
 
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
+    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY)
+    private UUID entityGroupId;
 
-    @Type(type = "json")
-    @Column(name = ROLE_ADDITIONAL_INFO_PROPERTY)
-    private JsonNode additionalInfo;
+    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY, codec = EntityTypeCodec.class)
+    private EntityType entityGroupType;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -87,28 +86,42 @@ public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
         super();
     }
 
-    public GroupPermissionEntity(Role role) {
-        if (role.getId() != null) {
-            this.id = role.getId().getId();
+    public GroupPermissionEntity(GroupPermission groupPermission) {
+        if (groupPermission.getId() != null) {
+            this.setId(groupPermission.getId().getId());
         }
-        if (role.getTenantId() != null) {
-            this.tenantId = role.getTenantId().getId();
+        if (groupPermission.getTenantId() != null) {
+            this.tenantId = groupPermission.getTenantId().getId();
         }
-        if (role.getCustomerId() != null) {
-            this.customerId = role.getCustomerId().getId();
+        if (groupPermission.getRoleId() != null) {
+            this.roleId = groupPermission.getRoleId().getId();
         }
-        this.searchText = role.getSearchText();
-        this.additionalInfo = role.getAdditionalInfo();
+        if (groupPermission.getUserGroupId() != null) {
+            this.userGroupId = groupPermission.getUserGroupId().getId();
+        }
+        if (groupPermission.getEntityGroupId() != null) {
+            this.entityGroupId = groupPermission.getEntityGroupId().getId();
+            this.entityGroupType = groupPermission.getEntityGroupType();
+        }
     }
 
     @Override
     public GroupPermission toData() {
-        GroupPermission role = new GroupPermission(new GroupPermissionId(id));
-        role.setCreatedTime(UUIDs.unixTimestamp(id));
+        GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(id));
+        groupPermission.setCreatedTime(UUIDs.unixTimestamp(id));
         if (tenantId != null) {
-            role.setTenantId(new TenantId(tenantId));
+            groupPermission.setTenantId(new TenantId(tenantId));
         }
-        // TODO: add impl
-        return role;
+        if (roleId != null) {
+            groupPermission.setRoleId(new RoleId(roleId));
+        }
+        if (userGroupId != null) {
+            groupPermission.setUserGroupId(new EntityGroupId(userGroupId));
+        }
+        if (entityGroupId != null && entityGroupType != null) {
+            groupPermission.setEntityGroupId(new EntityGroupId(entityGroupId));
+            groupPermission.setEntityGroupType(entityGroupType);
+        }
+        return groupPermission;
     }
 }

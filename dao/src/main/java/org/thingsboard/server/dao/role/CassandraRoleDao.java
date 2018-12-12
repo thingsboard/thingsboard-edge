@@ -79,7 +79,7 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
     }
 
     @Override
-    public Role save(TenantId tenantId ,Role role) {
+    public Role save(TenantId tenantId, Role role) {
         Role savedRole = super.save(role.getTenantId(), role);
         EntitySubtype entitySubtype = new EntitySubtype(savedRole.getTenantId(), EntityType.ROLE, savedRole.getType());
         EntitySubtypeEntity entitySubtypeEntity = new EntitySubtypeEntity(entitySubtype);

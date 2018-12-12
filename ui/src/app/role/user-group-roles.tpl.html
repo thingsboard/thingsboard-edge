@@ -33,10 +33,10 @@
 <md-content flex class="md-padding tb-absolute-fill" layout="column">
     <div class="md-whiteframe-z1 toolbarsContainer" ng-class="{flex: mode==='widget'}">
         <md-toolbar class="md-table-toolbar md-default" ng-show="mode==='default'
-                                                                 && !selectedAttributes.length
+                                                                 && !selectedGroupPermissions.length
                                                                  && query.search === null">
             <div class="md-toolbar-tools">
-                <md-button class="md-icon-button" ng-click="addAttribute($event)">
+                <md-button class="md-icon-button" ng-click="addGroupPermission($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.add' | translate }}
@@ -48,7 +48,7 @@
                         {{ 'action.search' | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button class="md-icon-button" ng-click="getEntityAttributes()">
+                <md-button class="md-icon-button" ng-click="getGroupPermissions()">
                     <md-icon>refresh</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.refresh' | translate }}
@@ -57,7 +57,7 @@
             </div>
         </md-toolbar>
         <md-toolbar class="md-table-toolbar md-default" ng-show="mode==='default'
-                                                                 && !selectedAttributes.length
+                                                                 && !selectedGroupPermissions.length
                                                                  && query.search != null">
             <div class="md-toolbar-tools">
                 <md-button class="md-icon-button" aria-label="{{ 'action.search' | translate }}">
@@ -80,55 +80,20 @@
         </md-toolbar>
         <md-toolbar class="md-table-toolbar alternate" ng-show="mode==='default' && selectedAttributes.length">
             <div class="md-toolbar-tools">
-                <span translate="{{attributeScope === types.latestTelemetry
-                                    ? 'attribute.selected-telemetry'
-                                    : 'attribute.selected-attributes'}}"
-                      translate-values="{count: selectedAttributes.length}"
+                <span translate="{{'role.selected-group-permissions'}}"
+                      translate-values="{count: selectedGroupPermissions.length}"
                       translate-interpolation="messageformat"></span>
                 <span flex></span>
-                <md-button class="md-icon-button" ng-click="deleteAttributes($event)">
+                <md-button class="md-icon-button" ng-click="deleteGroupPermissions($event)">
                     <md-icon>delete</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.delete' | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button class="md-accent md-hue-2 md-raised" ng-click="enterWidgetMode()">
-                    <md-tooltip md-direction="top">
-                        {{ 'attribute.show-on-widget' | translate }}
-                    </md-tooltip>
-                    <md-icon>now_widgets</md-icon>
-                    <span translate>attribute.show-on-widget</span>
-                </md-button>
-            </div>
-        </md-toolbar>
-        <md-toolbar class="md-table-toolbar alternate" ng-show="mode==='widget'">
-            <div class="md-toolbar-tools">
-                <div flex layout="row" layout-align="start">
-                    <span class="tb-details-subtitle">{{ 'widgets-bundle.current' | translate }}</span>
-                    <tb-widgets-bundle-select flex-offset="5"
-                                              flex
-                                              ng-model="widgetsBundle"
-                                              select-first-bundle="false"
-                                              select-bundle-alias="selectedWidgetsBundleAlias">
-                    </tb-widgets-bundle-select>
-                </div>
-                <md-button ng-show="widgetsList.length > 0" class="md-accent md-hue-2 md-raised" ng-click="addWidgetToDashboard($event)">
-                    <md-tooltip md-direction="top">
-                        {{ 'attribute.add-to-dashboard' | translate }}
-                    </md-tooltip>
-                    <md-icon>dashboard</md-icon>
-                    <span translate>attribute.add-to-dashboard</span>
-                </md-button>
-                <md-button class="md-icon-button" aria-label="{{ 'action.back' | translate }}" ng-click="exitWidgetMode()">
-                    <md-icon aria-label="{{ 'action.close' | translate }}" class="material-icons">close</md-icon>
-                    <md-tooltip md-direction="top">
-                        {{ 'action.close' | translate }}
-                    </md-tooltip>
-                </md-button>
             </div>
         </md-toolbar>
         <md-table-container ng-show="mode!='widget'">
-            <table class="tb-attribute-table" md-table md-row-select multiple="" ng-model="selectedAttributes" md-progress="attributesDeferred.promise">
+            <table class="tb-attribute-table" md-table md-row-select multiple="" ng-model="selectedGroupPermissions" md-progress="attributesDeferred.promise">
                 <thead md-head md-order="query.order" md-on-reorder="onReorder">
                 <tr md-row>
                     <th md-column><span translate>user-group.role-type</span></th>

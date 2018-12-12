@@ -30,11 +30,13 @@
  */
 package org.thingsboard.server.dao.sql.grouppermission;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.dao.model.sql.AuditLogEntity;
 import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 @SqlDao
-public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, String> {
+public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, String>, JpaSpecificationExecutor<GroupPermissionEntity> {
 
 }

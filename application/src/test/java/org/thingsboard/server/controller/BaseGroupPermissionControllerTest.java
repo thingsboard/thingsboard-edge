@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -31,38 +31,38 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Role;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseGroupPermissionControllerTest extends AbstractControllerTest {
 
-    private IdComparator<Role> idComparator;
+    private IdComparator<GroupPermission> idComparator;
     private Tenant savedTenant;
     private User tenantAdmin;
+    private EntityGroup savedUserGroup;
 
     @Before
     public void beforeTest() throws Exception {
         loginSysAdmin();
         idComparator = new IdComparator<>();
 
-        savedTenant = doPost("/api/tenant", getNewTenant("My tenant"), Tenant.class);
+        savedTenant = doPost("/api/tenant", getNewTenant(), Tenant.class);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -73,6 +73,10 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
         tenantAdmin.setLastName("Downs");
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
 
+        savedUserGroup = new EntityGroup();
+        savedUserGroup.setType(EntityType.USER);
+        savedUserGroup.setName("UserGroup");
+        savedUserGroup = doPost("/api/entityGroup", savedUserGroup, EntityGroup.class);
     }
 
     @After
@@ -83,143 +87,63 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
     }
 
     @Test
-    public void testFindRoleById() throws Exception {
-        Role savedRole = getNewSavedRole("Test role");
-        Role foundRole = doGet("/api/role/" + savedRole.getId().getId().toString(), Role.class);
-        Assert.assertNotNull(foundRole);
-        assertEquals(savedRole, foundRole);
+    public void testFindGroupPermissionById() throws Exception {
+        GroupPermission groupPermission = getNewSavedGroupPermission("Test Role");
+        GroupPermission foundGroupPermission = doGet("/api/groupPermission/" + groupPermission.getId().getId().toString(), GroupPermission.class);
+        Assert.assertNotNull(foundGroupPermission);
+        assertEquals(groupPermission, foundGroupPermission);
     }
 
     @Test
-    public void testSaveRole() throws Exception {
-        Role savedRole = getNewSavedRole("Test role");
+    public void testSaveGroupPermission() throws Exception {
+        GroupPermission groupPermission = getNewSavedGroupPermission("Test Role");
+        Assert.assertNotNull(groupPermission);
+        Assert.assertNotNull(groupPermission.getId());
+        Assert.assertTrue(groupPermission.getCreatedTime() > 0);
+        assertEquals(savedTenant.getId(), groupPermission.getTenantId());
+    }
 
-        Assert.assertNotNull(savedRole);
-        Assert.assertNotNull(savedRole.getId());
-        Assert.assertTrue(savedRole.getCreatedTime() > 0);
-        assertEquals(savedTenant.getId(), savedRole.getTenantId());
+    private GroupPermission getNewSavedGroupPermission(String roleName) throws Exception {
+        Role savedRole = createRole(roleName);
+        savedRole = doPost("/api/role", savedRole, Role.class);
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setRoleId(savedRole.getId());
+        groupPermission.setUserGroupId(savedUserGroup.getId());
 
-        savedRole.setName("New test role");
-        doPost("/api/role", savedRole, Role.class);
-        Role foundRole = doGet("/api/role/" + savedRole.getId().getId().toString(), Role.class);
-
-        assertEquals(foundRole.getName(), savedRole.getName());
+        groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+        return groupPermission;
     }
 
     @Test
-    public void testDeleteRole() throws Exception {
-        Role role = getNewSavedRole("Test role");
-        Role savedRole = doPost("/api/role", role, Role.class);
+    public void testDeleteGroupPermission() throws Exception {
+        GroupPermission savedGroupPermission = getNewSavedGroupPermission("Test Role");
 
-        doDelete("/api/role/" + savedRole.getId().getId().toString())
+        doDelete("/api/groupPermission/" + savedGroupPermission.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        doGet("/api/role/" + savedRole.getId().getId().toString())
+        doGet("/api/groupPermission/" + savedGroupPermission.getId().getId().toString())
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    public void testSaveRoleWithEmptyName() throws Exception {
-        Role role = new Role();
-        role.setType("default");
-        doPost("/api/role", role)
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Role name should be specified!")));
-    }
-
-    @Test
-    public void testGetTenantRoles() throws Exception {
-
-        List<Role> roles = new ArrayList<>();
+    public void testGetGroupPermissionsByTenantIdAndUserGroupId() throws Exception {
+        List<GroupPermission> groupPermissions = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
-            roles.add(getNewSavedRole("Test role " + i));
+            groupPermissions.add(getNewSavedGroupPermission("Test role " + i));
         }
-        List<Role> loadedRoles = loadListOf(new TextPageLink(23), "/api/tenant/roles?");
+        List<GroupPermission> loadedGroupPermissions = loadListOf(new TimePageLink(23), "/api/groupPermissions/" + savedUserGroup.getId() + "?");
 
-        Collections.sort(roles, idComparator);
-        Collections.sort(loadedRoles, idComparator);
+        Collections.sort(groupPermissions, idComparator);
+        Collections.sort(loadedGroupPermissions, idComparator);
 
-        assertEquals(roles, loadedRoles);
+        assertEquals(groupPermissions, loadedGroupPermissions);
     }
 
-    @Test
-    public void testGetTenantRolesByName() throws Exception {
-        String name1 = "Entity role1";
-        List<Role> namesOfRole1 = fillListOf(143, name1);
-        List<Role> loadedNamesOfRole1 = loadListOf(new TextPageLink(15, name1), "/api/tenant/roles?");
-        Collections.sort(namesOfRole1, idComparator);
-        Collections.sort(loadedNamesOfRole1, idComparator);
-        assertEquals(namesOfRole1, loadedNamesOfRole1);
-
-        String name2 = "Entity role2";
-        List<Role> namesOfRole2 = fillListOf(75, name2);
-        List<Role> loadedNamesOfRole2 = loadListOf(new TextPageLink(4, name2), "/api/tenant/roles?");
-        Collections.sort(namesOfRole2, idComparator);
-        Collections.sort(loadedNamesOfRole2, idComparator);
-        assertEquals(namesOfRole2, loadedNamesOfRole2);
-
-        for (Role role : loadedNamesOfRole1) {
-            doDelete("/api/role/" + role.getId().getId().toString()).andExpect(status().isOk());
-        }
-        TextPageData<Role> pageData = doGetTypedWithPageLink("/api/tenant/roles?",
-                new TypeReference<TextPageData<Role>>() {
-                }, new TextPageLink(4, name1));
-        Assert.assertFalse(pageData.hasNext());
-        assertEquals(0, pageData.getData().size());
-
-        for (Role role : loadedNamesOfRole2) {
-            doDelete("/api/role/" + role.getId().getId().toString()).andExpect(status().isOk());
-        }
-        pageData = doGetTypedWithPageLink("/api/tenant/roles?", new TypeReference<TextPageData<Role>>() {
-        }, new TextPageLink(4, name2));
-        Assert.assertFalse(pageData.hasNext());
-        assertEquals(0, pageData.getData().size());
-    }
-
-    private Role getNewSavedRole(String name) throws Exception {
-        Role role = createRole(name);
-        return doPost("/api/role", role, Role.class);
-    }
-
-    private Role createRole(String name) {
-        Role role = new Role();
-        role.setTenantId(savedTenant.getId());
-        role.setName(name);
-        role.setType("default");
-        return role;
-    }
-
-    private Tenant getNewTenant(String title) {
-        Tenant tenant = new Tenant();
-        tenant.setTitle(title);
-        return tenant;
-    }
-
-    private List<Role> fillListOf(int limit, String partOfName, String urlTemplate) throws Exception {
-        List<Role> roles = new ArrayList<>();
-        for (Role role : fillListOf(limit, partOfName)) {
-            roles.add(doPost(urlTemplate + role.getId().getId().toString(), Role.class));
-        }
-        return roles;
-    }
-
-    private List<Role> fillListOf(int limit, String partOfName) throws Exception {
-        List<Role> roleNames = new ArrayList<>();
-        for (int i = 0; i < limit; i++) {
-            String fullName = partOfName + ' ' + RandomStringUtils.randomAlphanumeric(15);
-            fullName = i % 2 == 0 ? fullName.toLowerCase() : fullName.toUpperCase();
-            Role role = getNewSavedRole(fullName);
-            roleNames.add(doPost("/api/role", role, Role.class));
-        }
-        return roleNames;
-    }
-
-    private List<Role> loadListOf(TextPageLink pageLink, String urlTemplate) throws Exception {
-        List<Role> loadedItems = new ArrayList<>();
-        TextPageData<Role> pageData;
+    private List<GroupPermission> loadListOf(TimePageLink pageLink, String urlTemplate) throws Exception {
+        List<GroupPermission> loadedItems = new ArrayList<>();
+        TimePageData<GroupPermission> pageData;
         do {
-            pageData = doGetTypedWithPageLink(urlTemplate, new TypeReference<TextPageData<Role>>() {
-            }, pageLink);
+            pageData = doGetTypedWithTimePageLink(urlTemplate, new TypeReference<TimePageData<GroupPermission>>() {}, pageLink);
             loadedItems.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageData.getNextPageLink();
@@ -227,5 +151,20 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
         } while (pageData.hasNext());
 
         return loadedItems;
+    }
+
+
+    private Role createRole(String roleName) {
+        Role role = new Role();
+        role.setTenantId(savedTenant.getId());
+        role.setName(roleName);
+        role.setType("GROUP");
+        return role;
+    }
+
+    private Tenant getNewTenant() {
+        Tenant tenant = new Tenant();
+        tenant.setTitle("My tenant");
+        return tenant;
     }
 }

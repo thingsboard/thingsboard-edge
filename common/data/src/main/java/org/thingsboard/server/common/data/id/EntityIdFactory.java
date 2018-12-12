@@ -90,6 +90,8 @@ public class EntityIdFactory {
                 return new EntityViewId(uuid);
             case ROLE:
                 return new RoleId(uuid);
+            case GROUP_PERMISSION:
+                return new GroupPermissionId(uuid);
             case WIDGETS_BUNDLE:
                 return new WidgetsBundleId(uuid);
             case WIDGET_TYPE:

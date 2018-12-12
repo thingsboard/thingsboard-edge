@@ -41,6 +41,7 @@ import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupPermission;
 import org.thingsboard.server.common.data.Role;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,17 +64,17 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Column(name = GROUP_PERMISSION_TENANT_ID_PROPERTY)
     private String tenantId;
 
-    @Column(name = "role_id")
+    @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
     private String roleId;
 
-    @Column(name = "user_group_id")
+    @Column(name = GROUP_PERMISSION_USER_GROUP_ID_PROPERTY)
     private String userGroupId;
 
-    @Column(name = "entity_group_id")
+    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY)
     private String entityGroupId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "entity_group_type")
+    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY)
     private EntityType entityGroupType;
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -104,15 +105,20 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Override
     public GroupPermission toData() {
         GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(getId()));
-//        role.setCreatedTime(UUIDs.unixTimestamp(getId()));
-//
-//        if (tenantId != null) {
-//            role.setTenantId(new TenantId(toUUID(tenantId)));
-//        }
-//        role.setType(type);
-//        role.setName(name);
-//        role.setPermissions(permissions);
-//        role.setAdditionalInfo(additionalInfo);
+        groupPermission.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        if (tenantId != null) {
+            groupPermission.setTenantId(new TenantId(toUUID(tenantId)));
+        }
+        if (roleId != null) {
+            groupPermission.setRoleId(new RoleId(toUUID(roleId)));
+        }
+        if (userGroupId != null) {
+            groupPermission.setUserGroupId(new EntityGroupId(toUUID(userGroupId)));
+        }
+        if (entityGroupId != null && entityGroupType != null) {
+            groupPermission.setEntityGroupId(new EntityGroupId(toUUID(entityGroupId)));
+            groupPermission.setEntityGroupType(entityGroupType);
+        }
         return groupPermission;
     }
 }
