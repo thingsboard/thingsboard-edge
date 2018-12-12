@@ -30,23 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<!--<md-edit-dialog>-->
-    <!--<form name="editDialog" ng-submit="submit()">-->
-        <!--<div layout="column" class="md-content" style="width: 400px;">-->
-            <!--<fieldset>-->
-            <!--</fieldset>-->
-        <!--</div>-->
-        <!--<div layout="row" layout-align="end" class="md-actions">-->
-            <!--<md-button ng-click="dismiss()">{{ 'action.cancel' |-->
-                <!--translate }}-->
-            <!--</md-button>-->
-            <!--<md-button ng-disabled="editDialog.$invalid || !editDialog.$dirty" type="submit"-->
-                       <!--class="md-raised md-primary">-->
-                <!--{{ 'action.update' | translate }}-->
-            <!--</md-button>-->
-        <!--</div>-->
-    <!--</form>-->
-<!--</md-edit-dialog>-->
 <md-dialog aria-label="{{ (vm.isAdd ? 'role.add-group-role' : 'role.edit-group-role' ) | translate }}" style="min-width: 600px;">
     <form name="theForm" ng-submit="vm.save()">
         <md-toolbar>

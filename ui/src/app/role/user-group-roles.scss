@@ -42,7 +42,7 @@ md-toolbar.md-table-toolbar.alternate {
 }
 
 .md-table {
-  &.tb-attribute-table {
+  &.tb-group-permission-table {
     table-layout: fixed;
 
     td.md-cell {
@@ -57,19 +57,6 @@ md-toolbar.md-table-toolbar.alternate {
       float: right;
       height: 16px;
       fill: $md-edit-icon-fill;
-    }
-  }
-}
-
-.widgets-carousel {
-  position: relative;
-  height: calc(100% - 100px);
-  min-height: 150px !important;
-  margin: 0;
-
-  tb-dashboard {
-    #gridster-parent {
-      padding: 0 7px;
     }
   }
 }

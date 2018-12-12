@@ -45,7 +45,7 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
                                        $mdUtil, $document, $translate, $filter, $timeout, utils, types, dashboardUtils,
                                        entityService, roleService) {
 
-    var linker = function (scope, element, attrs) {
+    var linker = function (scope, element) {
 
         var template = $templateCache.get(userGroupRolesTemplate);
 
@@ -53,16 +53,12 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
 
         scope.types = types;
 
-        scope.entityType = attrs.entityType;
-
         scope.groupPermissions = {
             count: 0,
             data: []
         };
 
         scope.selectedGroupPermissions = [];
-        scope.aaa = [];
-        scope.aaa.push({roleType: "Pepsi", roleName: "Manager", groupType: "Device", groupName: "Class A Devices"});
 
         scope.mode = 'default'; // 'widget'
         scope.subscriptionId = null;
@@ -74,11 +70,10 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
             search: null
         };
 
-        scope.$watch("entityId", function (newVal) {
-            if (newVal) {
+        scope.$watch("entityId", function(newVal, prevVal) {
+            if (newVal && !angular.equals(newVal, prevVal)) {
                 scope.resetFilter();
-                scope.getGroupPermissions(false, true);
-            }
+                scope.getGroupPermissions();            }
         });
 
         scope.resetFilter = function () {
@@ -118,9 +113,19 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
         }
 
         scope.getGroupPermissions = function () {
+            roleService.getGroupPermissions(scope.entityId, {limit: 100}).then(
+                (groupPermissions) => {
+                    scope.groupPermissions = groupPermissions;
+                    roleService.applyRelatedRoleInfo(groupPermissions.data).then(
+                        (data) => {
+                            scope.allGroupPermissions = data;
+                        }
+                    );
+                }
+            )
         }
 
-        scope.editGroupPermission = function ($event) {
+        scope.editGroupPermission = function ($event, groupPermission) {
             $event.stopPropagation();
             $mdDialog.show({
                 controller: UserGroupRoleDialogController,
@@ -129,8 +134,7 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
                 parent: angular.element($document[0].body),
                 locals: {
                     isAdd: false,
-                    entityType: scope.entityType,
-                    entityId: scope.entityId
+                    groupPermission: groupPermission
                 },
                 fullscreen: true,
                 targetEvent: $event
@@ -141,6 +145,8 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
 
         scope.addGroupPermission = function ($event) {
             $event.stopPropagation();
+            var groupPermission = {};
+            groupPermission.userGroupId = scope.entityId;
             $mdDialog.show({
                 controller: 'UserGroupRoleDialogController',
                 controllerAs: 'vm',
@@ -148,8 +154,7 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
                 parent: angular.element($document[0].body),
                 locals: {
                     isAdd: true,
-                    entityType: scope.entityType,
-                    entityId: scope.entityId
+                    groupPermission: groupPermission
                 },
                 fullscreen: true,
                 targetEvent: $event
@@ -157,6 +162,24 @@ export default function UserGroupRoles($compile, $templateCache, $rootScope, $q,
                 scope.getGroupPermissions();
             });
         }
+
+        scope.deleteGroupPermission = function ($event, groupPermission) {
+            $event.stopPropagation();
+            var confirm = $mdDialog.confirm()
+                .targetEvent($event)
+                .title($translate.instant('role.delete-group-permission-title', {roleName: groupPermission.roleName}))
+                .htmlContent($translate.instant('role.delete-group-permission-text'))
+                .ariaLabel($translate.instant('role.delete-group-permission'))
+                .cancel($translate.instant('action.no'))
+                .ok($translate.instant('action.yes'));
+            $mdDialog.show(confirm).then(function () {
+                roleService.deleteGroupPermission(groupPermission.id.id).then(
+                    function success() {
+                        scope.getGroupPermissions();
+                    }
+                )
+            });
+        };
 
         scope.deleteGroupPermissions = function ($event) {
             $event.stopPropagation();

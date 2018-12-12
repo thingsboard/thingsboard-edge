@@ -72,6 +72,7 @@
         <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.roles' | translate }}" ng-if="vm.entityGroupGridConfig.isUserGroup()">
             <tb-user-group-roles
                     columns="vm.grid.operatingItem().configuration.columns"
+                    entity-id="vm.grid.operatingItem().id.id"
                     entity-type="vm.grid.operatingItem().type"
                     is-edit="vm.grid.detailsConfig.isDetailsEditMode"
                     is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"

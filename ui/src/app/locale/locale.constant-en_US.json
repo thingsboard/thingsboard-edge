@@ -1781,7 +1781,10 @@
         "add-group-role": "Add group role",
         "edit-group-role": "Edit group role",
         "entity-group": "Entity group",
-        "role-required": "Role required"
+        "role-required": "Role required",
+        "delete-group-permission-title": "Are you sure you want to delete the group permission '{{roleName}}'?",
+        "delete-group-permission-text": "Be careful, after the confirmation the group permission and all related data will become unrecoverable.",
+        "delete-group-permission": "Delete group permission"
     },
     "user-group": {
         "role-type": "Role type",

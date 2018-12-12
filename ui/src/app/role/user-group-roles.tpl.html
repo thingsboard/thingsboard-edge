@@ -93,7 +93,7 @@
             </div>
         </md-toolbar>
         <md-table-container ng-show="mode!='widget'">
-            <table class="tb-attribute-table" md-table md-row-select multiple="" ng-model="selectedGroupPermissions" md-progress="attributesDeferred.promise">
+            <table class="tb-group-permission-table" md-table md-row-select multiple="" ng-model="selectedGroupPermissions" md-progress="attributesDeferred.promise">
                 <thead md-head md-order="query.order" md-on-reorder="onReorder">
                 <tr md-row>
                     <th md-column><span translate>user-group.role-type</span></th>
@@ -103,19 +103,19 @@
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row md-select="attribute" md-select-id="key" md-auto-select ng-repeat="attribute in aaa">
-                    <td md-cell>{{attribute.roleType}}</td>
-                    <td md-cell>{{attribute.roleName}}</td>
-                    <td md-cell>{{attribute.groupType}}</td>
-                    <td md-cell>{{attribute.groupName}}</td>
+                <tr md-row md-select="groupPermission" md-select-id="key" md-auto-select ng-repeat="groupPermission in allGroupPermissions">
+                    <td md-cell>{{groupPermission.roleType}}</td>
+                    <td md-cell>{{groupPermission.roleName}}</td>
+                    <td md-cell>{{groupPermission.groupType}}</td>
+                    <td md-cell>{{groupPermission.groupName}}</td>
                     <td md-cell class="tb-action-cell">
-                        <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}" ng-click="vm.editRelation($event, relation)">
+                        <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}" ng-click="editGroupPermission($event, groupPermission)">
                             <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
                             <md-tooltip md-direction="top">
                                 {{ 'user-group.edit' | translate }}
                             </md-tooltip>
                         </md-button>
-                        <md-button class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="vm.deleteRelation($event, relation)">
+                        <md-button class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="deleteGroupPermission($event, groupPermission)">
                             <md-icon aria-label="{{ 'action.delete' | translate }}" class="material-icons">delete</md-icon>
                             <md-tooltip md-direction="top">
                                 {{ 'user-group.delete' | translate }}
@@ -127,66 +127,9 @@
             </table>
         </md-table-container>
         <md-table-pagination ng-show="mode!='widget'" md-limit="query.limit" md-limit-options="[5, 10, 15]"
-                             md-page="query.page" md-total="{{attributes.count}}"
+                             md-page="query.page" md-total="{{allGroupPermissions.count}}"
                              md-on-paginate="onPaginate" md-page-select>
         </md-table-pagination>
-        <ul flex rn-carousel ng-if="mode==='widget'" class="widgets-carousel"
-            rn-carousel-index="widgetsCarousel.index"
-            rn-carousel-buffered
-            rn-carousel-transition="fadeAndSlide"
-            rn-swipe-disabled="true">
-            <li ng-repeat="widgets in widgetsList">
-                <tb-dashboard
-                        embedded="true"
-                        alias-controller="aliasController"
-                        widgets="widgets"
-                        columns="20"
-                        is-edit="false"
-                        is-mobile-disabled="true"
-                        is-edit-action-enabled="false"
-                        is-remove-action-enabled="false">
-                </tb-dashboard>
-            </li>
-            <span translate ng-if="widgetsLoaded &&
-                                   widgetsList.length === 0 &&
-                                   widgetsBundle"
-                  layout-align="center center"
-                  style="text-transform: uppercase; display: flex;"
-                  class="md-headline tb-absolute-fill">widgets-bundle.empty</span>
-            <span translate ng-if="!widgetsBundle"
-                  layout-align="center center"
-                  style="text-transform: uppercase; display: flex;"
-                  class="md-headline tb-absolute-fill">widget.select-widgets-bundle</span>
-            <div ng-show="widgetsList.length > 1"
-                 style="position: absolute; left: 0; height: 100%;" layout="column" layout-align="center">
-                <md-button ng-show="widgetsCarousel.index > 0"
-                           class="md-icon-button"
-                           ng-click="prevWidget()">
-                    <md-icon>navigate_before</md-icon>
-                    <md-tooltip md-direction="top">
-                        {{ 'attribute.prev-widget' | translate }}
-                    </md-tooltip>
-                </md-button>
-            </div>
-            <div ng-show="widgetsList.length > 1"
-                 style="position: absolute; right: 0; height: 100%;" layout="column" layout-align="center">
-                <md-button ng-show="widgetsCarousel.index < widgetsList.length-1"
-                           class="md-icon-button"
-                           ng-click="nextWidget()">
-                    <md-icon>navigate_next</md-icon>
-                    <md-tooltip md-direction="top">
-                        {{ 'attribute.next-widget' | translate }}
-                    </md-tooltip>
-                </md-button>
-            </div>
-            <div style="position: absolute; bottom: 0; width: 100%; font-size: 24px;" layout="row" layout-align="center">
-                <div rn-carousel-indicators
-                     ng-if="widgetsList.length > 1"
-                     slides="widgetsList"
-                     rn-carousel-index="widgetsCarousel.index">
-                </div>
-            </div>
-        </ul>
     </div>
 </md-content>
 

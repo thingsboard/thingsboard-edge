@@ -50,7 +50,8 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
         getGroupPermissions: getGroupPermissions,
         saveGroupPermission: saveGroupPermission,
         deleteGroupPermission: deleteGroupPermission,
-        deleteGroupPermissions: deleteGroupPermissions
+        deleteGroupPermissions: deleteGroupPermissions,
+        applyRelatedRoleInfo: applyRelatedRoleInfo
     }
 
     return service;
@@ -199,7 +200,7 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
     }
 
 
-    function getGroupPermissions(userGroupId, pageLink, fetchOriginator, ascOrder, config) {
+    function getGroupPermissions(userGroupId, pageLink, ascOrder, config) {
         var deferred = $q.defer();
         var url = '/api/groupPermissions/' + userGroupId + '?limit=' + pageLink.limit;
 
@@ -223,4 +224,40 @@ function RoleService($http, $q, $window, userService, attributeService, types) {
         return deferred.promise;
     }
 
+    function applyRelatedRoleInfo(groupPermissions) {
+        var deferred = $q.defer();
+        var roleIds = [];
+        for (var i = 0; i < groupPermissions.length; i++) {
+            roleIds.push(groupPermissions[i].roleId.id);
+        }
+        var uniqueRoleIds = roleIds.filter((v, i, a) => a.indexOf(v) === i);
+        var tasks = [];
+        for (var j = 0; j < uniqueRoleIds.length; j++) {
+            tasks.push(getRole(uniqueRoleIds[j]));
+        }
+        if (tasks.length) {
+            $q.all(tasks).then(
+                (roles) => {
+                    for (var i = 0; i < groupPermissions.length; i++) {
+                        var groupPermission = groupPermissions[i];
+                        var role = getRoleById(roles, groupPermission.roleId.id);
+                        groupPermissions[i].roleName = role.name;
+                        groupPermissions[i].roleType = role.type;
+                    }
+                    deferred.resolve(groupPermissions);
+            });
+        } else {
+            deferred.resolve(groupPermissions);
+        }
+        return deferred.promise;
+    }
+
+    function getRoleById(roles, roleId) {
+        for (var i = 0; i < roles.length; i++) {
+            if (roles[i].id.id === roleId) {
+                return roles[i];
+            }
+        }
+        return null;
+    }
 }

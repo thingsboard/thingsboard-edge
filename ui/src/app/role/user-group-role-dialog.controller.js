@@ -57,7 +57,10 @@ export default function UserGroupRoleDialogController($scope, $q, $element, $mdD
         // groupType
         // groupId
 
-        roleService.saveGroupPermission(vm.groupPermission).then(
+        var tmp = {};
+        tmp.roleId = {id: vm.groupPermission.roleId, entityType: types.entityType.role};
+        tmp.userGroupId = {id: vm.groupPermission.userGroupId, entityType: types.entityType.entityGroup};
+        roleService.saveGroupPermission(tmp).then(
             function success() {
                 $mdDialog.hide();
             }
