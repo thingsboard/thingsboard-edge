@@ -111,7 +111,9 @@ public final class EntityGroupEntity implements BaseEntity<EntityGroup> {
         entityGroup.setCreatedTime(UUIDs.unixTimestamp(id));
         entityGroup.setType(type);
         entityGroup.setName(name);
-        entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, ownerId));
+        if (ownerId != null) {
+            entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, ownerId));
+        }
         entityGroup.setAdditionalInfo(additionalInfo);
         entityGroup.setConfiguration(configuration);
         return entityGroup;

@@ -380,10 +380,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected void updateGroupEntity(Asset entity, EntityGroup groupAll) {
             if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-                entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getCustomerId(), entity.getId());
-            } else {
-                entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
         }
     }
 
@@ -402,10 +400,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected void updateGroupEntity(Device entity, EntityGroup groupAll) {
             if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-                entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getCustomerId(), entity.getId());
-            } else {
-                entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
         }
     }
 
@@ -424,13 +420,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         @Override
         protected void updateGroupEntity(DashboardInfo entity, EntityGroup groupAll) {
-            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-            for (ShortCustomerInfo customer : entity.getAssignedCustomers()) {
-                EntityGroupId groupId = getCustomerDashboardGroup(entity.getTenantId(), customer);
-                if (groupId != null) {
-                    entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupId, entity.getId());
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
+            if (entity.getAssignedCustomers() != null) {
+                for (ShortCustomerInfo customer : entity.getAssignedCustomers()) {
+                    EntityGroupId groupId = getCustomerDashboardGroup(entity.getTenantId(), customer);
+                    if (groupId != null) {
+                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupId, entity.getId());
+                    }
+                    dashboardService.unassignDashboardFromCustomer(TenantId.SYS_TENANT_ID, entity.getId(), customer.getCustomerId());
                 }
-                dashboardService.unassignDashboardFromCustomer(TenantId.SYS_TENANT_ID, entity.getId(), customer.getCustomerId());
             }
         }
 
@@ -472,10 +470,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected void updateGroupEntity(EntityView entity, EntityGroup groupAll) {
             if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-                entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getCustomerId(), entity.getId());
-            } else {
-                entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
         }
     }
 

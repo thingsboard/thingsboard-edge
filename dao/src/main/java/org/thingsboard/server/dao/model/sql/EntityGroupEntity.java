@@ -105,7 +105,9 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         entityGroup.setCreatedTime(UUIDs.unixTimestamp(getId()));
         entityGroup.setName(name);
         entityGroup.setType(type);
-        entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, toUUID(ownerId)));
+        if (ownerId != null) {
+            entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, toUUID(ownerId)));
+        }
         entityGroup.setAdditionalInfo(additionalInfo);
         entityGroup.setConfiguration(configuration);
         return entityGroup;
