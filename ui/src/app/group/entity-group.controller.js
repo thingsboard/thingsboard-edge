@@ -387,15 +387,21 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     }
 
     function addEntity($event) {
-        $mdDialog.show({
-            controller: AddEntityController,
-            controllerAs: 'vm',
-            templateUrl: addEntityTemplate,
-            parent: angular.element($document[0].body),
-            locals: {entityGroup: vm.entityGroup},
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
+        var addPromise;
+        if (vm.entityGroupConfig.addEntity) {
+            addPromise = vm.entityGroupConfig.addEntity($event, vm.entityGroup);
+        } else {
+            addPromise = $mdDialog.show({
+                controller: AddEntityController,
+                controllerAs: 'vm',
+                templateUrl: addEntityTemplate,
+                parent: angular.element($document[0].body),
+                locals: {entityGroup: vm.entityGroup},
+                fullscreen: true,
+                targetEvent: $event
+            });
+        }
+        addPromise.then(function () {
             entityAdded();
         }, function () {
         });

@@ -31,6 +31,6 @@
 
 -->
 <div flex layout="column" style="margin-top: -10px;">
-    <div style="text-transform: uppercase; padding-bottom: 5px;">{{vm.item.type}}</div>
+    <div style="text-transform: uppercase; padding-bottom: 5px;">{{('role.display-type.'+vm.item.type) | translate}}</div>
     <div class="tb-card-description">{{vm.item.additionalInfo.description}}</div>
 </div>

@@ -110,6 +110,7 @@ import thingsboardRaf from './common/raf.provider';
 import thingsboardUtils from './common/utils.service';
 import thingsboardDashboardUtils from './common/dashboard-utils.service';
 import thingsboardTypes from './common/types.constant';
+import thingsboardSecurityTypes from './common/security-types.constant';
 import thingsboardApiTime from './api/time.service';
 import thingsboardKeyboardShortcut from './components/keyboard-shortcut.filter';
 import thingsboardHelp from './help/help.directive';
@@ -178,6 +179,7 @@ angular.module('thingsboard', [
     thingsboardUtils,
     thingsboardDashboardUtils,
     thingsboardTypes,
+    thingsboardSecurityTypes,
     thingsboardApiTime,
     thingsboardKeyboardShortcut,
     thingsboardHelp,

@@ -56,7 +56,7 @@
 		<md-input-container class="md-block" style="width: 200px;">
 			<label translate>role.role-type</label>
 			<md-select ng-model="role.type" ng-disabled="$root.loading || !isEdit">
-				<md-option ng-repeat="type in types.roleType" ng-value="type">
+				<md-option ng-repeat="type in securityTypes.roleType" ng-value="type">
 					{{ ('role.display-type.' + type) | translate }}
 				</md-option>
 			</md-select>

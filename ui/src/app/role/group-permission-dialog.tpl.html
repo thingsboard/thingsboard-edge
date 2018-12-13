@@ -53,7 +53,7 @@
                                 <md-input-container class="md-block" style="width: 200px;">
                                     <label translate>role.role-type</label>
                                     <md-select ng-required="true" name="roleType" ng-model="vm.groupPermission.role.type" ng-disabled="$root.loading">
-                                        <md-option ng-repeat="type in vm.types.roleType" ng-value="type">
+                                        <md-option ng-repeat="type in vm.securityTypes.roleType" ng-value="type">
                                             {{ ('role.display-type.' + type) | translate }}
                                         </md-option>
                                     </md-select>
@@ -70,7 +70,7 @@
                                 </tb-entity-autocomplete>
                             </section>
                         </section>
-                        <section layout="column" ng-if="vm.groupPermission.role.type === vm.types.roleType.group">
+                        <section layout="column" ng-if="vm.groupPermission.role.type === vm.securityTypes.roleType.group">
                             <label translate class="tb-title no-padding">role.entity-group</label>
                             <tb-entity-group-select
                                     ng-model="vm.groupPermission.entityGroupId"

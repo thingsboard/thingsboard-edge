@@ -36,6 +36,7 @@ import thingsboardToast from '../services/toast';
 import UserRoutes from './user.routes';
 import UserController from './user.controller';
 import AddUserController from './add-user.controller';
+import AddGroupUserController from './add-group-user.controller';
 import ActivationLinkDialogController from './activation-link.controller';
 import UserDirective from './user.directive';
 import UserGroupConfig from './user-group.config';
@@ -49,6 +50,7 @@ export default angular.module('thingsboard.user', [
     .config(UserRoutes)
     .controller('UserController', UserController)
     .controller('AddUserController', AddUserController)
+    .controller('AddGroupUserController', AddGroupUserController)
     .controller('ActivationLinkDialogController', ActivationLinkDialogController)
     .directive('tbUser', UserDirective)
     .factory('userGroupConfig', UserGroupConfig)

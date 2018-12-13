@@ -30,6 +30,7 @@
  */
 
 import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
+import addUserTemplate from './add-user.tpl.html';
 
 /*@ngInject*/
 export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, toast, userService) {
@@ -113,6 +114,10 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
             userService.loginAsUser(user.id.id);
         };
 
+        groupConfig.addEntity = (event, entityGroup) => {
+            return addUser(event, entityGroup);
+        };
+
         utils.groupConfigDefaults(groupConfig);
 
         deferred.resolve(groupConfig);
@@ -131,6 +136,20 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
             fullscreen: true,
             multiple: true,
             targetEvent: event
+        });
+    }
+
+    function addUser($event, entityGroup) {
+        return $mdDialog.show({
+            controller: 'AddGroupUserController',
+            controllerAs: 'vm',
+            templateUrl: addUserTemplate,
+            parent: angular.element($document[0].body),
+            locals: {
+                entityGroup: entityGroup
+            },
+            fullscreen: true,
+            targetEvent: $event
         });
     }
 

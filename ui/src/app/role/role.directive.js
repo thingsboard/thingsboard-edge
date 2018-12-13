@@ -38,7 +38,7 @@ import roleFieldsetTemplate from './role-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function RoleDirective($q, $compile, $templateCache, $filter, toast, $translate, $mdConstant, $mdExpansionPanel, types) {
+export default function RoleDirective($q, $compile, $templateCache, $filter, toast, $translate, $mdConstant, $mdExpansionPanel, types, securityTypes) {
     var linker = function (scope, element) {
         var template = $templateCache.get(roleFieldsetTemplate);
         element.html(template);
@@ -46,6 +46,7 @@ export default function RoleDirective($q, $compile, $templateCache, $filter, toa
         scope.permissionsPanelId = (Math.random()*1000).toFixed(0);
         scope.$mdExpansionPanel = $mdExpansionPanel;
         scope.types = types;
+        scope.securityTypes = securityTypes;
 
         var semicolon = 186;
         scope.separatorKeys = [$mdConstant.KEY_CODE.ENTER, $mdConstant.KEY_CODE.COMMA, semicolon];

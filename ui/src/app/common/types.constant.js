@@ -1040,10 +1040,6 @@ export default angular.module('thingsboard.types', [])
                     icon: "help_outline"
                 }
             },
-            roleType: {
-                generic: "GENERIC",
-                group: "GROUP"
-            },
             messageType: {
                 'POST_ATTRIBUTES_REQUEST': {
                     name: 'Post attributes',
