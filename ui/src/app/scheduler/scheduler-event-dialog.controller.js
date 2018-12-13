@@ -51,6 +51,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
     vm.defaultEventType = defaultEventType;
     vm.isAdd = isAdd;
     vm.repeatType = types.schedulerRepeat;
+    vm.timeUnits = types.schedulerTimeUnit;
 
     var startDate;
     if (vm.isAdd) {
@@ -72,10 +73,14 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
         if (vm.schedulerEvent.schedule.repeat) {
             if (vm.schedulerEvent.schedule.repeat.type == types.schedulerRepeat.weekly.value &&
                 vm.schedulerEvent.schedule.repeat.repeatOn) {
-                    vm.weeklyRepeat = [];
-                    for (var i = 0; i < vm.schedulerEvent.schedule.repeat.repeatOn.length; i++) {
-                        vm.weeklyRepeat[vm.schedulerEvent.schedule.repeat.repeatOn[i]] = true;
-                    }
+                vm.weeklyRepeat = [];
+                for (var i = 0; i < vm.schedulerEvent.schedule.repeat.repeatOn.length; i++) {
+                    vm.weeklyRepeat[vm.schedulerEvent.schedule.repeat.repeatOn[i]] = true;
+                }
+            } else if (vm.schedulerEvent.schedule.repeat.type == types.schedulerRepeat.timer.value) {
+                vm.timerRepeat = [];
+                vm.timerRepeat.repeatInterval = vm.schedulerEvent.schedule.repeat.repeatInterval;
+                vm.timerRepeat.timeUnit = vm.schedulerEvent.schedule.repeat.timeUnit;
             }
             vm.endsOn = dateFromUtcTime(vm.schedulerEvent.schedule.repeat.endsOn);
         }
@@ -115,9 +120,9 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             timezone = vm.schedulerEvent.schedule.timezone;
         }
         var offset = moment.tz.zone(timezone).utcOffset(time) * 60 * 1000; //eslint-disable-line
-        return new Date(time - offset + Date.getTimezoneOffset()*60*1000);
+        return new Date(time - offset + Date.getTimezoneOffset() * 60 * 1000);
     }
-    
+
     function dateTimeToUtcTime(date, time, timezone) {
         if (!timezone) {
             timezone = vm.schedulerEvent.schedule.timezone;
@@ -132,7 +137,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             time.getMilliseconds()
         ).getTime();
         var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
-        return ts + offset - Date.getTimezoneOffset()*60*1000;
+        return ts + offset - Date.getTimezoneOffset() * 60 * 1000;
     }
 
     function dateToUtcTime(date, timezone) {
@@ -145,7 +150,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             date.getDate()
         ).getTime();
         var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
-        return ts + offset - Date.getTimezoneOffset()*60*1000;
+        return ts + offset - Date.getTimezoneOffset() * 60 * 1000;
     }
 
     function timezoneChange() {
@@ -180,7 +185,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             vm.endsOn = new Date(
                 vm.startDate.getFullYear(),
                 vm.startDate.getMonth(),
-                vm.startDate.getDate()+5);
+                vm.startDate.getDate() + 5);
         }
     }
 
@@ -196,7 +201,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
     function weekDayChange() {
         if (vm.repeat && vm.startDate) {
             var setCurrentDay = true;
-            for (var i=0;i<7;i++) {
+            for (var i = 0; i < 7; i++) {
                 if (vm.weeklyRepeat[i]) {
                     setCurrentDay = false;
                     break;
@@ -220,12 +225,16 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             vm.schedulerEvent.schedule.repeat.endsOn = dateToUtcTime(vm.endsOn);
             if (vm.schedulerEvent.schedule.repeat.type == types.schedulerRepeat.weekly.value) {
                 vm.schedulerEvent.schedule.repeat.repeatOn = [];
-                for (var i=0;i<7;i++) {
+                for (var i = 0; i < 7; i++) {
                     if (vm.weeklyRepeat[i]) {
                         vm.schedulerEvent.schedule.repeat.repeatOn.push(i);
                     }
                 }
-            } else {
+            } else if (vm.schedulerEvent.schedule.repeat.type == types.schedulerRepeat.timer.value) {
+                vm.schedulerEvent.schedule.repeat.repeatInterval = vm.timerRepeat.repeatInterval;
+                vm.schedulerEvent.schedule.repeat.timeUnit = vm.timerRepeat.timeUnit;
+            }
+            else {
                 delete vm.schedulerEvent.schedule.repeat.repeatOn;
             }
         }

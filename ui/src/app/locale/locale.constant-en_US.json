@@ -1743,8 +1743,10 @@
         "repeats": "Repeats",
         "daily": "Daily",
         "weekly": "Weekly",
+        "timer": "Timer-based",
         "repeats-required": "Repeats is required.",
         "repeat-on": "Repeat on",
+        "repeat-every": "Repeat every",
         "ends-on": "Ends on",
         "sunday-label": "S",
         "monday-label": "M",
@@ -1798,7 +1800,12 @@
         "rpc-method": "Method",
         "rpc-method-required": "Method is required",
         "rpc-params": "Params",
-        "select-dashboard-state": "Select dashboard state"
+        "select-dashboard-state": "Select dashboard state",
+        "hours": "Hours",
+        "minutes": "Minutes",
+        "seconds": "Seconds",
+        "time-interval-required": "Time interval is required",
+        "time-unit-required": "Time unit is required"
     },
     "report": {
         "report-config": "Report configuration",
