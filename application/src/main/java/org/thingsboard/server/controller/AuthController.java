@@ -39,6 +39,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.rule.engine.api.MailService;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -79,7 +81,8 @@ public class AuthController extends BaseController {
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/auth/user", method = RequestMethod.GET)
-    public @ResponseBody User getUser() throws ThingsboardException {
+    public @ResponseBody
+    User getUser() throws ThingsboardException {
         try {
             SecurityUser securityUser = getCurrentUser();
             return userService.findUserById(securityUser.getTenantId(), securityUser.getId());
@@ -91,7 +94,7 @@ public class AuthController extends BaseController {
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/auth/changePassword", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void changePassword (
+    public void changePassword(
             @RequestBody JsonNode changePasswordRequest) throws ThingsboardException {
         try {
             String currentPassword = changePasswordRequest.get("currentPassword").asText();
@@ -107,8 +110,8 @@ public class AuthController extends BaseController {
             throw handleException(e);
         }
     }
-    
-    @RequestMapping(value = "/noauth/activate", params = { "activateToken" }, method = RequestMethod.GET)
+
+    @RequestMapping(value = "/noauth/activate", params = {"activateToken"}, method = RequestMethod.GET)
     public ResponseEntity<String> checkActivateToken(
             @RequestParam(value = "activateToken") String activateToken) {
         HttpHeaders headers = new HttpHeaders();
@@ -129,10 +132,10 @@ public class AuthController extends BaseController {
         }
         return new ResponseEntity<>(headers, responseStatus);
     }
-    
+
     @RequestMapping(value = "/noauth/resetPasswordByEmail", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void requestResetPasswordByEmail (
+    public void requestResetPasswordByEmail(
             @RequestBody JsonNode resetPasswordByEmailRequest,
             HttpServletRequest request) throws ThingsboardException {
         try {
@@ -147,8 +150,8 @@ public class AuthController extends BaseController {
             throw handleException(e);
         }
     }
-    
-    @RequestMapping(value = "/noauth/resetPassword", params = { "resetToken" }, method = RequestMethod.GET)
+
+    @RequestMapping(value = "/noauth/resetPassword", params = {"resetToken"}, method = RequestMethod.GET)
     public ResponseEntity<String> checkResetToken(
             @RequestParam(value = "resetToken") String resetToken) {
         HttpHeaders headers = new HttpHeaders();
@@ -169,7 +172,7 @@ public class AuthController extends BaseController {
         }
         return new ResponseEntity<>(headers, responseStatus);
     }
-    
+
     @RequestMapping(value = "/noauth/activate", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
@@ -183,8 +186,7 @@ public class AuthController extends BaseController {
             UserCredentials credentials = userService.activateUserCredentials(TenantId.SYS_TENANT_ID, activateToken, encodedPassword);
             User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-            List<EntityGroupId> userGroupIds = entityGroupService.findEntityGroupsForEntity(TenantId.SYS_TENANT_ID, user.getId()).get();
-            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, new HashSet<>(userGroupIds));
+            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user));
             String baseUrl = constructBaseUrl(request);
             String loginUrl = String.format("%s/login", baseUrl);
             String email = user.getEmail();
@@ -207,7 +209,7 @@ public class AuthController extends BaseController {
             throw handleException(e);
         }
     }
-    
+
     @RequestMapping(value = "/noauth/resetPassword", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
@@ -225,8 +227,7 @@ public class AuthController extends BaseController {
                 userCredentials = userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
                 User user = userService.findUserById(TenantId.SYS_TENANT_ID, userCredentials.getUserId());
                 UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-                List<EntityGroupId> userGroupIds = entityGroupService.findEntityGroupsForEntity(TenantId.SYS_TENANT_ID, user.getId()).get();
-                SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), principal, new HashSet<>(userGroupIds));
+                SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), principal, getMergedUserPermissions(user));
                 String baseUrl = constructBaseUrl(request);
                 String loginUrl = String.format("%s/login", baseUrl);
                 String email = user.getEmail();

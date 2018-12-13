@@ -28,59 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.model;
+package org.thingsboard.server.service.security.permission;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Collections;
 
-public class SecurityUser extends User {
+import static org.thingsboard.server.common.data.CacheConstants.USER_PERMISSIONS_CACHE;
 
-    private static final long serialVersionUID = -797397440703066079L;
+@Service
+@Slf4j
+public class DefaultUserPermissionsCacheService implements UserPermissionsCacheService {
 
-    private Collection<GrantedAuthority> authorities;
-    @Getter
-    @Setter
-    private boolean enabled;
-    @Getter
-    @Setter
-    private UserPrincipal userPrincipal;
-    @Getter
-    @Setter
-    private MergedUserPermissions userPermissions;
-
-    public SecurityUser() {
-        super();
+    @Override
+    @Cacheable(cacheNames = USER_PERMISSIONS_CACHE, key = "{#tenantId, #customerId, #userId}")
+    public byte[] getMergedPermissions(TenantId tenantId, CustomerId customerId, UserId userId) {
+        log.debug("[{}][{}][{}] Not fetching session data from cache", tenantId, customerId, userId);
+        return new byte[0];
     }
 
-    public SecurityUser(UserId id) {
-        super(id);
-    }
-
-    public SecurityUser(User user, boolean enabled, UserPrincipal userPrincipal, MergedUserPermissions userPermissions) {
-        super(user);
-        this.enabled = enabled;
-        this.userPrincipal = userPrincipal;
-        this.userPermissions = userPermissions;
-    }
-
-    public Collection<GrantedAuthority> getAuthorities() {
-        if (authorities == null) {
-            authorities = Stream.of(SecurityUser.this.getAuthority())
-                    .map(authority -> new SimpleGrantedAuthority(authority.name()))
-                    .collect(Collectors.toList());
-        }
-        return authorities;
+    @Override
+    @CachePut(cacheNames = USER_PERMISSIONS_CACHE, key = "{#tenantId, #customerId, #userId}")
+    public byte[] putMergedPermissions(TenantId tenantId, CustomerId customerId, UserId userId, byte[] data) {
+        log.debug("[{}][{}][{}] Pushing user permissions to cache: {}", tenantId, customerId, userId, data);
+        return data;
     }
 
 }

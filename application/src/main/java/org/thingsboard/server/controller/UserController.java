@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
@@ -68,6 +69,7 @@ import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
@@ -87,6 +89,9 @@ public class UserController extends BaseController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private UserPermissionsService userPermissionsService;
 
     @Autowired
     private JwtTokenFactory tokenFactory;
@@ -130,8 +135,8 @@ public class UserController extends BaseController {
             User user = checkUserId(userId, Operation.READ);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
-            List<EntityGroupId> userGroupIds = entityGroupService.findEntityGroupsForEntity(authUser.getTenantId(), user.getId()).get();
-            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, new HashSet<>(userGroupIds));
+            MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser.getTenantId(), authUser.getCustomerId(), authUser.getId());
+            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, userPermissions);
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
             JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
             ObjectMapper objectMapper = new ObjectMapper();
@@ -146,10 +151,10 @@ public class UserController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user", method = RequestMethod.POST)
-    @ResponseBody 
+    @ResponseBody
     public User saveUser(@RequestBody User user,
                          @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
-            HttpServletRequest request) throws ThingsboardException {
+                         HttpServletRequest request) throws ThingsboardException {
         try {
 
             if (getCurrentUser().getAuthority() != Authority.SYS_ADMIN) {
@@ -278,7 +283,7 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/tenant/{tenantId}/users", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/{tenantId}/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<User> getTenantAdmins(
             @PathVariable("tenantId") String strTenantId,
@@ -297,7 +302,7 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/users", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<User> getCustomerUsers(
             @PathVariable("customerId") String strCustomerId,
@@ -318,7 +323,7 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/customer/users", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<User> getAllCustomerUsers(
             @RequestParam int limit,
@@ -333,5 +338,5 @@ public class UserController extends BaseController {
             throw handleException(e);
         }
     }
-    
+
 }

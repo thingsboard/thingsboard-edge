@@ -643,7 +643,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
 
     private void restoreSessions() {
         log.debug("[{}] Restoring sessions from cache", deviceId);
-        TransportProtos.DeviceSessionsCacheEntry sessionsDump = null;
+        TransportProtos.DeviceSessionsCacheEntry sessionsDump;
         try {
             sessionsDump = TransportProtos.DeviceSessionsCacheEntry.parseFrom(systemContext.getDeviceSessionCacheService().get(deviceId));
         } catch (InvalidProtocolBufferException e) {

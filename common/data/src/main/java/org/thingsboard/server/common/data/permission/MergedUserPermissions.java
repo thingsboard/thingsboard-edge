@@ -30,18 +30,21 @@
  */
 package org.thingsboard.server.common.data.permission;
 
+import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.util.Map;
 import java.util.Set;
 
+@Data
 public final class MergedUserPermissions {
 
     private final Map<Resource, Set<Operation>> genericPermissions;
-    private final Map<EntityGroupId, Set<Operation>> groupPermissions;
+    private final Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions;
 
-    public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, Set<Operation>> groupPermissions) {
+    public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
         this.genericPermissions = genericPermissions;
         this.groupPermissions = groupPermissions;
     }
+
 }

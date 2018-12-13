@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -52,6 +53,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -62,16 +64,17 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
     private final BCryptPasswordEncoder encoder;
     private final UserService userService;
-    private final EntityGroupService entityGroupService;
     private final CustomerService customerService;
+    private final UserPermissionsService userPermissionsService;
+
 
     @Autowired
-    public RestAuthenticationProvider(final UserService userService, final EntityGroupService entityGroupService,
-                                      final CustomerService customerService, final BCryptPasswordEncoder encoder) {
+    public RestAuthenticationProvider(final UserService userService, final CustomerService customerService,
+                                      final BCryptPasswordEncoder encoder, final UserPermissionsService userPermissionsService) {
         this.userService = userService;
-        this.entityGroupService = entityGroupService;
         this.customerService = customerService;
         this.encoder = encoder;
+        this.userPermissionsService = userPermissionsService;
     }
 
     @Override
@@ -83,7 +86,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Authentication Failed. Bad user principal.");
         }
 
-        UserPrincipal userPrincipal =  (UserPrincipal) principal;
+        UserPrincipal userPrincipal = (UserPrincipal) principal;
         if (userPrincipal.getType() == UserPrincipal.Type.USER_NAME) {
             String username = userPrincipal.getValue();
             String password = (String) authentication.getCredentials();
@@ -113,15 +116,10 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
 
-        if (user.getAuthority() == null) throw new InsufficientAuthenticationException("User has no authority assigned");
+        if (user.getAuthority() == null)
+            throw new InsufficientAuthenticationException("User has no authority assigned");
 
-        List<EntityGroupId> userGroupIds;
-        try {
-            userGroupIds = entityGroupService.findEntityGroupsForEntity(TenantId.SYS_TENANT_ID, user.getId()).get();
-        } catch (Exception e) {
-            throw new BadCredentialsException("Failed to get user groups", e);
-        }
-        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, new HashSet<>(userGroupIds));
+        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, getMergedUserPermissions(user));
 
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }
@@ -148,7 +146,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         user.setFirstName("Public");
         user.setLastName("Public");
 
-        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, new HashSet<>());
+        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, getMergedUserPermissions(user));
 
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }
@@ -156,5 +154,13 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+    }
+
+    protected MergedUserPermissions getMergedUserPermissions(User user) {
+        try {
+            return userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
+        }
     }
 }

@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -53,7 +54,9 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.model.token.RawAccessJwtToken;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -65,14 +68,17 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
     private final UserService userService;
     private final EntityGroupService entityGroupService;
     private final CustomerService customerService;
+    private final UserPermissionsService userPermissionsService;
 
     @Autowired
     public RefreshTokenAuthenticationProvider(final UserService userService, final EntityGroupService entityGroupService,
-                                              final CustomerService customerService, final JwtTokenFactory tokenFactory) {
+                                              final CustomerService customerService, final JwtTokenFactory tokenFactory,
+                                              final UserPermissionsService userPermissionsService) {
         this.userService = userService;
         this.entityGroupService = entityGroupService;
         this.customerService = customerService;
         this.tokenFactory = tokenFactory;
+        this.userPermissionsService = userPermissionsService;
     }
 
     @Override
@@ -106,18 +112,19 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
             throw new DisabledException("User is not active");
         }
 
-        if (user.getAuthority() == null) throw new InsufficientAuthenticationException("User has no authority assigned");
+        if (user.getAuthority() == null)
+            throw new InsufficientAuthenticationException("User has no authority assigned");
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
 
-        List<EntityGroupId> userGroupIds;
+        MergedUserPermissions userPermissions;
         try {
-            userGroupIds = entityGroupService.findEntityGroupsForEntity(systemId, user.getId()).get();
+            userPermissions = userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
         } catch (Exception e) {
-            throw new BadCredentialsException("Failed to get user groups", e);
+            throw new BadCredentialsException("Failed to get user permissions", e);
         }
 
-        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, new HashSet<>(userGroupIds));
+        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, userPermissions);
 
         return securityUser;
     }
@@ -149,7 +156,10 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId);
 
-        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, new HashSet<>());
+        //TODO: Need design session to discuss this
+        MergedUserPermissions userPermissions = new MergedUserPermissions(new HashMap<>(), new HashMap<>());
+
+        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, userPermissions);
 
         return securityUser;
     }

@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -62,6 +63,7 @@ import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.role.Role;
@@ -109,6 +111,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -215,6 +218,9 @@ public abstract class BaseController {
 
     @Autowired
     protected AttributesService attributesService;
+
+    @Autowired
+    protected UserPermissionsService userPermissionsService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -872,5 +878,12 @@ public abstract class BaseController {
         return result;
     }
 
+    protected MergedUserPermissions getMergedUserPermissions(User user) {
+        try {
+            return userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
+        }
+    }
 
 }
