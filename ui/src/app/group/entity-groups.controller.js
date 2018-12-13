@@ -47,8 +47,6 @@ export function EntityGroupCardController() {
 export function EntityGroupsController($rootScope, $state, utils, entityGroupService, $stateParams,
                                       $q, $translate, types) {
 
-    var groupType = $stateParams.groupType;
-
     var entityGroupActionsList = [
         {
             onAction: function ($event, item) {
@@ -74,8 +72,9 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     var vm = this;
 
-    vm.types = types;
+    vm.groupType = $stateParams.groupType;
 
+    vm.types = types;
 
     vm.actionSources = {
         'actionCellButton': {
@@ -124,9 +123,6 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         },
         isSelectionEnabled: function(entityGroup) {
             return !entityGroup.groupAll;
-        },
-        isUserGroup: function () {
-            return groupType === types.entityType.user;
         }
     };
 
@@ -168,7 +164,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function fetchEntityGroups(pageLink) {
         var deferred = $q.defer();
-        entityGroupService.getEntityGroups(groupType).then(
+        entityGroupService.getEntityGroups(vm.groupType).then(
             function success(entityGroups) {
                 utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
             },
@@ -181,11 +177,11 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function saveEntityGroup(entityGroup) {
         var deferred = $q.defer();
-        entityGroup.type = groupType;
+        entityGroup.type = vm.groupType;
         entityGroupService.saveEntityGroup(entityGroup).then(
             function success(entityGroup) {
                 deferred.resolve(entityGroup);
-                $rootScope.$broadcast(groupType+'changed');
+                $rootScope.$broadcast(vm.groupType+'changed');
             },
             function fail() {
                 deferred.reject();
@@ -199,7 +195,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         entityGroupService.deleteEntityGroup(entityGroupId).then(
             function success() {
                 deferred.resolve();
-                $rootScope.$broadcast(groupType+'changed');
+                $rootScope.$broadcast(vm.groupType+'changed');
             },
             function fail() {
                 deferred.reject();

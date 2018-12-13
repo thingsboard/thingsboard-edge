@@ -6,7 +6,9 @@
         "access-forbidden": "Access Forbidden",
         "access-forbidden-text": "You haven't access rights to this location!<br/>Try to sign in with different user if you still wish to gain access to this location.",
         "refresh-token-expired": "Session has expired",
-        "refresh-token-failed": "Unable to refresh session"
+        "refresh-token-failed": "Unable to refresh session",
+        "permission-denied": "Permission Denied",
+        "permission-denied-text": "You don't have permission to perform this operation!"
     },
     "action": {
         "activate": "Activate",
@@ -1778,25 +1780,29 @@
         "copyId": "Copy role Id",
         "idCopiedMessage": "Role Id has been copied to clipboard",
         "permissions": "Permissions",
-        "add-group-role": "Add group role",
-        "edit-group-role": "Edit group role",
         "entity-group": "Entity group",
         "role-required": "Role required",
-        "delete-group-permission-title": "Are you sure you want to delete the group permission '{{roleName}}'?",
-        "delete-group-permission-text": "Be careful, after the confirmation the group permission and all related data will become unrecoverable.",
-        "delete-group-permission": "Delete group permission",
         "display-type": {
             "GENERIC": "Generic",
             "GROUP": "Group"
         }
     },
-    "user-group": {
+    "group-permission": {
         "role-type": "Role type",
         "role-name": "Role name",
         "group-type": "Group type",
         "group-name": "Group name",
-        "edit": "Edit role group",
-        "delete": "Delete role group"
+        "edit": "Edit permissions",
+        "delete": "Delete permissions",
+        "selected-group-permissions": "{ count, plural, 1 {1 group permission} other {# group permissions} } selected",
+        "delete-group-permission-title": "Are you sure you want to delete the group permission '{{roleName}}'?",
+        "delete-group-permission-text": "Be careful, after the confirmation the group permission and all related data will become unrecoverable.",
+        "delete-group-permission": "Delete group permission",
+        "delete-group-permissions-title": "Are you sure you want to delete { count, plural, 1 {1 group permission} other {# group permission} }?",
+        "delete-group-permissions-text": "Be careful, after the confirmation all selected group permissions will be removed and corresponding users will lost access to specified resources.",
+        "delete-group-permissions": "Delete group permissions",
+        "add-group-permission": "Add group permission",
+        "edit-group-permission": "Edit group permission"
     },
     "scheduler": {
         "scheduler": "Scheduler",

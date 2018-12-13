@@ -43,18 +43,18 @@ function RoleService($http, $q) {
         getRoles: getRoles,
         saveRole: saveRole,
         findByQuery: findByQuery,
-        getGroupPermissions: getGroupPermissions,
+        getUserGroupPermissions: getUserGroupPermissions,
+        getEntityGroupPermissions: getEntityGroupPermissions,
         saveGroupPermission: saveGroupPermission,
         deleteGroupPermission: deleteGroupPermission,
-        deleteGroupPermissions: deleteGroupPermissions,
-        applyRelatedRoleInfo: applyRelatedRoleInfo
+        deleteGroupPermissions: deleteGroupPermissions
     }
 
     return service;
 
     function getRoles(pageLink, config, type) {
         var deferred = $q.defer();
-        var url = '/api/tenant/roles?limit=' + pageLink.limit;
+        var url = '/api/roles?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
             url += '&textSearch=' + pageLink.textSearch;
         }
@@ -173,22 +173,9 @@ function RoleService($http, $q) {
     }
 
 
-    function getGroupPermissions(userGroupId, pageLink, ascOrder, config) {
+    function getUserGroupPermissions(userGroupId, config) {
         var deferred = $q.defer();
-        var url = '/api/groupPermissions/' + userGroupId + '?limit=' + pageLink.limit;
-
-        if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
-            url += '&startTime=' + pageLink.startTime;
-        }
-        if (angular.isDefined(pageLink.endTime) && pageLink.endTime != null) {
-            url += '&endTime=' + pageLink.endTime;
-        }
-        if (angular.isDefined(pageLink.idOffset) && pageLink.idOffset != null) {
-            url += '&offset=' + pageLink.idOffset;
-        }
-        if (angular.isDefined(ascOrder) && ascOrder != null) {
-            url += '&ascOrder=' + (ascOrder ? 'true' : 'false');
-        }
+        var url = '/api/userGroup/' + userGroupId + '/groupPermissions';
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -197,40 +184,15 @@ function RoleService($http, $q) {
         return deferred.promise;
     }
 
-    function applyRelatedRoleInfo(groupPermissions) {
+    function getEntityGroupPermissions(entityGroupId, config) {
         var deferred = $q.defer();
-        var roleIds = [];
-        for (var i = 0; i < groupPermissions.length; i++) {
-            roleIds.push(groupPermissions[i].roleId.id);
-        }
-        var uniqueRoleIds = roleIds.filter((v, i, a) => a.indexOf(v) === i);
-        var tasks = [];
-        for (var j = 0; j < uniqueRoleIds.length; j++) {
-            tasks.push(getRole(uniqueRoleIds[j]));
-        }
-        if (tasks.length) {
-            $q.all(tasks).then(
-                (roles) => {
-                    for (var i = 0; i < groupPermissions.length; i++) {
-                        var groupPermission = groupPermissions[i];
-                        var role = getRoleById(roles, groupPermission.roleId.id);
-                        groupPermissions[i].roleName = role.name;
-                        groupPermissions[i].roleType = role.type;
-                    }
-                    deferred.resolve(groupPermissions);
-            });
-        } else {
-            deferred.resolve(groupPermissions);
-        }
+        var url = '/api/entityGroup/' + entityGroupId + '/groupPermissions';
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
         return deferred.promise;
     }
 
-    function getRoleById(roles, roleId) {
-        for (var i = 0; i < roles.length; i++) {
-            if (roles[i].id.id === roleId) {
-                return roles[i];
-            }
-        }
-        return null;
-    }
-}
+ }

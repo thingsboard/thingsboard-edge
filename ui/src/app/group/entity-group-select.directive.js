@@ -43,7 +43,13 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
 
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
 
-        var groupTypes = [types.entityType.device, types.entityType.asset, types.entityType.customer];
+        var groupTypes = [ types.entityType.customer,
+                           types.entityType.asset,
+                           types.entityType.device,
+                           types.entityType.user,
+                           types.entityType.entityView,
+                           types.entityType.dashboard
+        ];
 
         if (scope.allowedGroupTypes && scope.allowedGroupTypes.length) {
             scope.entityGroupTypes = [];

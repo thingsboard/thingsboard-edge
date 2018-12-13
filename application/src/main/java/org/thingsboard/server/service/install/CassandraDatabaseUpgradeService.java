@@ -82,6 +82,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
     public static final String INTEGRATION = "integration";
     public static final String CUSTOMER = "customer";
     public static final String DASHBOARD = "dashboard";
+    public static final String ENTITY_GROUP = "entity_group";
 
     @Autowired
     private CassandraCluster cluster;
@@ -295,6 +296,18 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 String updateDashboardTableStmt = "alter table "+DASHBOARD+" add customer_id timeuuid";
                 try {
                     cluster.getSession().execute(updateDashboardTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
+                String updateEntityGroupTableStmt = "alter table "+ENTITY_GROUP+" add owner_id timeuuid";
+                try {
+                    cluster.getSession().execute(updateEntityGroupTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
+                updateEntityGroupTableStmt = "alter table "+ENTITY_GROUP+" add owner_type text";
+                try {
+                    cluster.getSession().execute(updateEntityGroupTableStmt);
                     Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
 

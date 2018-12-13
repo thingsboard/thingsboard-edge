@@ -428,6 +428,8 @@ CREATE TABLE IF NOT EXISTS thingsboard.entity_group (
     id timeuuid,
     type text,
     name text,
+    owner_id timeuuid,
+    owner_type text,
     additional_info text,
     configuration text,
     PRIMARY KEY (id, type)

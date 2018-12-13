@@ -251,6 +251,8 @@ CREATE TABLE IF NOT EXISTS entity_group (
     id varchar(31) NOT NULL CONSTRAINT entity_group_pkey PRIMARY KEY,
     type varchar(255) NOT NULL,
     name varchar(255),
+    owner_id varchar(31),
+    owner_type varchar(255),
     additional_info varchar,
     configuration varchar(10000000)
 );

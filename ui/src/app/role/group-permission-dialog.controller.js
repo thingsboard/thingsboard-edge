@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,35 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../scss/constants";
+/*@ngInject*/
+export default function GroupPermissionDialogController($scope, $q, $element, $mdDialog, types, isAdd, groupPermission, roleService) {
 
-$md-light: rgba(255, 255, 255, 100%) !default;
-$md-edit-icon-fill: #757575 !default;
+    var vm = this;
 
-md-toolbar.md-table-toolbar.alternate {
-  .md-toolbar-tools {
-    md-icon {
-      color: $md-light;
+    vm.types = types;
+    vm.isAdd = isAdd;
+
+    vm.groupPermission = groupPermission;
+    if (vm.groupPermission.role && vm.groupPermission.role.type !== vm.types.roleType.group) {
+        vm.groupPermission.entityGroupId = null;
+        vm.groupPermission.entityGroupType = null;
     }
-  }
-}
 
-.md-table {
-  &.tb-group-permission-table {
-    table-layout: fixed;
+    vm.save = save;
+    vm.cancel = cancel;
 
-    td.md-cell {
-      &.tb-value-cell {
-        overflow: auto;
-      }
+    function cancel() {
+        $mdDialog.cancel();
     }
-  }
 
-  .md-cell {
-    ng-md-icon {
-      float: right;
-      height: 16px;
-      fill: $md-edit-icon-fill;
+    function save() {
+        vm.groupPermission.roleId = {
+            entityType: vm.types.entityType.role,
+            id: vm.groupPermission.role.id.id
+        };
+
+        if (vm.groupPermission.role.type !== vm.types.roleType.group) {
+            vm.groupPermission.entityGroupId = null;
+            vm.groupPermission.entityGroupType = null;
+        }
+
+        roleService.saveGroupPermission(vm.groupPermission).then(
+            function success() {
+                $mdDialog.hide();
+            }
+        );
     }
-  }
+
+
 }

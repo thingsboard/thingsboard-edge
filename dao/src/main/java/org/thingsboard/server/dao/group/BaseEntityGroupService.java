@@ -116,6 +116,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (entityGroup.getId() == null) {
+            entityGroup.setOwnerId(parentEntityId);
+        }
         new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
@@ -562,6 +565,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
             if (StringUtils.isEmpty(entityGroup.getName())) {
                 throw new DataValidationException("Entity group name should be specified!");
+            }
+            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
+                throw new DataValidationException("Entity group ownerId be specified!");
             }
         }
     }

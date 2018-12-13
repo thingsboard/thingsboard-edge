@@ -82,6 +82,11 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
 
     public GroupPermission(GroupPermission groupPermission) {
         super(groupPermission);
+        this.tenantId = groupPermission.getTenantId();
+        this.userGroupId = groupPermission.getUserGroupId();
+        this.roleId = groupPermission.getRoleId();
+        this.entityGroupId = groupPermission.getEntityGroupId();
+        this.entityGroupType = groupPermission.getEntityGroupType();
     }
 
     @Override

@@ -39,6 +39,7 @@ import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -65,6 +66,13 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Column(name = ENTITY_GROUP_NAME_PROPERTY)
     private String name;
 
+    @Column(name = ENTITY_GROUP_OWNER_ID_PROPERTY)
+    private String ownerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = ENTITY_GROUP_OWNER_TYPE_PROPERTY)
+    private EntityType ownerType;
+
     @Type(type = "json")
     @Column(name = ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
@@ -83,6 +91,10 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         }
         this.name = entityGroup.getName();
         this.type = entityGroup.getType();
+        if (entityGroup.getOwnerId() != null) {
+            this.ownerId = toString(entityGroup.getOwnerId().getId());
+            this.ownerType = entityGroup.getOwnerId().getEntityType();
+        }
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
     }
@@ -93,6 +105,9 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         entityGroup.setCreatedTime(UUIDs.unixTimestamp(getId()));
         entityGroup.setName(name);
         entityGroup.setType(type);
+        if (ownerId != null) {
+            entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, toUUID(ownerId)));
+        }
         entityGroup.setAdditionalInfo(additionalInfo);
         entityGroup.setConfiguration(configuration);
         return entityGroup;

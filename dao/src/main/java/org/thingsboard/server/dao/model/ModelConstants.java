@@ -305,6 +305,8 @@ public class ModelConstants {
     public static final String ENTITY_GROUP_COLUMN_FAMILY_NAME = "entity_group";
     public static final String ENTITY_GROUP_TYPE_PROPERTY = "type";
     public static final String ENTITY_GROUP_NAME_PROPERTY = "name";
+    public static final String ENTITY_GROUP_OWNER_ID_PROPERTY = "owner_id";
+    public static final String ENTITY_GROUP_OWNER_TYPE_PROPERTY = "owner_type";
     public static final String ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String ENTITY_GROUP_CONFIGURATION_PROPERTY = "configuration";
 
