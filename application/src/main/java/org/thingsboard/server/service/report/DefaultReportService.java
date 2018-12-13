@@ -57,6 +57,7 @@ import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
 import org.thingsboard.server.common.data.security.Authority;
@@ -69,6 +70,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.AccessJwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -103,6 +105,9 @@ public class DefaultReportService implements ReportService {
 
     @Autowired
     private JwtTokenFactory jwtTokenFactory;
+
+    @Autowired
+    private UserPermissionsService userPermissionsService;
 
     @Autowired
     private ThingsboardErrorResponseHandler errorResponseHandler;
@@ -142,7 +147,7 @@ public class DefaultReportService implements ReportService {
             accessToken = calculateUserAccessToken(tenantId, userId);
         } else {
             accessToken = calculateUserAccessTokenFromPublicId(tenantId, publicId);
-            ((ObjectNode)reportParams).put("publicId", publicId);
+            ((ObjectNode) reportParams).put("publicId", publicId);
         }
 
         String token = accessToken.getToken();
@@ -225,7 +230,7 @@ public class DefaultReportService implements ReportService {
         if (!reportConfig.isUseDashboardTimewindow()) {
             reportParams.set("timewindow", reportConfig.getTimewindow());
         }
-        long tzOffset = -tz.getOffset(System.currentTimeMillis()) / (60*1000);
+        long tzOffset = -tz.getOffset(System.currentTimeMillis()) / (60 * 1000);
         reportParams.put("tzOffset", tzOffset);
         return reportParams;
     }
@@ -247,13 +252,14 @@ public class DefaultReportService implements ReportService {
         User user = userService.findUserById(tenantId, userId);
         UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, userId);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-        List<EntityGroupId> userGroupIds;
+        MergedUserPermissions mergedUserPermissions;
         try {
-            userGroupIds = entityGroupService.findEntityGroupsForEntity(tenantId, user.getId()).get();
+            mergedUserPermissions = userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get user groups", e);
+            throw new BadCredentialsException("Failed to get user permissions", e);
         }
-        SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, new HashSet<>(userGroupIds));
+
+        SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, mergedUserPermissions);
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 
@@ -279,7 +285,7 @@ public class DefaultReportService implements ReportService {
         user.setFirstName("Public");
         user.setLastName("Public");
 
-        SecurityUser securityUser = new SecurityUser(user, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId), new HashSet<>());
+        SecurityUser securityUser = new SecurityUser(user, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId), new MergedUserPermissions(new HashMap<>(), new HashMap<>()));
         return jwtTokenFactory.createAccessJwtToken(securityUser);
     }
 
@@ -298,7 +304,7 @@ public class DefaultReportService implements ReportService {
 
         private JsonNode body;
 
-        public ReportRequestCallback(JsonNode body){
+        public ReportRequestCallback(JsonNode body) {
             this.body = body;
         }
 

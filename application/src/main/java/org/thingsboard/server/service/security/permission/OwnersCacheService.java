@@ -28,59 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.model;
+package org.thingsboard.server.service.security.permission;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.List;
 
-public class SecurityUser extends User {
 
-    private static final long serialVersionUID = -797397440703066079L;
+public interface OwnersCacheService {
 
-    private Collection<GrantedAuthority> authorities;
-    @Getter
-    @Setter
-    private boolean enabled;
-    @Getter
-    @Setter
-    private UserPrincipal userPrincipal;
-    @Getter
-    @Setter
-    private MergedUserPermissions userPermissions;
+    List<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup) throws Exception;
 
-    public SecurityUser() {
-        super();
-    }
+    List<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId) throws Exception;
 
-    public SecurityUser(UserId id) {
-        super(id);
-    }
-
-    public SecurityUser(User user, boolean enabled, UserPrincipal userPrincipal, MergedUserPermissions userPermissions) {
-        super(user);
-        this.enabled = enabled;
-        this.userPrincipal = userPrincipal;
-        this.userPermissions = userPermissions;
-    }
-
-    public Collection<GrantedAuthority> getAuthorities() {
-        if (authorities == null) {
-            authorities = Stream.of(SecurityUser.this.getAuthority())
-                    .map(authority -> new SimpleGrantedAuthority(authority.name()))
-                    .collect(Collectors.toList());
-        }
-        return authorities;
-    }
+    void clearOwners(EntityGroupId entityGroupId) throws Exception;
 
 }

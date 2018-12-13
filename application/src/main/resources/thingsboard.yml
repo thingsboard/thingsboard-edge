@@ -291,6 +291,12 @@ caffeine:
     roles:
       timeToLiveInMinutes: 1440
       maxSize: 100000
+    permissions:
+      timeToLiveInMinutes: 1440
+      maxSize: 100000
+    owners:
+      timeToLiveInMinutes: 1440
+      maxSize: 100000
 
 redis:
   # standalone or cluster

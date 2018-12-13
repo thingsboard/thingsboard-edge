@@ -36,13 +36,16 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.JwtSettings;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -62,10 +65,12 @@ public class JwtTokenFactory {
     private static final String CUSTOMER_ID = "customerId";
 
     private final JwtSettings settings;
+    private final UserPermissionsService userPermissionsService;
 
     @Autowired
-    public JwtTokenFactory(JwtSettings settings) {
+    public JwtTokenFactory(JwtSettings settings, UserPermissionsService userPermissionsService) {
         this.settings = settings;
+        this.userPermissionsService = userPermissionsService;
     }
 
     /**
@@ -93,8 +98,6 @@ public class JwtTokenFactory {
         if (securityUser.getCustomerId() != null) {
             claims.put(CUSTOMER_ID, securityUser.getCustomerId().getId().toString());
         }
-        claims.put(USER_GROUP_IDS, securityUser.getUserGroupIds().stream().map(UUIDBased::getId).map(UUID::toString).collect(Collectors.toList()));
-
         ZonedDateTime currentTime = ZonedDateTime.now();
 
         String token = Jwts.builder()
@@ -133,15 +136,12 @@ public class JwtTokenFactory {
         if (customerId != null) {
             securityUser.setCustomerId(new CustomerId(UUID.fromString(customerId)));
         }
-        List<String> strUserGroupIds = claims.get(USER_GROUP_IDS, List.class);
-        Set<EntityGroupId> userGroupIds = new HashSet<>();
-        if (strUserGroupIds != null) {
-            strUserGroupIds.forEach(strUserGroupId -> {
-                EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
-                userGroupIds.add(userGroupId);
-            });
+
+        try {
+            securityUser.setUserPermissions(userPermissionsService.getMergedPermissions(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getId()));
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
         }
-        securityUser.setUserGroupIds(userGroupIds);
 
         return securityUser;
     }

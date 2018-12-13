@@ -65,6 +65,9 @@ public class CustomerUserPermissions extends AbstractPermissions {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
+    @Autowired
+    private OwnersCacheService ownersCacheService;
+
     public CustomerUserPermissions() {
         super();
         put(Resource.ALARM, TenantAdminPermissions.tenantEntityPermissionChecker);

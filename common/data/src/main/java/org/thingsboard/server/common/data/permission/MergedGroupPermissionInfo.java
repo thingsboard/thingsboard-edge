@@ -28,59 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.model;
+package org.thingsboard.server.common.data.permission;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 
-import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class SecurityUser extends User {
+@Data
+public final class MergedGroupPermissionInfo {
 
-    private static final long serialVersionUID = -797397440703066079L;
+    private final EntityType entityType;
+    private final Set<Operation> operations;
 
-    private Collection<GrantedAuthority> authorities;
-    @Getter
-    @Setter
-    private boolean enabled;
-    @Getter
-    @Setter
-    private UserPrincipal userPrincipal;
-    @Getter
-    @Setter
-    private MergedUserPermissions userPermissions;
-
-    public SecurityUser() {
-        super();
-    }
-
-    public SecurityUser(UserId id) {
-        super(id);
-    }
-
-    public SecurityUser(User user, boolean enabled, UserPrincipal userPrincipal, MergedUserPermissions userPermissions) {
-        super(user);
-        this.enabled = enabled;
-        this.userPrincipal = userPrincipal;
-        this.userPermissions = userPermissions;
-    }
-
-    public Collection<GrantedAuthority> getAuthorities() {
-        if (authorities == null) {
-            authorities = Stream.of(SecurityUser.this.getAuthority())
-                    .map(authority -> new SimpleGrantedAuthority(authority.name()))
-                    .collect(Collectors.toList());
-        }
-        return authorities;
+    public MergedGroupPermissionInfo(EntityType entityType, Set<Operation> operations) {
+        this.entityType = entityType;
+        this.operations = operations;
     }
 
 }
