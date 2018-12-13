@@ -37,8 +37,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.*;
 
 import java.util.*;
@@ -46,7 +48,7 @@ import java.util.*;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class GroupPermission extends BaseData<GroupPermissionId> implements HasName, HasTenantId {
+public class GroupPermission extends BaseData<GroupPermissionId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -103,4 +105,11 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
         }
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.GROUP_PERMISSION;
+    }
+
 }

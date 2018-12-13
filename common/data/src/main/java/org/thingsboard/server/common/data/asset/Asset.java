@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.asset;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.*;
@@ -39,7 +40,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
+public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -127,5 +128,12 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         builder.append("]");
         return builder.toString();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.ASSET;
+    }
+
 
 }

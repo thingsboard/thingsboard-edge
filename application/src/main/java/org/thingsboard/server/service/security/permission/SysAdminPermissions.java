@@ -32,6 +32,7 @@ package org.thingsboard.server.service.security.permission;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -58,7 +59,7 @@ public class SysAdminPermissions extends AbstractPermissions {
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
 
             if (entity.getTenantId() != null && !entity.getTenantId().isNullUid()) {
                 return false;

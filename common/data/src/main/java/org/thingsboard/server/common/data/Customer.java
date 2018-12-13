@@ -39,7 +39,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class Customer extends ContactBased<CustomerId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
+public class Customer extends ContactBased<CustomerId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
     
     private static final long serialVersionUID = -1599722990298929275L;
     
@@ -188,5 +188,12 @@ public class Customer extends ContactBased<CustomerId> implements HasName, HasTe
         builder.append("]");
         return builder.toString();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.CUSTOMER;
+    }
+
 
 }

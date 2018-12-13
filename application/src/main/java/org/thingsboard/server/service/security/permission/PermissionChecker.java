@@ -31,7 +31,10 @@
 package org.thingsboard.server.service.security.permission;
 
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -42,25 +45,25 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public interface PermissionChecker<I extends EntityId, T extends HasTenantId> {
+public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
 
-    default boolean hasPermission(SecurityUser user, Operation operation) {
+    default boolean hasPermission(SecurityUser user, Operation operation) throws ThingsboardException {
         return false;
     }
 
-    default boolean hasPermission(SecurityUser user, Operation operation, I entityId, T entity) {
+    default boolean hasPermission(SecurityUser user, Operation operation, I entityId, T entity) throws ThingsboardException {
         return false;
     }
 
-    default boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroupId entityGroupId, EntityType groupType) {
+    default boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroupId entityGroupId, EntityType groupType) throws ThingsboardException {
         return false;
     }
 
-    default boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) {
+    default boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException {
         return false;
     }
 
-    public class GenericPermissionChecker<I extends EntityId, T extends HasTenantId> implements PermissionChecker<I,T> {
+    public class GenericPermissionChecker<I extends EntityId, T extends TenantEntity> implements PermissionChecker<I, T> {
 
         private final Set<Operation> allowedOperations;
 
@@ -90,9 +93,10 @@ public interface PermissionChecker<I extends EntityId, T extends HasTenantId> {
 
     }
 
-    public static PermissionChecker denyAllPermissionChecker = new PermissionChecker() {};
+    public static PermissionChecker denyAllPermissionChecker = new PermissionChecker() {
+    };
 
-    public static PermissionChecker allowAllPermissionChecker = new PermissionChecker<EntityId, HasTenantId>() {
+    public static PermissionChecker allowAllPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation) {
@@ -100,7 +104,7 @@ public interface PermissionChecker<I extends EntityId, T extends HasTenantId> {
         }
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             return true;
         }
 

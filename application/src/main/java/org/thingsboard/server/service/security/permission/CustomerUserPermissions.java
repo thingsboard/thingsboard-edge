@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -62,15 +63,9 @@ public class CustomerUserPermissions extends AbstractPermissions {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    @Autowired
-    private UserPermissionsService userPermissionsService;
-
-    @Autowired
-    private OwnersCacheService ownersCacheService;
-
     public CustomerUserPermissions() {
         super();
-        put(Resource.ALARM, TenantAdminPermissions.tenantEntityPermissionChecker);
+        put(Resource.ALARM, TenantAdminPermissions.tenantStandaloneEntityPermissionChecker);
         put(Resource.ASSET, customerEntityPermissionChecker);
         put(Resource.DEVICE, customerEntityPermissionChecker);
         put(Resource.CUSTOMER, customerPermissionChecker);
@@ -95,7 +90,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
             new PermissionChecker.GenericPermissionChecker(Operation.ALL) {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
 
             if (!super.hasPermission(user, operation, entityId, entity)) {
                 return false;
@@ -117,7 +112,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
             new PermissionChecker() {
 
                 @Override
-                public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+                public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
                     if (!user.getTenantId().equals(entity.getTenantId())) {
                         return false;
                     }
@@ -185,7 +180,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
     private static final PermissionChecker widgetsPermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, HasTenantId entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!super.hasPermission(user, operation, entityId, entity)) {
                 return false;
             }

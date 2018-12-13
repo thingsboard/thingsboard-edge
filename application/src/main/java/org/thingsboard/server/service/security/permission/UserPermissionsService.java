@@ -40,4 +40,6 @@ public interface UserPermissionsService {
 
     MergedUserPermissions getMergedPermissions(TenantId tenantId, CustomerId customerId, UserId userId) throws Exception;
 
+
+
 }

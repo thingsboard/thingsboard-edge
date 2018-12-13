@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
+public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -174,4 +174,11 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements H
     public boolean isCustomerUser() {
         return !isSystemAdmin() && !isTenantAdmin();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.USER;
+    }
+
 }

@@ -50,7 +50,9 @@ import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -71,20 +73,20 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private CustomerService customerService;
 
     @Override
-    public List<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup) throws Exception {
+    public Set<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup) {
         return getOwners(tenantId, entityGroup.getId(), id -> entityGroup);
     }
 
     @Override
-    public List<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId) throws Exception {
+    public Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId) {
         return getOwners(tenantId, entityGroupId, id -> entityGroupService.findEntityGroupById(tenantId, id));
     }
 
-    private List<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId, Function<EntityGroupId, EntityGroup> fetchEntityGroup) throws Exception {
+    private Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId, Function<EntityGroupId, EntityGroup> fetchEntityGroup) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
         String cacheKey = entityGroupId.getId().toString();
         byte[] data = cache.get(cacheKey, byte[].class);
-        List<EntityId> result = null;
+        Set<EntityId> result = null;
         if (data != null) {
             try {
                 result = fromBytes(data);
@@ -94,15 +96,14 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         }
         if (result == null) {
             EntityGroup entityGroup = fetchEntityGroup.apply(entityGroupId);
-            result = new ArrayList<>();
-            //TODO: convert entityGroup to OwnerId;
-            fetchOwners(tenantId, new CustomerId(UUID.randomUUID()), result);
+            result = new HashSet<>();
+            fetchOwners(tenantId, entityGroup.getOwnerId(), result);
             cache.put(cacheKey, toBytes(result));
         }
         return result;
     }
 
-    private void fetchOwners(TenantId tenantId, EntityId entityId, List<EntityId> result) {
+    private void fetchOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) {
         result.add(entityId);
         if (entityId.getEntityType() == EntityType.CUSTOMER) {
             Customer customer = customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
@@ -110,14 +111,14 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         }
     }
 
-    private List<EntityId> fromBytes(byte[] data) throws InvalidProtocolBufferException {
+    private Set<EntityId> fromBytes(byte[] data) throws InvalidProtocolBufferException {
         ClusterAPIProtos.OwnersListProto proto = ClusterAPIProtos.OwnersListProto.parseFrom(data);
         return proto.getEntityIdsList().stream().map(entityIdProto ->
                 EntityIdFactory.getByTypeAndUuid(entityIdProto.getEntityType(),
-                        new UUID(entityIdProto.getEntityIdMSB(), entityIdProto.getEntityIdLSB()))).collect(Collectors.toList());
+                        new UUID(entityIdProto.getEntityIdMSB(), entityIdProto.getEntityIdLSB()))).collect(Collectors.toSet());
     }
 
-    private byte[] toBytes(List<EntityId> result) {
+    private byte[] toBytes(Set<EntityId> result) {
         ClusterAPIProtos.OwnersListProto.Builder builder = ClusterAPIProtos.OwnersListProto.newBuilder();
         builder.addAllEntityIds(result.stream().map(entityId ->
                 ClusterAPIProtos.EntityIdProto.newBuilder()
@@ -128,7 +129,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
-    public void clearOwners(EntityGroupId entityGroupId) throws Exception {
+    public void clearOwners(EntityGroupId entityGroupId) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
         cache.evict(entityGroupId.getId().toString());
     }

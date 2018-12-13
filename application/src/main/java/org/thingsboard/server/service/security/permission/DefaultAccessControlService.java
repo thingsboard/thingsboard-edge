@@ -34,7 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -53,7 +55,6 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @Slf4j
 public class DefaultAccessControlService implements AccessControlService {
 
-    private static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
 
     private final Map<Authority, Permissions> authorityPermissions = new HashMap<>();
@@ -76,8 +77,8 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
-    public <I extends EntityId, T extends HasTenantId> void checkPermission(SecurityUser user, Resource resource,
-                                                                                            Operation operation, I entityId, T entity) throws ThingsboardException {
+    public <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource,
+                                                                             Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
         if (!permissionChecker.hasPermission(user, operation, entityId, entity)) {
             permissionDenied();
@@ -85,7 +86,7 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
-    public <I extends EntityId, T extends HasTenantId> boolean hasPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException {
+    public <I extends EntityId, T extends TenantEntity> boolean hasPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, false);
         if (permissionChecker != null) {
             return permissionChecker.hasPermission(user, operation, entityId, entity);

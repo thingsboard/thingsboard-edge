@@ -30,16 +30,17 @@
  */
 package org.thingsboard.server.common.data.permission;
 
-import lombok.Data;
+import lombok.Getter;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.util.Map;
 import java.util.Set;
 
-@Data
 public final class MergedUserPermissions {
 
+    @Getter
     private final Map<Resource, Set<Operation>> genericPermissions;
+    @Getter
     private final Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions;
 
     public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
@@ -47,4 +48,26 @@ public final class MergedUserPermissions {
         this.groupPermissions = groupPermissions;
     }
 
+    public boolean hasGenericPermission(Resource resource, Operation operation) {
+        return hasGenericResourcePermission(resource, operation) || hasGenericAllPermission(operation);
+    }
+
+    private boolean hasGenericAllPermission(Operation operation) {
+        Set<Operation> operations = genericPermissions.get(Resource.ALL);
+        return operations != null && checkOperation(operations, operation);
+    }
+
+    private boolean hasGenericResourcePermission(Resource resource, Operation operation) {
+        Set<Operation> operations = genericPermissions.get(resource);
+        return operations != null && checkOperation(operations, operation);
+    }
+
+    private boolean checkOperation(Set<Operation> operations, Operation operation) {
+        return operations.contains(Operation.ALL) || operations.contains(operation);
+    }
+
+    public boolean hasGroupPermissions(EntityGroupId entityGroupId, Operation operation) {
+        MergedGroupPermissionInfo permissionInfo = groupPermissions.get(entityGroupId);
+        return permissionInfo != null && checkOperation(permissionInfo.getOperations(), operation);
+    }
 }

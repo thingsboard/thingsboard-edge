@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -39,7 +40,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -126,6 +127,12 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         builder.append(id);
         builder.append("]");
         return builder.toString();
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.DEVICE;
     }
 
 }

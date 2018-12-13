@@ -30,18 +30,22 @@
  */
 package org.thingsboard.server.common.data.integration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Integration extends SearchTextBased<IntegrationId> implements HasName, HasTenantId {
+public class Integration extends SearchTextBased<IntegrationId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = 4934987577236873728L;
 
@@ -180,4 +184,11 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         builder.append("]");
         return builder.toString();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.INTEGRATION;
+    }
+
 }

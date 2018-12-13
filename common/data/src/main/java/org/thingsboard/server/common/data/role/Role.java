@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.role;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,7 +44,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
+public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -77,4 +78,11 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.ROLE;
+    }
+
 }

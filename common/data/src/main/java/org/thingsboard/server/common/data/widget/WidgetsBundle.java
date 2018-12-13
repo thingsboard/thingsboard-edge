@@ -30,14 +30,18 @@
  */
 package org.thingsboard.server.common.data.widget;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 
 import java.util.Arrays;
 
-public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements HasTenantId {
+public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -132,6 +136,12 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements H
         sb.append(", image=").append(Arrays.toString(image));
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.WIDGETS_BUNDLE;
     }
 
 }

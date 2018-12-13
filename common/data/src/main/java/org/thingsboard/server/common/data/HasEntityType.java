@@ -28,22 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.permission;
+package org.thingsboard.server.common.data;
 
-import lombok.Getter;
+public interface HasEntityType {
 
-public enum Operation {
-    ALL, CREATE, READ(true), WRITE(true), DELETE, ASSIGN_TO_CUSTOMER, UNASSIGN_FROM_CUSTOMER, RPC_CALL,
-    READ_CREDENTIALS, WRITE_CREDENTIALS, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY, ADD_TO_GROUP, REMOVE_FROM_GROUP;
-
-    @Getter
-    private boolean allowedForGroupRole;
-
-    Operation() {
-        this(false);
-    }
-
-    Operation(boolean allowedForGroupRole) {
-        this.allowedForGroupRole = allowedForGroupRole;
-    }
+    EntityType getEntityType();
 }

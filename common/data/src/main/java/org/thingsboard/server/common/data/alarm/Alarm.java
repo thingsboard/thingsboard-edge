@@ -30,14 +30,18 @@
  */
 package org.thingsboard.server.common.data.alarm;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -47,7 +51,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Data
 @Builder
 @AllArgsConstructor
-public class Alarm extends BaseData<AlarmId> implements HasName, HasTenantId {
+public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
 
     private TenantId tenantId;
     private String type;
@@ -89,5 +93,11 @@ public class Alarm extends BaseData<AlarmId> implements HasName, HasTenantId {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return type;
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.ASSET;
     }
 }

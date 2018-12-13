@@ -30,19 +30,23 @@
  */
 package org.thingsboard.server.common.data.blob;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntityId> implements HasName, HasTenantId, HasCustomerId {
+public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntityId> implements HasName, TenantEntity, HasCustomerId {
 
     private static final long serialVersionUID = 2807223040519549363L;
 
@@ -77,6 +81,13 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
     @Override
     public String getName() {
         return name;
+    }
+
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.BLOB_ENTITY;
     }
 
 }

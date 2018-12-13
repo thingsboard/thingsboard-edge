@@ -65,6 +65,8 @@ public enum Resource {
     WHITE_LABELING();
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
+    private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
+
     static {
         groupResourceByGroupType.put(EntityType.CUSTOMER, CUSTOMER_GROUP);
         groupResourceByGroupType.put(EntityType.DEVICE, DEVICE_GROUP);
@@ -72,10 +74,25 @@ public enum Resource {
         groupResourceByGroupType.put(EntityType.USER, USER_GROUP);
         groupResourceByGroupType.put(EntityType.ENTITY_VIEW, ENTITY_VIEW_GROUP);
         groupResourceByGroupType.put(EntityType.DASHBOARD, DASHBOARD_GROUP);
+
+        for (EntityType entityType : EntityType.values()) {
+            if (entityType.equals(EntityType.ENTITY_GROUP)) {
+                continue;
+            }
+            for (Resource resource : Resource.values()) {
+                if (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(entityType)) {
+                    resourceByEntityType.put(entityType, resource);
+                }
+            }
+        }
     }
 
     public static Resource groupResourceFromGroupType(EntityType groupType) {
         return groupResourceByGroupType.get(groupType);
+    }
+
+    public static Resource resourceFromEntityType(EntityType entityType) {
+        return resourceByEntityType.get(entityType);
     }
 
     private final EntityType entityType;

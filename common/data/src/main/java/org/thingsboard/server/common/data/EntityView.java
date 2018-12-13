@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,7 +48,7 @@ import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
-        implements HasName, HasTenantId, HasCustomerId, HasOwnerId {
+        implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -96,4 +97,11 @@ public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.ENTITY_VIEW;
+    }
+
 }

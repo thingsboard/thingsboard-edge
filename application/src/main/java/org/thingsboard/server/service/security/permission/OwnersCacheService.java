@@ -36,14 +36,15 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.List;
+import java.util.Set;
 
 
 public interface OwnersCacheService {
 
-    List<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup) throws Exception;
+    Set<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup);
 
-    List<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId) throws Exception;
+    Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);
 
-    void clearOwners(EntityGroupId entityGroupId) throws Exception;
+    void clearOwners(EntityGroupId entityGroupId);
 
 }
