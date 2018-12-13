@@ -187,6 +187,12 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                     try {
                         conn.createStatement().execute("ALTER TABLE dashboard ADD COLUMN customer_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_type varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
                     conn.createStatement().execute("update converter set type = 'UPLINK' where type = 'CUSTOM'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                 }
                 log.info("Schema updated.");
