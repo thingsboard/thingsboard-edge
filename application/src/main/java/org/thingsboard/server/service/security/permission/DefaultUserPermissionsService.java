@@ -132,15 +132,21 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     private void addGenericRolePermissions(TenantId tenantId, Map<Resource, Set<Operation>> target, GroupPermission groupPermission) {
         Role role = roleService.findRoleById(tenantId, groupPermission.getRoleId());
-        Map<Resource, List<Operation>> rolePermissions = mapper.convertValue(role.getPermissions(), new TypeReference<Map<Resource, List<Operation>>>() {
-        });
+        Map<Resource, List<Operation>> rolePermissions = new HashMap<>();
+        for (Resource resource : Resource.values()) {
+            if (role.getPermissions().has(resource.name())) {
+                List<Operation> operations = new ArrayList<>();
+                rolePermissions.put(resource, operations);
+                role.getPermissions().get(resource.name()).forEach(node -> operations.add(Operation.valueOf(node.asText())));
+            }
+        }
         rolePermissions.forEach(((resource, operations) -> target.computeIfAbsent(resource, r -> new HashSet<>()).addAll(operations)));
     }
 
     private void addGroupSpecificRolePermissions(TenantId tenantId, Map<EntityGroupId, MergedGroupPermissionInfo> target, GroupPermission groupPermission) {
         Role role = roleService.findRoleById(tenantId, groupPermission.getRoleId());
-        List<Operation> roleOperations = mapper.convertValue(role.getPermissions(), new TypeReference<List<Operation>>() {
-        });
+        List<Operation> roleOperations = new ArrayList<>();
+        role.getPermissions().forEach(node -> roleOperations.add(Operation.valueOf(node.asText())));
         target.computeIfAbsent(groupPermission.getEntityGroupId(), id -> new MergedGroupPermissionInfo(groupPermission.getEntityGroupType(), new HashSet<>())).getOperations().addAll(roleOperations);
     }
 
