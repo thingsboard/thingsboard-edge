@@ -43,9 +43,12 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -79,6 +82,8 @@ public class GroupPermissionController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation,
                     groupPermission.getId(), groupPermission);
 
+            checkRoleId(groupPermission.getRoleId(), Operation.READ);
+
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
             logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
@@ -98,6 +103,9 @@ public class GroupPermissionController extends BaseController {
         try {
             GroupPermissionId groupPermissionId = new GroupPermissionId(toUUID(strGroupPermissionId));
             GroupPermission groupPermission = checkGroupPermissionId(groupPermissionId, Operation.DELETE);
+
+            checkRoleId(groupPermission.getRoleId(), Operation.READ);
+
             groupPermissionService.deleteGroupPermission(getTenantId(), groupPermissionId);
             logEntityAction(groupPermissionId, groupPermission, null, ActionType.DELETED, null, strGroupPermissionId);
         } catch (Exception e) {
@@ -110,23 +118,43 @@ public class GroupPermissionController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/groupPermissions/{userGroupId}", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/userGroup/{userGroupId}/groupPermissions", method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<GroupPermission> getGroupPermissions(
-            @RequestParam int limit,
-            @PathVariable("userGroupId") String strUserGroupId,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset) throws ThingsboardException {
+    public List<GroupPermissionInfo> getUserGroupPermissions(
+            @PathVariable("userGroupId") String strUserGroupId) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
             checkEntityGroupId(userGroupId, Operation.READ);
-            return checkNotNull(groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(tenantId, userGroupId, pageLink));
+            List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(tenantId, userGroupId).get();
+            return applyPermissionInfo(groupPermissions);
         } catch (Exception e) {
             throw handleException(e);
         }
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/groupPermissions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<GroupPermissionInfo> getEntityGroupPermissions(
+            @PathVariable("entityGroupId") String strEntityGroupId) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(strEntityGroupId));
+            checkEntityGroupId(entityGroupId, Operation.READ);
+            List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
+            return applyPermissionInfo(groupPermissions);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<GroupPermissionInfo> applyPermissionInfo(List<GroupPermissionInfo> groupPermissions) throws ThingsboardException {
+        for (GroupPermissionInfo groupPermission : groupPermissions) {
+            Role role = groupPermission.getRole();
+            groupPermission.setReadOnly(!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ, role.getId(), role));
+        }
+        return groupPermissions;
+    }
+
 }

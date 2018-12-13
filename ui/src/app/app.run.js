@@ -44,6 +44,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     }
 
     var forbiddenDialog = null;
+    var permissionDeniedDialog = null;
 
     $mdTheming.generateTheme('default');
     $mdTheming.generateTheme('tb-dark');
@@ -84,6 +85,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
 
         $rootScope.forbiddenHandle = $rootScope.$on('forbidden', function () {
             showForbiddenDialog();
+        });
+
+        $rootScope.permissionDeniedHandle = $rootScope.$on('permissionDenied', function () {
+            showPermissionDeniedDialog();
         });
 
         $rootScope.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
@@ -264,4 +269,27 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             });
         }
     }
+
+    function showPermissionDeniedDialog() {
+        if (permissionDeniedDialog === null) {
+            $translate(['access.permission-denied',
+                'access.permission-denied-text',
+                'access.permission-denied',
+                'action.close']).then(function (translations) {
+                if (permissionDeniedDialog === null) {
+                    permissionDeniedDialog = $mdDialog.alert()
+                        .title(translations['access.permission-denied'])
+                        .htmlContent(translations['access.permission-denied-text'])
+                        .ariaLabel(translations['access.permission-denied'])
+                        .ok(translations['action.close']);
+                    $mdDialog.show(permissionDeniedDialog).then(function () {
+                        permissionDeniedDialog = null;
+                    }, function () {
+                        permissionDeniedDialog = null;
+                    });
+                }
+            });
+        }
+    }
+
 }

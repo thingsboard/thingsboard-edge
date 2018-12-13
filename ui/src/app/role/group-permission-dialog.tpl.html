@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-dialog aria-label="{{ (vm.isAdd ? 'role.add-group-role' : 'role.edit-group-role' ) | translate }}" style="min-width: 600px;">
+<md-dialog aria-label="{{ (vm.isAdd ? 'group-permission.add-group-permission' : 'group-permission.edit-group-permission' ) | translate }}" style="min-width: 600px;">
     <form name="theForm" ng-submit="vm.save()">
         <md-toolbar>
             <div class="md-toolbar-tools">
-                <h2 translate>{{ vm.isAdd ? 'role.add-group-role' : 'role.edit-group-role'}}</h2>
+                <h2 translate>{{ vm.isAdd ? 'group-permission.add-group-permission' : 'group-permission.edit-group-permission'}}</h2>
                 <span flex></span>
                 <md-button class="md-icon-button" ng-click="vm.cancel()">
                     <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
@@ -49,27 +49,33 @@
                     <fieldset ng-disabled="$root.loading">
                         <section layout="column">
                             <label translate class="tb-title no-padding">role.role</label>
-                            <section layout="column">
-                                <tb-entity-subtype-autocomplete
-                                        tb-required="true"
-                                        the-form="theForm"
-                                        ng-model="vm.groupPermission.roleType"
-                                        entity-type="vm.types.entityType.role">
-                                </tb-entity-subtype-autocomplete>
-                                <tb-entity-autocomplete flex ng-if="vm.groupPermission.roleType"
+                            <section layout="row">
+                                <md-input-container class="md-block" style="width: 200px;">
+                                    <label translate>role.role-type</label>
+                                    <md-select ng-required="true" name="roleType" ng-model="vm.groupPermission.role.type" ng-disabled="$root.loading">
+                                        <md-option ng-repeat="type in vm.types.roleType" ng-value="type">
+                                            {{ ('role.display-type.' + type) | translate }}
+                                        </md-option>
+                                    </md-select>
+                                    <div ng-messages="theForm.roleType.$error">
+                                        <div ng-message="required" translate>role.role-type-required</div>
+                                    </div>
+                                </md-input-container>
+                                <tb-entity-autocomplete flex ng-if="vm.groupPermission.role.type"
                                                         the-form="theForm"
-                                                        tb-required="tbRequired"
-                                                        entity-subtype="vm.groupPermission.roleType"
+                                                        tb-required="true"
+                                                        entity-subtype="vm.groupPermission.role.type"
                                                         entity-type="vm.types.entityType.role"
-                                                        ng-model="vm.groupPermission.roleId">
+                                                        ng-model="vm.groupPermission.role.id.id">
                                 </tb-entity-autocomplete>
                             </section>
                         </section>
-                        <section layout="column">
+                        <section layout="column" ng-if="vm.groupPermission.role.type === vm.types.roleType.group">
                             <label translate class="tb-title no-padding">role.entity-group</label>
                             <tb-entity-group-select
                                     ng-model="vm.groupPermission.entityGroupId"
                                     the-form="theForm"
+                                    tb-required="true"
                                     placeholder-text="entity-group.select-entity-group"
                                     not-found-text="entity-group.no-entity-groups-matching"
                                     required-text="entity-group.target-entity-group-required">

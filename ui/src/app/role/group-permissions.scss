@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,44 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/*@ngInject*/
-export default function UserGroupRoleDialogController($scope, $q, $element, $mdDialog, types, isAdd, groupPermission, roleService) {
+@import "../../scss/constants";
 
-    var vm = this;
+$md-light: rgba(255, 255, 255, 100%) !default;
 
-    vm.types = types;
-    vm.isAdd = isAdd;
-
-    vm.groupPermission = groupPermission;
-
-    vm.allowedEntityTypes = [types.entityType.entityView, types.entityType.role];
-
-    vm.save = save;
-    vm.cancel = cancel;
-
-    function cancel() {
-        $mdDialog.cancel();
+.tb-group-permission-table.tb-data-table {
+  md-toolbar.md-table-toolbar.alternate {
+    .md-toolbar-tools {
+      md-icon {
+        color: $md-light;
+      }
     }
+  }
 
-    function save() {
-
-        // private EntityGroupId userGroupId;
-        // private EntityGroupId entityGroupId;
-        // private EntityType entityGroupType;
-        // private RoleId roleId;
-        //
-        // groupType
-        // groupId
-
-        var tmp = {};
-        tmp.roleId = {id: vm.groupPermission.roleId, entityType: types.entityType.role};
-        tmp.userGroupId = {id: vm.groupPermission.userGroupId, entityType: types.entityType.entityGroup};
-        roleService.saveGroupPermission(tmp).then(
-            function success() {
-                $mdDialog.hide();
-            }
-        );
+  table.md-table {
+    tr.md-row {
+      &.tb-read-only {
+        td.md-cell {
+          color: rgba(0, 0, 0, .38);
+        }
+      }
     }
-
-
+  }
 }

@@ -1106,6 +1106,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.tenant = types.entityType.tenant;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
+                entityTypes.user = types.entityType.user;
                 entityTypes.converter = types.entityType.converter;
                 entityTypes.integration = types.entityType.integration;
                 entityTypes.schedulerEvent = types.entityType.schedulerEvent;
@@ -1121,6 +1122,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.entityView = types.entityType.entityView;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
+                entityTypes.user = types.entityType.user;
                 entityTypes.schedulerEvent = types.entityType.schedulerEvent;
                 entityTypes.blobEntity = types.entityType.blobEntity;
                 if (useAliasEntityTypes) {

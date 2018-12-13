@@ -36,7 +36,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -48,12 +47,9 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
 import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ROLE_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY;
@@ -78,10 +74,6 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
     private String roleId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY)
-    private EntityType entityGroupType;
-
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public GroupPermissionEntity() {
@@ -103,7 +95,6 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
         }
         if (groupPermission.getEntityGroupId() != null) {
             this.entityGroupId = toString(groupPermission.getEntityGroupId().getId());
-            this.entityGroupType = groupPermission.getEntityGroupType();
         }
     }
 
@@ -120,9 +111,8 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
         if (userGroupId != null) {
             groupPermission.setUserGroupId(new EntityGroupId(toUUID(userGroupId)));
         }
-        if (entityGroupId != null && entityGroupType != null) {
+        if (entityGroupId != null) {
             groupPermission.setEntityGroupId(new EntityGroupId(toUUID(entityGroupId)));
-            groupPermission.setEntityGroupType(entityGroupType);
         }
         return groupPermission;
     }

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.grouppermission;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -42,8 +43,10 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.role.RoleDao;
@@ -51,6 +54,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.TimePaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -79,6 +83,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     @Autowired
     private RoleDao roleDao;
 
+    @Autowired
+    private EntityService entityService;
+
     @Override
     public GroupPermission saveGroupPermission(TenantId tenantId, GroupPermission groupPermission) {
         log.trace("Executing save groupPermission [{}]", groupPermission);
@@ -104,6 +111,15 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     }
 
     @Override
+    public ListenableFuture<List<GroupPermissionInfo>> findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(TenantId tenantId, EntityGroupId userGroupId) {
+        log.trace("Executing findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return toGroupPermissionInfoListAsync(tenantId, groupPermissions);
+    }
+
+    @Override
     public List<GroupPermission> findGroupPermissionListByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId) {
         log.trace("Executing findGroupPermissionListByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -119,6 +135,15 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
         return new TimePageData<>(groupPermissions, pageLink);
+    }
+
+    @Override
+    public ListenableFuture<List<GroupPermissionInfo>> findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return toGroupPermissionInfoListAsync(tenantId, groupPermissions);
     }
 
     @Override
@@ -167,6 +192,32 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         entityGroupPermissionRemover.removeEntities(tenantId, entityGroupId);
+    }
+
+    private ListenableFuture<List<GroupPermissionInfo>> toGroupPermissionInfoListAsync(TenantId tenantId, List<GroupPermission> groupPermissions) {
+        List<ListenableFuture<GroupPermissionInfo>> groupPermissionInfoFutureList = new ArrayList<>();
+        groupPermissions.forEach(groupPermission -> {
+            groupPermissionInfoFutureList.add(fetchGroupPermissionInfoAsync(tenantId, groupPermission));
+        });
+        return Futures.successfulAsList(groupPermissionInfoFutureList);
+    }
+
+    private ListenableFuture<GroupPermissionInfo> fetchGroupPermissionInfoAsync(TenantId tenantId, GroupPermission groupPermission) {
+        ListenableFuture<Role> roleFuture = roleDao.findByIdAsync(tenantId, groupPermission.getRoleId().getId());
+        return Futures.transformAsync(roleFuture, role -> {
+            GroupPermissionInfo groupPermissionInfo = new GroupPermissionInfo(groupPermission);
+            groupPermissionInfo.setRole(role);
+            if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
+                ListenableFuture<EntityGroup> entityGroupFuture = entityGroupDao.findByIdAsync(tenantId, groupPermission.getEntityGroupId().getId());
+                return Futures.transform(entityGroupFuture, entityGroup -> {
+                    groupPermissionInfo.setEntityGroupName(entityGroup.getName());
+                    groupPermissionInfo.setEntityGroupType(entityGroup.getType());
+                    return groupPermissionInfo;
+                });
+            } else {
+                return Futures.immediateFuture(groupPermissionInfo);
+            }
+        });
     }
 
     private DataValidator<GroupPermission> groupPermissionValidator =
@@ -220,9 +271,6 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                         if (entityGroup == null) {
                             throw new DataValidationException("Group Permission is referencing to non-existent entity group!");
                         }
-                        groupPermission.setEntityGroupType(entityGroup.getType());
-                    } else {
-                        groupPermission.setEntityGroupType(null);
                     }
                 }
             };

@@ -156,6 +156,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case ROLE:
                 hasName = roleService.findRoleByIdAsync(tenantId, new RoleId(entityId.getId()));
                 break;
+            case ENTITY_GROUP:
+                hasName = entityGroupService.findEntityGroupByIdAsync(tenantId, new EntityGroupId(entityId.getId()));
+                break;
             default:
                 throw new IllegalStateException("Not Implemented!");
         }

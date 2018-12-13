@@ -131,7 +131,7 @@ public class RoleController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/tenant/roles", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/roles", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<Role> getRoles(
             @RequestParam int limit,
@@ -161,29 +161,4 @@ public class RoleController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/roles", params = {"limit"}, method = RequestMethod.GET)
-    @ResponseBody
-    public TextPageData<Role> getCustomerRoles(
-            @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
-        checkParameter("customerId", strCustomerId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, customerId, checkStrRoleType("type", type), pageLink));
-            } else {
-                return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
 }

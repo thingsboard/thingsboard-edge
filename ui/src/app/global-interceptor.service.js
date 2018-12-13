@@ -174,7 +174,7 @@ export default function GlobalInterceptor($rootScope, $q, $injector) {
             }
         } else if (rejection.status === 403) {
             if (!ignoreErrors) {
-                $rootScope.$broadcast('forbidden');
+                $rootScope.$broadcast('permissionDenied');
             }
         } else if (rejection.status === 0 || rejection.status === -1) {
             getToast().showError(getTranslate().instant('error.unable-to-connect'));
