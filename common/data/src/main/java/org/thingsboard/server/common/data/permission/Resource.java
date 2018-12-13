@@ -32,9 +32,7 @@ package org.thingsboard.server.common.data.permission;
 
 import org.thingsboard.server.common.data.EntityType;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public enum Resource {
     ALL(),
@@ -66,6 +64,7 @@ public enum Resource {
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
+    private static final Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
 
     static {
         groupResourceByGroupType.put(EntityType.CUSTOMER, CUSTOMER_GROUP);
@@ -85,6 +84,34 @@ public enum Resource {
                 }
             }
         }
+        operationsByResource.put(Resource.ALL, new HashSet<>(Arrays.asList(Operation.values())));
+        operationsByResource.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
+        operationsByResource.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE)));
+        operationsByResource.put(Resource.DEVICE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE,
+                Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
+                Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY)));
+        operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.USER, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.WIDGETS_BUNDLE, Operation.crudOperations);
+        operationsByResource.put(Resource.WIDGET_TYPE, Operation.crudOperations);
+        operationsByResource.put(Resource.CONVERTER, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.INTEGRATION, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.SCHEDULER_EVENT, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.BLOB_ENTITY, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.CUSTOMER_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.DEVICE_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.ASSET_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.USER_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.ENTITY_VIEW_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.DASHBOARD_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.ROLE, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
+        operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
     }
 
     public static Resource groupResourceFromGroupType(EntityType groupType) {
@@ -93,6 +120,10 @@ public enum Resource {
 
     public static Resource resourceFromEntityType(EntityType entityType) {
         return resourceByEntityType.get(entityType);
+    }
+
+    public static Set<Operation> operationsForResource(Resource resource) {
+        return operationsByResource.get(resource);
     }
 
     private final EntityType entityType;
