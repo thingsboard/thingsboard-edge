@@ -208,10 +208,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             GroupPermissionInfo groupPermissionInfo = new GroupPermissionInfo(groupPermission);
             groupPermissionInfo.setRole(role);
             if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
-                ListenableFuture<EntityGroup> entityGroupFuture = entityGroupDao.findByIdAsync(tenantId, groupPermission.getEntityGroupId().getId());
-                return Futures.transform(entityGroupFuture, entityGroup -> {
-                    groupPermissionInfo.setEntityGroupName(entityGroup.getName());
-                    groupPermissionInfo.setEntityGroupType(entityGroup.getType());
+                ListenableFuture<String> entityGroupName = entityService.fetchEntityNameAsync(tenantId, groupPermission.getEntityGroupId());
+                return Futures.transform(entityGroupName, entityGroupName1 -> {
+                    groupPermissionInfo.setEntityGroupName(entityGroupName1);
                     return groupPermissionInfo;
                 });
             } else {
@@ -271,6 +270,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                         if (entityGroup == null) {
                             throw new DataValidationException("Group Permission is referencing to non-existent entity group!");
                         }
+                        groupPermission.setEntityGroupType(entityGroup.getType());
+                    } else {
+                        groupPermission.setEntityGroupType(null);
                     }
                 }
             };

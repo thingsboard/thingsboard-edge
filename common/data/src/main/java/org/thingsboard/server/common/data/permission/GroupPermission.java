@@ -70,6 +70,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     private EntityGroupId userGroupId;
     private RoleId roleId;
     private EntityGroupId entityGroupId;
+    private EntityType entityGroupType;
 
     public GroupPermission() {
         super();
@@ -85,6 +86,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         this.userGroupId = groupPermission.getUserGroupId();
         this.roleId = groupPermission.getRoleId();
         this.entityGroupId = groupPermission.getEntityGroupId();
+        this.entityGroupType = groupPermission.getEntityGroupType();
     }
 
     @Override
@@ -95,8 +97,8 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Override
     public String getName() {
-        if (entityGroupId != null) {
-            return String.format("GROUP_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString());
+        if (entityGroupId != null && entityGroupType != null) {
+            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
         } else {
             return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
         }

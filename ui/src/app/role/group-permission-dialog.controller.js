@@ -39,6 +39,7 @@ export default function GroupPermissionDialogController($scope, $q, $element, $m
     vm.groupPermission = groupPermission;
     if (vm.groupPermission.role && vm.groupPermission.role.type !== vm.types.roleType.group) {
         vm.groupPermission.entityGroupId = null;
+        vm.groupPermission.entityGroupType = null;
     }
 
     vm.save = save;
@@ -56,6 +57,7 @@ export default function GroupPermissionDialogController($scope, $q, $element, $m
 
         if (vm.groupPermission.role.type !== vm.types.roleType.group) {
             vm.groupPermission.entityGroupId = null;
+            vm.groupPermission.entityGroupType = null;
         }
 
         roleService.saveGroupPermission(vm.groupPermission).then(

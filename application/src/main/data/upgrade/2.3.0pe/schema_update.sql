@@ -104,5 +104,6 @@ CREATE TABLE IF NOT EXISTS group_permission (
     tenant_id varchar(31),
     role_id varchar(31),
     user_group_id varchar(31),
-    entity_group_id varchar(31)
+    entity_group_id varchar(31),
+    entity_group_type varchar(255)
 );

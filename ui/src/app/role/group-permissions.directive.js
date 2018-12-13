@@ -228,7 +228,7 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
                 allGroupPermissions.forEach(function(groupPermission) {
                     groupPermission.roleName = groupPermission.role.name;
                     groupPermission.roleTypeName = $translate.instant('role.display-type.' + groupPermission.role.type);
-                    if (groupPermission.entityGroupName) {
+                    if (groupPermission.entityGroupType) {
                         groupPermission.entityGroupTypeName = $translate.instant(vm.types.entityTypeTranslations[groupPermission.entityGroupType].typePlural);
                     } else {
                         groupPermission.entityGroupTypeName = '';
