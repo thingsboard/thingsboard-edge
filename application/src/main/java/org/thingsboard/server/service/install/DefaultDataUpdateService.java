@@ -190,6 +190,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
+                        List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, tenant.getId()).get();
+                        for (EntityGroup entityGroup : entityGroups) {
+                            entityGroup.setOwnerId(tenant.getId());
+                            entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
+                        }
                         EntityGroup entityGroup;
                         Optional<EntityGroup> customerGroupOptional =
                                 entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
@@ -197,8 +202,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
                         } else {
                             entityGroup = customerGroupOptional.get();
-                            entityGroup.setOwnerId(tenant.getId());
-                            entityGroup = entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
                         }
                         new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
                     } catch (InterruptedException | ExecutionException e) {
@@ -227,8 +230,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                 entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), groupType);
                             } else {
                                 entityGroup = entityGroupOptional.get();
-                                entityGroup.setOwnerId(tenant.getId());
-                                entityGroup = entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
                             }
                             switch (groupType) {
                                 case USER:
@@ -326,6 +327,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected void updateGroupEntity(Customer customer, EntityGroup groupAll) {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), customer.getId());
             try {
+                List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, customer.getId()).get();
+                for (EntityGroup entityGroup : entityGroups) {
+                    entityGroup.setOwnerId(customer.getId());
+                    entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
+                }
                 EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW};
                 for (EntityType groupType : entityGroupTypes) {
                     Optional<EntityGroup> entityGroupOptional =
@@ -353,10 +359,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             groupPermissionService.saveGroupPermission(TenantId.SYS_TENANT_ID, groupPermission);
                             new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerAdmins).updateEntities(customer.getId());
                         }
-                    } else {
-                        EntityGroup entityGroup = entityGroupOptional.get();
-                        entityGroup.setOwnerId(customer.getId());
-                        entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
                     }
                 }
             } catch (InterruptedException | ExecutionException e) {
