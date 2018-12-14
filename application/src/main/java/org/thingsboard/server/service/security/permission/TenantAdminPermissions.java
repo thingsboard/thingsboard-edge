@@ -139,8 +139,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
                 if (operation != Operation.READ) {
                     return false;
                 }
-            }
-            if (!user.getTenantId().equals(entity.getTenantId())) {
+            } else if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
             Resource resource = Resource.resourceFromEntityType(entity.getEntityType());

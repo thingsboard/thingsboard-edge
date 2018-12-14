@@ -29,15 +29,52 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-.tb-checkbox-list {
-  span.no-data-found {
-    position: relative;
-    display: flex;
-    height: 40px;
-    text-transform: uppercase;
+.tb-permission-list {
+  .header {
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, .54);
+    white-space: nowrap;
 
-    &.disabled {
-      color: rgba(0, 0, 0, .38);
+    .cell {
+      padding-right: 5px;
+      padding-left: 5px;
+    }
+  }
+
+  .body {
+    max-height: 300px;
+    padding-right: 5px;
+    padding-bottom: 20px;
+    padding-left: 5px;
+    overflow: auto;
+
+    .row {
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+
+    .cell {
+      padding-right: 5px;
+      padding-left: 5px;
+
+      md-input-container,
+      md-autocomplete {
+        min-width: initial;
+        margin: 0;
+      }
+    }
+
+    md-input-container.cell {
+      min-width: initial;
+      margin: 0;
+    }
+
+    .md-button {
+      margin: 0;
     }
   }
 }

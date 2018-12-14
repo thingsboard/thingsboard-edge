@@ -1,0 +1,67 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section flex layout='column' class="tb-operation-type-list">
+    <md-chips readonly="disabled"
+              id="operation_type_list_chips"
+              ng-required="tbRequired"
+              ng-model="operationList"
+              placeholder="{{placeholder}}"
+              secondary-placeholder="{{secondaryPlaceholder}}"
+              md-autocomplete-snap
+              md-require-match="true">
+        <md-autocomplete
+                md-no-cache="true"
+                id="operation"
+                md-selected-item="selectedOperation"
+                md-search-text="operationSearchText"
+                md-items="item in fetchOperations(operationSearchText)"
+                md-item-text="item.name"
+                md-min-length="0"
+                placeholder="{{ (!operationList || !operationList.length) ? placeholder : secondaryPlaceholder }}">
+            <md-item-template>
+                <span md-highlight-text="operationSearchText" md-highlight-flags="^i">{{item.name}}</span>
+            </md-item-template>
+            <md-not-found>
+                <span translate translate-values='{ operation: operationSearchText }'>permission.operation.no-operations-matching</span>
+            </md-not-found>
+        </md-autocomplete>
+        <md-chip-template>
+            <span>
+                <strong>{{$chip.name}}</strong>
+            </span>
+        </md-chip-template>
+    </md-chips>
+    <div class="tb-error-messages" ng-messages="ngModelCtrl.$error" ng-if="inputTouched && tbRequired" role="alert">
+        <div translate ng-message="operationList" class="tb-error-message">permission.operation.operations-required</div>
+    </div>
+</section>
