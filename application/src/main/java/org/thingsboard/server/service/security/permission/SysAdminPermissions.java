@@ -59,6 +59,11 @@ public class SysAdminPermissions extends AbstractPermissions {
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {
 
         @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return true;
+        }
+
+        @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
 
             if (entity.getTenantId() != null && !entity.getTenantId().isNullUid()) {

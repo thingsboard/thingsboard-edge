@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Arrays;
@@ -47,7 +48,7 @@ import java.util.Set;
 
 public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
 
-    default boolean hasPermission(SecurityUser user, Operation operation) throws ThingsboardException {
+    default boolean hasPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException {
         return false;
     }
 
@@ -72,7 +73,7 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
         }
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation) {
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
             return allowedOperations.contains(Operation.ALL) || allowedOperations.contains(operation);
         }
 
@@ -99,7 +100,7 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
     public static PermissionChecker allowAllPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation) {
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
             return true;
         }
 

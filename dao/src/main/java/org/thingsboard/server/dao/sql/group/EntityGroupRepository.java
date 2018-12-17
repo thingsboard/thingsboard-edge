@@ -34,6 +34,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.List;
+
 @SqlDao
 public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity, String> {
+
+    List<EntityGroupEntity> findEntityGroupsByIdIn(List<String> entityGroupIds);
+
 }

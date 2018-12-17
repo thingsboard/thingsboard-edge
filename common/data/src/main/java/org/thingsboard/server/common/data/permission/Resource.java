@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.permission;
 
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.*;
 
@@ -64,7 +65,8 @@ public enum Resource {
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
-    private static final Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
+    public static final Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
+    public static final Map<Authority, Set<Resource>> resourcesByAuthority = new HashMap<>();
 
     static {
         groupResourceByGroupType.put(EntityType.CUSTOMER, CUSTOMER_GROUP);
@@ -112,6 +114,68 @@ public enum Resource {
         operationsByResource.put(Resource.ROLE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
         operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
+
+        resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
+                Resource.ALL,
+                Resource.ADMIN_SETTINGS,
+                Resource.DASHBOARD,
+                Resource.TENANT,
+                Resource.USER,
+                Resource.WIDGETS_BUNDLE,
+                Resource.WIDGET_TYPE,
+                Resource.ROLE,
+                Resource.WHITE_LABELING)));
+
+        resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
+                Resource.ALL,
+                Resource.ALARM,
+                Resource.DEVICE,
+                Resource.ASSET,
+                Resource.ENTITY_VIEW,
+                Resource.CUSTOMER,
+                Resource.DASHBOARD,
+                Resource.TENANT,
+                Resource.USER,
+                Resource.WIDGETS_BUNDLE,
+                Resource.WIDGET_TYPE,
+                Resource.RULE_CHAIN,
+                Resource.ROLE,
+                Resource.CONVERTER,
+                Resource.INTEGRATION,
+                Resource.SCHEDULER_EVENT,
+                Resource.BLOB_ENTITY,
+                Resource.CUSTOMER_GROUP,
+                Resource.USER_GROUP,
+                Resource.DEVICE_GROUP,
+                Resource.ASSET_GROUP,
+                Resource.DASHBOARD_GROUP,
+                Resource.ENTITY_VIEW_GROUP,
+                Resource.GROUP_PERMISSION,
+                Resource.WHITE_LABELING)));
+
+        resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
+                Resource.ALL,
+                Resource.ALARM,
+                Resource.DEVICE,
+                Resource.ASSET,
+                Resource.ENTITY_VIEW,
+                Resource.CUSTOMER,
+                Resource.DASHBOARD,
+                Resource.USER,
+                Resource.WIDGETS_BUNDLE,
+                Resource.WIDGET_TYPE,
+                Resource.ROLE,
+                Resource.SCHEDULER_EVENT,
+                Resource.BLOB_ENTITY,
+                Resource.CUSTOMER_GROUP,
+                Resource.USER_GROUP,
+                Resource.DEVICE_GROUP,
+                Resource.ASSET_GROUP,
+                Resource.DASHBOARD_GROUP,
+                Resource.ENTITY_VIEW_GROUP,
+                Resource.GROUP_PERMISSION,
+                Resource.WHITE_LABELING)));
+
     }
 
     public static Resource groupResourceFromGroupType(EntityType groupType) {

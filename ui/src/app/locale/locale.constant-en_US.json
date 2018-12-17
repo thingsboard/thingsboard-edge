@@ -1754,6 +1754,7 @@
         "name-starts-with": "Role name starts with",
         "role-list": "Role list",
         "add": "Add Role",
+        "view": "View Role",
         "no-roles-text": "No roles found",
         "role-details": "Role details",
         "add-role-text": "Add new role",

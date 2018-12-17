@@ -130,6 +130,8 @@ public abstract class BaseController {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
+    private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
+
     private static final ObjectMapper json = new ObjectMapper();
 
     @Autowired
@@ -386,7 +388,9 @@ public abstract class BaseController {
             validateId(userId, "Incorrect userId " + userId);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user);
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            }
             return user;
         } catch (Exception e) {
             throw handleException(e, false);
@@ -708,6 +712,11 @@ public abstract class BaseController {
         checkNotNull(ruleNode);
         checkRuleChain(ruleNode.getRuleChainId(), operation);
         return ruleNode;
+    }
+
+    protected ThingsboardException permissionDenied() {
+        return new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
+                ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
     protected String constructBaseUrl(HttpServletRequest request) {

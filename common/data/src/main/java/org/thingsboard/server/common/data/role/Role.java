@@ -48,8 +48,10 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
 
     private static final long serialVersionUID = 5582010124562018986L;
 
-    public static final String ROLE_ADMIN_NAME = "Admin";
-    public static final String ROLE_USER_NAME = "User";
+    public static final String ROLE_TENANT_ADMIN_NAME = "Tenant Administrator";
+    public static final String ROLE_TENANT_USER_NAME = "Tenant User";
+    public static final String ROLE_CUSTOMER_ADMIN_NAME = "Customer Administrator";
+    public static final String ROLE_CUSTOMER_USER_NAME = "Customer User";
 
     private TenantId tenantId;
     private CustomerId customerId;

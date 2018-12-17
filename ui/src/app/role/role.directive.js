@@ -59,6 +59,16 @@ export default function RoleDirective($q, $compile, $templateCache, $filter, toa
             }
         });
 
+        scope.$watch('role.type', function(newVal, prevVal) {
+            if (scope.isEdit && !angular.equals(newVal, prevVal)) {
+                if (scope.role.type === scope.securityTypes.roleType.generic) {
+                    scope.role.permissions = {};
+                } else if (scope.role.type === scope.securityTypes.roleType.group) {
+                    scope.role.permissions = [];
+                }
+            }
+        });
+
         scope.onRoleIdCopied = function() {
             toast.showSuccess($translate.instant('role.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
         };
@@ -71,6 +81,7 @@ export default function RoleDirective($q, $compile, $templateCache, $filter, toa
         scope: {
             role: '=',
             isEdit: '=',
+            readonly: '=?tbReadonly',
             theForm: '=',
             onDeleteRole: '&'
         }

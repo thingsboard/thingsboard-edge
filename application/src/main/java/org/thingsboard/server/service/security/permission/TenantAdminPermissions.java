@@ -94,6 +94,11 @@ public class TenantAdminPermissions extends AbstractPermissions {
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
 
         @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
         public  boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
@@ -134,6 +139,11 @@ public class TenantAdminPermissions extends AbstractPermissions {
     private static final PermissionChecker widgetsPermissionChecker = new PermissionChecker() {
 
         @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (entity.getTenantId() == null || entity.getTenantId().isNullUid()) {
                 if (operation != Operation.READ) {
@@ -171,7 +181,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (operation == Operation.CREATE) {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
-            if (ownersCacheService.getOwners(user.getTenantId(), entityGroup).contains(user.getOwnerId())) {
+            if (ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId())) {
                 // This entity is a group, so we are checking group generic permission first
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
@@ -187,7 +197,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
     private final PermissionChecker tenantWhiteLabelingPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation) {
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getTenantId())) {
                 return false;
             } else {

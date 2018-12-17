@@ -33,13 +33,9 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasCustomerId;
-import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -53,6 +49,8 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.util.List;
+
 @Slf4j
 @Component(value="customerUserPermissions")
 public class CustomerUserPermissions extends AbstractPermissions {
@@ -63,20 +61,23 @@ public class CustomerUserPermissions extends AbstractPermissions {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
+    @Autowired
+    private OwnersCacheService ownersCacheService;
+
     public CustomerUserPermissions() {
         super();
         put(Resource.ALARM, TenantAdminPermissions.tenantStandaloneEntityPermissionChecker);
-        put(Resource.ASSET, customerEntityPermissionChecker);
-        put(Resource.DEVICE, customerEntityPermissionChecker);
-        put(Resource.CUSTOMER, customerPermissionChecker);
-        put(Resource.DASHBOARD, customerEntityPermissionChecker);
-        put(Resource.ENTITY_VIEW, customerEntityPermissionChecker);
-        put(Resource.ROLE, customerEntityPermissionChecker);
-        put(Resource.USER, userPermissionChecker);
+        put(Resource.ASSET, customerGroupEntityPermissionChecker);
+        put(Resource.DEVICE, customerGroupEntityPermissionChecker);
+        put(Resource.CUSTOMER, customerGroupEntityPermissionChecker);
+        put(Resource.DASHBOARD, customerGroupEntityPermissionChecker);
+        put(Resource.ENTITY_VIEW, customerGroupEntityPermissionChecker);
+        put(Resource.ROLE, customerStandaloneEntityPermissionChecker);
+        put(Resource.USER, customerGroupEntityPermissionChecker);
         put(Resource.WIDGETS_BUNDLE, widgetsPermissionChecker);
         put(Resource.WIDGET_TYPE, widgetsPermissionChecker);
-        put(Resource.SCHEDULER_EVENT, customerEditableEntityPermissionChecker);
-        put(Resource.BLOB_ENTITY, customerEditableEntityPermissionChecker);
+        put(Resource.SCHEDULER_EVENT, customerStandaloneEntityPermissionChecker);
+        put(Resource.BLOB_ENTITY, customerStandaloneEntityPermissionChecker);
         put(Resource.CUSTOMER_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.DEVICE_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.ASSET_GROUP, customerEntityGroupPermissionChecker);
@@ -86,138 +87,123 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
     }
 
-    private static final PermissionChecker customerEntityPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker(Operation.ALL) {
+
+    public final PermissionChecker customerStandaloneEntityPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
 
-            if (!super.hasPermission(user, operation, entityId, entity)) {
-                return false;
-            }
+        @Override
+        public  boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
-            if (!(entity instanceof HasCustomerId)) {
+            if (!(entity instanceof HasOwnerId)) {
                 return false;
             }
-            if (!user.getCustomerId().equals(((HasCustomerId)entity).getCustomerId())) {
+            if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
+                Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+                // This entity does not have groups, so we are checking only generic level permissions
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
+            } else {
                 return false;
             }
-            return true;
         }
     };
 
-    private static final PermissionChecker customerEditableEntityPermissionChecker =
-            new PermissionChecker() {
-
-                @Override
-                public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
-                    if (!user.getTenantId().equals(entity.getTenantId())) {
-                        return false;
-                    }
-                    if (!(entity instanceof HasCustomerId)) {
-                        return false;
-                    }
-                    if (!user.getCustomerId().equals(((HasCustomerId)entity).getCustomerId())) {
-                        return false;
-                    }
-                    return true;
-                }
-            };
-
-
-    private static final PermissionChecker customerPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker<CustomerId, Customer>(Operation.ALL) {
-
-                @Override
-                public boolean hasPermission(SecurityUser user, Operation operation, CustomerId entityId, Customer entity) {
-                    if (!super.hasPermission(user, operation, entityId, entity)) {
-                        return false;
-                    }
-                    if (user.getCustomerId().equals(entity.getParentCustomerId()) || user.getCustomerId().equals(entityId)) {
-                        return true;
-                    }
-                    return false;
-                }
-
-            };
-
-    private static final PermissionChecker customerDashboardPermissionChecker =
-            new PermissionChecker.GenericPermissionChecker<DashboardId, DashboardInfo>(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY) {
-
-                @Override
-                public boolean hasPermission(SecurityUser user, Operation operation, DashboardId dashboardId, DashboardInfo dashboard) {
-                    if (!super.hasPermission(user, operation, dashboardId, dashboard)) {
-                        return false;
-                    }
-                    if (!user.getTenantId().equals(dashboard.getTenantId())) {
-                        return false;
-                    }
-                    if (!dashboard.isAssignedToCustomer(user.getCustomerId())) {
-                        return false;
-                    }
-                    return true;
-                }
-
-            };
-
-    private static final PermissionChecker userPermissionChecker = new PermissionChecker<UserId, User>() {
+    public final PermissionChecker customerGroupEntityPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity) {
-            if (userEntity.getAuthority() != Authority.CUSTOMER_USER) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
+            if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
-            if (!user.getCustomerId().equals(userEntity.getCustomerId())) {
+            if (!(entity instanceof HasOwnerId)) {
                 return false;
             }
-            return true;
+            if (entity.getEntityType() == EntityType.CUSTOMER && user.getCustomerId().equals(entityId) ||
+                    ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
+                Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+                // This entity does have groups, so we are checking generic level permissions and then group specific permissions
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                } else if (entityId != null) {
+                    try {
+                        List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
+                        for (EntityGroupId entityGroupId : entityGroupIds) {
+                            if (user.getUserPermissions().hasGroupPermissions(entityGroupId, operation)) {
+                                return true;
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+                    }
+                }
+            }
+            return false;
         }
-
     };
 
     private static final PermissionChecker widgetsPermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
 
         @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            if (!super.hasPermission(user, resource, operation)) {
+                return false;
+            }
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!super.hasPermission(user, operation, entityId, entity)) {
                 return false;
             }
-            if (entity.getTenantId() == null || entity.getTenantId().isNullUid()) {
-                return true;
-            }
-            if (!user.getTenantId().equals(entity.getTenantId())) {
+            if (entity.getTenantId() != null && !entity.getTenantId().isNullUid() &&
+                    !user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
-            return true;
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            // This entity does not have groups, so we are checking only generic level permissions
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
-
     };
 
     private final PermissionChecker customerEntityGroupPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroupId entityGroupId, EntityType groupType) {
-            try {
-                return entityGroupService.checkEntityGroup(user.getTenantId(), user.getCustomerId(), entityGroupId, groupType).get();
-            } catch (Exception e) {
-                log.error("Failed to check entity group permissions!", e);
+
+            Resource resource = Resource.groupResourceFromGroupType(groupType);
+            if (ownersCacheService.getOwners(user.getTenantId(), entityGroupId).contains(user.getOwnerId())) {
+                // This entity is a group, so we are checking group generic permission first
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
-            return false;
+            if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+            //Just in case, we are also checking specific group permission
+            return user.getUserPermissions().hasGroupPermissions(entityGroupId, operation);
         }
 
         @Override
         public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) {
+
+            Resource resource = Resource.groupResourceFromGroupType(entityGroup.getType());
             if (operation == Operation.CREATE) {
-                return true;
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
-            try {
-                return entityGroupService.checkEntityGroup(user.getTenantId(), user.getCustomerId(), entityGroup).get();
-            } catch (Exception e) {
-                log.error("Failed to check entity group permissions!", e);
+            if (ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId())) {
+                // This entity is a group, so we are checking group generic permission first
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
-            return false;
+            if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+            //Just in case, we are also checking specific group permission
+            return user.getUserPermissions().hasGroupPermissions(entityGroup.getId(), operation);
         }
 
     };
@@ -225,8 +211,14 @@ public class CustomerUserPermissions extends AbstractPermissions {
     private final PermissionChecker customerWhiteLabelingPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation) {
-            return whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId());
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId())) {
+                return false;
+            } else {
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)
+                        && user.getUserPermissions().hasGenericPermission(Resource.CUSTOMER, Operation.READ_ATTRIBUTES)
+                        && user.getUserPermissions().hasGenericPermission(Resource.CUSTOMER, Operation.WRITE_ATTRIBUTES);
+            }
         }
 
     };

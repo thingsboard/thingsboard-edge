@@ -167,15 +167,17 @@ public class UserController extends BaseController {
                 user.setCustomerId(getCurrentUser().getCustomerId());
             }
 
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
-                    user.getId(), user);
+            if (operation != Operation.WRITE || !getCurrentUser().getId().equals(user.getId())) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
+                        user.getId(), user);
+            }
 
             boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
 
             // Add Tenant Admins to 'Admins' user group if created by Sys Admin
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.getOrCreateAdminsUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId());
+                EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId(), EntityGroup.GROUP_ADMINS_NAME);
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
             }
 

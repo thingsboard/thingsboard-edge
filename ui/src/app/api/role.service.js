@@ -28,9 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import thingsboardTypes from '../common/types.constant';
 
-export default angular.module('thingsboard.api.role', [thingsboardTypes])
+export default angular.module('thingsboard.api.role', [])
     .factory('roleService', RoleService)
     .name;
 

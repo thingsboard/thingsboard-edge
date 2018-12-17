@@ -103,7 +103,17 @@
                 <tbody md-body>
                 <tr md-row ng-disabled="groupPermission.readOnly" ng-class="{'tb-read-only': groupPermission.readOnly}"
                     md-select="groupPermission" md-select-id="groupPermission" md-auto-select ng-repeat="groupPermission in vm.groupPermissions">
-                    <td md-cell>{{groupPermission.roleName}}</td>
+                    <td md-cell layout="row">
+                        <span flex style="line-height: 40px;">
+                            {{groupPermission.roleName}}
+                        </span>
+                        <md-button class="md-icon-button" aria-label="{{ 'role.view' | translate }}" ng-click="vm.viewRole($event, groupPermission)">
+                            <md-icon aria-label="{{ 'role.view' | translate }}" class="material-icons">more_horiz</md-icon>
+                            <md-tooltip md-direction="top">
+                                {{ 'role.view' | translate }}
+                            </md-tooltip>
+                        </md-button>
+                    </td>
                     <td md-cell>{{groupPermission.roleTypeName}}</td>
                     <td md-cell>{{groupPermission.entityGroupTypeName}}</td>
                     <td md-cell>{{groupPermission.entityGroupName}}</td>

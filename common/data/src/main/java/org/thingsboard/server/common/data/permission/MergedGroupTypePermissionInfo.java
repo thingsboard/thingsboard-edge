@@ -28,44 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.group;
+package org.thingsboard.server.common.data.permission;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.group.EntityGroupDao;
-import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.util.SqlDao;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.util.List;
-import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
+@Data
+@AllArgsConstructor
+public class MergedGroupTypePermissionInfo {
 
-@Component
-@SqlDao
-public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityGroup> implements EntityGroupDao {
-
-    @Autowired
-    EntityGroupRepository entityGroupRepository;
-
-    @Override
-    protected Class<EntityGroupEntity> getEntityClass() {
-        return EntityGroupEntity.class;
-    }
-
-    @Override
-    protected CrudRepository<EntityGroupEntity, String> getCrudRepository() {
-        return entityGroupRepository;
-    }
-
-    @Override
-    public ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds) {
-        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByIdIn(fromTimeUUIDs(entityGroupIds))));
-    }
+    private final List<EntityGroupId> entityGroupIds;
+    private final boolean hasGenericRead;
 
 }

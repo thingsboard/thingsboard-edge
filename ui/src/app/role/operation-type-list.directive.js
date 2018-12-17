@@ -37,7 +37,7 @@ import operationTypeListTemplate from './operation-type-list.tpl.html';
 import './operation-type-list.scss';
 
 /*@ngInject*/
-export default function OperationTypeListDirective($compile, $templateCache, $q, $mdUtil, $translate, $filter, securityTypes) {
+export default function OperationTypeListDirective($compile, $templateCache, $q, $mdUtil, $translate, $filter, userPermissionsService, securityTypes) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
 
@@ -59,10 +59,20 @@ export default function OperationTypeListDirective($compile, $templateCache, $q,
             updateInput();
         });
 
+        scope.$watch('resource', function (newVal, prevVal) {
+            if (!angular.equals(newVal, prevVal) && scope.resource) {
+                scope.operations = null;
+                loadOperations();
+                validateOperationList();
+                scope.updateValidity();
+            }
+        });
+
         scope.fetchOperations = function(searchText) {
             var deferred = $q.defer();
             loadOperations();
             var operations = $filter('filter')(scope.operations, {name: searchText});
+            operations = $filter('orderBy')(operations, 'name');
             deferred.resolve(operations);
             return deferred.promise;
         };
@@ -127,15 +137,38 @@ export default function OperationTypeListDirective($compile, $templateCache, $q,
             }
         }
 
+        function validateOperationList() {
+            if (scope.operationList && scope.operationList.length) {
+                var newList = [];
+                var update = false;
+                for (var i=0;i<scope.operationList.length;i++) {
+                    var operation = scope.operationList[i];
+                    var result = $filter('filter')(scope.operations, {'value': operation.value}, true);
+                    if (result && result.length) {
+                        newList.push(result[0]);
+                    } else {
+                        update = true;
+                    }
+                }
+                if (update) {
+                    scope.operationList = newList;
+                }
+            }
+        }
+
         function loadOperations() {
             if (!scope.operations) {
                 scope.operations = [];
+                var allowedOperations = getAllowedOperations();
                 for (var operationType in securityTypes.operation) {
-                    var operation = {
-                        value: securityTypes.operation[operationType],
-                        name: $translate.instant('permission.operation.display-type.' + securityTypes.operation[operationType])
-                    };
-                    scope.operations.push(operation);
+                    var operationValue = securityTypes.operation[operationType];
+                    if (allowedOperations.indexOf(operationValue) > -1) {
+                        var operation = {
+                            value: securityTypes.operation[operationType],
+                            name: $translate.instant('permission.operation.display-type.' + securityTypes.operation[operationType])
+                        };
+                        scope.operations.push(operation);
+                    }
                 }
             }
         }
@@ -153,6 +186,16 @@ export default function OperationTypeListDirective($compile, $templateCache, $q,
             }
         }
 
+        function getAllowedOperations() {
+            if (scope.groupRoleOperations) {
+                return userPermissionsService.getAllowedGroupRoleOperations();
+            } else if (scope.resource) {
+                return userPermissionsService.getOperationsByResource(scope.resource);
+            } else {
+                return [];
+            }
+        }
+
         $compile(element.contents())(scope);
 
 
@@ -164,7 +207,9 @@ export default function OperationTypeListDirective($compile, $templateCache, $q,
         link: linker,
         scope: {
             disabled:'=ngDisabled',
-            tbRequired: '=?'
+            tbRequired: '=?',
+            groupRoleOperations: '=?',
+            resource: '=?'
         }
     };
 

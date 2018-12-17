@@ -54,10 +54,13 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -141,10 +144,26 @@ public class EntityGroupController extends BaseController {
             @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
-
-            EntityId parentEntityId = getCurrentUser().isTenantAdmin() ? getCurrentUser().getTenantId() : getCurrentUser().getCustomerId();
-
-            return checkNotNull(entityGroupService.findEntityGroupsByType(getTenantId(), parentEntityId, groupType).get());
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                List<EntityGroup> groups = new ArrayList<>();
+                if (groupTypePermissionInfo.isHasGenericRead()) {
+                    EntityId parentEntityId = getCurrentUser().isTenantAdmin() ? getCurrentUser().getTenantId() : getCurrentUser().getCustomerId();
+                    groups.addAll(entityGroupService.findEntityGroupsByType(getTenantId(), parentEntityId, groupType).get());
+                }
+                if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                    List<EntityGroupId> existingIds = groups.stream().map(EntityGroup::getId).collect(Collectors.toList());
+                    List<EntityGroupId> groupIds = groupTypePermissionInfo.getEntityGroupIds().stream().filter(entityGroupId ->
+                        !existingIds.contains(entityGroupId)
+                    ).collect(Collectors.toList());
+                    if (!groupIds.isEmpty()) {
+                        groups.addAll(entityGroupService.findEntityGroupByIdsAsync(getTenantId(), groupIds).get());
+                    }
+                }
+                return groups;
+            } else {
+                throw permissionDenied();
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -28,44 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.permission;
 
-import lombok.Getter;
+package org.thingsboard.server.controller;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.zookeeper.Op;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.permission.AllowedPermissionsInfo;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
-public enum Operation {
-    ALL(true), CREATE, READ(true), WRITE(true), DELETE, ASSIGN_TO_CUSTOMER, UNASSIGN_FROM_CUSTOMER, RPC_CALL(true),
-    READ_CREDENTIALS(true), WRITE_CREDENTIALS(true), READ_ATTRIBUTES(true), WRITE_ATTRIBUTES(true), READ_TELEMETRY(true), WRITE_TELEMETRY(true), ADD_TO_GROUP, REMOVE_FROM_GROUP;
+@RestController
+@RequestMapping("/api")
+@Slf4j
+public class UserPermissionsController extends BaseController {
 
-    public static Set<Operation> defaultEntityOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
-            CREATE, DELETE, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY));
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/permissions/allowedPermissions", method = RequestMethod.GET)
+    @ResponseBody
+    public AllowedPermissionsInfo getAllowedPermissions() throws ThingsboardException {
+        try {
 
-    public static Set<Operation> defaultEntityGroupOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
-            CREATE, DELETE, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY, ADD_TO_GROUP, REMOVE_FROM_GROUP));
-
-    public static Set<Operation> crudOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
-            CREATE, DELETE));
-
-    public static Set<Operation> allowedForGroupRoleOperations = new HashSet<>();
-    static {
-        for (Operation operation : Operation.values()) {
-            if (operation.isAllowedForGroupRole()) {
-                allowedForGroupRoleOperations.add(operation);
-            }
+            Set<Resource> allowedResources = Resource.resourcesByAuthority.get(getCurrentUser().getAuthority());
+            Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
+            allowedResources.forEach(resource -> operationsByResource.put(resource, Resource.operationsByResource.get(resource)));
+            return new AllowedPermissionsInfo(operationsByResource,
+                    Operation.allowedForGroupRoleOperations, allowedResources);
+        } catch (Exception e) {
+            throw handleException(e);
         }
     }
 
-    @Getter
-    private boolean allowedForGroupRole;
-
-    Operation() {
-        this(false);
-    }
-
-    Operation(boolean allowedForGroupRole) {
-        this.allowedForGroupRole = allowedForGroupRole;
-    }
 }

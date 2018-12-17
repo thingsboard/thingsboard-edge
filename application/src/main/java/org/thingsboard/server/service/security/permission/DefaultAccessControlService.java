@@ -71,7 +71,7 @@ public class DefaultAccessControlService implements AccessControlService {
     @Override
     public void checkPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
-        if (!permissionChecker.hasPermission(user, operation)) {
+        if (!permissionChecker.hasPermission(user, resource, operation)) {
             permissionDenied();
         }
     }
