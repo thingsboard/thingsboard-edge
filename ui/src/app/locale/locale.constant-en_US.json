@@ -448,7 +448,9 @@
         "add": "Add Customer",
         "delete": "Delete customer",
         "manage-customer-users": "Manage customer users",
+        "manage-customers": "Manage customers",
         "manage-customer-devices": "Manage customer devices",
+        "manage-customer-entity-views": "Manage customer entity views",
         "manage-customer-dashboards": "Manage customer dashboards",
         "manage-public-devices": "Manage public devices",
         "manage-public-dashboards": "Manage public dashboards",
@@ -1027,8 +1029,10 @@
         "enable-assignment-actions": "Enable assignment actions",
         "enable-credentials-management": "Enable credentials management",
         "enable-users-management": "Enable users management",
+        "enable-customers-management": "Enable customers management",
         "enable-assets-management": "Enable assets management",
         "enable-devices-management": "Enable devices management",
+        "enable-entity-views-management": "Enable entity views management",
         "enable-dashboards-management": "Enable dashboards management",
         "open-details-on": "Open entity details on",
         "select-existing": "Select existing entity group",
@@ -1840,7 +1844,8 @@
                 "DASHBOARD_GROUP": "Dashboard Group",
                 "ROLE": "Role",
                 "GROUP_PERMISSION": "Group Permission",
-                "WHITE_LABELING": "White Labeling"
+                "WHITE_LABELING": "White Labeling",
+                "AUDIT_LOG": "Audit Log"
             }
         },
         "operation": {

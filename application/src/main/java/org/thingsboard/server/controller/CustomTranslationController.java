@@ -41,6 +41,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -78,6 +80,7 @@ public class CustomTranslationController extends BaseController {
     public CustomTranslation getCurrentCustomTranslation() throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
+            checkWhiteLabelingPermissions(Operation.READ);
             CustomTranslation customTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
                 customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
@@ -98,6 +101,7 @@ public class CustomTranslationController extends BaseController {
     public CustomTranslation saveCustomTranslation(@RequestBody CustomTranslation customTranslation) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
+            checkWhiteLabelingPermissions(Operation.WRITE);
             CustomTranslation savedCustomTranslation = null;
             if (authority == Authority.SYS_ADMIN) {
                 savedCustomTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
@@ -112,5 +116,8 @@ public class CustomTranslationController extends BaseController {
         }
     }
 
+    private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, operation);
+    }
 
 }

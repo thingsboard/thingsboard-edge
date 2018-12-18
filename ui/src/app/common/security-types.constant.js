@@ -61,7 +61,8 @@ export default angular.module('thingsboard.securityTypes', [])
                 dashboardGroup: "DASHBOARD_GROUP",
                 role: "ROLE",
                 groupPermission: "GROUP_PERMISSION",
-                whiteLabeling: "WHITE_LABELING"
+                whiteLabeling: "WHITE_LABELING",
+                auditLog: "AUDIT_LOG"
             },
             operation: {
                 all: "ALL",

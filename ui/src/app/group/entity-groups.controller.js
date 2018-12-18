@@ -44,7 +44,7 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $state, utils, entityGroupService, $stateParams,
+export function EntityGroupsController($rootScope, $state, utils, entityGroupService, customerService, $stateParams,
                                       $q, $translate, types) {
 
     var entityGroupActionsList = [
@@ -72,7 +72,12 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     var vm = this;
 
-    vm.groupType = $stateParams.groupType;
+    vm.customerId = $stateParams.customerId;
+    if (vm.customerId && $stateParams.childGroupType) {
+        vm.groupType = $stateParams.childGroupType;
+    } else {
+        vm.groupType = $stateParams.groupType;
+    }
 
     vm.types = types;
 
@@ -164,7 +169,13 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function fetchEntityGroups(pageLink) {
         var deferred = $q.defer();
-        entityGroupService.getEntityGroups(vm.groupType).then(
+        var fetchPromise;
+        if (vm.customerId) {
+            fetchPromise = entityGroupService.getCustomerEntityGroups(vm.customerId, vm.groupType);
+        } else {
+            fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
+        }
+        fetchPromise.then(
             function success(entityGroups) {
                 utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
             },
@@ -208,23 +219,31 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         if ($event) {
             $event.stopPropagation();
         }
+        var targetStatePrefix = 'home.';
+        if (vm.customerId) {
+            targetStatePrefix = 'home.customerGroups.customerGroup.';
+        }
         var targetState;
         if (entityGroup.type == types.entityType.asset) {
-            targetState = 'home.assetGroups.assetGroup';
+            targetState = 'assetGroups.assetGroup';
         } else if (entityGroup.type == types.entityType.device) {
-            targetState = 'home.deviceGroups.deviceGroup';
+            targetState = 'deviceGroups.deviceGroup';
         } else if (entityGroup.type == types.entityType.customer) {
-            targetState = 'home.customerGroups.customerGroup';
+            targetState = 'customerGroups.customerGroup';
         } else if (entityGroup.type == types.entityType.user) {
-            targetState = 'home.userGroups.userGroup';
+            targetState = 'userGroups.userGroup';
         } else if (entityGroup.type == types.entityType.entityView) {
-            targetState = 'home.entityViewGroups.entityViewGroup';
+            targetState = 'entityViewGroups.entityViewGroup';
         } else if (entityGroup.type == types.entityType.dashboard) {
-            targetState = 'home.dashboardGroups.dashboardGroup';
+            targetState = 'dashboardGroups.dashboardGroup';
         }
         if (targetState) {
-            $state.go(targetState, {entityGroupId: entityGroup.id.id});
+            targetState = targetStatePrefix + targetState;
+            if (vm.customerId) {
+                $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+            } else {
+                $state.go(targetState, {entityGroupId: entityGroup.id.id});
+            }
         }
     }
-
 }

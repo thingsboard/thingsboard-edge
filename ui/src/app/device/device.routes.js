@@ -82,36 +82,5 @@ export default function DeviceRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "devices_other", "label": "{{ vm.customerDevicesTitle }}", "translate": "false"}'
             }
-        })
-        .state('home.customerGroups.customerGroup.devices', {
-            url: '/:customerId/devices',
-            params: {'topIndex': 0},
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            views: {
-                "content@home": {
-                    templateUrl: devicesTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $controller, entityGroup) {
-                            var ctrl = $controller('DeviceController as vm',{$scope: $scope, $stateParams: $stateParams});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                    }
-                }
-            },
-            data: {
-                devicesType: 'customer',
-                searchEnabled: true,
-                searchByEntitySubtype: true,
-                searchEntityType: types.entityType.device,
-                pageTitle: 'customer.devices'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "devices_other", "label": "{{ vm.customerDevicesTitle }}", "translate": "false"}'
-            }
         });
-
-
 }

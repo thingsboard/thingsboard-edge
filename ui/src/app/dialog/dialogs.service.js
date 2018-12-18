@@ -384,7 +384,7 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
         return deferred.promise;
     }
 
-    function selectEntityGroup($event, targetGroupType, selectEntityGroupTitle,
+    function selectEntityGroup($event, customerId, targetGroupType, selectEntityGroupTitle,
                                confirmSelectTitle, placeholderText, notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {
         var deferred = $q.defer();
         if ($event) {
@@ -394,7 +394,9 @@ export default function Dialogs($q, $translate, $mdDialog, $document, deviceServ
             controller: 'SelectEntityGroupController',
             controllerAs: 'vm',
             templateUrl: selectEntityGroupTemplate,
-            locals: {targetGroupType: targetGroupType,
+            locals: {
+                customerId: customerId,
+                targetGroupType: targetGroupType,
                 selectEntityGroupTitle: selectEntityGroupTitle,
                 confirmSelectTitle: confirmSelectTitle,
                 placeholderText: placeholderText,

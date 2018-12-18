@@ -172,6 +172,7 @@ public class CustomerController extends BaseController {
                                                @RequestParam(required = false) String idOffset,
                                                @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(customerService.findCustomersByTenantId(tenantId, pageLink));
@@ -186,6 +187,7 @@ public class CustomerController extends BaseController {
     public Customer getTenantCustomer(
             @RequestParam String customerTitle) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle));
         } catch (Exception e) {

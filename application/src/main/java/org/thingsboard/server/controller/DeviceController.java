@@ -284,6 +284,7 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
@@ -302,6 +303,7 @@ public class DeviceController extends BaseController {
     public Device getTenantDevice(
             @RequestParam String deviceName) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
         } catch (Exception e) {
@@ -324,6 +326,7 @@ public class DeviceController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
@@ -342,6 +345,7 @@ public class DeviceController extends BaseController {
             @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException {
         checkArrayParameter("deviceIds", strDeviceIds);
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
             CustomerId customerId = user.getCustomerId();

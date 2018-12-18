@@ -212,6 +212,7 @@ public class EntityViewController extends BaseController {
     public EntityView getTenantEntityView(
             @RequestParam String entityViewName) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName));
         } catch (Exception e) {
@@ -313,6 +314,7 @@ public class EntityViewController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
@@ -334,6 +336,7 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
 

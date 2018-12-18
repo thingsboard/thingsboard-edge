@@ -69,11 +69,17 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             manageUsersEnabled: () => {
                 return settings.enableUsersManagement;
             },
+            manageCustomersEnabled: () => {
+                return settings.enableCustomersManagement;
+            },
             manageAssetsEnabled: () => {
                 return settings.enableAssetsManagement;
             },
             manageDevicesEnabled: () => {
                 return settings.enableDevicesManagement;
+            },
+            manageEntityViewsEnabled: () => {
+                return settings.enableEntityViewsManagement;
             },
             manageDashboardsEnabled: () => {
                 return settings.enableDashboardsManagement;
@@ -102,28 +108,42 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.users', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.userGroups', {customerId: entity.id.id});
+        };
+
+        groupConfig.onManageCustomers = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            $state.go('home.customerGroups.customerGroup.customerGroups', {customerId: entity.id.id});
         };
 
         groupConfig.onManageAssets = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.assets', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.assetGroups', {customerId: entity.id.id});
         };
 
         groupConfig.onManageDevices = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.devices', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.deviceGroups', {customerId: entity.id.id});
+        };
+
+        groupConfig.onManageEntityViews = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            $state.go('home.customerGroups.customerGroup.entityViewGroups', {customerId: entity.id.id});
         };
 
         groupConfig.onManageDashboards = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.dashboards', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.dashboardGroups', {customerId: entity.id.id});
         };
 
         groupConfig.actionCellDescriptors = [
@@ -135,6 +155,16 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
                 },
                 onAction: ($event, entity) => {
                     groupConfig.onManageUsers($event, entity);
+                }
+            },
+            {
+                name: $translate.instant('customer.manage-customers'),
+                icon: 'supervisor_account',
+                isEnabled: () => {
+                    return settings.enableCustomersManagement;
+                },
+                onAction: ($event, entity) => {
+                    groupConfig.onManageCustomers($event, entity);
                 }
             },
             {
@@ -155,6 +185,16 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
                 },
                 onAction: ($event, entity) => {
                     groupConfig.onManageDevices($event, entity);
+                }
+            },
+            {
+                name: $translate.instant('customer.manage-customer-entity-views'),
+                icon: 'view_quilt',
+                isEnabled: () => {
+                    return settings.enableEntityViewsManagement;
+                },
+                onAction: ($event, entity) => {
+                    groupConfig.onManageEntityViews($event, entity);
                 }
             },
             {

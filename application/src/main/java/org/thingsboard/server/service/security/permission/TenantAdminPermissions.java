@@ -89,6 +89,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.DASHBOARD_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
+        put(Resource.AUDIT_LOG, tenantAuditLogPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -109,7 +110,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         }
     };
 
-    public final PermissionChecker tenantGroupEntityPermissionChecker = new PermissionChecker() {
+    private final PermissionChecker tenantGroupEntityPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
@@ -201,10 +202,17 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getTenantId())) {
                 return false;
             } else {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)
-                        && user.getUserPermissions().hasGenericPermission(Resource.TENANT, Operation.READ_ATTRIBUTES)
-                        && user.getUserPermissions().hasGenericPermission(Resource.TENANT, Operation.WRITE_ATTRIBUTES);
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
             }
+        }
+
+    };
+
+    private static final PermissionChecker tenantAuditLogPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
 
     };

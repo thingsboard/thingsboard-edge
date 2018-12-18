@@ -233,6 +233,7 @@ public class AssetController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length()>0) {
@@ -251,6 +252,7 @@ public class AssetController extends BaseController {
     public Asset getTenantAsset(
             @RequestParam String assetName) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(assetService.findAssetByTenantIdAndName(tenantId, assetName));
         } catch (Exception e) {
@@ -273,6 +275,7 @@ public class AssetController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length()>0) {
                 return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
@@ -291,6 +294,7 @@ public class AssetController extends BaseController {
             @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException {
         checkArrayParameter("assetIds", strAssetIds);
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
             CustomerId customerId = user.getCustomerId();

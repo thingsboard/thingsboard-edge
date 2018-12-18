@@ -723,11 +723,17 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             if (angular.isUndefined(settings.enableUsersManagement)) {
                 settings.enableUsersManagement = true;
             }
+            if (angular.isUndefined(settings.enableCustomersManagement)) {
+                settings.enableCustomersManagement = true;
+            }
             if (angular.isUndefined(settings.enableAssetsManagement)) {
                 settings.enableAssetsManagement = true;
             }
             if (angular.isUndefined(settings.enableDevicesManagement)) {
                 settings.enableDevicesManagement = true;
+            }
+            if (angular.isUndefined(settings.enableEntityViewsManagement)) {
+                settings.enableEntityViewsManagement = true;
             }
             if (angular.isUndefined(settings.enableDashboardsManagement)) {
                 settings.enableDashboardsManagement = true;

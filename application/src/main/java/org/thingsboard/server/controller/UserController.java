@@ -316,6 +316,7 @@ public class UserController extends BaseController {
         try {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findCustomerUsers(tenantId, customerId, pageLink));
@@ -333,6 +334,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findAllCustomerUsers(tenantId, pageLink));

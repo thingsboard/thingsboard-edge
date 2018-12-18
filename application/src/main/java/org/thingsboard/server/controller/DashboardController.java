@@ -463,6 +463,7 @@ public class DashboardController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
@@ -486,6 +487,7 @@ public class DashboardController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink).get());
         } catch (Exception e) {

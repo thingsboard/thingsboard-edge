@@ -54,7 +54,13 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
         scope.fetchEntityGroups = function(searchText) {
             var deferred = $q.defer();
             if (!scope.allEntityGroups) {
-                entityGroupService.getEntityGroups(scope.groupType, false, {ignoreLoading: true}).then(
+                var getEntityGroupsPromise;
+                if (scope.customerId) {
+                    getEntityGroupsPromise = entityGroupService.getCustomerEntityGroups(scope.customerId, scope.groupType, false, {ignoreLoading: true});
+                } else {
+                    getEntityGroupsPromise = entityGroupService.getEntityGroups(scope.groupType, false, {ignoreLoading: true});
+                }
+                getEntityGroupsPromise.then(
                     function success(entityGroups) {
                         if (scope.excludeGroupAll) {
                             scope.allEntityGroups = $filter('filter')(entityGroups, {groupAll: false});
@@ -152,6 +158,7 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
         require: "^ngModel",
         link: linker,
         scope: {
+            customerId: '=',
             groupType: '=',
             theForm: '=?',
             tbRequired: '=?',

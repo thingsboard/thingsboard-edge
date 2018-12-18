@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.UUID;
 
@@ -64,6 +66,7 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false) String offset) throws ThingsboardException {
         try {
             checkParameter("CustomerId", strCustomerId);
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, new CustomerId(UUID.fromString(strCustomerId)), pageLink));
@@ -84,6 +87,7 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false) String offset) throws ThingsboardException {
         try {
             checkParameter("UserId", strUserId);
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             return checkNotNull(auditLogService.findAuditLogsByTenantIdAndUserId(tenantId, new UserId(UUID.fromString(strUserId)), pageLink));
@@ -106,6 +110,7 @@ public class AuditLogController extends BaseController {
         try {
             checkParameter("EntityId", strEntityId);
             checkParameter("EntityType", strEntityType);
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             return checkNotNull(auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, EntityIdFactory.getByTypeAndId(strEntityType, strEntityId), pageLink));
@@ -124,6 +129,7 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
             @RequestParam(required = false) String offset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, pageLink));

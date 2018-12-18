@@ -62,7 +62,7 @@ public class UserPermissionsController extends BaseController {
             Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
             allowedResources.forEach(resource -> operationsByResource.put(resource, Resource.operationsByResource.get(resource)));
             return new AllowedPermissionsInfo(operationsByResource,
-                    Operation.allowedForGroupRoleOperations, allowedResources);
+                    Operation.allowedForGroupRoleOperations, allowedResources, getCurrentUser().getUserPermissions());
         } catch (Exception e) {
             throw handleException(e);
         }

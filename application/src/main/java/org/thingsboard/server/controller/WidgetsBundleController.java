@@ -132,6 +132,7 @@ public class WidgetsBundleController extends BaseController {
     @ResponseBody
     public List<WidgetsBundle> getWidgetsBundles() throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
             if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
                 return checkNotNull(widgetsBundleService.findSystemWidgetsBundles(getTenantId()));
             } else {

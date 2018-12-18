@@ -35,17 +35,20 @@ export default angular.module('thingsboard.api.userPermissions', [])
     .name;
 
 /*@ngInject*/
-function UserPermissionsService($http, $q) {
+function UserPermissionsService($http, $q, securityTypes) {
 
     var operationsByResource;
     var allowedGroupRoleOperations;
     var allowedResources;
+    var userPermissions;
 
     var service = {
         loadPermissionsInfo: loadPermissionsInfo,
         getOperationsByResource: getOperationsByResource,
         getAllowedGroupRoleOperations: getAllowedGroupRoleOperations,
-        getAllowedResources: getAllowedResources
+        getAllowedResources: getAllowedResources,
+        hasReadGroupsPermission: hasReadGroupsPermission,
+        hasReadGenericPermission: hasReadGenericPermission
     };
 
     function loadPermissionsInfo() {
@@ -55,6 +58,7 @@ function UserPermissionsService($http, $q) {
             operationsByResource = response.data.operationsByResource;
             allowedGroupRoleOperations = response.data.allowedForGroupRoleOperations;
             allowedResources = response.data.allowedResources;
+            userPermissions = response.data.userPermissions;
             deferred.resolve();
         }, function fail() {
             deferred.reject();
@@ -85,6 +89,50 @@ function UserPermissionsService($http, $q) {
         } else {
             return [];
         }
+    }
+
+    function hasReadGroupsPermission(entityType) {
+        if (userPermissions) {
+            var readGroupPermissions = userPermissions.readGroupPermissions;
+            var groupTypePermissionInfo = readGroupPermissions[entityType];
+            return groupTypePermissionInfo.hasGenericRead || groupTypePermissionInfo.entityGroupIds.length;
+        } else {
+            return false;
+        }
+    }
+
+    function hasReadGenericPermission(resource) {
+        if (userPermissions) {
+            return hasGenericPermission(resource, securityTypes.operation.read);
+        } else {
+            return false;
+        }
+    }
+
+    function hasGenericPermission(resource, operation) {
+        return hasGenericResourcePermission(resource, operation) || hasGenericAllPermission(operation);
+    }
+
+    function hasGenericAllPermission(operation) {
+        var operations = userPermissions.genericPermissions[securityTypes.resource.all];
+        if (operations) {
+            return checkOperation(operations, operation);
+        } else {
+            return false;
+        }
+    }
+
+    function hasGenericResourcePermission(resource, operation) {
+        var operations = userPermissions.genericPermissions[resource];
+        if (operations) {
+            return checkOperation(operations, operation);
+        } else {
+            return false;
+        }
+    }
+
+    function checkOperation(operations, operation) {
+        return operations.indexOf(securityTypes.operation.all) > -1 || operations.indexOf(operation) > -1;
     }
 
     return service;

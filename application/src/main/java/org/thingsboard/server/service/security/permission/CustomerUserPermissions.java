@@ -88,7 +88,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
     }
 
 
-    public final PermissionChecker customerStandaloneEntityPermissionChecker = new PermissionChecker() {
+    private final PermissionChecker customerStandaloneEntityPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
@@ -103,17 +103,21 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (!(entity instanceof HasOwnerId)) {
                 return false;
             }
-            if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
-                Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
-                // This entity does not have groups, so we are checking only generic level permissions
-                return user.getUserPermissions().hasGenericPermission(resource, operation);
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            if (entityId != null) {
+                if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
+                    // This entity does not have groups, so we are checking only generic level permissions
+                    return user.getUserPermissions().hasGenericPermission(resource, operation);
+                } else {
+                    return false;
+                }
             } else {
-                return false;
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
         }
     };
 
-    public final PermissionChecker customerGroupEntityPermissionChecker = new PermissionChecker() {
+    private final PermissionChecker customerGroupEntityPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
@@ -123,24 +127,30 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (!(entity instanceof HasOwnerId)) {
                 return false;
             }
-            if (entity.getEntityType() == EntityType.CUSTOMER && user.getCustomerId().equals(entityId) ||
-                    ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
-                Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
-                // This entity does have groups, so we are checking generic level permissions and then group specific permissions
-                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
-                    return true;
-                } else if (entityId != null) {
-                    try {
-                        List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
-                        for (EntityGroupId entityGroupId : entityGroupIds) {
-                            if (user.getUserPermissions().hasGroupPermissions(entityGroupId, operation)) {
-                                return true;
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            if (entityId != null) {
+                if (entity.getEntityType() == EntityType.CUSTOMER && user.getCustomerId().equals(entityId) ||
+                        ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId) entity)).contains(user.getOwnerId())) {
+                    // This entity does have groups, so we are checking generic level permissions and then group specific permissions
+                    if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                        return true;
+                    } else {
+                        try {
+                            List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
+                            for (EntityGroupId entityGroupId : entityGroupIds) {
+                                if (user.getUserPermissions().hasGroupPermissions(entityGroupId, operation)) {
+                                    return true;
+                                }
                             }
+                        } catch (Exception e) {
+                            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
                         }
-                    } catch (Exception e) {
-                        throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
                     }
+                } else {
+                    return false;
                 }
+            } else {
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
             return false;
         }
@@ -215,9 +225,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId())) {
                 return false;
             } else {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)
-                        && user.getUserPermissions().hasGenericPermission(Resource.CUSTOMER, Operation.READ_ATTRIBUTES)
-                        && user.getUserPermissions().hasGenericPermission(Resource.CUSTOMER, Operation.WRITE_ATTRIBUTES);
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
             }
         }
 

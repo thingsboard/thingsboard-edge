@@ -46,6 +46,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     vm.types = types;
 
+    vm.customerId = $stateParams.customerId;
     vm.entityGroup = entityGroup;
     vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
     vm.entityType = vm.entityGroup.type;
@@ -679,7 +680,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             });
             return entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds);
         };
-        tbDialogs.selectEntityGroup($event, vm.entityType,
+        tbDialogs.selectEntityGroup($event, vm.customerId,  vm.entityType,
             'entity-group.add-to-group', 'action.add',
             vm.translations.selectGroupToAdd,
             'entity-group.no-entity-groups-matching',
@@ -699,7 +700,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             tasks.push(entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds));
             return $q.all(tasks);
         };
-        tbDialogs.selectEntityGroup($event, vm.entityType,
+        tbDialogs.selectEntityGroup($event, vm.customerId, vm.entityType,
             'entity-group.move-to-group', 'action.move',
             vm.translations.selectGroupToMove,
             'entity-group.no-entity-groups-matching',

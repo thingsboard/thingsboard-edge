@@ -48,10 +48,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
@@ -161,6 +158,28 @@ public class EntityGroupController extends BaseController {
                     }
                 }
                 return groups;
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/{customerId}/entityGroups/{groupType}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityGroup> getCustomerEntityGroupsByType(
+            @PathVariable("customerId") String strCustomerId,
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+        checkParameter("customerId", strCustomerId);
+        try {
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.READ);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead()) {
+                return entityGroupService.findEntityGroupsByType(getTenantId(), customerId, groupType).get();
             } else {
                 throw permissionDenied();
             }

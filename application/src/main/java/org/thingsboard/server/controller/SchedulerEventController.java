@@ -154,6 +154,7 @@ public class SchedulerEventController extends BaseController {
     public List<SchedulerEventInfo> getSchedulerEvents(
             @RequestParam(required = false) String type) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
                 if (type != null && type.trim().length() > 0) {
