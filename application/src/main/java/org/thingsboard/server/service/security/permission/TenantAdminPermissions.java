@@ -113,6 +113,11 @@ public class TenantAdminPermissions extends AbstractPermissions {
     private final PermissionChecker tenantGroupEntityPermissionChecker = new PermissionChecker() {
 
         @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;

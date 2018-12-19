@@ -43,10 +43,13 @@ import addRuleNodeLinkTemplate from './add-link.tpl.html';
 
 /*@ngInject*/
 export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $timeout, $mdExpansionPanel, $window, $document, $mdDialog,
-                                    $filter, $translate, hotkeys, types, ruleChainService, itembuffer, Modelfactory, flowchartConstants,
+                                    $filter, $translate, hotkeys, types, securityTypes, userPermissionsService,
+                                    ruleChainService, itembuffer, Modelfactory, flowchartConstants,
                                     ruleChain, ruleChainMetaData, ruleNodeComponents, helpLinks) {
 
     var vm = this;
+
+    vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.write);
 
     vm.$mdExpansionPanel = $mdExpansionPanel;
     vm.types = types;
@@ -132,7 +135,7 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
     initHotKeys();
 
     function openRuleChainContextMenu($event, $mdOpenMousepointMenu) {
-        if (vm.canvasControl.modelservice && !$event.ctrlKey && !$event.metaKey) {
+        if (vm.canvasControl.modelservice && !$event.ctrlKey && !$event.metaKey && !vm.readonly) {
             var x = $event.clientX;
             var y = $event.clientY;
             var item = vm.canvasControl.modelservice.getItemInfoAtPoint(x, y);
@@ -919,23 +922,25 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
         if (loadRuleChain) {
             prepareRuleChain();
         }
-        $mdUtil.nextTick(() => {
-            for (componentType in vm.ruleNodeTypesCanvasControl) {
-                if (vm.ruleNodeTypesCanvasControl[componentType].adjustCanvasSize) {
-                    vm.ruleNodeTypesCanvasControl[componentType].adjustCanvasSize(true);
-                }
-            }
-            for (componentType in vm.ruleNodeTypesModel) {
-                var panel = vm.$mdExpansionPanel(componentType);
-                if (panel) {
-                    if (!vm.ruleNodeTypesModel[componentType].model.nodes.length) {
-                        panel.collapse();
-                    } else {
-                        panel.expand();
+        if (!vm.readonly) {
+            $mdUtil.nextTick(() => {
+                for (componentType in vm.ruleNodeTypesCanvasControl) {
+                    if (vm.ruleNodeTypesCanvasControl[componentType].adjustCanvasSize) {
+                        vm.ruleNodeTypesCanvasControl[componentType].adjustCanvasSize(true);
                     }
                 }
-            }
-        });
+                for (componentType in vm.ruleNodeTypesModel) {
+                    var panel = vm.$mdExpansionPanel(componentType);
+                    if (panel) {
+                        if (!vm.ruleNodeTypesModel[componentType].model.nodes.length) {
+                            panel.collapse();
+                        } else {
+                            panel.expand();
+                        }
+                    }
+                }
+            });
+        }
     }
 
     function prepareRuleChain() {
@@ -1026,6 +1031,7 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
                     );
                 }
                 nodes.push(node);
+                node.readonly = vm.readonly;
                 vm.ruleChainModel.nodes.push(node);
             }
         }
@@ -1109,6 +1115,7 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
                             ruleChainNode.error = $translate.instant('rulenode.invalid-target-rulechain');
                         }
                         ruleChainNodesMap[ruleChainConnection.additionalInfo.ruleChainNodeId] = ruleChainNode;
+                        ruleChainNode.readonly = vm.readonly;
                         vm.ruleChainModel.nodes.push(ruleChainNode);
                     }
                     sourceNode = nodes[ruleChainConnection.fromIndex];
@@ -1148,18 +1155,36 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
 
         validate();
 
-        $mdUtil.nextTick(() => {
-            vm.ruleChainWatch = $scope.$watch('vm.ruleChainModel',
-                function (newVal, oldVal) {
-                    if (!angular.equals(newVal, oldVal)) {
-                        validate();
-                        if (!vm.isDirty) {
-                            vm.isDirty = true;
+        if (!vm.readonly) {
+            $mdUtil.nextTick(() => {
+                vm.ruleChainWatch = $scope.$watch('vm.ruleChainModel',
+                    function (newVal, oldVal) {
+                        if (!angular.equals(newVal, oldVal)) {
+                            validate();
+                            if (!vm.isDirty) {
+                                vm.isDirty = true;
+                            }
                         }
+                    }, true
+                );
+            });
+        } else {
+            $mdUtil.nextTick(() => {
+                vm.canvasControl.modelservice.isEditable = () => false;
+                vm.canvasControl.modelservice.edges.handleEdgeMouseClick = (edge) => {
+                    openLinkDetails(edge);
+                };
+                var canvas = angular.element(vm.canvasControl.modelservice.getCanvasHtmlElement());
+                var connectorElements = angular.element('.fc-connector', canvas);
+                connectorElements.attr('draggable', 'false');
+                $mdUtil.nextTick(() => {
+                    if (vm.canvasControl.adjustCanvasSize) {
+                        vm.canvasControl.adjustCanvasSize(true);
                     }
-                }, true
-            );
-        });
+                    $scope.$apply();
+                });
+            });
+        }
     }
 
     function updateRuleNodesHighlight() {

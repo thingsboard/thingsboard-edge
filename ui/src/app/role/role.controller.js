@@ -46,7 +46,7 @@ export function RoleCardController(types) {
 
 /*@ngInject*/
 export function RoleController($rootScope, userService, roleService, $state, $stateParams,
-                                     $document, $mdDialog, $q, $translate, types) {
+                                     $document, $mdDialog, $q, $translate, types, securityTypes, userPermissionsService) {
 
     var roleActionsList = [];
 
@@ -57,6 +57,9 @@ export function RoleController($rootScope, userService, roleService, $state, $st
     vm.types = types;
 
     vm.roleGridConfig = {
+
+        resource: securityTypes.resource.role,
+
         deleteItemTitleFunc: deleteRoleTitle,
         deleteItemContentFunc: deleteRoleText,
         deleteItemsTitleFunc: deleteRolesTitle,
@@ -111,7 +114,10 @@ export function RoleController($rootScope, userService, roleService, $state, $st
                 },
                 name: function() { return $translate.instant('action.delete') },
                 details: function() { return $translate.instant('role.delete') },
-                icon: "delete"
+                icon: "delete",
+                isEnabled: function() {
+                    return userPermissionsService.hasGenericPermission(securityTypes.resource.role, securityTypes.operation.delete);
+                }
             }
         );
 

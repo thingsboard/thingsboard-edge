@@ -45,7 +45,7 @@ export default function EntitySelect($compile, $templateCache, entityService) {
 
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
 
-        var entityTypes = entityService.prepareAllowedEntityTypesList(scope.allowedEntityTypes, scope.useAliasEntityTypes);
+        var entityTypes = entityService.prepareAllowedEntityTypesList(scope.allowedEntityTypes, scope.useAliasEntityTypes, scope.operation);
 
         var entityTypeKeys = Object.keys(entityTypes);
 
@@ -78,7 +78,7 @@ export default function EntitySelect($compile, $templateCache, entityService) {
 
         ngModelCtrl.$render = function () {
             destroyWatchers();
-            if (ngModelCtrl.$viewValue) {
+            if (ngModelCtrl.$viewValue && ngModelCtrl.$viewValue.entityType) {
                 var value = ngModelCtrl.$viewValue;
                 scope.model.entityType = value.entityType;
                 scope.model.entityId = value.id;
@@ -136,7 +136,8 @@ export default function EntitySelect($compile, $templateCache, entityService) {
             tbRequired: '=?',
             disabled:'=ngDisabled',
             allowedEntityTypes: "=?",
-            useAliasEntityTypes: "=?"
+            useAliasEntityTypes: "=?",
+            operation: "=?"
         }
     };
 }

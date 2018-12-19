@@ -64,6 +64,25 @@ export default angular.module('thingsboard.securityTypes', [])
                 whiteLabeling: "WHITE_LABELING",
                 auditLog: "AUDIT_LOG"
             },
+            resourceByEntityType: {
+                "ALARM": "ALARM",
+                "DEVICE": "DEVICE",
+                "ASSET": "ASSET",
+                "CUSTOMER": "CUSTOMER",
+                "DASHBOARD": "DASHBOARD",
+                "ENTITY_VIEW": "ENTITY_VIEW",
+                "TENANT": "TENANT",
+                "RULE_CHAIN": "RULE_CHAIN",
+                "USER": "USER",
+                "WIDGETS_BUNDLE": "WIDGETS_BUNDLE",
+                "WIDGET_TYPE": "WIDGET_TYPE",
+                "CONVERTER": "CONVERTER",
+                "INTEGRATION": "INTEGRATION",
+                "SCHEDULER_EVENT": "SCHEDULER_EVENT",
+                "BLOB_ENTITY": "BLOB_ENTITY",
+                "ROLE": "ROLE",
+                "GROUP_PERMISSION": "GROUP_PERMISSION"
+            },
             operation: {
                 all: "ALL",
                 create: "CREATE",

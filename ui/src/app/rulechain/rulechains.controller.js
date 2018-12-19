@@ -37,7 +37,7 @@ import ruleChainCard from './rulechain-card.tpl.html';
 
 /*@ngInject*/
 export default function RuleChainsController(ruleChainService, userService, importExport, $state,
-                                             $stateParams, $filter, $translate, $mdDialog, types, utils) {
+                                             $stateParams, $filter, $translate, $mdDialog, types, securityTypes, utils, userPermissionsService) {
 
     var ruleChainActionsList = [
         {
@@ -63,7 +63,10 @@ export default function RuleChainsController(ruleChainService, userService, impo
             name: function() { return $translate.instant('rulechain.set-root') },
             details: function() { return $translate.instant('rulechain.set-root') },
             icon: "flag",
-            isEnabled: isNonRootRuleChain
+            isEnabled: function(ruleChain) {
+                return isNonRootRuleChain(ruleChain) &&
+                    userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.write);
+            }
         },
         {
             onAction: function ($event, item) {
@@ -72,7 +75,10 @@ export default function RuleChainsController(ruleChainService, userService, impo
             name: function() { return $translate.instant('action.delete') },
             details: function() { return $translate.instant('rulechain.delete') },
             icon: "delete",
-            isEnabled: isNonRootRuleChain
+            isEnabled: function(ruleChain) {
+                return isNonRootRuleChain(ruleChain) &&
+                    userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.delete);
+            }
         }
     ];
 
@@ -105,6 +111,8 @@ export default function RuleChainsController(ruleChainService, userService, impo
 
     vm.ruleChainGridConfig = {
 
+        resource: securityTypes.resource.ruleChain,
+
         refreshParamsFunc: null,
 
         deleteItemTitleFunc: deleteRuleChainTitle,
@@ -132,7 +140,10 @@ export default function RuleChainsController(ruleChainService, userService, impo
         addItemText: function() { return $translate.instant('rulechain.add-rulechain-text') },
         noItemsText: function() { return $translate.instant('rulechain.no-rulechains-text') },
         itemDetailsText: function() { return $translate.instant('rulechain.rulechain-details') },
-        isSelectionEnabled: isNonRootRuleChain
+        isSelectionEnabled: function(ruleChain) {
+            return isNonRootRuleChain(ruleChain) &&
+                userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.delete);
+        }
     };
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {

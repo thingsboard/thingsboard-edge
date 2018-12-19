@@ -97,54 +97,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         pages: []
     };
 
-    var customerAdminSettingMenuSection = {
-        name: 'white-labeling.white-labeling',
-        type: 'toggle',
-        state: 'home.settings',
-        height: '0px',
-        icon: 'format_paint',
-        pages: []
-    };
-
-    var defaultCustomerAdminSettingMenuSectionPages = [
-        {
-            name: 'custom-translation.custom-translation',
-            type: 'link',
-            state: 'home.settings.customTranslation',
-            icon: 'language'
-        }
-    ];
-
-    var whiteLabelingPages = [
-        {
-            name: 'white-labeling.white-labeling',
-            type: 'link',
-            state: 'home.settings.whiteLabel',
-            icon: 'format_paint'
-        },
-        {
-            name: 'white-labeling.login-white-labeling',
-            type: 'link',
-            state: 'home.settings.loginWhiteLabel',
-            icon: 'format_paint'
-        }];
-
-    var customerAdminSettingHomeSection = {
-        name: 'white-labeling.white-labeling',
-        places: [
-            {
-                name: 'white-labeling.white-labeling',
-                icon: 'format_paint',
-                state: 'home.settings.whiteLabel'
-            },
-            {
-                name: 'white-labeling.login-white-labeling',
-                icon: 'format_paint',
-                state: 'home.settings.loginWhiteLabel'
-            }
-        ]
-    };
-
     var service = {
         getHomeSections: getHomeSections,
         getSections: getSections,
@@ -637,7 +589,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     );
                 }
 
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     homeSections.push(
                         {
                             name: 'white-labeling.white-labeling',
@@ -682,7 +634,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     );
                 }
 
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     homeSections.push(
                         {
                             name: 'custom-translation.custom-translation',
@@ -698,197 +650,238 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 }
 
             } else if (authority === 'CUSTOMER_USER') {
-                sections = [
+                sections = [];
+                sections.push(
                     {
                         name: 'home.home',
                         type: 'link',
                         state: 'home.links',
                         icon: 'home'
-                    },
-                    {
-                        name: 'role.roles',
-                        type: 'link',
-                        state: 'home.roles',
-                        icon: 'security'
-                    },
-                    userGroups,
-                    customerGroups,
-                    assetGroups,
-                    deviceGroups,
-                    entityViewGroups,
-                    dashboardGroups,
-                    /*{
-                        name: 'asset.assets',
-                        type: 'link',
-                        state: 'home.assets',
-                        icon: 'domain'
-                    },
-                    {
-                        name: 'device.devices',
-                        type: 'link',
-                        state: 'home.devices',
-                        icon: 'devices_other'
-                    },
-                    {
-                        name: 'entity-view.entity-views',
-                        type: 'link',
-                        state: 'home.entityViews',
-                        icon: 'view_quilt'
-                    },
-                    {
-                        name: 'dashboard.dashboards',
-                        type: 'link',
-                        state: 'home.dashboards',
-                        icon: 'dashboard'
-                    },*/
-                    {
-                        name: 'scheduler.scheduler',
-                        type: 'link',
-                        state: 'home.scheduler',
-                        icon: 'schedule'
-                    },
-                    customerAdminSettingMenuSection
-                ];
+                    }
+                );
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
+                    sections.push(
+                        {
+                            name: 'role.roles',
+                            type: 'link',
+                            state: 'home.roles',
+                            icon: 'security'
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
+                    sections.push(userGroups);
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                    sections.push(customerGroups);
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
+                    sections.push(assetGroups);
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.device)) {
+                    sections.push(deviceGroups);
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.entityView)) {
+                    sections.push(entityViewGroups);
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard)) {
+                    sections.push(dashboardGroups);
+                }
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                    sections.push(
+                        {
+                            name: 'scheduler.scheduler',
+                            type: 'link',
+                            state: 'home.scheduler',
+                            icon: 'schedule'
+                        }
+                    );
+                }
+                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                    sections.push(
+                        {
+                            name: 'white-labeling.white-labeling',
+                            type: 'toggle',
+                            state: 'home.settings',
+                            height: '120px',
+                            icon: 'format_paint',
+                            pages: [
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    type: 'link',
+                                    state: 'home.settings.customTranslation',
+                                    icon: 'language'
+                                },
+                                {
+                                    name: 'white-labeling.white-labeling',
+                                    type: 'link',
+                                    state: 'home.settings.whiteLabel',
+                                    icon: 'format_paint'
+                                },
+                                {
+                                    name: 'white-labeling.login-white-labeling',
+                                    type: 'link',
+                                    state: 'home.settings.loginWhiteLabel',
+                                    icon: 'format_paint'
+                                }
+                            ]
+                        }
+                    );
+                }
 
-                homeSections =
-                    [{
-                        name: 'role.management',
-                        places: [
-                            {
-                                name: 'role.roles',
-                                icon: 'security',
-                                state: 'home.roles'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'user.management',
-                        places: [
-                            {
-                                name: 'user.users',
-                                icon: 'supervisor_account',
-                                //state: 'home.customers',
-                                state: 'home.userGroups'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'customer.management',
-                        places: [
-                            {
-                                name: 'customer.customers',
-                                icon: 'supervisor_account',
-                                //state: 'home.customers',
-                                state: 'home.customerGroups'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'asset.management',
-                        places: [
-                            {
-                                name: 'asset.assets',
-                                icon: 'domain',
-                                //state: 'home.assets'
-                                state: 'home.assetGroups'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'device.management',
-                        places: [
-                            {
-                                name: 'device.devices',
-                                icon: 'devices_other',
-                                //state: 'home.devices',
-                                state: 'home.deviceGroups'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'entity-view.management',
-                        places: [
-                            {
-                                name: 'entity-view.entity-views',
-                                icon: 'view_quilt',
-                                //state: 'home.entityViews',
-                                state: 'home.entityViewGroups'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'dashboard.management',
-                        places: [
-                            {
-                                name: 'dashboard.dashboards',
-                                icon: 'dashboard',
-                                //state: 'home.dashboards',
-                                state: 'home.dashboardGroups'
-                            }
-                        ]
-                    },
-                    /*{
-                        name: 'asset.view-assets',
-                        places: [
-                            {
-                                name: 'asset.assets',
-                                icon: 'domain',
-                                state: 'home.assets'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'device.view-devices',
-                        places: [
-                            {
-                                name: 'device.devices',
-                                icon: 'devices_other',
-                                state: 'home.devices'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'entity-view.management',
-                        places: [
-                            {
-                                name: 'entity-view.entity-views',
-                                icon: 'view_quilt',
-                                state: 'home.entityViews'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'dashboard.view-dashboards',
-                        places: [
-                            {
-                                name: 'dashboard.dashboards',
-                                icon: 'dashboard',
-                                state: 'home.dashboards'
-                            }
-                        ]
-                    },*/
-                    {
-                        name: 'scheduler.management',
-                        places: [
-                            {
-                                name: 'scheduler.scheduler',
-                                icon: 'schedule',
-                                state: 'home.scheduler'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'custom-translation.custom-translation',
-                        places: [
-                            {
-                                name: 'custom-translation.custom-translation',
-                                icon: 'language',
-                                state: 'home.settings.customTranslation'
-                            }
-                        ]
-                    }];
+                homeSections = [];
+
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
+                    homeSections.push(
+                        {
+                            name: 'role.management',
+                            places: [
+                                {
+                                    name: 'role.roles',
+                                    icon: 'security',
+                                    state: 'home.roles'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
+                    homeSections.push(
+                        {
+                            name: 'user.management',
+                            places: [
+                                {
+                                    name: 'user.users',
+                                    icon: 'supervisor_account',
+                                    //state: 'home.customers',
+                                    state: 'home.userGroups'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                    homeSections.push(
+                        {
+                            name: 'customer.management',
+                            places: [
+                                {
+                                    name: 'customer.customers',
+                                    icon: 'supervisor_account',
+                                    //state: 'home.customers',
+                                    state: 'home.customerGroups'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
+                    homeSections.push(
+                        {
+                            name: 'asset.management',
+                            places: [
+                                {
+                                    name: 'asset.assets',
+                                    icon: 'domain',
+                                    //state: 'home.assets'
+                                    state: 'home.assetGroups'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.device)) {
+                    homeSections.push(
+                        {
+                            name: 'device.management',
+                            places: [
+                                {
+                                    name: 'device.devices',
+                                    icon: 'devices_other',
+                                    //state: 'home.devices',
+                                    state: 'home.deviceGroups'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.entityView)) {
+                    homeSections.push(
+                        {
+                            name: 'entity-view.management',
+                            places: [
+                                {
+                                    name: 'entity-view.entity-views',
+                                    icon: 'view_quilt',
+                                    //state: 'home.entityViews',
+                                    state: 'home.entityViewGroups'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard)) {
+                    homeSections.push(
+                        {
+                            name: 'dashboard.management',
+                            places: [
+                                {
+                                    name: 'dashboard.dashboards',
+                                    icon: 'dashboard',
+                                    //state: 'home.dashboards',
+                                    state: 'home.dashboardGroups'
+                                }
+                            ]
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                    homeSections.push(
+                        {
+                            name: 'scheduler.management',
+                            places: [
+                                {
+                                    name: 'scheduler.scheduler',
+                                    icon: 'schedule',
+                                    state: 'home.scheduler'
+                                }
+                            ]
+                        }
+                    );
+                }
+
+                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                    homeSections.push(
+                        {
+                            name: 'white-labeling.white-labeling',
+                            places: [
+                                {
+                                    name: 'white-labeling.white-labeling',
+                                    icon: 'format_paint',
+                                    state: 'home.settings.whiteLabel'
+                                },
+                                {
+                                    name: 'white-labeling.login-white-labeling',
+                                    icon: 'format_paint',
+                                    state: 'home.settings.loginWhiteLabel'
+                                }
+                            ]
+                        }
+                    );
+                    homeSections.push(
+                        {
+                            name: 'custom-translation.custom-translation',
+                            places: [
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    icon: 'language',
+                                    state: 'home.settings.customTranslation'
+                                }
+                            ]
+                        }
+                    );
+                }
             }
-            checkWhiteLabelingPermissions();
 
             if (authority === 'TENANT_ADMIN' || authority === 'CUSTOMER_USER') {
                 reloadGroups().then(() => {
@@ -972,24 +965,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     function sectionActive(section) {
         return $state.includes(section.state);
-    }
-
-    function checkWhiteLabelingPermissions() {
-        var pages = [];
-
-        if (authority === 'CUSTOMER_USER') {
-            if (userService.isWhiteLabelingAllowed()) {
-                homeSections.push(customerAdminSettingHomeSection);
-                customerAdminSettingMenuSection.height = '120px';
-                pages = pages.concat(defaultCustomerAdminSettingMenuSectionPages);
-                pages = pages.concat(whiteLabelingPages);
-                customerAdminSettingMenuSection.pages = pages;
-            } else {
-                customerAdminSettingMenuSection.height = '40px';
-                pages = pages.concat(defaultCustomerAdminSettingMenuSectionPages);
-                customerAdminSettingMenuSection.pages = pages;
-            }
-        }
     }
 
 }

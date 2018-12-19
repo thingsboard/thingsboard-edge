@@ -63,7 +63,7 @@ export default angular.module('thingsboard.api.widget', ['oc.lazyLoad', thingsbo
     .name;
 
 /*@ngInject*/
-function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $translate, types, utils) {
+function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $translate, types, utils, securityTypes, userPermissionsService) {
 
     $window.$ = $;
     $window.jQuery = $;
@@ -323,26 +323,34 @@ function WidgetService($rootScope, $http, $q, $filter, $ocLazyLoad, $window, $tr
             } else {
                 widgetsBundleCachePromise = deferred.promise;
             }
-            var url = '/api/widgetsBundles';
-            $http.get(url, config).then(function success(response) {
-                allWidgetsBundles = response.data;
+            if (userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.read)) {
+                var url = '/api/widgetsBundles';
+                $http.get(url, config).then(function success(response) {
+                    allWidgetsBundles = response.data;
+                    systemWidgetsBundles = [];
+                    tenantWidgetsBundles = [];
+                    allWidgetsBundles = $filter('orderBy')(allWidgetsBundles, ['+title', '-createdTime']);
+                    for (var i = 0; i < allWidgetsBundles.length; i++) {
+                        var widgetsBundle = allWidgetsBundles[i];
+                        if (widgetsBundle.tenantId.id === types.id.nullUid) {
+                            systemWidgetsBundles.push(widgetsBundle);
+                        } else {
+                            tenantWidgetsBundles.push(widgetsBundle);
+                        }
+                    }
+                    deferred.resolve();
+                    widgetsBundleCachePromise = null;
+                }, function fail() {
+                    deferred.reject();
+                    widgetsBundleCachePromise = null;
+                });
+            } else {
+                allWidgetsBundles = [];
                 systemWidgetsBundles = [];
                 tenantWidgetsBundles = [];
-                allWidgetsBundles = $filter('orderBy')(allWidgetsBundles, ['+title', '-createdTime']);
-                for (var i = 0; i < allWidgetsBundles.length; i++) {
-                    var widgetsBundle = allWidgetsBundles[i];
-                    if (widgetsBundle.tenantId.id === types.id.nullUid) {
-                        systemWidgetsBundles.push(widgetsBundle);
-                    } else {
-                        tenantWidgetsBundles.push(widgetsBundle);
-                    }
-                }
                 deferred.resolve();
                 widgetsBundleCachePromise = null;
-            }, function fail() {
-                deferred.reject();
-                widgetsBundleCachePromise = null;
-            });
+            }
         } else {
             deferred.resolve();
         }

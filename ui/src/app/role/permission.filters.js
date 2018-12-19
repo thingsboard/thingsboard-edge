@@ -28,35 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import thingsboardGrid from '../components/grid.directive';
-import thingsboardApiUser from '../api/user.service';
-import thingsboardApiRole from '../api/role.service';
 
-import RoleRoutes from './role.routes';
-import {RoleController, RoleCardController} from './role.controller';
-import GroupPermissionDialogController from './group-permission-dialog.controller';
-import RoleDirective from './role.directive';
-import GroupPermissions from './group-permissions.directive';
-import ResourceTypeAutocompleteDirective from './resource-type-autocomplete.directive';
-import PermissionListDirective from './permission-list.directive';
-import OperationTypeListDirective from './operation-type-list.directive';
-import {HasGenericPermission} from "./permission.filters";
+/*@ngInject*/
+export function HasGenericPermission(securityTypes, userPermissionsService) {
+    return function (resource, operation) {
+        return hasGenericPermission(resource, operation);
+    };
 
-export default angular.module('thingsboard.role', [
-    uiRouter,
-    thingsboardGrid,
-    thingsboardApiUser,
-    thingsboardApiRole
-])
-    .config(RoleRoutes)
-    .controller('RoleController', RoleController)
-    .controller('RoleCardController', RoleCardController)
-    .controller('GroupPermissionDialogController', GroupPermissionDialogController)
-    .directive('tbRole', RoleDirective)
-    .directive('tbGroupPermissions', GroupPermissions)
-    .directive('tbResourceTypeAutocomplete', ResourceTypeAutocompleteDirective)
-    .directive('tbPermissionList', PermissionListDirective)
-    .directive('tbOperationTypeList', OperationTypeListDirective)
-    .filter('hasGenericPermission', HasGenericPermission)
-    .name;
+    function hasGenericPermission(resource, operation) {
+        if (angular.isArray(resource)) {
+            return hasGenericResourcesPermission(resource, operation);
+        } else if (angular.isArray(operation)) {
+            return hasGenericOperationsPermission(resource, operation);
+        } else {
+            return userPermissionsService.hasGenericPermission(securityTypes.resource[resource], securityTypes.operation[operation]);
+        }
+    }
+
+    function hasGenericResourcesPermission(resources, operation) {
+        for (var i=0;i<resources.length;i++) {
+            var resource = resources[i];
+            if (!hasGenericPermission(resource, operation)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function hasGenericOperationsPermission(resource, operations) {
+        for (var i=0;i<operations.length;i++) {
+            var operation = operations[i];
+            if (!hasGenericPermission(resource, operation)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+}

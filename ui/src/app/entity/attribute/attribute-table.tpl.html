@@ -48,7 +48,7 @@
             <div class="md-toolbar-tools">
                 <span translate>{{ attributeScope.name }}</span>
                 <span flex></span>
-                <md-button ng-show="!attributeScope.clientSide" class="md-icon-button" ng-click="addAttribute($event)">
+                <md-button ng-show="!attributeScope.clientSide && !readonly" class="md-icon-button" ng-click="addAttribute($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.add' | translate }}
@@ -98,13 +98,13 @@
                       translate-values="{count: selectedAttributes.length}"
                       translate-interpolation="messageformat"></span>
                 <span flex></span>
-                <md-button ng-show="!attributeScope.clientSide" class="md-icon-button" ng-click="deleteAttributes($event)">
+                <md-button ng-show="!attributeScope.clientSide && !readonly" class="md-icon-button" ng-click="deleteAttributes($event)">
                     <md-icon>delete</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.delete' | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button class="md-accent md-hue-2 md-raised" ng-click="enterWidgetMode()">
+                <md-button ng-show="'widgetsBundle' | hasGenericPermission:'read'" class="md-accent md-hue-2 md-raised" ng-click="enterWidgetMode()">
                     <md-tooltip md-direction="top">
                         {{ 'attribute.show-on-widget' | translate }}
                     </md-tooltip>
@@ -124,7 +124,7 @@
                                               select-bundle-alias="selectedWidgetsBundleAlias">
                     </tb-widgets-bundle-select>
                 </div>
-                <md-button ng-show="widgetsList.length > 0" class="md-accent md-hue-2 md-raised" ng-click="addWidgetToDashboard($event)">
+                <md-button ng-show="widgetsList.length > 0 && 'dashboard' | hasGenericPermission:['read','write','create']" class="md-accent md-hue-2 md-raised" ng-click="addWidgetToDashboard($event)">
                     <md-tooltip md-direction="top">
                         {{ 'attribute.add-to-dashboard' | translate }}
                     </md-tooltip>
@@ -140,7 +140,7 @@
             </div>
         </md-toolbar>
         <md-table-container ng-show="mode!='widget'">
-            <table class="tb-attribute-table" md-table md-row-select multiple="" ng-model="selectedAttributes" md-progress="attributesDeferred.promise">
+            <table class="tb-attribute-table" md-table md-row-select="!readonly || ['widgetsBundle','widgetType'] | hasGenericPermission:'read'" multiple="" ng-model="selectedAttributes" md-progress="attributesDeferred.promise">
                 <thead ng-show="mode!='widget'" fix-head md-head md-order="query.order" md-on-reorder="onReorder">
                     <tr md-row>
                         <th md-column md-order-by="lastUpdateTs"><span translate>attribute.last-update-time</span></th>
@@ -152,9 +152,12 @@
                     <tr md-row md-select="attribute" md-select-id="key" md-auto-select ng-repeat="attribute in attributes.data">
                         <td md-cell>{{attribute.lastUpdateTs | date :  'yyyy-MM-dd HH:mm:ss'}}</td>
                         <td md-cell>{{attribute.key}}</td>
-                        <td md-cell class="tb-value-cell" ng-click="editAttribute($event, attribute)">
+                        <td md-cell ng-if="!attributeScope.clientSide && !readonly" class="tb-value-cell" ng-click="editAttribute($event, attribute)">
                             <span>{{attribute.value}}</span>
-                            <span ng-show="!attributeScope.clientSide"><ng-md-icon size="16" icon="edit"></ng-md-icon></span>
+                            <span><ng-md-icon size="16" icon="edit"></ng-md-icon></span>
+                        </td>
+                        <td md-cell ng-if="attributeScope.clientSide || readonly" class="tb-value-cell">
+                            <span>{{attribute.value}}</span>
                         </td>
                     </tr>
                 </tbody>

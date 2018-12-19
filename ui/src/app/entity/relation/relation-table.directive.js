@@ -47,7 +47,8 @@ export default function RelationTable() {
         scope: true,
         bindToController: {
             entityId: '=',
-            entityType: '@'
+            entityType: '@',
+            readonly: '='
         },
         controller: RelationTableController,
         controllerAs: 'vm',
@@ -56,7 +57,8 @@ export default function RelationTable() {
 }
 
 /*@ngInject*/
-function RelationTableController($scope, $q, $mdDialog, $document, $translate, $filter, $timeout, utils, types, entityRelationService) {
+function RelationTableController($scope, $q, $mdDialog, $document, $translate, $filter, $timeout, utils, types, securityTypes, userPermissionsService,
+                                 entityRelationService) {
 
     let vm = this;
 
@@ -86,6 +88,7 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
     vm.deleteRelations = deleteRelations;
     vm.reloadRelations = reloadRelations;
     vm.updateRelations = updateRelations;
+    vm.isRelationEditable = isRelationEditable;
 
     $scope.$watch("vm.entityId", function(newVal, prevVal) {
         if (newVal && !angular.equals(newVal, prevVal)) {
@@ -303,6 +306,15 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
         vm.relationsCount = result.length;
         var startIndex = vm.query.limit * (vm.query.page - 1);
         vm.relations = result.slice(startIndex, startIndex + vm.query.limit);
+    }
+
+    function isRelationEditable(relation) {
+        if (vm.readonly) {
+            return false;
+        }
+        var entityType = vm.direction == vm.types.entitySearchDirection.from ? relation.to.entityType : relation.from.entityType;
+        var resource = securityTypes.resourceByEntityType[entityType];
+        return userPermissionsService.hasGenericPermission(resource, securityTypes.operation.write);
     }
 
 }

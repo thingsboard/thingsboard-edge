@@ -468,7 +468,8 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
         scope: {
             entityId: '=',
             entityName: '=',
-            disableAttributeScopeSelection: '@?'
+            disableAttributeScopeSelection: '@?',
+            readonly: '='
         }
     };
 }

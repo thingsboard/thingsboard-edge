@@ -48,7 +48,8 @@ function UserPermissionsService($http, $q, securityTypes) {
         getAllowedGroupRoleOperations: getAllowedGroupRoleOperations,
         getAllowedResources: getAllowedResources,
         hasReadGroupsPermission: hasReadGroupsPermission,
-        hasReadGenericPermission: hasReadGenericPermission
+        hasReadGenericPermission: hasReadGenericPermission,
+        hasGenericPermission: hasGenericPermission
     };
 
     function loadPermissionsInfo() {
@@ -110,7 +111,11 @@ function UserPermissionsService($http, $q, securityTypes) {
     }
 
     function hasGenericPermission(resource, operation) {
-        return hasGenericResourcePermission(resource, operation) || hasGenericAllPermission(operation);
+        if (userPermissions) {
+            return hasGenericResourcePermission(resource, operation) || hasGenericAllPermission(operation);
+        } else {
+            return false;
+        }
     }
 
     function hasGenericAllPermission(operation) {

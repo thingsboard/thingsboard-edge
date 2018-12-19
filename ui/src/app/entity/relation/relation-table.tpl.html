@@ -48,7 +48,7 @@
                 <span>{{(vm.direction == vm.types.entitySearchDirection.from ?
                     'relation.from-relations' : 'relation.to-relations') | translate}}</span>
                 <span flex></span>
-                <md-button class="md-icon-button" ng-click="vm.addRelation($event)">
+                <md-button ng-if="!vm.readonly" class="md-icon-button" ng-click="vm.addRelation($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.add' | translate }}
@@ -104,7 +104,7 @@
             </div>
         </md-toolbar>
         <md-table-container>
-            <table md-table md-row-select multiple="" ng-model="vm.selectedRelations" md-progress="vm.relationsDeferred.promise">
+            <table md-table md-row-select="!vm.readonly" multiple="" ng-model="vm.selectedRelations" md-progress="vm.relationsDeferred.promise">
                 <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
                     <th md-column md-order-by="type"><span translate>relation.type</span></th>
@@ -120,25 +120,27 @@
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row md-select="relation" md-select-id="relation" md-auto-select ng-repeat="relation in vm.relations">
+                <tr md-row ng-disabled="!vm.isRelationEditable(relation)" md-select="relation" md-select-id="relation" md-auto-select ng-repeat="relation in vm.relations">
                     <td md-cell>{{ relation.type }}</td>
                     <td md-cell ng-if="vm.direction == vm.types.entitySearchDirection.from">{{ relation.toEntityTypeName  }}</td>
                     <td md-cell ng-if="vm.direction == vm.types.entitySearchDirection.to">{{ relation.fromEntityTypeName  }}</td>
                     <td md-cell ng-if="vm.direction == vm.types.entitySearchDirection.from">{{ relation.toName }}</td>
                     <td md-cell ng-if="vm.direction == vm.types.entitySearchDirection.to">{{ relation.fromName }}</td>
                     <td md-cell class="tb-action-cell">
-                        <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}" ng-click="vm.editRelation($event, relation)">
-                            <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
-                            <md-tooltip md-direction="top">
-                                {{ 'relation.edit' | translate }}
-                            </md-tooltip>
-                        </md-button>
-                        <md-button class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="vm.deleteRelation($event, relation)">
-                            <md-icon aria-label="{{ 'action.delete' | translate }}" class="material-icons">delete</md-icon>
-                            <md-tooltip md-direction="top">
-                                {{ 'relation.delete' | translate }}
-                            </md-tooltip>
-                        </md-button>
+                        <section ng-if="vm.isRelationEditable(relation)">
+                            <md-button class="md-icon-button" aria-label="{{ 'action.edit' | translate }}" ng-click="vm.editRelation($event, relation)">
+                                <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
+                                <md-tooltip md-direction="top">
+                                    {{ 'relation.edit' | translate }}
+                                </md-tooltip>
+                            </md-button>
+                            <md-button class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="vm.deleteRelation($event, relation)">
+                                <md-icon aria-label="{{ 'action.delete' | translate }}" class="material-icons">delete</md-icon>
+                                <md-tooltip md-direction="top">
+                                    {{ 'relation.delete' | translate }}
+                                </md-tooltip>
+                            </md-button>
+                        </section>
                     </td>
                 </tr>
                 </tbody>

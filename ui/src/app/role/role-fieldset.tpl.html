@@ -31,6 +31,7 @@
 
 -->
 <md-button ng-click="onDeleteRole({event: $event})"
+           ng-if="'role' | hasGenericPermission:'delete'"
            ng-show="!isEdit && !readonly"
            class="md-raised md-primary">{{ 'role.delete' | translate }}</md-button>
 
