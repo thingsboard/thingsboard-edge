@@ -35,10 +35,17 @@ import entityGroupFieldsetTemplate from './entity-group-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityGroupDirective($compile, $templateCache) {
+export default function EntityGroupDirective($compile, $templateCache, securityTypes) {
     var linker = function (scope, element) {
         var template = $templateCache.get(entityGroupFieldsetTemplate);
         element.html(template);
+
+        scope.$watch('entityGroup', function(newVal) {
+            if (newVal) {
+                scope.groupResource = securityTypes.groupResourceByGroupType[scope.entityGroup.type];
+            }
+        });
+
         $compile(element.contents())(scope);
     }
     return {

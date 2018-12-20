@@ -127,6 +127,9 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
                 return true;
             } else if (entityId != null) {
+                if (!operation.isAllowedForGroupRole()) {
+                    return false;
+                }
                 try {
                     List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
                     for (EntityGroupId entityGroupId : entityGroupIds) {
@@ -172,7 +175,9 @@ public class TenantAdminPermissions extends AbstractPermissions {
             Resource resource = Resource.groupResourceFromGroupType(groupType);
             if (ownersCacheService.getOwners(user.getTenantId(), entityGroupId).contains(user.getOwnerId())) {
                 // This entity is a group, so we are checking group generic permission first
-                return user.getUserPermissions().hasGenericPermission(resource, operation);
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
             }
             if (!operation.isAllowedForGroupRole()) {
                 return false;
@@ -189,7 +194,9 @@ public class TenantAdminPermissions extends AbstractPermissions {
             }
             if (ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId())) {
                 // This entity is a group, so we are checking group generic permission first
-                return user.getUserPermissions().hasGenericPermission(resource, operation);
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
             }
             if (!operation.isAllowedForGroupRole()) {
                 return false;

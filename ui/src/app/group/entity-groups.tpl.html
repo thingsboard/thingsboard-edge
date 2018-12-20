@@ -75,16 +75,18 @@
                     group-type="{{vm.groupType}}">
             </tb-group-permissions>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode  && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode  && vm.groupResource | hasGenericPermission:'readAttributes'" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
             <tb-attribute-table flex
+                                readonly="!(vm.groupResource | hasGenericPermission:'writeAttributes')"
                                 entity-id="vm.grid.operatingItem().id.id"
                                 entity-type="{{vm.types.entityType.entityGroup}}"
                                 entity-name="vm.grid.operatingItem().name"
                                 default-attribute-scope="{{vm.types.attributesScope.server.value}}">
             </tb-attribute-table>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode  && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.groupResource | hasGenericPermission:'readTelemetry'" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
             <tb-attribute-table flex
+                                readonly="!(vm.groupResource | hasGenericPermission:'writeTelemetry')"
                                 entity-id="vm.grid.operatingItem().id.id"
                                 entity-type="{{vm.types.entityType.entityGroup}}"
                                 entity-name="vm.grid.operatingItem().name"
@@ -92,7 +94,7 @@
                                 disable-attribute-scope-selection="true">
             </tb-attribute-table>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin() && 'auditLog' | hasGenericPermission:'read'" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
             <tb-audit-log-table flex entity-type="vm.types.entityType.entityGroup"
                                 entity-id="vm.grid.operatingItem().id.id"
                                 audit-log-mode="{{vm.types.auditLogMode.entity}}">

@@ -83,6 +83,14 @@ export default angular.module('thingsboard.securityTypes', [])
                 "ROLE": "ROLE",
                 "GROUP_PERMISSION": "GROUP_PERMISSION"
             },
+            groupResourceByGroupType: {
+                "CUSTOMER": "CUSTOMER_GROUP",
+                "DEVICE": "DEVICE_GROUP",
+                "ASSET": "ASSET_GROUP",
+                "USER": "USER_GROUP",
+                "ENTITY_VIEW": "ENTITY_VIEW_GROUP",
+                "DASHBOARD": "DASHBOARD_GROUP"
+            },
             operation: {
                 all: "ALL",
                 create: "CREATE",

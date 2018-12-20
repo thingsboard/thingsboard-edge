@@ -45,7 +45,20 @@ export function EntityGroupCardController() {
 
 /*@ngInject*/
 export function EntityGroupsController($rootScope, $state, utils, entityGroupService, customerService, $stateParams,
-                                      $q, $translate, types) {
+                                      $q, $translate, types, securityTypes, userPermissionsService) {
+
+    var vm = this;
+
+    vm.customerId = $stateParams.customerId;
+    if (vm.customerId && $stateParams.childGroupType) {
+        vm.groupType = $stateParams.childGroupType;
+    } else {
+        vm.groupType = $stateParams.groupType;
+    }
+
+    vm.types = types;
+
+    vm.groupResource = securityTypes.groupResourceByGroupType[vm.groupType];
 
     var entityGroupActionsList = [
         {
@@ -64,22 +77,11 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
             details: function() { return $translate.instant('entity-group.delete') },
             icon: "delete",
             isEnabled: function(entityGroup) {
-                return !entityGroup.groupAll;
+                return !entityGroup.groupAll && userPermissionsService.hasGenericPermission(vm.groupResource, securityTypes.operation.delete);
             }
         }
 
     ];
-
-    var vm = this;
-
-    vm.customerId = $stateParams.customerId;
-    if (vm.customerId && $stateParams.childGroupType) {
-        vm.groupType = $stateParams.childGroupType;
-    } else {
-        vm.groupType = $stateParams.groupType;
-    }
-
-    vm.types = types;
 
     vm.actionSources = {
         'actionCellButton': {
@@ -93,6 +95,8 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
     };
 
     vm.entityGroupGridConfig = {
+
+        resource: vm.groupResource,
 
         refreshParamsFunc: null,
 
@@ -123,11 +127,11 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         addItemText: function() { return $translate.instant('entity-group.add-entity-group-text') },
         noItemsText: function() { return $translate.instant('entity-group.no-entity-groups-text') },
         itemDetailsText: function() { return $translate.instant('entity-group.entity-group-details') },
-        isDetailsReadOnly: function() {
-            return false;
+        isDetailsReadOnly: function(/*entityGroup*/) {
+            return !userPermissionsService.hasGenericPermission(vm.groupResource, securityTypes.operation.write);
         },
         isSelectionEnabled: function(entityGroup) {
-            return !entityGroup.groupAll;
+            return !entityGroup.groupAll && userPermissionsService.hasGenericPermission(vm.groupResource, securityTypes.operation.delete);
         }
     };
 

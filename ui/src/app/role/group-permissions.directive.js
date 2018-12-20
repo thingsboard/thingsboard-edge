@@ -56,10 +56,14 @@ export default function GroupPermissions() {
 
 /*@ngInject*/
 function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
-                                       $mdUtil, $document, $translate, $filter, $timeout, utils, types, dashboardUtils,
-                                       entityService, roleService) {
+                                       $mdUtil, $document, $translate, $filter, $timeout, utils, types, securityTypes, dashboardUtils,
+                                       entityService, roleService, userPermissionsService) {
 
     let vm = this;
+
+    vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.write);
+    vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.create);
+    vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.delete);
 
     vm.types = types;
 
