@@ -74,7 +74,9 @@ export default function SendRpcRequestEventConfigDirective($compile, $templateCa
     return {
         restrict: "E",
         require: "^ngModel",
-        scope: {},
+        scope: {
+            readonly:'=ngReadonly'
+        },
         link: linker
     };
 }

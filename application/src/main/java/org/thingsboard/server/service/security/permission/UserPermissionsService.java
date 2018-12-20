@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.security.permission;
 
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -38,7 +39,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 
 public interface UserPermissionsService {
 
-    MergedUserPermissions getMergedPermissions(TenantId tenantId, CustomerId customerId, UserId userId) throws Exception;
+    MergedUserPermissions getMergedPermissions(User user) throws Exception;
 
 
 

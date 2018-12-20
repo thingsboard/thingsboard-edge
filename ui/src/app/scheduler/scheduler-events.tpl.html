@@ -58,7 +58,7 @@
                     </div>
                 </div>
                 <span flex></span>
-                <md-button ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
+                <md-button ng-if="vm.addEnabled" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'scheduler.add-scheduler-event' | translate }}
@@ -115,7 +115,7 @@
         </md-toolbar>
         <div layout="column" flex ng-show="vm.mode === 'list'">
             <md-table-container flex>
-                <table md-table md-row-select multiple="" ng-model="vm.selectedSchedulerEvents" md-progress="vm.schedulerEventsDeferred.promise">
+                <table md-table md-row-select="vm.deleteEnabled" multiple="" ng-model="vm.selectedSchedulerEvents" md-progress="vm.schedulerEventsPromise">
                     <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                     <tr md-row>
                         <th ng-if="vm.displayCreatedTime" md-column md-order-by="createdTime"><span translate>scheduler.created-time</span></th>
@@ -132,14 +132,21 @@
                         <td ng-if="vm.displayType" md-cell>{{schedulerEvent.typeName}}</td>
                         <td ng-if="vm.displayCustomer" md-cell>{{schedulerEvent.assignedCustomer.title}}</td>
                         <td md-cell class="tb-action-cell">
-                            <md-button ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
+                            <md-button ng-if="vm.editEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
                                        ng-click="vm.editSchedulerEvent($event, schedulerEvent)">
                                 <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.edit-scheduler-event' | translate }}
                                 </md-tooltip>
                             </md-button>
-                            <md-button ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{'action.delete' | translate}}" ng-click="vm.deleteSchedulerEvent($event, schedulerEvent)">
+                            <md-button ng-if="!vm.editEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.view' | translate }}"
+                                       ng-click="vm.viewSchedulerEvent($event, schedulerEvent)">
+                                <md-icon aria-label="{{ 'action.view' | translate }}" class="material-icons">more_horiz</md-icon>
+                                <md-tooltip md-direction="top">
+                                    {{ 'scheduler.view-scheduler-event' | translate }}
+                                </md-tooltip>
+                            </md-button>
+                            <md-button ng-if="vm.deleteEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{'action.delete' | translate}}" ng-click="vm.deleteSchedulerEvent($event, schedulerEvent)">
                                 <md-icon aria-label="Delete" class="material-icons">delete</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.delete-scheduler-event' | translate }}
@@ -198,13 +205,19 @@
                         <div class="tb-context-menu-title">{{vm.contextMenuSchedulerEvent.name}}</div>
                         <div class="tb-context-menu-subtitle">{{vm.contextMenuSchedulerEvent.typeName}}</div>
                     </div>
-                    <md-menu-item>
+                    <md-menu-item ng-if="vm.editEnabled">
                         <md-button ng-click="vm.editSchedulerEvent(vm.contextMenuEvent, vm.contextMenuSchedulerEvent)">
                             <md-icon md-menu-align-target aria-label="{{ 'scheduler.edit-scheduler-event' | translate }}" class="material-icons">edit</md-icon>
                             <span translate>action.edit</span>
                         </md-button>
                     </md-menu-item>
-                    <md-menu-item>
+                    <md-menu-item ng-if="!vm.editEnabled">
+                        <md-button ng-click="vm.viewSchedulerEvent(vm.contextMenuEvent, vm.contextMenuSchedulerEvent)">
+                            <md-icon md-menu-align-target aria-label="{{ 'scheduler.view-scheduler-event' | translate }}" class="material-icons">visibility</md-icon>
+                            <span translate>action.view</span>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item ng-if="vm.deleteEnabled">
                         <md-button ng-click="vm.deleteSchedulerEvent(vm.contextMenuEvent, vm.contextMenuSchedulerEvent)">
                             <md-icon md-menu-align-target aria-label="{{ 'scheduler.delete-scheduler-event' | translate }}" class="material-icons">delete</md-icon>
                             <span translate>action.delete</span>

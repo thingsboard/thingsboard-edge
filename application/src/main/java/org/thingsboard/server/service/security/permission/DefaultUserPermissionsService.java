@@ -40,6 +40,7 @@ import org.codehaus.jackson.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -70,7 +72,21 @@ import java.util.stream.Collectors;
 @Service
 public class DefaultUserPermissionsService implements UserPermissionsService {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static MergedUserPermissions sysAdminPermissions;
+    static {
+        Map<Resource, Set<Operation>> sysAdminGenericPermissions = new HashMap<>();
+        sysAdminGenericPermissions.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.DASHBOARD, new HashSet<>(Arrays.asList(Operation.READ)));
+        sysAdminGenericPermissions.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.READ)));
+        sysAdminGenericPermissions.put(Resource.TENANT, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.RULE_CHAIN, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.USER, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.WIDGETS_BUNDLE, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.WIDGET_TYPE, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminPermissions = new MergedUserPermissions(sysAdminGenericPermissions, new HashMap<>());
+    }
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -88,21 +104,24 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
     private UserPermissionsCacheService userPermissionsCacheService;
 
     @Override
-    public MergedUserPermissions getMergedPermissions(TenantId tenantId, CustomerId customerId, UserId userId) throws Exception {
-        byte[] data = userPermissionsCacheService.getMergedPermissions(tenantId, customerId, userId);
+    public MergedUserPermissions getMergedPermissions(User user) throws Exception {
+        if (user.getAuthority() == Authority.SYS_ADMIN) {
+            return sysAdminPermissions;
+        }
+        byte[] data = userPermissionsCacheService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
         MergedUserPermissions result = null;
         if (data.length != 0) {
             try {
                 result = fromBytes(data);
             } catch (InvalidProtocolBufferException e) {
-                log.warn("[{}][{}][{}] Failed to decode merged user permissions from cache: {}", tenantId, customerId, userId, Arrays.toString(data));
+                log.warn("[{}][{}][{}] Failed to decode merged user permissions from cache: {}", user.getTenantId(), user.getCustomerId(), user.getId(), Arrays.toString(data));
             }
         }
         if (result == null) {
-            ListenableFuture<List<EntityGroupId>> groups = entityGroupService.findEntityGroupsForEntity(tenantId, userId);
-            ListenableFuture<List<GroupPermission>> permissions = Futures.transformAsync(groups, toGroupPermissionsList(tenantId), dbCallbackExecutorService);
-            result = Futures.transform(permissions, groupPermissions -> toMergedUserPermissions(tenantId, groupPermissions), dbCallbackExecutorService).get();
-            userPermissionsCacheService.putMergedPermissions(tenantId, customerId, userId, toBytes(result));
+            ListenableFuture<List<EntityGroupId>> groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
+            ListenableFuture<List<GroupPermission>> permissions = Futures.transformAsync(groups, toGroupPermissionsList(user.getTenantId()), dbCallbackExecutorService);
+            result = Futures.transform(permissions, groupPermissions -> toMergedUserPermissions(user.getTenantId(), groupPermissions), dbCallbackExecutorService).get();
+            userPermissionsCacheService.putMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId(), toBytes(result));
         }
         return result;
     }

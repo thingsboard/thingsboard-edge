@@ -138,7 +138,8 @@ export default function ReportConfigDirective($compile, $templateCache, $mdDialo
         restrict: "E",
         require: "^ngModel",
         scope: {
-            reportsServerEndpointUrl: '=?'
+            reportsServerEndpointUrl: '=?',
+            readonly:'=ngReadonly'
         },
         link: linker
     };

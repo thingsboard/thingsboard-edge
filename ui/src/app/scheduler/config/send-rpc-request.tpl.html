@@ -35,6 +35,7 @@
         <small translate>scheduler.target</small>
         <tb-originator-select
                 ng-required="true"
+                ng-readonly="readonly"
                 ng-model="configuration.originatorId"
                 allowed-entity-types="[types.entityType.device]"
                 single-entity-text="scheduler.single-device"
@@ -43,12 +44,13 @@
     </div>
     <md-input-container class="md-block">
         <label translate>scheduler.rpc-method</label>
-        <input required name="rpcMethod" ng-model="configuration.msgBody.method">
+        <input ng-disabled="readonly" required name="rpcMethod" ng-model="configuration.msgBody.method">
         <div ng-messages="sendRpcRequestConfigForm.rpcMethod.$error">
             <div translate ng-message="required">scheduler.rpc-method-required</div>
         </div>
     </md-input-container>
     <tb-json-object-edit class="tb-scheduler-event-configuration-json"
+                         ng-readonly="readonly"
                          ng-model="configuration.msgBody.params"
                          label="{{ 'scheduler.rpc-params' | translate }}"
                          ng-required="true"

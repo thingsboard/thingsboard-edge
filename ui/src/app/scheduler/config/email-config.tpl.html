@@ -33,36 +33,36 @@
 <section ng-form name="emailConfigForm" layout="column">
     <md-input-container class="md-block">
         <label translate>report.from</label>
-        <textarea ng-required="true" name="from" ng-model="emailConfig.from" rows="2"></textarea>
+        <textarea ng-disabled="readonly" ng-required="true" name="from" ng-model="emailConfig.from" rows="2"></textarea>
         <div ng-messages="emailConfigForm.from.$error">
             <div ng-message="required" translate>report.from-required</div>
         </div>
     </md-input-container>
     <md-input-container class="md-block">
         <label translate>report.to</label>
-        <textarea ng-required="true" name="to" ng-model="emailConfig.to" rows="2"></textarea>
+        <textarea ng-disabled="readonly" ng-required="true" name="to" ng-model="emailConfig.to" rows="2"></textarea>
         <div ng-messages="emailConfigForm.to.$error">
             <div ng-message="required" translate>report.to-required</div>
         </div>
     </md-input-container>
     <md-input-container class="md-block">
         <label translate>report.cc</label>
-        <textarea name="cc" ng-model="emailConfig.cc" rows="2"></textarea>
+        <textarea ng-disabled="readonly" name="cc" ng-model="emailConfig.cc" rows="2"></textarea>
     </md-input-container>
     <md-input-container class="md-block">
         <label translate>report.bcc</label>
-        <textarea name="bcc" ng-model="emailConfig.bcc" rows="2"></textarea>
+        <textarea ng-disabled="readonly" name="bcc" ng-model="emailConfig.bcc" rows="2"></textarea>
     </md-input-container>
     <md-input-container class="md-block">
         <label translate>report.subject</label>
-        <textarea ng-required="true" name="subject" ng-model="emailConfig.subject" rows="2"></textarea>
+        <textarea ng-disabled="readonly" ng-required="true" name="subject" ng-model="emailConfig.subject" rows="2"></textarea>
         <div ng-messages="emailConfigForm.subject.$error">
             <div ng-message="required" translate>report.subject-required</div>
         </div>
     </md-input-container>
     <md-input-container class="md-block">
         <label translate>report.body</label>
-        <textarea ng-required="true" name="body" ng-model="emailConfig.body" rows="6"></textarea>
+        <textarea ng-disabled="readonly" ng-required="true" name="body" ng-model="emailConfig.body" rows="6"></textarea>
         <div ng-messages="emailConfigForm.body.$error">
             <div ng-message="required" translate>report.body-required</div>
         </div>

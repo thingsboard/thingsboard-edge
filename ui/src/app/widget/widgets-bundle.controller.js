@@ -36,7 +36,8 @@ import widgetsBundleCard from './widgets-bundle-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function WidgetsBundleController(widgetService, userService, importExport, $state, $stateParams, $filter, $translate, types, utils) {
+export default function WidgetsBundleController(widgetService, userService, importExport, $state, $stateParams, $filter, $translate,
+                                                types, securityTypes, utils, userPermissionsService) {
 
     var widgetsBundleActionsList = [
         {
@@ -45,7 +46,10 @@ export default function WidgetsBundleController(widgetService, userService, impo
             },
             name: function() { $translate.instant('action.export') },
             details: function() { return $translate.instant('widgets-bundle.export') },
-            icon: "file_download"
+            icon: "file_download",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.read);
+            }
         },
         {
             onAction: function ($event, item) {
@@ -62,7 +66,10 @@ export default function WidgetsBundleController(widgetService, userService, impo
             name: function() { return $translate.instant('action.delete') },
             details: function() { return $translate.instant('widgets-bundle.delete') },
             icon: "delete",
-            isEnabled: isWidgetsBundleEditable
+            isEnabled: function(widgetsBundle) {
+                return isWidgetsBundleEditable(widgetsBundle) &&
+                    userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.delete);
+            }
         }
    ];
 
@@ -95,6 +102,8 @@ export default function WidgetsBundleController(widgetService, userService, impo
 
     vm.widgetsBundleGridConfig = {
 
+        resource: securityTypes.resource.widgetsBundle,
+
         refreshParamsFunc: null,
 
         deleteItemTitleFunc: deleteWidgetsBundleTitle,
@@ -122,9 +131,13 @@ export default function WidgetsBundleController(widgetService, userService, impo
         addItemText: function() { return $translate.instant('widgets-bundle.add-widgets-bundle-text') },
         noItemsText: function() { return $translate.instant('widgets-bundle.no-widgets-bundles-text') },
         itemDetailsText: function() { return $translate.instant('widgets-bundle.widgets-bundle-details') },
-        isSelectionEnabled: isWidgetsBundleEditable,
+        isSelectionEnabled: function(widgetsBundle) {
+            return isWidgetsBundleEditable(widgetsBundle) &&
+                userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.delete);
+        },
         isDetailsReadOnly: function(widgetsBundle) {
-             return !isWidgetsBundleEditable(widgetsBundle);
+             return !isWidgetsBundleEditable(widgetsBundle) ||
+                 !userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.write);
         }
 
     };
@@ -193,10 +206,12 @@ export default function WidgetsBundleController(widgetService, userService, impo
     }
 
     function openWidgetsBundle($event, widgetsBundle) {
-        if ($event) {
-            $event.stopPropagation();
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.read)) {
+            if ($event) {
+                $event.stopPropagation();
+            }
+            $state.go('home.widgets-bundles.widget-types', {widgetsBundleId: widgetsBundle.id.id});
         }
-        $state.go('home.widgets-bundles.widget-types', {widgetsBundleId: widgetsBundle.id.id});
     }
 
 }

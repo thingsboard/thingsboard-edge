@@ -88,7 +88,9 @@ export default function UpdateAttributesEventConfigDirective($compile, $template
     return {
         restrict: "E",
         require: "^ngModel",
-        scope: {},
+        scope: {
+            readonly:'=ngReadonly'
+        },
         link: linker
     };
 }

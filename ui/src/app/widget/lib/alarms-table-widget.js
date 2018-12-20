@@ -64,8 +64,11 @@ function AlarmsTableWidget() {
 }
 
 /*@ngInject*/
-function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDialog, $mdPanel, $document, $translate, $q, $timeout, alarmService, utils, types) {
+function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDialog, $mdPanel, $document, $translate, $q, $timeout, alarmService, utils,
+                                     types, securityTypes, userPermissionsService) {
     var vm = this;
+
+    vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.alarm, securityTypes.operation.write);
 
     vm.utils = utils;
 
@@ -388,10 +391,10 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
 
     function actionEnabled(alarm, actionDescriptor) {
         if (actionDescriptor.acknowledge) {
-            return (alarm.status == types.alarmStatus.activeUnack ||
+            return !vm.readonly && (alarm.status == types.alarmStatus.activeUnack ||
                     alarm.status == types.alarmStatus.clearedUnack);
         } else if (actionDescriptor.clear) {
-            return (alarm.status == types.alarmStatus.activeAck ||
+            return !vm.readonly && (alarm.status == types.alarmStatus.activeAck ||
                     alarm.status == types.alarmStatus.activeUnack);
         }
         return true;
@@ -403,7 +406,7 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
     }
 
     function openAlarmDetails($event, alarm) {
-        if (alarm && alarm.id) {
+        if (alarm) {
             var onShowingCallback = {
                 onShowing: function(){}
             }
@@ -412,9 +415,10 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
                 controllerAs: 'vm',
                 templateUrl: alarmDetailsDialogTemplate,
                 locals: {
-                    alarmId: alarm.id.id,
-                    allowAcknowledgment: vm.allowAcknowledgment,
-                    allowClear: vm.allowClear,
+                    alarmId: alarm.id ? alarm.id.id : null,
+                    alarm: alarm,
+                    allowAcknowledgment: !vm.readonly && vm.allowAcknowledgment,
+                    allowClear: !vm.readonly && vm.allowClear,
                     displayDetails: true,
                     showingCallback: onShowingCallback
                 },
@@ -471,19 +475,21 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
         if ($event) {
             $event.stopPropagation();
         }
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title($translate.instant('alarm.aknowledge-alarm-title'))
-            .htmlContent($translate.instant('alarm.aknowledge-alarm-text'))
-            .ariaLabel($translate.instant('alarm.acknowledge'))
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            alarmService.ackAlarm(alarm.id.id).then(function () {
-                vm.selectedAlarms = [];
-                vm.subscription.update();
+        if (alarm.id) {
+            var confirm = $mdDialog.confirm()
+                .targetEvent($event)
+                .title($translate.instant('alarm.aknowledge-alarm-title'))
+                .htmlContent($translate.instant('alarm.aknowledge-alarm-text'))
+                .ariaLabel($translate.instant('alarm.acknowledge'))
+                .cancel($translate.instant('action.no'))
+                .ok($translate.instant('action.yes'));
+            $mdDialog.show(confirm).then(function () {
+                alarmService.ackAlarm(alarm.id.id).then(function () {
+                    vm.selectedAlarms = [];
+                    vm.subscription.update();
+                });
             });
-        });
+        }
     }
 
     function clearAlarms($event) {
@@ -523,19 +529,21 @@ function AlarmsTableWidgetController($element, $scope, $filter, $mdMedia, $mdDia
         if ($event) {
             $event.stopPropagation();
         }
-        var confirm = $mdDialog.confirm()
-            .targetEvent($event)
-            .title($translate.instant('alarm.clear-alarm-title'))
-            .htmlContent($translate.instant('alarm.clear-alarm-text'))
-            .ariaLabel($translate.instant('alarm.clear'))
-            .cancel($translate.instant('action.no'))
-            .ok($translate.instant('action.yes'));
-        $mdDialog.show(confirm).then(function () {
-            alarmService.clearAlarm(alarm.id.id).then(function () {
-                vm.selectedAlarms = [];
-                vm.subscription.update();
+        if (alarm.id) {
+            var confirm = $mdDialog.confirm()
+                .targetEvent($event)
+                .title($translate.instant('alarm.clear-alarm-title'))
+                .htmlContent($translate.instant('alarm.clear-alarm-text'))
+                .ariaLabel($translate.instant('alarm.clear'))
+                .cancel($translate.instant('action.no'))
+                .ok($translate.instant('action.yes'));
+            $mdDialog.show(confirm).then(function () {
+                alarmService.clearAlarm(alarm.id.id).then(function () {
+                    vm.selectedAlarms = [];
+                    vm.subscription.update();
+                });
             });
-        });
+        }
     }
 
     function updateAlarms(preserveSelections) {

@@ -52,7 +52,7 @@ import java.util.Set;
 @Slf4j
 public class UserPermissionsController extends BaseController {
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/permissions/allowedPermissions", method = RequestMethod.GET)
     @ResponseBody
     public AllowedPermissionsInfo getAllowedPermissions() throws ThingsboardException {

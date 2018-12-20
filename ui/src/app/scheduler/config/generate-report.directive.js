@@ -68,7 +68,9 @@ export default function GenerateReportEventConfigDirective($compile, $templateCa
     return {
         restrict: "E",
         require: "^ngModel",
-        scope: {},
+        scope: {
+            readonly:'=ngReadonly'
+        },
         link: linker
     };
 }

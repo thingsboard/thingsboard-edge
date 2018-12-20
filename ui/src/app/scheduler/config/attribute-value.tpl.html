@@ -33,7 +33,7 @@
 <section ng-form name="attributeValue" layout="row">
     <md-input-container flex="40" class="md-block">
         <label translate>value.type</label>
-        <md-select ng-model="valueType" ng-change="valueTypeChange()">
+        <md-select ng-disabled="disabled" ng-model="valueType" ng-change="valueTypeChange()">
             <md-option ng-repeat="type in valueTypes" ng-value="type">
                 <md-icon md-svg-icon="{{ type.icon }}"></md-icon>
                 <span>{{type.name | translate}}</span>
@@ -42,11 +42,11 @@
     </md-input-container>
     <md-input-container ng-if="valueType===valueTypes.string" flex="60" class="md-block">
         <label translate>value.string-value</label>
-        <input name="value" ng-model="model.value">
+        <input ng-disabled="disabled" name="value" ng-model="model.value">
     </md-input-container>
     <md-input-container ng-if="valueType===valueTypes.integer" flex="60" class="md-block">
         <label translate>value.integer-value</label>
-        <input required name="value" type="number" step="1" ng-pattern="/^-?[0-9]+$/" ng-model="model.value">
+        <input ng-disabled="disabled" required name="value" type="number" step="1" ng-pattern="/^-?[0-9]+$/" ng-model="model.value">
         <div ng-messages="attributeValue.value.$error">
             <div translate ng-message="required">attribute.value-required</div>
             <div translate ng-message="pattern">value.invalid-integer-value</div>
@@ -54,13 +54,13 @@
     </md-input-container>
     <md-input-container ng-if="valueType===valueTypes.double" flex="60" class="md-block">
         <label translate>value.double-value</label>
-        <input required name="value" type="number" step="any" ng-model="model.value">
+        <input ng-disabled="disabled" required name="value" type="number" step="any" ng-model="model.value">
         <div ng-messages="attributeValue.value.$error">
             <div translate ng-message="required">attribute.value-required</div>
         </div>
     </md-input-container>
     <div layout="column" layout-align="center" flex="60" ng-if="valueType===valueTypes.boolean">
-        <md-checkbox ng-model="model.value" style="margin-bottom: 0px;">
+        <md-checkbox ng-disabled="disabled" ng-model="model.value" style="margin-bottom: 0px;">
             {{ (model.value ? 'value.true' : 'value.false') | translate }}
         </md-checkbox>
     </div>

@@ -119,7 +119,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         MergedUserPermissions userPermissions;
         try {
-            userPermissions = userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
+            userPermissions = userPermissionsService.getMergedPermissions(user);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

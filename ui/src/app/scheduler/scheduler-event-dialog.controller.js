@@ -32,7 +32,7 @@ import './scheduler-event-dialog.scss';
 
 /*@ngInject*/
 export default function SchedulerEventDialogController($rootScope, $scope, $mdDialog, schedulerEventService, types,
-                                                       configTypesList, isAdd, schedulerEvent, defaultEventType) {
+                                                       configTypesList, isAdd, readonly, schedulerEvent, defaultEventType) {
 
     var vm = this;
 
@@ -50,6 +50,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
     vm.schedulerEvent = schedulerEvent;
     vm.defaultEventType = defaultEventType;
     vm.isAdd = isAdd;
+    vm.readonly = readonly;
     vm.repeatType = types.schedulerRepeat;
 
     var startDate;

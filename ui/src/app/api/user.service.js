@@ -465,8 +465,8 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         promises.push(timeService.loadMaxDatapointsLimit());
         if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
             promises.push(checkIsWhiteLabelingAllowed());
-            promises.push(userPermissionsService.loadPermissionsInfo());
         }
+        promises.push(userPermissionsService.loadPermissionsInfo());
         return $q.all(promises);
     }
 

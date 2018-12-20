@@ -34,7 +34,7 @@
     <form name="theForm" ng-submit="vm.save()">
         <md-toolbar>
             <div class="md-toolbar-tools">
-                <h2 translate>{{vm.isAdd ? 'scheduler.create' : 'scheduler.edit'}}</h2>
+                <h2 translate>{{vm.isAdd ? 'scheduler.create' : (vm.readonly ? 'scheduler.view' : 'scheduler.edit')}}</h2>
                 <span flex></span>
                 <md-button class="md-icon-button" ng-click="vm.cancel()">
                     <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
@@ -48,7 +48,7 @@
                 <md-content class="md-padding" layout="column">
                     <md-input-container class="md-block" style="margin-bottom: 0px;">
                         <label translate>scheduler.name</label>
-                        <input required name="name" ng-model="vm.schedulerEvent.name">
+                        <input ng-disabled="vm.readonly" required name="name" ng-model="vm.schedulerEvent.name">
                         <div ng-messages="theForm.name.$error">
                             <div translate ng-message="required">scheduler.name-required</div>
                         </div>
@@ -60,7 +60,7 @@
                                         ng-model="vm.schedulerEvent.type"
                                         event-types="vm.configTypesList"
                                         the-form="theForm"
-                                        ng-disabled="$root.loading || vm.defaultEventType"
+                                        ng-disabled="vm.readonly || $root.loading || vm.defaultEventType"
                                 >
                                 </tb-scheduler-event-type-autocomplete>
                                 <tb-scheduler-event-config
@@ -69,79 +69,81 @@
                                         config-types="vm.configTypes"
                                         config-type="vm.schedulerEvent.type"
                                         ng-required="true"
-                                        ng-readonly="$root.loading"
+                                        ng-readonly="vm.readonly || $root.loading"
                                 >
                                 </tb-scheduler-event-config>
                                 <div ng-if="!vm.schedulerEvent.type" style="height: 300px;"></div>
                             </div>
                         </md-tab>
                         <md-tab label="{{ 'scheduler.schedule' | translate }}">
-                            <div layout="column" style="padding-top: 15px;">
-                                <span style="height: 16px;"></span>
-                                <tb-timezone-select default-timezone="vm.defaultTimezone" ng-model="vm.schedulerEvent.schedule.timezone"></tb-timezone-select>
-                                <label translate class="tb-small">scheduler.start</label>
-                                <section layout="column" layout-gt-sm="row" layout-align-gt-sm="start start">
-                                    <mdp-date-picker ng-required="true" ng-model="vm.startDate" mdp-placeholder="{{'scheduler.date' | translate}}">
-                                    </mdp-date-picker>
-                                    <mdp-time-picker ng-required="true" ng-model="vm.startDateTime" mdp-placeholder="{{'scheduler.time' | translate}}"
-                                                     mdp-auto-switch="true"></mdp-time-picker>
-                                </section>
-                                <md-checkbox aria-label="{{'scheduler.repeat' | translate}}" ng-change="vm.repeatsChange()"
-                                             ng-model="vm.repeat">{{'scheduler.repeat' | translate}}
-                                </md-checkbox>
-                                <md-input-container ng-if="vm.repeat" class="md-block">
-                                    <label translate>scheduler.repeats</label>
-                                    <md-select name="repeatType" required aria-label="{{ 'scheduler.repeats' | translate }}"
-                                               ng-model="vm.schedulerEvent.schedule.repeat.type" ng-change="vm.repeatTypeChange()">
-                                        <md-option ng-repeat="repeatType in vm.repeatType" ng-value="repeatType.value">
-                                            {{ repeatType ? (repeatType.name | translate) : ''  }}
-                                        </md-option>
-                                    </md-select>
-                                    <div ng-messages="vm.theForm.repeatType.$error">
-                                        <div ng-message="required" translate>scheduler.repeats-required</div>
-                                    </div>
-                                </md-input-container>
-                                <div layout="column" ng-if="vm.repeat && vm.schedulerEvent.schedule.repeat.type == vm.repeatType.weekly.value">
-                                    <label translate class="tb-small">scheduler.repeat-on</label>
+                            <fieldset ng-disabled="vm.readonly || $root.loading">
+                                <div layout="column" style="padding-top: 15px;">
                                     <span style="height: 16px;"></span>
-                                    <div layout="column" layout-gt-sm="row">
-                                        <div layout="row">
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-sunday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[0]">{{'scheduler.sunday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-sunday' | translate}}</md-tooltip>
-                                            </md-checkbox>
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-monday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[1]">{{'scheduler.monday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-monday' | translate}}</md-tooltip>
-                                            </md-checkbox>
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-tuesday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[2]">{{'scheduler.tuesday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-tuesday' | translate}}</md-tooltip>
-                                            </md-checkbox>
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-wednesday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[3]" style="margin-right: 16px;">{{'scheduler.wednesday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-wednesday' | translate}}</md-tooltip>
-                                            </md-checkbox>
+                                    <tb-timezone-select ng-disabled="vm.readonly || $root.loading" default-timezone="vm.defaultTimezone" ng-model="vm.schedulerEvent.schedule.timezone"></tb-timezone-select>
+                                    <label translate class="tb-small">scheduler.start</label>
+                                    <section layout="column" layout-gt-sm="row" layout-align-gt-sm="start start">
+                                        <mdp-date-picker ng-required="true" ng-model="vm.startDate" mdp-placeholder="{{'scheduler.date' | translate}}">
+                                        </mdp-date-picker>
+                                        <mdp-time-picker ng-required="true" ng-model="vm.startDateTime" mdp-placeholder="{{'scheduler.time' | translate}}"
+                                                         mdp-auto-switch="true"></mdp-time-picker>
+                                    </section>
+                                    <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat' | translate}}" ng-change="vm.repeatsChange()"
+                                                 ng-model="vm.repeat">{{'scheduler.repeat' | translate}}
+                                    </md-checkbox>
+                                    <md-input-container ng-if="vm.repeat" class="md-block">
+                                        <label translate>scheduler.repeats</label>
+                                        <md-select ng-disabled="vm.readonly || $root.loading" name="repeatType" required aria-label="{{ 'scheduler.repeats' | translate }}"
+                                                   ng-model="vm.schedulerEvent.schedule.repeat.type" ng-change="vm.repeatTypeChange()">
+                                            <md-option ng-repeat="repeatType in vm.repeatType" ng-value="repeatType.value">
+                                                {{ repeatType ? (repeatType.name | translate) : ''  }}
+                                            </md-option>
+                                        </md-select>
+                                        <div ng-messages="vm.theForm.repeatType.$error">
+                                            <div ng-message="required" translate>scheduler.repeats-required</div>
                                         </div>
-                                        <div layout="row">
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-thursday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[4]">{{'scheduler.thursday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-thursday' | translate}}</md-tooltip>
-                                            </md-checkbox>
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-friday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[5]">{{'scheduler.friday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-friday' | translate}}</md-tooltip>
-                                            </md-checkbox>
-                                            <md-checkbox aria-label="{{'scheduler.repeat-on-saturday' | translate}}" ng-change="vm.weekDayChange()"
-                                                         ng-model="vm.weeklyRepeat[6]">{{'scheduler.saturday-label' | translate}}
-                                                <md-tooltip md-direction="top">{{'scheduler.repeat-on-saturday' | translate}}</md-tooltip>
-                                            </md-checkbox>
+                                    </md-input-container>
+                                    <div layout="column" ng-if="vm.repeat && vm.schedulerEvent.schedule.repeat.type == vm.repeatType.weekly.value">
+                                        <label translate class="tb-small">scheduler.repeat-on</label>
+                                        <span style="height: 16px;"></span>
+                                        <div layout="column" layout-gt-sm="row">
+                                            <div layout="row">
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-sunday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[0]">{{'scheduler.sunday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-sunday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-monday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[1]">{{'scheduler.monday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-monday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-tuesday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[2]">{{'scheduler.tuesday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-tuesday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-wednesday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[3]" style="margin-right: 16px;">{{'scheduler.wednesday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-wednesday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                            </div>
+                                            <div layout="row">
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-thursday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[4]">{{'scheduler.thursday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-thursday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-friday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[5]">{{'scheduler.friday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-friday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                                <md-checkbox ng-disabled="vm.readonly || $root.loading" aria-label="{{'scheduler.repeat-on-saturday' | translate}}" ng-change="vm.weekDayChange()"
+                                                             ng-model="vm.weeklyRepeat[6]">{{'scheduler.saturday-label' | translate}}
+                                                    <md-tooltip md-direction="top">{{'scheduler.repeat-on-saturday' | translate}}</md-tooltip>
+                                                </md-checkbox>
+                                            </div>
                                         </div>
                                     </div>
+                                    <mdp-date-picker ng-if="vm.repeat" ng-required="true" ng-model="vm.endsOn" mdp-placeholder="{{'scheduler.ends-on' | translate}}">
+                                    </mdp-date-picker>
                                 </div>
-                                <mdp-date-picker ng-if="vm.repeat" ng-required="true" ng-model="vm.endsOn" mdp-placeholder="{{'scheduler.ends-on' | translate}}">
-                                </mdp-date-picker>
-                            </div>
+                            </fieldset>
                         </md-tab>
                     </md-tabs>
                 </md-content>
@@ -149,10 +151,10 @@
         </md-dialog-content>
         <md-dialog-actions layout="row">
             <span flex></span>
-            <md-button ng-disabled="$root.loading || theForm.$invalid || !theForm.$dirty" type="submit" class="md-raised md-primary">
+            <md-button ng-if="!vm.readonly" ng-disabled="$root.loading || theForm.$invalid || !theForm.$dirty" type="submit" class="md-raised md-primary">
                 {{ (vm.isAdd ? 'action.create' : 'action.save') | translate }}
             </md-button>
-            <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ 'action.cancel' | translate }}</md-button>
+            <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ (vm.readonly ? 'action.close' : 'action.cancel') | translate }}</md-button>
         </md-dialog-actions>
     </form>
 </md-dialog>

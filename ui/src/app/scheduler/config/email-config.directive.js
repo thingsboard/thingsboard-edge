@@ -70,6 +70,7 @@ export default function EmailConfigDirective($compile, $templateCache, types, ut
         restrict: "E",
         require: "^ngModel",
         scope: {
+            readonly:'=ngReadonly'
         },
         link: linker
     };

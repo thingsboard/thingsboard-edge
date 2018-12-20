@@ -35,12 +35,14 @@
         <small translate>scheduler.originator</small>
         <tb-originator-select
                 ng-required="false"
+                ng-readonly="readonly"
                 ng-model="configuration.originatorId">
         </tb-originator-select>
     </div>
     <tb-message-type-autocomplete
             ng-if="showMsgType"
             ng-required="false"
+            ng-disabled="readonly"
             ng-model="configuration.msgType"
             the-form="schedulerEventConfigForm">
     </tb-message-type-autocomplete>
@@ -53,6 +55,7 @@
     </tb-scheduler-event-template-config>
     <tb-json-object-edit ng-if="!useDefinedTemplate"
                          class="tb-scheduler-event-configuration-json"
+                         ng-readonly="readonly"
                          ng-model="configuration.msgBody"
                          label="{{ 'scheduler.message-body' | translate }}"
                          ng-required="required"
@@ -74,7 +77,8 @@
                         <md-expansion-panel-icon></md-expansion-panel-icon>
                     </md-expansion-panel-header>
                     <md-expansion-panel-content>
-                        <tb-key-val-map title-text="rulenode.metadata"
+                        <tb-key-val-map ng-disabled="readonly"
+                                        title-text="rulenode.metadata"
                                         key-val-map="configuration.metadata"></tb-key-val-map>
                     </md-expansion-panel-content>
                 </md-expansion-panel-expanded>

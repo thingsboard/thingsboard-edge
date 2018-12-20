@@ -36,7 +36,7 @@ import tenantCard from './tenant-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function TenantController(tenantService, $state, $stateParams, $translate, types, utils) {
+export default function TenantController(tenantService, $state, $stateParams, $translate, types, securityTypes, utils, userPermissionsService) {
 
     var tenantActionsList = [
         {
@@ -45,7 +45,10 @@ export default function TenantController(tenantService, $state, $stateParams, $t
             },
             name: function() { return $translate.instant('tenant.admins') },
             details: function() { return $translate.instant('tenant.manage-tenant-admins') },
-            icon: "account_circle"
+            icon: "account_circle",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.read);
+            }
         },
         {
             onAction: function ($event, item) {
@@ -53,7 +56,10 @@ export default function TenantController(tenantService, $state, $stateParams, $t
             },
             name: function() { return $translate.instant('action.delete') },
             details: function() { return $translate.instant('tenant.delete') },
-            icon: "delete"
+            icon: "delete",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.tenant, securityTypes.operation.delete);
+            }
         }
     ];
 
@@ -62,6 +68,8 @@ export default function TenantController(tenantService, $state, $stateParams, $t
     vm.types = types;
 
     vm.tenantGridConfig = {
+
+        resource: securityTypes.resource.tenant,
 
         refreshParamsFunc: null,
 

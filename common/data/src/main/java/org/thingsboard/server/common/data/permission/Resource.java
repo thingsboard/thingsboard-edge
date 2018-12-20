@@ -121,6 +121,7 @@ public enum Resource {
                 Resource.ALL,
                 Resource.ADMIN_SETTINGS,
                 Resource.DASHBOARD,
+                Resource.ALARM,
                 Resource.TENANT,
                 Resource.USER,
                 Resource.WIDGETS_BUNDLE,

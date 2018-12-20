@@ -57,11 +57,16 @@ export default function SchedulerEvents() {
 
 /*@ngInject*/
 function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $mdUtil, $mdMedia, $document, $window, $translate, $filter, $timeout,
-                                   uiCalendarConfig, utils, types, userService, schedulerEventService) {
+                                   uiCalendarConfig, utils, types, securityTypes, userPermissionsService, userService, schedulerEventService) {
 
     let vm = this;
 
-    vm.showData = userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER';
+    vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.write);
+    vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.create);
+    vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.delete);
+
+    vm.showData = (userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER') &&
+        userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.read);
 
     vm.mode = 'list';
     vm.currentCalendarView = 'month';
@@ -76,7 +81,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     vm.displayCreatedTime = true;
     vm.displayType = true;
-    vm.displayCustomer = userService.getAuthority() === 'TENANT_ADMIN' ? true : false;
+    vm.displayCustomer = true;//userService.getAuthority() === 'TENANT_ADMIN' ? true : false;
 
     vm.displayPagination = true;
     vm.defaultPageSize = 10;
@@ -93,7 +98,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     vm.calendarConfig = {
         height: 'parent',
-        editable: true,
+        editable: vm.editEnabled,
         eventDurationEditable: false,
         allDaySlot: false,
         header: false,
@@ -119,6 +124,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.onPaginate = onPaginate;
     vm.addSchedulerEvent = addSchedulerEvent;
     vm.editSchedulerEvent = editSchedulerEvent;
+    vm.viewSchedulerEvent = viewSchedulerEvent;
     vm.deleteSchedulerEvent = deleteSchedulerEvent;
     vm.deleteSchedulerEvents = deleteSchedulerEvents;
     vm.reloadSchedulerEvents = reloadSchedulerEvents;
@@ -134,11 +140,11 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         if (!angular.equals(newVal, prevVal)) {
             if (vm.mode == 'calendar') {
                 vm.selectedSchedulerEvents = [];
-                $mdUtil.nextTick(() => {
-                    var w = angular.element($window);
-                    w.triggerHandler('resize');
-                });
             }
+            $mdUtil.nextTick(() => {
+                var w = angular.element($window);
+                w.triggerHandler('resize');
+            });
         }
     });
 
@@ -173,6 +179,10 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             });
             reloadSchedulerEvents();
         }
+        $timeout(() => {
+            var w = angular.element($window);
+            w.triggerHandler('resize');
+        }, 100);
     }
 
     function initializeWidgetConfig() {
@@ -183,9 +193,9 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
         vm.displayCreatedTime = angular.isDefined(vm.settings.displayCreatedTime) ? vm.settings.displayCreatedTime : true;
         vm.displayType = angular.isDefined(vm.settings.displayType) ? vm.settings.displayType : true;
-        if (userService.getAuthority() === 'TENANT_ADMIN') {
+        //if (userService.getAuthority() === 'TENANT_ADMIN') {
             vm.displayCustomer = angular.isDefined(vm.settings.displayCustomer) ? vm.settings.displayCustomer : true;
-        }
+        //}
 
         vm.displayPagination = angular.isDefined(vm.settings.displayPagination) ? vm.settings.displayPagination : true;
 
@@ -286,13 +296,15 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     }
 
     function onDayClick(date, $event/*, view*/) {
-        var schedulerEvent = {
-            schedule: {
-                startTime: date.utc().valueOf()
-            },
-            configuration: {}
-        };
-        openSchedulerEventDialog($event, schedulerEvent);
+        if (vm.addEnabled) {
+            var schedulerEvent = {
+                schedule: {
+                    startTime: date.utc().valueOf()
+                },
+                configuration: {}
+            };
+            openSchedulerEventDialog($event, schedulerEvent);
+        }
     }
 
     function onEventDrop(event, delta, revertFunc/*, $event*/) {
@@ -541,7 +553,18 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         );
     }
 
-    function openSchedulerEventDialog($event, schedulerEvent) {
+    function viewSchedulerEvent($event, schedulerEvent) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        schedulerEventService.getSchedulerEvent(schedulerEvent.id.id).then(
+            (schedulerEvent) => {
+                openSchedulerEventDialog($event, schedulerEvent, true);
+            }
+        );
+    }
+
+    function openSchedulerEventDialog($event, schedulerEvent, readonly) {
         if ($event) {
             $event.stopPropagation();
         }
@@ -568,6 +591,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
               locals: {
                   configTypesList: vm.configTypesList,
                   isAdd: isAdd,
+                  readonly: readonly,
                   schedulerEvent: schedulerEvent,
                   defaultEventType: vm.defaultEventType
               },

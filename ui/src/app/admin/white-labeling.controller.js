@@ -42,8 +42,10 @@ const maxLogoSize = 4194304;
 
 /*@ngInject*/
 export default function WhiteLabelingController($state, userService, $scope, $mdDialog, $document, $q,
-                                                $translate, toast, whiteLabelingService, $mdTheming, $filter) {
+                                                $translate, toast, securityTypes, userPermissionsService, whiteLabelingService, $mdTheming, $filter) {
     var vm = this;
+
+    vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.whiteLabeling, securityTypes.operation.write);
 
     vm.isLoginWl = $state.current.data.isLoginWl;
 

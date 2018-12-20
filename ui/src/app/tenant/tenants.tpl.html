@@ -43,16 +43,18 @@
 				   on-manage-users="vm.openTenantUsers(event, vm.grid.detailsConfig.currentItem)"
 				   on-delete-tenant="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"></tb-tenant>
 		</md-tab>
-		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
+		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && 'tenant' | hasGenericPermission:'readAttributes'" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
 			<tb-attribute-table flex
+                                readonly="!('tenant' | hasGenericPermission:'writeAttributes')"
 								entity-id="vm.grid.operatingItem().id.id"
 								entity-type="{{vm.types.entityType.tenant}}"
 								entity-name="vm.grid.operatingItem().title"
 								default-attribute-scope="{{vm.types.attributesScope.server.value}}">
 			</tb-attribute-table>
 		</md-tab>
-		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
+		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && 'tenant' | hasGenericPermission:'readTelemetry'" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
 			<tb-attribute-table flex
+                                readonly="!('tenant' | hasGenericPermission:'writeTelemetry')"
 								entity-id="vm.grid.operatingItem().id.id"
 								entity-type="{{vm.types.entityType.tenant}}"
 								entity-name="vm.grid.operatingItem().title"
@@ -60,7 +62,7 @@
 								disable-attribute-scope-selection="true">
 			</tb-attribute-table>
 		</md-tab>
-		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
+		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && 'alarm' | hasGenericPermission:'read'" md-on-select="vm.grid.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
 			<tb-alarm-table flex entity-type="vm.types.entityType.tenant"
 							entity-id="vm.grid.operatingItem().id.id">
 			</tb-alarm-table>
@@ -74,6 +76,7 @@
 		</md-tab>
 		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'relation.relations' | translate }}">
 			<tb-relation-table flex
+                               readonly="!('tenant' | hasGenericPermission:'write')"
 							   entity-id="vm.grid.operatingItem().id.id"
 							   entity-type="{{vm.types.entityType.tenant}}">
 			</tb-relation-table>

@@ -31,9 +31,11 @@
 
 -->
 <md-button ng-click="onExportWidgetsBundle({event: $event})"
+           ng-if="'widgetType' | hasGenericPermission:'read'"
            ng-show="!isEdit"
            class="md-raised md-primary">{{ 'widgets-bundle.export' | translate }}</md-button>
 <md-button ng-click="onDeleteWidgetsBundle({event: $event})"
+           ng-if="'widgetsBundle' | hasGenericPermission:'delete'"
            ng-show="!isEdit && !isReadOnly"
            class="md-raised md-primary">{{ 'widgets-bundle.delete' | translate }}</md-button>
 

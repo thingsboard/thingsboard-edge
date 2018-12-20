@@ -38,7 +38,7 @@ import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
 
 
 /*@ngInject*/
-export default function UserController(userService, toast, $scope, $mdDialog, $document, $controller, $state, $stateParams, $translate, types) {
+export default function UserController(userService, toast, $scope, $mdDialog, $document, $controller, $state, $stateParams, $translate, types, securityTypes, userPermissionsService) {
 
     var tenantId = $stateParams.tenantId;
     var customerId = $stateParams.customerId;
@@ -62,7 +62,10 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
             },
             name: function() { return $translate.instant('action.delete') },
             details: function() { return $translate.instant('user.delete') },
-            icon: "delete"
+            icon: "delete",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.delete);
+            }
         }
     ];
 
@@ -73,6 +76,9 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
     vm.types = types;
 
     vm.userGridConfig = {
+
+        resource: securityTypes.resource.user,
+
         deleteItemTitleFunc: deleteUserTitle,
         deleteItemContentFunc: deleteUserText,
         deleteItemsTitleFunc: deleteUsersTitle,

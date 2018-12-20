@@ -34,12 +34,13 @@
     <div layout='column' layout-gt-sm='row'>
         <md-input-container flex class="md-block">
             <label translate>report.base-url</label>
-            <input required name="baseUrl" ng-model="reportConfig.baseUrl">
+            <input ng-disabled="readonly" required name="baseUrl" ng-model="reportConfig.baseUrl">
             <div ng-messages="reportConfigForm.baseUrl.$error">
                 <div translate ng-message="required">report.base-url-required</div>
             </div>
         </md-input-container>
         <tb-entity-autocomplete flex the-form="reportConfigForm"
+                                ng-disabled="readonly"
                                 tb-required="true"
                                 entity-type="types.entityType.dashboard"
                                 ng-model="reportConfig.dashboardId">
@@ -48,38 +49,38 @@
     <div layout="row">
         <md-input-container flex class="md-block">
             <label translate>report.dashboard-state-param</label>
-            <input name="state" ng-model="reportConfig.state">
+            <input ng-disabled="readonly" name="state" ng-model="reportConfig.state">
         </md-input-container>
-        <md-button class="md-icon-button" ng-disabled="!reportConfig.dashboardId" ng-click="selectDashboardState($event)">
+        <md-button class="md-icon-button" ng-disabled="readonly || !reportConfig.dashboardId" ng-click="selectDashboardState($event)">
             <md-icon class="material-icons">open_in_new</md-icon>
             <md-tooltip md-direction="top">
                 {{ 'scheduler.select-dashboard-state' | translate }}
             </md-tooltip>
         </md-button>
     </div>
-    <tb-timezone-select default-timezone="defaultTimezone" ng-model="reportConfig.timezone"></tb-timezone-select>
+    <tb-timezone-select ng-disabled="readonly" default-timezone="defaultTimezone" ng-model="reportConfig.timezone"></tb-timezone-select>
     <div layout='column' layout-align="center"
          layout-gt-sm='row' layout-align-gt-sm="start center">
         <md-checkbox flex aria-label="{{ 'report.use-dashboard-timewindow' | translate }}"
-                     ng-model="reportConfig.useDashboardTimewindow">{{ 'report.use-dashboard-timewindow' | translate }}
+                     ng-disabled="readonly" ng-model="reportConfig.useDashboardTimewindow">{{ 'report.use-dashboard-timewindow' | translate }}
         </md-checkbox>
         <section flex layout="row" layout-align="start center" style="margin-bottom: 16px;">
             <span ng-class="{'tb-disabled-label': reportConfig.useDashboardTimewindow}" translate style="padding-right: 8px;">report.timewindow</span>
-            <tb-timewindow ng-disabled="reportConfig.useDashboardTimewindow" as-button="true" aggregation="true"
+            <tb-timewindow ng-disabled="readonly || reportConfig.useDashboardTimewindow" as-button="true" aggregation="true"
                            flex ng-model="reportConfig.timewindow"></tb-timewindow>
         </section>
     </div>
     <div layout='column' layout-gt-sm='row'>
         <md-input-container flex class="md-block">
             <label translate>report.name-pattern</label>
-            <input required name="namePattern" ng-model="reportConfig.namePattern">
+            <input ng-disabled="readonly" required name="namePattern" ng-model="reportConfig.namePattern">
             <div ng-messages="reportConfigForm.namePattern.$error">
                 <div translate ng-message="required">report.name-pattern-required</div>
             </div>
         </md-input-container>
         <md-input-container flex class="md-block">
             <label translate>report.type</label>
-            <md-select name="reportType" required aria-label="{{ 'report.type' | translate }}"
+            <md-select ng-disabled="readonly" name="reportType" required aria-label="{{ 'report.type' | translate }}"
                        ng-model="reportConfig.type">
                 <md-option ng-repeat="reportType in types.reportType" ng-value="reportType.value">
                     {{ reportType.name }}
@@ -90,13 +91,14 @@
     <div layout='column' layout-align="center"
          layout-gt-sm='row' layout-align-gt-sm="start center" ng-if="isTenantAdmin">
         <md-checkbox flex aria-label="{{ 'report.use-current-user-credentials' | translate }}"
+                     ng-disabled="readonly"
                      ng-change="useCurrentUserCredentialsChange()"
                      ng-model="reportConfig.useCurrentUserCredentials">{{ 'report.use-current-user-credentials' | translate }}
         </md-checkbox>
         <tb-entity-autocomplete flex
                                 ng-if="!reportConfig.useCurrentUserCredentials"
                                 the-form="reportConfigForm"
-                                ng-disabled="reportConfig.useCurrentUserCredentials"
+                                ng-disabled="readonly || reportConfig.useCurrentUserCredentials"
                                 tb-required="!reportConfig.useCurrentUserCredentials"
                                 entity-type="types.entityType.user"
                                 label-text="'report.customer-user-credentials'"
@@ -105,7 +107,7 @@
         </tb-entity-autocomplete>
     </div>
     <div layout='row'>
-        <md-button ng-disabled="$root.loading || reportConfigForm.$invalid" ng-click="generateTestReport($event)" class="md-raised md-primary">
+        <md-button ng-if="!readonly" ng-disabled="$root.loading || reportConfigForm.$invalid" ng-click="generateTestReport($event)" class="md-raised md-primary">
             {{ 'report.generate-test-report' | translate }}
         </md-button>
     </div>
