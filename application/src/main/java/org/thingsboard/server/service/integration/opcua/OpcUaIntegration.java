@@ -275,6 +275,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         try {
             devices.clear();
             devicesByTags.clear();
+            client.disconnect();
             initClient(opcUaServerConfiguration);
             scheduleReconnect = false;
             return true;
