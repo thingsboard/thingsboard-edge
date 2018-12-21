@@ -74,6 +74,13 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private CustomerService customerService;
 
     @Override
+    public Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId) {
+        Set<EntityId> result = new HashSet<>();
+        fetchOwners(tenantId, ownerId, result);
+        return result;
+    }
+
+    @Override
     public Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId) {
         return getOwners(tenantId, entityId, id -> hasOwnerId);
     }

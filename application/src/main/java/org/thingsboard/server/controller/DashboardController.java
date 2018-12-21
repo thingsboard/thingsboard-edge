@@ -121,7 +121,9 @@ public class DashboardController extends BaseController {
 
             Operation operation = dashboard.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    dashboard.getCustomerId() == null || dashboard.getCustomerId().isNullUid()) {
                 dashboard.setCustomerId(getCurrentUser().getCustomerId());
             }
 

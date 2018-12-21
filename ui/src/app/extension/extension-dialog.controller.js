@@ -33,12 +33,13 @@ import beautify from 'js-beautify';
 const js_beautify =  beautify.js;
 
 /*@ngInject*/
-export default function ExtensionDialogController($scope, $mdDialog, $translate, isAdd, allExtensions, entityId, entityType, extension, types, attributeService) {
+export default function ExtensionDialogController($scope, $mdDialog, $translate, isAdd, readonly, allExtensions, entityId, entityType, extension, types, attributeService) {
 
     var vm = this;
 
     vm.types = types;
     vm.isAdd = isAdd;
+    vm.readonly = readonly;
     vm.entityType = entityType;
     vm.entityId = entityId;
     vm.allExtensions = allExtensions;

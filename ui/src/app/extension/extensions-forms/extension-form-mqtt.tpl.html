@@ -46,7 +46,7 @@
                     <div ng-if="brokers.length > 0">
                         <ol class="list-group">
                             <li class="list-group-item" ng-repeat="(brokerIndex,broker) in brokers">
-                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeBroker(broker)" ng-hide="brokers.length < 2">
+                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeBroker(broker)" ng-hide="brokers.length < 2">
                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                     <md-tooltip md-direction="top">
                                         {{ 'action.remove' | translate }}
@@ -115,7 +115,7 @@
                                                 <label class="tb-label" translate>extension.ca-cert</label>
                                                 <div flow-init="{singleFile:true}" flow-file-added='fileAdded($file, broker, "caCert")' class="tb-file-select-container">
                                                     <div class="tb-file-clear-container">
-                                                        <md-button ng-click='clearFile(broker, "caCert")' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                                        <md-button ng-if="!readonly" ng-click='clearFile(broker, "caCert")' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
                                                             <md-tooltip md-direction="top">
                                                                 {{ 'action.remove' | translate }}
                                                             </md-tooltip>
@@ -136,7 +136,7 @@
                                                 <label class="tb-label" translate>extension.private-key</label>
                                                 <div flow-init="{singleFile:true}" flow-file-added='fileAdded($file, broker, "privateKey")' class="tb-file-select-container">
                                                     <div class="tb-file-clear-container">
-                                                        <md-button ng-click='clearFile(broker, "privateKey")' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                                        <md-button ng-if="!readonly" ng-click='clearFile(broker, "privateKey")' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
                                                             <md-tooltip md-direction="top">
                                                                 {{ 'action.remove' | translate }}
                                                             </md-tooltip>
@@ -157,7 +157,7 @@
                                                 <label class="tb-label" translate>extension.cert</label>
                                                 <div flow-init="{singleFile:true}" flow-file-added='fileAdded($file, broker, "Cert")' class="tb-file-select-container">
                                                     <div class="tb-file-clear-container">
-                                                        <md-button ng-click='clearFile(broker, "Cert")' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                                        <md-button ng-if="!readonly" ng-click='clearFile(broker, "Cert")' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
                                                             <md-tooltip md-direction="top">
                                                                 {{ 'action.remove' | translate }}
                                                             </md-tooltip>
@@ -185,7 +185,7 @@
                                                     <div ng-if="broker.mapping.length > 0">
                                                         <ol class="list-group">
                                                             <li class="list-group-item" ng-repeat="(mapIndex,map) in broker.mapping">
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeMap(map, broker.mapping)">
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeMap(map, broker.mapping)">
                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                     <md-tooltip md-direction="top">
                                                                         {{ 'action.remove' | translate }}
@@ -310,7 +310,7 @@
                                                                                     <div ng-if="map.converter.attributes.length > 0">
                                                                                         <ol class="list-group">
                                                                                             <li class="list-group-item" ng-repeat="(attributeIndex, attribute) in map.converter.attributes">
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attribute, map.converter.attributes)">
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attribute, map.converter.attributes)">
                                                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                                                     <md-tooltip md-direction="top">
                                                                                                         {{ 'action.remove' | translate }}
@@ -351,7 +351,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addAttribute(map.converter.attributes)" aria-label="{{ 'action.add' | translate }}">
                                                                                             <md-icon class="material-icons">add</md-icon>
                                                                                             <span translate>extension.add-attribute</span>
@@ -370,7 +370,7 @@
                                                                                     <div ng-if="map.converter.timeseries.length > 0">
                                                                                         <ol class="list-group">
                                                                                             <li class="list-group-item" ng-repeat="(timeseriesIndex, timeseries) in map.converter.timeseries">
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(timeseries, map.converter.timeseries)">
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(timeseries, map.converter.timeseries)">
                                                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                                                     <md-tooltip md-direction="top">
                                                                                                         {{ 'action.remove' | translate }}
@@ -411,7 +411,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addAttribute(map.converter.timeseries)" aria-label="{{ 'action.add' | translate }}">
                                                                                             <md-icon class="material-icons">add</md-icon>
                                                                                             <span translate>extension.add-timeseries</span>
@@ -427,7 +427,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click="addMap(broker.mapping)" aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-map</span>
@@ -446,7 +446,7 @@
                                                     <div ng-if="broker.connectRequests.length > 0">
                                                         <ol class="list-group">
                                                             <li class="list-group-item" ng-repeat="(connectRequestIndex, connectRequest) in broker.connectRequests">
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(connectRequest, broker.connectRequests)">
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(connectRequest, broker.connectRequests)">
                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                     <md-tooltip md-direction="top">
                                                                         {{ 'action.remove' | translate }}
@@ -494,7 +494,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click='addConnectRequest(broker.connectRequests, "connect")' aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-connect-request</span>
@@ -513,7 +513,7 @@
                                                     <div ng-if="broker.disconnectRequests.length > 0">
                                                         <ol class="list-group">
                                                             <li class="list-group-item" ng-repeat="(disconnectRequestIndex, disconnectRequest) in broker.disconnectRequests">
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(disconnectRequest, broker.disconnectRequests)">
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(disconnectRequest, broker.disconnectRequests)">
                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                     <md-tooltip md-direction="top">
                                                                         {{ 'action.remove' | translate }}
@@ -561,7 +561,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click='addConnectRequest(broker.disconnectRequests, "disconnect")' aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-disconnect-request</span>
@@ -580,7 +580,7 @@
                                                     <div ng-if="broker.attributeRequests.length > 0">
                                                         <ol class="list-group">
                                                             <li class="list-group-item" ng-repeat="(attributeRequestIndex, attributeRequest) in broker.attributeRequests">
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attributeRequest, broker.attributeRequests)">
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attributeRequest, broker.attributeRequests)">
                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                     <md-tooltip md-direction="top">
                                                                         {{ 'action.remove' | translate }}
@@ -706,7 +706,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click="addAttributeRequest(broker.attributeRequests)" aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-attribute-request</span>
@@ -725,7 +725,7 @@
                                                     <div ng-if="broker.attributeUpdates.length > 0">
                                                         <ol class="list-group">
                                                             <li class="list-group-item" ng-repeat="(attributeUpdateIndex, attributeUpdate) in broker.attributeUpdates">
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attributeUpdate, broker.attributeUpdates)">
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attributeUpdate, broker.attributeUpdates)">
                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                     <md-tooltip md-direction="top">
                                                                         {{ 'action.remove' | translate }}
@@ -769,7 +769,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click='addAttributeUpdate(broker.attributeUpdates)' aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-attribute-update</span>
@@ -788,7 +788,7 @@
                                                     <div ng-if="broker.serverSideRpc.length > 0">
                                                         <ol class="list-group">
                                                             <li class="list-group-item" ng-repeat="(rpcIndex, rpc) in broker.serverSideRpc">
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(rpc, broker.serverSideRpc)">
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(rpc, broker.serverSideRpc)">
                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                     <md-tooltip md-direction="top">
                                                                         {{ 'action.remove' | translate }}
@@ -842,7 +842,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click='addServerSideRpc(broker.serverSideRpc)' aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-server-side-rpc-request</span>
@@ -859,7 +859,7 @@
                     </div>
 
                     <div flex layout="row" layout-align="start center">
-                        <md-button class="md-primary md-raised"
+                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                    ng-click="addBroker()" aria-label="{{ 'action.add' | translate }}">
                             <md-icon class="material-icons">add</md-icon>
                             <span translate>extension.add-broker</span>

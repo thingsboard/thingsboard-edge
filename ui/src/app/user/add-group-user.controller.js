@@ -74,10 +74,7 @@ export default function AddGroupUserController($scope, $mdDialog, $state, $state
             vm.item.authority = "TENANT_ADMIN";
         } else if (vm.entityGroup.ownerId.entityType === types.entityType.customer) {
             vm.item.authority = "CUSTOMER_USER";
-            vm.item.customerId = {
-                entityType: types.entityType.customer,
-                id: vm.entityGroup.ownerId.id
-            };
+            vm.item.customerId = vm.entityGroup.ownerId;
         }
         userService.saveUser(vm.item, sendActivationMail).then(function success(item) {
             $scope.theForm.$setPristine();

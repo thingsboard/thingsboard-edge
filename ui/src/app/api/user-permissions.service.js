@@ -35,12 +35,13 @@ export default angular.module('thingsboard.api.userPermissions', [])
     .name;
 
 /*@ngInject*/
-function UserPermissionsService($http, $q, securityTypes) {
+function UserPermissionsService($http, $q, types, securityTypes) {
 
     var operationsByResource;
     var allowedGroupRoleOperations;
     var allowedResources;
     var userPermissions;
+    var userOwnerId;
 
     var service = {
         loadPermissionsInfo: loadPermissionsInfo,
@@ -49,7 +50,12 @@ function UserPermissionsService($http, $q, securityTypes) {
         getAllowedResources: getAllowedResources,
         hasReadGroupsPermission: hasReadGroupsPermission,
         hasReadGenericPermission: hasReadGenericPermission,
-        hasGenericPermission: hasGenericPermission
+        hasGenericPermission: hasGenericPermission,
+        hasGenericEntityGroupPermission: hasGenericEntityGroupPermission,
+        hasEntityGroupPermission: hasEntityGroupPermission,
+        hasGroupEntityPermission: hasGroupEntityPermission,
+        isDirectlyOwnedGroup: isDirectlyOwnedGroup,
+        isOwnedGroup: isOwnedGroup
     };
 
     function loadPermissionsInfo() {
@@ -60,6 +66,7 @@ function UserPermissionsService($http, $q, securityTypes) {
             allowedGroupRoleOperations = response.data.allowedForGroupRoleOperations;
             allowedResources = response.data.allowedResources;
             userPermissions = response.data.userPermissions;
+            userOwnerId = response.data.userOwnerId;
             deferred.resolve();
         }, function fail() {
             deferred.reject();
@@ -138,6 +145,91 @@ function UserPermissionsService($http, $q, securityTypes) {
 
     function checkOperation(operations, operation) {
         return operations.indexOf(securityTypes.operation.all) > -1 || operations.indexOf(operation) > -1;
+    }
+
+    function hasGenericEntityGroupPermission(operation, entityGroup) {
+        if (!entityGroup) {
+            return false;
+        }
+        var resource = securityTypes.groupResourceByGroupType[entityGroup.type];
+        return hasGenericPermission(resource, operation);
+    }
+
+    function hasEntityGroupPermission(operation, entityGroup) {
+        return checkEntityGroupPermission(operation, entityGroup, true);
+    }
+
+    function hasGroupEntityPermission(operation, entityGroup) {
+        return checkEntityGroupPermission(operation, entityGroup, false);
+    }
+
+    function isDirectlyOwnedGroup(entityGroup) {
+        if (userOwnerId && entityGroup && entityGroup.ownerId) {
+            return idsEqual(userOwnerId, entityGroup.ownerId);
+        } else {
+            return false;
+        }
+    }
+
+    function isOwnedGroup(entityGroup) {
+        if (!entityGroup) {
+            return false;
+        }
+        return isCurrentUserOwner(entityGroup);
+    }
+
+    function checkEntityGroupPermission(operation, entityGroup, isGroup) {
+        if (!entityGroup) {
+            return false;
+        }
+        var resource;
+        if (isGroup) {
+            resource = securityTypes.groupResourceByGroupType[entityGroup.type];
+        } else {
+            resource = securityTypes.resourceByEntityType[entityGroup.type];
+        }
+        if (operation === securityTypes.operation.create) {
+            return hasGenericPermission(resource, operation);
+        }
+        if (isCurrentUserOwner(entityGroup)) {
+            if (hasGenericPermission(resource, operation)) {
+                return true;
+            }
+        }
+        if (!allowedGroupRoleOperations || allowedGroupRoleOperations.indexOf(operation) == -1) {
+            return false;
+        }
+        return hasGroupPermissions(entityGroup.id.id, operation);
+    }
+
+    function hasGroupPermissions(entityGroupId, operation) {
+        if (userPermissions && userPermissions.groupPermissions) {
+            var permissionInfo = userPermissions.groupPermissions[entityGroupId];
+            return permissionInfo && checkOperation(permissionInfo.operations, operation);
+        }
+        return false;
+    }
+
+    function isCurrentUserOwner(entityGroup) {
+        var groupOwnerIds = entityGroup.ownerIds;
+        if (userOwnerId && groupOwnerIds) {
+            return containsId(groupOwnerIds, userOwnerId);
+        } else {
+            return false;
+        }
+    }
+
+    function containsId(idsArray, id) {
+        for (var i=0;i<idsArray.length;i++) {
+            if (idsEqual(idsArray[i], id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function idsEqual(id1, id2) {
+        return id1.id === id2.id && id1.entityType === id2.entityType;
     }
 
     return service;

@@ -414,19 +414,14 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
 
     function loadIsUserTokenAccessEnabled() {
         var deferred = $q.defer();
-        if (currentUser.authority === 'SYS_ADMIN' || currentUser.authority === 'TENANT_ADMIN') {
-            var url = '/api/user/tokenAccessEnabled';
-            $http.get(url).then(function success(response) {
-                userTokenAccessEnabled = response.data;
-                deferred.resolve(response.data);
-            }, function fail() {
-                userTokenAccessEnabled = false;
-                deferred.reject();
-            });
-        } else {
+        var url = '/api/user/tokenAccessEnabled';
+        $http.get(url).then(function success(response) {
+            userTokenAccessEnabled = response.data;
+            deferred.resolve(response.data);
+        }, function fail() {
             userTokenAccessEnabled = false;
-            deferred.resolve(false);
-        }
+            deferred.reject();
+        });
         return deferred.promise;
     }
 

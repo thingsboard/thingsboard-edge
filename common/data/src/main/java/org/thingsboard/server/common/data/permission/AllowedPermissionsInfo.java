@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.permission;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.Map;
 import java.util.Set;
@@ -45,5 +46,6 @@ public class AllowedPermissionsInfo {
     private Set<Operation> allowedForGroupRoleOperations;
     private Set<Resource> allowedResources;
     private MergedUserPermissions userPermissions;
+    private EntityId userOwnerId;
 
 }

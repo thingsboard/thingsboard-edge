@@ -149,7 +149,8 @@ export default function ExtensionFormModbusDirective($compile, $templateCache, $
         link: linker,
         scope: {
             configuration: "=",
-            isAdd: "="
+            isAdd: "=",
+            readonly: "="
         }
     }
 }

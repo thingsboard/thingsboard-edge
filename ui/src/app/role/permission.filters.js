@@ -66,3 +66,17 @@ export function HasGenericPermission(securityTypes, userPermissionsService) {
     }
 
 }
+
+/*@ngInject*/
+export function HasEntityGroupPermission(securityTypes, userPermissionsService) {
+    return function (entityGroup, operation) {
+        return userPermissionsService.hasEntityGroupPermission(securityTypes.operation[operation], entityGroup);
+    }
+}
+
+/*@ngInject*/
+export function HasGroupEntityPermission(securityTypes, userPermissionsService) {
+    return function (entityGroup, operation) {
+        return userPermissionsService.hasGroupEntityPermission(securityTypes.operation[operation], entityGroup);
+    }
+}

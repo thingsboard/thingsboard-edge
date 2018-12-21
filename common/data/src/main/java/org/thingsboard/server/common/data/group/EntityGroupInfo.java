@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,44 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import './user-fieldset.scss';
 
-/* eslint-disable import/no-unresolved, import/default */
+package org.thingsboard.server.common.data.group;
 
-import userFieldsetTemplate from './user-fieldset.tpl.html';
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 
-/* eslint-enable import/no-unresolved, import/default */
+import java.util.Set;
 
-/*@ngInject*/
-export default function UserDirective($compile, $templateCache, userService) {
-    var linker = function (scope, element) {
-        var template = $templateCache.get(userFieldsetTemplate);
-        element.html(template);
+@Data
+public class EntityGroupInfo extends EntityGroup {
 
-        scope.isTenantAdmin = function() {
-            return scope.user && scope.user.authority === 'TENANT_ADMIN';
-        };
+    private Set<EntityId> ownerIds;
 
-        scope.isCustomerUser = function() {
-            return scope.user && scope.user.authority === 'CUSTOMER_USER';
-        };
-
-        scope.loginAsUserEnabled = userService.isUserTokenAccessEnabled();
-
-        $compile(element.contents())(scope);
+    public EntityGroupInfo() {
+        super();
     }
-    return {
-        restrict: "E",
-        link: linker,
-        scope: {
-            entityGroup: '=',
-            user: '=',
-            isEdit: '=',
-            theForm: '=',
-            onDisplayActivationLink: '&',
-            onResendActivation: '&',
-            onLoginAsUser: '&',
-            onDeleteUser: '&'
-        }
-    };
+
+    public EntityGroupInfo(EntityGroupId id) {
+        super(id);
+    }
+
+    public EntityGroupInfo(EntityGroup entityGroup) {
+        super(entityGroup);
+    }
 }

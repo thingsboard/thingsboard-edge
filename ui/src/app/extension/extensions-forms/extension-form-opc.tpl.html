@@ -52,7 +52,7 @@
                     <div ng-if="configuration.servers.length > 0">
                         <ol class="list-group">
                             <li class="list-group-item" ng-repeat="(serverIndex, server) in configuration.servers">
-                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                            class="md-icon-button"
                                            ng-click="removeItem(server, configuration.servers)"
                                            ng-hide="configuration.servers.length < 2"
@@ -232,7 +232,7 @@
                                                             <label class="tb-label" translate>extension.opc-keystore-location</label>
                                                             <div flow-init="{singleFile:true}" flow-file-added='fileAdded($file, server.keystore, fieldsToFill)' class="tb-file-select-container">
                                                                 <div class="tb-file-clear-container">
-                                                                    <md-button ng-click='clearFile(server.keystore, fieldsToFill)' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                                                                    <md-button ng-if="!readonly" ng-click='clearFile(server.keystore, fieldsToFill)' class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
                                                                         <md-tooltip md-direction="top">
                                                                             {{ 'action.remove' | translate }}
                                                                         </md-tooltip>
@@ -302,7 +302,7 @@
                                                             <li class="list-group-item"
                                                                 ng-repeat="(mapIndex, map) in server.mapping"
                                                             >
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                                                            class="md-icon-button"
                                                                            ng-click="removeItem(map, server.mapping)"
                                                                 >
@@ -356,7 +356,7 @@
                                                                                             <li class="list-group-item"
                                                                                                 ng-repeat="(attributeIndex, attribute) in map.attributes"
                                                                                             >
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                                                                                            class="md-icon-button"
                                                                                                            ng-click="removeItem(attribute, map.attributes)">
                                                                                                     <ng-md-icon icon="close"
@@ -425,7 +425,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addNewAttribute(map.attributes)"
                                                                                                    aria-label="{{ 'action.add' | translate }}"
                                                                                         >
@@ -448,7 +448,7 @@
                                                                                             <li class="list-group-item"
                                                                                                 ng-repeat="(timeseriesIndex, timeseries) in map.timeseries"
                                                                                             >
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                                                                                            class="md-icon-button"
                                                                                                            ng-click="removeItem(timeseries, map.timeseries)"
                                                                                                 >
@@ -508,7 +508,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addNewAttribute(map.timeseries)"
                                                                                                    aria-label="{{ 'action.add' | translate }}"
                                                                                         >
@@ -530,7 +530,7 @@
                                                          layout="row"
                                                          layout-align="start center"
                                                     >
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click="addMap(server.mapping)"
                                                                    aria-label="{{ 'action.add' | translate }}"
                                                         >
@@ -551,7 +551,7 @@
                              layout="row"
                              layout-align="start center"
                         >
-                            <md-button class="md-primary md-raised"
+                            <md-button ng-if="!readonly" class="md-primary md-raised"
                                        ng-click="addServer(configuration.servers)"
                                        aria-label="{{ 'action.add' | translate }}"
                             >

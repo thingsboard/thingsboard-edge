@@ -77,7 +77,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
             details: function() { return $translate.instant('entity-group.delete') },
             icon: "delete",
             isEnabled: function(entityGroup) {
-                return !entityGroup.groupAll && userPermissionsService.hasGenericPermission(vm.groupResource, securityTypes.operation.delete);
+                return !entityGroup.groupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, entityGroup);
             }
         }
 
@@ -127,11 +127,11 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         addItemText: function() { return $translate.instant('entity-group.add-entity-group-text') },
         noItemsText: function() { return $translate.instant('entity-group.no-entity-groups-text') },
         itemDetailsText: function() { return $translate.instant('entity-group.entity-group-details') },
-        isDetailsReadOnly: function(/*entityGroup*/) {
-            return !userPermissionsService.hasGenericPermission(vm.groupResource, securityTypes.operation.write);
+        isDetailsReadOnly: function(entityGroup) {
+            return !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, entityGroup);
         },
         isSelectionEnabled: function(entityGroup) {
-            return !entityGroup.groupAll && userPermissionsService.hasGenericPermission(vm.groupResource, securityTypes.operation.delete);
+            return !entityGroup.groupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, entityGroup);
         }
     };
 
@@ -193,10 +193,18 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
     function saveEntityGroup(entityGroup) {
         var deferred = $q.defer();
         entityGroup.type = vm.groupType;
+        if (vm.customerId) {
+            entityGroup.ownerId = {
+                entityType: types.entityType.customer,
+                id: vm.customerId
+            };
+        }
         entityGroupService.saveEntityGroup(entityGroup).then(
             function success(entityGroup) {
                 deferred.resolve(entityGroup);
-                $rootScope.$broadcast(vm.groupType+'changed');
+                if (!vm.customerId) {
+                    $rootScope.$broadcast(vm.groupType + 'changed');
+                }
             },
             function fail() {
                 deferred.reject();

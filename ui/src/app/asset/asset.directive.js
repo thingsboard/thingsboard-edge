@@ -35,17 +35,17 @@ import assetFieldsetTemplate from './asset-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function AssetDirective($compile, $templateCache, toast, $translate, types, assetService, customerService) {
+export default function AssetDirective($compile, $templateCache, toast, $translate, types) {
     var linker = function (scope, element) {
         var template = $templateCache.get(assetFieldsetTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.isAssignedToCustomer = false;
-        scope.isPublic = false;
-        scope.assignedCustomer = null;
+        //scope.isAssignedToCustomer = false;
+        //scope.isPublic = false;
+        //scope.assignedCustomer = null;
 
-        scope.$watch('asset', function(newVal) {
+        /*scope.$watch('asset', function(newVal) {
             if (newVal) {
                 if (scope.asset.customerId && scope.asset.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
@@ -61,7 +61,7 @@ export default function AssetDirective($compile, $templateCache, toast, $transla
                     scope.assignedCustomer = null;
                 }
             }
-        });
+        });*/
 
         scope.onAssetIdCopied = function() {
             toast.showSuccess($translate.instant('asset.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
@@ -74,9 +74,9 @@ export default function AssetDirective($compile, $templateCache, toast, $transla
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             asset: '=',
             isEdit: '=',
-            assetScope: '=',
             theForm: '=',
             onAssignToCustomer: '&',
             onMakePublic: '&',

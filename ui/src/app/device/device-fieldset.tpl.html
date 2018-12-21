@@ -30,20 +30,26 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onMakePublic({event: $event})"
+<!--md-button ng-click="onMakePublic({event: $event})"
            ng-show="!hideAssignmentActions && !isEdit && deviceScope === 'tenant' && !isAssignedToCustomer && !isPublic"
-           class="md-raised md-primary">{{ 'device.make-public' | translate }}</md-button>
-<md-button ng-click="onAssignToCustomer({event: $event})"
+           class="md-raised md-primary">{{ 'device.make-public' | translate }}</md-button-->
+<!--md-button ng-click="onAssignToCustomer({event: $event})"
            ng-show="!hideAssignmentActions && !isEdit && deviceScope === 'tenant' && !isAssignedToCustomer"
-           class="md-raised md-primary">{{ 'device.assign-to-customer' | translate }}</md-button>
-<md-button ng-click="onUnassignFromCustomer({event: $event, isPublic: isPublic})"
+           class="md-raised md-primary">{{ 'device.assign-to-customer' | translate }}</md-button-->
+<!--md-button ng-click="onUnassignFromCustomer({event: $event, isPublic: isPublic})"
            ng-show="!hideAssignmentActions && !isEdit && (deviceScope === 'customer' || deviceScope === 'tenant') && isAssignedToCustomer"
-           class="md-raised md-primary">{{ isPublic ? 'device.make-private' : 'device.unassign-from-customer' | translate }}</md-button>
-<md-button ng-click="onManageCredentials({event: $event})"
+           class="md-raised md-primary">{{ isPublic ? 'device.make-private' : 'device.unassign-from-customer' | translate }}</md-button-->
+<md-button ng-click="onManageCredentials({event: $event, isReadOnly: false})"
+           ng-if="entityGroup | hasGroupEntityPermission:'writeCredentials'"
            ng-show="!hideManageCredentials && !isEdit"
-           class="md-raised md-primary">{{ (deviceScope === 'customer_user' ? 'device.view-credentials' : 'device.manage-credentials') | translate }}</md-button>
+           class="md-raised md-primary">{{ 'device.manage-credentials' | translate }}</md-button>
+<md-button ng-click="onManageCredentials({event: $event, isReadOnly: true})"
+           ng-if="(entityGroup | hasGroupEntityPermission:'readCredentials') && !(entityGroup | hasGroupEntityPermission:'writeCredentials')"
+           ng-show="!hideManageCredentials && !isEdit"
+           class="md-raised md-primary">{{ 'device.view-credentials' | translate }}</md-button>
 <md-button ng-click="onDeleteDevice({event: $event})"
-           ng-show="!hideDelete && !isEdit && deviceScope === 'tenant'"
+           ng-if="entityGroup | hasGroupEntityPermission:'delete'"
+           ng-show="!hideDelete && !isEdit"
            class="md-raised md-primary">{{ 'device.delete' | translate }}</md-button>
 
 <div layout="row">
@@ -54,7 +60,8 @@
         <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
         <span translate>device.copyId</span>
     </md-button>
-    <md-button ng-show="!isEdit"
+    <md-button ng-if="(entityGroup | hasGroupEntityPermission:'readCredentials')"
+               ng-show="!isEdit"
                class="md-raised" ng-click="copyAccessToken($event)">
         <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
         <span translate>device.copyAccessToken</span>
@@ -62,15 +69,15 @@
 </div>
 
 <md-content class="md-padding" layout="column">
-    <md-input-container class="md-block"
+    <!--md-input-container class="md-block"
                         ng-show="!isEdit && isAssignedToCustomer && !isPublic && deviceScope === 'tenant'">
         <label translate>device.assignedToCustomer</label>
         <input ng-model="assignedCustomer.title" disabled>
-    </md-input-container>
-    <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
+    </md-input-container-->
+    <!--div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
          ng-show="!isEdit && isPublic && (deviceScope === 'customer' || deviceScope === 'tenant')">
         {{ 'device.device-public' | translate }}
-    </div>
+    </div-->
 	<fieldset ng-disabled="$root.loading || !isEdit">
 		<md-input-container class="md-block">
 			<label translate>device.name</label>

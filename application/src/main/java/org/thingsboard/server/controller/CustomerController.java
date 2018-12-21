@@ -121,6 +121,12 @@ public class CustomerController extends BaseController {
                 customer.setParentCustomerId(getCurrentUser().getCustomerId());
             }
 
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    customer.getParentCustomerId() == null || customer.getParentCustomerId().isNullUid()) {
+                customer.setParentCustomerId(getCurrentUser().getCustomerId());
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, operation, customer.getId(), customer);
 
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));

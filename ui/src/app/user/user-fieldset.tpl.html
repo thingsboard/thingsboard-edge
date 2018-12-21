@@ -40,7 +40,7 @@
     (isTenantAdmin() ? 'user.login-as-tenant-admin' : 'user.login-as-customer-user') | translate }}
 </md-button>
 <md-button ng-click="onDeleteUser({event: $event})"
-           ng-if="'user' | hasGenericPermission:'delete'"
+           ng-if="entityGroup | hasGroupEntityPermission:'delete'"
            ng-show="!isEdit" class="md-raised md-primary">{{ 'user.delete' |
     translate }}
 </md-button>

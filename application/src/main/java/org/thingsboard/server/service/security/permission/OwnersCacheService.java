@@ -42,6 +42,8 @@ import java.util.Set;
 
 public interface OwnersCacheService {
 
+    Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId);
+
     Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId);
 
     Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);

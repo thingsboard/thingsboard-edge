@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, types, userService, deviceService) {
+export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, deviceService) {
 
     var service = {
         createConfig: createConfig
@@ -40,18 +40,9 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, type
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.device, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('device.devices'),
 
@@ -92,12 +83,11 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, type
             }
         };
 
-        groupConfig.onManageCredentials = (event, entity) => {
-            var isReadOnly = entityScope == 'customer_user' ? true : false;
+        groupConfig.onManageCredentials = (event, entity, isReadOnly) => {
             tbDialogs.manageDeviceCredentials(event, entity, isReadOnly);
         };
 
-        groupConfig.onAssignToCustomer = (event, entity) => {
+        /*groupConfig.onAssignToCustomer = (event, entity) => {
             tbDialogs.assignDevicesToCustomer(event, [entity.id.id]).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
@@ -113,23 +103,40 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, type
             tbDialogs.makeDevicePublic(event, entity).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
-        };
+        };*/
 
-        groupConfig.actionCellDescriptors = [
-            {
-                name: $translate.instant(entityScope == 'tenant' ? 'device.manage-credentials' : 'device.view-credentials'),
-                icon: 'security',
-                isEnabled: () => {
-                    return settings.enableCredentialsManagement;
-                },
-                onAction: ($event, entity) => {
-                    var isReadOnly = entityScope == 'customer_user' ? true : false;
-                    tbDialogs.manageDeviceCredentials($event, entity, isReadOnly);
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readCredentials, entityGroup) &&
+            !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.writeCredentials, entityGroup)) {
+            groupConfig.actionCellDescriptors = [
+                {
+                    name: $translate.instant('device.view-credentials'),
+                    icon: 'security',
+                    isEnabled: () => {
+                        return settings.enableCredentialsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        tbDialogs.manageDeviceCredentials($event, entity, true);
+                    }
                 }
-            }
-        ];
+            ];
+        }
 
-        groupConfig.groupActionDescriptors = [
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.writeCredentials, entityGroup)) {
+            groupConfig.actionCellDescriptors = [
+                {
+                    name: $translate.instant('device.manage-credentials'),
+                    icon: 'security',
+                    isEnabled: () => {
+                        return settings.enableCredentialsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        tbDialogs.manageDeviceCredentials($event, entity, false);
+                    }
+                }
+            ];
+        }
+
+/*        groupConfig.groupActionDescriptors = [
             {
                 name: $translate.instant('device.assign-devices'),
                 icon: "assignment_ind",
@@ -162,7 +169,7 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, type
                     );
                 },
             }
-        ];
+        ];*/
 
         utils.groupConfigDefaults(groupConfig);
 

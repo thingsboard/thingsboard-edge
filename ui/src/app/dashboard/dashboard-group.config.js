@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, utils, types, userService, importExport, dashboardService) {
+export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, importExport, dashboardService) {
 
     var service = {
         createConfig: createConfig
@@ -40,18 +40,9 @@ export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, 
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.dashboard, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('dashboard.dashboards'),
 
@@ -98,18 +89,21 @@ export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, 
             $state.go('home.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
         };
 
-        groupConfig.actionCellDescriptors = [
-            {
-                name: $translate.instant('dashboard.open-dashboard'),
-                icon: 'dashboard',
-                isEnabled: () => {
-                    return true;
-                },
-                onAction: ($event, entity) => {
-                    groupConfig.onOpenDashboard($event, entity);
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.read) &&
+            userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors = [
+                {
+                    name: $translate.instant('dashboard.open-dashboard'),
+                    icon: 'dashboard',
+                    isEnabled: () => {
+                        return true;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onOpenDashboard($event, entity);
+                    }
                 }
-            }
-        ];
+            ];
+        }
 
         groupConfig.groupActionDescriptors = [
         ];
