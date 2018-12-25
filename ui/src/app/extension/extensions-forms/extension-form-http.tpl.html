@@ -46,7 +46,7 @@
                     <div ng-if="converterConfigs.length > 0">
                         <ol class="list-group">
                             <li class="list-group-item" ng-repeat="(configIndex, config) in converterConfigs">
-                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                            class="md-icon-button"
                                            ng-click="removeConverterConfig(config)"
                                            ng-hide="converterConfigs.length < 2"
@@ -81,7 +81,8 @@
                                                             <li class="list-group-item"
                                                                 ng-repeat="(converterIndex,converter) in config.converters"
                                                             >
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                <md-button ng-if="!readonly"
+                                                                           aria-label="{{ 'action.remove' | translate }}"
                                                                            class="md-icon-button"
                                                                            ng-click="removeConverter(converter, config.converters)"
                                                                            ng-hide="config.converters.length < 2"
@@ -117,7 +118,7 @@
                                                                                     <div ng-if="converter.attributes.length > 0">
                                                                                         <ol class="list-group">
                                                                                             <li class="list-group-item" ng-repeat="(attributeIndex, attribute) in converter.attributes">
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attribute, converter.attributes)">
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(attribute, converter.attributes)">
                                                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                                                     <md-tooltip md-direction="top">
                                                                                                         {{ 'action.remove' | translate }}
@@ -189,7 +190,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addAttribute(converter.attributes)" aria-label="{{ 'action.add' | translate }}">
                                                                                             <md-icon class="material-icons">add</md-icon>
                                                                                             <span translate>extension.add-attribute</span>
@@ -209,7 +210,7 @@
                                                                                     <div ng-if="converter.timeseries.length > 0">
                                                                                         <ol class="list-group">
                                                                                             <li class="list-group-item" ng-repeat="(timeseriesIndex, timeseries) in converter.timeseries">
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(timeseries, converter.timeseries)">
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}" class="md-icon-button" ng-click="removeAttribute(timeseries, converter.timeseries)">
                                                                                                     <ng-md-icon icon="close" aria-label="{{ 'action.remove' | translate }}"></ng-md-icon>
                                                                                                     <md-tooltip md-direction="top">
                                                                                                         {{ 'action.remove' | translate }}
@@ -281,7 +282,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addAttribute(converter.timeseries)" aria-label="{{ 'action.add' | translate }}">
                                                                                             <md-icon class="material-icons">add</md-icon>
                                                                                             <span translate>extension.add-timeseries</span>
@@ -296,7 +297,7 @@
                                                         </ol>
                                                     </div>
                                                     <div flex layout="row" layout-align="start center">
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click="addConverter(config.converters)" aria-label="{{ 'action.add' | translate }}">
                                                             <md-icon class="material-icons">add</md-icon>
                                                             <span translate>extension.add-converter</span>
@@ -312,7 +313,7 @@
                         </ol>
                     </div>
                     <div flex layout="row" layout-align="start center">
-                        <md-button class="md-primary md-raised"
+                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                    ng-click="addConverterConfig()" aria-label="{{ 'action.add' | translate }}">
                             <md-icon class="material-icons">add</md-icon>
                             <span translate>extension.add-config</span>

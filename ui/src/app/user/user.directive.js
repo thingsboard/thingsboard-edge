@@ -58,6 +58,7 @@ export default function UserDirective($compile, $templateCache, userService) {
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             user: '=',
             isEdit: '=',
             theForm: '=',

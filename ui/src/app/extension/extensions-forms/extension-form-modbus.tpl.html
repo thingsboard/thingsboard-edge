@@ -52,7 +52,7 @@
                     <div ng-if="configuration.servers.length > 0">
                         <ol class="list-group">
                             <li class="list-group-item" ng-repeat="(serverIndex, server) in configuration.servers">
-                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                            class="md-icon-button"
                                            ng-click="removeItem(server, configuration.servers)"
                                            ng-hide="configuration.servers.length < 2"
@@ -267,7 +267,7 @@
                                                             <li class="list-group-item"
                                                                 ng-repeat="(deviceIndex, device) in server.devices"
                                                             >
-                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                                                            class="md-icon-button"
                                                                            ng-click="removeItem(device, server.devices)"
                                                                 >
@@ -372,7 +372,7 @@
                                                                                             <li class="list-group-item"
                                                                                                 ng-repeat="(attributeIndex, attribute) in device.attributes"
                                                                                             >
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                                                                                            class="md-icon-button"
                                                                                                            ng-click="removeItem(attribute, device.attributes)">
                                                                                                     <ng-md-icon icon="close"
@@ -540,7 +540,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addNewAttribute(device)"
                                                                                                    aria-label="{{ 'action.add' | translate }}"
                                                                                         >
@@ -563,7 +563,7 @@
                                                                                             <li class="list-group-item"
                                                                                                 ng-repeat="(timeseriesIndex, timeserie) in device.timeseries"
                                                                                             >
-                                                                                                <md-button aria-label="{{ 'action.remove' | translate }}"
+                                                                                                <md-button ng-if="!readonly" aria-label="{{ 'action.remove' | translate }}"
                                                                                                            class="md-icon-button"
                                                                                                            ng-click="removeItem(timeserie, device.timeseries)">
                                                                                                     <ng-md-icon icon="close"
@@ -728,7 +728,7 @@
                                                                                         </ol>
                                                                                     </div>
                                                                                     <div flex layout="row" layout-align="start center">
-                                                                                        <md-button class="md-primary md-raised"
+                                                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                                                    ng-click="addNewTimeseries(device)"
                                                                                                    aria-label="{{ 'action.add' | translate }}"
                                                                                         >
@@ -750,7 +750,7 @@
                                                          layout="row"
                                                          layout-align="start center"
                                                     >
-                                                        <md-button class="md-primary md-raised"
+                                                        <md-button ng-if="!readonly" class="md-primary md-raised"
                                                                    ng-click="addDevice(server.devices)"
                                                                    aria-label="{{ 'action.add' | translate }}"
                                                         >
@@ -771,7 +771,7 @@
                              layout="row"
                              layout-align="start center"
                         >
-                            <md-button class="md-primary md-raised"
+                            <md-button ng-if="!readonly" class="md-primary md-raised"
                                        ng-click="addServer(configuration.servers)"
                                        aria-label="{{ 'action.add' | translate }}"
                             >

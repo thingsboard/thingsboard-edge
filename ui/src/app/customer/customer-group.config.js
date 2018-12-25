@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, utils, types, userService, customerService) {
+export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, customerService) {
 
     var service = {
         createConfig: createConfig
@@ -40,18 +40,9 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.customer, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('customer.customers'),
 
@@ -69,11 +60,17 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             manageUsersEnabled: () => {
                 return settings.enableUsersManagement;
             },
+            manageCustomersEnabled: () => {
+                return settings.enableCustomersManagement;
+            },
             manageAssetsEnabled: () => {
                 return settings.enableAssetsManagement;
             },
             manageDevicesEnabled: () => {
                 return settings.enableDevicesManagement;
+            },
+            manageEntityViewsEnabled: () => {
+                return settings.enableEntityViewsManagement;
             },
             manageDashboardsEnabled: () => {
                 return settings.enableDashboardsManagement;
@@ -102,72 +99,135 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.users', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.userGroups', {customerId: entity.id.id});
+        };
+
+        groupConfig.onManageCustomers = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            $state.go('home.customerGroups.customerGroup.customerGroups', {customerId: entity.id.id});
         };
 
         groupConfig.onManageAssets = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.assets', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.assetGroups', {customerId: entity.id.id});
         };
 
         groupConfig.onManageDevices = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.devices', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.deviceGroups', {customerId: entity.id.id});
+        };
+
+        groupConfig.onManageEntityViews = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            $state.go('home.customerGroups.customerGroup.entityViewGroups', {customerId: entity.id.id});
         };
 
         groupConfig.onManageDashboards = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.dashboards', {customerId: entity.id.id});
+            $state.go('home.customerGroups.customerGroup.dashboardGroups', {customerId: entity.id.id});
         };
 
-        groupConfig.actionCellDescriptors = [
-            {
-                name: $translate.instant('customer.manage-customer-users'),
-                icon: 'account_circle',
-                isEnabled: () => {
-                    return settings.enableUsersManagement;
-                },
-                onAction: ($event, entity) => {
-                    groupConfig.onManageUsers($event, entity);
+        groupConfig.actionCellDescriptors = [];
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.userGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customer-users'),
+                    icon: 'account_circle',
+                    isEnabled: () => {
+                        return settings.enableUsersManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageUsers($event, entity);
+                    }
                 }
-            },
-            {
-                name: $translate.instant('customer.manage-customer-assets'),
-                icon: 'domain',
-                isEnabled: () => {
-                    return settings.enableAssetsManagement;
-                },
-                onAction: ($event, entity) => {
-                    groupConfig.onManageAssets($event, entity);
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.customerGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customers'),
+                    icon: 'supervisor_account',
+                    isEnabled: () => {
+                        return settings.enableCustomersManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageCustomers($event, entity);
+                    }
                 }
-            },
-            {
-                name: $translate.instant('customer.manage-customer-devices'),
-                icon: 'devices_other',
-                isEnabled: () => {
-                    return settings.enableDevicesManagement;
-                },
-                onAction: ($event, entity) => {
-                    groupConfig.onManageDevices($event, entity);
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.assetGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customer-assets'),
+                    icon: 'domain',
+                    isEnabled: () => {
+                        return settings.enableAssetsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageAssets($event, entity);
+                    }
                 }
-            },
-            {
-                name: $translate.instant('customer.manage-customer-dashboards'),
-                icon: 'dashboard',
-                isEnabled: () => {
-                    return settings.enableDashboardsManagement;
-                },
-                onAction: ($event, entity) => {
-                    groupConfig.onManageDashboards($event, entity);
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.deviceGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customer-devices'),
+                    icon: 'devices_other',
+                    isEnabled: () => {
+                        return settings.enableDevicesManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageDevices($event, entity);
+                    }
                 }
-            }
-        ];
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.entityViewGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customer-entity-views'),
+                    icon: 'view_quilt',
+                    isEnabled: () => {
+                        return settings.enableEntityViewsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageEntityViews($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.dashboardGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customer-dashboards'),
+                    icon: 'dashboard',
+                    isEnabled: () => {
+                        return settings.enableDashboardsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageDashboards($event, entity);
+                    }
+                }
+            );
+        }
 
         utils.groupConfigDefaults(groupConfig);
 

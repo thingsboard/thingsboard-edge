@@ -30,9 +30,11 @@
  */
 
 /*@ngInject*/
-export default function CustomTranslationController($scope, $translate, utils, toast, types, customTranslationService) {
+export default function CustomTranslationController($scope, $translate, utils, toast, types, securityTypes, userPermissionsService, customTranslationService) {
 
     var vm = this;
+
+    vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.whiteLabeling, securityTypes.operation.write);
 
     vm.types = types;
     vm.customTranslation = {};

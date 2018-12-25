@@ -46,7 +46,12 @@
         <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
         <md-dialog-content>
             <div class="md-dialog-content">
-                <tb-entity entity-type="vm.entityType" entity="vm.entity" is-edit="true" the-form="theForm"></tb-entity>
+                <tb-entity entity-group="vm.entityGroup"
+                           entity-type="vm.entityType"
+                           entity="vm.entity"
+                           is-edit="true"
+                           the-form="theForm">
+                </tb-entity>
             </div>
         </md-dialog-content>
         <md-dialog-actions layout="row">

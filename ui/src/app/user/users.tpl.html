@@ -45,7 +45,7 @@
                      on-login-as-user="vm.loginAsUser(vm.grid.detailsConfig.currentItem)"
 					 on-delete-user="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"></tb-user>
 		</md-tab>
-		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+		<md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin() && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
 			<tb-audit-log-table flex user-id="vm.grid.operatingItem().id.id"
 								audit-log-mode="{{vm.types.auditLogMode.user}}">
 			</tb-audit-log-table>

@@ -46,7 +46,7 @@
   	    <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
 	    <md-dialog-content>
 	      <div class="md-dialog-content">
-  	        	<tb-user user="vm.item" is-edit="true" the-form="theForm"></tb-user>
+  	        	<tb-user entity-group="vm.entityGroup" user="vm.item" is-edit="true" the-form="theForm"></tb-user>
 				<md-input-container class="md-block">
 					  <label translate>user.activation-method</label>
 					  <md-select aria-label="{{ 'user.activation-method' | translate }}"

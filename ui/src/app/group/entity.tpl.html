@@ -31,38 +31,43 @@
 
 -->
 <tb-customer ng-if="vm.entityType == vm.types.entityType.customer"
+             entity-group="vm.entityGroup"
              customer="vm.entity"
              is-edit="vm.isEdit"
              the-form="vm.theForm"
              on-delete-customer="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
              on-manage-users="vm.entityGroupConfig.onManageUsers(event, vm.entity)"
+             on-manage-customers="vm.entityGroupConfig.onManageCustomers(event, vm.entity)"
              on-manage-assets="vm.entityGroupConfig.onManageAssets(event, vm.entity)"
              on-manage-devices="vm.entityGroupConfig.onManageDevices(event, vm.entity)"
+             on-manage-entity-views="vm.entityGroupConfig.onManageEntityViews(event, vm.entity)"
              on-manage-dashboards="vm.entityGroupConfig.onManageDashboards(event, vm.entity)"
              hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)"
              hide-manage-users="!vm.entityGroupConfig.manageUsersEnabled(vm.entity)"
+             hide-manage-customers="!vm.entityGroupConfig.manageCustomersEnabled(vm.entity)"
              hide-manage-assets="!vm.entityGroupConfig.manageAssetsEnabled(vm.entity)"
              hide-manage-devices="!vm.entityGroupConfig.manageDevicesEnabled(vm.entity)"
+             hide-manage-entity-views="!vm.entityGroupConfig.manageEntityViewsEnabled(vm.entity)"
              hide-manage-dashboards="!vm.entityGroupConfig.manageDashboardsEnabled(vm.entity)">
 </tb-customer>
 <tb-device ng-if="vm.entityType == vm.types.entityType.device"
+           entity-group="vm.entityGroup"
            device="vm.entity"
            is-edit="vm.isEdit"
-           device-scope="vm.entityGroupConfig.entityScope"
            the-form="vm.theForm"
            on-delete-device="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
            on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
            on-assign-to-customer="vm.entityGroupConfig.onAssignToCustomer(event, vm.entity)"
            on-unassign-from-customer="vm.entityGroupConfig.onUnassignFromCustomer(event, vm.entity, isPublic)"
-           on-manage-credentials="vm.entityGroupConfig.onManageCredentials(event, vm.entity)"
+           on-manage-credentials="vm.entityGroupConfig.onManageCredentials(event, vm.entity, isReadOnly)"
            hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
            hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)"
            hide-manage-credentials="!vm.entityGroupConfig.manageCredentialsEnabled(vm.entity)">
 </tb-device>
 <tb-asset  ng-if="vm.entityType == vm.types.entityType.asset"
+           entity-group="vm.entityGroup"
            asset="vm.entity"
            is-edit="vm.isEdit"
-           asset-scope="vm.entityGroupConfig.entityScope"
            the-form="vm.theForm"
            on-delete-asset="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
            on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
@@ -72,6 +77,7 @@
            hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
 </tb-asset>
 <tb-user  ng-if="vm.entityType == vm.types.entityType.user"
+          entity-group="vm.entityGroup"
            user="vm.entity"
            is-edit="vm.isEdit"
            the-form="vm.theForm"
@@ -81,9 +87,9 @@
            on-login-as-user="vm.entityGroupConfig.onLoginAsUser(vm.entity)">
 </tb-user>
 <tb-entity-view  ng-if="vm.entityType == vm.types.entityType.entityView"
+          entity-group="vm.entityGroup"
           entity-view="vm.entity"
           is-edit="vm.isEdit"
-          entity-view-scope="vm.entityGroupConfig.entityScope"
           the-form="vm.theForm"
           on-delete-entity-view="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
           on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
@@ -93,9 +99,9 @@
           hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
 </tb-entity-view>
 <tb-dashboard-details  ng-if="vm.entityType == vm.types.entityType.dashboard"
+                 entity-group="vm.entityGroup"
                  dashboard="vm.entity"
                  is-edit="vm.isEdit"
-                 dashboard-scope="vm.entityGroupConfig.entityScope"
                  the-form="vm.theForm"
                  on-delete-dashboard="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
                  on-open-dashboard="vm.entityGroupConfig.onOpenDashboard(event, vm.entity)"

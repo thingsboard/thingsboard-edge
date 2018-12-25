@@ -33,6 +33,7 @@
 <div
         id="{{node.id}}"
         ng-attr-style="position: absolute; top: {{ node.y }}px; left: {{ node.x }}px;"
+        ng-click="(!modelservice.isEditable() || node.readonly) && callbacks.doubleClick($event, node)"
         ng-dblclick="callbacks.doubleClick($event, node)"
         ng-mousedown="callbacks.mouseDown($event, node)"
         ng-mouseenter="callbacks.mouseEnter($event, node)"

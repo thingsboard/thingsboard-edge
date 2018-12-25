@@ -47,15 +47,17 @@
         <md-tabs ng-class="{'tb-headless': vm.isEdit}"
                  id="tabs" md-border-bottom flex class="tb-absolute-fill">
             <md-tab label="{{ 'details.details' | translate }}">
-                <tb-entity entity-group-config="vm.entityGroupConfig"
+                <tb-entity entity-group="vm.entityGroup"
+                           entity-group-config="vm.entityGroupConfig"
                            entity-type="vm.entityType"
                            entity="vm.editingEntity"
                            is-edit="vm.isEdit"
                            the-form="vm.detailsForm">
                 </tb-entity>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
+            <md-tab ng-if="!vm.isEdit && (vm.entityGroup | hasGroupEntityPermission:'readAttributes')" md-on-select="vm.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
                 <tb-attribute-table flex
+                                    readonly="!(vm.entityGroup | hasGroupEntityPermission:'writeAttributes')"
                                     entity-id="vm.entityId"
                                     entity-type="{{vm.entityType}}"
                                     entity-name="vm.entity.name"
@@ -65,8 +67,9 @@
                                                              }}">
                 </tb-attribute-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
+            <md-tab ng-if="!vm.isEdit && (vm.entityGroup | hasGroupEntityPermission:'readTelemetry')" md-on-select="vm.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
                 <tb-attribute-table flex
+                                    readonly="!(vm.entityGroup | hasGroupEntityPermission:'writeTelemetry')"
                                     entity-id="vm.entityId"
                                     entity-type="{{vm.entityType}}"
                                     entity-name="vm.entity.name"
@@ -74,7 +77,7 @@
                                     disable-attribute-scope-selection="true">
                 </tb-attribute-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
+            <md-tab ng-if="!vm.isEdit && ('alarm' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
                 <tb-alarm-table flex entity-type="vm.entityType"
                                      entity-id="vm.entityId">
                 </tb-alarm-table>
@@ -88,24 +91,26 @@
             </md-tab>
             <md-tab ng-if="!vm.isEdit" md-on-select="vm.triggerResize()" label="{{ 'relation.relations' | translate }}">
                 <tb-relation-table flex
+                                   readonly="!(vm.entityGroup | hasGroupEntityPermission:'write')"
                                    entity-id="vm.entityId"
                                    entity-type="{{vm.entityType}}">
                 </tb-relation-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit && vm.entity.additionalInfo.gateway" md-on-select="vm.triggerResize()" label="{{ 'extension.extensions' | translate }}">
+            <md-tab ng-if="!vm.isEdit && vm.entity.additionalInfo.gateway && (vm.entityGroup | hasGroupEntityPermission:'readAttributes')" md-on-select="vm.triggerResize()" label="{{ 'extension.extensions' | translate }}">
                 <tb-extension-table flex
+                                    readonly="!(vm.entityGroup | hasGroupEntityPermission:'writeAttributes')"
                                     entity-id="vm.entityId"
                                     entity-name="vm.entity.name"
                                     entity-type="{{vm.types.entityType.device}}">
                 </tb-extension-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && vm.entityType != vm.types.entityType.customer" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+            <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && vm.entityType != vm.types.entityType.customer && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
                 <tb-audit-log-table flex entity-type="vm.entityType"
                                     entity-id="vm.entityId"
                                     audit-log-mode="{{vm.types.auditLogMode.entity}}">
                 </tb-audit-log-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && vm.entityType == vm.types.entityType.customer" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+            <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && vm.entityType == vm.types.entityType.customer && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
                 <tb-audit-log-table flex
                                     customer-id="vm.entityId"
                                     audit-log-mode="{{vm.types.auditLogMode.customer}}">

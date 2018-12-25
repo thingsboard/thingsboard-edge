@@ -44,18 +44,9 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.user, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('user.users'),
 

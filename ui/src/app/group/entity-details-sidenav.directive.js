@@ -40,6 +40,7 @@ export default function EntityDetailsSidenav() {
         restrict: "E",
         scope: true,
         bindToController: {
+            entityGroup: '=',
             entityGroupConfig: '=',
             isOpen: '=',
             entityType: '=',
@@ -53,7 +54,7 @@ export default function EntityDetailsSidenav() {
 }
 
 /*@ngInject*/
-function EntityDetailsSidenavController($scope, $window, types, userService, entityService, helpLinks) {
+function EntityDetailsSidenavController($scope, $window, types, securityTypes, userPermissionsService, userService, entityService, helpLinks) {
 
     var vm = this;
 
@@ -65,7 +66,7 @@ function EntityDetailsSidenavController($scope, $window, types, userService, ent
     vm.entity = null;
     vm.editingEntity = null;
     vm.isEdit = false;
-    vm.isReadOnly = false;
+    vm.isReadOnly = !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.write, vm.entityGroup);
 
     vm.onToggleEditMode = onToggleEditMode;
     vm.onCloseDetails = onCloseDetails;

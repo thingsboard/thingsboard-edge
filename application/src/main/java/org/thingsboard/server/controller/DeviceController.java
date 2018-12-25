@@ -91,7 +91,9 @@ public class DeviceController extends BaseController {
 
             Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    device.getCustomerId() == null || device.getCustomerId().isNullUid()) {
                 device.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -124,7 +126,7 @@ public class DeviceController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/{deviceId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteDevice(@PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
@@ -253,7 +255,7 @@ public class DeviceController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/credentials", method = RequestMethod.POST)
     @ResponseBody
     public DeviceCredentials saveDeviceCredentials(@RequestBody DeviceCredentials deviceCredentials) throws ThingsboardException {
@@ -284,6 +286,7 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
@@ -302,6 +305,7 @@ public class DeviceController extends BaseController {
     public Device getTenantDevice(
             @RequestParam String deviceName) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
         } catch (Exception e) {
@@ -324,6 +328,7 @@ public class DeviceController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
@@ -342,6 +347,7 @@ public class DeviceController extends BaseController {
             @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException {
         checkArrayParameter("deviceIds", strDeviceIds);
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
             CustomerId customerId = user.getCustomerId();

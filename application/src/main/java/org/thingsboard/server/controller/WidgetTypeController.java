@@ -111,6 +111,7 @@ public class WidgetTypeController extends BaseController {
             @RequestParam boolean isSystem,
             @RequestParam String bundleAlias) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ);
             TenantId tenantId;
             if (isSystem) {
                 tenantId = TenantId.SYS_TENANT_ID;

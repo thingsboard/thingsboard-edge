@@ -42,11 +42,11 @@
         <md-progress-linear md-mode="indeterminate" ng-disabled="!$root.loading" ng-show="$root.loading"></md-progress-linear>
         <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
         <md-card-content>
-            <form name="vm.settingsForm" ng-submit="vm.save()" tb-confirm-on-exit confirm-form="vm.settingsForm">
+            <form name="vm.settingsForm" ng-submit="vm.save()" tb-confirm-on-exit confirm-form="!vm.readonly ? vm.settingsForm : null">
                 <div flex layout="column">
-                    <md-checkbox ng-if="vm.isTenantAdmin()" ng-disabled="$root.loading"
+                    <md-checkbox ng-if="vm.isTenantAdmin()" ng-disabled="$root.loading || vm.readonly"
                                  aria-label="{{ 'admin.use-system-mail-template-settings' | translate }}" ng-model="vm.useSystemMailSettings">{{ 'admin.use-system-mail-template-settings' | translate }}</md-checkbox>
-                    <fieldset ng-disabled="$root.loading" ng-if="!vm.useSystemMailSettings">
+                    <fieldset ng-if="!vm.useSystemMailSettings">
                         <div style="padding-top: 20px;"></div>
                         <md-input-container class="md-block">
                             <label translate>admin.mail-template</label>
@@ -59,7 +59,7 @@
                         <div style="padding-top: 20px;"></div>
                         <md-input-container class="md-block">
                             <label translate>admin.mail-subject</label>
-                            <input ng-model="vm.settings.jsonValue[vm.mailTemplate].subject">
+                            <input ng-disabled="$root.loading || vm.readonly" ng-model="vm.settings.jsonValue[vm.mailTemplate].subject">
                         </md-input-container>
                         <ng-form name="vm.mailBodyForm">
                             <div class="tb-container tb-mail-body">
@@ -69,7 +69,7 @@
                         </ng-form>
                     </fieldset>
                     <div layout="row" layout-align="end center" width="100%" layout-wrap style="margin-top: 10px;">
-                        <md-button ng-disabled="$root.loading || vm.settingsForm.$invalid || !vm.settingsForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
+                        <md-button ng-if="!vm.readonly" ng-disabled="$root.loading || vm.settingsForm.$invalid || !vm.settingsForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
                     </div>
                 </div>
             </form>

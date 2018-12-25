@@ -75,18 +75,23 @@ export default function CustomerDirective($compile, $templateCache, $translate, 
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             customer: '=',
             isEdit: '=',
             theForm: '=',
             onManageUsers: '&',
+            onManageCustomers: '&',
             onManageAssets: '&',
             onManageDevices: '&',
+            onManageEntityViews: '&',
             onManageDashboards: '&',
             onDeleteCustomer: '&',
             hideDelete: '=',
             hideManageUsers: '=',
+            hideManageCustomers: '=',
             hideManageAssets: '=',
             hideManageDevices: '=',
+            hideManageEntityViews: '=',
             hideManageDashboards: '='
         }
     };

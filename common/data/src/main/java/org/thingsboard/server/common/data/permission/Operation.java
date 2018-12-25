@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum Operation {
-    ALL, CREATE, READ(true), WRITE(true), DELETE, ASSIGN_TO_CUSTOMER, UNASSIGN_FROM_CUSTOMER, RPC_CALL(true),
+    ALL(true), CREATE, READ(true), WRITE(true), DELETE, ASSIGN_TO_CUSTOMER, UNASSIGN_FROM_CUSTOMER, RPC_CALL(true),
     READ_CREDENTIALS(true), WRITE_CREDENTIALS(true), READ_ATTRIBUTES(true), WRITE_ATTRIBUTES(true), READ_TELEMETRY(true), WRITE_TELEMETRY(true), ADD_TO_GROUP, REMOVE_FROM_GROUP;
 
     public static Set<Operation> defaultEntityOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
@@ -48,6 +48,15 @@ public enum Operation {
 
     public static Set<Operation> crudOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
             CREATE, DELETE));
+
+    public static Set<Operation> allowedForGroupRoleOperations = new HashSet<>();
+    static {
+        for (Operation operation : Operation.values()) {
+            if (operation.isAllowedForGroupRole()) {
+                allowedForGroupRoleOperations.add(operation);
+            }
+        }
+    }
 
     @Getter
     private boolean allowedForGroupRole;

@@ -40,18 +40,9 @@ export default function EntityViewGroupConfig($q, $translate, tbDialogs, utils, 
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.entityView, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('entity-view.entity-views'),
 
@@ -89,7 +80,7 @@ export default function EntityViewGroupConfig($q, $translate, tbDialogs, utils, 
             }
         };
 
-        groupConfig.onAssignToCustomer = (event, entity) => {
+        /*groupConfig.onAssignToCustomer = (event, entity) => {
             tbDialogs.assignEntityViewsToCustomer(event, [entity.id.id]).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
@@ -105,9 +96,9 @@ export default function EntityViewGroupConfig($q, $translate, tbDialogs, utils, 
             tbDialogs.makeEntityViewPublic(event, entity).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
-        };
+        };*/
 
-        groupConfig.groupActionDescriptors = [
+       /* groupConfig.groupActionDescriptors = [
             {
                 name: $translate.instant('entity-view.assign-entity-views'),
                 icon: "assignment_ind",
@@ -140,7 +131,7 @@ export default function EntityViewGroupConfig($q, $translate, tbDialogs, utils, 
                     );
                 },
             }
-        ];
+        ];*/
 
         utils.groupConfigDefaults(groupConfig);
 

@@ -40,6 +40,7 @@ export default function Entity() {
         restrict: "E",
         scope: true,
         bindToController: {
+            entityGroup: '=',
             entityGroupConfig: '=',
             entityType: '=',
             entity: '=',

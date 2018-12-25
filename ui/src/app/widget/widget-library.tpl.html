@@ -46,9 +46,9 @@
 	alias-controller="vm.aliasController"
 	widgets="vm.widgetTypes"
 	is-edit="false"
-	is-edit-action-enabled="true"
+	is-edit-action-enabled="vm.editEnabled"
 	is-export-action-enabled="true"
-	is-remove-action-enabled="!vm.isReadOnly()"
+	is-remove-action-enabled="!vm.isReadOnly() && vm.deleteEnabled"
 	on-edit-widget="vm.openWidgetType(event, widget)"
 	on-export-widget="vm.exportWidgetType(event, widget)"
 	on-remove-widget="vm.removeWidgetType(event, widget)"
@@ -57,7 +57,7 @@
 	on-init-failed="vm.dashboardInitFailed(e)">
 </tb-dashboard>
 <section layout="row" layout-wrap class="tb-footer-buttons md-fab ">
-	<md-fab-speed-dial ng-disabled="$root.loading" ng-show="!vm.isReadOnly()"
+	<md-fab-speed-dial ng-disabled="$root.loading" ng-show="!vm.isReadOnly() && vm.addEnabled"
 					   md-open="vm.addItemActionsOpen" class="md-scale" md-direction="up">
 		<md-fab-trigger>
 			<md-button ng-disabled="$root.loading"

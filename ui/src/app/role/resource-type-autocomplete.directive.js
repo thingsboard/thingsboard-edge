@@ -37,7 +37,7 @@ import resourceTypeAutocompleteTemplate from './resource-type-autocomplete.tpl.h
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function ResourceTypeAutocompleteDirective($compile, $templateCache, $q, $filter, $translate, securityTypes) {
+export default function ResourceTypeAutocompleteDirective($compile, $templateCache, $q, $filter, $translate, userPermissionsService, securityTypes) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(resourceTypeAutocompleteTemplate);
@@ -47,11 +47,13 @@ export default function ResourceTypeAutocompleteDirective($compile, $templateCac
         scope.resource = null;
         scope.resourceSearchText = '';
         scope.resources = null;
+        scope.allowedResources = null;
 
         scope.fetchResources = function(searchText) {
             var deferred = $q.defer();
             loadResources();
-            var result = $filter('filter')(scope.resources, {'name': searchText});
+            var result = $filter('filter')(scope.allowedResources, {'name': searchText});
+            result = $filter('orderBy')(result, 'name');
             deferred.resolve(result);
             return deferred.promise;
         };
@@ -94,12 +96,17 @@ export default function ResourceTypeAutocompleteDirective($compile, $templateCac
         function loadResources() {
             if (!scope.resources) {
                 scope.resources = [];
+                scope.allowedResources = [];
+                var allowedResourceTypes = userPermissionsService.getAllowedResources();
                 for (var resourceType in securityTypes.resource) {
                     var resource = {
                         value: securityTypes.resource[resourceType],
                         name: $translate.instant('permission.resource.display-type.' + securityTypes.resource[resourceType])
                     };
                     scope.resources.push(resource);
+                    if (allowedResourceTypes.indexOf(resource.value) > -1) {
+                        scope.allowedResources.push(resource);
+                    }
                 }
             }
         }

@@ -89,7 +89,10 @@ public class AssetController extends BaseController {
             asset.setTenantId(getCurrentUser().getTenantId());
 
             Operation operation = asset.getId() == null ? Operation.CREATE : Operation.WRITE;
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    asset.getCustomerId() == null || asset.getCustomerId().isNullUid()) {
                 asset.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -110,7 +113,7 @@ public class AssetController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteAsset(@PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
@@ -233,6 +236,7 @@ public class AssetController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length()>0) {
@@ -251,6 +255,7 @@ public class AssetController extends BaseController {
     public Asset getTenantAsset(
             @RequestParam String assetName) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(assetService.findAssetByTenantIdAndName(tenantId, assetName));
         } catch (Exception e) {
@@ -273,6 +278,7 @@ public class AssetController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length()>0) {
                 return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
@@ -291,6 +297,7 @@ public class AssetController extends BaseController {
             @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException {
         checkArrayParameter("assetIds", strAssetIds);
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
             CustomerId customerId = user.getCustomerId();

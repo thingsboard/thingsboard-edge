@@ -35,6 +35,7 @@ import './group-permissions.scss';
 
 import groupPermissionsTemplate from './group-permissions.tpl.html';
 import groupPermissionDialogTemplate from './group-permission-dialog.tpl.html';
+import viewRoleDialogTemplate from './view-role.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -55,10 +56,14 @@ export default function GroupPermissions() {
 
 /*@ngInject*/
 function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
-                                       $mdUtil, $document, $translate, $filter, $timeout, utils, types, dashboardUtils,
-                                       entityService, roleService) {
+                                       $mdUtil, $document, $translate, $filter, $timeout, utils, types, securityTypes, dashboardUtils,
+                                       entityService, roleService, userPermissionsService) {
 
     let vm = this;
+
+    vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.write);
+    vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.create);
+    vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.delete);
 
     vm.types = types;
 
@@ -84,6 +89,7 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
     vm.deleteGroupPermissions = deleteGroupPermissions;
     vm.reloadGroupPermissions = reloadGroupPermissions;
     vm.updateGroupPermissions = updateGroupPermissions;
+    vm.viewRole = viewRole;
 
     $scope.$watch("vm.entityId", function(newVal, prevVal) {
         if (newVal && !angular.equals(newVal, prevVal)) {
@@ -257,6 +263,37 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
         vm.groupPermissionsCount = result.length;
         var startIndex = vm.query.limit * (vm.query.page - 1);
         vm.groupPermissions = result.slice(startIndex, startIndex + vm.query.limit);
+    }
+
+    function viewRole($event, groupPermission) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: ViewRoleController,
+            controllerAs: 'vm',
+            templateUrl: viewRoleDialogTemplate,
+            parent: angular.element($document[0].body),
+            locals: {
+                role: groupPermission.role
+            },
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function () {
+        });
+    }
+}
+
+/*@ngInject*/
+function ViewRoleController($scope, $mdDialog, role) {
+
+    var vm = this;
+    vm.role = role;
+
+    vm.close = close;
+
+    function close() {
+        $mdDialog.hide();
     }
 
 }

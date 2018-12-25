@@ -48,6 +48,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         super();
         put(Resource.ADMIN_SETTINGS, PermissionChecker.allowAllPermissionChecker);
         put(Resource.DASHBOARD, new PermissionChecker.GenericPermissionChecker(Operation.READ));
+        put(Resource.ALARM, new PermissionChecker.GenericPermissionChecker(Operation.READ));
         put(Resource.TENANT, PermissionChecker.allowAllPermissionChecker);
         put(Resource.RULE_CHAIN, systemEntityPermissionChecker);
         put(Resource.USER, userPermissionChecker);
@@ -57,6 +58,11 @@ public class SysAdminPermissions extends AbstractPermissions {
     }
 
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return true;
+        }
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {

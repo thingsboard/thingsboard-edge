@@ -355,7 +355,8 @@ export default function ExtensionFormHttpDirective($compile, $templateCache, $tr
         link: linker,
         scope: {
             config: "=",
-            isAdd: "="
+            isAdd: "=",
+            readonly: "="
         }
     }
 }

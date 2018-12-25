@@ -30,7 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onDeleteIntegration({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{ 'integration.delete' | translate }}</md-button>
+<md-button ng-click="onDeleteIntegration({event: $event})"
+           ng-if="'integration' | hasGenericPermission:'delete'"
+           ng-show="!isEdit" class="md-raised md-primary">{{ 'integration.delete' | translate }}</md-button>
 
 <div layout="row">
     <md-button ngclipboard data-clipboard-action="copy"

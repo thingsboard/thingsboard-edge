@@ -37,7 +37,8 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
+function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService,
+                     userPermissionsService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -413,19 +414,14 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
 
     function loadIsUserTokenAccessEnabled() {
         var deferred = $q.defer();
-        if (currentUser.authority === 'SYS_ADMIN' || currentUser.authority === 'TENANT_ADMIN') {
-            var url = '/api/user/tokenAccessEnabled';
-            $http.get(url).then(function success(response) {
-                userTokenAccessEnabled = response.data;
-                deferred.resolve(response.data);
-            }, function fail() {
-                userTokenAccessEnabled = false;
-                deferred.reject();
-            });
-        } else {
+        var url = '/api/user/tokenAccessEnabled';
+        $http.get(url).then(function success(response) {
+            userTokenAccessEnabled = response.data;
+            deferred.resolve(response.data);
+        }, function fail() {
             userTokenAccessEnabled = false;
-            deferred.resolve(false);
-        }
+            deferred.reject();
+        });
         return deferred.promise;
     }
 
@@ -465,6 +461,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
             promises.push(checkIsWhiteLabelingAllowed());
         }
+        promises.push(userPermissionsService.loadPermissionsInfo());
         return $q.all(promises);
     }
 

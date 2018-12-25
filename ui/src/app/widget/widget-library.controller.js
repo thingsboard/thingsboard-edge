@@ -39,11 +39,15 @@ import selectWidgetTypeTemplate from './select-widget-type.tpl.html';
 /*@ngInject*/
 export default function WidgetLibraryController($scope, $rootScope, $q, widgetService, userService, importExport,
                                                 $state, $stateParams, $document, $mdDialog, $translate, $filter,
-                                                utils, types, entityService) {
+                                                utils, types, securityTypes, userPermissionsService, entityService) {
 
     var vm = this;
 
     var widgetsBundleId = $stateParams.widgetsBundleId;
+
+    vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.write);
+    vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.create);
+    vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.delete);
 
     vm.widgetsBundle;
     vm.widgetTypes = [];

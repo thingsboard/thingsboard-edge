@@ -39,7 +39,7 @@ import entityViewFieldsetTemplate from './entity-view-fieldset.tpl.html';
 
 /*@ngInject*/
 export default function EntityViewDirective($q, $compile, $templateCache, $filter, toast, $translate, $mdConstant, $mdExpansionPanel,
-                                            types, clipboardService, entityViewService, customerService, entityService) {
+                                            types, clipboardService, entityViewService, entityService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(entityViewFieldsetTemplate);
         element.html(template);
@@ -49,9 +49,9 @@ export default function EntityViewDirective($q, $compile, $templateCache, $filte
         scope.$mdExpansionPanel = $mdExpansionPanel;
 
         scope.types = types;
-        scope.isAssignedToCustomer = false;
+        /*scope.isAssignedToCustomer = false;
         scope.isPublic = false;
-        scope.assignedCustomer = null;
+        scope.assignedCustomer = null;*/
 
         scope.allowedEntityTypes = [types.entityType.device, types.entityType.asset];
 
@@ -60,7 +60,7 @@ export default function EntityViewDirective($q, $compile, $templateCache, $filte
 
         scope.$watch('entityView', function(newVal) {
             if (newVal) {
-                if (scope.entityView.customerId && scope.entityView.customerId.id !== types.id.nullUid) {
+                /*if (scope.entityView.customerId && scope.entityView.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
                     customerService.getShortCustomerInfo(scope.entityView.customerId.id).then(
                         function success(customer) {
@@ -72,7 +72,7 @@ export default function EntityViewDirective($q, $compile, $templateCache, $filte
                     scope.isAssignedToCustomer = false;
                     scope.isPublic = false;
                     scope.assignedCustomer = null;
-                }
+                }*/
                 if (scope.entityView.startTimeMs > 0) {
                     scope.startTimeMs = new Date(scope.entityView.startTimeMs);
                 } else {
@@ -153,9 +153,9 @@ export default function EntityViewDirective($q, $compile, $templateCache, $filte
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             entityView: '=',
             isEdit: '=',
-            entityViewScope: '=',
             theForm: '=',
             onAssignToCustomer: '&',
             onMakePublic: '&',

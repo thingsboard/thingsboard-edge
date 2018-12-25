@@ -41,7 +41,7 @@
                 <md-button class="fetch-more" ng-disabled="$root.loading" ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     {{ 'entity-group.fetch-more' | translate }}
                 </md-button>
-                <md-button ng-disabled="$root.loading" ng-show="vm.entityGroupConfig.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
+                <md-button ng-disabled="$root.loading" ng-show="vm.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.add | translate }}
@@ -92,7 +92,7 @@
             </div>
         </md-toolbar>
         <md-table-container flex>
-            <table md-table md-row-select="vm.settings.enableSelection" multiple="" ng-model="vm.selectedEntities">
+            <table md-table md-row-select="vm.settings.enableSelection && vm.groupActionDescriptors.length" multiple="" ng-model="vm.selectedEntities">
                 <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
                     <th md-column ng-if="!column.mobileHide || vm.isGtMd" md-order-by="{{ column.key }}" ng-repeat="column in vm.columns"><span>{{ vm.getColumnTitle(column) }}</span></th>
@@ -139,6 +139,7 @@
           class="tb-absolute-fill" translate>entity.no-data</span>
 </div>
 <tb-entity-details-sidenav
+        entity-group="vm.entityGroup"
         entity-group-config="vm.entityGroupConfig"
         entity-type="vm.entityGroup.type"
         entity-id="vm.currentEntity.id.id"

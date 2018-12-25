@@ -31,7 +31,7 @@
 
 -->
 <section ng-form name="orginatorSelectForm" class="tb-originator-select" ng-class="{'optional': !required}" layout="column">
-    <md-radio-group layout="row" ng-model="isEntityGroupOriginator"
+    <md-radio-group ng-disabled="readonly" layout="row" ng-model="isEntityGroupOriginator"
                     style="padding-top: 16px; padding-bottom: 16px;"
                     class="md-primary" ng-change="isEntityGroupOriginatorChange()">
         <md-radio-button ng-value=false aria-label="{{ singleEntityText | translate }}" class="md-primary md-align-top-left">
@@ -46,6 +46,7 @@
             allowed-entity-types="allowedEntityTypes"
             the-form="orginatorSelectForm"
             tb-required="required"
+            ng-disabled="readonly"
             ng-model="model.originatorId">
     </tb-entity-select>
     <tb-entity-group-select
@@ -54,6 +55,7 @@
             ng-model="model.originatorId"
             on-current-group-type="onCurrentGroupType({groupType: groupType})"
             tb-required="required"
+            ng-disabled="readonly"
             the-form="orginatorSelectForm"
             placeholder-text="entity-group.select-entity-group"
             not-found-text="entity-group.no-entity-groups-matching"

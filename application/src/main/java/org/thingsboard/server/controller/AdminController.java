@@ -120,7 +120,7 @@ public class AdminController extends BaseController {
             if (authority == Authority.SYS_ADMIN) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
             } else {
-                checkTenantId(getTenantId(), Operation.READ_ATTRIBUTES);
+                accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
@@ -144,7 +144,7 @@ public class AdminController extends BaseController {
     }
 
     private AdminSettings getTenantAdminSettings(String key, boolean systemByDefault) throws Exception {
-        checkTenantId(getTenantId(), Operation.READ_ATTRIBUTES);
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
         String jsonString = getEntityAttributeValue(getTenantId(), key);
         JsonNode jsonValue = null;
         if (!StringUtils.isEmpty(jsonString)) {
@@ -167,7 +167,7 @@ public class AdminController extends BaseController {
     }
 
     private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
-        checkTenantId(getTenantId(), Operation.WRITE_ATTRIBUTES);
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
         String jsonString = null;
         if (jsonValue != null) {

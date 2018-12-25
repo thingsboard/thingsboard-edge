@@ -38,7 +38,8 @@ import blobEntitiesTitleTemplate from './blob-entities-title.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function BlobEntitiesDirective($compile, $templateCache, $rootScope, $filter, $translate, types, userService, blobEntityService) {
+export default function BlobEntitiesDirective($compile, $templateCache, $rootScope, $filter, $translate, types, securityTypes, userPermissionsService,
+                                              userService, blobEntityService) {
 
     var linker = function (scope, element) {
 
@@ -46,11 +47,12 @@ export default function BlobEntitiesDirective($compile, $templateCache, $rootSco
 
         element.html(template);
 
-        scope.showData = userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER';
+        scope.showData = (userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER') &&
+            userPermissionsService.hasGenericPermission(securityTypes.resource.blobEntity, securityTypes.operation.read);
 
         scope.displayCreatedTime = true;
         scope.displayType = true;
-        scope.displayCustomer = userService.getAuthority() === 'TENANT_ADMIN' ? true : false;
+        scope.displayCustomer = true;//userService.getAuthority() === 'TENANT_ADMIN' ? true : false;
 
         scope.defaultType = null;
 
@@ -234,9 +236,9 @@ export default function BlobEntitiesDirective($compile, $templateCache, $rootSco
 
             scope.displayCreatedTime = angular.isDefined(scope.settings.displayCreatedTime) ? scope.settings.displayCreatedTime : true;
             scope.displayType = angular.isDefined(scope.settings.displayType) ? scope.settings.displayType : true;
-            if (userService.getAuthority() === 'TENANT_ADMIN') {
+            //if (userService.getAuthority() === 'TENANT_ADMIN') {
                 scope.displayCustomer = angular.isDefined(scope.settings.displayCustomer) ? scope.settings.displayCustomer : true;
-            }
+            //}
 
             if (scope.settings.forceDefaultType && scope.settings.forceDefaultType.length) {
                 scope.defaultType = scope.settings.forceDefaultType;

@@ -49,6 +49,7 @@
                 </md-button>
             </section>
             <md-sidenav class="tb-rulechain-library md-sidenav-left md-whiteframe-4dp"
+                        ng-if="!vm.readonly"
                         md-disable-backdrop
                         md-is-locked-open="vm.isLibraryOpenReadonly"
                         md-is-open="vm.isLibraryOpenReadonly"
@@ -158,7 +159,7 @@
                             header-title="{{vm.editingRuleNode.name}}"
                             header-subtitle="{{(vm.types.ruleNodeType[vm.editingRuleNode.component.type].name | translate)
                             + ' - ' + vm.editingRuleNode.component.name}}"
-                            is-read-only="vm.selectedRuleNodeTabIndex > 0"
+                            is-read-only="vm.selectedRuleNodeTabIndex > 0 || vm.readonly"
                             is-open="vm.isEditingRuleNode"
                             tb-enable-backdrop
                             is-always-edit="true"
@@ -176,8 +177,8 @@
                         <tb-rule-node
                                 rule-node="vm.editingRuleNode"
                                 rule-chain-id="vm.ruleChain.id.id"
-                                is-edit="true"
-                                is-read-only="false"
+                                is-edit="!vm.readonly"
+                                is-read-only="vm.readonly"
                                 on-delete-rule-node="vm.deleteRuleNode(event, vm.editingRuleNode)"
                                 the-form="vm.ruleNodeForm">
                         </tb-rule-node>
@@ -208,7 +209,7 @@
         <tb-details-sidenav class="tb-rulenode-link-details-sidenav"
                             header-title="{{vm.editingRuleNodeLink.label}}"
                             header-subtitle="{{'rulenode.link-details' | translate}}"
-                            is-read-only="false"
+                            is-read-only="vm.readonly"
                             is-open="vm.isEditingRuleNodeLink"
                             tb-enable-backdrop
                             is-always-edit="true"
@@ -224,13 +225,13 @@
                         ng-model="vm.editingRuleNodeLink"
                         allowed-labels="vm.editingRuleNodeLinkLabels"
                         allow-custom="vm.editingRuleNodeAllowCustomLabels"
-                        is-edit="true"
-                        is-read-only="false">
+                        is-edit="!vm.readonly"
+                        is-read-only="vm.readonly">
                 </tb-rule-node-link>
             </form>
         </tb-details-sidenav>
     </section>
-    <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end">
+    <section ng-if="!vm.readonly" layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end">
         <md-button ng-disabled="$root.loading" ng-show="vm.objectsSelected()" class="tb-btn-footer md-accent md-hue-2 md-fab"
                    ng-click="vm.deleteSelected()" aria-label="{{ 'action.delete' | translate }}">
             <md-tooltip md-direction="top">

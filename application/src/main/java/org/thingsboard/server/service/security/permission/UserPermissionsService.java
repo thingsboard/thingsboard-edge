@@ -30,11 +30,8 @@
  */
 package org.thingsboard.server.service.security.permission;
 
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.role.Role;
@@ -42,7 +39,7 @@ import org.thingsboard.server.common.data.role.Role;
 
 public interface UserPermissionsService {
 
-    MergedUserPermissions getMergedPermissions(TenantId tenantId, CustomerId customerId, UserId userId) throws Exception;
+    MergedUserPermissions getMergedPermissions(User user) throws Exception;
 
     void onRoleUpdated(TenantId tenantId, Role role);
 

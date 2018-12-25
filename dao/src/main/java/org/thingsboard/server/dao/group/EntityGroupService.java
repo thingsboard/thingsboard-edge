@@ -52,6 +52,8 @@ public interface EntityGroupService {
 
     ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
 
+    ListenableFuture<List<EntityGroup>> findEntityGroupByIdsAsync(TenantId tenantId, List<EntityGroupId> entityGroupIds);
+
     ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
     ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroupId entityGroupId, EntityType groupType);
@@ -60,7 +62,7 @@ public interface EntityGroupService {
 
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
-    EntityGroup getOrCreateAdminsUserGroup(TenantId tenantId, EntityId parentEntityId);
+    EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName);
 
     void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId);
 

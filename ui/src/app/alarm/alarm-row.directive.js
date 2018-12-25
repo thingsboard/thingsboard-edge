@@ -37,7 +37,7 @@ import alarmRowTemplate from './alarm-row.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function AlarmRowDirective($compile, $templateCache, types, $mdDialog, $document) {
+export default function AlarmRowDirective($compile, $templateCache, types, securityTypes, userPermissionsService, $mdDialog, $document) {
 
     var linker = function (scope, element, attrs) {
 
@@ -46,6 +46,8 @@ export default function AlarmRowDirective($compile, $templateCache, types, $mdDi
 
         scope.alarm = attrs.alarm;
         scope.types = types;
+
+        var readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.alarm, securityTypes.operation.write);
 
         scope.showAlarmDetails = function($event) {
             var onShowingCallback = {
@@ -57,8 +59,9 @@ export default function AlarmRowDirective($compile, $templateCache, types, $mdDi
                 templateUrl: alarmDetailsDialogTemplate,
                 locals: {
                     alarmId: scope.alarm.id.id,
-                    allowAcknowledgment: true,
-                    allowClear: true,
+                    alarm: scope.alarm,
+                    allowAcknowledgment: !readonly,
+                    allowClear: !readonly,
                     displayDetails: true,
                     showingCallback: onShowingCallback
                 },

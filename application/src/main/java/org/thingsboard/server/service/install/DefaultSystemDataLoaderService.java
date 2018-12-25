@@ -207,8 +207,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         userCredentials.setActivateToken(null);
         userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
         if (authority == Authority.TENANT_ADMIN) {
-            EntityGroup admins = entityGroupService.getOrCreateAdminsUserGroup(TenantId.SYS_TENANT_ID, user.getTenantId());
+            EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, user.getTenantId(), EntityGroup.GROUP_ADMINS_NAME);
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), user.getId());
+        } else if (authority == Authority.CUSTOMER_USER) {
+            EntityGroup users = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, user.getCustomerId(), EntityGroup.GROUP_USERS_NAME);
+            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, users.getId(), user.getId());
         }
         return user;
     }

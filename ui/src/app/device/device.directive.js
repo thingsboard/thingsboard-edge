@@ -35,17 +35,17 @@ import deviceFieldsetTemplate from './device-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function DeviceDirective($compile, $templateCache, toast, $translate, types, clipboardService, deviceService, customerService) {
+export default function DeviceDirective($compile, $templateCache, toast, $translate, types, clipboardService, deviceService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(deviceFieldsetTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.isAssignedToCustomer = false;
-        scope.isPublic = false;
-        scope.assignedCustomer = null;
+        //scope.isAssignedToCustomer = false;
+        //scope.isPublic = false;
+        //scope.assignedCustomer = null;
 
-        scope.$watch('device', function(newVal) {
+        /*scope.$watch('device', function(newVal) {
             if (newVal) {
                 if (scope.device.customerId && scope.device.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
@@ -61,7 +61,7 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
                     scope.assignedCustomer = null;
                 }
             }
-        });
+        });*/
 
         scope.onDeviceIdCopied = function() {
             toast.showSuccess($translate.instant('device.idCopiedMessage'), 750, angular.element(element).closest("md-tab-content"), 'bottom left');
@@ -89,9 +89,10 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             device: '=',
             isEdit: '=',
-            deviceScope: '=',
+            //deviceScope: '=',
             theForm: '=',
             onAssignToCustomer: '&',
             onMakePublic: '&',

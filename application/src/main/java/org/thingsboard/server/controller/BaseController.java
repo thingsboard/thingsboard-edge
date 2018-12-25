@@ -130,6 +130,8 @@ public abstract class BaseController {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
+    private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
+
     private static final ObjectMapper json = new ObjectMapper();
 
     @Autowired
@@ -386,7 +388,9 @@ public abstract class BaseController {
             validateId(userId, "Incorrect userId " + userId);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user);
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            }
             return user;
         } catch (Exception e) {
             throw handleException(e, false);
@@ -710,6 +714,11 @@ public abstract class BaseController {
         return ruleNode;
     }
 
+    protected ThingsboardException permissionDenied() {
+        return new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
+                ThingsboardErrorCode.PERMISSION_DENIED);
+    }
+
     protected String constructBaseUrl(HttpServletRequest request) {
         String scheme = request.getScheme();
         if (request.getHeader("x-forwarded-proto") != null) {
@@ -880,7 +889,7 @@ public abstract class BaseController {
 
     protected MergedUserPermissions getMergedUserPermissions(User user) {
         try {
-            return userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
+            return userPermissionsService.getMergedPermissions(user);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

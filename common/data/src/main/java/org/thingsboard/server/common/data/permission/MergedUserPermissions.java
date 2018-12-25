@@ -31,10 +31,11 @@
 package org.thingsboard.server.common.data.permission;
 
 import lombok.Getter;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class MergedUserPermissions {
 
@@ -42,10 +43,24 @@ public final class MergedUserPermissions {
     private final Map<Resource, Set<Operation>> genericPermissions;
     @Getter
     private final Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions;
+    @Getter
+    private final Map<EntityType, MergedGroupTypePermissionInfo> readGroupPermissions;
 
     public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
         this.genericPermissions = genericPermissions;
         this.groupPermissions = groupPermissions;
+        this.readGroupPermissions = new HashMap<>();
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            Resource resource = Resource.groupResourceFromGroupType(groupType);
+            boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead);
+            this.readGroupPermissions.put(groupType, groupTypePermissionInfo);
+        }
+        this.groupPermissions.forEach((id, info) -> {
+            if (checkOperation(info.getOperations(), Operation.READ)) {
+                this.readGroupPermissions.get(info.getEntityType()).getEntityGroupIds().add(id);
+            }
+        });
     }
 
     public boolean hasGenericPermission(Resource resource, Operation operation) {

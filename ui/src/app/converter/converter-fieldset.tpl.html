@@ -33,7 +33,9 @@
 <md-button ng-click="onExportConverter({event: $event})"
            ng-show="!isEdit"
            class="md-raised md-primary">{{ 'converter.export' | translate }}</md-button>
-<md-button ng-click="onDeleteConverter({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{ 'converter.delete' | translate }}</md-button>
+<md-button ng-click="onDeleteConverter({event: $event})"
+           ng-if="'converter' | hasGenericPermission:'delete'"
+           ng-show="!isEdit" class="md-raised md-primary">{{ 'converter.delete' | translate }}</md-button>
 
 <div layout="row">
     <md-button ngclipboard data-clipboard-action="copy"

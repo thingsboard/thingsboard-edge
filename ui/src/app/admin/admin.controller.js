@@ -31,13 +31,16 @@
 import './mail-template-settings.scss';
 
 /*@ngInject*/
-export default function AdminController(adminService, userService, toast, $scope, $rootScope, $state, $translate, types) {
+export default function AdminController(adminService, userService, toast, $scope, $rootScope, $state, $translate,
+                                        types, securityTypes, userPermissionsService) {
 
     var vm = this;
     vm.types = types;
     vm.save = save;
     vm.sendTestMail = sendTestMail;
     vm.isTenantAdmin = isTenantAdmin;
+
+    vm.readonly = isTenantAdmin() && !userPermissionsService.hasGenericPermission(securityTypes.resource.whiteLabeling, securityTypes.operation.write);
 
     vm.useSystemMailSettings = false;
 
@@ -53,24 +56,42 @@ export default function AdminController(adminService, userService, toast, $scope
         vm.testMailSent = translationId;
     });
 
-    vm.tinyMceOptions = {
-        plugins: ['textcolor colorpicker link table image imagetools code fullscreen'],
-        menubar: "edit insert tools view format table",
-        toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor | link | table | image | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat | code | fullscreen',
-        font_formats: 'Helvetica Neue="Helvetica Neue",helvetica,arial,sans-serif;Helvetica=helvetica,arial,sans-serif;Times New Roman=times new roman,times,serif;Sans Serif=sans-serif,helvetica,arial;Arial=arial,helvetica,sans-serif;Courier New=courier new,courier,monospace;',
-        fontsize_formats: '8pt 10pt 11pt 12pt 14pt 18pt 24pt 36pt',
-        height: 280,
-        autofocus: false,
-        branding: false,
-        setup: function(ed)
-        {
-            ed.on('init', function()
-            {
-                //ed.execCommand("fontName", false, "Helvetica Neue");
-                //ed.execCommand("fontSize", false, "11pt");
-            });
-        }
-    };
+    if (vm.readonly) {
+        vm.tinyMceOptions = {
+            plugins: [],
+            menubar: false,
+            toolbar: false,
+            statusbar: false,
+            height: 280,
+            autofocus: false,
+            branding: false,
+            resize: false,
+            readonly: 1,
+            setup: function (ed) {
+                ed.on('init', function () {
+                    var document = angular.element(ed.iframeElement.contentDocument);
+                    angular.element('#tinymce', document).css('pointerEvents', 'none');
+                });
+            }
+        };
+    } else {
+        vm.tinyMceOptions = {
+            plugins: ['textcolor colorpicker link table image imagetools code fullscreen'],
+            menubar: "edit insert tools view format table",
+            toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor | link | table | image | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat | code | fullscreen',
+            font_formats: 'Helvetica Neue="Helvetica Neue",helvetica,arial,sans-serif;Helvetica=helvetica,arial,sans-serif;Times New Roman=times new roman,times,serif;Sans Serif=sans-serif,helvetica,arial;Arial=arial,helvetica,sans-serif;Courier New=courier new,courier,monospace;',
+            fontsize_formats: '8pt 10pt 11pt 12pt 14pt 18pt 24pt 36pt',
+            height: 280,
+            autofocus: false,
+            branding: false,
+            setup: function (ed) {
+                ed.on('init', function () {
+                    //ed.execCommand("fontName", false, "Helvetica Neue");
+                    //ed.execCommand("fontSize", false, "11pt");
+                });
+            }
+        };
+    }
 
     loadSettings();
 

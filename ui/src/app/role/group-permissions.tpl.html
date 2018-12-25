@@ -35,7 +35,7 @@
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedGroupPermissions.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
-                <md-button class="md-icon-button" ng-click="vm.addGroupPermission($event)">
+                <md-button ng-if="vm.addEnabled" class="md-icon-button" ng-click="vm.addGroupPermission($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'action.add' | translate }}
@@ -91,7 +91,7 @@
             </div>
         </md-toolbar>
         <md-table-container>
-            <table md-table md-row-select multiple="" ng-model="vm.selectedGroupPermissions" md-progress="vm.groupPermissionsPromise">
+            <table md-table md-row-select="vm.deleteEnabled" multiple="" ng-model="vm.selectedGroupPermissions" md-progress="vm.groupPermissionsPromise">
                 <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
                     <th md-column><span translate>group-permission.role-name</span></th>
@@ -103,19 +103,30 @@
                 <tbody md-body>
                 <tr md-row ng-disabled="groupPermission.readOnly" ng-class="{'tb-read-only': groupPermission.readOnly}"
                     md-select="groupPermission" md-select-id="groupPermission" md-auto-select ng-repeat="groupPermission in vm.groupPermissions">
-                    <td md-cell>{{groupPermission.roleName}}</td>
+                    <td md-cell layout="row">
+                        <span flex style="line-height: 40px;">
+                            {{groupPermission.roleName}}
+                        </span>
+                        <md-button class="md-icon-button" aria-label="{{ 'role.view' | translate }}" ng-click="vm.viewRole($event, groupPermission)">
+                            <md-icon aria-label="{{ 'role.view' | translate }}" class="material-icons">more_horiz</md-icon>
+                            <md-tooltip md-direction="top">
+                                {{ 'role.view' | translate }}
+                            </md-tooltip>
+                        </md-button>
+                    </td>
                     <td md-cell>{{groupPermission.roleTypeName}}</td>
                     <td md-cell>{{groupPermission.entityGroupTypeName}}</td>
                     <td md-cell>{{groupPermission.entityGroupName}}</td>
                     <td md-cell class="tb-action-cell">
-                        <md-button ng-if="!groupPermission.readOnly" class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
+                        <md-button ng-if="!groupPermission.readOnly && vm.editEnabled"
+                                   class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
                                    ng-click="vm.editGroupPermission($event, groupPermission)">
                             <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
                             <md-tooltip md-direction="top">
                                 {{ 'group-permission.edit' | translate }}
                             </md-tooltip>
                         </md-button>
-                        <md-button ng-if="!groupPermission.readOnly"
+                        <md-button ng-if="!groupPermission.readOnly && vm.deleteEnabled"
                                    class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="vm.deleteGroupPermission($event, groupPermission)">
                             <md-icon aria-label="{{ 'action.delete' | translate }}" class="material-icons">delete</md-icon>
                             <md-tooltip md-direction="top">

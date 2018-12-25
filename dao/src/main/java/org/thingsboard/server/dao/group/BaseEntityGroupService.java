@@ -70,6 +70,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
@@ -110,6 +111,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing findEntityGroupByIdAsync [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         return entityGroupDao.findByIdAsync(tenantId, entityGroupId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<EntityGroup>> findEntityGroupByIdsAsync(TenantId tenantId, List<EntityGroupId> entityGroupIds) {
+        log.trace("Executing findEntityGroupByIdsAsync, entityGroupIds [{}]", entityGroupIds);
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        return entityGroupDao.findEntityGroupsByIdsAsync(tenantId.getId(), toUUIDs(entityGroupIds));
     }
 
     @Override
@@ -177,20 +185,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public EntityGroup getOrCreateAdminsUserGroup(TenantId tenantId, EntityId parentEntityId) {
-        log.trace("Executing getOrCreateAdminsUserGroup, parentEntityId [{}]", parentEntityId);
+    public EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName) {
+        log.trace("Executing getOrCreateUserGroup, parentEntityId [{}], groupName [{}]", parentEntityId, groupName);
         try {
-            Optional<EntityGroup> adminsUserGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, EntityType.USER, EntityGroup.GROUP_ADMINS_NAME).get();
-            if (adminsUserGroupOptional.isPresent()) {
-                return adminsUserGroupOptional.get();
+            Optional<EntityGroup> userGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, EntityType.USER, groupName).get();
+            if (userGroupOptional.isPresent()) {
+                return userGroupOptional.get();
             } else {
-                EntityGroup adminsUserGroup = new EntityGroup();
-                adminsUserGroup.setName(EntityGroup.GROUP_ADMINS_NAME);
-                adminsUserGroup.setType(EntityType.USER);
-                return saveEntityGroup(tenantId, parentEntityId, adminsUserGroup);
+                EntityGroup userGroup = new EntityGroup();
+                userGroup.setName(groupName);
+                userGroup.setType(EntityType.USER);
+                return saveEntityGroup(tenantId, parentEntityId, userGroup);
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Unable find or create admins user group!", e);
+            throw new RuntimeException("Unable find or create user group!", e);
         }
     }
 

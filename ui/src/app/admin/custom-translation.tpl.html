@@ -58,7 +58,8 @@
                     <div class="tb-hint" translate>custom-translation.custom-translation-hint</div>
                     <fieldset ng-disabled="$root.loading">
                         <md-input-container class="md-block" style="height: 500px;">
-                            <tb-json-content ng-model="vm.customTranslation.translationMap[vm.currentLang]"
+                            <tb-json-content ng-readonly="vm.readonly"
+                                             ng-model="vm.customTranslation.translationMap[vm.currentLang]"
                                              label="{{'custom-translation.translation-map' | translate}}"
                                              content-type="vm.types.contentType.JSON.value"
                                              tb-placeholder="vm.translationPlaceholder"
@@ -67,7 +68,7 @@
                         </md-input-container>
                     </fieldset>
                     <div layout="row" layout-align="end center" width="100%" layout-wrap>
-                        <md-button ng-disabled="$root.loading || vm.customTranslationForm.$invalid || !vm.customTranslationForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
+                        <md-button ng-if="!vm.readonly" ng-disabled="$root.loading || vm.customTranslationForm.$invalid || !vm.customTranslationForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
                     </div>
                 </div>
             </form>

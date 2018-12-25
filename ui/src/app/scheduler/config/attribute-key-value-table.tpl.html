@@ -41,7 +41,7 @@
                 <div translate ng-message="required">attribute.key-required</div>
             </div>
         </md-input-container>
-        <tb-attribute-value flex="60" ng-model="keyVal.value"></tb-attribute-value>
+        <tb-attribute-value flex="60" ng-disabled="disabled" ng-model="keyVal.value"></tb-attribute-value>
         <md-button ng-show="!disabled" ng-disabled="$root.loading" class="md-icon-button md-primary"
                    ng-click="removeKeyVal($index)"
                    aria-label="{{ 'action.remove' | translate }}">

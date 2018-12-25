@@ -89,9 +89,15 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.DASHBOARD_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
+        put(Resource.AUDIT_LOG, tenantAuditLogPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
 
         @Override
         public  boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
@@ -104,7 +110,12 @@ public class TenantAdminPermissions extends AbstractPermissions {
         }
     };
 
-    public final PermissionChecker tenantGroupEntityPermissionChecker = new PermissionChecker() {
+    private final PermissionChecker tenantGroupEntityPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
@@ -116,6 +127,9 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
                 return true;
             } else if (entityId != null) {
+                if (!operation.isAllowedForGroupRole()) {
+                    return false;
+                }
                 try {
                     List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
                     for (EntityGroupId entityGroupId : entityGroupIds) {
@@ -132,6 +146,11 @@ public class TenantAdminPermissions extends AbstractPermissions {
     };
 
     private static final PermissionChecker widgetsPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
@@ -156,7 +175,9 @@ public class TenantAdminPermissions extends AbstractPermissions {
             Resource resource = Resource.groupResourceFromGroupType(groupType);
             if (ownersCacheService.getOwners(user.getTenantId(), entityGroupId).contains(user.getOwnerId())) {
                 // This entity is a group, so we are checking group generic permission first
-                return user.getUserPermissions().hasGenericPermission(resource, operation);
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
             }
             if (!operation.isAllowedForGroupRole()) {
                 return false;
@@ -171,9 +192,11 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (operation == Operation.CREATE) {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
-            if (ownersCacheService.getOwners(user.getTenantId(), entityGroup).contains(user.getOwnerId())) {
+            if (ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId())) {
                 // This entity is a group, so we are checking group generic permission first
-                return user.getUserPermissions().hasGenericPermission(resource, operation);
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
             }
             if (!operation.isAllowedForGroupRole()) {
                 return false;
@@ -187,14 +210,21 @@ public class TenantAdminPermissions extends AbstractPermissions {
     private final PermissionChecker tenantWhiteLabelingPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation) {
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getTenantId())) {
                 return false;
             } else {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)
-                        && user.getUserPermissions().hasGenericPermission(Resource.TENANT, Operation.READ_ATTRIBUTES)
-                        && user.getUserPermissions().hasGenericPermission(Resource.TENANT, Operation.WRITE_ATTRIBUTES);
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
             }
+        }
+
+    };
+
+    private static final PermissionChecker tenantAuditLogPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
 
     };

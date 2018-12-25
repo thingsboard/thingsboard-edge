@@ -41,6 +41,7 @@ import GroupPermissions from './group-permissions.directive';
 import ResourceTypeAutocompleteDirective from './resource-type-autocomplete.directive';
 import PermissionListDirective from './permission-list.directive';
 import OperationTypeListDirective from './operation-type-list.directive';
+import {HasGenericPermission, HasEntityGroupPermission, HasGroupEntityPermission} from "./permission.filters";
 
 export default angular.module('thingsboard.role', [
     uiRouter,
@@ -57,4 +58,7 @@ export default angular.module('thingsboard.role', [
     .directive('tbResourceTypeAutocomplete', ResourceTypeAutocompleteDirective)
     .directive('tbPermissionList', PermissionListDirective)
     .directive('tbOperationTypeList', OperationTypeListDirective)
+    .filter('hasGenericPermission', HasGenericPermission)
+    .filter('hasEntityGroupPermission', HasEntityGroupPermission)
+    .filter('hasGroupEntityPermission', HasGroupEntityPermission)
     .name;

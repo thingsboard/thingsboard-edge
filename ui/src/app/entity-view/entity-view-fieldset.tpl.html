@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onMakePublic({event: $event})"
+<!--md-button ng-click="onMakePublic({event: $event})"
            ng-show="!hideAssignmentActions && !isEdit && entityViewScope === 'tenant' && !isAssignedToCustomer && !isPublic"
            class="md-raised md-primary">{{ 'entity-view.make-public' | translate }}</md-button>
 <md-button ng-click="onAssignToCustomer({event: $event})"
@@ -38,9 +38,10 @@
            class="md-raised md-primary">{{ 'entity-view.assign-to-customer' | translate }}</md-button>
 <md-button ng-click="onUnassignFromCustomer({event: $event})"
            ng-show="!hideAssignmentActions && !isEdit && (entityViewScope === 'customer' || entityViewScope === 'tenant') && isAssignedToCustomer"
-           class="md-raised md-primary">{{ isPublic ? 'entity-view.make-private' : 'entity-view.unassign-from-customer' | translate }}</md-button>
+           class="md-raised md-primary">{{ isPublic ? 'entity-view.make-private' : 'entity-view.unassign-from-customer' | translate }}</md-button-->
 <md-button ng-click="onDeleteEntityView({event: $event})"
-           ng-show="!hideDelete && !isEdit && entityViewScope === 'tenant'"
+           ng-if="entityGroup | hasGroupEntityPermission:'delete'"
+           ng-show="!hideDelete && !isEdit"
            class="md-raised md-primary">{{ 'entity-view.delete' | translate }}</md-button>
 
 <div layout="row">
@@ -54,11 +55,11 @@
 </div>
 
 <md-content class="md-padding" layout="column">
-    <md-input-container class="md-block"
+    <!--md-input-container class="md-block"
                         ng-show="!isEdit && isAssignedToCustomer && entityViewScope === 'tenant'">
         <label translate>entity-view.assignedToCustomer</label>
         <input ng-model="assignedCustomer.title" disabled>
-    </md-input-container>
+    </md-input-container-->
 	<fieldset ng-disabled="$root.loading || !isEdit">
 		<md-input-container class="md-block">
 			<label translate>entity-view.name</label>

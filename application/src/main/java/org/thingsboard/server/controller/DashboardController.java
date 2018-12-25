@@ -121,7 +121,9 @@ public class DashboardController extends BaseController {
 
             Operation operation = dashboard.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    dashboard.getCustomerId() == null || dashboard.getCustomerId().isNullUid()) {
                 dashboard.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -143,7 +145,7 @@ public class DashboardController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard/{dashboardId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteDashboard(@PathVariable(DASHBOARD_ID) String strDashboardId) throws ThingsboardException {
@@ -463,6 +465,7 @@ public class DashboardController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
@@ -486,6 +489,7 @@ public class DashboardController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
             return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink).get());
         } catch (Exception e) {

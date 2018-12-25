@@ -104,7 +104,9 @@ public class EntityViewController extends BaseController {
 
             Operation operation = entityView.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    entityView.getCustomerId() == null || entityView.getCustomerId().isNullUid()) {
                 entityView.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -186,7 +188,7 @@ public class EntityViewController extends BaseController {
                 scope, attributes);
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView/{entityViewId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteEntityView(@PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
@@ -212,6 +214,7 @@ public class EntityViewController extends BaseController {
     public EntityView getTenantEntityView(
             @RequestParam String entityViewName) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName));
         } catch (Exception e) {
@@ -313,6 +316,7 @@ public class EntityViewController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
@@ -334,6 +338,7 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
 

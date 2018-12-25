@@ -61,6 +61,16 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
         } else {
             scope.entityGroupTypes = groupTypes;
         }
+
+        if (scope.excludeGroupTypes && scope.excludeGroupTypes.length) {
+            for (i=0; i<scope.excludeGroupTypes.length;i++) {
+                var index = scope.entityGroupTypes.indexOf(scope.excludeGroupTypes[i]);
+                if (index > -1) {
+                    scope.entityGroupTypes.splice(index, 1);
+                }
+            }
+        }
+
         if (scope.entityGroupTypes.length === 1) {
             scope.displayGroupTypeSelect = false;
             scope.defaultGroupType = scope.entityGroupTypes[0];
@@ -155,6 +165,7 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
             tbRequired: '=?',
             disabled:'=ngDisabled',
             allowedGroupTypes: '=?',
+            excludeGroupTypes: '=?',
             defaultGroupType: '=?',
             excludeGroupIds: '=?',
             excludeGroupAll: '=?',

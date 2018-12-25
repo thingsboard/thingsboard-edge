@@ -30,10 +30,20 @@
  */
 package org.thingsboard.server.dao.group;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.dao.Dao;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface EntityGroupDao extends Dao<EntityGroup> {
-
+    /**
+     * Find entity groups by entity group Ids.
+     *
+     * @param tenantId the tenantId
+     * @param entityGroupIds the entity group Ids
+     * @return the list of entity group objects
+     */
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
 }
-

@@ -34,20 +34,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasCustomerId;
-import org.thingsboard.server.common.data.HasEntityType;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
-import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<SchedulerEventId> implements HasName, TenantEntity, HasCustomerId {
+public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<SchedulerEventId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807343040519549363L;
 
@@ -84,6 +79,11 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     public JsonNode getSchedule() {

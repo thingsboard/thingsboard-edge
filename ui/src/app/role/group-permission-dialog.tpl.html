@@ -74,6 +74,7 @@
                             <label translate class="tb-title no-padding">role.entity-group</label>
                             <tb-entity-group-select
                                     ng-model="vm.groupPermission.entityGroupId"
+                                    exclude-group-types="[vm.types.entityType.user]"
                                     the-form="theForm"
                                     tb-required="true"
                                     placeholder-text="entity-group.select-entity-group"

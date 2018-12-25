@@ -47,6 +47,7 @@ export default function ExtensionTableDirective() {
         restrict: "E",
         scope: true,
         bindToController: {
+            readonly: '=',
             entityId: '=',
             entityType: '@',
             inWidget: '@?',
@@ -82,6 +83,7 @@ function ExtensionTableController($scope, $filter, $document, $translate, $timeo
     vm.onPaginate = onPaginate;
     vm.addExtension = addExtension;
     vm.editExtension = editExtension;
+    vm.viewExtension = viewExtension;
     vm.deleteExtension = deleteExtension;
     vm.deleteExtensions = deleteExtensions;
     vm.reloadExtensions = reloadExtensions;
@@ -200,7 +202,14 @@ function ExtensionTableController($scope, $filter, $document, $translate, $timeo
         openExtensionDialog($event, extension);
     }
 
-    function openExtensionDialog($event, extension) {
+    function viewExtension($event, extension) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        openExtensionDialog($event, extension, true);
+    }
+
+    function openExtensionDialog($event, extension, readonly) {
         if ($event) {
             $event.stopPropagation();
         }
@@ -215,6 +224,7 @@ function ExtensionTableController($scope, $filter, $document, $translate, $timeo
             parent: angular.element($document[0].body),
             locals: {
                 isAdd: isAdd,
+                readonly: readonly,
                 allExtensions: vm.allExtensions,
                 entityId: vm.entityId,
                 entityType: vm.entityType,

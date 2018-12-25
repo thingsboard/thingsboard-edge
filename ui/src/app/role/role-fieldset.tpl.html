@@ -31,13 +31,14 @@
 
 -->
 <md-button ng-click="onDeleteRole({event: $event})"
-           ng-show="!isEdit"
+           ng-if="'role' | hasGenericPermission:'delete'"
+           ng-show="!isEdit && !readonly"
            class="md-raised md-primary">{{ 'role.delete' | translate }}</md-button>
 
 <div layout="row">
 	<md-button ngclipboard data-clipboard-action="copy"
                ngclipboard-success="onRoleIdCopied(e)"
-               data-clipboard-text="{{role.id.id}}" ng-show="!isEdit"
+               data-clipboard-text="{{role.id.id}}" ng-show="!isEdit && !readonly"
 			   class="md-raised">
         <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
         <span translate>role.copyId</span>
@@ -81,10 +82,21 @@
 						<md-expansion-panel-icon></md-expansion-panel-icon>
 					</md-expansion-panel-header>
 					<md-expansion-panel-content>
-						<tb-permission-list ng-disabled="$root.loading || !isEdit"
-                                            ng-required="true"
-										    ng-model="role.permissions"></tb-permission-list>
-					</md-expansion-panel-content>
+                        <section ng-if="role.type === securityTypes.roleType.generic">
+                            <tb-permission-list ng-disabled="$root.loading || !isEdit"
+                                                ng-required="true"
+                                                ng-model="role.permissions"></tb-permission-list>
+                        </section>
+                        <section ng-if="role.type === securityTypes.roleType.group" layout="column">
+                            <label class="tb-title tb-required" translate>permission.operation.operations</label>
+                            <tb-operation-type-list
+                                    tb-required="true"
+                                    ng-disabled="$root.loading || !isEdit"
+                                    group-role-operations="true"
+                                    ng-model="role.permissions">
+                            </tb-operation-type-list>
+                        </section>
+                    </md-expansion-panel-content>
 				</md-expansion-panel-expanded>
 			</md-expansion-panel>
 		</md-expansion-panel-group>

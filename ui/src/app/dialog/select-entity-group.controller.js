@@ -31,12 +31,13 @@
 import './select-entity-group.scss';
 
 /*@ngInject*/
-export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService,
+export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService, customerId,
                                                     targetGroupType, selectEntityGroupTitle, confirmSelectTitle, placeholderText,
                                                     notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {
 
     var vm = this;
 
+    vm.customerId = customerId;
     vm.targetGroupType = targetGroupType;
     vm.selectEntityGroupTitle = selectEntityGroupTitle;
     vm.confirmSelectTitle = confirmSelectTitle;

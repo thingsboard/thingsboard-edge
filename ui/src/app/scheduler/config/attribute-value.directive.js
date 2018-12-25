@@ -94,7 +94,9 @@ export default function AttributeValueDirective($compile, $templateCache, types)
     return {
         restrict: "E",
         require: "^ngModel",
-        scope: {},
+        scope: {
+            disabled: "=ngDisabled"
+        },
         link: linker
     };
 }

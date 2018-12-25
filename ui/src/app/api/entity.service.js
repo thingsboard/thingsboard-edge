@@ -39,7 +39,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                        assetService, tenantService, customerService,
                        ruleChainService, dashboardService, entityGroupService,
                        converterService, integrationService, schedulerEventService, blobEntityService,
-                       entityRelationService, attributeService, entityViewService, roleService, types, utils) {
+                       entityRelationService, attributeService, entityViewService, roleService, userPermissionsService,
+                       securityTypes, types, utils) {
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
@@ -1092,7 +1093,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return result;
     }
 
-    function prepareAllowedEntityTypesList(allowedEntityTypes, useAliasEntityTypes) {
+    function prepareAllowedEntityTypesList(allowedEntityTypes, useAliasEntityTypes, operation) {
         var authority = userService.getAuthority();
         var entityTypes = {};
         switch(authority) {
@@ -1135,6 +1136,16 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             for (var entityType in entityTypes) {
                 if (allowedEntityTypes.indexOf(entityTypes[entityType]) === -1) {
                     delete entityTypes[entityType];
+                }
+            }
+        }
+        if (operation) {
+            for (entityType in entityTypes) {
+                var resource = securityTypes.resourceByEntityType[entityTypes[entityType]];
+                if (resource) {
+                    if (!userPermissionsService.hasGenericPermission(resource, securityTypes.operation[operation])) {
+                        delete entityTypes[entityType];
+                    }
                 }
             }
         }

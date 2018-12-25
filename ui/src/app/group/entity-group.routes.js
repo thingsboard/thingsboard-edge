@@ -71,11 +71,111 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup:
-                /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, customerGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, customerGroupConfig);
-                    }
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.customer-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.parentEntityGroup ? vm.entityGroup.parentEntityGroup.name : vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.userGroups', {
+            url: '/:customerId/userGroups',
+            params: {'childGroupType': types.entityType.user, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.user-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.userGroups.userGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: UserGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.user-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.customerGroups', {
+            url: '/:customerId/customerGroups',
+            params: {'childGroupType': types.entityType.customer, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.customer-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.customerGroups.customerGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -83,6 +183,214 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.assetGroups', {
+            url: '/:customerId/assetGroups',
+            params: {'childGroupType': types.entityType.asset, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.asset-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.assetGroups.assetGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: AssetGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.asset-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "domain", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.deviceGroups', {
+            url: '/:customerId/deviceGroups',
+            params: {'childGroupType': types.entityType.device, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.device-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.deviceGroups.deviceGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: DeviceGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.device-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.entityViewGroups', {
+            url: '/:customerId/entityViewGroups',
+            params: {'childGroupType': types.entityType.entityView, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.entity-view-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "view_quilt", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.entityViewGroups.entityViewGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityViewGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.entity-view-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "view_quilt", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.dashboardGroups', {
+            url: '/:customerId/dashboardGroups',
+            params: {'childGroupType': types.entityType.dashboard, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: CustomerGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.dashboard-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: DashboardGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.dashboard-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         })
         .state('home.assetGroups', {
@@ -118,11 +426,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup:
-                /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, assetGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, assetGroupConfig);
-                    }
+                entityGroup: AssetGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -165,11 +469,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup:
-                    /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, deviceGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, deviceGroupConfig);
-                    }
+                entityGroup: DeviceGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -212,11 +512,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup:
-                /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, userGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, userGroupConfig);
-                    }
+                entityGroup: UserGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -225,7 +521,8 @@ export default function EntityGroupRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
-        }).state('home.entityViewGroups', {
+        })
+        .state('home.entityViewGroups', {
             url: '/entityViewGroups',
             params: {'groupType': types.entityType.entityView, 'topIndex': 0},
             module: 'private',
@@ -258,11 +555,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup:
-                /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, entityViewGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, entityViewGroupConfig);
-                    }
+                entityGroup: EntityViewGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -304,11 +597,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup:
-                /*@ngInject*/
-                    function($stateParams, $q, entityGroupService, dashboardGroupConfig) {
-                        return constructGroupConfig($stateParams, $q, entityGroupService, dashboardGroupConfig);
-                    }
+                entityGroup: DashboardGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -319,15 +608,52 @@ export default function EntityGroupRoutes($stateProvider, types) {
             }
         });
 
+    /*@ngInject*/
+    function CustomerGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, customerGroupConfig) {
+        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, customerGroupConfig);
+    }
 
-    function constructGroupConfig($stateParams, $q, entityGroupService, entityGroupConfigFactory) {
+    /*@ngInject*/
+    function UserGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, userGroupConfig) {
+        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, userGroupConfig);
+    }
+
+    /*@ngInject*/
+    function DeviceGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, deviceGroupConfig) {
+        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, deviceGroupConfig);
+    }
+
+    /*@ngInject*/
+    function AssetGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, assetGroupConfig) {
+        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, assetGroupConfig);
+    }
+
+    /*@ngInject*/
+    function EntityViewGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, entityViewGroupConfig) {
+        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, entityViewGroupConfig);
+    }
+
+    /*@ngInject*/
+    function DashboardGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, dashboardGroupConfig) {
+        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, dashboardGroupConfig);
+    }
+
+    function constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, entityGroupConfigFactory) {
         var deferred = $q.defer();
-        entityGroupService.getEntityGroup($stateParams.entityGroupId).then(
+        var entityGroupId = $stateParams.childEntityGroupId || $stateParams.entityGroupId;
+        entityGroupService.getEntityGroup(entityGroupId).then(
             (entityGroup) => {
-                entityGroupConfigFactory.createConfig($stateParams, entityGroup).then(
-                    (entityGroupConfig) => {
-                        entityGroup.entityGroupConfig = entityGroupConfig;
-                        deferred.resolve(entityGroup);
+                resolveParentGroupInfo($stateParams, $translate, $q, entityGroupService, customerService, entityGroup).then(
+                    (entityGroup) => {
+                        entityGroupConfigFactory.createConfig($stateParams, entityGroup).then(
+                            (entityGroupConfig) => {
+                                entityGroup.entityGroupConfig = entityGroupConfig;
+                                deferred.resolve(entityGroup);
+                            },
+                            () => {
+                                deferred.reject();
+                            }
+                        );
                     },
                     () => {
                         deferred.reject();
@@ -340,4 +666,53 @@ export default function EntityGroupRoutes($stateProvider, types) {
         );
         return deferred.promise;
     }
+
+    function resolveParentGroupInfo($stateParams, $translate, $q, entityGroupService, customerService, entityGroup) {
+        var deferred = $q.defer();
+        if ($stateParams.customerId) {
+            var groupType = $stateParams.childGroupType || $stateParams.groupType;
+            customerService.getShortCustomerInfo($stateParams.customerId).then(
+                (info) => {
+                    entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
+                    if ($stateParams.childEntityGroupId) {
+                        entityGroupService.getEntityGroup($stateParams.entityGroupId).then(
+                            (parentEntityGroup) => {
+                                entityGroup.parentEntityGroup = parentEntityGroup;
+                                deferred.resolve(entityGroup);
+                            },
+                            () => {
+                                deferred.reject();
+                            }
+                        )
+                    } else {
+                        deferred.resolve(entityGroup);
+                    }
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.resolve(entityGroup);
+        }
+        return deferred.promise;
+    }
+
+    function entityGroupsTitle(groupType) {
+        switch(groupType) {
+            case types.entityType.asset:
+                return 'entity-group.asset-groups';
+            case types.entityType.device:
+                return 'entity-group.device-groups';
+            case types.entityType.customer:
+                return 'entity-group.customer-groups';
+            case types.entityType.user:
+                return 'entity-group.user-groups';
+            case types.entityType.entityView:
+                return 'entity-group.entity-view-groups';
+            case types.entityType.dashboard:
+                return 'entity-group.dashboard-groups';
+        }
+    }
+
 }

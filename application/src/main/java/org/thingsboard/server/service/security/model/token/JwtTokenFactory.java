@@ -138,7 +138,7 @@ public class JwtTokenFactory {
         }
 
         try {
-            securityUser.setUserPermissions(userPermissionsService.getMergedPermissions(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getId()));
+            securityUser.setUserPermissions(userPermissionsService.getMergedPermissions(securityUser));
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

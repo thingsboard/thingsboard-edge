@@ -35,11 +35,11 @@ import dashboardFieldsetTemplate from './dashboard-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function DashboardDirective($compile, $templateCache, $translate, types, toast, dashboardService) {
+export default function DashboardDirective($compile, $templateCache/*, $translate, types, toast, dashboardService*/) {
     var linker = function (scope, element) {
         var template = $templateCache.get(dashboardFieldsetTemplate);
         element.html(template);
-        scope.publicLink = null;
+        /*scope.publicLink = null;
         scope.$watch('dashboard', function(newVal) {
             if (newVal) {
                 if (scope.dashboard.publicCustomerId) {
@@ -48,11 +48,11 @@ export default function DashboardDirective($compile, $templateCache, $translate,
                     scope.publicLink = null;
                 }
             }
-        });
+        });*/
 
-        scope.onPublicLinkCopied = function() {
+        /*scope.onPublicLinkCopied = function() {
             toast.showSuccess($translate.instant('dashboard.public-link-copied-message'), 750, angular.element(element).parent().parent(), 'bottom left');
-        };
+        };*/
 
         $compile(element.contents())(scope);
     }
@@ -60,10 +60,10 @@ export default function DashboardDirective($compile, $templateCache, $translate,
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             dashboard: '=',
             isEdit: '=',
             customerId: '=',
-            dashboardScope: '=',
             theForm: '=',
             onMakePublic: '&',
             onMakePrivate: '&',

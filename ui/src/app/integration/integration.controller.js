@@ -44,7 +44,7 @@ export function IntegrationCardController(types) {
 }
 
 /*@ngInject*/
-export function IntegrationController(integrationService, $state, $stateParams, $translate, types, helpLinks) {
+export function IntegrationController(integrationService, $state, $stateParams, $translate, types, securityTypes, helpLinks, userPermissionsService) {
 
     var integrationActionsList = [
         {
@@ -55,7 +55,7 @@ export function IntegrationController(integrationService, $state, $stateParams, 
             details: function() { return $translate.instant('integration.delete') },
             icon: "delete",
             isEnabled: function() {
-                return true;
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.integration, securityTypes.operation.delete);
             }
         }
     ];
@@ -67,6 +67,8 @@ export function IntegrationController(integrationService, $state, $stateParams, 
     vm.helpLinkIdForIntegration = helpLinkIdForIntegration;
 
     vm.integrationGridConfig = {
+
+        resource: securityTypes.resource.integration,
 
         refreshParamsFunc: null,
 
@@ -98,10 +100,10 @@ export function IntegrationController(integrationService, $state, $stateParams, 
             return $translate.instant('integration.integration-details');
         },
         isSelectionEnabled: function () {
-            return true;
+            return userPermissionsService.hasGenericPermission(securityTypes.resource.integration, securityTypes.operation.delete);
         },
         isDetailsReadOnly: function () {
-            return false;
+            return !userPermissionsService.hasGenericPermission(securityTypes.resource.integration, securityTypes.operation.write);
         }
     };
 

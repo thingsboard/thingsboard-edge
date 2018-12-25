@@ -80,11 +80,17 @@
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-users-management' | translate }}"
                          ng-model="vm.settings.enableUsersManagement">{{ 'entity-group.enable-users-management' | translate }}
             </md-checkbox>
+            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-customers-management' | translate }}"
+                         ng-model="vm.settings.enableCustomersManagement">{{ 'entity-group.enable-customers-management' | translate }}
+            </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-assets-management' | translate }}"
                          ng-model="vm.settings.enableAssetsManagement">{{ 'entity-group.enable-assets-management' | translate }}
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-devices-management' | translate }}"
                          ng-model="vm.settings.enableDevicesManagement">{{ 'entity-group.enable-devices-management' | translate }}
+            </md-checkbox>
+            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-entity-views-management' | translate }}"
+                         ng-model="vm.settings.enableEntityViewsManagement">{{ 'entity-group.enable-entity-views-management' | translate }}
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-dashboards-management' | translate }}"
                          ng-model="vm.settings.enableDashboardsManagement">{{ 'entity-group.enable-dashboards-management' | translate }}

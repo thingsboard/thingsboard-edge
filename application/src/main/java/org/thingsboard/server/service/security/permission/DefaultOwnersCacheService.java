@@ -38,6 +38,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -71,31 +72,38 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private CustomerService customerService;
 
     @Override
-    public Set<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup) {
-        return getOwners(tenantId, entityGroup.getId(), id -> entityGroup);
+    public Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId) {
+        Set<EntityId> result = new HashSet<>();
+        fetchOwners(tenantId, ownerId, result);
+        return result;
+    }
+
+    @Override
+    public Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId) {
+        return getOwners(tenantId, entityId, id -> hasOwnerId);
     }
 
     @Override
     public Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId) {
-        return getOwners(tenantId, entityGroupId, id -> entityGroupService.findEntityGroupById(tenantId, id));
+        return getOwners(tenantId, entityGroupId, id -> entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(id.getId())));
     }
 
-    private Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId, Function<EntityGroupId, EntityGroup> fetchEntityGroup) {
+    private Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, Function<EntityId, HasOwnerId> fetchHasOwnerId) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        String cacheKey = entityGroupId.getId().toString();
+        String cacheKey = entityId.getId().toString();
         byte[] data = cache.get(cacheKey, byte[].class);
         Set<EntityId> result = null;
         if (data != null) {
             try {
                 result = fromBytes(data);
             } catch (InvalidProtocolBufferException e) {
-                log.warn("[{}][{}] Failed to decode owners list from cache: {}", tenantId, entityGroupId, Arrays.toString(data));
+                log.warn("[{}][{}] Failed to decode owners list from cache: {}", tenantId, entityId, Arrays.toString(data));
             }
         }
         if (result == null) {
-            EntityGroup entityGroup = fetchEntityGroup.apply(entityGroupId);
+            HasOwnerId hasOwnerId = fetchHasOwnerId.apply(entityId);
             result = new HashSet<>();
-            fetchOwners(tenantId, entityGroup.getOwnerId(), result);
+            fetchOwners(tenantId, hasOwnerId.getOwnerId(), result);
             cache.put(cacheKey, toBytes(result));
         }
         return result;

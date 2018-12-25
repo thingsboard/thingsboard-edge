@@ -34,6 +34,7 @@
     <div>
         <small translate>scheduler.target</small>
         <tb-originator-select
+                ng-readonly="readonly"
                 ng-required="true"
                 on-current-group-type="currentGroupType = groupType"
                 ng-model="configuration.originatorId">
@@ -43,7 +44,7 @@
                         ng-if="configuration.originatorId.entityType === types.entityType.device ||
                                (configuration.originatorId.entityType === types.entityType.entityGroup && currentGroupType === types.entityType.device)">
         <label translate>attribute.attributes-scope</label>
-        <md-select ng-model="configuration.metadata.scope" ng-change="scopeChanged()" aria-label="{{'attribute.attributes-scope' | translate}}">
+        <md-select ng-disabled="readonly" ng-model="configuration.metadata.scope" ng-change="scopeChanged()" aria-label="{{'attribute.attributes-scope' | translate}}">
             <md-option ng-repeat="scope in attributeScopes" ng-value="scope.value">
                 {{scope.name | translate}}
             </md-option>
@@ -67,6 +68,7 @@
                 <md-expansion-panel-content>
                     <tb-attribute-key-value-table title-text="attribute.scope-server"
                                                   ng-model="configuration.msgBody"
+                                                  ng-disabled="readonly"
                                                   ng-required="true"
                                                   required-prompt="attribute.add-attribute-prompt">
                     </tb-attribute-key-value-table>
@@ -92,6 +94,7 @@
                 <md-expansion-panel-content>
                     <tb-attribute-key-value-table title-text="attribute.scope-shared"
                                                   ng-model="configuration.msgBody"
+                                                  ng-disabled="readonly"
                                                   ng-required="true"
                                                   required-prompt="attribute.add-attribute-prompt">
                     </tb-attribute-key-value-table>

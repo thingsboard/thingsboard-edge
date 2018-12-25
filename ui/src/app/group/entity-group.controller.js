@@ -40,16 +40,28 @@ import addEntityTemplate from './add-entity.tpl.html';
 /*@ngInject*/
 export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $document, $timeout, utils,
                                               tbDialogs, entityGroupService, telemetryWebsocketService,
-                                              $stateParams, $q, $translate, $filter, types, entityGroup) {
+                                              $stateParams, $q, $translate, $filter, types, securityTypes, userPermissionsService, entityGroup) {
 
     var vm = this;
 
     vm.types = types;
 
+    vm.customerId = $stateParams.customerId;
     vm.entityGroup = entityGroup;
     vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
     vm.entityType = vm.entityGroup.type;
-    vm.columns = vm.entityGroup.configuration.columns;
+    vm.columns = vm.entityGroup.configuration.columns.filter((column) => {
+        if (column.type == types.entityGroup.columnType.timeseries.value) {
+            return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readTelemetry, vm.entityGroup);
+        } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
+            column.type == types.entityGroup.columnType.sharedAttribute.value ||
+            column.type == types.entityGroup.columnType.serverAttribute.value) {
+            return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readAttributes, vm.entityGroup);
+        } else {
+            return true;
+        }
+    });
+
     vm.columns.forEach((column) => {
         if (column.useCellStyleFunction && column.cellStyleFunction && column.cellStyleFunction.length) {
             try {
@@ -123,85 +135,95 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         vm.actionCellDescriptors.push(descriptor);
     });
     if (vm.settings.detailsMode == types.entityGroup.detailsMode.onActionButtonClick.value) {
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.read, vm.entityGroup)) {
+            vm.actionCellDescriptors.push(
+                {
+                    name: $translate.instant(vm.translations.details),
+                    icon: 'edit',
+                    isEnabled: () => {
+                        return true;
+                    },
+                    onAction: ($event, entity) => {
+                        toggleEntityDetails($event, entity);
+                    }
+                }
+            );
+        }
+    }
+    if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
         vm.actionCellDescriptors.push(
             {
-                name: $translate.instant(vm.translations.details),
-                icon: 'edit',
-                isEnabled: () => {
-                    return true;
+                name: $translate.instant('action.delete'),
+                icon: 'delete',
+                isEnabled: (entity) => {
+                    return vm.entityGroupConfig.deleteEnabled(entity);
                 },
                 onAction: ($event, entity) => {
-                    toggleEntityDetails($event, entity);
+                    deleteEntity($event, entity);
                 }
             }
         );
     }
-    vm.actionCellDescriptors.push(
-        {
-            name: $translate.instant('action.delete'),
-            icon: 'delete',
-            isEnabled: (entity) => {
-                return vm.entityGroupConfig.deleteEnabled(entity);
-            },
-            onAction: ($event, entity) => {
-                deleteEntity($event, entity);
-            }
-        }
-    );
 
     vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
 
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('entity-group.add-to-group'),
-            icon: 'add_circle',
-            isEnabled: () => {
-                return vm.settings.enableGroupTransfer;
-            },
-            onAction: ($event, entities) => {
-                addEntitiesToEntityGroup($event, entities);
+    if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup) &&
+        userPermissionsService.isOwnedGroup(vm.entityGroup)) {
+        vm.groupActionDescriptors.push(
+            {
+                name: $translate.instant('entity-group.add-to-group'),
+                icon: 'add_circle',
+                isEnabled: () => {
+                    return vm.settings.enableGroupTransfer;
+                },
+                onAction: ($event, entities) => {
+                    addEntitiesToEntityGroup($event, entities);
+                }
             }
-        }
-    );
+        );
+    }
 
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('entity-group.move-to-group'),
-            icon: 'swap_vertical_circle',
-            isEnabled: () => {
-                return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-            },
-            onAction: ($event, entities) => {
-                moveEntitiesToEntityGroup($event, entities);
+    if (userPermissionsService.hasEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup)) {
+        vm.groupActionDescriptors.push(
+            {
+                name: $translate.instant('entity-group.move-to-group'),
+                icon: 'swap_vertical_circle',
+                isEnabled: () => {
+                    return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                },
+                onAction: ($event, entities) => {
+                    moveEntitiesToEntityGroup($event, entities);
+                }
             }
-        }
-    );
+        );
+        vm.groupActionDescriptors.push(
+            {
+                name: $translate.instant('entity-group.remove-from-group'),
+                icon: 'remove_circle',
+                isEnabled: () => {
+                    return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                },
+                onAction: ($event, entities) => {
+                    removeEntitiesFromEntityGroup($event, entities);
+                }
+            }
+        );
+    }
 
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('entity-group.remove-from-group'),
-            icon: 'remove_circle',
-            isEnabled: () => {
-                return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-            },
-            onAction: ($event, entities) => {
-                removeEntitiesFromEntityGroup($event, entities);
+    if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
+        vm.groupActionDescriptors.push(
+            {
+                name: $translate.instant('action.delete'),
+                icon: 'delete',
+                isEnabled: () => {
+                    return vm.entityGroupConfig.entitiesDeleteEnabled();
+                },
+                onAction: ($event, entities) => {
+                    deleteEntities($event, entities);
+                }
             }
-        }
-    );
-
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('action.delete'),
-            icon: 'delete',
-            isEnabled: () => {
-                return vm.entityGroupConfig.entitiesDeleteEnabled();
-            },
-            onAction: ($event, entities) => {
-                deleteEntities($event, entities);
-            }
-        }
-    );
+        );
+    }
 
     var tsKeysList = [];
     var attrKeysList = [];
@@ -276,6 +298,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     vm.hasNext = true;
 
+    vm.addEnabled = addEnabled;
     vm.fetchMore = fetchMore;
     vm.addEntity = addEntity;
     vm.getColumnTitle = getColumnTitle;
@@ -321,6 +344,15 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         clearSubscriptions();
     });
 
+    function addEnabled() {
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, vm.entityGroup) &&
+            userPermissionsService.hasEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup)) {
+            return vm.entityGroupConfig.addEnabled();
+        } else {
+            return false;
+        }
+    }
+
     function enterFilterMode (event) {
         let $button = angular.element(event.currentTarget);
         let $toolbarsContainer = $button.closest('.toolbarsContainer');
@@ -347,7 +379,9 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     function onRowClick($event, entity) {
         if (vm.settings.detailsMode == types.entityGroup.detailsMode.onRowClick.value) {
-            toggleEntityDetails($event, entity);
+            if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.read, vm.entityGroup)) {
+                toggleEntityDetails($event, entity);
+            }
         } else {
             var descriptors = vm.actionDescriptorsBySourceId['rowClick'];
             if (descriptors && descriptors.length) {
@@ -679,7 +713,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             });
             return entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds);
         };
-        tbDialogs.selectEntityGroup($event, vm.entityType,
+        tbDialogs.selectEntityGroup($event, vm.customerId,  vm.entityType,
             'entity-group.add-to-group', 'action.add',
             vm.translations.selectGroupToAdd,
             'entity-group.no-entity-groups-matching',
@@ -699,7 +733,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             tasks.push(entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds));
             return $q.all(tasks);
         };
-        tbDialogs.selectEntityGroup($event, vm.entityType,
+        tbDialogs.selectEntityGroup($event, vm.customerId, vm.entityType,
             'entity-group.move-to-group', 'action.move',
             vm.translations.selectGroupToMove,
             'entity-group.no-entity-groups-matching',
@@ -858,6 +892,13 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
     }
 
     function add() {
+        if (vm.entityGroup.ownerId.entityType === types.entityType.customer) {
+            if (vm.entityType === types.entityType.customer) {
+                vm.entity.parentCustomerId = vm.entityGroup.ownerId;
+            } else {
+                vm.entity.customerId = vm.entityGroup.ownerId;
+            }
+        }
         entityService.saveEntity(vm.entity).then(function success(entity) {
             vm.entity = entity;
             $scope.theForm.$setPristine();

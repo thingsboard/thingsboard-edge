@@ -30,8 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onManageUsers({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{ 'tenant.manage-tenant-admins' | translate }}</md-button>
-<md-button ng-click="onDeleteTenant({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{ 'tenant.delete' | translate }}</md-button>
+<md-button ng-click="onManageUsers({event: $event})"
+           ng-if="'user' | hasGenericPermission:'read'"
+           ng-show="!isEdit" class="md-raised md-primary">{{ 'tenant.manage-tenant-admins' | translate }}</md-button>
+<md-button ng-click="onDeleteTenant({event: $event})"
+           ng-if="'tenant' | hasGenericPermission:'delete'"
+           ng-show="!isEdit" class="md-raised md-primary">{{ 'tenant.delete' | translate }}</md-button>
 
 <div layout="row">
 	<md-button ngclipboard data-clipboard-action="copy"

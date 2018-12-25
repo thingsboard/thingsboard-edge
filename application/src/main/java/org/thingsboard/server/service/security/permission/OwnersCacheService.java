@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.security.permission;
 
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -41,7 +42,9 @@ import java.util.Set;
 
 public interface OwnersCacheService {
 
-    Set<EntityId> getOwners(TenantId tenantId, EntityGroup entityGroup);
+    Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId);
+
+    Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId);
 
     Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);
 

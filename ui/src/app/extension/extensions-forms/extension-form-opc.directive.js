@@ -181,7 +181,8 @@ export default function ExtensionFormOpcDirective($compile, $templateCache, $tra
         link: linker,
         scope: {
             configuration: "=",
-            isAdd: "="
+            isAdd: "=",
+            readonly: "="
         }
     }
 }

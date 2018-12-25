@@ -113,14 +113,14 @@ public class UserController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/tokenAccessEnabled", method = RequestMethod.GET)
     @ResponseBody
     public boolean isUserTokenAccessEnabled() {
         return userTokenAccessEnabled;
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}/token", method = RequestMethod.GET)
     @ResponseBody
     public JsonNode getUserToken(@PathVariable(USER_ID) String strUserId) throws ThingsboardException {
@@ -135,7 +135,7 @@ public class UserController extends BaseController {
             User user = checkUserId(userId, Operation.READ);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
-            MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser.getTenantId(), authUser.getCustomerId(), authUser.getId());
+            MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser);
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, userPermissions);
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
             JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
@@ -163,19 +163,23 @@ public class UserController extends BaseController {
 
             Operation operation = user.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE
+                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    user.getCustomerId() == null || user.getCustomerId().isNullUid()) {
                 user.setCustomerId(getCurrentUser().getCustomerId());
             }
 
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
-                    user.getId(), user);
+            if (operation != Operation.WRITE || !getCurrentUser().getId().equals(user.getId())) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
+                        user.getId(), user);
+            }
 
             boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
 
             // Add Tenant Admins to 'Admins' user group if created by Sys Admin
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.getOrCreateAdminsUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId());
+                EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId(), EntityGroup.GROUP_ADMINS_NAME);
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
             }
 
@@ -208,7 +212,7 @@ public class UserController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/sendActivationMail", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void sendActivationEmail(
@@ -259,7 +263,7 @@ public class UserController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteUser(@PathVariable(USER_ID) String strUserId) throws ThingsboardException {
@@ -314,6 +318,7 @@ public class UserController extends BaseController {
         try {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findCustomerUsers(tenantId, customerId, pageLink));
@@ -331,6 +336,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findAllCustomerUsers(tenantId, pageLink));

@@ -44,7 +44,7 @@ export function ConverterCardController(types) {
 }
 
 /*@ngInject*/
-export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types, helpLinks, utils) {
+export function ConverterController(converterService, $state, $stateParams, $translate, importExport, securityTypes, types, helpLinks, utils, userPermissionsService) {
 
     var converterActionsList = [
         {
@@ -63,7 +63,7 @@ export function ConverterController(converterService, $state, $stateParams, $tra
             details: function() { return $translate.instant('converter.delete') },
             icon: "delete",
             isEnabled: function() {
-                return true;
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.converter, securityTypes.operation.delete);
             }
         }
     ];
@@ -99,6 +99,8 @@ export function ConverterController(converterService, $state, $stateParams, $tra
 
     vm.converterGridConfig = {
 
+        resource: securityTypes.resource.converter,
+
         refreshParamsFunc: null,
 
         deleteItemTitleFunc: deleteConverterTitle,
@@ -130,10 +132,10 @@ export function ConverterController(converterService, $state, $stateParams, $tra
             return $translate.instant('converter.converter-details');
         },
         isSelectionEnabled: function () {
-            return true;
+            return userPermissionsService.hasGenericPermission(securityTypes.resource.converter, securityTypes.operation.delete);
         },
         isDetailsReadOnly: function () {
-            return false;
+            return !userPermissionsService.hasGenericPermission(securityTypes.resource.converter, securityTypes.operation.write);
         }
     };
 

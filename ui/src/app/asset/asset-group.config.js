@@ -40,18 +40,9 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.asset, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('asset.assets'),
 
@@ -89,7 +80,7 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
             }
         };
 
-        groupConfig.onAssignToCustomer = (event, entity) => {
+       /* groupConfig.onAssignToCustomer = (event, entity) => {
             tbDialogs.assignAssetsToCustomer(event, [entity.id.id]).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
@@ -105,9 +96,9 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
             tbDialogs.makeAssetPublic(event, entity).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
-        };
+        };*/
 
-        groupConfig.groupActionDescriptors = [
+      /*  groupConfig.groupActionDescriptors = [
             {
                 name: $translate.instant('asset.assign-assets'),
                 icon: "assignment_ind",
@@ -140,7 +131,7 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
                     );
                 },
             }
-        ];
+        ];*/
 
         utils.groupConfigDefaults(groupConfig);
 

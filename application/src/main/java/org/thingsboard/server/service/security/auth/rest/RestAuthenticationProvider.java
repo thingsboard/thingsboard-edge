@@ -158,7 +158,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
     protected MergedUserPermissions getMergedUserPermissions(User user) {
         try {
-            return userPermissionsService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
+            return userPermissionsService.getMergedPermissions(user);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

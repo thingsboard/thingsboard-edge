@@ -165,6 +165,7 @@ public class AlarmController extends BaseController {
             throw new ThingsboardException("Invalid alarms search query: Both parameters 'searchStatus' " +
                     "and 'status' can't be specified at the same time!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         checkEntityId(entityId, Operation.READ);
         try {
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
@@ -192,6 +193,7 @@ public class AlarmController extends BaseController {
             throw new ThingsboardException("Invalid alarms search query: Both parameters 'searchStatus' " +
                     "and 'status' can't be specified at the same time!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         checkEntityId(entityId, Operation.READ);
         try {
             return alarmService.findHighestAlarmSeverity(getCurrentUser().getTenantId(), entityId, alarmSearchStatus, alarmStatus);

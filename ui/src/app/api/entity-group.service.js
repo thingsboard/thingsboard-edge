@@ -40,6 +40,7 @@ function EntityGroupService($http, $q, utils) {
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
         getEntityGroups: getEntityGroups,
+        getCustomerEntityGroups: getCustomerEntityGroups,
         getEntityGroupsByPageLink: getEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
@@ -95,6 +96,21 @@ function EntityGroupService($http, $q, utils) {
     function getEntityGroups(groupType, ignoreErrors, config) {
         var deferred = $q.defer();
         var url = '/api/entityGroups/' + groupType;
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getCustomerEntityGroups(customerId, groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/customer/' + customerId + '/entityGroups/' + groupType;
         if (!config) {
             config = {};
         }
