@@ -95,6 +95,9 @@ public class RoleController extends BaseController {
                     role.getId(), role);
 
             Role savedRole = checkNotNull(roleService.saveRole(getTenantId(), role));
+
+            userPermissionsService.onRoleUpdated(role);
+
             logEntityAction(savedRole.getId(), savedRole, null,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
             return savedRole;
