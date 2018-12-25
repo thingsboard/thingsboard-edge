@@ -72,22 +72,12 @@
         <section class="tb-default-dashboard" flex layout="column" ng-if="user.id">
             <span class="tb-default-dashboard-label" ng-class="{'tb-disabled-label': $root.loading || !isEdit}" translate>user.default-dashboard</span>
             <section flex layout="column" layout-gt-sm="row">
-                <tb-dashboard-autocomplete ng-if="isTenantAdmin()"
-                                           flex
+                <tb-dashboard-autocomplete flex
                                            ng-disabled="$root.loading || !isEdit"
                                            the-form="theForm"
                                            ng-model="user.additionalInfo.defaultDashboardId"
-                                           tenant-id="user.tenantId.id"
+                                           user-id="user.id.id"
                                            select-first-dashboard="false">
-                </tb-dashboard-autocomplete>
-                <tb-dashboard-autocomplete ng-if="isCustomerUser()"
-                                     flex
-                                     ng-disabled="$root.loading || !isEdit"
-                                     the-form="theForm"
-                                     ng-model="user.additionalInfo.defaultDashboardId"
-                                     dashboards-scope="customer"
-                                     customer-id="user.customerId.id"
-                                     select-first-dashboard="false">
                 </tb-dashboard-autocomplete>
                 <md-checkbox ng-disabled="$root.loading || !isEdit" flex aria-label="{{ 'user.always-fullscreen' | translate }}"
                              ng-model="user.additionalInfo.defaultDashboardFullscreen">{{ 'user.always-fullscreen' | translate }}

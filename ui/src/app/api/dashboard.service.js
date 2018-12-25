@@ -32,7 +32,7 @@ export default angular.module('thingsboard.api.dashboard', [])
     .factory('dashboardService', DashboardService).name;
 
 /*@ngInject*/
-function DashboardService($rootScope, $http, $q, $location, $filter) {
+function DashboardService($rootScope, $http, $q, $location, $filter, securityTypes) {
 
     var stDiffPromise;
 
@@ -49,6 +49,8 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         getDashboardInfo: getDashboardInfo,
         getTenantDashboardsByTenantId: getTenantDashboardsByTenantId,
         getTenantDashboards: getTenantDashboards,
+        getUserDashboards: getUserDashboards,
+        getGroupDashboards: getGroupDashboards,
         deleteDashboard: deleteDashboard,
         saveDashboard: saveDashboard,
         unassignDashboardFromCustomer: unassignDashboardFromCustomer,
@@ -113,6 +115,40 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
             if (pageLink.textSearch) {
                 response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
             }
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUserDashboards(userId, operation, pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/userDashboards?limit=' + pageLink.limit;
+        if (userId) {
+            url += '&userId=' + userId;
+        }
+        if (operation && securityTypes.operation[operation]) {
+            url += '&operation=' + securityTypes.operation[operation];
+        }
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getGroupDashboards(groupId, pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/' + groupId + '/dashboards?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();

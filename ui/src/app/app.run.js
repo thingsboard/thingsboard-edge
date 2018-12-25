@@ -147,6 +147,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             to.auth.indexOf(authority) === -1) {
                             evt.preventDefault();
                             showForbiddenDialog();
+                        } else if (angular.isDefined(to.permissions) &&
+                            !$filter('hasGenericPermission')(to.permissions.resources, to.permissions.operations)) {
+                            evt.preventDefault();
+                            showForbiddenDialog();
                         } else if (to.redirectTo) {
                             evt.preventDefault();
                             var redirect;
@@ -156,7 +160,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                                 redirect = to.redirectTo;
                             }
                             $state.go(redirect, params);
-                        } else if (to.name === 'home.dashboards.dashboard' && $rootScope.forceFullscreen) {
+                        } else if (to.name === 'home.dashboard' && $rootScope.forceFullscreen) {
                             evt.preventDefault();
                             $state.go('dashboard', params);
                         }

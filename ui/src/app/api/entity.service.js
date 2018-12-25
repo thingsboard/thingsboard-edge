@@ -744,7 +744,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 );
                 break;
             case types.aliasFilterType.entityName.value:
-                getEntitiesByNameFilter(filter.entityType, filter.entityNameFilter, maxItems, {ignoreLoading: true}).then(
+                getEntitiesByNameFilter(filter.entityType, filter.entityNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);

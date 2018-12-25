@@ -84,6 +84,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String INCORRECT_ENTITY_ID = "Incorrect entityId ";
     public static final String UNABLE_TO_FIND_ENTITY_GROUP_BY_ID = "Unable to find entity group by id ";
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
     private EntityGroupDao entityGroupDao;
 
@@ -185,7 +187,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName) {
+    public EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description) {
         log.trace("Executing getOrCreateUserGroup, parentEntityId [{}], groupName [{}]", parentEntityId, groupName);
         try {
             Optional<EntityGroup> userGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, EntityType.USER, groupName).get();
@@ -195,6 +197,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 EntityGroup userGroup = new EntityGroup();
                 userGroup.setName(groupName);
                 userGroup.setType(EntityType.USER);
+                JsonNode additionalInfo = userGroup.getAdditionalInfo();
+                if (additionalInfo == null) {
+                    additionalInfo = mapper.createObjectNode();
+                }
+                ((ObjectNode)additionalInfo).put("description", description);
+                userGroup.setAdditionalInfo(additionalInfo);
                 return saveEntityGroup(tenantId, parentEntityId, userGroup);
             }
         } catch (InterruptedException | ExecutionException e) {

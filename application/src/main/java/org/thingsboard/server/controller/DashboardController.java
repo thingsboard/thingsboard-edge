@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,26 +42,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.model.UserPrincipal;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -123,7 +123,7 @@ public class DashboardController extends BaseController {
 
             if (operation == Operation.CREATE
                     && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    dashboard.getCustomerId() == null || dashboard.getCustomerId().isNullUid()) {
+                    (dashboard.getCustomerId() == null || dashboard.getCustomerId().isNullUid())) {
                 dashboard.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -495,5 +495,102 @@ public class DashboardController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/userDashboards", params = { "limit" }, method = RequestMethod.GET)
+    @ResponseBody
+    public List<DashboardInfo> getUserDashboards(
+            @RequestParam int limit,
+            @RequestParam(required = false) String operation,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(name = "userId", required = false) String strUserId) throws ThingsboardException {
+        try {
+            SecurityUser securityUser;
+            if (!StringUtils.isEmpty(strUserId)) {
+                UserId userId = new UserId(toUUID(strUserId));
+                User user = checkUserId(userId, Operation.READ);
+                UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+                securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user));
+            } else {
+                securityUser = getCurrentUser();
+            }
+            Operation operationType = Operation.READ;
+            if (!StringUtils.isEmpty(operation)) {
+                try {
+                    operationType = Operation.valueOf(operation);
+                } catch (IllegalArgumentException e) {
+                    throw new ThingsboardException("Unsupported operation type '" + operation + "'!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                }
+            }
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
+            if (operationType == Operation.READ) {
+                groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(EntityType.DASHBOARD);
+            }
+            if (securityUser.getUserPermissions().hasGenericPermission(Resource.DASHBOARD, operationType) ||
+                    (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
+                Set<EntityId> dashboardIds = new HashSet<>();
+                Set<EntityGroupId> groupIds = new HashSet<>();
+                if (securityUser.getUserPermissions().hasGenericPermission(Resource.DASHBOARD, operationType)) {
+                    Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), securityUser.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get();
+                    if (entityGroup.isPresent()) {
+                        groupIds.add(entityGroup.get().getId());
+                    }
+                }
+                if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                    groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
+                }
+                for (EntityGroupId groupId : groupIds) {
+                    dashboardIds.addAll(entityGroupService.findAllEntityIds(getTenantId(), groupId, new TimePageLink(Integer.MAX_VALUE)).get());
+                }
+                return loadDashboards(dashboardIds, textSearch, limit);
+            } else {
+                return Collections.emptyList();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", params = { "limit" }, method = RequestMethod.GET)
+    @ResponseBody
+    public List<DashboardInfo> getGroupDashboards(
+            @PathVariable("entityGroupId") String strEntityGroupId,
+            @RequestParam int limit,
+            @RequestParam(required = false) String textSearch) throws ThingsboardException {
+        try {
+            checkParameter("entityGroupId", strEntityGroupId);
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            if (entityGroup.getType() != EntityType.DASHBOARD) {
+                throw new ThingsboardException("Invalid entity group type '" + entityGroup.getType() + "'! Should be 'DASHBOARD'.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+            List<EntityId> ids = entityGroupService.findAllEntityIds(getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
+            return loadDashboards(ids, textSearch, limit);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<DashboardInfo> loadDashboards(Collection<EntityId> dashboardIds, String textSearch, int limit) throws Exception {
+        if (!dashboardIds.isEmpty()) {
+            List<DashboardId> dashboardIdsList = new ArrayList<>();
+            dashboardIds.forEach((dashboardId) -> dashboardIdsList.add(new DashboardId(dashboardId.getId())));
+            List<DashboardInfo> dashboards = dashboardService.findDashboardInfoByIdsAsync(getTenantId(), dashboardIdsList).get();
+            if (!StringUtils.isEmpty(textSearch)) {
+                String textSearchLower = textSearch.toLowerCase();
+                dashboards = dashboards.stream().filter(dashboardInfo -> dashboardInfo.getTitle().toLowerCase().startsWith(textSearchLower)).collect(Collectors.toList());
+            }
+            dashboards = dashboards.stream().sorted(Comparator.comparing(DashboardInfo::getTitle)).collect(Collectors.toList());
+            if (limit > 0 && dashboards.size() > limit) {
+                int toRemove = dashboards.size() - limit;
+                dashboards.subList(dashboards.size() - toRemove, dashboards.size()).clear();
+            }
+            return dashboards;
+        } else {
+            return Collections.emptyList();
+        }
+
     }
 }

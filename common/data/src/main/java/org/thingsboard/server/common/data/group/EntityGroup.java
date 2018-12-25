@@ -53,8 +53,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     };
 
     public static final String GROUP_ALL_NAME = "All";
-    public static final String GROUP_USERS_NAME = "Users";
-    public static final String GROUP_ADMINS_NAME = "Admins";
+    public static final String GROUP_TENANT_USERS_NAME = "Tenant Users";
+    public static final String GROUP_TENANT_ADMINS_NAME = "Tenant Administrators";
+    public static final String GROUP_CUSTOMER_USERS_NAME = "Customer Users";
+    public static final String GROUP_CUSTOMER_ADMINS_NAME = "Customer Administrators";
 
     @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD")
     private EntityType type;

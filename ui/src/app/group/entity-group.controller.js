@@ -168,7 +168,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
 
     if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup) &&
-        userPermissionsService.isOwnedGroup(vm.entityGroup)) {
+        userPermissionsService.isOwnedGroup(vm.entityGroup) &&
+        userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
         vm.groupActionDescriptors.push(
             {
                 name: $translate.instant('entity-group.add-to-group'),
@@ -184,18 +185,20 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     }
 
     if (userPermissionsService.hasEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup)) {
-        vm.groupActionDescriptors.push(
-            {
-                name: $translate.instant('entity-group.move-to-group'),
-                icon: 'swap_vertical_circle',
-                isEnabled: () => {
-                    return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-                },
-                onAction: ($event, entities) => {
-                    moveEntitiesToEntityGroup($event, entities);
+        if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('entity-group.move-to-group'),
+                    icon: 'swap_vertical_circle',
+                    isEnabled: () => {
+                        return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                    },
+                    onAction: ($event, entities) => {
+                        moveEntitiesToEntityGroup($event, entities);
+                    }
                 }
-            }
-        );
+            );
+        }
         vm.groupActionDescriptors.push(
             {
                 name: $translate.instant('entity-group.remove-from-group'),
@@ -624,7 +627,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     dashboardId: targetDashboardId,
                     state: utils.objToBase64([ stateObject ])
                 }
-                $state.go('home.dashboards.dashboard', stateParams);
+                $state.go('home.dashboard', stateParams);
                 break;
             case types.widgetActionTypes.custom.value:
                 var customFunction = descriptor.customFunction;
@@ -713,7 +716,14 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             });
             return entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds);
         };
-        tbDialogs.selectEntityGroup($event, vm.customerId,  vm.entityType,
+        var ownerId = userPermissionsService.getUserOwnerId();
+        if (vm.customerId) {
+            ownerId = {
+                id: vm.customerId,
+                entityType: types.entityType.customer
+            }
+        }
+        tbDialogs.selectEntityGroup($event, ownerId,  vm.entityType,
             'entity-group.add-to-group', 'action.add',
             vm.translations.selectGroupToAdd,
             'entity-group.no-entity-groups-matching',
@@ -733,7 +743,14 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             tasks.push(entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds));
             return $q.all(tasks);
         };
-        tbDialogs.selectEntityGroup($event, vm.customerId, vm.entityType,
+        var ownerId = userPermissionsService.getUserOwnerId();
+        if (vm.customerId) {
+            ownerId = {
+                id: vm.customerId,
+                entityType: types.entityType.customer
+            }
+        }
+        tbDialogs.selectEntityGroup($event, ownerId, vm.entityType,
             'entity-group.move-to-group', 'action.move',
             vm.translations.selectGroupToMove,
             'entity-group.no-entity-groups-matching',

@@ -188,19 +188,21 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/entityGroups/{groupType}", method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroups/{ownerType}/{ownerId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntityGroupInfo> getCustomerEntityGroupsByType(
-            @PathVariable("customerId") String strCustomerId,
+    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(
+            @PathVariable("ownerType") String strOwnerType,
+            @PathVariable("ownerId") String strOwnerId,
             @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
-        checkParameter("customerId", strCustomerId);
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
         try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
+            checkEntityId(ownerId, Operation.READ);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                return toEntityGroupsInfo(entityGroupService.findEntityGroupsByType(getTenantId(), customerId, groupType).get());
+                return toEntityGroupsInfo(entityGroupService.findEntityGroupsByType(getTenantId(), ownerId, groupType).get());
             } else {
                 throw permissionDenied();
             }

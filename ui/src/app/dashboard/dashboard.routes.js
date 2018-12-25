@@ -30,7 +30,7 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import dashboardsTemplate from './dashboards.tpl.html';
+//import dashboardsTemplate from './dashboards.tpl.html';
 import dashboardTemplate from './dashboard.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -38,7 +38,7 @@ import dashboardTemplate from './dashboard.tpl.html';
 /*@ngInject*/
 export default function DashboardRoutes($stateProvider) {
     $stateProvider
-        .state('home.dashboards', {
+        /*.state('home.dashboards', {
             url: '/dashboards',
             params: {'topIndex': 0},
             module: 'private',
@@ -79,8 +79,8 @@ export default function DashboardRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.customerDashboardsTitle }}", "translate": "false"}'
             }
-        })
-        .state('home.dashboards.dashboard', {
+        })*/
+        /*.state('home.dashboards.dashboard', {
             url: '/:dashboardId?state',
             reloadOnSearch: false,
             module: 'private',
@@ -90,6 +90,35 @@ export default function DashboardRoutes($stateProvider) {
                     templateUrl: dashboardTemplate,
                     controller: 'DashboardController',
                     controllerAs: 'vm'
+                }
+            },
+            data: {
+                widgetEditMode: false,
+                searchEnabled: false,
+                pageTitle: 'dashboard.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
+            }
+        })*/
+        .state('home.dashboard', {
+            url: '/dashboards/:dashboardId?state&edit',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            permissions: {
+                resources: ["dashboard", "widgetsBundle", "widgetType"],
+                operations: ["read"]
+            },
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: null});
+                        }
                 }
             },
             data: {
@@ -106,80 +135,18 @@ export default function DashboardRoutes($stateProvider) {
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            permissions: {
+                resources: ["dashboard", "widgetsBundle", "widgetType"],
+                operations: ["read"]
+            },
             views: {
                 "@": {
                     templateUrl: dashboardTemplate,
-                    controller: 'DashboardController',
-                    controllerAs: 'vm'
-                }
-            },
-            data: {
-                widgetEditMode: false,
-                searchEnabled: false,
-                pageTitle: 'dashboard.dashboard'
-            }
-        })
-        .state('home.customers.dashboards.dashboard', {
-            url: '/:dashboardId?state',
-            reloadOnSearch: false,
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: dashboardTemplate,
-                    controller: 'DashboardController',
-                    controllerAs: 'vm'
-                }
-            },
-            data: {
-                searchEnabled: false,
-                pageTitle: 'customer.dashboard'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "dashboard", "label": "customer.dashboard"}'
-            }
-        })
-        .state('home.customerGroups.customerGroup.dashboards.dashboard', {
-            url: '/:dashboardId?state',
-            reloadOnSearch: false,
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: dashboardTemplate,
                     controllerAs: 'vm',
                     controller:
                     /*@ngInject*/
-                        function($scope, $stateParams, $element, $controller, entityGroup) {
-                            var ctrl = $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                    }
-                }
-            },
-            data: {
-                searchEnabled: false,
-                pageTitle: 'customer.dashboard'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "dashboard", "label": "customer.dashboard"}'
-            }
-        })
-        .state('home.dashboardGroups.dashboardGroup.dashboard', {
-            url: '/:dashboardId?state',
-            reloadOnSearch: false,
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: dashboardTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $element, $controller, entityGroup) {
-                            var ctrl = $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
+                        function($scope, $stateParams, $element, $controller) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: null});
                         }
                 }
             },
@@ -187,9 +154,27 @@ export default function DashboardRoutes($stateProvider) {
                 widgetEditMode: false,
                 searchEnabled: false,
                 pageTitle: 'dashboard.dashboard'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
             }
         });
+        /*.state('home.customers.dashboards.dashboard', {
+            url: '/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controller: 'DashboardController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'customer.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "customer.dashboard"}'
+            }
+        })*/
+
 }

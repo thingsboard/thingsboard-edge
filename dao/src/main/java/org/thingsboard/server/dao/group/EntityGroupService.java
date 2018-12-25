@@ -62,7 +62,7 @@ public interface EntityGroupService {
 
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
-    EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName);
+    EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description);
 
     void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId);
 

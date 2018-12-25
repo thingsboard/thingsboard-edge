@@ -113,9 +113,9 @@
                     </md-button>
                     <tb-dashboard-select   ng-show="!vm.isEdit && !vm.widgetEditMode && !$root.stateSelectView && vm.displayDashboardsSelect()"
                                            md-theme="tb-dark"
-                                           ng-model="vm.currentDashboardId"
-                                           dashboards-scope="{{vm.currentDashboardScope}}"
-                                           customer-id="vm.currentCustomerId">
+                                           group-id="vm.entityGroupId"
+                                           operation="vm.readonly ? 'read' : 'write'"
+                                           ng-model="vm.currentDashboardId">
                     </tb-dashboard-select>
                 </div>
                 <div class="tb-dashboard-action-panel" flex-md="70" layout="row" layout-align-gt-sm="end center" layout-align="space-between center">
@@ -320,7 +320,7 @@
                       class="md-headline tb-absolute-fill">widget.select-widgets-bundle</span>
             </div>
         </tb-details-sidenav>
-        <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end" ng-if="!$root.reportView && !$root.stateSelectView">
+        <section layout="row" layout-wrap class="tb-footer-buttons md-fab" layout-align="start end" ng-if="!vm.readonly && !$root.reportView && !$root.stateSelectView">
             <md-fab-speed-dial ng-disabled="$root.loading" ng-show="!vm.isAddingWidget && vm.isEdit && !vm.widgetEditMode"
                                md-open="vm.addItemActionsOpen" class="md-scale" md-direction="up">
                 <md-fab-trigger>

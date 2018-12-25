@@ -165,7 +165,7 @@ public class UserController extends BaseController {
 
             if (operation == Operation.CREATE
                     && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    user.getCustomerId() == null || user.getCustomerId().isNullUid()) {
+                    (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
                 user.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -177,9 +177,10 @@ public class UserController extends BaseController {
             boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
 
-            // Add Tenant Admins to 'Admins' user group if created by Sys Admin
+            // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId(), EntityGroup.GROUP_ADMINS_NAME);
+                EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId(),
+                        EntityGroup.GROUP_TENANT_ADMINS_NAME, "");
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
             }
 

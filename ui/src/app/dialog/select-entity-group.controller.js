@@ -31,13 +31,14 @@
 import './select-entity-group.scss';
 
 /*@ngInject*/
-export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService, customerId,
+export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService, securityTypes,
+                                                    userPermissionsService, ownerId,
                                                     targetGroupType, selectEntityGroupTitle, confirmSelectTitle, placeholderText,
                                                     notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {
 
     var vm = this;
 
-    vm.customerId = customerId;
+    vm.ownerId = ownerId;
     vm.targetGroupType = targetGroupType;
     vm.selectEntityGroupTitle = selectEntityGroupTitle;
     vm.confirmSelectTitle = confirmSelectTitle;
@@ -52,6 +53,8 @@ export default function SelectEntityGroupController($rootScope, $scope, $mdDialo
         type: targetGroupType
     };
 
+    vm.createEnabled = userPermissionsService.hasGenericEntityGroupTypePermission(securityTypes.operation.create, vm.targetGroupType);
+
     vm.selectEntityGroup = selectEntityGroup;
     vm.cancel = cancel;
 
@@ -62,10 +65,13 @@ export default function SelectEntityGroupController($rootScope, $scope, $mdDialo
     function selectEntityGroup() {
         $scope.theForm.$setPristine();
         if (vm.addToGroupType === 1) {
+            vm.newEntityGroup.ownerId = vm.ownerId;
             entityGroupService.saveEntityGroup(vm.newEntityGroup).then(
                 (entityGroup) => {
                     groupSelected(entityGroup.id.id);
-                    $rootScope.$broadcast(targetGroupType+'changed');
+                    if (userPermissionsService.isDirectlyOwnedGroup(entityGroup)) {
+                        $rootScope.$broadcast(targetGroupType + 'changed');
+                    }
                 }
             );
         } else {

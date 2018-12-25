@@ -175,7 +175,7 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         var deferred = $q.defer();
         var fetchPromise;
         if (vm.customerId) {
-            fetchPromise = entityGroupService.getCustomerEntityGroups(vm.customerId, vm.groupType);
+            fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
         } else {
             fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
         }

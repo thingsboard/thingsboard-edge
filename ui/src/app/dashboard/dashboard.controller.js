@@ -42,12 +42,22 @@ import selectTargetLayoutTemplate from './layouts/select-target-layout.tpl.html'
 import AliasController from '../api/alias-controller';
 
 /*@ngInject*/
-export default function DashboardController(types, utils, dashboardUtils, widgetService, userService,
-                                            dashboardService, timeService, entityService, itembuffer, importExport, reportService, hotkeys, $window, $rootScope,
-                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter, $location) {
+export default function DashboardController(types, securityTypes, utils, dashboardUtils, widgetService, userService,
+                                            dashboardService, timeService, entityService, itembuffer, importExport, reportService, userPermissionsService, hotkeys, $window, $rootScope,
+                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter, $location, entityGroup) {
 
     var vm = this;
 
+    vm.widgetEditMode = $state.$current.data.widgetEditMode;
+    vm.entityGroup = entityGroup;
+    if (vm.entityGroup) {
+        vm.readonly = !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, entityGroup);
+        vm.entityGroupId = vm.entityGroup.id.id;
+    } else {
+        if (!vm.widgetEditMode && !$stateParams.edit) {
+            vm.readonly = true;
+        }
+    }
     vm.user = userService.getCurrentUser();
     vm.dashboard = null;
     vm.editingWidget = null;
@@ -64,7 +74,6 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.rpcWidgetTypes = [];
     vm.alarmWidgetTypes = [];
     vm.staticWidgetTypes = [];
-    vm.widgetEditMode = $state.$current.data.widgetEditMode;
     vm.iframeMode = $rootScope.iframeMode;
 
     vm.isToolbarOpened = false;
@@ -72,13 +81,6 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.thingsboardVersion = THINGSBOARD_VERSION; //eslint-disable-line
 
     vm.currentDashboardId = $stateParams.dashboardId;
-    if ($stateParams.customerId) {
-        vm.currentCustomerId = $stateParams.customerId;
-        vm.currentDashboardScope = 'customer';
-    } else {
-        vm.currentDashboardScope = vm.user.authority === 'TENANT_ADMIN' ? 'tenant' : 'customer';
-        vm.currentCustomerId = vm.user.customerId;
-    }
 
     Object.defineProperty(vm, 'toolbarOpened', {
         get: function() {
@@ -270,18 +272,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
 
     $scope.$watch('vm.currentDashboardId', function (newVal, prevVal) {
         if (newVal !== prevVal && !vm.widgetEditMode) {
-            if (vm.currentDashboardScope === 'customer' && vm.user.authority === 'TENANT_ADMIN') {
-                $state.go('home.customers.dashboards.dashboard', {
-                    customerId: vm.currentCustomerId,
-                    dashboardId: vm.currentDashboardId
-                });
-            } else {
-                if ($state.current.name === 'dashboard') {
-                    $state.go('dashboard', {dashboardId: vm.currentDashboardId});
-                } else {
-                    $state.go('home.dashboards.dashboard', {dashboardId: vm.currentDashboardId});
-                }
-            }
+            $state.go('.', {dashboardId: vm.currentDashboardId});
         }
     });
 

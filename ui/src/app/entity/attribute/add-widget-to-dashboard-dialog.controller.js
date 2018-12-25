@@ -161,7 +161,8 @@ export default function AddWidgetToDashboardDialogController($scope, $mdDialog, 
                                     if (stateIndex > 0) {
                                         stateParams.state = utils.objToBase64([ {id: targetState, params: {}} ]);
                                     }
-                                    $state.go('home.dashboards.dashboard', stateParams);
+                                    stateParams.edit = true;
+                                    $state.go('home.dashboard', stateParams);
                                 }
                             }
                         );
