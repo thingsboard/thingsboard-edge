@@ -35,16 +35,22 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
@@ -60,20 +66,27 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.CacheConstants.USER_PERMISSIONS_CACHE;
 
 @Slf4j
 @Service
 public class DefaultUserPermissionsService implements UserPermissionsService {
 
+    @Autowired
+    private CacheManager cacheManager;
 
     private static MergedUserPermissions sysAdminPermissions;
+
     static {
         Map<Resource, Set<Operation>> sysAdminGenericPermissions = new HashMap<>();
         sysAdminGenericPermissions.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL)));
@@ -100,30 +113,100 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
-    @Autowired
-    private UserPermissionsCacheService userPermissionsCacheService;
-
     @Override
-    public MergedUserPermissions getMergedPermissions(User user) throws Exception {
+    public MergedUserPermissions getMergedPermissions(User user) throws ThingsboardException {
         if (user.getAuthority() == Authority.SYS_ADMIN) {
             return sysAdminPermissions;
         }
-        byte[] data = userPermissionsCacheService.getMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId());
-        MergedUserPermissions result = null;
-        if (data.length != 0) {
-            try {
-                result = fromBytes(data);
-            } catch (InvalidProtocolBufferException e) {
-                log.warn("[{}][{}][{}] Failed to decode merged user permissions from cache: {}", user.getTenantId(), user.getCustomerId(), user.getId(), Arrays.toString(data));
-            }
-        }
+        MergedUserPermissions result = getMergedPermissionsFromCache(user.getTenantId(), user.getCustomerId(), user.getId());
         if (result == null) {
             ListenableFuture<List<EntityGroupId>> groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
             ListenableFuture<List<GroupPermission>> permissions = Futures.transformAsync(groups, toGroupPermissionsList(user.getTenantId()), dbCallbackExecutorService);
-            result = Futures.transform(permissions, groupPermissions -> toMergedUserPermissions(user.getTenantId(), groupPermissions), dbCallbackExecutorService).get();
-            userPermissionsCacheService.putMergedPermissions(user.getTenantId(), user.getCustomerId(), user.getId(), toBytes(result));
+            try {
+                result = Futures.transform(permissions, groupPermissions -> toMergedUserPermissions(user.getTenantId(), groupPermissions), dbCallbackExecutorService).get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+            }
+            putMergedPermissionsToCache(user.getTenantId(), user.getCustomerId(), user.getId(), result);
         }
         return result;
+    }
+
+    @Override
+    public void onRoleUpdated(Role role) throws ThingsboardException {
+        TimePageData<GroupPermission> groupPermissions =
+                groupPermissionService.findGroupPermissionByTenantIdAndRoleId(role.getTenantId(), role.getId(), new TimePageLink(Integer.MAX_VALUE));
+        Set<EntityGroupId> uniqueUserGroups = new HashSet<>();
+        for (GroupPermission gpe : groupPermissions.getData()) {
+            uniqueUserGroups.add(gpe.getUserGroupId());
+        }
+        evictCacheForUserGroups(role.getTenantId(), uniqueUserGroups);
+    }
+
+    @Override
+    public void onGroupPermissionUpdated(GroupPermission groupPermission) throws ThingsboardException {
+        evictCacheForUserGroups(groupPermission.getTenantId(), Collections.singleton(groupPermission.getUserGroupId()));
+    }
+
+    @Override
+    public void onGroupPermissionDeleted(GroupPermission groupPermission) throws ThingsboardException {
+        evictCacheForUserGroups(groupPermission.getTenantId(), Collections.singleton(groupPermission.getUserGroupId()));
+    }
+
+    @Override
+    public void onUserUpdatedOrRemoved(User user) {
+        evictMergedPermissionsToCache(user.getTenantId(), user.getCustomerId(), user.getId());
+    }
+
+    private void evictCacheForUserGroups(TenantId tenantId, Set<EntityGroupId> uniqueUserGroups) throws ThingsboardException {
+        Map<EntityId, Set<EntityId>> usersByOwnerMap = new HashMap<>();
+        for (EntityGroupId userGroupId : uniqueUserGroups) {
+            EntityGroup userGroup = entityGroupService.findEntityGroupById(tenantId, userGroupId);
+            try {
+                List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
+                usersByOwnerMap.computeIfAbsent(userGroup.getOwnerId(), ownerId -> new HashSet<>()).addAll(entityIds);
+            } catch (InterruptedException | ExecutionException e) {
+                throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+            }
+        }
+        usersByOwnerMap.forEach((ownerId, userIds) -> {
+            userIds.forEach(userId -> evictMergedPermissionsToCache(tenantId, EntityType.CUSTOMER.equals(ownerId.getEntityType()) ? ownerId : null, userId));
+        });
+    }
+
+    private MergedUserPermissions getMergedPermissionsFromCache(TenantId tenantId, CustomerId customerId, UserId userId) {
+        Cache cache = cacheManager.getCache(USER_PERMISSIONS_CACHE);
+        String cacheKey = toKey(tenantId, customerId, userId);
+        byte[] data = cache.get(cacheKey, byte[].class);
+        MergedUserPermissions result = null;
+        if (data != null && data.length > 0) {
+            try {
+                result = fromBytes(data);
+            } catch (InvalidProtocolBufferException e) {
+                log.warn("[{}][{}][{}] Failed to decode merged user permissions from cache: {}", tenantId, customerId, userId, Arrays.toString(data));
+            }
+        } else {
+            log.debug("[{}][{}][{}] Not user permissions in cache", tenantId, customerId, userId);
+        }
+        return result;
+    }
+
+    private void putMergedPermissionsToCache(TenantId tenantId, CustomerId customerId, UserId userId, MergedUserPermissions permissions) {
+        log.debug("[{}][{}][{}] Pushing user permissions to cache: {}", tenantId, customerId, userId, permissions);
+        Cache cache = cacheManager.getCache(USER_PERMISSIONS_CACHE);
+        cache.put(toKey(tenantId, customerId, userId), toBytes(permissions));
+    }
+
+    private void evictMergedPermissionsToCache(EntityId tenantId, EntityId customerId, EntityId userId) {
+        log.debug("[{}][{}][{}] Evict user permissions to cache", tenantId, customerId, userId);
+        Cache cache = cacheManager.getCache(USER_PERMISSIONS_CACHE);
+        cache.evict(toKey(tenantId, customerId, userId));
+    }
+
+    private String toKey(EntityId tenantId, EntityId customerId, EntityId userId) {
+        return (tenantId != null ? tenantId.getId().toString() : "null") + "-" +
+                (customerId != null ? customerId.getId().toString() : "null") + "-" +
+                (userId != null ? userId.getId().toString() : "null") + "-";
     }
 
     private AsyncFunction<List<EntityGroupId>, List<GroupPermission>> toGroupPermissionsList(TenantId tenantId) {

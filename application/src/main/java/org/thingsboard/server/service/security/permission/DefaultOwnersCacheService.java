@@ -49,10 +49,8 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.UUID;
