@@ -123,7 +123,7 @@ public class CustomerController extends BaseController {
 
             if (operation == Operation.CREATE
                     && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    customer.getParentCustomerId() == null || customer.getParentCustomerId().isNullUid()) {
+                    (customer.getParentCustomerId() == null || customer.getParentCustomerId().isNullUid())) {
                 customer.setParentCustomerId(getCurrentUser().getCustomerId());
             }
 

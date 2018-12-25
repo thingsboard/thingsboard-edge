@@ -314,7 +314,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
 
         options.callbacks = {
             onDataUpdated: function() {
-                widgetTypeInstance.onDataUpdated();
+                if (displayWidgetInstance()) {
+                    widgetTypeInstance.onDataUpdated();
+                }
             },
             onDataUpdateError: function(subscription, e) {
                 handleWidgetException(e);
@@ -498,7 +500,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 if ($state.current.name === 'dashboard') {
                     $state.go('dashboard', stateParams);
                 } else {
-                    $state.go('home.dashboards.dashboard', stateParams);
+                    $state.go('home.dashboard', stateParams);
                 }
                 break;
             case types.widgetActionTypes.custom.value:
@@ -577,6 +579,10 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
 
         var html = '<div class="tb-absolute-fill tb-widget-error" ng-if="widgetErrorData">' +
             '<span>Widget Error: {{ widgetErrorData.name + ": " + widgetErrorData.message}}</span>' +
+            '</div>' +
+            '<div class="tb-absolute-fill tb-widget-no-data" ng-if="displayNoData">' +
+            '<span layout-align="center center"\n' +
+            '      style="text-transform: uppercase; display: flex;" class="tb-absolute-fill" translate>widget.no-data</span>' +
             '</div>' +
             '<div class="tb-absolute-fill tb-widget-loading" ng-show="loadingData" layout="column" layout-align="center center">' +
             '<md-progress-circular md-mode="indeterminate" ng-disabled="!loadingData" class="md-accent" md-diameter="40"></md-progress-circular>' +
@@ -765,7 +771,12 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         if (!widgetContext.inited && isReady()) {
             widgetContext.inited = true;
             try {
-                widgetTypeInstance.onInit();
+                if (displayWidgetInstance()) {
+                    widgetTypeInstance.onInit();
+                } else {
+                    $scope.loadingData = false;
+                    $scope.displayNoData = true;
+                }
             } catch (e) {
                 handleWidgetException(e);
             }
@@ -802,7 +813,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 cafs['resize'] = tbRaf(function() {
                     try {
-                        widgetTypeInstance.onResize();
+                        if (displayWidgetInstance()) {
+                            widgetTypeInstance.onResize();
+                        }
                     } catch (e) {
                         handleWidgetException(e);
                     }
@@ -832,7 +845,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 cafs['editMode'] = tbRaf(function() {
                     try {
-                        widgetTypeInstance.onEditModeChanged();
+                        if (displayWidgetInstance()) {
+                            widgetTypeInstance.onEditModeChanged();
+                        }
                     } catch (e) {
                         handleWidgetException(e);
                     }
@@ -851,7 +866,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 cafs['mobileMode'] = tbRaf(function() {
                     try {
-                        widgetTypeInstance.onMobileModeChanged();
+                        if (displayWidgetInstance()) {
+                            widgetTypeInstance.onMobileModeChanged();
+                        }
                     } catch (e) {
                         handleWidgetException(e);
                     }
@@ -884,6 +901,19 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         }
     }
 
+    function displayWidgetInstance() {
+        if (widget.type !== types.widgetType.static.value) {
+            for (var id in widgetContext.subscriptions) {
+                if (widgetContext.subscriptions[id].idDataResolved()) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     function onDestroy() {
         for (var id in widgetContext.subscriptions) {
             var subscription = widgetContext.subscriptions[id];
@@ -900,7 +930,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
             }
             try {
-                widgetTypeInstance.onDestroy();
+                if (displayWidgetInstance()) {
+                    widgetTypeInstance.onDestroy();
+                }
             } catch (e) {
                 handleWidgetException(e);
             }

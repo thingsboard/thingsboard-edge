@@ -106,7 +106,7 @@ public class EntityViewController extends BaseController {
 
             if (operation == Operation.CREATE
                     && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    entityView.getCustomerId() == null || entityView.getCustomerId().isNullUid()) {
+                    (entityView.getCustomerId() == null || entityView.getCustomerId().isNullUid())) {
                 entityView.setCustomerId(getCurrentUser().getCustomerId());
             }
 

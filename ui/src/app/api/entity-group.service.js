@@ -40,7 +40,7 @@ function EntityGroupService($http, $q, utils) {
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
         getEntityGroups: getEntityGroups,
-        getCustomerEntityGroups: getCustomerEntityGroups,
+        getEntityGroupsByOwnerId: getEntityGroupsByOwnerId,
         getEntityGroupsByPageLink: getEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
@@ -108,9 +108,9 @@ function EntityGroupService($http, $q, utils) {
         return deferred.promise;
     }
 
-    function getCustomerEntityGroups(customerId, groupType, ignoreErrors, config) {
+    function getEntityGroupsByOwnerId(ownerType, ownerId, groupType, ignoreErrors, config) {
         var deferred = $q.defer();
-        var url = '/api/customer/' + customerId + '/entityGroups/' + groupType;
+        var url = '/api/entityGroups/' + ownerType + '/' + ownerId + '/' + groupType;
         if (!config) {
             config = {};
         }

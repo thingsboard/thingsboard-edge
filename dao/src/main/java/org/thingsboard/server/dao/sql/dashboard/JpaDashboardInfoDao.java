@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
@@ -108,4 +109,10 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
             return Futures.successfulAsList(dashboardFutures);
         });
     }
+
+    @Override
+    public ListenableFuture<List<DashboardInfo>> findDashboardsByIdsAsync(UUID tenantId, List<UUID> dashboardIds) {
+        return service.submit(() -> DaoUtil.convertDataList(dashboardInfoRepository.findByIdIn(fromTimeUUIDs(dashboardIds))));
+    }
+
 }

@@ -32,6 +32,7 @@
 
 import entityGroupsTemplate from './entity-groups.tpl.html';
 import entityGroupTemplate from './entity-group.tpl.html';
+import dashboardTemplate from './../dashboard/dashboard.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -393,6 +394,30 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         })
+        .state('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', {
+            url: '/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller, entityGroup) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: entityGroup});
+                        }
+                }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'customer.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
+            }
+        })
         .state('home.assetGroups', {
             url: '/assetGroups',
             params: {'groupType': types.entityType.asset, 'topIndex': 0},
@@ -605,6 +630,31 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.dashboardGroups.dashboardGroup.dashboard', {
+            url: '/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller, entityGroup) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: entityGroup});
+                        }
+                }
+            },
+            data: {
+                widgetEditMode: false,
+                searchEnabled: false,
+                pageTitle: 'dashboard.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
             }
         });
 

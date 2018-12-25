@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.dashboard;
 
+import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +56,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_TENANT_ID_PROPERTY;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Component
 @Slf4j
@@ -101,6 +102,15 @@ public class CassandraDashboardInfoDao extends CassandraAbstractSearchTextDao<Da
             }
             return Futures.successfulAsList(dashboardFutures);
         });
+    }
+
+    @Override
+    public ListenableFuture<List<DashboardInfo>> findDashboardsByIdsAsync(UUID tenantId, List<UUID> dashboardIds) {
+        log.debug("Try to find dashboards by dashboard Ids [{}]", dashboardIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(in(ID_PROPERTY, dashboardIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

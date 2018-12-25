@@ -30,11 +30,11 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import addDashboardTemplate from './add-dashboard.tpl.html';
+/*import addDashboardTemplate from './add-dashboard.tpl.html';
 import dashboardCard from './dashboard-card.tpl.html';
 import addDashboardsToCustomerTemplate from './add-dashboards-to-customer.tpl.html';
 import makeDashboardPublicDialogTemplate from './make-dashboard-public-dialog.tpl.html';
-import manageAssignedCustomersTemplate from './manage-assigned-customers.tpl.html';
+import manageAssignedCustomersTemplate from './manage-assigned-customers.tpl.html';*/
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -70,10 +70,10 @@ export function DashboardCardController(types) {
 }
 
 /*@ngInject*/
-export function DashboardsController(userService, dashboardService, customerService, importExport, types,
-                                             $state, $stateParams, $mdDialog, $document, $q, $translate, utils) {
+export function DashboardsController(/*userService, dashboardService, customerService, importExport, types,
+                                             $state, $stateParams, $mdDialog, $document, $q, $translate, utils*/) {
 
-    var customerId = $stateParams.customerId;
+    /*var customerId = $stateParams.customerId;
 
     var dashboardActionsList = [
         {
@@ -86,155 +86,155 @@ export function DashboardsController(userService, dashboardService, customerServ
         }
     ];
 
-    var dashboardGroupActionsList = [];
+    var dashboardGroupActionsList = [];*/
 
-    var vm = this;
-    vm.types = types;
+    /*    var vm = this;
+        vm.types = types;
 
-    vm.dashboardGridConfig = {
-        deleteItemTitleFunc: deleteDashboardTitle,
-        deleteItemContentFunc: deleteDashboardText,
-        deleteItemsTitleFunc: deleteDashboardsTitle,
-        deleteItemsActionTitleFunc: deleteDashboardsActionTitle,
-        deleteItemsContentFunc: deleteDashboardsText,
+        vm.dashboardGridConfig = {
+            deleteItemTitleFunc: deleteDashboardTitle,
+            deleteItemContentFunc: deleteDashboardText,
+            deleteItemsTitleFunc: deleteDashboardsTitle,
+            deleteItemsActionTitleFunc: deleteDashboardsActionTitle,
+            deleteItemsContentFunc: deleteDashboardsText,
 
-        loadItemDetailsFunc: loadDashboard,
+            loadItemDetailsFunc: loadDashboard,
 
-        saveItemFunc: saveDashboard,
+            saveItemFunc: saveDashboard,
 
-        clickItemFunc: openDashboard,
+            clickItemFunc: openDashboard,
 
-        getItemTitleFunc: getDashboardTitle,
-        itemCardController: 'DashboardCardController',
-        itemCardTemplateUrl: dashboardCard,
-        parentCtl: vm,
+            getItemTitleFunc: getDashboardTitle,
+            itemCardController: 'DashboardCardController',
+            itemCardTemplateUrl: dashboardCard,
+            parentCtl: vm,
 
-        actionsList: dashboardActionsList,
-        groupActionsList: dashboardGroupActionsList,
+            actionsList: dashboardActionsList,
+            groupActionsList: dashboardGroupActionsList,
 
-        onGridInited: gridInited,
+            onGridInited: gridInited,
 
-        addItemTemplateUrl: addDashboardTemplate,
+            addItemTemplateUrl: addDashboardTemplate,
 
-        addItemText: function() { return $translate.instant('dashboard.add-dashboard-text') },
-        noItemsText: function() { return $translate.instant('dashboard.no-dashboards-text') },
-        itemDetailsText: function() { return $translate.instant('dashboard.dashboard-details') },
-        isDetailsReadOnly: function () {
-            return vm.dashboardsScope === 'customer_user';
-        },
-        isSelectionEnabled: function () {
-            return !(vm.dashboardsScope === 'customer_user');
-        }
-    };
+            addItemText: function() { return $translate.instant('dashboard.add-dashboard-text') },
+            noItemsText: function() { return $translate.instant('dashboard.no-dashboards-text') },
+            itemDetailsText: function() { return $translate.instant('dashboard.dashboard-details') },
+            isDetailsReadOnly: function () {
+                return vm.dashboardsScope === 'customer_user';
+            },
+            isSelectionEnabled: function () {
+                return !(vm.dashboardsScope === 'customer_user');
+            }
+        };
 
-    if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
-        vm.dashboardGridConfig.items = $stateParams.items;
-    }
-
-    if (angular.isDefined($stateParams.topIndex) && $stateParams.topIndex > 0) {
-        vm.dashboardGridConfig.topIndex = $stateParams.topIndex;
-    }
-
-    vm.dashboardsScope = $state.$current.data.dashboardsType;
-
-    vm.makePublic = makePublic;
-    vm.makePrivate = makePrivate;
-    vm.manageAssignedCustomers = manageAssignedCustomers;
-    vm.unassignFromCustomer = unassignFromCustomer;
-    vm.exportDashboard = exportDashboard;
-
-    initController();
-
-    function initController() {
-        var fetchDashboardsFunction = null;
-        var deleteDashboardFunction = null;
-        var refreshDashboardsParamsFunction = null;
-
-        var user = userService.getCurrentUser();
-
-        if (user.authority === 'CUSTOMER_USER') {
-            vm.dashboardsScope = 'customer_user';
-            customerId = user.customerId;
+        if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
+            vm.dashboardGridConfig.items = $stateParams.items;
         }
 
-        if (customerId) {
-            vm.customerId = customerId;
-            vm.customerDashboardsTitle = $translate.instant('customer.dashboards');
-            customerService.getShortCustomerInfo(customerId).then(
-                function success(info) {
-                    if (info.isPublic) {
-                        vm.customerDashboardsTitle = $translate.instant('customer.public-dashboards');
+        if (angular.isDefined($stateParams.topIndex) && $stateParams.topIndex > 0) {
+            vm.dashboardGridConfig.topIndex = $stateParams.topIndex;
+        }
+
+        vm.dashboardsScope = $state.$current.data.dashboardsType;
+
+        vm.makePublic = makePublic;
+        vm.makePrivate = makePrivate;
+        vm.manageAssignedCustomers = manageAssignedCustomers;
+        vm.unassignFromCustomer = unassignFromCustomer;
+        vm.exportDashboard = exportDashboard;
+
+        initController();
+
+        function initController() {
+            var fetchDashboardsFunction = null;
+            var deleteDashboardFunction = null;
+            var refreshDashboardsParamsFunction = null;
+
+            var user = userService.getCurrentUser();
+
+            if (user.authority === 'CUSTOMER_USER') {
+                vm.dashboardsScope = 'customer_user';
+                customerId = user.customerId;
+            }
+
+            if (customerId) {
+                vm.customerId = customerId;
+                vm.customerDashboardsTitle = $translate.instant('customer.dashboards');
+                customerService.getShortCustomerInfo(customerId).then(
+                    function success(info) {
+                        if (info.isPublic) {
+                            vm.customerDashboardsTitle = $translate.instant('customer.public-dashboards');
+                        }
                     }
-                }
-            );
-        }
+                );
+            }
 
-        if (vm.dashboardsScope === 'tenant') {
-            fetchDashboardsFunction = function (pageLink) {
-                return dashboardService.getTenantDashboards(pageLink);
-            };
-            deleteDashboardFunction = function (dashboardId) {
-                return dashboardService.deleteDashboard(dashboardId);
-            };
-            refreshDashboardsParamsFunction = function () {
-                return {"topIndex": vm.topIndex};
-            };
+            if (vm.dashboardsScope === 'tenant') {
+                fetchDashboardsFunction = function (pageLink) {
+                    return dashboardService.getTenantDashboards(pageLink);
+                };
+                deleteDashboardFunction = function (dashboardId) {
+                    return dashboardService.deleteDashboard(dashboardId);
+                };
+                refreshDashboardsParamsFunction = function () {
+                    return {"topIndex": vm.topIndex};
+                };
 
-            dashboardActionsList.push(
-                {
+                dashboardActionsList.push(
+                    {
+                        onAction: function ($event, item) {
+                            exportDashboard($event, item);
+                        },
+                        name: function() { $translate.instant('action.export') },
+                        details: function() { return $translate.instant('dashboard.export') },
+                        icon: "file_download"
+                    });
+
+                dashboardActionsList.push({
+                        onAction: function ($event, item) {
+                            makePublic($event, item);
+                        },
+                        name: function() { return $translate.instant('action.share') },
+                        details: function() { return $translate.instant('dashboard.make-public') },
+                        icon: "share",
+                        isEnabled: function(dashboard) {
+                            return dashboard && !dashboard.publicCustomerId;
+                        }
+                    });
+                dashboardActionsList.push({
                     onAction: function ($event, item) {
-                        exportDashboard($event, item);
+                        makePrivate($event, item);
                     },
-                    name: function() { $translate.instant('action.export') },
-                    details: function() { return $translate.instant('dashboard.export') },
-                    icon: "file_download"
-                });
-
-            dashboardActionsList.push({
-                    onAction: function ($event, item) {
-                        makePublic($event, item);
-                    },
-                    name: function() { return $translate.instant('action.share') },
-                    details: function() { return $translate.instant('dashboard.make-public') },
-                    icon: "share",
+                    name: function() { return $translate.instant('action.make-private') },
+                    details: function() { return $translate.instant('dashboard.make-private') },
+                    icon: "reply",
                     isEnabled: function(dashboard) {
-                        return dashboard && !dashboard.publicCustomerId;
+                        return dashboard && dashboard.publicCustomerId;
                     }
                 });
-            dashboardActionsList.push({
-                onAction: function ($event, item) {
-                    makePrivate($event, item);
-                },
-                name: function() { return $translate.instant('action.make-private') },
-                details: function() { return $translate.instant('dashboard.make-private') },
-                icon: "reply",
-                isEnabled: function(dashboard) {
-                    return dashboard && dashboard.publicCustomerId;
-                }
-            });
-            dashboardActionsList.push({
-                onAction: function ($event, item) {
-                    manageAssignedCustomers($event, item);
-                },
-                name: function() { return $translate.instant('action.assign') },
-                details: function() { return $translate.instant('dashboard.manage-assigned-customers') },
-                icon: "assignment_ind",
-                isEnabled: function(dashboard) {
-                    return dashboard;
-                }
-            });
-
-            /*dashboardActionsList.push({
+                dashboardActionsList.push({
                     onAction: function ($event, item) {
-                        assignToCustomer($event, [ item.id.id ]);
+                        manageAssignedCustomers($event, item);
                     },
                     name: function() { return $translate.instant('action.assign') },
-                    details: function() { return $translate.instant('dashboard.assign-to-customer') },
+                    details: function() { return $translate.instant('dashboard.manage-assigned-customers') },
                     icon: "assignment_ind",
                     isEnabled: function(dashboard) {
-                        return dashboard && (!dashboard.customerId || dashboard.customerId.id === types.id.nullUid);
+                        return dashboard;
                     }
-                });*/
+                });
+
+                /*dashboardActionsList.push({
+                        onAction: function ($event, item) {
+                            assignToCustomer($event, [ item.id.id ]);
+                        },
+                        name: function() { return $translate.instant('action.assign') },
+                        details: function() { return $translate.instant('dashboard.assign-to-customer') },
+                        icon: "assignment_ind",
+                        isEnabled: function(dashboard) {
+                            return dashboard && (!dashboard.customerId || dashboard.customerId.id === types.id.nullUid);
+                        }
+                    });*/
             /*dashboardActionsList.push({
                     onAction: function ($event, item) {
                         unassignFromCustomer($event, item, false);
@@ -247,7 +247,7 @@ export function DashboardsController(userService, dashboardService, customerServ
                     }
                 });*/
 
-            dashboardActionsList.push(
+          /*  dashboardActionsList.push(
                 {
                     onAction: function ($event, item) {
                         vm.grid.deleteItem($event, item);
@@ -630,7 +630,7 @@ export function DashboardsController(userService, dashboardService, customerServ
                 });
             }
         } else {
-            $state.go('home.dashboards.dashboard', {dashboardId: dashboard.id.id});
+            $state.go('home.dashboard', {dashboardId: dashboard.id.id});
         }
-    }
+    }*/
 }

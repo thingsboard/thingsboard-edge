@@ -40,6 +40,8 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import java.util.List;
+
 public interface DashboardService {
     
     Dashboard findDashboardById(TenantId tenantId, DashboardId dashboardId);
@@ -49,6 +51,8 @@ public interface DashboardService {
     DashboardInfo findDashboardInfoById(TenantId tenantId, DashboardId dashboardId);
 
     ListenableFuture<DashboardInfo> findDashboardInfoByIdAsync(TenantId tenantId, DashboardId dashboardId);
+
+    ListenableFuture<List<DashboardInfo>> findDashboardInfoByIdsAsync(TenantId tenantId, List<DashboardId> dashboardIds);
 
     Dashboard saveDashboard(Dashboard dashboard);
 

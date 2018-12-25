@@ -51,11 +51,13 @@ function UserPermissionsService($http, $q, types, securityTypes) {
         hasReadGroupsPermission: hasReadGroupsPermission,
         hasReadGenericPermission: hasReadGenericPermission,
         hasGenericPermission: hasGenericPermission,
+        hasGenericEntityGroupTypePermission: hasGenericEntityGroupTypePermission,
         hasGenericEntityGroupPermission: hasGenericEntityGroupPermission,
         hasEntityGroupPermission: hasEntityGroupPermission,
         hasGroupEntityPermission: hasGroupEntityPermission,
         isDirectlyOwnedGroup: isDirectlyOwnedGroup,
-        isOwnedGroup: isOwnedGroup
+        isOwnedGroup: isOwnedGroup,
+        getUserOwnerId: getUserOwnerId
     };
 
     function loadPermissionsInfo() {
@@ -147,12 +149,19 @@ function UserPermissionsService($http, $q, types, securityTypes) {
         return operations.indexOf(securityTypes.operation.all) > -1 || operations.indexOf(operation) > -1;
     }
 
+    function hasGenericEntityGroupTypePermission(operation, groupType) {
+        if (!groupType) {
+            return false;
+        }
+        var resource = securityTypes.groupResourceByGroupType[groupType];
+        return hasGenericPermission(resource, operation);
+    }
+
     function hasGenericEntityGroupPermission(operation, entityGroup) {
         if (!entityGroup) {
             return false;
         }
-        var resource = securityTypes.groupResourceByGroupType[entityGroup.type];
-        return hasGenericPermission(resource, operation);
+        return hasGenericEntityGroupTypePermission(operation, entityGroup.type);
     }
 
     function hasEntityGroupPermission(operation, entityGroup) {
@@ -176,6 +185,10 @@ function UserPermissionsService($http, $q, types, securityTypes) {
             return false;
         }
         return isCurrentUserOwner(entityGroup);
+    }
+
+    function getUserOwnerId() {
+        return userOwnerId;
     }
 
     function checkEntityGroupPermission(operation, entityGroup, isGroup) {

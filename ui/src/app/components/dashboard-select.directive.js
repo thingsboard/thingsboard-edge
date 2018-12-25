@@ -59,20 +59,14 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
         scope.dashboardId = null;
 
         var pageLink = {limit: 100};
-
         var promise;
-        if (scope.dashboardsScope === 'customer' || userService.getAuthority() === 'CUSTOMER_USER') {
-            if (scope.customerId && scope.customerId != types.id.nullUid) {
-                promise = dashboardService.getCustomerDashboards(scope.customerId, pageLink, {ignoreLoading: true});
-            } else {
-                promise = $q.when({data: []});
-            }
+        if (scope.groupId) {
+            promise = dashboardService.getGroupDashboards(scope.groupId, pageLink, {ignoreLoading: true});
         } else {
-            promise = dashboardService.getTenantDashboards(pageLink, {ignoreLoading: true});
+            promise = dashboardService.getUserDashboards(null, scope.operation, pageLink, {ignoreLoading: true});
         }
-
         promise.then(function success(result) {
-            scope.dashboards = result.data;
+            scope.dashboards = result;
         }, function fail() {
             scope.dashboards = [];
         });
@@ -158,8 +152,8 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
         require: "^ngModel",
         link: linker,
         scope: {
-            dashboardsScope: '@',
-            customerId: '=',
+            groupId: '=?',
+            operation: '=?',
             tbRequired: '=?',
             disabled:'=ngDisabled'
         }

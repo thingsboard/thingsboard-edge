@@ -311,15 +311,10 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
 
         function fetchAllowedDashboardIds() {
             var pageLink = {limit: 100};
-            var fetchDashboardsPromise;
-            if (currentUser.authority === 'TENANT_ADMIN') {
-                fetchDashboardsPromise = dashboardService.getTenantDashboards(pageLink);
-            } else {
-                fetchDashboardsPromise = dashboardService.getCustomerDashboards(currentUser.customerId, pageLink);
-            }
+            var fetchDashboardsPromise = dashboardService.getUserDashboards(null, null, pageLink, {ignoreLoading: true});
             fetchDashboardsPromise.then(
                 function success(result) {
-                    var dashboards = result.data;
+                    var dashboards = result;
                     for (var d=0;d<dashboards.length;d++) {
                         allowedDashboardIds.push(dashboards[d].id.id);
                     }
@@ -620,7 +615,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
                         } else {
                             return true;
                         }
-                    } else if ((to.name === 'home.dashboards.dashboard' || to.name === 'dashboard')
+                    } else if ((to.name === 'home.dashboard' || to.name === 'dashboard')
                         && allowedDashboardIds.indexOf(params.dashboardId) > -1) {
                         return false;
                     } else {
@@ -643,7 +638,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
             redirectParams = null;
             if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
                 if (userHasDefaultDashboard()) {
-                    place = $rootScope.forceFullscreen ? 'dashboard' : 'home.dashboards.dashboard';
+                    place = $rootScope.forceFullscreen ? 'dashboard' : 'home.dashboard';
                     params = {dashboardId: currentUserDetails.additionalInfo.defaultDashboardId};
                 } else if (isPublic()) {
                     place = 'dashboard';

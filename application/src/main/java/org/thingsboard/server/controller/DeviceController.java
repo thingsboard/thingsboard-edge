@@ -93,7 +93,7 @@ public class DeviceController extends BaseController {
 
             if (operation == Operation.CREATE
                     && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    device.getCustomerId() == null || device.getCustomerId().isNullUid()) {
+                    (device.getCustomerId() == null || device.getCustomerId().isNullUid())) {
                 device.setCustomerId(getCurrentUser().getCustomerId());
             }
 

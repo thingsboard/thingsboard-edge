@@ -53,4 +53,6 @@ public interface DashboardInfoRepository extends CrudRepository<DashboardInfoEnt
                                              @Param("idOffset") String idOffset,
                                              Pageable pageable);
 
+    List<DashboardInfoEntity> findByIdIn(List<String> dashboardIds);
+
 }

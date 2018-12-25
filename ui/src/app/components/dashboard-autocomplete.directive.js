@@ -45,7 +45,7 @@ export default angular.module('thingsboard.directives.dashboardAutocomplete', [t
     .name;
 
 /*@ngInject*/
-function DashboardAutocomplete($compile, $templateCache, $q, dashboardService, userService) {
+function DashboardAutocomplete($compile, $templateCache, $q, dashboardService) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(dashboardAutocompleteTemplate);
@@ -60,27 +60,10 @@ function DashboardAutocomplete($compile, $templateCache, $q, dashboardService, u
 
             var deferred = $q.defer();
 
-            var promise;
-            if (scope.dashboardsScope === 'customer' || userService.getAuthority() === 'CUSTOMER_USER') {
-                if (scope.customerId) {
-                    promise = dashboardService.getCustomerDashboards(scope.customerId, pageLink, {ignoreLoading: true});
-                } else {
-                    promise = $q.when({data: []});
-                }
-            } else {
-                if (userService.getAuthority() === 'SYS_ADMIN') {
-                    if (scope.tenantId) {
-                        promise = dashboardService.getTenantDashboardsByTenantId(scope.tenantId, pageLink, {ignoreLoading: true});
-                    } else {
-                        promise = $q.when({data: []});
-                    }
-                } else {
-                    promise = dashboardService.getTenantDashboards(pageLink, {ignoreLoading: true});
-                }
-            }
+            var promise = dashboardService.getUserDashboards(scope.userId, scope.operation, pageLink, {ignoreLoading: true});
 
             promise.then(function success(result) {
-                deferred.resolve(result.data);
+                deferred.resolve(result);
             }, function fail() {
                 deferred.reject();
             });
@@ -149,9 +132,8 @@ function DashboardAutocomplete($compile, $templateCache, $q, dashboardService, u
         require: "^ngModel",
         link: linker,
         scope: {
-            dashboardsScope: '@',
-            tenantId: '=',
-            customerId: '=',
+            userId: '=?',
+            operation: '=?',
             theForm: '=?',
             tbRequired: '=?',
             disabled:'=ngDisabled',

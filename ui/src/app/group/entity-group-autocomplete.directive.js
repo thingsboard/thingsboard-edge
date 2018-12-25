@@ -55,8 +55,8 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
             var deferred = $q.defer();
             if (!scope.allEntityGroups) {
                 var getEntityGroupsPromise;
-                if (scope.customerId) {
-                    getEntityGroupsPromise = entityGroupService.getCustomerEntityGroups(scope.customerId, scope.groupType, false, {ignoreLoading: true});
+                if (scope.ownerId) {
+                    getEntityGroupsPromise = entityGroupService.getEntityGroupsByOwnerId(scope.ownerId.entityType, scope.ownerId.id, scope.groupType, false, {ignoreLoading: true});
                 } else {
                     getEntityGroupsPromise = entityGroupService.getEntityGroups(scope.groupType, false, {ignoreLoading: true});
                 }
@@ -158,7 +158,7 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
         require: "^ngModel",
         link: linker,
         scope: {
-            customerId: '=',
+            ownerId: '=',
             groupType: '=',
             theForm: '=?',
             tbRequired: '=?',

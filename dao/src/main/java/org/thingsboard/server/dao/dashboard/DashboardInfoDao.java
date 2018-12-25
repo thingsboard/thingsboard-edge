@@ -63,4 +63,14 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
      */
     ListenableFuture<List<DashboardInfo>> findDashboardsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink);
 
+    /**
+     * Find dashboards by dashboard Ids.
+     *
+     * @param tenantId the tenantId
+     * @param dashboardIds the dashboard Ids
+     * @return the list of dashboard objects
+     */
+    ListenableFuture<List<DashboardInfo>> findDashboardsByIdsAsync(UUID tenantId, List<UUID> dashboardIds);
+
+
 }

@@ -60,9 +60,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 
-import static org.thingsboard.server.dao.service.Validator.validateEntityId;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
 @Slf4j
@@ -108,6 +107,13 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing findDashboardInfoByIdAsync [{}]", dashboardId);
         validateId(dashboardId, INCORRECT_DASHBOARD_ID + dashboardId);
         return dashboardInfoDao.findByIdAsync(tenantId, dashboardId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<DashboardInfo>> findDashboardInfoByIdsAsync(TenantId tenantId, List<DashboardId> dashboardIds) {
+        log.trace("Executing findDashboardInfoByIdsAsync, dashboardIds [{}]", dashboardIds);
+        validateIds(dashboardIds, "Incorrect dashboardIds " + dashboardIds);
+        return dashboardInfoDao.findDashboardsByIdsAsync(tenantId.getId(), toUUIDs(dashboardIds));
     }
 
     @Override

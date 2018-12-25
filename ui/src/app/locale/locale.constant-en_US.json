@@ -2197,7 +2197,8 @@
         "export": "Export widget",
         "export-data": "Export widget data",
         "export-to-csv": "Export data to CSV...",
-        "export-to-excel": "Export data to XLS..."
+        "export-to-excel": "Export data to XLS...",
+        "no-data": "No data to display on widget"
     },
     "widget-action": {
         "header-button": "Widget header button",

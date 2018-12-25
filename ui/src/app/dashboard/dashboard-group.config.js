@@ -86,7 +86,11 @@ export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, 
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+            if (entityGroup.parentEntityGroup) {
+                $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+            } else {
+                $state.go('home.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+            }
         };
 
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.read) &&
