@@ -85,6 +85,9 @@ public class GroupPermissionController extends BaseController {
             checkRoleId(groupPermission.getRoleId(), Operation.READ);
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
+
+            userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
+
             logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
             return savedGroupPermission;
@@ -107,6 +110,8 @@ public class GroupPermissionController extends BaseController {
             checkRoleId(groupPermission.getRoleId(), Operation.READ);
 
             groupPermissionService.deleteGroupPermission(getTenantId(), groupPermissionId);
+            userPermissionsService.onGroupPermissionDeleted(groupPermission);
+
             logEntityAction(groupPermissionId, groupPermission, null, ActionType.DELETED, null, strGroupPermissionId);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.GROUP_PERMISSION),

@@ -199,6 +199,8 @@ public class UserController extends BaseController {
                 }
             }
 
+            userPermissionsService.onUserUpdatedOrRemoved(savedUser);
+
             logEntityAction(savedUser.getId(), savedUser,
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
@@ -273,6 +275,8 @@ public class UserController extends BaseController {
             UserId userId = new UserId(toUUID(strUserId));
             User user = checkUserId(userId, Operation.DELETE);
             userService.deleteUser(getCurrentUser().getTenantId(), userId);
+
+            userPermissionsService.onUserUpdatedOrRemoved(user);
 
             logEntityAction(userId, user,
                     user.getCustomerId(),
