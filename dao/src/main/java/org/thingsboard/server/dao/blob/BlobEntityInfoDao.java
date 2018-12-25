@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.blob;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
@@ -82,5 +83,14 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @return the list of blob entity objects
      */
     List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink);
+
+    /**
+     * Find blob entities by tenantId and blob entity Ids.
+     *
+     * @param tenantId the tenantId
+     * @param blobEntityIds the blob entity Ids
+     * @return the list of blob entity objects
+     */
+    ListenableFuture<List<BlobEntityInfo>> findBlobEntitiesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> blobEntityIds);
 
 }

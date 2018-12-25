@@ -30,12 +30,14 @@
  */
 package org.thingsboard.server.dao.tenant;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface TenantDao extends Dao<Tenant> {
 
@@ -55,5 +57,14 @@ public interface TenantDao extends Dao<Tenant> {
      * @return the list of tenant objects
      */
     List<Tenant> findTenantsByRegion(TenantId tenantId, String region, TextPageLink pageLink);
+
+    /**
+     * Find tenants by tenant Ids.
+     *
+     * @param tenantIds the tenant Ids
+     * @return the list of tenant objects
+     */
+    ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds);
+
     
 }

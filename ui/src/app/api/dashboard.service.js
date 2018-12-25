@@ -44,6 +44,7 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
     var service = {
         assignDashboardToCustomer: assignDashboardToCustomer,
         getCustomerDashboards: getCustomerDashboards,
+        getDashboards: getDashboards,
         getServerTimeDiff: getServerTimeDiff,
         getDashboard: getDashboard,
         getDashboardInfo: getDashboardInfo,
@@ -116,6 +117,32 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
                 response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
             }
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getDashboards(dashboardIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<dashboardIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += dashboardIds[i];
+        }
+        var url = '/api/dashboards?dashboardIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = dashboardIds.indexOf(id1);
+                var index2 = dashboardIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

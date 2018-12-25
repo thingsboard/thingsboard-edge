@@ -49,6 +49,8 @@ public interface RoleService {
 
     Role findRoleById(TenantId tenantId, RoleId roleId);
 
+    ListenableFuture<List<Role>> findRolesByIdsAsync(TenantId tenantId, List<RoleId> roleIds);
+
     Optional<Role> findRoleByTenantIdAndName(TenantId tenantId, String name);
 
     Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(TenantId tenantId, CustomerId customerId, String name);

@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.role;
 
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -46,6 +47,7 @@ import org.thingsboard.server.dao.util.NoSqlDao;
 import java.util.*;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
@@ -134,5 +136,15 @@ public class CassandraRoleDao extends CassandraAbstractSearchTextDao<RoleEntity,
 
         log.trace("Found roles [{}] by tenantId [{}], customerId [{}], type [{}] and pageLink [{}]", roleEntities, tenantId, customerId, type, pageLink);
         return DaoUtil.convertDataList(roleEntities);
+    }
+
+    @Override
+    public ListenableFuture<List<Role>> findRolesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> roleIds) {
+        log.debug("Try to find roles by tenantId [{}] and role Ids [{}]", tenantId, roleIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(ROLE_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, roleIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 }

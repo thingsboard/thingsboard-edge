@@ -36,12 +36,16 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 
+import java.util.List;
+
 public interface TenantService {
 
     Tenant findTenantById(TenantId tenantId);
 
     ListenableFuture<Tenant> findTenantByIdAsync(TenantId callerId, TenantId tenantId);
-    
+
+    ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds);
+
     Tenant saveTenant(Tenant tenant);
     
     void deleteTenant(TenantId tenantId);

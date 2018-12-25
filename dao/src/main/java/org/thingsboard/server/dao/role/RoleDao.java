@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.role;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -55,4 +56,14 @@ public interface RoleDao extends Dao<Role> {
     List<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink);
 
     List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, TextPageLink pageLink);
+
+    /**
+     * Find roles by tenantId and role Ids.
+     *
+     * @param tenantId the tenantId
+     * @param roleIds the role Ids
+     * @return the list of role objects
+     */
+    ListenableFuture<List<Role>> findRolesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> roleIds);
+
 }

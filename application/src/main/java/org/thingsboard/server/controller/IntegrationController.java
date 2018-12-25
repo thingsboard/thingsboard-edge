@@ -44,6 +44,12 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -148,6 +154,39 @@ public class IntegrationController extends BaseController {
 
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/integrations", params = {"integrationIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Integration> getIntegrationsByIds(
+            @RequestParam("integrationIds") String[] strIntegrationIds) throws ThingsboardException {
+        checkArrayParameter("integrationIds", strIntegrationIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<IntegrationId> integrationIds = new ArrayList<>();
+            for (String strIntegrationId : strIntegrationIds) {
+                integrationIds.add(new IntegrationId(toUUID(strIntegrationId)));
+            }
+            List<Integration> integrations = checkNotNull(integrationService.findIntegrationsByIdsAsync(tenantId, integrationIds).get());
+            return filterIntegrationsByReadPermission(integrations);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Integration> filterIntegrationsByReadPermission(List<Integration> integrations) {
+        return integrations.stream().filter(integration -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
 }

@@ -204,7 +204,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function getEntitiesByIdsPromise(fetchEntityFunction, entityIds) {
+    /*function getEntitiesByIdsPromise(fetchEntityFunction, entityIds) {
         var tasks = [];
         var deferred = $q.defer();
         for (var i=0;i<entityIds.length;i++) {
@@ -230,7 +230,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             }
         );
         return deferred.promise;
-    }
+    }*/
 
     function getEntitiesPromise(entityType, entityIds, config) {
         var promise;
@@ -242,51 +242,40 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = assetService.getAssets(entityIds, config);
                 break;
             case types.entityType.entityView:
-                promise = getEntitiesByIdsPromise(
-                    (id) => entityViewService.getEntityView(id, config), entityIds);
+                promise = entityViewService.getEntityViews(entityIds, config);
                 break;
             case types.entityType.tenant:
-                promise = getEntitiesByIdsPromise(
-                    (id) => tenantService.getTenant(id, config), entityIds);
+                promise = tenantService.getTenantsByIds(entityIds, config);
                 break;
             case types.entityType.customer:
-                promise = getEntitiesByIdsPromise(
-                    (id) => customerService.getCustomer(id, config), entityIds);
+                promise = customerService.getCustomersByIds(entityIds, config);
                 break;
             case types.entityType.dashboard:
-                promise = getEntitiesByIdsPromise(
-                    (id) => dashboardService.getDashboardInfo(id, config), entityIds);
+                promise = dashboardService.getDashboards(entityIds, config);
                 break;
             case types.entityType.user:
-                promise = getEntitiesByIdsPromise(
-                    (id) => userService.getUser(id, true, config), entityIds);
+                promise = userService.getUsers(entityIds, config);
                 break;
             case types.entityType.alarm:
                 $log.error('Get Alarm Entity is not implemented!');
                 break;
             case types.entityType.entityGroup:
-                promise = getEntitiesByIdsPromise(
-                    (id) => entityGroupService.getEntityGroup(id, true, config), entityIds);
+                promise = entityGroupService.getEntityGroupsByIds(entityIds, config);
                 break;
             case types.entityType.converter:
-                promise = getEntitiesByIdsPromise(
-                    (id) => converterService.getConverter(id, config), entityIds);
+                promise = entityGroupService.getConvertersByIds(entityIds, config);
                 break;
             case types.entityType.integration:
-                promise = getEntitiesByIdsPromise(
-                    (id) => integrationService.getIntegration(id, config), entityIds);
+                promise = integrationService.getIntegrationsByIds(entityIds, config);
                 break;
             case types.entityType.schedulerEvent:
-                promise = getEntitiesByIdsPromise(
-                    (id) => schedulerEventService.getSchedulerEventInfo(id, config), entityIds);
+                promise = schedulerEventService.getSchedulerEventsByIds(entityIds, config);
                 break;
             case types.entityType.blobEntity:
-                promise = getEntitiesByIdsPromise(
-                    (id) => blobEntityService.getBlobEntityInfo(id, config), entityIds);
+                promise = blobEntityService.getBlobEntitiesByIds(entityIds, config);
                 break;
             case types.entityType.role:
-                promise = getEntitiesByIdsPromise(
-                    (id) => roleService.getRole(id, config), entityIds);
+                promise = roleService.getRolesByIds(entityIds, config);
                 break;
         }
         return promise;
@@ -696,7 +685,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         switch (filter.type) {
             case types.aliasFilterType.singleEntity.value:
                 var aliasEntityId = resolveAliasEntityId(filter.singleEntity.entityType, filter.singleEntity.id);
-                getEntity(aliasEntityId.entityType, aliasEntityId.id, {ignoreLoading: true}).then(
+                getEntity(aliasEntityId.entityType, aliasEntityId.id, {ignoreLoading: true, ignoreErrors: true}).then(
                     function success(entity) {
                         result.entities = entitiesToEntitiesInfo([entity]);
                         deferred.resolve(result);
@@ -714,7 +703,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 } else if (!result.stateEntity) {
                     entityGroup = filter.entityGroup;
                 }
-                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true}).then(
+                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true, ignoreErrors: true}).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -729,7 +718,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 );
                 break;
             case types.aliasFilterType.entityList.value:
-                getEntities(filter.entityType, filter.entityList, {ignoreLoading: true}).then(
+                getEntities(filter.entityType, filter.entityList, {ignoreLoading: true, ignoreErrors: true}).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);

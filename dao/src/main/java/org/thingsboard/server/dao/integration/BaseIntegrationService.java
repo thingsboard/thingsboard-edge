@@ -55,7 +55,9 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.Optional;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
@@ -95,6 +97,14 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
         log.trace("Executing findIntegrationByIdAsync [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
         return integrationDao.findByIdAsync(tenantId, integrationId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds) {
+        log.trace("Executing findIntegrationsByIdsAsync, tenantId [{}], integrationIds [{}]", tenantId, integrationIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(integrationIds, "Incorrect integrationIds " + integrationIds);
+        return integrationDao.findIntegrationsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(integrationIds));
     }
 
     @Override

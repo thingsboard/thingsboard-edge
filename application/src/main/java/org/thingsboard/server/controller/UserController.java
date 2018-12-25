@@ -72,8 +72,10 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -346,4 +348,33 @@ public class UserController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/users", params = {"userIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<User> getUsersByIds(
+            @RequestParam("userIds") String[] strUserIds) throws ThingsboardException {
+        checkArrayParameter("userIds", strUserIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<UserId> userIds = new ArrayList<>();
+            for (String strUserId : strUserIds) {
+                userIds.add(new UserId(toUUID(strUserId)));
+            }
+            List<User> users = checkNotNull(userService.findUsersByIdsAsync(tenantId, userIds).get());
+            return filterUsersByReadPermission(users);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<User> filterUsersByReadPermission(List<User> users) {
+        return users.stream().filter(user -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.USER, Operation.READ, user.getId(), user);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
+    }
 }

@@ -51,8 +51,10 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
@@ -94,6 +96,14 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         log.trace("Executing findSchedulerEventInfoByIdAsync [{}]", schedulerEventId);
         validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
         return schedulerEventInfoDao.findByIdAsync(tenantId, schedulerEventId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfoByIdsAsync(TenantId tenantId, List<SchedulerEventId> schedulerEventIds) {
+        log.trace("Executing findSchedulerEventInfoByIdsAsync, tenantId [{}], schedulerEventIds [{}]", tenantId, schedulerEventIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(schedulerEventIds, "Incorrect schedulerEventIds " + schedulerEventIds);
+        return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(schedulerEventIds));
     }
 
     @Override

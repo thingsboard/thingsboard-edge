@@ -66,5 +66,6 @@ public interface RoleRepository extends CrudRepository<RoleEntity, String> {
                                                          @Param("idOffset") String idOffset,
                                                          Pageable pageable);
 
+    List<RoleEntity> findRolesByTenantIdAndIdIn(String tenantId, List<String> roleIds);
 
 }

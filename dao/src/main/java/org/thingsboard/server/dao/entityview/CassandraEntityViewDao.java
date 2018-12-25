@@ -60,24 +60,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.DEVICE_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_ID_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_BY_TENANT_AND_CUSTOMER_AND_TYPE_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_BY_TENANT_AND_CUSTOMER_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_BY_TENANT_AND_ENTITY_ID_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_BY_TENANT_AND_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_BY_TENANT_AND_SEARCH_TEXT_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_NAME_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_TABLE_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_VIEW_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 /**
  * Created by Victor Basanets on 9/06/2017.
@@ -170,6 +156,16 @@ public class CassandraEntityViewDao extends CassandraAbstractSearchTextDao<Entit
         Select.Where query = select().from(ENTITY_VIEW_BY_TENANT_AND_ENTITY_ID_CF).where();
         query.and(eq(TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ENTITY_ID_COLUMN, entityId));
+        return findListByStatementAsync(new TenantId(tenantId), query);
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> entityViewIds) {
+        log.debug("Try to find entity views by tenantId [{}] and entity view Ids [{}]", tenantId, entityViewIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(ENTITY_VIEW_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, entityViewIds));
         return findListByStatementAsync(new TenantId(tenantId), query);
     }
 

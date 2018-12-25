@@ -42,6 +42,7 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         deleteEntityView: deleteEntityView,
         getCustomerEntityViews: getCustomerEntityViews,
         getEntityView: getEntityView,
+        getEntityViews: getEntityViews,
         getTenantEntityViews: getTenantEntityViews,
         saveEntityView: saveEntityView,
         unassignEntityViewFromCustomer: unassignEntityViewFromCustomer,
@@ -140,6 +141,33 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         });
         return deferred.promise;
     }
+
+    function getEntityViews(entityViewIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<entityViewIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += entityViewIds[i];
+        }
+        var url = '/api/entityViews?entityViewIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = entityViewIds.indexOf(id1);
+                var index2 = entityViewIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
 
     function saveEntityView(entityView) {
         var deferred = $q.defer();

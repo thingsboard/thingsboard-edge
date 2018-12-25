@@ -62,6 +62,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         getCustomerUsers: getCustomerUsers,
         getAllCustomerUsers: getAllCustomerUsers,
         getUser: getUser,
+        getUsers: getUsers,
         getTenantAdmins: getTenantAdmins,
         isUserLoaded: isUserLoaded,
         saveUser: saveUser,
@@ -566,6 +567,32 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUsers(userIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<userIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += userIds[i];
+        }
+        var url = '/api/users?userIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = userIds.indexOf(id1);
+                var index2 = userIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.integration;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
@@ -68,5 +69,15 @@ public interface IntegrationDao extends Dao<Integration> {
      * @return the list of integration objects
      */
     List<Integration> findByConverterId(UUID tenantId, UUID converterId);
+
+    /**
+     * Find integrations by tenantId and integration Ids.
+     *
+     * @param tenantId the tenantId
+     * @param integrationIds the integration Ids
+     * @return the list of integration objects
+     */
+    ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
+
 
 }

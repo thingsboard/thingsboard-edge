@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.blob;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
@@ -47,6 +49,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Component
@@ -110,5 +114,15 @@ public class CassandraBlobEntityInfoDao extends CassandraAbstractSearchTimeDao<B
                 pageLink);
         log.trace("Found blob entities by tenant [{}], customer [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
         return DaoUtil.convertDataList(entities);
+    }
+
+    @Override
+    public ListenableFuture<List<BlobEntityInfo>> findBlobEntitiesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> blobEntityIds) {
+        log.debug("Try to find blob entities by tenantId [{}] and blob entity Ids [{}]", tenantId, blobEntityIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(BLOB_ENTITY_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, blobEntityIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 }

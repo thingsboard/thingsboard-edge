@@ -40,6 +40,7 @@ function EntityGroupService($http, $q, utils) {
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
         getEntityGroups: getEntityGroups,
+        getEntityGroupsByIds: getEntityGroupsByIds,
         getEntityGroupsByOwnerId: getEntityGroupsByOwnerId,
         getEntityGroupsByPageLink: getEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
@@ -102,6 +103,32 @@ function EntityGroupService($http, $q, utils) {
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEntityGroupsByIds(entityGroupIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<entityGroupIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += entityGroupIds[i];
+        }
+        var url = '/api/entityGroups?entityGroupIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = entityGroupIds.indexOf(id1);
+                var index2 = entityGroupIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

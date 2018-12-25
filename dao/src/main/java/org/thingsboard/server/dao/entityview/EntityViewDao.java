@@ -112,6 +112,15 @@ public interface EntityViewDao extends Dao<EntityView> {
     ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(UUID tenantId, UUID entityId);
 
     /**
+     * Find entity views by tenantId and entity view Ids.
+     *
+     * @param tenantId the tenantId
+     * @param entityViewIds the entity view Ids
+     * @return the list of entity view objects
+     */
+    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> entityViewIds);
+
+    /**
      * Find tenants entity view types.
      *
      * @return the list of tenant entity view type objects

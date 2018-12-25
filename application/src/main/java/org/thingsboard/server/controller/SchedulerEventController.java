@@ -51,8 +51,12 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -175,4 +179,36 @@ public class SchedulerEventController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/schedulerEvents", params = {"schedulerEventIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<SchedulerEventInfo> getSchedulerEventsByIds(
+            @RequestParam("schedulerEventIds") String[] strSchedulerEventIds) throws ThingsboardException {
+        checkArrayParameter("schedulerEventIds", strSchedulerEventIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<SchedulerEventId> schedulerEventIds = new ArrayList<>();
+            for (String strSchedulerEventId : strSchedulerEventIds) {
+                schedulerEventIds.add(new SchedulerEventId(toUUID(strSchedulerEventId)));
+            }
+            List<SchedulerEventInfo> schedulerEvents = checkNotNull(schedulerEventService.findSchedulerEventInfoByIdsAsync(tenantId, schedulerEventIds).get());
+            return filterSchedulerEventsByReadPermission(schedulerEvents);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<SchedulerEventInfo> filterSchedulerEventsByReadPermission(List<SchedulerEventInfo> schedulerEvents) {
+        return schedulerEvents.stream().filter(schedulerEvent -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ, schedulerEvent.getId(), schedulerEvent);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
+    }
 }

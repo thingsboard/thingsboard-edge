@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.converter;
 
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
@@ -83,6 +85,16 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
         query.and(eq(CONVERTER_NAME_PROPERTY, converterName));
         ConverterEntity converterEntity = findOneByStatement(new TenantId(tenantId), query);
         return Optional.ofNullable(DaoUtil.getData(converterEntity));
+    }
+
+    @Override
+    public ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> converterIds) {
+        log.debug("Try to find converters by tenantId [{}] and converter Ids [{}]", tenantId, converterIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(CONVERTER_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, converterIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

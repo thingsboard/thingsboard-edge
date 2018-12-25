@@ -37,6 +37,7 @@ function IntegrationService($http, $q) {
 
     var service = {
         getIntegrations: getIntegrations,
+        getIntegrationsByIds: getIntegrationsByIds,
         getIntegration: getIntegration,
         deleteIntegration: deleteIntegration,
         saveIntegration: saveIntegration,
@@ -59,6 +60,32 @@ function IntegrationService($http, $q) {
         }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getIntegrationsByIds(integrationIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<integrationIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += integrationIds[i];
+        }
+        var url = '/api/integrations?integrationIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = integrationIds.indexOf(id1);
+                var index2 = integrationIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

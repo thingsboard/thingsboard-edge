@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.scheduler;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.Dao;
 
@@ -77,5 +78,14 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
      * @return the list of scheduler event objects
      */
     List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type);
+
+    /**
+     * Find scheduler events by tenantId and scheduler event Ids.
+     *
+     * @param tenantId the tenantId
+     * @param schedulerEventIds the scheduler event Ids
+     * @return the list of role objects
+     */
+    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> schedulerEventIds);
 
 }

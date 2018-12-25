@@ -38,6 +38,7 @@ function BlobEntityService($http, $q, $document, $window, customerService) {
     var service = {
         getBlobEntityInfo: getBlobEntityInfo,
         getBlobEntities: getBlobEntities,
+        getBlobEntitiesByIds: getBlobEntitiesByIds,
         deleteBlobEntity: deleteBlobEntity,
         downloadBlobEntity: downloadBlobEntity
     };
@@ -84,6 +85,32 @@ function BlobEntityService($http, $q, $document, $window, customerService) {
             } else {
                 deferred.resolve(response.data);
             }
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getBlobEntitiesByIds(blobEntityIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<blobEntityIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += blobEntityIds[i];
+        }
+        var url = '/api/blobEntities?blobEntityIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = blobEntityIds.indexOf(id1);
+                var index2 = blobEntityIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

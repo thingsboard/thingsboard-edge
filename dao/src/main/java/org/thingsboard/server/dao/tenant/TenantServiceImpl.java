@@ -76,7 +76,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
@@ -147,6 +149,13 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         log.trace("Executing TenantIdAsync [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         return tenantDao.findByIdAsync(callerId, tenantId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds) {
+        log.trace("Executing findTenantsByIdsAsync, callerId [{}], tenantIds [{}]", callerId, tenantIds);
+        validateIds(tenantIds, "Incorrect tenantIds " + tenantIds);
+        return tenantDao.findTenantsByIdsAsync(callerId.getId(), toUUIDs(tenantIds));
     }
 
     @Override

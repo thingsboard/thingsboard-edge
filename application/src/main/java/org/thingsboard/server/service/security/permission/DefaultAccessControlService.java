@@ -77,6 +77,15 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
+    public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException {
+        PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, false);
+        if (permissionChecker != null) {
+            return permissionChecker.hasPermission(user, resource, operation);
+        }
+        return false;
+    }
+
+    @Override
     public <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource,
                                                                              Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
@@ -100,6 +109,15 @@ public class DefaultAccessControlService implements AccessControlService {
         if (!permissionChecker.hasEntityGroupPermission(user, operation, entityGroup)) {
             permissionDenied();
         }
+    }
+
+    @Override
+    public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException {
+        PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), Resource.groupResourceFromGroupType(entityGroup.getType()), false);
+        if (permissionChecker != null) {
+            return permissionChecker.hasEntityGroupPermission(user, operation, entityGroup);
+        }
+        return false;
     }
 
     @Override

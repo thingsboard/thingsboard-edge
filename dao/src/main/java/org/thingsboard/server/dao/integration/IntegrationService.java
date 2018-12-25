@@ -49,6 +49,8 @@ public interface IntegrationService {
 
     ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId);
 
+    ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds);
+
     Optional<Integration> findIntegrationByRoutingKey(TenantId tenantId, String routingKey);
 
     List<Integration> findAllIntegrations(TenantId tenantId);

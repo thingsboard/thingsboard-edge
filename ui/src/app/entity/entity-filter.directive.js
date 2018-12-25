@@ -48,7 +48,15 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
         scope.types = types;
         scope.aliasFilterTypes = entityService.getAliasFilterTypesByEntityTypes(scope.allowedEntityTypes);
 
-        scope.entityGroupTypes = [types.entityType.device, types.entityType.asset, types.entityType.customer].filter((entityType) =>
+        var groupTypes = [ types.entityType.customer,
+            types.entityType.asset,
+            types.entityType.device,
+            types.entityType.user,
+            types.entityType.entityView,
+            types.entityType.dashboard
+        ];
+
+        scope.entityGroupTypes = groupTypes.filter((entityType) =>
             scope.allowedEntityTypes ? scope.allowedEntityTypes.indexOf(entityType) > -1 : true
         );
 

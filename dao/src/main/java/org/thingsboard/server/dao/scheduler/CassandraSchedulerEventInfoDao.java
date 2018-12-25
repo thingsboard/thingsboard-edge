@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.scheduler;
 
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
@@ -43,10 +45,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Component
+@Slf4j
 @NoSqlDao
 public class CassandraSchedulerEventInfoDao extends CassandraAbstractSearchTextDao<SchedulerEventInfoEntity, SchedulerEventInfo> implements SchedulerEventInfoDao {
 
@@ -94,5 +98,15 @@ public class CassandraSchedulerEventInfoDao extends CassandraAbstractSearchTextD
         query.and(eq(SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY, customerId));
         query.and(eq(SCHEDULER_EVENT_TYPE_PROPERTY, type));
         return DaoUtil.convertDataList(findListByStatement(new TenantId(tenantId), query));
+    }
+
+    @Override
+    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> schedulerEventIds) {
+        log.debug("Try to find scheduler events by tenantId [{}] and scheduler event Ids [{}]", tenantId, schedulerEventIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(SCHEDULER_EVENT_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, schedulerEventIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 }

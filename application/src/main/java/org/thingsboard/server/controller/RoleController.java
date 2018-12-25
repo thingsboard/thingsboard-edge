@@ -55,7 +55,10 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -160,6 +163,39 @@ public class RoleController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/roles", params = {"roleIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Role> getRolesByIds(
+            @RequestParam("roleIds") String[] strRoleIds) throws ThingsboardException {
+        checkArrayParameter("roleIds", strRoleIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<RoleId> roleIds = new ArrayList<>();
+            for (String strRoleId : strRoleIds) {
+                roleIds.add(new RoleId(toUUID(strRoleId)));
+            }
+            List<Role> roles = checkNotNull(roleService.findRolesByIdsAsync(tenantId, roleIds).get());
+            return filterRolesByReadPermission(roles);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Role> filterRolesByReadPermission(List<Role> roles) {
+        return roles.stream().filter(role -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ, role.getId(), role);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
 }

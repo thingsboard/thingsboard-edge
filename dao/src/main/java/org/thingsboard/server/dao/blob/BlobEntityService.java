@@ -39,6 +39,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import java.util.List;
+
 public interface BlobEntityService {
 
     BlobEntity findBlobEntityById(TenantId tenantId, BlobEntityId blobEntityId);
@@ -46,6 +48,8 @@ public interface BlobEntityService {
     BlobEntityInfo findBlobEntityInfoById(TenantId tenantId, BlobEntityId blobEntityId);
 
     ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(TenantId tenantId, BlobEntityId blobEntityId);
+
+    ListenableFuture<List<BlobEntityInfo>> findBlobEntityInfoByIdsAsync(TenantId tenantId, List<BlobEntityId> blobEntityIds);
 
     TimePageData<BlobEntityInfo> findBlobEntitiesByTenantId(TenantId tenantId, TimePageLink pageLink);
 

@@ -54,6 +54,11 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -199,5 +204,35 @@ public class CustomerController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customers", params = {"customerIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Customer> getCustomersByIds(
+            @RequestParam("customerIds") String[] strCustomerIds) throws ThingsboardException {
+        checkArrayParameter("customerIds", strCustomerIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<CustomerId> customerIds = new ArrayList<>();
+            for (String strCustomerId : strCustomerIds) {
+                customerIds.add(new CustomerId(toUUID(strCustomerId)));
+            }
+            List<Customer> customers = checkNotNull(customerService.findCustomersByTenantIdAndIdsAsync(tenantId, customerIds).get());
+            return filterCustomersByReadPermission(customers);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Customer> filterCustomersByReadPermission(List<Customer> customers) {
+        return customers.stream().filter(customer -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ, customer.getId(), customer);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 }

@@ -347,21 +347,14 @@ public class DeviceController extends BaseController {
             @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException {
         checkArrayParameter("deviceIds", strDeviceIds);
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            CustomerId customerId = user.getCustomerId();
             List<DeviceId> deviceIds = new ArrayList<>();
             for (String strDeviceId : strDeviceIds) {
                 deviceIds.add(new DeviceId(toUUID(strDeviceId)));
             }
-            ListenableFuture<List<Device>> devices;
-            if (customerId == null || customerId.isNullUid()) {
-                devices = deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds);
-            } else {
-                devices = deviceService.findDevicesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, deviceIds);
-            }
-            return checkNotNull(devices.get());
+            List<Device> devices = checkNotNull(deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds).get());
+            return filterDevicesByReadPermission(devices);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -377,18 +370,20 @@ public class DeviceController extends BaseController {
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
         try {
             List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(getCurrentUser().getTenantId(), query).get());
-            devices = devices.stream().filter(device -> {
-                try {
-                    accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ, device.getId(), device);
-                    return true;
-                } catch (ThingsboardException e) {
-                    return false;
-                }
-            }).collect(Collectors.toList());
-            return devices;
+            return filterDevicesByReadPermission(devices);
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private List<Device> filterDevicesByReadPermission(List<Device> devices) {
+        return devices.stream().filter(device -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.DEVICE, Operation.READ, device.getId(), device);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

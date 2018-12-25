@@ -79,9 +79,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import static org.thingsboard.server.dao.service.Validator.validateEntityId;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
 @Slf4j
@@ -142,6 +141,14 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         log.trace("Executing findCustomerByIdAsync [{}]", customerId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         return customerDao.findByIdAsync(tenantId, customerId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(TenantId tenantId, List<CustomerId> customerIds) {
+        log.trace("Executing findCustomersByTenantIdAndIdsAsync, tenantId [{}], customerIds [{}]", tenantId, customerIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(customerIds, "Incorrect customerIds " + customerIds);
+        return customerDao.findCustomersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(customerIds));
     }
 
     @Override

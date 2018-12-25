@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.ArrayList;
@@ -402,5 +403,35 @@ public class EntityGroupController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroups", params = {"entityGroupIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityGroup> getEntityGroupsByIds(
+            @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
+        checkArrayParameter("entityGroupIds", strEntityGroupIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<EntityGroupId> entityGroupIds = new ArrayList<>();
+            for (String strEntityGroupId : strEntityGroupIds) {
+                entityGroupIds.add(new EntityGroupId(toUUID(strEntityGroupId)));
+            }
+            List<EntityGroup> entityGroups = checkNotNull(entityGroupService.findEntityGroupByIdsAsync(tenantId, entityGroupIds).get());
+            return filterEntityGroupsByReadPermission(entityGroups);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<EntityGroup> filterEntityGroupsByReadPermission(List<EntityGroup> entityGroups) {
+        return entityGroups.stream().filter(entityGroup -> {
+            try {
+                return accessControlService.hasEntityGroupPermission(getCurrentUser(), Operation.READ, entityGroup);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 }

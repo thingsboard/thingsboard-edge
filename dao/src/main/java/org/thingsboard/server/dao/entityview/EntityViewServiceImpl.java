@@ -72,6 +72,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_VIEW_CACHE;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.*;
 
@@ -172,6 +173,14 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         validateString(type, "Incorrect type " + type);
         List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
         return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds) {
+        log.trace("Executing findEntityViewsByTenantIdAndIdsAsync, tenantId [{}], entityViewIds [{}]", tenantId, entityViewIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(entityViewIds, "Incorrect entityViewIds " + entityViewIds);
+        return entityViewDao.findEntityViewsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(entityViewIds));
     }
 
     @Override

@@ -52,4 +52,6 @@ public interface TenantRepository extends CrudRepository<TenantEntity, String> {
                                             @Param("textSearch") String textSearch,
                                             @Param("idOffset") String idOffset,
                                             Pageable pageable);
+
+    List<TenantEntity> findTenantsByIdIn(List<String> tenantIds);
 }

@@ -52,4 +52,6 @@ public interface ConverterRepository extends CrudRepository<ConverterEntity, Str
 
     ConverterEntity findByTenantIdAndName(String tenantId, String name);
 
+    List<ConverterEntity> findConvertersByTenantIdAndIdIn(String tenantId, List<String> converterIds);
+
 }

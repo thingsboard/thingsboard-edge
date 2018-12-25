@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.integration;
 
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
@@ -91,6 +93,16 @@ public class CassandraIntegrationDao extends CassandraAbstractSearchTextDao<Inte
         List<IntegrationEntity> integrationEntities = findListByStatement(new TenantId(tenantId), query);
         log.trace("Found integrations [{}] by converterId [{}]", integrationEntities, converterId);
         return DaoUtil.convertDataList(integrationEntities);
+    }
+
+    @Override
+    public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
+        log.debug("Try to find integrations by tenantId [{}] and integration Ids [{}]", tenantId, integrationIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(INTEGRATION_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, integrationIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

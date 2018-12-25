@@ -40,6 +40,7 @@ function RoleService($http, $q) {
         deleteRole: deleteRole,
         getRole: getRole,
         getRoles: getRoles,
+        getRolesByIds: getRolesByIds,
         saveRole: saveRole,
         findByQuery: findByQuery,
         getUserGroupPermissions: getUserGroupPermissions,
@@ -68,6 +69,32 @@ function RoleService($http, $q) {
         }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getRolesByIds(roleIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<roleIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += roleIds[i];
+        }
+        var url = '/api/roles?roleIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = roleIds.indexOf(id1);
+                var index2 = roleIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

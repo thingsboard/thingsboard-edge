@@ -52,4 +52,6 @@ public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEv
 
     List<SchedulerEventInfoEntity> findByTenantIdAndCustomerIdAndType(String tenantId, String customerId, String type);
 
+    List<SchedulerEventInfoEntity> findSchedulerEventsByTenantIdAndIdIn(String tenantId, List<String> schedulerEventIds);
+
 }

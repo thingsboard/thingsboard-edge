@@ -47,6 +47,8 @@ public interface SchedulerEventService {
 
     ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(TenantId tenantId, SchedulerEventId schedulerEventId);
 
+    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfoByIdsAsync(TenantId tenantId, List<SchedulerEventId> schedulerEventIds);
+
     List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId);
 
     List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type);

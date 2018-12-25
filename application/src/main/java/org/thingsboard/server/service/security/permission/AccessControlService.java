@@ -46,11 +46,15 @@ public interface AccessControlService {
 
     void checkPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException;
 
+    boolean hasPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException;
+
     <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException;
 
     <I extends EntityId, T extends TenantEntity> boolean hasPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException;
 
     void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
+
+    boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
 
     void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroupId entityGroupId, EntityType groupType) throws ThingsboardException;
 

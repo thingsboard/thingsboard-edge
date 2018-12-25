@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.tenant;
 
+import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Tenant;
@@ -42,11 +44,13 @@ import org.thingsboard.server.dao.util.NoSqlDao;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static org.thingsboard.server.dao.model.ModelConstants.TENANT_BY_REGION_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.TENANT_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.TENANT_REGION_PROPERTY;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -71,6 +75,15 @@ public class CassandraTenantDao extends CassandraAbstractSearchTextDao<TenantEnt
                 pageLink); 
         log.trace("Found tenants [{}] by region [{}] and pageLink [{}]", tenantEntities, region, pageLink);
         return DaoUtil.convertDataList(tenantEntities);
+    }
+
+    @Override
+    public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds) {
+        log.debug("Try to find tenants by tenant Ids [{}]", tenantIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(in(ID_PROPERTY, tenantIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

@@ -52,7 +52,9 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
@@ -91,6 +93,14 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         log.trace("Executing findConverterById [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
         return converterDao.findByIdAsync(tenantId, converterId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds) {
+        log.trace("Executing findConvertersByIdsAsync, tenantId [{}], converterIds [{}]", tenantId, converterIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(converterIds, "Incorrect converterIds " + converterIds);
+        return converterDao.findConvertersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(converterIds));
     }
 
     @Override

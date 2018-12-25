@@ -35,7 +35,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.thingsboard.server.dao.model.sql.BlobEntityInfoEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.List;
+
 @SqlDao
 public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoEntity, String>, JpaSpecificationExecutor<BlobEntityInfoEntity> {
+
+    List<BlobEntityInfoEntity> findBlobEntitiesByTenantIdAndIdIn(String tenantId, List<String> blobEntityIds);
 
 }

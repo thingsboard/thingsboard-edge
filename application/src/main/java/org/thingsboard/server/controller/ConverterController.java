@@ -63,10 +63,10 @@ import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
 import org.thingsboard.server.service.script.JsInvokeService;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -322,5 +322,38 @@ public class ConverterController extends BaseController {
 
     private void validateDownLinkObject(JsonNode src) throws Exception {
         AbstractDownlinkDataConverter.parseDownlinkData(src);
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Converter> getConvertersByIds(
+            @RequestParam("converterIds") String[] strConverterIds) throws ThingsboardException {
+        checkArrayParameter("converterIds", strConverterIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<ConverterId> converterIds = new ArrayList<>();
+            for (String strConverterId : strConverterIds) {
+                converterIds.add(new ConverterId(toUUID(strConverterId)));
+            }
+            List<Converter> converters = checkNotNull(converterService.findConvertersByIdsAsync(tenantId, converterIds).get());
+            return filterConvertersByReadPermission(converters);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Converter> filterConvertersByReadPermission(List<Converter> converters) {
+        return converters.stream().filter(converter -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ, converter.getId(), converter);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 }

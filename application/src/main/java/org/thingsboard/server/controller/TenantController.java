@@ -52,6 +52,11 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -129,6 +134,36 @@ public class TenantController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @RequestMapping(value = "/tenants", params = {"tenantIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Tenant> getTenantsByIds(
+            @RequestParam("tenantIds") String[] strTenantIds) throws ThingsboardException {
+        checkArrayParameter("tenantIds", strTenantIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<TenantId> tenantIds = new ArrayList<>();
+            for (String strTenantId : strTenantIds) {
+                tenantIds.add(new TenantId(toUUID(strTenantId)));
+            }
+            List<Tenant> tenants = checkNotNull(tenantService.findTenantsByIdsAsync(tenantId, tenantIds).get());
+            return filterTenantsByReadPermission(tenants);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Tenant> filterTenantsByReadPermission(List<Tenant> tenants) {
+        return tenants.stream().filter(tenant -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ, tenant.getId(), tenant);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
 }

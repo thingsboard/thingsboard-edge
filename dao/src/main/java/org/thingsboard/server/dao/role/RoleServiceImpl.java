@@ -57,10 +57,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validatePageLink;
-import static org.thingsboard.server.dao.service.Validator.validateString;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
 @Slf4j
@@ -96,6 +95,14 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
         return roleDao.findById(tenantId, roleId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Role>> findRolesByIdsAsync(TenantId tenantId, List<RoleId> roleIds) {
+        log.trace("Executing findRolesByIdsAsync, tenantId [{}], roleIds [{}]", tenantId, roleIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(roleIds, "Incorrect roleIds " + roleIds);
+        return roleDao.findRolesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(roleIds));
     }
 
     @Override

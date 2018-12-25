@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.converter;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
@@ -61,5 +62,14 @@ public interface ConverterDao extends Dao<Converter> {
      * @return the optional converter object
      */
     Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name);
+
+    /**
+     * Find converters by tenantId and converter Ids.
+     *
+     * @param tenantId the tenantId
+     * @param converterIds the converter Ids
+     * @return the list of converter objects
+     */
+    ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> converterIds);
 
 }

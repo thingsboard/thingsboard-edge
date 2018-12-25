@@ -353,6 +353,26 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityViews", params = {"entityViewIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityView> getEntityViewsByIds(
+            @RequestParam("entityViewIds") String[] strEntityViewIds) throws ThingsboardException {
+        checkArrayParameter("entityViewIds", strEntityViewIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<EntityViewId> entityViewIds = new ArrayList<>();
+            for (String strEntityViewId : strEntityViewIds) {
+                entityViewIds.add(new EntityViewId(toUUID(strEntityViewId)));
+            }
+            List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByTenantIdAndIdsAsync(tenantId, entityViewIds).get());
+            return filterEntityViewsByReadPermission(entityViews);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityViews", method = RequestMethod.POST)
     @ResponseBody
     public List<EntityView> findByQuery(@RequestBody EntityViewSearchQuery query) throws ThingsboardException {
@@ -362,18 +382,20 @@ public class EntityViewController extends BaseController {
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
         try {
             List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByQuery(getTenantId(), query).get());
-            entityViews = entityViews.stream().filter(entityView -> {
-                try {
-                    accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ, entityView.getId(), entityView);
-                    return true;
-                } catch (ThingsboardException e) {
-                    return false;
-                }
-            }).collect(Collectors.toList());
-            return entityViews;
+            return filterEntityViewsByReadPermission(entityViews);
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private List<EntityView> filterEntityViewsByReadPermission(List<EntityView> entityViews) {
+        return entityViews.stream().filter(entityView -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ, entityView.getId(), entityView);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

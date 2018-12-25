@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.scheduler;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
@@ -43,6 +44,8 @@ import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
 @SqlDao
@@ -91,5 +94,10 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<Scheduler
                         UUIDConverter.fromTimeUUID(tenantId),
                         UUIDConverter.fromTimeUUID(customerId),
                         type));
+    }
+
+    @Override
+    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> schedulerEventIds) {
+        return service.submit(() -> DaoUtil.convertDataList(schedulerEventInfoRepository.findSchedulerEventsByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(schedulerEventIds))));
     }
 }

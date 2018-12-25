@@ -50,6 +50,12 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -155,6 +161,40 @@ public class BlobEntityController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/blobEntities", params = {"blobEntityIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<BlobEntityInfo> getBlobEntitiesByIds(
+            @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException {
+        checkArrayParameter("blobEntityIds", strBlobEntityIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<BlobEntityId> blobEntityIds = new ArrayList<>();
+            for (String strBlobEntityId : strBlobEntityIds) {
+                blobEntityIds.add(new BlobEntityId(toUUID(strBlobEntityId)));
+            }
+            List<BlobEntityInfo> blobEntities = checkNotNull(blobEntityService.findBlobEntityInfoByIdsAsync(tenantId, blobEntityIds).get());
+            return filterBlobEntitiesByReadPermission(blobEntities);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<BlobEntityInfo> filterBlobEntitiesByReadPermission(List<BlobEntityInfo> blobEntities) {
+        return blobEntities.stream().filter(blobEntity -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY,
+                        Operation.READ, blobEntity.getId(), blobEntity);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
 }

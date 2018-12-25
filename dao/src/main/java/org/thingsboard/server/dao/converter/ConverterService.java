@@ -37,6 +37,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 
+import java.util.List;
+
 public interface ConverterService {
 
     Converter saveConverter(Converter converter);
@@ -44,6 +46,8 @@ public interface ConverterService {
     Converter findConverterById(TenantId tenantId, ConverterId converterId);
 
     ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
+
+    ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
 
     TextPageData<Converter> findTenantConverters(TenantId tenantId, TextPageLink pageLink);
 

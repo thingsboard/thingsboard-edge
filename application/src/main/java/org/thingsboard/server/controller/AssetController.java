@@ -297,21 +297,14 @@ public class AssetController extends BaseController {
             @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException {
         checkArrayParameter("assetIds", strAssetIds);
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            CustomerId customerId = user.getCustomerId();
             List<AssetId> assetIds = new ArrayList<>();
             for (String strAssetId : strAssetIds) {
                 assetIds.add(new AssetId(toUUID(strAssetId)));
             }
-            ListenableFuture<List<Asset>> assets;
-            if (customerId == null || customerId.isNullUid()) {
-                assets = assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds);
-            } else {
-                assets = assetService.findAssetsByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, assetIds);
-            }
-            return checkNotNull(assets.get());
+            List<Asset> assets = checkNotNull(assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds).get());
+            return filterAssetsByReadPermission(assets);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -327,18 +320,20 @@ public class AssetController extends BaseController {
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
         try {
             List<Asset> assets = checkNotNull(assetService.findAssetsByQuery(getTenantId(), query).get());
-            assets = assets.stream().filter(asset -> {
-                try {
-                    accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ, asset.getId(), asset);
-                    return true;
-                } catch (ThingsboardException e) {
-                    return false;
-                }
-            }).collect(Collectors.toList());
-            return assets;
+            return filterAssetsByReadPermission(assets);
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private List<Asset> filterAssetsByReadPermission(List<Asset> assets) {
+        return assets.stream().filter(asset -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.ASSET, Operation.READ, asset.getId(), asset);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

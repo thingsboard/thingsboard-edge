@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.blob;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
@@ -89,6 +91,11 @@ public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInf
     @Override
     public List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink) {
         return findBlobEntities(tenantId, customerId, type, pageLink);
+    }
+
+    @Override
+    public ListenableFuture<List<BlobEntityInfo>> findBlobEntitiesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> blobEntityIds) {
+        return service.submit(() -> DaoUtil.convertDataList(blobEntityInfoRepository.findBlobEntitiesByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(blobEntityIds))));
     }
 
     private List<BlobEntityInfo> findBlobEntities(UUID tenantId, UUID customerId, String type, TimePageLink pageLink) {

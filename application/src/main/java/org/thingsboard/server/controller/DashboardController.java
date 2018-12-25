@@ -593,4 +593,35 @@ public class DashboardController extends BaseController {
         }
 
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/dashboards", params = {"dashboardIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<DashboardInfo> getDashboardsByIds(
+            @RequestParam("dashboardIds") String[] strDashboardIds) throws ThingsboardException {
+        checkArrayParameter("dashboardIds", strDashboardIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<DashboardId> dashboardIds = new ArrayList<>();
+            for (String strDashboardId : strDashboardIds) {
+                dashboardIds.add(new DashboardId(toUUID(strDashboardId)));
+            }
+            List<DashboardInfo> dashboards = checkNotNull(dashboardService.findDashboardInfoByIdsAsync(tenantId, dashboardIds).get());
+            return filterDashboardsByReadPermission(dashboards);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<DashboardInfo> filterDashboardsByReadPermission(List<DashboardInfo> dashboards) {
+        return dashboards.stream().filter(dashboard -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ, dashboard.getId(), dashboard);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
+    }
+
 }

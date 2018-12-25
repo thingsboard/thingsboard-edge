@@ -91,4 +91,6 @@ public interface EntityViewRepository extends CrudRepository<EntityViewEntity, S
 
     @Query("SELECT DISTINCT ev.type FROM EntityViewEntity ev WHERE ev.tenantId = :tenantId")
     List<String> findTenantEntityViewTypes(@Param("tenantId") String tenantId);
+
+    List<EntityViewEntity> findEntityViewsByTenantIdAndIdIn(String tenantId, List<String> entityViewIds);
 }

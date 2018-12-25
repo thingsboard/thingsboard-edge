@@ -52,8 +52,10 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
@@ -94,6 +96,14 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
         log.trace("Executing findBlobEntityInfoByIdAsync [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
         return blobEntityInfoDao.findByIdAsync(tenantId, blobEntityId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<BlobEntityInfo>> findBlobEntityInfoByIdsAsync(TenantId tenantId, List<BlobEntityId> blobEntityIds) {
+        log.trace("Executing findBlobEntityInfoByIdsAsync, tenantId [{}], blobEntityIds [{}]", tenantId, blobEntityIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(blobEntityIds, "Incorrect blobEntityIds " + blobEntityIds);
+        return blobEntityInfoDao.findBlobEntitiesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(blobEntityIds));
     }
 
     @Override

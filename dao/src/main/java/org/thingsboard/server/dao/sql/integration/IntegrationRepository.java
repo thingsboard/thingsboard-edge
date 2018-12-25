@@ -55,4 +55,6 @@ public interface IntegrationRepository extends CrudRepository<IntegrationEntity,
 
     List<IntegrationEntity> findByConverterId(String converterId);
 
+    List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(String tenantId, List<String> integrationIds);
+
 }

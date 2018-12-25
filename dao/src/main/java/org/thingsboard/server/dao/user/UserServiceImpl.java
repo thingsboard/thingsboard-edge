@@ -59,6 +59,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
@@ -107,6 +108,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing findUserByIdAsync [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
         return userDao.findByIdAsync(tenantId, userId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<User>> findUsersByIdsAsync(TenantId tenantId, List<UserId> userIds) {
+        log.trace("Executing findUsersByIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(userIds, "Incorrect userIds " + userIds);
+        return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
     }
 
     @Override
