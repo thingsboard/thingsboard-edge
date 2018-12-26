@@ -31,16 +31,23 @@
 package org.thingsboard.server.service.telemetry.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.thingsboard.server.service.security.ValidationResultCode;
 
-public class InternalErrorException extends Exception implements ToErrorResponseEntity {
+public class InternalErrorException extends ValidationException implements ToErrorResponseEntity {
 
     public InternalErrorException(String message) {
         super(message);
     }
 
     @Override
+    public ValidationResultCode getValidationResultCode() {
+        return ValidationResultCode.INTERNAL_ERROR;
+    }
+
+    @Override
     public ResponseEntity<String> toErrorResponseEntity() {
-        return new ResponseEntity<>(getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(getMessage());
     }
 }

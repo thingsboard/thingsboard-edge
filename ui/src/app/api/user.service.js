@@ -63,6 +63,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         getAllCustomerUsers: getAllCustomerUsers,
         getUser: getUser,
         getUsers: getUsers,
+        getUserUsers: getUserUsers,
         getTenantAdmins: getTenantAdmins,
         isUserLoaded: isUserLoaded,
         saveUser: saveUser,
@@ -315,7 +316,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
             var fetchDashboardsPromise = dashboardService.getUserDashboards(null, null, pageLink, {ignoreLoading: true});
             fetchDashboardsPromise.then(
                 function success(result) {
-                    var dashboards = result;
+                    var dashboards = result.data;
                     for (var d=0;d<dashboards.length;d++) {
                         allowedDashboardIds.push(dashboards[d].id.id);
                     }
@@ -593,6 +594,26 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
                 return index1 - index2;
             });
             deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUserUsers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/user/users?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });

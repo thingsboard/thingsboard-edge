@@ -172,7 +172,8 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
             onCurrentGroupType: '&?',
             placeholderText: '@',
             notFoundText: '@',
-            requiredText: '@'
+            requiredText: '@',
+            ownerId: '=',
         }
     };
 }

@@ -61,6 +61,7 @@ import org.thingsboard.server.service.telemetry.cmd.TelemetryPluginCmd;
 import org.thingsboard.server.service.telemetry.cmd.TelemetryPluginCmdsWrapper;
 import org.thingsboard.server.service.telemetry.cmd.TimeseriesSubscriptionCmd;
 import org.thingsboard.server.service.telemetry.exception.UnauthorizedException;
+import org.thingsboard.server.service.telemetry.exception.ValidationException;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionErrorCode;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionState;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionUpdate;
@@ -533,11 +534,39 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 } else {
                     log.info(FAILED_TO_FETCH_DATA, e);
                 }
-                SubscriptionUpdate update = new SubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR,
-                        FAILED_TO_FETCH_DATA);
+
+                SubscriptionErrorCode errorCode = SubscriptionErrorCode.INTERNAL_ERROR;
+
+                if (e instanceof ValidationException) {
+                    ValidationResultCode validationResultCode = ((ValidationException)e).getValidationResultCode();
+                    errorCode = validationResultToSubscriptionErrorCode(validationResultCode);
+                }
+
+                String message = errorCode.getDefaultMsg();
+                message += ": " + e.getMessage();
+
+                SubscriptionUpdate update = new SubscriptionUpdate(cmd.getCmdId(), errorCode,
+                        message);
                 sendWsMsg(sessionRef, update);
             }
         };
+    }
+
+    private SubscriptionErrorCode validationResultToSubscriptionErrorCode(ValidationResultCode validationResultCode) {
+        switch (validationResultCode) {
+            case OK:
+                return SubscriptionErrorCode.NO_ERROR;
+            case UNAUTHORIZED:
+                return SubscriptionErrorCode.UNAUTHORIZED;
+            case ACCESS_DENIED:
+                return SubscriptionErrorCode.ACCESS_DENIED;
+            case ENTITY_NOT_FOUND:
+                return SubscriptionErrorCode.BAD_REQUEST;
+            case INTERNAL_ERROR:
+                return SubscriptionErrorCode.INTERNAL_ERROR;
+            default:
+                return SubscriptionErrorCode.INTERNAL_ERROR;
+        }
     }
 
     private void unsubscribe(TelemetryWebSocketSessionRef sessionRef, SubscriptionCmd cmd, String sessionId) {

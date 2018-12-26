@@ -151,15 +151,21 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
 
     function getUserDashboards(userId, operation, pageLink, config) {
         var deferred = $q.defer();
-        var url = '/api/userDashboards?limit=' + pageLink.limit;
+        var url = '/api/user/dashboards?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
         if (userId) {
             url += '&userId=' + userId;
         }
         if (operation && securityTypes.operation[operation]) {
             url += '&operation=' + securityTypes.operation[operation];
-        }
-        if (angular.isDefined(pageLink.textSearch)) {
-            url += '&textSearch=' + pageLink.textSearch;
         }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
@@ -174,6 +180,12 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         var url = '/api/entityGroup/' + groupId + '/dashboards?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
             url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
         }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);

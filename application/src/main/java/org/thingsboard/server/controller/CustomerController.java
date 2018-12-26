@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -201,6 +202,37 @@ public class CustomerController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/customers", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<Customer> getUserCustomers(
+            @RequestParam int limit,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            List<CustomerId> customerIds = new ArrayList<>();
+            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
+                customerIds.add(getCurrentUser().getCustomerId());
+            }
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.CUSTOMER, Operation.READ, entityId -> new CustomerId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    Collections.emptyList(),
+                    customerIds,
+                    pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

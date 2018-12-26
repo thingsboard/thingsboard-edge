@@ -28,101 +28,77 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import './dashboard-autocomplete.scss';
-
-import thingsboardApiDashboard from '../api/dashboard.service';
-import thingsboardApiUser from '../api/user.service';
+import './owner-autocomplete.scss';
 
 /* eslint-disable import/no-unresolved, import/default */
 
-import dashboardAutocompleteTemplate from './dashboard-autocomplete.tpl.html';
+import ownerAutocompleteTemplate from './owner-autocomplete.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-
-export default angular.module('thingsboard.directives.dashboardAutocomplete', [thingsboardApiDashboard, thingsboardApiUser])
-    .directive('tbDashboardAutocomplete', DashboardAutocomplete)
-    .name;
-
 /*@ngInject*/
-function DashboardAutocomplete($compile, $templateCache, $q, dashboardService) {
+export default function OwnerAutocompleteDirective($compile, $templateCache, $q, $filter, entityService, entityGroupService, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(dashboardAutocompleteTemplate);
+        var template = $templateCache.get(ownerAutocompleteTemplate);
         element.html(template);
 
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
-        scope.dashboard = null;
-        scope.dashboardSearchText = '';
+        scope.owner = null;
+        scope.ownerSearchText = '';
 
-        scope.fetchDashboards = function(searchText) {
+        scope.utils = utils;
+
+        scope.fetchOwners = function(searchText) {
             var pageLink = {limit: 50, textSearch: searchText};
-
             var deferred = $q.defer();
 
-            var promise = dashboardService.getUserDashboards(scope.userId, scope.operation, pageLink, {ignoreLoading: true});
+            var promise = entityGroupService.getOwners(pageLink, {ignoreLoading: true});
 
             promise.then(function success(result) {
                 deferred.resolve(result.data);
             }, function fail() {
                 deferred.reject();
             });
-
             return deferred.promise;
-        }
+        };
 
-        scope.dashboardSearchTextChanged = function() {
-        }
+        scope.ownerSearchTextChanged = function() {
+        };
 
         scope.updateView = function () {
             if (!scope.disabled) {
-                ngModelCtrl.$setViewValue(scope.dashboard ? scope.dashboard.id.id : null);
+                ngModelCtrl.$setViewValue(scope.owner ? scope.owner.id : null);
             }
-        }
+        };
 
         ngModelCtrl.$render = function () {
-            if (ngModelCtrl.$viewValue) {
-                dashboardService.getDashboardInfo(ngModelCtrl.$viewValue).then(
-                    function success(dashboard) {
-                        scope.dashboard = dashboard;
-                        startWatchers();
+            if (ngModelCtrl.$viewValue && ngModelCtrl.$viewValue.id) {
+                var ownerId = ngModelCtrl.$viewValue;
+                entityService.getEntity(ownerId.entityType, ownerId.id, {ignoreLoading: true}).then(
+                    function success(owner) {
+                        scope.owner = owner;
                     },
                     function fail() {
-                        scope.dashboard = null;
-                        scope.updateView();
-                        startWatchers();
+                        scope.owner = null;
                     }
                 );
             } else {
-                scope.dashboard = null;
-                startWatchers();
+                scope.owner = null;
             }
-        }
+        };
 
-        function startWatchers() {
-            scope.$watch('dashboard', function (newVal, prevVal) {
-                if (!angular.equals(newVal, prevVal)) {
-                    scope.updateView();
-                }
-            });
-            scope.$watch('disabled', function (newVal, prevVal) {
-                if (!angular.equals(newVal, prevVal)) {
-                    scope.updateView();
-                }
-            });
-        }
+        scope.$watch('owner', function (newOwner, prevOwner) {
+            if (!angular.equals(newOwner, prevOwner)) {
+                scope.updateView();
+            }
+        });
 
-        if (scope.selectFirstDashboard) {
-            var pageLink = {limit: 1, textSearch: ''};
-            scope.dashboardFetchFunction(pageLink).then(function success(result) {
-                var dashboards = result.data;
-                if (dashboards.length > 0) {
-                    scope.dashboard = dashboards[0];
-                    scope.updateView();
-                }
-            }, function fail() {
-            });
-        }
+        scope.$watch('disabled', function (newDisabled, prevDisabled) {
+            if (!angular.equals(newDisabled, prevDisabled)) {
+                scope.updateView();
+            }
+        });
 
         $compile(element.contents())(scope);
     }
@@ -132,12 +108,12 @@ function DashboardAutocomplete($compile, $templateCache, $q, dashboardService) {
         require: "^ngModel",
         link: linker,
         scope: {
-            userId: '=?',
-            operation: '=?',
             theForm: '=?',
             tbRequired: '=?',
             disabled:'=ngDisabled',
-            selectFirstDashboard: '='
+            placeholderText: '@',
+            notFoundText: '@',
+            requiredText: '@'
         }
     };
 }

@@ -28,32 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.permission;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
-import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.service.security.model.SecurityUser;
+package org.thingsboard.server.service.telemetry.exception;
 
-public interface AccessControlService {
+import org.thingsboard.server.service.security.ValidationResultCode;
 
-    void checkPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException;
+public abstract class ValidationException extends Exception {
 
-    boolean hasPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException;
+    public ValidationException(String message) {
+        super(message);
+    }
 
-    <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException;
-
-    <I extends EntityId, T extends TenantEntity> boolean hasPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException;
-
-    void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
-
-    boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
+    public abstract ValidationResultCode getValidationResultCode();
 
 }

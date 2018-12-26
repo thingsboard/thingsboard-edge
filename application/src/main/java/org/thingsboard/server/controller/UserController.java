@@ -353,6 +353,30 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/users", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<User> getUserUsers(
+            @RequestParam int limit,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.USER, Operation.READ, entityId -> new UserId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return userService.findUsersByIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    pageLink);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/users", params = {"userIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<User> getUsersByIds(

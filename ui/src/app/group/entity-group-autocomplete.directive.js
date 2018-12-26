@@ -144,6 +144,14 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
             }
         });
 
+        scope.$watch('ownerId', function (newOwnerId, prevOwnerId) {
+            if (!angular.equals(newOwnerId, prevOwnerId)) {
+                scope.allEntityGroups = null;
+                scope.entityGroup = null;
+                scope.updateView();
+            }
+        });
+
         scope.$watch('disabled', function (newDisabled, prevDisabled) {
             if (!angular.equals(newDisabled, prevDisabled)) {
                 scope.updateView();

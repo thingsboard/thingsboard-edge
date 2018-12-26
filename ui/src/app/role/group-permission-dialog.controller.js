@@ -29,18 +29,33 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function GroupPermissionDialogController($scope, $q, $element, $mdDialog, types, securityTypes, isAdd, groupPermission, roleService) {
+export default function GroupPermissionDialogController($scope, $q, $element, $mdDialog, types, securityTypes, isUserGroup, isAdd, groupPermission,
+                                                        roleService, userPermissionsService) {
 
     var vm = this;
 
     vm.types = types;
     vm.securityTypes = securityTypes;
     vm.isAdd = isAdd;
+    vm.isUserGroup = isUserGroup;
 
     vm.groupPermission = groupPermission;
-    if (vm.groupPermission.role && vm.groupPermission.role.type !== vm.securityTypes.roleType.group) {
-        vm.groupPermission.entityGroupId = null;
-        vm.groupPermission.entityGroupType = null;
+
+    if (vm.isUserGroup) {
+        if (vm.groupPermission.role && vm.groupPermission.role.type !== vm.securityTypes.roleType.group) {
+            vm.groupPermission.entityGroupId = null;
+            vm.groupPermission.entityGroupType = null;
+        }
+        if (isAdd) {
+            vm.groupPermission.entityGroupOwnerId = userPermissionsService.getUserOwnerId();
+        }
+    } else {
+        if (isAdd) {
+            vm.groupPermission.role = {
+                type: vm.securityTypes.roleType.group
+            };
+            vm.groupPermission.userGroupOwnerId = userPermissionsService.getUserOwnerId();
+        }
     }
 
     vm.save = save;

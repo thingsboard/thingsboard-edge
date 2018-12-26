@@ -116,7 +116,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
-        return toGroupPermissionInfoListAsync(tenantId, groupPermissions);
+        return toGroupPermissionInfoListAsync(tenantId, groupPermissions, true);
     }
 
     @Override
@@ -143,7 +143,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
-        return toGroupPermissionInfoListAsync(tenantId, groupPermissions);
+        return toGroupPermissionInfoListAsync(tenantId, groupPermissions, false);
     }
 
     @Override
@@ -194,28 +194,57 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         entityGroupPermissionRemover.removeEntities(tenantId, entityGroupId);
     }
 
-    private ListenableFuture<List<GroupPermissionInfo>> toGroupPermissionInfoListAsync(TenantId tenantId, List<GroupPermission> groupPermissions) {
+    private ListenableFuture<List<GroupPermissionInfo>> toGroupPermissionInfoListAsync(TenantId tenantId, List<GroupPermission> groupPermissions, boolean isUserGroup) {
         List<ListenableFuture<GroupPermissionInfo>> groupPermissionInfoFutureList = new ArrayList<>();
         groupPermissions.forEach(groupPermission -> {
-            groupPermissionInfoFutureList.add(fetchGroupPermissionInfoAsync(tenantId, groupPermission));
+            if (isUserGroup) {
+                groupPermissionInfoFutureList.add(fetchUserGroupPermissionInfoAsync(tenantId, groupPermission));
+            } else {
+                groupPermissionInfoFutureList.add(fetchEntityGroupPermissionInfoAsync(tenantId, groupPermission));
+            }
         });
         return Futures.successfulAsList(groupPermissionInfoFutureList);
     }
 
-    private ListenableFuture<GroupPermissionInfo> fetchGroupPermissionInfoAsync(TenantId tenantId, GroupPermission groupPermission) {
+    private ListenableFuture<GroupPermissionInfo> fetchUserGroupPermissionInfoAsync(TenantId tenantId, GroupPermission groupPermission) {
         ListenableFuture<Role> roleFuture = roleDao.findByIdAsync(tenantId, groupPermission.getRoleId().getId());
         return Futures.transformAsync(roleFuture, role -> {
             GroupPermissionInfo groupPermissionInfo = new GroupPermissionInfo(groupPermission);
             groupPermissionInfo.setRole(role);
             if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
-                ListenableFuture<String> entityGroupName = entityService.fetchEntityNameAsync(tenantId, groupPermission.getEntityGroupId());
-                return Futures.transform(entityGroupName, entityGroupName1 -> {
-                    groupPermissionInfo.setEntityGroupName(entityGroupName1);
-                    return groupPermissionInfo;
+                ListenableFuture<EntityGroup> entityGroup = entityGroupService.findEntityGroupByIdAsync(tenantId, groupPermission.getEntityGroupId());
+                return Futures.transformAsync(entityGroup, entityGroup1 -> {
+                    groupPermissionInfo.setEntityGroupName(entityGroup1.getName());
+                    EntityId ownerId = entityGroup1.getOwnerId();
+                    groupPermissionInfo.setEntityGroupOwnerId(ownerId);
+                    ListenableFuture <String> ownerName = entityService.fetchEntityNameAsync(tenantId, ownerId);
+                    return Futures.transform(ownerName, ownerName1 -> {
+                        groupPermissionInfo.setEntityGroupOwnerName(ownerName1);
+                        return groupPermissionInfo;
+                    });
                 });
             } else {
                 return Futures.immediateFuture(groupPermissionInfo);
             }
+        });
+    }
+
+    private ListenableFuture<GroupPermissionInfo> fetchEntityGroupPermissionInfoAsync(TenantId tenantId, GroupPermission groupPermission) {
+        ListenableFuture<Role> roleFuture = roleDao.findByIdAsync(tenantId, groupPermission.getRoleId().getId());
+        return Futures.transformAsync(roleFuture, role -> {
+            GroupPermissionInfo groupPermissionInfo = new GroupPermissionInfo(groupPermission);
+            groupPermissionInfo.setRole(role);
+            ListenableFuture<EntityGroup> userGroup = entityGroupService.findEntityGroupByIdAsync(tenantId, groupPermission.getUserGroupId());
+            return Futures.transformAsync(userGroup, userGroup1 -> {
+                groupPermissionInfo.setUserGroupName(userGroup1.getName());
+                EntityId ownerId = userGroup1.getOwnerId();
+                groupPermissionInfo.setUserGroupOwnerId(ownerId);
+                ListenableFuture <String> ownerName = entityService.fetchEntityNameAsync(tenantId, ownerId);
+                return Futures.transform(ownerName, ownerName1 -> {
+                    groupPermissionInfo.setUserGroupOwnerName(ownerName1);
+                    return groupPermissionInfo;
+                });
+            });
         });
     }
 

@@ -323,55 +323,18 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function getSingleCustomerByPageLinkPromise(pageLink, config) {
-        var user = userService.getCurrentUser();
-        var customerId = user.customerId;
-        var deferred = $q.defer();
-        customerService.getCustomer(customerId, config).then(
-            function success(customer) {
-                var customerName = customer.name;
-                var result = {
-                    data: [],
-                    nextPageLink: pageLink,
-                    hasNext: false
-                };
-                if (customerName.toLowerCase().startsWith(pageLink.textSearch)) {
-                    result.data.push(customer);
-                }
-                deferred.resolve(result);
-            },
-            function fail() {
-                deferred.reject();
-            }
-        );
-        return deferred.promise;
-    }
-
     function getEntitiesByPageLinkPromise(entityType, pageLink, config, subType) {
         var promise;
         var user = userService.getCurrentUser();
-        var customerId = user.customerId;
         switch (entityType) {
             case types.entityType.device:
-                if (user.authority === 'CUSTOMER_USER') {
-                    promise = deviceService.getCustomerDevices(customerId, pageLink, false, config, subType);
-                } else {
-                    promise = deviceService.getTenantDevices(pageLink, false, config, subType);
-                }
+                promise = deviceService.getUserDevices(pageLink, config, subType);
                 break;
             case types.entityType.asset:
-                if (user.authority === 'CUSTOMER_USER') {
-                    promise = assetService.getCustomerAssets(customerId, pageLink, false, config, subType);
-                } else {
-                    promise = assetService.getTenantAssets(pageLink, false, config, subType);
-                }
+                promise = assetService.getUserAssets(pageLink, config, subType);
                 break;
             case types.entityType.entityView:
-                if (user.authority === 'CUSTOMER_USER') {
-                    promise = entityViewService.getCustomerEntityViews(customerId, pageLink, false, config, subType);
-                } else {
-                    promise = entityViewService.getTenantEntityViews(pageLink, false, config, subType);
-                }
+                promise = entityViewService.getUserEntityViews(pageLink, config, subType);
                 break;
             case types.entityType.tenant:
                 if (user.authority === 'TENANT_ADMIN') {
@@ -381,34 +344,22 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
                 break;
             case types.entityType.customer:
-                if (user.authority === 'CUSTOMER_USER') {
-                    promise = getSingleCustomerByPageLinkPromise(pageLink, config);
-                } else {
-                    promise = customerService.getCustomers(pageLink, config);
-                }
+                promise = customerService.getUserCustomers(pageLink, config);
                 break;
             case types.entityType.rulechain:
                 promise = ruleChainService.getRuleChains(pageLink, config);
                 break;
             case types.entityType.dashboard:
-                if (user.authority === 'CUSTOMER_USER') {
-                    promise = dashboardService.getCustomerDashboards(customerId, pageLink, config);
-                } else {
-                    promise = dashboardService.getTenantDashboards(pageLink, config);
-                }
+                promise = dashboardService.getUserDashboards(null, null, pageLink, config);
                 break;
             case types.entityType.user:
-                if (user.authority === 'TENANT_ADMIN') {
-                    promise = userService.getAllCustomerUsers(pageLink, config);
-                } else {
-                    $log.error('Get User Entities is not implemented!');
-                }
+                promise = userService.getUserUsers(pageLink, config);
                 break;
             case types.entityType.alarm:
                 $log.error('Get Alarm Entities is not implemented!');
                 break;
             case types.entityType.entityGroup:
-                promise = entityGroupService.getEntityGroupsByPageLink(pageLink, subType, false, config);
+                promise = entityGroupService.getEntityGroupsByPageLink(pageLink, subType, true, config);
                 break;
             case types.entityType.converter:
                 promise = converterService.getConverters(pageLink, config);
@@ -435,7 +386,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         utils.filterSearchTextEntities(blobEntitiesData.data, 'name', pageLink, deferred);
                     },
                     () => {
-                        deferred.reject();
+                       deferred.reject();
                     }
                 );
                 promise = deferred.promise;
@@ -749,7 +700,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
 
             case types.aliasFilterType.entityGroupList.value:
-                getEntities(types.entityType.entityGroup, filter.entityGroupList, {ignoreLoading: true}).then(
+                getEntities(types.entityType.entityGroup, filter.entityGroupList, {ignoreLoading: true, ignoreErrors: true}).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -764,7 +715,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 );
                 break;
             case types.aliasFilterType.entityGroupName.value:
-                getEntitiesByNameFilter(types.entityType.entityGroup, filter.entityNameFilter, maxItems, {ignoreLoading: true}, filter.groupType).then(
+                getEntitiesByNameFilter(types.entityType.entityGroup, filter.entityGroupNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, filter.groupType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -781,7 +732,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.stateEntity.value:
                 result.stateEntity = true;
                 if (stateEntityId) {
-                    getEntity(stateEntityId.entityType, stateEntityId.id, {ignoreLoading: true}).then(
+                    getEntity(stateEntityId.entityType, stateEntityId.id, {ignoreLoading: true, ignoreErrors: true}).then(
                         function success(entity) {
                             result.entities = entitiesToEntitiesInfo([entity]);
                             deferred.resolve(result);
@@ -795,7 +746,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
                 break;
             case types.aliasFilterType.assetType.value:
-                getEntitiesByNameFilter(types.entityType.asset, filter.assetNameFilter, maxItems, {ignoreLoading: true}, filter.assetType).then(
+                getEntitiesByNameFilter(types.entityType.asset, filter.assetNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, filter.assetType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -810,7 +761,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 );
                 break;
             case types.aliasFilterType.deviceType.value:
-                getEntitiesByNameFilter(types.entityType.device, filter.deviceNameFilter, maxItems, {ignoreLoading: true}, filter.deviceType).then(
+                getEntitiesByNameFilter(types.entityType.device, filter.deviceNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, filter.deviceType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -825,22 +776,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 );
                 break;
             case types.aliasFilterType.entityViewType.value:
-                getEntitiesByNameFilter(types.entityType.entityView, filter.entityViewNameFilter, maxItems, {ignoreLoading: true}, filter.entityViewType).then(
-                    function success(entities) {
-                        if (entities && entities.length || !failOnEmpty) {
-                            result.entities = entitiesToEntitiesInfo(entities);
-                            deferred.resolve(result);
-                        } else {
-                            deferred.reject();
-                        }
-                    },
-                    function fail() {
-                        deferred.reject();
-                    }
-                );
-                break;
-            case types.aliasFilterType.roleType.value:
-                getEntitiesByNameFilter(types.entityType.role, filter.roleNameFilter, maxItems, {ignoreLoading: true}, filter.roleType).then(
+                getEntitiesByNameFilter(types.entityType.entityView, filter.entityViewNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, filter.entityViewType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -876,7 +812,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         filters: filter.filters
                     };
                     searchQuery.parameters.maxLevel = filter.maxLevel && filter.maxLevel > 0 ? filter.maxLevel : -1;
-                    entityRelationService.findInfoByQuery(searchQuery, {ignoreLoading: true}).then(
+                    entityRelationService.findInfoByQuery(searchQuery, {ignoreLoading: true, ignoreErrors: true}).then(
                         function success(allRelations) {
                             if (allRelations && allRelations.length || !failOnEmpty) {
                                 if (angular.isDefined(maxItems) && maxItems > 0 && allRelations) {
@@ -929,13 +865,13 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     var findByQueryPromise;
                     if (filter.type == types.aliasFilterType.assetSearchQuery.value) {
                         searchQuery.assetTypes = filter.assetTypes;
-                        findByQueryPromise = assetService.findByQuery(searchQuery, false, {ignoreLoading: true});
+                        findByQueryPromise = assetService.findByQuery(searchQuery, false, {ignoreLoading: true, ignoreErrors: true});
                     } else if (filter.type == types.aliasFilterType.deviceSearchQuery.value) {
                         searchQuery.deviceTypes = filter.deviceTypes;
-                        findByQueryPromise = deviceService.findByQuery(searchQuery, false, {ignoreLoading: true});
+                        findByQueryPromise = deviceService.findByQuery(searchQuery, false, {ignoreLoading: true, ignoreErrors: true});
                     } else if (filter.type == types.aliasFilterType.entityViewSearchQuery.value) {
                         searchQuery.entityViewTypes = filter.entityViewTypes;
-                        findByQueryPromise = entityViewService.findByQuery(searchQuery, false, {ignoreLoading: true});
+                        findByQueryPromise = entityViewService.findByQuery(searchQuery, false, {ignoreLoading: true, ignoreErrors: true});
                     }
                     findByQueryPromise.then(
                         function success(entities) {
@@ -1235,7 +1171,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         index++;
                         processSubscriptionsInfo(index, subscriptionsInfo, datasources, deferred);
                     } else {
-                        getEntity(subscriptionInfo.entityType, subscriptionInfo.entityId, {ignoreLoading: true}).then(
+                        getEntity(subscriptionInfo.entityType, subscriptionInfo.entityId, {ignoreLoading: true, ignoreErrors: true}).then(
                             function success(entity) {
                                 createDatasourceFromSubscription(subscriptionInfo, datasources, entity);
                                 index++;
@@ -1251,11 +1187,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     || subscriptionInfo.entityIds) {
                     var promise;
                     if (subscriptionInfo.entityName) {
-                        promise = getEntitiesByNameFilter(subscriptionInfo.entityType, subscriptionInfo.entityName, 1, {ignoreLoading: true});
+                        promise = getEntitiesByNameFilter(subscriptionInfo.entityType, subscriptionInfo.entityName, 1, {ignoreLoading: true, ignoreErrors: true});
                     } else if (subscriptionInfo.entityNamePrefix) {
-                        promise = getEntitiesByNameFilter(subscriptionInfo.entityType, subscriptionInfo.entityNamePrefix, 100, {ignoreLoading: true});
+                        promise = getEntitiesByNameFilter(subscriptionInfo.entityType, subscriptionInfo.entityNamePrefix, 100, {ignoreLoading: true, ignoreErrors: true});
                     } else if (subscriptionInfo.entityIds) {
-                        promise = getEntities(subscriptionInfo.entityType, subscriptionInfo.entityIds, {ignoreLoading: true});
+                        promise = getEntities(subscriptionInfo.entityType, subscriptionInfo.entityIds, {ignoreLoading: true, ignoreErrors: true});
                     }
                     promise.then(
                         function success(entities) {

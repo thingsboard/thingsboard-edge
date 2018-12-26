@@ -40,6 +40,8 @@ import EntityGroupColumn from './entity-group-column.directive';
 import EntityGroupColumns from './entity-group-columns.directive';
 import EntityDetailsSidenav from './entity-details-sidenav.directive';
 import Entity from './entity.directive';
+import OwnerAutocompleteDirective from './owner-autocomplete.directive';
+
 
 export default angular.module('thingsboard.entityGroup', [])
     .config(EntityGroupRoutes)
@@ -55,4 +57,5 @@ export default angular.module('thingsboard.entityGroup', [])
     .directive('tbEntityGroupColumns', EntityGroupColumns)
     .directive('tbEntityDetailsSidenav', EntityDetailsSidenav)
     .directive('tbEntity', Entity)
+    .directive('tbOwnerAutocomplete', OwnerAutocompleteDirective)
     .name;

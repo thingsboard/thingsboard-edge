@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.telemetry.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 public class InvalidParametersException extends Exception implements ToErrorResponseEntity {
@@ -41,6 +42,6 @@ public class InvalidParametersException extends Exception implements ToErrorResp
 
     @Override
     public ResponseEntity<String> toErrorResponseEntity() {
-        return new ResponseEntity<>(getMessage(), HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.TEXT_PLAIN).body(getMessage());
     }
 }

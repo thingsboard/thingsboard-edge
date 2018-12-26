@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.CustomerController.CUSTOMER_ID;
@@ -347,6 +348,36 @@ public class EntityViewController extends BaseController {
             } else {
                 return checkNotNull(entityViewService.findEntityViewByTenantId(tenantId, pageLink));
             }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<EntityView> getUserEntityViews(
+            @RequestParam int limit,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            List<Predicate<EntityView>> filters = new ArrayList<>();
+            if (type != null && type.trim().length() > 0) {
+                filters.add((entityView -> entityView.getType().equals(type)));
+            }
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, entityId -> new EntityViewId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return entityViewService.findEntityViewsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    filters,
+                    pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

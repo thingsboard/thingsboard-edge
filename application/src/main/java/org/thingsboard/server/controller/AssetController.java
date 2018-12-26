@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @RestController
@@ -285,6 +286,36 @@ public class AssetController extends BaseController {
             } else {
                 return checkNotNull(assetService.findAssetsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/assets", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<Asset> getUserAssets(
+            @RequestParam int limit,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            List<Predicate<Asset>> filters = new ArrayList<>();
+            if (type != null && type.trim().length() > 0) {
+                filters.add((asset -> asset.getType().equals(type)));
+            }
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ASSET, Operation.READ, entityId -> new AssetId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return assetService.findAssetsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    filters,
+                    pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

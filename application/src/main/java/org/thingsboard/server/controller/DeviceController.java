@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @RestController
@@ -335,6 +336,36 @@ public class DeviceController extends BaseController {
             } else {
                 return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/devices", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<Device> getUserDevices(
+            @RequestParam int limit,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            List<Predicate<Device>> filters = new ArrayList<>();
+            if (type != null && type.trim().length() > 0) {
+                filters.add((device -> device.getType().equals(type)));
+            }
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.DEVICE, Operation.READ, entityId -> new DeviceId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return deviceService.findDevicesByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    filters,
+                    pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

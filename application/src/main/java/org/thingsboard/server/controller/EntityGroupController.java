@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -51,16 +52,20 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
@@ -420,6 +425,41 @@ public class EntityGroupController extends BaseController {
             }
             List<EntityGroup> entityGroups = checkNotNull(entityGroupService.findEntityGroupByIdsAsync(tenantId, entityGroupIds).get());
             return filterEntityGroupsByReadPermission(entityGroups);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/owners", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public TextPageData<ContactBased<?>> getOwners(
+            @RequestParam int limit,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+        try {
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            List<ContactBased<?>> owners = new ArrayList<>();
+            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.TENANT, Operation.READ);
+                owners.add(tenantService.findTenantById(getCurrentUser().getTenantId()));
+            }
+            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
+            Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
+            if (!ownerIds.isEmpty()) {
+                List<CustomerId> customerIds = new ArrayList<>();
+                for (EntityId ownerId : ownerIds) {
+                    customerIds.add(new CustomerId(ownerId.getId()));
+                }
+                owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get());
+            }
+            owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
+            if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {
+                int toRemove = owners.size() - pageLink.getLimit();
+                owners.subList(owners.size() - toRemove, owners.size()).clear();
+            }
+            return new TextPageData<>(owners, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

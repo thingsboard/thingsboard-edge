@@ -75,6 +75,12 @@
                     group-type="{{vm.groupType}}">
             </tb-group-permissions>
         </md-tab>
+        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.permissions' | translate }}" ng-if="vm.groupType !== vm.types.entityType.user">
+            <tb-group-permissions
+                    entity-id="vm.grid.operatingItem().id.id"
+                    group-type="{{vm.groupType}}">
+            </tb-group-permissions>
+        </md-tab>
         <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode  && (vm.grid.operatingItem() | hasEntityGroupPermission:'readAttributes')" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
             <tb-attribute-table flex
                                 readonly="!(vm.grid.operatingItem() | hasEntityGroupPermission:'writeAttributes')"

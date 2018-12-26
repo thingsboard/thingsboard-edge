@@ -50,7 +50,7 @@
                         <section layout="column">
                             <label translate class="tb-title no-padding">role.role</label>
                             <section layout="row">
-                                <md-input-container class="md-block" style="width: 200px;">
+                                <md-input-container ng-if="vm.isUserGroup" class="md-block" style="width: 200px;">
                                     <label translate>role.role-type</label>
                                     <md-select ng-required="true" name="roleType" ng-model="vm.groupPermission.role.type" ng-disabled="$root.loading">
                                         <md-option ng-repeat="type in vm.securityTypes.roleType" ng-value="type">
@@ -70,17 +70,51 @@
                                 </tb-entity-autocomplete>
                             </section>
                         </section>
-                        <section layout="column" ng-if="vm.groupPermission.role.type === vm.securityTypes.roleType.group">
-                            <label translate class="tb-title no-padding">role.entity-group</label>
-                            <tb-entity-group-select
-                                    ng-model="vm.groupPermission.entityGroupId"
-                                    exclude-group-types="[vm.types.entityType.user]"
-                                    the-form="theForm"
-                                    tb-required="true"
-                                    placeholder-text="entity-group.select-entity-group"
-                                    not-found-text="entity-group.no-entity-groups-matching"
-                                    required-text="entity-group.target-entity-group-required">
-                            </tb-entity-group-select>
+                        <section layout="column" ng-if="vm.isUserGroup && vm.groupPermission.role.type === vm.securityTypes.roleType.group">
+                            <label translate class="tb-title no-padding">group-permission.entity-group</label>
+                            <section layout="row">
+                                <tb-owner-autocomplete
+                                        ng-model="vm.groupPermission.entityGroupOwnerId"
+                                        the-form="theForm"
+                                        tb-required="true"
+                                        placeholder-text="group-permission.group-owner"
+                                        not-found-text="group-permission.no-owners-matching"
+                                        required-text="group-permission.target-owner-required">
+                                </tb-owner-autocomplete>
+                                <tb-entity-group-select flex ng-show="vm.groupPermission.entityGroupOwnerId"
+                                        owner-id="vm.groupPermission.entityGroupOwnerId"
+                                        ng-model="vm.groupPermission.entityGroupId"
+                                        exclude-group-types="[vm.types.entityType.user]"
+                                        the-form="theForm"
+                                        tb-required="true"
+                                        placeholder-text="entity-group.select-entity-group"
+                                        not-found-text="entity-group.no-entity-groups-matching"
+                                        required-text="entity-group.target-entity-group-required">
+                                </tb-entity-group-select>
+                            </section>
+                        </section>
+                        <section layout="column" ng-if="!vm.isUserGroup">
+                            <label translate class="tb-title no-padding">group-permission.user-group</label>
+                            <section layout="row">
+                                <tb-owner-autocomplete
+                                        ng-model="vm.groupPermission.userGroupOwnerId"
+                                        the-form="theForm"
+                                        tb-required="true"
+                                        placeholder-text="group-permission.user-group-owner"
+                                        not-found-text="group-permission.no-owners-matching"
+                                        required-text="group-permission.target-user-group-owner-required">
+                                </tb-owner-autocomplete>
+                                <tb-entity-group-select flex ng-show="vm.groupPermission.userGroupOwnerId"
+                                                        owner-id="vm.groupPermission.userGroupOwnerId"
+                                                        ng-model="vm.groupPermission.userGroupId"
+                                                        allowed-group-types="[vm.types.entityType.user]"
+                                                        the-form="theForm"
+                                                        tb-required="true"
+                                                        placeholder-text="entity-group.select-user-group"
+                                                        not-found-text="entity-group.no-user-groups-matching"
+                                                        required-text="entity-group.target-user-group-required">
+                                </tb-entity-group-select>
+                            </section>
                         </section>
                     </fieldset>
                 </md-content>

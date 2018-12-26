@@ -1017,6 +1017,9 @@
         "select-entity-group": "Select entity group",
         "no-entity-groups-matching": "No entity groups matching '{{entityGroup}}' were found.",
         "target-entity-group-required": "Target entity group is required.",
+        "select-user-group": "Select user group",
+        "no-user-groups-matching": "No user groups matching '{{entityGroup}}' were found.",
+        "target-user-group-required": "Target user group is required.",
         "remove-from-group": "Remove from group",
         "group-table-title": "Group table title",
         "enable-search": "Enable entities search",
@@ -1042,7 +1045,8 @@
         "entity-group-list-empty": "No entity groups selected.",
         "name-starts-with": "Entity group name starts with",
         "entity-group-name-filter-required": "Entity group name filter is required.",
-        "roles": "Roles"
+        "roles": "Roles",
+        "permissions": "Permissions"
     },
     "entity-view": {
         "entity-view": "Entity View",
@@ -1786,7 +1790,6 @@
         "copyId": "Copy role Id",
         "idCopiedMessage": "Role Id has been copied to clipboard",
         "permissions": "Permissions",
-        "entity-group": "Entity group",
         "role-required": "Role required",
         "display-type": {
             "GENERIC": "Generic",
@@ -1794,10 +1797,15 @@
         }
     },
     "group-permission": {
+        "user-group-roles": "User group roles",
+        "entity-group-permissions": "Entity group permissions",
         "role-type": "Role type",
         "role-name": "Role name",
         "group-type": "Group type",
         "group-name": "Group name",
+        "group-owner": "Group owner",
+        "user-group-name": "User group name",
+        "user-group-owner": "User group owner",
         "edit": "Edit permissions",
         "delete": "Delete permissions",
         "selected-group-permissions": "{ count, plural, 1 {1 group permission} other {# group permissions} } selected",
@@ -1808,7 +1816,12 @@
         "delete-group-permissions-text": "Be careful, after the confirmation all selected group permissions will be removed and corresponding users will lost access to specified resources.",
         "delete-group-permissions": "Delete group permissions",
         "add-group-permission": "Add group permission",
-        "edit-group-permission": "Edit group permission"
+        "edit-group-permission": "Edit group permission",
+        "entity-group": "Entity group",
+        "user-group": "User group",
+        "no-owners-matching": "No owners matching '{{owner}}' were found.",
+        "target-owner-required": "Entity group owner is required.",
+        "target-user-group-owner-required": "User group owner is required."
     },
     "permission": {
         "permissions-required": "At least one permission entry should be specified.",

@@ -33,28 +33,28 @@
 <md-autocomplete ng-required="tbRequired"
                  ng-disabled="disabled"
                  md-clear-button="!disabled"
-                 md-input-name="entityGroup"
-                 ng-model="entityGroup"
+                 md-input-name="owner"
+                 ng-model="owner"
                  md-no-cache="true"
-                 md-selected-item="entityGroup"
-                 md-search-text="entityGroupSearchText"
-                 md-search-text-change="entityGroupSearchTextChanged()"
-                 md-items="item in fetchEntityGroups(entityGroupSearchText)"
-                 md-item-text="utils.customTranslation(item.name, item.name)"
+                 md-selected-item="owner"
+                 md-search-text="ownerSearchText"
+                 md-search-text-change="ownerSearchTextChanged()"
+                 md-items="item in fetchOwners(ownerSearchText)"
+                 md-item-text="item.title"
                  md-min-length="0"
                  md-floating-label="{{ placeholderText | translate }}"
-                 md-menu-class="tb-entity-group-autocomplete">
+                 md-menu-class="tb-owner-autocomplete">
     <md-item-template>
-        <div class="tb-entity-group-item">
-            <span md-highlight-text="entityGroupSearchText" md-highlight-flags="^i">{{utils.customTranslation(item.name, item.name)}}</span>
+        <div class="tb-owner-item">
+            <span md-highlight-text="ownerSearchText" md-highlight-flags="^i">{{item.title}}</span>
         </div>
     </md-item-template>
     <md-not-found>
         <div class="tb-not-found">
-            <span>{{ notFoundText | translate:{entityGroup: entityGroupSearchText} }}</span>
+            <span>{{ notFoundText | translate:{owner: ownerSearchText} }}</span>
         </div>
     </md-not-found>
-    <div ng-messages="theForm.entityGroup.$error">
+    <div ng-messages="theForm.owner.$error">
         <div ng-message="required">{{ requiredText | translate }}</div>
     </div>
 </md-autocomplete>

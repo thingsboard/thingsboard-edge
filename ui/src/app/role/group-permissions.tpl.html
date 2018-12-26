@@ -35,6 +35,8 @@
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedGroupPermissions.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
+                <span>{{(vm.isUserGroup ? 'group-permission.user-group-roles' : 'group-permission.entity-group-permissions') | translate}}</span>
+                <span flex></span>
                 <md-button ng-if="vm.addEnabled" class="md-icon-button" ng-click="vm.addGroupPermission($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
@@ -94,10 +96,13 @@
             <table md-table md-row-select="vm.deleteEnabled" multiple="" ng-model="vm.selectedGroupPermissions" md-progress="vm.groupPermissionsPromise">
                 <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
-                    <th md-column><span translate>group-permission.role-name</span></th>
-                    <th md-column><span translate>group-permission.role-type</span></th>
-                    <th md-column><span translate>group-permission.group-type</span></th>
-                    <th md-column><span translate>group-permission.group-name</span></th>
+                    <th md-column md-order-by="roleName"><span translate>group-permission.role-name</span></th>
+                    <th ng-if="vm.isUserGroup" md-column md-order-by="roleTypeName"><span translate>group-permission.role-type</span></th>
+                    <th ng-if="vm.isUserGroup" md-column md-order-by="entityGroupTypeName"><span translate>group-permission.group-type</span></th>
+                    <th ng-if="vm.isUserGroup" md-column md-order-by="entityGroupName"><span translate>group-permission.group-name</span></th>
+                    <th ng-if="vm.isUserGroup" md-column md-order-by="entityGroupOwnerFullName"><span translate>group-permission.group-owner</span></th>
+                    <th ng-if="!vm.isUserGroup" md-column md-order-by="userGroupName"><span translate>group-permission.user-group-name</span></th>
+                    <th ng-if="!vm.isUserGroup" md-column md-order-by="userGroupOwnerFullName"><span translate>group-permission.user-group-owner</span></th>
                 </tr>
                 </thead>
                 <tbody md-body>
@@ -114,9 +119,12 @@
                             </md-tooltip>
                         </md-button>
                     </td>
-                    <td md-cell>{{groupPermission.roleTypeName}}</td>
-                    <td md-cell>{{groupPermission.entityGroupTypeName}}</td>
-                    <td md-cell>{{groupPermission.entityGroupName}}</td>
+                    <td ng-if="vm.isUserGroup" md-cell>{{groupPermission.roleTypeName}}</td>
+                    <td ng-if="vm.isUserGroup" md-cell>{{groupPermission.entityGroupTypeName}}</td>
+                    <td ng-if="vm.isUserGroup" md-cell>{{groupPermission.entityGroupName}}</td>
+                    <td ng-if="vm.isUserGroup" md-cell>{{groupPermission.entityGroupOwnerFullName}}</td>
+                    <td ng-if="!vm.isUserGroup" md-cell>{{groupPermission.userGroupName}}</td>
+                    <td ng-if="!vm.isUserGroup" md-cell>{{groupPermission.userGroupOwnerFullName}}</td>
                     <td md-cell class="tb-action-cell">
                         <md-button ng-if="!groupPermission.readOnly && vm.editEnabled"
                                    class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"

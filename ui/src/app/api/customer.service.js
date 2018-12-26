@@ -38,6 +38,7 @@ function CustomerService($http, $q, types) {
     var service = {
         getCustomers: getCustomers,
         getCustomersByIds: getCustomersByIds,
+        getUserCustomers: getUserCustomers,
         getCustomer: getCustomer,
         getShortCustomerInfo: getShortCustomerInfo,
         applyAssignedCustomersInfo: applyAssignedCustomersInfo,
@@ -94,6 +95,25 @@ function CustomerService($http, $q, types) {
         return deferred.promise;
     }
 
+    function getUserCustomers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/user/customers?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
     function getCustomer(customerId, config) {
         var deferred = $q.defer();

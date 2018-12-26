@@ -60,10 +60,10 @@ import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
+import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.*;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.role.Role;
@@ -109,8 +109,6 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -118,10 +116,11 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -892,6 +891,149 @@ public abstract class BaseController {
             return userPermissionsService.getMergedPermissions(user);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
+        }
+    }
+
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+    getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
+                               Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
+                               TextPageLink pageLink) throws Exception {
+
+        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
+                Collections.emptyList(), Collections.emptyList(), pageLink);
+    }
+
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+    getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
+                               Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
+                               List<Predicate<E>> entityFilters, TextPageLink pageLink) throws Exception {
+
+        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
+                entityFilters, Collections.emptyList(), pageLink);
+    }
+
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+        getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
+                                   Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
+                                   List<Predicate<E>> entityFilters, List<I> additionalEntityIds, TextPageLink pageLink) throws Exception {
+
+        List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
+        entityIds.addAll(additionalEntityIds);
+
+        return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
+    }
+
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
+            return loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
+    }
+
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, List<Predicate<E>> entityFilters, TextPageLink pageLink) {
+        List<E> entities;
+        if (entityIds.isEmpty()) {
+            entities = Collections.emptyList();
+        } else {
+            entities = toEntitiesFunction.apply(entityIds);
+        }
+        Stream<E> entitiesStream = entities.stream().sorted(entityComparator);
+        for (Predicate<E> entityFilter : entityFilters) {
+            entitiesStream = entitiesStream.filter(entityFilter);
+        }
+        entities = entitiesStream.filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
+        if (pageLink.getLimit() > 0 && entities.size() > pageLink.getLimit()) {
+            int toRemove = entities.size() - pageLink.getLimit();
+            entities.subList(entities.size() - toRemove, entities.size()).clear();
+        }
+        return new TextPageData<>(entities, pageLink);
+    }
+
+    protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
+        int result = e1.getSearchText().compareToIgnoreCase(e2.getSearchText());
+        if (result == 0) {
+            result = (int)(e2.getCreatedTime() - e1.getCreatedTime());
+        }
+        return result;
+    };
+
+    protected class EntityPageLinkFilter implements Predicate<SearchTextBased<? extends UUIDBased>> {
+
+        private final String textSearch;
+        private final String textOffset;
+        private final long createdTimeOffset;
+
+        EntityPageLinkFilter(TextPageLink pageLink) {
+            if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
+                this.textSearch = pageLink.getTextSearch().toLowerCase();
+            } else {
+                this.textSearch = "";
+            }
+            if (!StringUtils.isEmpty(pageLink.getTextOffset())) {
+                this.textOffset = pageLink.getTextOffset();
+            } else {
+                this.textOffset = "";
+            }
+            if (pageLink.getIdOffset() != null) {
+                createdTimeOffset = UUIDs.unixTimestamp(pageLink.getIdOffset());
+            } else {
+                createdTimeOffset = Long.MAX_VALUE;
+            }
+        }
+
+        @Override
+        public boolean test(SearchTextBased<? extends UUIDBased> searchTextBased) {
+            if (textOffset.length() > 0) {
+                int result = searchTextBased.getSearchText().compareToIgnoreCase(textOffset);
+                if (result == 0 && searchTextBased.getCreatedTime() < createdTimeOffset) {
+                    return true;
+                } else if (result > 0 && searchTextBased.getSearchText().toLowerCase().startsWith(textSearch)) {
+                    return true;
+                }
+            } else if (textSearch.length() > 0) {
+                return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
+            } else {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    protected <I extends EntityId> List<I> getEntityIdsFromAllowedGroups(SecurityUser securityUser,
+                                                                         EntityType entityType,
+                                                                         Operation operation,
+                                                                         Function<EntityId, I> toIdFunction) throws Exception {
+        MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
+        if (operation == Operation.READ) {
+            groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
+        }
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        if (securityUser.getUserPermissions().hasGenericPermission(resource, operation) ||
+                (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
+
+            Set<EntityId> entityIds = new HashSet<>();
+            Set<EntityGroupId> groupIds = new HashSet<>();
+            if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
+                Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), securityUser.getOwnerId(),
+                        entityType, EntityGroup.GROUP_ALL_NAME).get();
+                if (entityGroup.isPresent()) {
+                    groupIds.add(entityGroup.get().getId());
+                }
+            }
+            if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
+            }
+            for (EntityGroupId groupId : groupIds) {
+                entityIds.addAll(entityGroupService.findAllEntityIds(getTenantId(), groupId, new TimePageLink(Integer.MAX_VALUE)).get());
+            }
+            if (!entityIds.isEmpty()) {
+                List<I> entityIdsList = new ArrayList<>();
+                entityIds.forEach((entityId) -> entityIdsList.add(toIdFunction.apply(entityId)));
+                return entityIdsList;
+            } else {
+                return Collections.emptyList();
+            }
+        } else {
+            return Collections.emptyList();
         }
     }
 

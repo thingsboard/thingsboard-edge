@@ -61,6 +61,8 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
 
     let vm = this;
 
+    vm.isUserGroup = vm.groupType === types.entityType.user;
+
     vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.write);
     vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.create);
     vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.delete);
@@ -148,12 +150,19 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
         var isAdd = false;
         if (!groupPermission) {
             isAdd = true;
-            groupPermission = {
-                userGroupId: {
+            groupPermission = {};
+            if (vm.isUserGroup) {
+                groupPermission.userGroupId = {
                     entityType: vm.types.entityType.entityGroup,
                     id: vm.entityId
-                }
-            };
+                };
+            } else {
+                groupPermission.entityGroupId = {
+                    entityType: vm.types.entityType.entityGroup,
+                    id: vm.entityId
+                };
+                groupPermission.entityGroupType = vm.groupType;
+            }
         } else {
             groupPermission = angular.copy(groupPermission);
         }
@@ -163,6 +172,7 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
             templateUrl: groupPermissionDialogTemplate,
             parent: angular.element($document[0].body),
             locals: {
+                isUserGroup: vm.isUserGroup,
                 isAdd: isAdd,
                 groupPermission: groupPermission
             },
@@ -224,7 +234,7 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
         vm.allGroupPermissions.length = 0;
         vm.groupPermissions.length = 0;
         vm.groupPermissionsPromise;
-        if (vm.groupType == vm.types.entityType.user) {
+        if (vm.isUserGroup) {
             vm.groupPermissionsPromise = roleService.getUserGroupPermissions(vm.entityId);
         } else {
             vm.groupPermissionsPromise = roleService.getEntityGroupPermissions(vm.entityId);
@@ -233,11 +243,26 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
             function success(allGroupPermissions) {
                 allGroupPermissions.forEach(function(groupPermission) {
                     groupPermission.roleName = groupPermission.role.name;
-                    groupPermission.roleTypeName = $translate.instant('role.display-type.' + groupPermission.role.type);
-                    if (groupPermission.entityGroupType) {
-                        groupPermission.entityGroupTypeName = $translate.instant(vm.types.entityTypeTranslations[groupPermission.entityGroupType].typePlural);
+                    if (vm.isUserGroup) {
+                        groupPermission.roleTypeName = $translate.instant('role.display-type.' + groupPermission.role.type);
+                        if (groupPermission.entityGroupType) {
+                            groupPermission.entityGroupTypeName = $translate.instant(vm.types.entityTypeTranslations[groupPermission.entityGroupType].typePlural);
+                        } else {
+                            groupPermission.entityGroupTypeName = '';
+                        }
+                        if (groupPermission.entityGroupOwnerId) {
+                            var ownerName = groupPermission.entityGroupOwnerName;
+                            var ownerType = groupPermission.entityGroupOwnerId.entityType;
+                            ownerName += ' (' + $translate.instant(vm.types.entityTypeTranslations[ownerType].type) + ')';
+                            groupPermission.entityGroupOwnerFullName = ownerName;
+                        } else {
+                            groupPermission.entityGroupOwnerFullName = '';
+                        }
                     } else {
-                        groupPermission.entityGroupTypeName = '';
+                        var userGroupOwnerFullName = groupPermission.userGroupOwnerName;
+                        var userGroupOwnerType = groupPermission.userGroupOwnerId.entityType;
+                        userGroupOwnerFullName += ' (' + $translate.instant(vm.types.entityTypeTranslations[userGroupOwnerType].type) + ')';
+                        groupPermission.userGroupOwnerFullName = userGroupOwnerFullName;
                     }
                 });
                 vm.allGroupPermissions = allGroupPermissions;

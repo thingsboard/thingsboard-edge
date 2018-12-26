@@ -189,23 +189,6 @@ public class CustomerUserPermissions extends AbstractPermissions {
     private final PermissionChecker customerEntityGroupPermissionChecker = new PermissionChecker() {
 
         @Override
-        public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroupId entityGroupId, EntityType groupType) {
-
-            Resource resource = Resource.groupResourceFromGroupType(groupType);
-            if (ownersCacheService.getOwners(user.getTenantId(), entityGroupId).contains(user.getOwnerId())) {
-                // This entity is a group, so we are checking group generic permission first
-                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
-                    return true;
-                }
-            }
-            if (!operation.isAllowedForGroupRole()) {
-                return false;
-            }
-            //Just in case, we are also checking specific group permission
-            return user.getUserPermissions().hasGroupPermissions(entityGroupId, operation);
-        }
-
-        @Override
         public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) {
 
             Resource resource = Resource.groupResourceFromGroupType(entityGroup.getType());

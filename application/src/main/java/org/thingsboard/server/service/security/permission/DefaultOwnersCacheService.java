@@ -45,15 +45,13 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CACHE;
@@ -138,5 +136,28 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     public void clearOwners(EntityGroupId entityGroupId) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
         cache.evict(entityGroupId.getId().toString());
+    }
+
+    @Override
+    public Set<EntityId> getChildOwners(TenantId tenantId, EntityId parentOwnerId) {
+        Set<EntityId> result = new HashSet<>();
+        try {
+            fetchChildOwners(tenantId, parentOwnerId, result);
+        } catch (Exception e) {
+            log.error("Failed to get child owners by parentOwnerId [{}]", parentOwnerId, e);
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    private void fetchChildOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) throws Exception {
+        result.add(entityId);
+        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+        if (entityGroup.isPresent()) {
+            List<EntityId> childOwnerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+            for (EntityId ownerId : childOwnerIds) {
+                fetchChildOwners(tenantId, ownerId, result);
+            }
+        }
     }
 }

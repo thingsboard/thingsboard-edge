@@ -31,16 +31,23 @@
 package org.thingsboard.server.service.telemetry.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.thingsboard.server.service.security.ValidationResultCode;
 
-public class AccessDeniedException extends Exception implements ToErrorResponseEntity {
+public class AccessDeniedException extends ValidationException implements ToErrorResponseEntity {
 
     public AccessDeniedException(String message) {
         super(message);
     }
 
     @Override
+    public ValidationResultCode getValidationResultCode() {
+        return ValidationResultCode.ACCESS_DENIED;
+    }
+
+    @Override
     public ResponseEntity<String> toErrorResponseEntity() {
-        return new ResponseEntity<>(getMessage(), HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.TEXT_PLAIN).body(getMessage());
     }
 }

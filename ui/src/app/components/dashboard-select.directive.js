@@ -66,7 +66,7 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
             promise = dashboardService.getUserDashboards(null, scope.operation, pageLink, {ignoreLoading: true});
         }
         promise.then(function success(result) {
-            scope.dashboards = result;
+            scope.dashboards = result.data;
         }, function fail() {
             scope.dashboards = [];
         });

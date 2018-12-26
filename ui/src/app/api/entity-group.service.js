@@ -36,6 +36,7 @@ export default angular.module('thingsboard.api.entityGroup', [])
 function EntityGroupService($http, $q, utils) {
 
     var service = {
+        getOwners: getOwners,
         getEntityGroup: getEntityGroup,
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
@@ -52,6 +53,26 @@ function EntityGroupService($http, $q, utils) {
     }
 
     return service;
+
+    function getOwners(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/owners?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
     function getEntityGroup(entityGroupId, ignoreErrors, config) {
         var deferred = $q.defer();

@@ -33,10 +33,7 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
-import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -72,7 +69,7 @@ public class DefaultAccessControlService implements AccessControlService {
     public void checkPermission(SecurityUser user, Resource resource, Operation operation) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
         if (!permissionChecker.hasPermission(user, resource, operation)) {
-            permissionDenied();
+            genericOperationPermissionDenied(resource, operation);
         }
     }
 
@@ -90,7 +87,7 @@ public class DefaultAccessControlService implements AccessControlService {
                                                                              Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
         if (!permissionChecker.hasPermission(user, operation, entityId, entity)) {
-            permissionDenied();
+            entityOperationPermissionDenied(resource, operation, entityId, entity);
         }
     }
 
@@ -107,7 +104,7 @@ public class DefaultAccessControlService implements AccessControlService {
     public void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), Resource.groupResourceFromGroupType(entityGroup.getType()), true);
         if (!permissionChecker.hasEntityGroupPermission(user, operation, entityGroup)) {
-            permissionDenied();
+            entityGroupOperationPermissionDenied(operation, entityGroup);
         }
     }
 
@@ -118,14 +115,6 @@ public class DefaultAccessControlService implements AccessControlService {
             return permissionChecker.hasEntityGroupPermission(user, operation, entityGroup);
         }
         return false;
-    }
-
-    @Override
-    public void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroupId entityGroupId, EntityType groupType) throws ThingsboardException {
-        PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), Resource.groupResourceFromGroupType(groupType), true);
-        if (!permissionChecker.hasEntityGroupPermission(user, operation, entityGroupId, groupType)) {
-            permissionDenied();
-        }
     }
 
     private PermissionChecker getPermissionChecker(Authority authority, Resource resource, boolean throwException) throws ThingsboardException {
@@ -150,6 +139,28 @@ public class DefaultAccessControlService implements AccessControlService {
 
     private void permissionDenied() throws ThingsboardException {
         throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
+                ThingsboardErrorCode.PERMISSION_DENIED);
+    }
+
+    private void genericOperationPermissionDenied(Resource resource, Operation operation) throws ThingsboardException {
+        throw new ThingsboardException("You don't have permission to perform '" + operation + "' operation with '" + resource + "' resource!",
+                ThingsboardErrorCode.PERMISSION_DENIED);
+    }
+
+    private <I extends EntityId, T extends TenantEntity>
+        void entityOperationPermissionDenied(Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException {
+            EntityType entityType = entity != null ? entity.getEntityType() : entityId.getEntityType();
+            String message = "You don't have permission to perform '" + operation + "' operation with " + entityType;
+            if (entity instanceof HasName) {
+                message += " '" + ((HasName)entity).getName() + "'";
+            }
+            message += "!";
+            throw new ThingsboardException(message,
+                ThingsboardErrorCode.PERMISSION_DENIED);
+    }
+
+    private void entityGroupOperationPermissionDenied(Operation operation, EntityGroup entityGroup) throws ThingsboardException {
+        throw new ThingsboardException("You don't have permission to perform '" + operation + "' operation with "+ entityGroup.getType() +" group '" + entityGroup.getName() + "'!",
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
