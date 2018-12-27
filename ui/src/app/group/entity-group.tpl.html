@@ -37,6 +37,12 @@
             <div class="md-toolbar-tools">
                 <span class="group-table-title">{{ vm.tableTitle }}</span>
                 <span hide-xs hide-sm class="group-table-entities-title">{{ vm.entitiesTitle }}</span>
+                <md-button ng-disabled="$root.loading" class="md-icon-button" ng-click="vm.toggleGroupDetails($event)">
+                    <md-icon>edit</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'entity-group.entity-group-details' | translate }}
+                    </md-tooltip>
+                </md-button>
                 <span flex></span>
                 <md-button class="fetch-more" ng-disabled="$root.loading" ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     {{ 'entity-group.fetch-more' | translate }}
@@ -147,3 +153,26 @@
         is-open="vm.isDetailsOpen"
         on-entity-updated="vm.onEntityUpdated(entity.id.id)">
 </tb-entity-details-sidenav>
+<tb-details-sidenav
+        header-title="{{vm.operatingGroup().name}}"
+        header-subtitle="{{'entity-group.entity-group-details' | translate }}"
+        is-read-only="vm.isGroupDetailsReadOnly"
+        is-open="vm.isGroupDetailsOpen"
+        is-edit="vm.isGroupDetailsEdit"
+        on-close-details="vm.onCloseGroupDetails()"
+        on-toggle-details-edit-mode="vm.onToggleGroupEditMode(vm.groupDetailsForm)"
+        on-apply-details="vm.saveGroup(vm.groupDetailsForm)"
+        the-form="vm.groupDetailsForm">
+    <details-buttons tb-help="'entityGroups'" help-container-id="help-container">
+        <div id="help-container"></div>
+    </details-buttons>
+    <form name="vm.groupDetailsForm">
+        <tb-entity-group-details
+            entity-group="vm.operatingGroup()"
+            is-edit="vm.isGroupDetailsEdit"
+            the-form="vm.groupDetailsForm"
+            is-read-only="vm.isGroupDetailsReadOnly"
+            on-delete-entity-group="vm.deleteEntityGroup(event)"
+        ></tb-entity-group-details>
+    </form>
+</tb-details-sidenav>

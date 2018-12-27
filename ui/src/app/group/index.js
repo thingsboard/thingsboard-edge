@@ -32,6 +32,7 @@ import EntityGroupRoutes from './entity-group.routes';
 import {EntityGroupsController, EntityGroupCardController} from './entity-groups.controller';
 import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
+import EntityGroupDetails from './entity-group-details.directive';
 import EntityGroupSettings from './entity-group-settings.directive';
 import EntityGroupAutocompleteDirective from './entity-group-autocomplete.directive';
 import EntityGroupSelectDirective from './entity-group-select.directive';
@@ -49,6 +50,7 @@ export default angular.module('thingsboard.entityGroup', [])
     .controller('EntityGroupCardController', EntityGroupCardController)
     .controller('EntityGroupController', EntityGroupController)
     .directive('tbEntityGroup', EntityGroupDirective)
+    .directive('tbEntityGroupDetails', EntityGroupDetails)
     .directive('tbEntityGroupSettings', EntityGroupSettings)
     .directive('tbEntityGroupAutocomplete', EntityGroupAutocompleteDirective)
     .directive('tbEntityGroupSelect', EntityGroupSelectDirective)

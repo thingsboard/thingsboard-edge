@@ -1,0 +1,108 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+
+<md-tabs id="tabs" md-border-bottom flex class="tb-absolute-fill">
+    <md-tab label="{{ 'entity-group.details' | translate }}">
+        <tb-entity-group entity-group="vm.entityGroup"
+                         is-edit="vm.isEdit"
+                         the-form="vm.theForm"
+                         on-delete-entity-group="vm.onDeleteEntityGroup({event: event})"></tb-entity-group>
+    </md-tab>
+    <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.columns' | translate }}">
+        <tb-entity-group-columns
+                columns="vm.entityGroup.configuration.columns"
+                entity-type="vm.entityGroup.type"
+                is-edit="vm.isEdit"
+                is-read-only="vm.isReadOnly"
+                the-form="vm.theForm">
+        </tb-entity-group-columns>
+    </md-tab>
+    <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.settings' | translate }}">
+        <tb-entity-group-settings
+                settings="vm.entityGroup.configuration.settings"
+                entity-type="vm.entityGroup.type"
+                is-edit="vm.isEdit"
+                the-form="vm.theForm">
+        </tb-entity-group-settings>
+    </md-tab>
+    <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.actions' | translate }}">
+        <div class="md-padding">
+            <tb-manage-widget-actions
+                    ng-disabled="!vm.isEdit"
+                    action-types="vm.types.entityGroupActionTypes"
+                    action-sources="vm.actionSources"
+                    custom-function-args="['$event', '$injector', 'entityId', 'entityName']"
+                    widget-actions="vm.entityGroup.configuration.actions">
+            </tb-manage-widget-actions>
+        </div>
+    </md-tab>
+    <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.roles' | translate }}"
+            ng-if="vm.entityGroup.type === vm.types.entityType.user && !vm.isEdit && ('groupPermission' | hasGenericPermission:'read')">
+        <tb-group-permissions
+                entity-id="vm.entityGroup.id.id"
+                group-type="{{vm.entityGroup.type}}">
+        </tb-group-permissions>
+    </md-tab>
+    <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.permissions' | translate }}"
+            ng-if="vm.entityGroup.type !== vm.types.entityType.user && !vm.isEdit && ('groupPermission' | hasGenericPermission:'read')">
+        <tb-group-permissions
+                entity-id="vm.entityGroup.id.id"
+                group-type="{{vm.entityGroup.type}}">
+        </tb-group-permissions>
+    </md-tab>
+    <md-tab ng-if="!vm.isEdit  && (vm.entityGroup | hasEntityGroupPermission:'readAttributes')" md-on-select="vm.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
+        <tb-attribute-table flex
+                            readonly="!(vm.entityGroup | hasEntityGroupPermission:'writeAttributes')"
+                            entity-id="vm.entityGroup.id.id"
+                            entity-type="{{vm.types.entityType.entityGroup}}"
+                            entity-name="vm.entityGroup.name"
+                            default-attribute-scope="{{vm.types.attributesScope.server.value}}">
+        </tb-attribute-table>
+    </md-tab>
+    <md-tab ng-if="!vm.isEdit && (vm.entityGroup | hasEntityGroupPermission:'readTelemetry')" md-on-select="vm.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
+        <tb-attribute-table flex
+                            readonly="!(vm.entityGroup | hasEntityGroupPermission:'writeTelemetry')"
+                            entity-id="vm.entityGroup.id.id"
+                            entity-type="{{vm.types.entityType.entityGroup}}"
+                            entity-name="vm.entityGroup.name"
+                            default-attribute-scope="{{vm.types.latestTelemetry.value}}"
+                            disable-attribute-scope-selection="true">
+        </tb-attribute-table>
+    </md-tab>
+    <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+        <tb-audit-log-table flex entity-type="vm.types.entityType.entityGroup"
+                            entity-id="vm.entityGroup.id.id"
+                            audit-log-mode="{{vm.types.auditLogMode.entity}}">
+        </tb-audit-log-table>
+    </md-tab>
+</md-tabs>

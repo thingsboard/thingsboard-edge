@@ -93,6 +93,8 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
     vm.updateGroupPermissions = updateGroupPermissions;
     vm.viewRole = viewRole;
 
+    reloadGroupPermissions();
+
     $scope.$watch("vm.entityId", function(newVal, prevVal) {
         if (newVal && !angular.equals(newVal, prevVal)) {
             reloadGroupPermissions();
@@ -233,50 +235,52 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
     function reloadGroupPermissions () {
         vm.allGroupPermissions.length = 0;
         vm.groupPermissions.length = 0;
-        vm.groupPermissionsPromise;
-        if (vm.isUserGroup) {
-            vm.groupPermissionsPromise = roleService.getUserGroupPermissions(vm.entityId);
-        } else {
-            vm.groupPermissionsPromise = roleService.getEntityGroupPermissions(vm.entityId);
-        }
-        vm.groupPermissionsPromise.then(
-            function success(allGroupPermissions) {
-                allGroupPermissions.forEach(function(groupPermission) {
-                    groupPermission.roleName = groupPermission.role.name;
-                    if (vm.isUserGroup) {
-                        groupPermission.roleTypeName = $translate.instant('role.display-type.' + groupPermission.role.type);
-                        if (groupPermission.entityGroupType) {
-                            groupPermission.entityGroupTypeName = $translate.instant(vm.types.entityTypeTranslations[groupPermission.entityGroupType].typePlural);
-                        } else {
-                            groupPermission.entityGroupTypeName = '';
-                        }
-                        if (groupPermission.entityGroupOwnerId) {
-                            var ownerName = groupPermission.entityGroupOwnerName;
-                            var ownerType = groupPermission.entityGroupOwnerId.entityType;
-                            ownerName += ' (' + $translate.instant(vm.types.entityTypeTranslations[ownerType].type) + ')';
-                            groupPermission.entityGroupOwnerFullName = ownerName;
-                        } else {
-                            groupPermission.entityGroupOwnerFullName = '';
-                        }
-                    } else {
-                        var userGroupOwnerFullName = groupPermission.userGroupOwnerName;
-                        var userGroupOwnerType = groupPermission.userGroupOwnerId.entityType;
-                        userGroupOwnerFullName += ' (' + $translate.instant(vm.types.entityTypeTranslations[userGroupOwnerType].type) + ')';
-                        groupPermission.userGroupOwnerFullName = userGroupOwnerFullName;
-                    }
-                });
-                vm.allGroupPermissions = allGroupPermissions;
-                vm.selectedGroupPermissions = [];
-                vm.updateGroupPermissions();
-                vm.groupPermissionsPromise = null;
-            },
-            function fail() {
-                vm.allGroupPermissions = [];
-                vm.selectedGroupPermissions = [];
-                vm.updateGroupPermissions();
-                vm.groupPermissionsPromise = null;
+        if (vm.entityId) {
+            vm.groupPermissionsPromise;
+            if (vm.isUserGroup) {
+                vm.groupPermissionsPromise = roleService.getUserGroupPermissions(vm.entityId);
+            } else {
+                vm.groupPermissionsPromise = roleService.getEntityGroupPermissions(vm.entityId);
             }
-        )
+            vm.groupPermissionsPromise.then(
+                function success(allGroupPermissions) {
+                    allGroupPermissions.forEach(function (groupPermission) {
+                        groupPermission.roleName = groupPermission.role.name;
+                        if (vm.isUserGroup) {
+                            groupPermission.roleTypeName = $translate.instant('role.display-type.' + groupPermission.role.type);
+                            if (groupPermission.entityGroupType) {
+                                groupPermission.entityGroupTypeName = $translate.instant(vm.types.entityTypeTranslations[groupPermission.entityGroupType].typePlural);
+                            } else {
+                                groupPermission.entityGroupTypeName = '';
+                            }
+                            if (groupPermission.entityGroupOwnerId) {
+                                var ownerName = groupPermission.entityGroupOwnerName;
+                                var ownerType = groupPermission.entityGroupOwnerId.entityType;
+                                ownerName += ' (' + $translate.instant(vm.types.entityTypeTranslations[ownerType].type) + ')';
+                                groupPermission.entityGroupOwnerFullName = ownerName;
+                            } else {
+                                groupPermission.entityGroupOwnerFullName = '';
+                            }
+                        } else {
+                            var userGroupOwnerFullName = groupPermission.userGroupOwnerName;
+                            var userGroupOwnerType = groupPermission.userGroupOwnerId.entityType;
+                            userGroupOwnerFullName += ' (' + $translate.instant(vm.types.entityTypeTranslations[userGroupOwnerType].type) + ')';
+                            groupPermission.userGroupOwnerFullName = userGroupOwnerFullName;
+                        }
+                    });
+                    vm.allGroupPermissions = allGroupPermissions;
+                    vm.selectedGroupPermissions = [];
+                    vm.updateGroupPermissions();
+                    vm.groupPermissionsPromise = null;
+                },
+                function fail() {
+                    vm.allGroupPermissions = [];
+                    vm.selectedGroupPermissions = [];
+                    vm.updateGroupPermissions();
+                    vm.groupPermissionsPromise = null;
+                }
+            )
+        }
     }
 
     function updateGroupPermissions () {

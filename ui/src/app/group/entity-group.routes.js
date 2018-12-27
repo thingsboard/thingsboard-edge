@@ -659,36 +659,36 @@ export default function EntityGroupRoutes($stateProvider, types) {
         });
 
     /*@ngInject*/
-    function CustomerGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, customerGroupConfig) {
-        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, customerGroupConfig);
+    function CustomerGroupResolver($stateParams, entityGroupService, customerGroupConfig) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams, customerGroupConfig);
     }
 
     /*@ngInject*/
-    function UserGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, userGroupConfig) {
-        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, userGroupConfig);
+    function UserGroupResolver($stateParams, entityGroupService, userGroupConfig) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams, userGroupConfig);
     }
 
     /*@ngInject*/
-    function DeviceGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, deviceGroupConfig) {
-        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, deviceGroupConfig);
+    function DeviceGroupResolver($stateParams, entityGroupService, deviceGroupConfig) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams, deviceGroupConfig);
     }
 
     /*@ngInject*/
-    function AssetGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, assetGroupConfig) {
-        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, assetGroupConfig);
+    function AssetGroupResolver($stateParams, entityGroupService, assetGroupConfig) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams, assetGroupConfig);
     }
 
     /*@ngInject*/
-    function EntityViewGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, entityViewGroupConfig) {
-        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, entityViewGroupConfig);
+    function EntityViewGroupResolver($stateParams, entityGroupService, entityViewGroupConfig) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams, entityViewGroupConfig);
     }
 
     /*@ngInject*/
     function DashboardGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, dashboardGroupConfig) {
-        return constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, dashboardGroupConfig);
+        return entityGroupService.constructGroupConfigByStateParams($stateParams, dashboardGroupConfig);
     }
 
-    function constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, entityGroupConfigFactory) {
+   /* function constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, entityGroupConfigFactory) {
         var deferred = $q.defer();
         var entityGroupId = $stateParams.childEntityGroupId || $stateParams.entityGroupId;
         entityGroupService.getEntityGroup(entityGroupId).then(
@@ -763,6 +763,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
             case types.entityType.dashboard:
                 return 'entity-group.dashboard-groups';
         }
-    }
+    }*/
 
 }

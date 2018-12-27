@@ -96,7 +96,7 @@ public class EntityGroupController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup", method = RequestMethod.POST)
     @ResponseBody
-    public EntityGroup saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
+    public EntityGroupInfo saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
         try {
             checkEntityGroupType(entityGroup.getType());
 
@@ -124,7 +124,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            return savedEntityGroup;
+            return toEntityGroupInfo(savedEntityGroup);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ENTITY_GROUP), entityGroup,
                     null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);

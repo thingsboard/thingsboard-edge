@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.entityGroup', [])
     .name;
 
 /*@ngInject*/
-function EntityGroupService($http, $q, utils) {
+function EntityGroupService($http, $q, $translate, customerService, types, utils) {
 
     var service = {
         getOwners: getOwners,
@@ -49,7 +49,9 @@ function EntityGroupService($http, $q, utils) {
         removeEntityFromEntityGroup: removeEntityFromEntityGroup,
         removeEntitiesFromEntityGroup: removeEntitiesFromEntityGroup,
         getEntityGroupEntity: getEntityGroupEntity,
-        getEntityGroupEntities: getEntityGroupEntities
+        getEntityGroupEntities: getEntityGroupEntities,
+        constructGroupConfigByStateParams: constructGroupConfigByStateParams,
+        constructGroupConfig: constructGroupConfig
     }
 
     return service;
@@ -261,6 +263,98 @@ function EntityGroupService($http, $q, utils) {
             deferred.reject();
         });
         return deferred.promise;
+    }
+
+    function constructGroupConfigByStateParams($stateParams, entityGroupConfigFactory) {
+        var deferred = $q.defer();
+        var entityGroupId = $stateParams.childEntityGroupId || $stateParams.entityGroupId;
+        getEntityGroup(entityGroupId).then(
+            (entityGroup) => {
+                constructGroupConfig($stateParams, entityGroup, entityGroupConfigFactory).then(
+                    (entityGroup) => {
+                        deferred.resolve(entityGroup);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            },
+            () => {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
+    }
+
+    function constructGroupConfig($stateParams, entityGroup, entityGroupConfigFactory) {
+        var deferred = $q.defer();
+        entityGroup.origEntityGroup = angular.copy(entityGroup);
+        resolveParentGroupInfo($stateParams, entityGroup).then(
+            (entityGroup) => {
+                entityGroupConfigFactory.createConfig($stateParams, entityGroup).then(
+                    (entityGroupConfig) => {
+                        entityGroup.entityGroupConfig = entityGroupConfig;
+                        entityGroup.entityGroupConfigFactory = entityGroupConfigFactory;
+                        deferred.resolve(entityGroup);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            },
+            () => {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
+    }
+
+    function resolveParentGroupInfo($stateParams, entityGroup) {
+        var deferred = $q.defer();
+        if ($stateParams.customerId) {
+            var groupType = $stateParams.childGroupType || $stateParams.groupType;
+            customerService.getShortCustomerInfo($stateParams.customerId).then(
+                (info) => {
+                    entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
+                    if ($stateParams.childEntityGroupId) {
+                        getEntityGroup($stateParams.entityGroupId).then(
+                            (parentEntityGroup) => {
+                                entityGroup.parentEntityGroup = parentEntityGroup;
+                                deferred.resolve(entityGroup);
+                            },
+                            () => {
+                                deferred.reject();
+                            }
+                        )
+                    } else {
+                        deferred.resolve(entityGroup);
+                    }
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.resolve(entityGroup);
+        }
+        return deferred.promise;
+    }
+
+    function entityGroupsTitle(groupType) {
+        switch(groupType) {
+            case types.entityType.asset:
+                return 'entity-group.asset-groups';
+            case types.entityType.device:
+                return 'entity-group.device-groups';
+            case types.entityType.customer:
+                return 'entity-group.customer-groups';
+            case types.entityType.user:
+                return 'entity-group.user-groups';
+            case types.entityType.entityView:
+                return 'entity-group.entity-view-groups';
+            case types.entityType.dashboard:
+                return 'entity-group.dashboard-groups';
+        }
     }
 
 }

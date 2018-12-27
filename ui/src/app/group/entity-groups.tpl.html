@@ -34,77 +34,11 @@
     <details-buttons tb-help="'entityGroups'" help-container-id="help-container">
         <div id="help-container"></div>
     </details-buttons>
-    <md-tabs id="tabs" md-border-bottom flex class="tb-absolute-fill">
-        <md-tab label="{{ 'entity-group.details' | translate }}">
-            <tb-entity-group entity-group="vm.grid.operatingItem()"
-                       is-edit="vm.grid.detailsConfig.isDetailsEditMode"
-                       the-form="vm.grid.detailsForm"
-                       on-delete-entity-group="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"></tb-entity-group>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.columns' | translate }}">
-            <tb-entity-group-columns
-                    columns="vm.grid.operatingItem().configuration.columns"
-                    entity-type="vm.grid.operatingItem().type"
-                    is-edit="vm.grid.detailsConfig.isDetailsEditMode"
-                    is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"
-                    the-form="vm.grid.detailsForm">
-            </tb-entity-group-columns>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.settings' | translate }}">
-            <tb-entity-group-settings
-                    settings="vm.grid.operatingItem().configuration.settings"
-                    entity-type="vm.grid.operatingItem().type"
-                    is-edit="vm.grid.detailsConfig.isDetailsEditMode"
-                    the-form="vm.grid.detailsForm">
-            </tb-entity-group-settings>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.actions' | translate }}">
-            <div class="md-padding">
-                <tb-manage-widget-actions
-                        ng-disabled="!vm.grid.detailsConfig.isDetailsEditMode"
-                        action-types="vm.types.entityGroupActionTypes"
-                        action-sources="vm.actionSources"
-                        custom-function-args="['$event', '$injector', 'entityId', 'entityName']"
-                        widget-actions="vm.grid.operatingItem().configuration.actions">
-                </tb-manage-widget-actions>
-            </div>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.roles' | translate }}" ng-if="vm.groupType === vm.types.entityType.user">
-            <tb-group-permissions
-                    entity-id="vm.grid.operatingItem().id.id"
-                    group-type="{{vm.groupType}}">
-            </tb-group-permissions>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.permissions' | translate }}" ng-if="vm.groupType !== vm.types.entityType.user">
-            <tb-group-permissions
-                    entity-id="vm.grid.operatingItem().id.id"
-                    group-type="{{vm.groupType}}">
-            </tb-group-permissions>
-        </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode  && (vm.grid.operatingItem() | hasEntityGroupPermission:'readAttributes')" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
-            <tb-attribute-table flex
-                                readonly="!(vm.grid.operatingItem() | hasEntityGroupPermission:'writeAttributes')"
-                                entity-id="vm.grid.operatingItem().id.id"
-                                entity-type="{{vm.types.entityType.entityGroup}}"
-                                entity-name="vm.grid.operatingItem().name"
-                                default-attribute-scope="{{vm.types.attributesScope.server.value}}">
-            </tb-attribute-table>
-        </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && (vm.grid.operatingItem() | hasEntityGroupPermission:'readTelemetry')" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
-            <tb-attribute-table flex
-                                readonly="!(vm.grid.operatingItem() | hasEntityGroupPermission:'writeTelemetry')"
-                                entity-id="vm.grid.operatingItem().id.id"
-                                entity-type="{{vm.types.entityType.entityGroup}}"
-                                entity-name="vm.grid.operatingItem().name"
-                                default-attribute-scope="{{vm.types.latestTelemetry.value}}"
-                                disable-attribute-scope-selection="true">
-            </tb-attribute-table>
-        </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin() && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
-            <tb-audit-log-table flex entity-type="vm.types.entityType.entityGroup"
-                                entity-id="vm.grid.operatingItem().id.id"
-                                audit-log-mode="{{vm.types.auditLogMode.entity}}">
-            </tb-audit-log-table>
-        </md-tab>
-    </md-tabs>
+    <tb-entity-group-details
+            entity-group="vm.grid.operatingItem()"
+            is-edit="vm.grid.detailsConfig.isDetailsEditMode"
+            the-form="vm.grid.detailsForm"
+            is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"
+            on-delete-entity-group="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"
+    ></tb-entity-group-details>
 </tb-grid>

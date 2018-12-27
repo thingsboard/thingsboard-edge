@@ -218,7 +218,9 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         entityGroupService.deleteEntityGroup(entityGroupId).then(
             function success() {
                 deferred.resolve();
-                $rootScope.$broadcast(vm.groupType+'changed');
+                if (!vm.customerId) {
+                    $rootScope.$broadcast(vm.groupType + 'changed');
+                }
             },
             function fail() {
                 deferred.reject();

@@ -131,6 +131,7 @@ public class GroupPermissionController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
             checkEntityGroupId(userGroupId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
             List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(tenantId, userGroupId).get();
             return applyPermissionInfo(groupPermissions);
         } catch (Exception e) {
@@ -147,6 +148,7 @@ public class GroupPermissionController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(strEntityGroupId));
             checkEntityGroupId(entityGroupId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
             List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
             return applyPermissionInfo(groupPermissions);
         } catch (Exception e) {

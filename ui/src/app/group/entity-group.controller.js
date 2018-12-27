@@ -38,7 +38,7 @@ import addEntityTemplate from './add-entity.tpl.html';
 
 
 /*@ngInject*/
-export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $document, $timeout, utils,
+export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $window, $document, $timeout, utils,
                                               tbDialogs, entityGroupService, telemetryWebsocketService,
                                               $stateParams, $q, $translate, $filter, types, securityTypes, userPermissionsService, entityGroup) {
 
@@ -48,259 +48,15 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     vm.customerId = $stateParams.customerId;
     vm.entityGroup = entityGroup;
-    vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
     vm.entityType = vm.entityGroup.type;
-    vm.columns = vm.entityGroup.configuration.columns.filter((column) => {
-        if (column.type == types.entityGroup.columnType.timeseries.value) {
-            return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readTelemetry, vm.entityGroup);
-        } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
-            column.type == types.entityGroup.columnType.sharedAttribute.value ||
-            column.type == types.entityGroup.columnType.serverAttribute.value) {
-            return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readAttributes, vm.entityGroup);
-        } else {
-            return true;
-        }
-    });
-
-    vm.columns.forEach((column) => {
-        if (column.useCellStyleFunction && column.cellStyleFunction && column.cellStyleFunction.length) {
-            try {
-                column.cellStyleFunction = new Function('value, entity', column.cellStyleFunction);
-            } catch (e) {
-                delete column.cellStyleFunction;
-            }
-        } else {
-            delete column.cellStyleFunction;
-        }
-        if (column.useCellContentFunction && column.cellContentFunction && column.cellContentFunction.length) {
-            try {
-                column.cellContentFunction = new Function('value, entity, $filter', column.cellContentFunction);
-            } catch (e) {
-                delete column.cellContentFunction;
-            }
-        } else {
-            delete column.cellContentFunction;
-        }
-    });
-
     vm.translations = vm.types.entityTypeTranslations[vm.entityType];
 
-    vm.entityGroupConfig.onDeleteEntity = deleteEntity;
-    vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
-    vm.entityGroupConfig.onEntitiesUpdated = onEntitiesUpdated;
-
-    vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
-    if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
-        vm.tableTitle = utils.customTranslation(vm.settings.groupTableTitle, vm.settings.groupTableTitle);
-        vm.entitiesTitle = '';
-    } else {
-        vm.tableTitle = utils.customTranslation(vm.entityGroup.name, vm.entityGroup.name);
-        vm.entitiesTitle = ': ' + $translate.instant(types.entityTypeTranslations[vm.entityType].typePlural);
-    }
-
-    vm.actionDescriptorsBySourceId = {};
-    if (vm.entityGroup.configuration.actions) {
-        for (var actionSourceId in vm.entityGroup.configuration.actions) {
-            var descriptors = vm.entityGroup.configuration.actions[actionSourceId];
-            var actionDescriptors = [];
-            descriptors.forEach(function(descriptor) {
-                var actionDescriptor = angular.copy(descriptor);
-                actionDescriptor.displayName = utils.customTranslation(descriptor.name, descriptor.name);
-                actionDescriptors.push(actionDescriptor);
-            });
-            vm.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
-        }
-    }
-
-    var actionCellButtonDescriptors = vm.actionDescriptorsBySourceId['actionCellButton'];
-    vm.actionCellDescriptors = [];
-    if (actionCellButtonDescriptors) {
-        actionCellButtonDescriptors.forEach((descriptor) => {
-            vm.actionCellDescriptors.push(
-                {
-                    name: descriptor.displayName,
-                    icon: descriptor.icon,
-                    isEnabled: () => {
-                        return true;
-                    },
-                    onAction: ($event, entity) => {
-                        handleDescriptorAction($event, entity, descriptor);
-                    }
-                }
-            );
-        });
-    }
-
-    vm.entityGroupConfig.actionCellDescriptors.forEach((descriptor) => {
-        vm.actionCellDescriptors.push(descriptor);
-    });
-    if (vm.settings.detailsMode == types.entityGroup.detailsMode.onActionButtonClick.value) {
-        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.read, vm.entityGroup)) {
-            vm.actionCellDescriptors.push(
-                {
-                    name: $translate.instant(vm.translations.details),
-                    icon: 'edit',
-                    isEnabled: () => {
-                        return true;
-                    },
-                    onAction: ($event, entity) => {
-                        toggleEntityDetails($event, entity);
-                    }
-                }
-            );
-        }
-    }
-    if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
-        vm.actionCellDescriptors.push(
-            {
-                name: $translate.instant('action.delete'),
-                icon: 'delete',
-                isEnabled: (entity) => {
-                    return vm.entityGroupConfig.deleteEnabled(entity);
-                },
-                onAction: ($event, entity) => {
-                    deleteEntity($event, entity);
-                }
-            }
-        );
-    }
-
-    vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
-
-    if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup) &&
-        userPermissionsService.isOwnedGroup(vm.entityGroup) &&
-        userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
-        vm.groupActionDescriptors.push(
-            {
-                name: $translate.instant('entity-group.add-to-group'),
-                icon: 'add_circle',
-                isEnabled: () => {
-                    return vm.settings.enableGroupTransfer;
-                },
-                onAction: ($event, entities) => {
-                    addEntitiesToEntityGroup($event, entities);
-                }
-            }
-        );
-    }
-
-    if (userPermissionsService.hasEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup)) {
-        if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
-            vm.groupActionDescriptors.push(
-                {
-                    name: $translate.instant('entity-group.move-to-group'),
-                    icon: 'swap_vertical_circle',
-                    isEnabled: () => {
-                        return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-                    },
-                    onAction: ($event, entities) => {
-                        moveEntitiesToEntityGroup($event, entities);
-                    }
-                }
-            );
-        }
-        vm.groupActionDescriptors.push(
-            {
-                name: $translate.instant('entity-group.remove-from-group'),
-                icon: 'remove_circle',
-                isEnabled: () => {
-                    return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-                },
-                onAction: ($event, entities) => {
-                    removeEntitiesFromEntityGroup($event, entities);
-                }
-            }
-        );
-    }
-
-    if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
-        vm.groupActionDescriptors.push(
-            {
-                name: $translate.instant('action.delete'),
-                icon: 'delete',
-                isEnabled: () => {
-                    return vm.entityGroupConfig.entitiesDeleteEnabled();
-                },
-                onAction: ($event, entities) => {
-                    deleteEntities($event, entities);
-                }
-            }
-        );
-    }
-
-    var tsKeysList = [];
-    var attrKeysList = [];
-
-    function addIfAbsent(list, key) {
-        var index = list.indexOf(key);
-        if (index == -1) {
-            list.push(key);
-        }
-    }
-
-    vm.columns.forEach(function(column) {
-        var key = column.key;
-        if (column.type == types.entityGroup.columnType.timeseries.value) {
-            addIfAbsent(tsKeysList, key);
-        } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
-                   column.type == types.entityGroup.columnType.sharedAttribute.value ||
-                   column.type == types.entityGroup.columnType.serverAttribute.value) {
-            addIfAbsent(attrKeysList, key);
-        }
-    });
-
-    vm.tsKeys = tsKeysList.join(',');
-    vm.attrKeys = attrKeysList.join(',');
-    vm.hasTsData = vm.tsKeys.length > 0;
-    vm.hasAttrData = vm.attrKeys.length > 0;
-    vm.hasSubscriptionData = vm.hasTsData || vm.hasAttrData;
-
-    vm.entitySubscriptions = {};
-
-    vm.scheduledSubscribe = [];
-    vm.scheduledUnsubscribe = [];
-
-    vm.showData = true;
-    vm.hasData = false;
-
-    vm.entities = [];
-    vm.selectedEntities = [];
-    vm.entitiesCount = 0;
-
-    vm.allEntities = [];
-
-    vm.currentEntity = null;
-    vm.isDetailsOpen = false;
-
-    vm.displayPagination = vm.settings.displayPagination;
-    vm.defaultPageSize = vm.settings.defaultPageSize;
-    vm.defaultSortOrder = '-' + types.entityGroup.entityField.created_time.value;
-
-    for (var i=0;i<vm.columns.length;i++) {
-        var column = vm.columns[i];
-        if (column.sortOrder && column.sortOrder !== types.entityGroup.sortOrder.none.value) {
-            if (column.sortOrder == types.entityGroup.sortOrder.desc.value) {
-                vm.defaultSortOrder = '-' + column.key;
-            } else {
-                vm.defaultSortOrder = column.key;
-            }
-            break;
-        }
-    }
-
-    vm.query = {
-        order: vm.defaultSortOrder,
-        limit: vm.defaultPageSize,
-        page: 1,
-        search: null
-    };
-
-    vm.pageLink = {
-        limit: 100
-    };
-
-    vm.hasNext = true;
-
+    vm.toggleGroupDetails = toggleGroupDetails;
+    vm.onToggleGroupEditMode = onToggleGroupEditMode;
+    vm.onCloseGroupDetails = onCloseGroupDetails;
+    vm.operatingGroup = operatingGroup;
+    vm.saveGroup = saveGroup;
+    vm.deleteEntityGroup = deleteEntityGroup;
     vm.addEnabled = addEnabled;
     vm.fetchMore = fetchMore;
     vm.addEntity = addEntity;
@@ -318,7 +74,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     vm.onEntityUpdated = onEntityUpdated;
 
-    fetchMore();
+    reloadGroupConfiguration();
 
     $scope.$watch("vm.query.search", function(newVal, prevVal) {
         if (!angular.equals(newVal, prevVal) && vm.query.search != null) {
@@ -346,6 +102,265 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     $scope.$on('$destroy', function() {
         clearSubscriptions();
     });
+
+    function reloadGroupConfiguration() {
+        clearSubscriptions();
+
+        vm.currentEntityGroup = vm.entityGroup.origEntityGroup;
+        vm.isGroupDetailsReadOnly = !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, vm.entityGroup);
+
+        vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
+        vm.columns = vm.entityGroup.configuration.columns.filter((column) => {
+            if (column.type == types.entityGroup.columnType.timeseries.value) {
+                return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readTelemetry, vm.entityGroup);
+            } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
+                column.type == types.entityGroup.columnType.sharedAttribute.value ||
+                column.type == types.entityGroup.columnType.serverAttribute.value) {
+                return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readAttributes, vm.entityGroup);
+            } else {
+                return true;
+            }
+        });
+
+        vm.columns.forEach((column) => {
+            if (column.useCellStyleFunction && column.cellStyleFunction && column.cellStyleFunction.length) {
+                try {
+                    column.cellStyleFunction = new Function('value, entity', column.cellStyleFunction);
+                } catch (e) {
+                    delete column.cellStyleFunction;
+                }
+            } else {
+                delete column.cellStyleFunction;
+            }
+            if (column.useCellContentFunction && column.cellContentFunction && column.cellContentFunction.length) {
+                try {
+                    column.cellContentFunction = new Function('value, entity, $filter', column.cellContentFunction);
+                } catch (e) {
+                    delete column.cellContentFunction;
+                }
+            } else {
+                delete column.cellContentFunction;
+            }
+        });
+
+        vm.entityGroupConfig.onDeleteEntity = deleteEntity;
+        vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
+        vm.entityGroupConfig.onEntitiesUpdated = onEntitiesUpdated;
+
+        vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
+        if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
+            vm.tableTitle = utils.customTranslation(vm.settings.groupTableTitle, vm.settings.groupTableTitle);
+            vm.entitiesTitle = '';
+        } else {
+            vm.tableTitle = utils.customTranslation(vm.entityGroup.name, vm.entityGroup.name);
+            vm.entitiesTitle = ': ' + $translate.instant(types.entityTypeTranslations[vm.entityType].typePlural);
+        }
+
+        vm.actionDescriptorsBySourceId = {};
+        if (vm.entityGroup.configuration.actions) {
+            for (var actionSourceId in vm.entityGroup.configuration.actions) {
+                var descriptors = vm.entityGroup.configuration.actions[actionSourceId];
+                var actionDescriptors = [];
+                descriptors.forEach(function(descriptor) {
+                    var actionDescriptor = angular.copy(descriptor);
+                    actionDescriptor.displayName = utils.customTranslation(descriptor.name, descriptor.name);
+                    actionDescriptors.push(actionDescriptor);
+                });
+                vm.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
+            }
+        }
+
+        var actionCellButtonDescriptors = vm.actionDescriptorsBySourceId['actionCellButton'];
+        vm.actionCellDescriptors = [];
+        if (actionCellButtonDescriptors) {
+            actionCellButtonDescriptors.forEach((descriptor) => {
+                vm.actionCellDescriptors.push(
+                    {
+                        name: descriptor.displayName,
+                        icon: descriptor.icon,
+                        isEnabled: () => {
+                            return true;
+                        },
+                        onAction: ($event, entity) => {
+                            handleDescriptorAction($event, entity, descriptor);
+                        }
+                    }
+                );
+            });
+        }
+
+        vm.entityGroupConfig.actionCellDescriptors.forEach((descriptor) => {
+            vm.actionCellDescriptors.push(descriptor);
+        });
+        if (vm.settings.detailsMode == types.entityGroup.detailsMode.onActionButtonClick.value) {
+            if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.read, vm.entityGroup)) {
+                vm.actionCellDescriptors.push(
+                    {
+                        name: $translate.instant(vm.translations.details),
+                        icon: 'edit',
+                        isEnabled: () => {
+                            return true;
+                        },
+                        onAction: ($event, entity) => {
+                            toggleEntityDetails($event, entity);
+                        }
+                    }
+                );
+            }
+        }
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
+            vm.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('action.delete'),
+                    icon: 'delete',
+                    isEnabled: (entity) => {
+                        return vm.entityGroupConfig.deleteEnabled(entity);
+                    },
+                    onAction: ($event, entity) => {
+                        deleteEntity($event, entity);
+                    }
+                }
+            );
+        }
+
+        vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
+
+        if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup) &&
+            userPermissionsService.isOwnedGroup(vm.entityGroup) &&
+            userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('entity-group.add-to-group'),
+                    icon: 'add_circle',
+                    isEnabled: () => {
+                        return vm.settings.enableGroupTransfer;
+                    },
+                    onAction: ($event, entities) => {
+                        addEntitiesToEntityGroup($event, entities);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup)) {
+            if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
+                vm.groupActionDescriptors.push(
+                    {
+                        name: $translate.instant('entity-group.move-to-group'),
+                        icon: 'swap_vertical_circle',
+                        isEnabled: () => {
+                            return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                        },
+                        onAction: ($event, entities) => {
+                            moveEntitiesToEntityGroup($event, entities);
+                        }
+                    }
+                );
+            }
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('entity-group.remove-from-group'),
+                    icon: 'remove_circle',
+                    isEnabled: () => {
+                        return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                    },
+                    onAction: ($event, entities) => {
+                        removeEntitiesFromEntityGroup($event, entities);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('action.delete'),
+                    icon: 'delete',
+                    isEnabled: () => {
+                        return vm.entityGroupConfig.entitiesDeleteEnabled();
+                    },
+                    onAction: ($event, entities) => {
+                        deleteEntities($event, entities);
+                    }
+                }
+            );
+        }
+
+        var tsKeysList = [];
+        var attrKeysList = [];
+
+        function addIfAbsent(list, key) {
+            var index = list.indexOf(key);
+            if (index == -1) {
+                list.push(key);
+            }
+        }
+
+        vm.columns.forEach(function(column) {
+            var key = column.key;
+            if (column.type == types.entityGroup.columnType.timeseries.value) {
+                addIfAbsent(tsKeysList, key);
+            } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
+                column.type == types.entityGroup.columnType.sharedAttribute.value ||
+                column.type == types.entityGroup.columnType.serverAttribute.value) {
+                addIfAbsent(attrKeysList, key);
+            }
+        });
+
+        vm.tsKeys = tsKeysList.join(',');
+        vm.attrKeys = attrKeysList.join(',');
+        vm.hasTsData = vm.tsKeys.length > 0;
+        vm.hasAttrData = vm.attrKeys.length > 0;
+        vm.hasSubscriptionData = vm.hasTsData || vm.hasAttrData;
+
+        vm.entitySubscriptions = {};
+
+        vm.scheduledSubscribe = [];
+        vm.scheduledUnsubscribe = [];
+
+        vm.showData = true;
+        vm.hasData = false;
+
+        vm.entities = [];
+        vm.selectedEntities = [];
+        vm.entitiesCount = 0;
+
+        vm.allEntities = [];
+
+        vm.currentEntity = null;
+        vm.isDetailsOpen = false;
+
+        vm.displayPagination = vm.settings.displayPagination;
+        vm.defaultPageSize = vm.settings.defaultPageSize;
+        vm.defaultSortOrder = '-' + types.entityGroup.entityField.created_time.value;
+
+        for (var i=0;i<vm.columns.length;i++) {
+            var column = vm.columns[i];
+            if (column.sortOrder && column.sortOrder !== types.entityGroup.sortOrder.none.value) {
+                if (column.sortOrder == types.entityGroup.sortOrder.desc.value) {
+                    vm.defaultSortOrder = '-' + column.key;
+                } else {
+                    vm.defaultSortOrder = column.key;
+                }
+                break;
+            }
+        }
+
+        vm.query = {
+            order: vm.defaultSortOrder,
+            limit: vm.defaultPageSize,
+            page: 1,
+            search: null
+        };
+
+        vm.pageLink = {
+            limit: 100
+        };
+
+        vm.hasNext = true;
+
+        fetchMore();
+    }
 
     function addEnabled() {
         if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, vm.entityGroup) &&
@@ -401,9 +416,94 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         if (vm.currentEntity != entity) {
             vm.currentEntity = entity;
             vm.isDetailsOpen = true;
+            vm.isGroupDetailsOpen = false;
         } else {
             vm.isDetailsOpen = !vm.isDetailsOpen;
+            if (vm.isDetailsOpen) {
+                vm.isGroupDetailsOpen = false;
+            }
         }
+    }
+
+    function toggleGroupDetails($event) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        if (!vm.isGroupDetailsOpen) {
+            //vm.currentEntityGroup = vm.entityGroup.origEntityGroup;
+            vm.isGroupDetailsOpen = true;
+            vm.isDetailsOpen = false;
+            vm.isGroupDetailsEdit = false;
+        } else {
+            vm.isGroupDetailsOpen = false;
+        }
+    }
+
+    function onToggleGroupEditMode(theForm) {
+        if (!vm.isGroupDetailsEdit) {
+            theForm.$setPristine();
+        }
+    }
+
+    function onCloseGroupDetails() {
+        //vm.currentEntityGroup = null;
+    }
+
+    function operatingGroup() {
+        if (!vm.isGroupDetailsEdit) {
+            if (vm.editingEntityGroup) {
+                vm.editingEntityGroup = null;
+            }
+            return vm.currentEntityGroup;
+        } else {
+            if (!vm.editingEntityGroup) {
+                vm.editingEntityGroup = angular.copy(vm.currentEntityGroup);
+            }
+            return vm.editingEntityGroup;
+        }
+    }
+
+    function saveGroup(theForm) {
+        entityGroupService.saveEntityGroup(vm.editingEntityGroup).then(
+            (entityGroup) => {
+                theForm.$setPristine();
+                vm.isGroupDetailsEdit = false;
+                if (!vm.customerId) {
+                    $rootScope.$broadcast(entityGroup.type + 'changed');
+                }
+                entityGroupService.constructGroupConfig($stateParams, entityGroup, vm.entityGroup.entityGroupConfigFactory).then(
+                    (entityGroup) => {
+                        vm.entityGroup = entityGroup;
+                        reloadGroupConfiguration();
+                    }
+                );
+            }
+        );
+    }
+
+    function deleteEntityGroup($event) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title($translate.instant('entity-group.delete-entity-group-title', {entityGroupName: vm.currentEntityGroup.name}))
+            .htmlContent($translate.instant('entity-group.delete-entity-group-text'))
+            .ariaLabel($translate.instant('grid.delete-item'))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+                entityGroupService.deleteEntityGroup(vm.currentEntityGroup.id.id).then(
+                    function success() {
+                        if (!vm.customerId) {
+                            $rootScope.$broadcast(vm.currentEntityGroup.type + 'changed');
+                        }
+                        $window.history.back();
+                    }
+                );
+            },
+            function () {
+            });
     }
 
     function isCurrent(entity) {
@@ -850,10 +950,14 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     }
 
     function commitSubscriptions() {
-        telemetryWebsocketService.batchUnsubscribe(vm.scheduledUnsubscribe)
-        vm.scheduledUnsubscribe.length = 0;
-        telemetryWebsocketService.batchSubscribe(vm.scheduledSubscribe);
-        vm.scheduledSubscribe.length = 0;
+        if (vm.scheduledUnsubscribe) {
+            telemetryWebsocketService.batchUnsubscribe(vm.scheduledUnsubscribe);
+            vm.scheduledUnsubscribe.length = 0;
+        }
+        if (vm.scheduledSubscribe) {
+            telemetryWebsocketService.batchSubscribe(vm.scheduledSubscribe);
+            vm.scheduledSubscribe.length = 0;
+        }
         telemetryWebsocketService.publishCommands();
     }
 
