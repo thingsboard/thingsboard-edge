@@ -33,29 +33,29 @@
 <md-button ng-click="onManageUsers({event: $event})"
            ng-if="'userGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageUsers && !isEdit && !isPublic"
-           class="md-raised md-primary">{{ 'customer.manage-users' | translate }}
+           class="md-raised md-primary">{{ 'customer.manage-user-groups' | translate }}
 </md-button>
 <md-button ng-click="onManageCustomers({event: $event})"
            ng-if="'customerGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageCustomers && !isEdit && !isPublic"
-           class="md-raised md-primary">{{ 'customer.manage-customers' | translate }}
+           class="md-raised md-primary">{{ 'customer.manage-customer-groups' | translate }}
 </md-button>
 <md-button ng-click="onManageAssets({event: $event})"
            ng-if="'assetGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageAssets && !isEdit && !isPublic"
-           class="md-raised md-primary">{{ 'customer.manage-assets' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'customer.manage-asset-groups' | translate }}</md-button>
 <md-button ng-click="onManageDevices({event: $event})"
            ng-if="'deviceGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageDevices && !isEdit"
-           class="md-raised md-primary">{{ 'customer.manage-devices' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'customer.manage-device-groups' | translate }}</md-button>
 <md-button ng-click="onManageEntityViews({event: $event})"
            ng-if="'entityViewGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageEntityViews && !isEdit"
-           class="md-raised md-primary">{{ 'customer.manage-customer-entity-views' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'customer.manage-entity-view-groups' | translate }}</md-button>
 <md-button ng-click="onManageDashboards({event: $event})"
            ng-if="'dashboardGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageDashboards && !isEdit"
-           class="md-raised md-primary">{{ 'customer.manage-dashboards' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'customer.manage-dashboard-groups' | translate }}</md-button>
 <md-button ng-click="onDeleteCustomer({event: $event})"
            ng-if="entityGroup | hasGroupEntityPermission:'delete'"
            ng-show="!hideDelete && !isEdit && !isPublic"

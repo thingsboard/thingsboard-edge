@@ -33,7 +33,7 @@ import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
 import addUserTemplate from './add-user.tpl.html';
 
 /*@ngInject*/
-export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, toast, userService) {
+export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, securityTypes, toast, userService) {
 
     var service = {
         createConfig: createConfig
@@ -101,13 +101,35 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
             });
         };
 
-        groupConfig.onLoginAsUser = (user) => {
+        groupConfig.onLoginAsUser = (event, user) => {
+            if (event) {
+                event.stopPropagation();
+            }
             userService.loginAsUser(user.id.id);
         };
 
         groupConfig.addEntity = (event, entityGroup) => {
             return addUser(event, entityGroup);
         };
+
+        groupConfig.actionCellDescriptors = [];
+
+        if (userService.isUserTokenAccessEnabled()) {
+            var isTenantAdmins = entityGroup.ownerId.entityType === types.entityType.tenant;
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant(isTenantAdmins ? 'user.login-as-tenant-admin' : 'user.login-as-customer-user'),
+                    icon: 'login',
+                    isNgIcon: true,
+                    isEnabled: () => {
+                        return settings.enableLoginAsUser;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onLoginAsUser($event, entity);
+                    }
+                }
+            );
+        }
 
         utils.groupConfigDefaults(groupConfig);
 

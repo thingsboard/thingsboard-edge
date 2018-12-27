@@ -114,7 +114,8 @@
                         <md-button ng-show="actionDescriptor.isEnabled(entity)" class="md-icon-button" ng-repeat="actionDescriptor in vm.actionCellDescriptors"
                                    aria-label="{{ actionDescriptor.name }}"
                                    ng-click="actionDescriptor.onAction($event, entity)">
-                            <md-icon aria-label="{{ actionDescriptor.name }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
+                            <md-icon ng-if="!actionDescriptor.isNgIcon" aria-label="{{ actionDescriptor.name }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
+                            <ng-md-icon ng-if="actionDescriptor.isNgIcon" aria-label="{{ actionDescriptor.name }}" icon="{{actionDescriptor.icon}}"></ng-md-icon>
                             <md-tooltip md-direction="top">
                                 {{ actionDescriptor.name }}
                             </md-tooltip>

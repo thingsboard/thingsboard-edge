@@ -31,7 +31,7 @@
 
 -->
 <md-button ng-click="onDeleteEntityGroup({event: $event})"
-           ng-if="entityGroup | hasEntityGroupPermission:'delete'"
+           ng-if="(entityGroup | hasEntityGroupPermission:'delete') && !entityGroup.groupAll"
            ng-show="!isEdit"
            class="md-raised md-primary">{{ 'entity-group.delete' | translate }}</md-button>
 <md-content class="md-padding" layout="column">

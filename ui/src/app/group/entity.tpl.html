@@ -84,7 +84,7 @@
            on-delete-user="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
            on-display-activation-link="vm.entityGroupConfig.onDisplayActivationLink(event, vm.entity)"
            on-resend-activation="vm.entityGroupConfig.onResendActivation(vm.entity)"
-           on-login-as-user="vm.entityGroupConfig.onLoginAsUser(vm.entity)">
+           on-login-as-user="vm.entityGroupConfig.onLoginAsUser(event, vm.entity)">
 </tb-user>
 <tb-entity-view  ng-if="vm.entityType == vm.types.entityType.entityView"
           entity-group="vm.entityGroup"

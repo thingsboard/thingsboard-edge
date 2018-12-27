@@ -142,7 +142,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.userGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('customer.manage-customer-users'),
+                    name: $translate.instant('customer.manage-customer-user-groups'),
                     icon: 'account_circle',
                     isEnabled: () => {
                         return settings.enableUsersManagement;
@@ -157,7 +157,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.customerGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('customer.manage-customers'),
+                    name: $translate.instant('customer.manage-customer-groups'),
                     icon: 'supervisor_account',
                     isEnabled: () => {
                         return settings.enableCustomersManagement;
@@ -172,7 +172,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.assetGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('customer.manage-customer-assets'),
+                    name: $translate.instant('customer.manage-customer-asset-groups'),
                     icon: 'domain',
                     isEnabled: () => {
                         return settings.enableAssetsManagement;
@@ -187,7 +187,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.deviceGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('customer.manage-customer-devices'),
+                    name: $translate.instant('customer.manage-customer-device-groups'),
                     icon: 'devices_other',
                     isEnabled: () => {
                         return settings.enableDevicesManagement;
@@ -202,7 +202,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.entityViewGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('customer.manage-customer-entity-views'),
+                    name: $translate.instant('customer.manage-customer-entity-view-groups'),
                     icon: 'view_quilt',
                     isEnabled: () => {
                         return settings.enableEntityViewsManagement;
@@ -217,7 +217,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.dashboardGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('customer.manage-customer-dashboards'),
+                    name: $translate.instant('customer.manage-customer-dashboard-groups'),
                     icon: 'dashboard',
                     isEnabled: () => {
                         return settings.enableDashboardsManagement;

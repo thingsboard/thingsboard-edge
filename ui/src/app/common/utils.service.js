@@ -719,6 +719,11 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 settings.enableCredentialsManagement = true;
             }
         }
+        if (entityType == types.entityType.user) {
+            if (angular.isUndefined(settings.enableLoginAsUser)) {
+                settings.enableLoginAsUser = true;
+            }
+        }
         if (entityType == types.entityType.customer) {
             if (angular.isUndefined(settings.enableUsersManagement)) {
                 settings.enableUsersManagement = true;

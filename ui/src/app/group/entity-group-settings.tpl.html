@@ -76,6 +76,9 @@
         <md-checkbox ng-if="vm.entityType == vm.types.entityType.device" ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-credentials-management' | translate }}"
                      ng-model="vm.settings.enableCredentialsManagement">{{ 'entity-group.enable-credentials-management' | translate }}
         </md-checkbox>
+        <md-checkbox ng-if="vm.entityType == vm.types.entityType.user" ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-login-as-user' | translate }}"
+                     ng-model="vm.settings.enableLoginAsUser">{{ 'entity-group.enable-login-as-user' | translate }}
+        </md-checkbox>
         <section ng-if="vm.entityType == vm.types.entityType.customer" layout="column">
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-users-management' | translate }}"
                          ng-model="vm.settings.enableUsersManagement">{{ 'entity-group.enable-users-management' | translate }}
