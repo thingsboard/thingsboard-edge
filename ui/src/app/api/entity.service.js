@@ -60,7 +60,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         getRelatedEntity: getRelatedEntity,
         deleteRelatedEntity: deleteRelatedEntity,
         moveEntity: moveEntity,
-        copyEntity: copyEntity
+        copyEntity: copyEntity,
+        getEntityGroupEntities: getEntityGroupEntities
     };
 
     return service;

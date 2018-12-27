@@ -28,55 +28,72 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+import './nav-tree.scss';
+
 /* eslint-disable import/no-unresolved, import/default */
 
-import customersTemplate from './customers.tpl.html';
-import customersHierarchyTemplate from './customers-hierarchy.tpl.html';
+import navTreeTemplate from './nav-tree.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-/*@ngInject*/
-export default function CustomerRoutes($stateProvider) {
+export default angular.module('thingsboard.directives.navTree', [])
+    .directive('tbNavTree', NavTree)
+    .name;
 
-    $stateProvider
-        .state('home.customers', {
-            url: '/customers',
-            params: {'topIndex': 0},
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            views: {
-                "content@home": {
-                    templateUrl: customersTemplate,
-                    controllerAs: 'vm',
-                    controller: 'CustomerController'
+/*@ngInject*/
+function NavTree() {
+    return {
+        restrict: "E",
+        scope: true,
+        bindToController: {
+            loadNodes: '=',
+            editCallbacks: '=',
+            onNodeSelected: '&'
+        },
+        controller: NavTreeController,
+        controllerAs: 'vm',
+        templateUrl: navTreeTemplate
+    };
+}
+
+/*@ngInject*/
+function NavTreeController($scope, $element, types) {
+
+    var vm = this;
+    vm.types = types;
+
+    $scope.$watch('vm.loadNodes', (newVal) => {
+        if (newVal) {
+            initTree();
+        }
+    });
+
+    function initTree() {
+        vm.treeElement = angular.element('#tb-nav-tree-container', $element)
+            .jstree(
+                {
+                    core: {
+                        multiple: false,
+                        check_callback: true,
+                        data: vm.loadNodes
+                    }
                 }
-            },
-            data: {
-                searchEnabled: true,
-                pageTitle: 'customer.customers'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "supervisor_account", "label": "customer.customers"}'
-            }
-        })
-        .state('home.customers-hierarchy', {
-            url: '/customersHierarchy',
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: customersHierarchyTemplate,
-                    controllerAs: 'vm',
-                    controller: 'CustomersHierarchyController'
-                }
-            },
-            data: {
-                searchEnabled: false,
-                pageTitle: 'customers-hierarchy.customers-hierarchy'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "sort", "label": "customers-hierarchy.customers-hierarchy"}'
+            );
+
+        vm.treeElement.on("changed.jstree", function (e, data) {
+            if (vm.onNodeSelected) {
+                vm.onNodeSelected({node: data.instance.get_selected(true)[0]});
             }
         });
 
+        if (vm.editCallbacks) {
+            vm.editCallbacks.updateNode = (id, newName) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    vm.treeElement.jstree('rename_node', node, newName);
+                }
+            }
+        }
+    }
 }

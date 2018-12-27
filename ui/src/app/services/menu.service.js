@@ -318,6 +318,16 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                    sections.push(
+                        {
+                            name: 'customers-hierarchy.customers-hierarchy',
+                            type: 'link',
+                            state: 'home.customers-hierarchy',
+                            icon: 'sort'
+                        }
+                    );
+                }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
                     sections.push(userGroups);
                 }
@@ -666,6 +676,16 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             type: 'link',
                             state: 'home.roles',
                             icon: 'security'
+                        }
+                    );
+                }
+                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                    sections.push(
+                        {
+                            name: 'customers-hierarchy.customers-hierarchy',
+                            type: 'link',
+                            state: 'home.customers-hierarchy',
+                            icon: 'sort'
                         }
                     );
                 }

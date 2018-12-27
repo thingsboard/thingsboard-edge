@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,28 +28,78 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import thingsboardApiCustomer from '../api/customer.service';
-import thingsboardGrid from '../components/grid.directive';
-import thingsboardContact from '../components/contact.directive';
-import thingsboardContactShort from '../components/contact-short.filter';
+.tb-customers-hierarchy {
+  .tb-fullscreen-button-style {
+    z-index: 1;
+  }
 
-import CustomerRoutes from './customer.routes';
-import CustomerController from './customer.controller';
-import CustomerDirective from './customer.directive';
-import CustomerGroupConfig from './customer-group.config';
-import CustomersHierarchyController from './customers-hierarchy.controller';
+  section.tb-header-buttons.tb-nav-tree-open {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
 
-export default angular.module('thingsboard.customer', [
-    uiRouter,
-    thingsboardApiCustomer,
-    thingsboardGrid,
-    thingsboardContact,
-    thingsboardContactShort
-])
-    .config(CustomerRoutes)
-    .controller('CustomerController', CustomerController)
-    .controller('CustomersHierarchyController', CustomersHierarchyController)
-    .directive('tbCustomer', CustomerDirective)
-    .factory('customerGroupConfig', CustomerGroupConfig)
-    .name;
+    .md-button.tb-btn-open-nav-tree {
+      top: 0;
+      left: 0;
+      width: 36px;
+      height: 36px;
+      margin: 4px 0 0 4px;
+      line-height: 36px;
+      opacity: .5;
+    }
+  }
+
+  .tb-customers-nav-tree {
+    z-index: 1;
+    width: 300px;
+    min-width: 300px;
+
+    md-toolbar {
+      height: 48px;
+      min-height: 48px;
+
+      .md-toolbar-tools > .md-button:last-child {
+        margin-right: 0;
+      }
+
+      .md-toolbar-tools {
+        height: 48px;
+        padding: 0 6px;
+        font-size: 14px;
+
+        .md-button.md-icon-button {
+          margin: 0;
+
+          &.tb-small {
+            width: 32px;
+            height: 32px;
+            min-height: 32px;
+            padding: 6px;
+            line-height: 20px;
+
+            md-icon {
+              width: 20px;
+              min-width: 20px;
+              height: 20px;
+              min-height: 20px;
+              font-size: 20px;
+              line-height: 20px;
+            }
+          }
+        }
+      }
+    }
+
+    .tb-customers-nav-tree-panel {
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+  }
+
+  .tb-customers-hierarchy-content {
+    z-index: 0;
+    overflow: auto;
+  }
+}

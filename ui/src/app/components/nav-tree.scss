@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
@@ -28,28 +28,94 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import thingsboardApiCustomer from '../api/customer.service';
-import thingsboardGrid from '../components/grid.directive';
-import thingsboardContact from '../components/contact.directive';
-import thingsboardContactShort from '../components/contact-short.filter';
 
-import CustomerRoutes from './customer.routes';
-import CustomerController from './customer.controller';
-import CustomerDirective from './customer.directive';
-import CustomerGroupConfig from './customer-group.config';
-import CustomersHierarchyController from './customers-hierarchy.controller';
+#tb-nav-tree-container {
+  a {
+    border-bottom: none;
 
-export default angular.module('thingsboard.customer', [
-    uiRouter,
-    thingsboardApiCustomer,
-    thingsboardGrid,
-    thingsboardContact,
-    thingsboardContactShort
-])
-    .config(CustomerRoutes)
-    .controller('CustomerController', CustomerController)
-    .controller('CustomersHierarchyController', CustomersHierarchyController)
-    .directive('tbCustomer', CustomerDirective)
-    .factory('customerGroupConfig', CustomerGroupConfig)
-    .name;
+    i.jstree-themeicon-custom {
+      &.tb-user-group {
+        &::before {
+          content: "account_circle";
+        }
+      }
+
+      &.tb-customer-group {
+        &::before {
+          content: "supervisor_account";
+        }
+      }
+
+      &.tb-asset-group {
+        &::before {
+          content: "domain";
+        }
+      }
+
+      &.tb-device-group {
+        &::before {
+          content: "devices_other";
+        }
+      }
+
+      &.tb-entity-view-group {
+        &::before {
+          content: "view_quilt";
+        }
+      }
+
+      &.tb-dashboard-group {
+        &::before {
+          content: "dashboard";
+        }
+      }
+
+      &.tb-customer {
+        &::before {
+          content: "supervisor_account";
+        }
+      }
+    }
+  }
+}
+
+.tb-nav-tree .md-button.tb-active {
+  font-weight: 500;
+  background-color: rgba(255, 255, 255, .15);
+}
+
+.tb-nav-tree,
+.tb-nav-tree ul {
+  margin-top: 0;
+  list-style: none;
+
+  &:first-child {
+    padding: 0;
+  }
+
+  li {
+    .md-button {
+      width: 100%;
+      max-height: 40px;
+      padding: 0 16px;
+      margin: 0;
+      overflow: hidden;
+      line-height: 40px;
+      color: inherit;
+      text-align: left;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      text-transform: none;
+      text-rendering: optimizeLegibility;
+      white-space: nowrap;
+      cursor: pointer;
+      border-radius: 0;
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+
+<md-content flex tb-expand-fullscreen expand-tooltip-direction="bottom" layout="column" class="tb-customers-hierarchy"
+            on-fullscreen-changed="vm.isFullscreen = expanded">
+    <section class="tb-customers-hierarchy-container" flex layout="column">
+        <div class="tb-customers-hierarchy-layout" flex layout="row">
+            <section layout="row" layout-wrap
+                     class="tb-header-buttons md-fab tb-nav-tree-open">
+                <md-button ng-show="!vm.isNavTreeOpen"
+                           class="tb-btn-header tb-btn-open-nav-tree md-primary md-fab md-fab-top-left"
+                           aria-label="{{ 'customers-hierarchy.open-nav-tree' | translate }}"
+                           ng-click="vm.isNavTreeOpen = true">
+                    <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
+                        {{ 'customers-hierarchy.open-nav-tree' | translate }}
+                    </md-tooltip>
+                    <ng-md-icon icon="menu"></ng-md-icon>
+                </md-button>
+            </section>
+            <md-sidenav class="tb-customers-nav-tree md-sidenav-left md-whiteframe-4dp"
+                        md-disable-backdrop
+                        md-is-locked-open="vm.isNavTreeOpenReadonly"
+                        md-is-open="vm.isNavTreeOpenReadonly"
+                        md-component-id="customers-nav-tree-sidenav" layout="column">
+                <md-toolbar>
+                    <div class="md-toolbar-tools">
+                        <!--md-button class="md-icon-button tb-small" aria-label="{{ 'action.search' | translate }}">
+                            <md-icon aria-label="{{ 'action.search' | translate }}" class="material-icons">search</md-icon>
+                            <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
+                                {{'rulenode.search' | translate}}
+                            </md-tooltip>
+                        </md-button-->
+                        <!--div layout="row" md-theme="tb-dark" flex>
+                            <md-input-container flex>
+                                <label>&nbsp;</label>
+                                <input ng-model="vm.ruleNodeSearch" placeholder="{{'rulenode.search' | translate}}"/>
+                            </md-input-container>
+                        </div-->
+                        <!--md-button class="md-icon-button tb-small" aria-label="Close"
+                                   ng-show="vm.ruleNodeSearch"
+                                   ng-click="vm.ruleNodeSearch = ''">
+                            <md-icon aria-label="Close" class="material-icons">close</md-icon>
+                            <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
+                                {{ 'action.clear-search' | translate }}
+                            </md-tooltip>
+                        </md-button-->
+                        <md-button class="md-icon-button tb-small" aria-label="Close" ng-click="vm.isNavTreeOpen = false">
+                            <md-icon aria-label="Close" class="material-icons">chevron_left</md-icon>
+                            <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
+                                {{ 'action.close' | translate }}
+                            </md-tooltip>
+                        </md-button>
+                    </div>
+                </md-toolbar>
+                <div flex class="tb-customers-nav-tree-panel">
+                    <tb-nav-tree
+                            load-nodes="vm.loadNodes"
+                            on-node-selected="vm.onNodeSelected(node)"
+                            edit-callbacks="vm.nodeEditCallbacks"
+                    ></tb-nav-tree>
+                </div>
+            </md-sidenav>
+            <div class="tb-absolute-fill tb-customers-hierarchy-content" layout="column">
+                <md-content ng-cloak flex layout="column" class="page-content" ui-view name="customersHierarchyContent"></md-content>
+            </div>
+        </div>
+    </section>
+</md-content>

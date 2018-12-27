@@ -502,6 +502,10 @@
         "default-customer-required": "Default customer is required in order to debug dashboard on Tenant level",
         "allow-white-labeling": "Allow White Labeling"
     },
+    "customers-hierarchy": {
+        "customers-hierarchy": "Customers hierarchy",
+        "open-nav-tree": "Open navigation tree"
+    },
     "custom-translation": {
         "custom-translation": "Custom Translation",
         "translation-map": "Translation map",
