@@ -29,14 +29,31 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
+/* eslint-disable import/no-unresolved, import/default */
+
+import entityGroupsTemplate from '../group/entity-groups.tpl.html';
+import entityGroupTemplate from '../group/entity-group.tpl.html';
+
+/* eslint-enable import/no-unresolved, import/default */
+
+
 import './customers-hierarchy.scss';
 
 /*@ngInject*/
-export default function CustomersHierarchyController(types, securityTypes, $timeout, $translate, entityGroupService, entityService, userPermissionsService) {
+export default function CustomersHierarchyController($scope, types, securityTypes, $templateCache, $controller,
+                                                     $timeout, $translate, customerGroupConfig, userGroupConfig,
+                                                     deviceGroupConfig, assetGroupConfig, entityViewGroupConfig, dashboardGroupConfig,
+                                                     $mdUtil, entityGroupService, entityService, userPermissionsService) {
 
     var vm = this;
 
     vm.types = types;
+
+    vm.currentTemplateUrl = entityGroupsTemplate;
+    vm.currentController = "EntityGroupsController";
+    vm.stateParams = {
+        groupType: types.entityType.customer
+    };
 
     vm.isFullscreen = false;
 
@@ -202,5 +219,53 @@ export default function CustomersHierarchyController(types, securityTypes, $time
     function onNodeSelected(node) {
         console.log('node selected!'); //eslint-disable-line
         console.log(node); //eslint-disable-line
+        if (node.data.type === "groups") {
+            vm.currentTemplateUrl = entityGroupsTemplate;
+            vm.currentController = "EntityGroupsController";
+            vm.stateParams = {
+                customerId: node.data.customer.id.id,
+                groupType: node.data.groupsType
+            };
+            vm.currentLocals = {};
+            $mdUtil.nextTick(() => {
+                $scope.$broadcast('hierarchyViewChanged');
+            });
+        } else if (node.data.type === "group") {
+            var entityGroup = node.data.entity;
+            var stateParams = {
+                entityGroupId: entityGroup.id.id
+            };
+            var groupConfigFactory = getGroupConfigFactory(entityGroup.type);
+            entityGroupService.constructGroupConfig(stateParams, angular.copy(entityGroup), groupConfigFactory).then(
+                (entityGroup) => {
+                    vm.currentLocals = {
+                        entityGroup: entityGroup
+                    };
+                    vm.currentTemplateUrl = entityGroupTemplate;
+                    vm.currentController = "EntityGroupController";
+                    vm.stateParams = stateParams;
+                    $mdUtil.nextTick(() => {
+                        $scope.$broadcast('hierarchyViewChanged');
+                    });
+                }
+            );
+        }
+    }
+
+    function getGroupConfigFactory(groupType) {
+        switch (groupType) {
+            case types.entityType.customer:
+                return customerGroupConfig;
+            case types.entityType.user:
+                return userGroupConfig;
+            case vm.types.entityType.asset:
+                return assetGroupConfig;
+            case vm.types.entityType.device:
+                return deviceGroupConfig;
+            case vm.types.entityType.entityView:
+                return entityViewGroupConfig;
+            case vm.types.entityType.dashboard:
+                return dashboardGroupConfig;
+        }
     }
 }

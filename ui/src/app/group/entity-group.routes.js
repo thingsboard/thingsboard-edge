@@ -684,7 +684,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
     }
 
     /*@ngInject*/
-    function DashboardGroupResolver($stateParams, $translate, $q, entityGroupService, customerService, dashboardGroupConfig) {
+    function DashboardGroupResolver($stateParams, entityGroupService, dashboardGroupConfig) {
         return entityGroupService.constructGroupConfigByStateParams($stateParams, dashboardGroupConfig);
     }
 

@@ -90,8 +90,15 @@
                     ></tb-nav-tree>
                 </div>
             </md-sidenav>
-            <div class="tb-absolute-fill tb-customers-hierarchy-content" layout="column">
-                <md-content ng-cloak flex layout="column" class="page-content" ui-view name="customersHierarchyContent"></md-content>
+            <div flex style="position: relative;">
+                <md-content class="tb-absolute-fill tb-customers-hierarchy-content" ng-cloak layout="column">
+                    <tb-customer-hierarchy-view-directive
+                            current-controller="vm.currentController"
+                            current-template-url="vm.currentTemplateUrl"
+                            state-params="vm.stateParams"
+                            locals="vm.currentLocals">
+                    </tb-customer-hierarchy-view-directive>
+                </md-content>
             </div>
         </div>
     </section>

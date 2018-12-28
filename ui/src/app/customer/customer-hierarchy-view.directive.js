@@ -28,30 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import thingsboardApiCustomer from '../api/customer.service';
-import thingsboardGrid from '../components/grid.directive';
-import thingsboardContact from '../components/contact.directive';
-import thingsboardContactShort from '../components/contact-short.filter';
 
-import CustomerRoutes from './customer.routes';
-import CustomerController from './customer.controller';
-import CustomerDirective from './customer.directive';
-import CustomerGroupConfig from './customer-group.config';
-import CustomersHierarchyController from './customers-hierarchy.controller';
-import CustomerHierarchyViewDirective from './customer-hierarchy-view.directive';
+/*@ngInject*/
+export default function CustomerHierarchyViewDirective($compile, $templateCache, $controller) {
+    var linker = function (scope, element) {
 
-export default angular.module('thingsboard.customer', [
-    uiRouter,
-    thingsboardApiCustomer,
-    thingsboardGrid,
-    thingsboardContact,
-    thingsboardContactShort
-])
-    .config(CustomerRoutes)
-    .controller('CustomerController', CustomerController)
-    .controller('CustomersHierarchyController', CustomersHierarchyController)
-    .directive('tbCustomer', CustomerDirective)
-    .directive('tbCustomerHierarchyViewDirective', CustomerHierarchyViewDirective)
-    .factory('customerGroupConfig', CustomerGroupConfig)
-    .name;
+
+        scope.$watch('currentTemplateUrl', function (newVal) {
+            if (newVal) {
+                loadView();
+            }
+        });
+
+        scope.$on('hierarchyViewChanged', () => {
+            if (scope.currentTemplateUrl) {
+                loadView();
+            }
+        });
+
+        function loadView() {
+            if (scope.viewScope) {
+                scope.viewScope.$destroy();
+            }
+            var template = $templateCache.get(scope.currentTemplateUrl);
+            element.html(template);
+            scope.viewScope = scope.$new();
+
+            scope.viewScope.searchConfig = {
+                searchEnabled: false,
+                searchByEntitySubtype: false,
+                searchEntityType: null,
+                showSearch: false,
+                searchText: "",
+                searchEntitySubtype: ""
+            };
+
+            var locals = {$scope: scope.viewScope, $element: element, $stateParams: scope.stateParams};
+            if (scope.locals) {
+                angular.extend(locals, scope.locals);
+            }
+
+            $controller(scope.currentController + ' as vm', locals);
+
+            $compile(element.contents())(scope.viewScope);
+        }
+    }
+
+    return {
+        restrict: "E",
+        link: linker,
+        scope: {
+            currentTemplateUrl: '=',
+            currentController: '=',
+            stateParams: '=',
+            locals: '='
+        }
+    };
+}
