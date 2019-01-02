@@ -72,7 +72,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -101,7 +101,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: true,
@@ -124,7 +124,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: UserGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -153,7 +153,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: true,
@@ -176,7 +176,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -205,7 +205,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: true,
@@ -228,7 +228,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: AssetGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -257,7 +257,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: true,
@@ -280,7 +280,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: DeviceGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -309,7 +309,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: true,
@@ -332,7 +332,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: EntityViewGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -361,7 +361,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: CustomerGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: true,
@@ -384,7 +384,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: DashboardGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -451,7 +451,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: AssetGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -494,7 +494,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: DeviceGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -537,7 +537,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: UserGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -580,7 +580,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: EntityViewGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -622,7 +622,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
-                entityGroup: DashboardGroupResolver
+                entityGroup: EntityGroupResolver
             },
             data: {
                 searchEnabled: false,
@@ -659,33 +659,8 @@ export default function EntityGroupRoutes($stateProvider, types) {
         });
 
     /*@ngInject*/
-    function CustomerGroupResolver($stateParams, entityGroupService, customerGroupConfig) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams, customerGroupConfig);
-    }
-
-    /*@ngInject*/
-    function UserGroupResolver($stateParams, entityGroupService, userGroupConfig) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams, userGroupConfig);
-    }
-
-    /*@ngInject*/
-    function DeviceGroupResolver($stateParams, entityGroupService, deviceGroupConfig) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams, deviceGroupConfig);
-    }
-
-    /*@ngInject*/
-    function AssetGroupResolver($stateParams, entityGroupService, assetGroupConfig) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams, assetGroupConfig);
-    }
-
-    /*@ngInject*/
-    function EntityViewGroupResolver($stateParams, entityGroupService, entityViewGroupConfig) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams, entityViewGroupConfig);
-    }
-
-    /*@ngInject*/
-    function DashboardGroupResolver($stateParams, entityGroupService, dashboardGroupConfig) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams, dashboardGroupConfig);
+    function EntityGroupResolver($stateParams, entityGroupService) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams);
     }
 
    /* function constructGroupConfig($stateParams, $translate, $q, entityGroupService, customerService, entityGroupConfigFactory) {

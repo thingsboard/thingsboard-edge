@@ -88,12 +88,53 @@ function NavTreeController($scope, $element, types) {
         });
 
         if (vm.editCallbacks) {
+            vm.editCallbacks.selectNode = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    vm.treeElement.jstree('deselect_all', true);
+                    vm.treeElement.jstree('select_node', node);
+                }
+            };
+            vm.editCallbacks.openNode = (id, cb) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    vm.treeElement.jstree('open_node', node, cb);
+                }
+            };
+            vm.editCallbacks.nodeIsOpen = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    return vm.treeElement.jstree('is_open', node);
+                } else {
+                    return true;
+                }
+            };
+            vm.editCallbacks.nodeIsLoaded = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    return vm.treeElement.jstree('is_loaded', node);
+                } else {
+                    return true;
+                }
+            };
+            vm.editCallbacks.refreshNode = (id) => {
+                if (id === '#') {
+                    vm.treeElement.jstree('refresh');
+                    vm.treeElement.jstree('redraw');
+                } else {
+                    var node = vm.treeElement.jstree('get_node', id);
+                    if (node) {
+                        vm.treeElement.jstree('refresh_node', node);
+                        vm.treeElement.jstree('redraw');
+                    }
+                }
+            };
             vm.editCallbacks.updateNode = (id, newName) => {
                 var node = vm.treeElement.jstree('get_node', id);
                 if (node) {
                     vm.treeElement.jstree('rename_node', node, newName);
                 }
-            }
+            };
         }
     }
 }

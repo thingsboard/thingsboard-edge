@@ -44,7 +44,7 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $state, utils, entityGroupService, customerService, $stateParams,
+export function EntityGroupsController($rootScope, $scope, $state, utils, entityGroupService, customerService, $stateParams,
                                       $q, $translate, types, securityTypes, userPermissionsService) {
 
     var vm = this;
@@ -143,6 +143,12 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         vm.deviceGridConfig.topIndex = $stateParams.topIndex;
     }
 
+    if ($stateParams.hierarchyView) {
+        $stateParams.hierarchyCallbacks.reloadData = () => {
+            reload();
+        };
+    }
+
     function deleteEntityGroupTitle(entityGroup) {
         return $translate.instant('entity-group.delete-entity-group-title', {entityGroupName: entityGroup.name});
     }
@@ -165,6 +171,9 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function gridInited(grid) {
         vm.grid = grid;
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.viewLoaded) {
+            $stateParams.hierarchyCallbacks.viewLoaded();
+        }
     }
 
     function getEntityGroupTitle(entityGroup) {
@@ -205,6 +214,9 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
                 if (!vm.customerId) {
                     $rootScope.$broadcast(vm.groupType + 'changed');
                 }
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
+                    $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, null, [entityGroup.id.id]);
+                }
             },
             function fail() {
                 deferred.reject();
@@ -221,6 +233,9 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
                 if (!vm.customerId) {
                     $rootScope.$broadcast(vm.groupType + 'changed');
                 }
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
+                    $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, null, [entityGroupId]);
+                }
             },
             function fail() {
                 deferred.reject();
@@ -233,31 +248,56 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         if ($event) {
             $event.stopPropagation();
         }
-        var targetStatePrefix = 'home.';
-        if (vm.customerId) {
-            targetStatePrefix = 'home.customerGroups.customerGroup.';
-        }
-        var targetState;
-        if (entityGroup.type == types.entityType.asset) {
-            targetState = 'assetGroups.assetGroup';
-        } else if (entityGroup.type == types.entityType.device) {
-            targetState = 'deviceGroups.deviceGroup';
-        } else if (entityGroup.type == types.entityType.customer) {
-            targetState = 'customerGroups.customerGroup';
-        } else if (entityGroup.type == types.entityType.user) {
-            targetState = 'userGroups.userGroup';
-        } else if (entityGroup.type == types.entityType.entityView) {
-            targetState = 'entityViewGroups.entityViewGroup';
-        } else if (entityGroup.type == types.entityType.dashboard) {
-            targetState = 'dashboardGroups.dashboardGroup';
-        }
-        if (targetState) {
-            targetState = targetStatePrefix + targetState;
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.groupSelected) {
+            $stateParams.hierarchyCallbacks.groupSelected($stateParams.nodeId, entityGroup.id.id);
+        } else {
+            var targetStatePrefix = 'home.';
             if (vm.customerId) {
-                $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
-            } else {
-                $state.go(targetState, {entityGroupId: entityGroup.id.id});
+                targetStatePrefix = 'home.customerGroups.customerGroup.';
             }
+            var targetState;
+            if (entityGroup.type == types.entityType.asset) {
+                targetState = 'assetGroups.assetGroup';
+            } else if (entityGroup.type == types.entityType.device) {
+                targetState = 'deviceGroups.deviceGroup';
+            } else if (entityGroup.type == types.entityType.customer) {
+                targetState = 'customerGroups.customerGroup';
+            } else if (entityGroup.type == types.entityType.user) {
+                targetState = 'userGroups.userGroup';
+            } else if (entityGroup.type == types.entityType.entityView) {
+                targetState = 'entityViewGroups.entityViewGroup';
+            } else if (entityGroup.type == types.entityType.dashboard) {
+                targetState = 'dashboardGroups.dashboardGroup';
+            }
+            if (targetState) {
+                targetState = targetStatePrefix + targetState;
+                if (vm.customerId) {
+                    $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+                } else {
+                    $state.go(targetState, {entityGroupId: entityGroup.id.id});
+                }
+            }
+        }
+    }
+
+    function reload() {
+        vm.customerId = $stateParams.customerId;
+        if (vm.customerId && $stateParams.childGroupType) {
+            vm.groupType = $stateParams.childGroupType;
+        } else {
+            vm.groupType = $stateParams.groupType;
+        }
+
+        vm.types = types;
+
+        vm.groupResource = securityTypes.groupResourceByGroupType[vm.groupType];
+        vm.entityGroupGridConfig.resource = vm.groupResource;
+
+        if (vm.grid) {
+            vm.grid.reInit();
+        }
+        if ($stateParams.hierarchyCallbacks.viewLoaded) {
+            $stateParams.hierarchyCallbacks.viewLoaded();
         }
     }
 }

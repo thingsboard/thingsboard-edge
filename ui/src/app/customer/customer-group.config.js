@@ -99,42 +99,66 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.userGroups', {customerId: entity.id.id});
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.user);
+            } else {
+                $state.go('home.customerGroups.customerGroup.userGroups', {customerId: entity.id.id});
+            }
         };
 
         groupConfig.onManageCustomers = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.customerGroups', {customerId: entity.id.id});
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.customer);
+            } else {
+                $state.go('home.customerGroups.customerGroup.customerGroups', {customerId: entity.id.id});
+            }
         };
 
         groupConfig.onManageAssets = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.assetGroups', {customerId: entity.id.id});
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.asset);
+            } else {
+                $state.go('home.customerGroups.customerGroup.assetGroups', {customerId: entity.id.id});
+            }
         };
 
         groupConfig.onManageDevices = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.deviceGroups', {customerId: entity.id.id});
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.device);
+            } else {
+                $state.go('home.customerGroups.customerGroup.deviceGroups', {customerId: entity.id.id});
+            }
         };
 
         groupConfig.onManageEntityViews = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.entityViewGroups', {customerId: entity.id.id});
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.entityView);
+            } else {
+                $state.go('home.customerGroups.customerGroup.entityViewGroups', {customerId: entity.id.id});
+            }
         };
 
         groupConfig.onManageDashboards = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
-            $state.go('home.customerGroups.customerGroup.dashboardGroups', {customerId: entity.id.id});
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.dashboard);
+            } else {
+                $state.go('home.customerGroups.customerGroup.dashboardGroups', {customerId: entity.id.id});
+            }
         };
 
         groupConfig.actionCellDescriptors = [];

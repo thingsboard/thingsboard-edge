@@ -29,57 +29,104 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
+/* eslint-disable import/no-unresolved, import/default */
+
+import entityGroupsTemplate from '../group/entity-groups.tpl.html';
+import entityGroupTemplate from '../group/entity-group.tpl.html';
+
+/* eslint-enable import/no-unresolved, import/default */
+
 /*@ngInject*/
-export default function CustomerHierarchyViewDirective($compile, $templateCache, $controller) {
-    var linker = function (scope, element) {
+export default function CustomerHierarchyViewDirective($compile, $templateCache, $controller, $q, entityGroupService) {
+    var linker = function (scope, element, attrs) {
 
+        var inited = false;
 
-        scope.$watch('currentTemplateUrl', function (newVal) {
-            if (newVal) {
-                loadView();
-            }
+        attrs.$observe('mode', function() {
+            loadView();
         });
 
-        scope.$on('hierarchyViewChanged', () => {
-            if (scope.currentTemplateUrl) {
-                loadView();
+        scope.$on("$destroy", function () {
+            if (scope.viewScope) {
+                scope.viewScope.$destroy();
             }
         });
 
         function loadView() {
-            if (scope.viewScope) {
-                scope.viewScope.$destroy();
+            var controller, template;
+            if (attrs.mode === 'groups') {
+                controller = 'EntityGroupsController';
+                template = $templateCache.get(entityGroupsTemplate);
+            } else if (attrs.mode === 'group') {
+                controller = 'EntityGroupController';
+                template = $templateCache.get(entityGroupTemplate);
             }
-            var template = $templateCache.get(scope.currentTemplateUrl);
-            element.html(template);
-            scope.viewScope = scope.$new();
-
-            scope.viewScope.searchConfig = {
-                searchEnabled: false,
-                searchByEntitySubtype: false,
-                searchEntityType: null,
-                showSearch: false,
-                searchText: "",
-                searchEntitySubtype: ""
+            scope.stateParams.hierarchyCallbacks.reload = () => {
+                var promise;
+                if (attrs.mode === 'groups') {
+                    promise = $q.when();
+                } else if (attrs.mode === 'group') {
+                    var deferred = $q.defer();
+                    entityGroupService.constructGroupConfig(scope.stateParams, scope.stateParams.entityGroup).then(
+                        (entityGroup) => {
+                            scope.stateParams.entityGroup = entityGroup;
+                            scope.locals.entityGroup = entityGroup;
+                            deferred.resolve();
+                        },
+                        () => {
+                            deferred.reject();
+                        }
+                    );
+                    promise = deferred.promise;
+                }
+                if (promise) {
+                    promise.then(() => {
+                        if (!inited) {
+                            initView(template, controller);
+                            inited = true;
+                        } else {
+                            if (scope.stateParams.hierarchyCallbacks.reloadData) {
+                                scope.stateParams.hierarchyCallbacks.reloadData();
+                            }
+                        }
+                    });
+                }
             };
-
-            var locals = {$scope: scope.viewScope, $element: element, $stateParams: scope.stateParams};
-            if (scope.locals) {
-                angular.extend(locals, scope.locals);
-            }
-
-            $controller(scope.currentController + ' as vm', locals);
-
-            $compile(element.contents())(scope.viewScope);
         }
-    }
+
+        function initView(template, controller) {
+            if (controller && template) {
+                if (scope.viewScope) {
+                    scope.viewScope.$destroy();
+                }
+                element.html(template);
+                scope.viewScope = scope.$new();
+
+                scope.viewScope.searchConfig = {
+                    searchEnabled: false,
+                    searchByEntitySubtype: false,
+                    searchEntityType: null,
+                    showSearch: false,
+                    searchText: "",
+                    searchEntitySubtype: ""
+                };
+
+                var locals = {$scope: scope.viewScope, $element: element, $stateParams: scope.stateParams};
+                if (scope.locals) {
+                    angular.extend(locals, scope.locals);
+                }
+
+                $controller(controller + ' as vm', locals);
+
+                $compile(element.contents())(scope.viewScope);
+            }
+        }
+    };
 
     return {
         restrict: "E",
         link: linker,
         scope: {
-            currentTemplateUrl: '=',
-            currentController: '=',
             stateParams: '=',
             locals: '='
         }

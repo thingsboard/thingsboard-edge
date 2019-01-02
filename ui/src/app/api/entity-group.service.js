@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.entityGroup', [])
     .name;
 
 /*@ngInject*/
-function EntityGroupService($http, $q, $translate, customerService, types, utils) {
+function EntityGroupService($http, $q, $translate, $injector, customerService, types, utils) {
 
     var service = {
         getOwners: getOwners,
@@ -265,12 +265,12 @@ function EntityGroupService($http, $q, $translate, customerService, types, utils
         return deferred.promise;
     }
 
-    function constructGroupConfigByStateParams($stateParams, entityGroupConfigFactory) {
+    function constructGroupConfigByStateParams($stateParams) {
         var deferred = $q.defer();
         var entityGroupId = $stateParams.childEntityGroupId || $stateParams.entityGroupId;
         getEntityGroup(entityGroupId).then(
             (entityGroup) => {
-                constructGroupConfig($stateParams, entityGroup, entityGroupConfigFactory).then(
+                constructGroupConfig($stateParams, entityGroup).then(
                     (entityGroup) => {
                         deferred.resolve(entityGroup);
                     },
@@ -286,15 +286,14 @@ function EntityGroupService($http, $q, $translate, customerService, types, utils
         return deferred.promise;
     }
 
-    function constructGroupConfig($stateParams, entityGroup, entityGroupConfigFactory) {
+    function constructGroupConfig($stateParams, entityGroup) {
         var deferred = $q.defer();
         entityGroup.origEntityGroup = angular.copy(entityGroup);
         resolveParentGroupInfo($stateParams, entityGroup).then(
             (entityGroup) => {
-                entityGroupConfigFactory.createConfig($stateParams, entityGroup).then(
+                getGroupConfigFactory(entityGroup.type).createConfig($stateParams, entityGroup).then(
                     (entityGroupConfig) => {
                         entityGroup.entityGroupConfig = entityGroupConfig;
-                        entityGroup.entityGroupConfigFactory = entityGroupConfigFactory;
                         deferred.resolve(entityGroup);
                     },
                     () => {
@@ -354,6 +353,23 @@ function EntityGroupService($http, $q, $translate, customerService, types, utils
                 return 'entity-group.entity-view-groups';
             case types.entityType.dashboard:
                 return 'entity-group.dashboard-groups';
+        }
+    }
+
+    function getGroupConfigFactory(groupType) {
+        switch (groupType) {
+            case types.entityType.customer:
+                return $injector.get('customerGroupConfig');
+            case types.entityType.user:
+                return $injector.get('userGroupConfig');
+            case types.entityType.asset:
+                return $injector.get('assetGroupConfig');
+            case types.entityType.device:
+                return $injector.get('deviceGroupConfig');
+            case types.entityType.entityView:
+                return $injector.get('entityViewGroupConfig');
+            case types.entityType.dashboard:
+                return $injector.get('dashboardGroupConfig');
         }
     }
 

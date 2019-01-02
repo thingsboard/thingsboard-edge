@@ -170,6 +170,7 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
     vm.openItem = openItem;
     vm.operatingItem = operatingItem;
     vm.refreshList = refreshList;
+    vm.reInit = reInit;
     vm.saveItem = saveItem;
     vm.toggleItemSelection = toggleItemSelection;
     vm.triggerResize = triggerResize;
@@ -497,6 +498,11 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             vm.items.reloadPending = false;
             vm.itemRows.getItemAtIndex(pageSize);
         }
+    }
+
+    function reInit() {
+        initGridConfiguration();
+        refreshList();
     }
 
     function refreshList() {

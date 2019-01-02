@@ -88,6 +88,9 @@ function EntityDetailsSidenavController($scope, $window, types, securityTypes, u
     });
 
     function reload() {
+        vm.translations = vm.types.entityTypeTranslations[vm.entityType];
+        vm.resources = vm.types.entityTypeResources[vm.entityType];
+        vm.isReadOnly = !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.write, vm.entityGroup);
         vm.isEdit = false;
         vm.detailsForm.$setPristine();
         loadEntity();

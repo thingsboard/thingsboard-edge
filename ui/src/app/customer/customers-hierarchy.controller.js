@@ -29,31 +29,48 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-/* eslint-disable import/no-unresolved, import/default */
-
-import entityGroupsTemplate from '../group/entity-groups.tpl.html';
-import entityGroupTemplate from '../group/entity-group.tpl.html';
-
-/* eslint-enable import/no-unresolved, import/default */
-
-
 import './customers-hierarchy.scss';
 
 /*@ngInject*/
-export default function CustomersHierarchyController($scope, types, securityTypes, $templateCache, $controller,
-                                                     $timeout, $translate, customerGroupConfig, userGroupConfig,
-                                                     deviceGroupConfig, assetGroupConfig, entityViewGroupConfig, dashboardGroupConfig,
-                                                     $mdUtil, entityGroupService, entityService, userPermissionsService) {
+export default function CustomersHierarchyController($scope, types, securityTypes, $templateCache, $controller, $mdUtil,
+                                                     $translate, $timeout, entityGroupService, entityService, userPermissionsService) {
 
     var vm = this;
 
     vm.types = types;
 
-    vm.currentTemplateUrl = entityGroupsTemplate;
-    vm.currentController = "EntityGroupsController";
-    vm.stateParams = {
-        groupType: types.entityType.customer
+    vm.nodeIdCounter = 0;
+    vm.selectedNodeId = -1;
+
+    vm.entityGroupNodesMap = {};
+    vm.customerNodesMap = {};
+    vm.customerGroupsNodesMap = {};
+
+    vm.viewMode = 'groups';
+    vm.groupsStateParams = {
+        hierarchyView: true,
+        groupType: types.entityType.customer,
+        hierarchyCallbacks: {
+            viewLoaded: () => {
+                vm.viewLoading = false;
+            },
+            groupSelected: onGroupSelected,
+            refreshNode: refreshNode
+        }
     };
+    vm.groupsLocals = {};
+
+    vm.groupStateParams = {
+        hierarchyView: true,
+        hierarchyCallbacks: {
+            viewLoaded: () => {
+                vm.viewLoading = false;
+            },
+            customerGroupsSelected: onCustomerGroupsSelected,
+            refreshNode: refreshNode
+        }
+    };
+    vm.groupLocals = {};
 
     vm.isFullscreen = false;
 
@@ -77,17 +94,13 @@ export default function CustomersHierarchyController($scope, types, securityType
         types.entityType.dashboard
     ];
 
-
-    /*$timeout(() => {
-        vm.nodeEditCallbacks.updateNode("ENTITY_GROUP_1", "New name");
-    }, 5000);*/
-
-
     function loadNodes(node, cb) {
         if (node.id === '#') {
             entityGroupService.getEntityGroups(vm.types.entityType.customer).then(
                 (entityGroups) => {
-                    cb(entityGroupsToNodes(entityGroups));
+                    cb(entityGroupsToNodes(node.id, entityGroups));
+                    vm.groupsStateParams.nodeId = node.id;
+                    vm.groupsStateParams.hierarchyCallbacks.reload();
                 }
             );
         } else if (node.data && node.data.type) {
@@ -96,7 +109,7 @@ export default function CustomersHierarchyController($scope, types, securityType
                 if (entityGroup.type === vm.types.entityType.customer) {
                     entityService.getEntityGroupEntities(entityGroup.id.id, -1).then(
                         (customers) => {
-                            cb(customersToNodes(entityGroup.id.id, customers));
+                            cb(customersToNodes(node.id, entityGroup.id.id, customers));
                         }
                     );
                 } else {
@@ -104,25 +117,118 @@ export default function CustomersHierarchyController($scope, types, securityType
                 }
             } else if (node.data.type === "customer") {
                 var customer = node.data.entity;
-                cb(loadNodesForCustomer(customer));
+                cb(loadNodesForCustomer(node.id, customer));
             } else if (node.data.type === "groups") {
                 var owner = node.data.customer;
                 entityGroupService.getEntityGroupsByOwnerId(owner.id.entityType, owner.id.id, node.data.groupsType).then(
                     (entityGroups) => {
-                        cb(entityGroupsToNodes(entityGroups));
+                        cb(entityGroupsToNodes(node.id, entityGroups));
                     }
                 );
             }
         }
     }
 
-    function entityGroupsToNodes(entityGroups) {
+    function onGroupSelected(parentNodeId, groupId) {
+        var nodesMap = vm.entityGroupNodesMap[parentNodeId];
+        if (nodesMap) {
+            var nodeId = nodesMap[groupId];
+            if (nodeId) {
+                $timeout(() => {
+                    vm.nodeEditCallbacks.selectNode(nodeId);
+                    if (!vm.nodeEditCallbacks.nodeIsOpen(nodeId)) {
+                        vm.nodeEditCallbacks.openNode(nodeId);
+                    }
+                }, 0, false);
+            }
+        } else {
+            openNode(parentNodeId, () => {onGroupSelected(parentNodeId, groupId)});
+        }
+    }
+
+    function onCustomerGroupsSelected(parentNodeId, customerId, groupsType) {
+        var nodesMap = vm.customerNodesMap[parentNodeId];
+        if (nodesMap) {
+            var customerNodeId = nodesMap[customerId];
+            if (customerNodeId) {
+                var customerGroupNodeMap = vm.customerGroupsNodesMap[customerNodeId];
+                if (customerGroupNodeMap) {
+                    var nodeId = customerGroupNodeMap[groupsType];
+                    if (nodeId) {
+                        $timeout(() => {
+                            vm.nodeEditCallbacks.selectNode(nodeId);
+                            if (!vm.nodeEditCallbacks.nodeIsOpen(nodeId)) {
+                                vm.nodeEditCallbacks.openNode(nodeId);
+                            }
+                        }, 0, false);
+                    }
+                } else {
+                    openNode(customerNodeId, () => {onCustomerGroupsSelected(parentNodeId, customerId, groupsType)});
+                }
+            }
+        } else {
+            openNode(parentNodeId, () => {onCustomerGroupsSelected(parentNodeId, customerId, groupsType)});
+        }
+    }
+
+    function refreshNode(nodeId, entityId, entityGroupIds) {
+        if (vm.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
+            vm.nodeEditCallbacks.refreshNode(nodeId);
+        }
+        if (entityId) {
+            //vm.entityGroupNodesMap = {};
+            //vm.customerNodesMap = {};
+            //vm.customerGroupsNodesMap = {};
+            for (var parentNodeId in vm.customerNodesMap) {
+                var nodesMap = vm.customerNodesMap[parentNodeId];
+                if (nodesMap[entityId]) {
+                    if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
+                        vm.nodeEditCallbacks.refreshNode(parentNodeId);
+                    }
+                    continue;
+                }
+            }
+            /*for (parentNodeId in vm.customerGroupsNodesMap) {
+                nodesMap = vm.customerGroupsNodesMap[parentNodeId];
+                if (nodesMap[entityId]) {
+                    if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
+                        vm.nodeEditCallbacks.refreshNode(parentNodeId);
+                    }
+                    continue;
+                }
+            }*/
+        }
+        if (entityGroupIds) {
+            for (var i=0;i<entityGroupIds.length;i++) {
+                var entityGroupId = entityGroupIds[i];
+                for (parentNodeId in vm.entityGroupNodesMap) {
+                    nodesMap = vm.entityGroupNodesMap[parentNodeId];
+                    if (nodesMap[entityGroupId]) {
+                        if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
+                            vm.nodeEditCallbacks.refreshNode(parentNodeId);
+                        }
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    function openNode(nodeId, openCb) {
+        if (!vm.nodeEditCallbacks.nodeIsOpen(nodeId)) {
+            vm.nodeEditCallbacks.openNode(nodeId, openCb);
+        }
+    }
+
+    function entityGroupsToNodes(parentNodeId, entityGroups) {
         var nodes = [];
+        var nodesMap = {};
+        vm.entityGroupNodesMap[parentNodeId] = nodesMap;
         if (entityGroups) {
             for (var i = 0; i < entityGroups.length; i++) {
                 var entityGroup = entityGroups[i];
                 var node = {
-                    id: entityGroup.id.entityType + "_" + entityGroup.id.id,
+                    id: ++vm.nodeIdCounter,
                     icon: 'material-icons ' + iconForGroupType(entityGroup.type),
                     text: entityGroup.name,
                     children: entityGroup.type === vm.types.entityType.customer,
@@ -132,39 +238,48 @@ export default function CustomersHierarchyController($scope, types, securityType
                     }
                 };
                 nodes.push(node);
+                nodesMap[entityGroup.id.id] = node.id;
             }
         }
         return nodes;
     }
 
-    function customersToNodes(groupId, customers) {
+    function customersToNodes(parentNodeId, groupId, customers) {
         var nodes = [];
+        var nodesMap = {};
+        vm.customerNodesMap[parentNodeId] = nodesMap;
         if (customers) {
             for (var i = 0; i < customers.length; i++) {
                 var customer = customers[i];
                 var node = {
-                    id: groupId + "_" + customer.id.entityType + "_" + customer.id.id,
+                    id: ++vm.nodeIdCounter,
                     icon: 'material-icons tb-customer',
                     text: customer.title,
                     children: true,
+                    state: {
+                        disabled: true
+                    },
                     data: {
                         type: "customer",
                         entity: customer
                     }
                 };
                 nodes.push(node);
+                nodesMap[customer.id.id] = node.id;
             }
         }
         return nodes;
     }
 
-    function loadNodesForCustomer(customer) {
+    function loadNodesForCustomer(parentNodeId, customer) {
         var nodes = [];
+        var nodesMap = {};
+        vm.customerGroupsNodesMap[parentNodeId] = nodesMap;
         for (var i=0; i<groupTypes.length;i++) {
             var groupType = groupTypes[i];
             if (userPermissionsService.hasGenericPermission(securityTypes.groupResourceByGroupType[groupType], securityTypes.operation.read)) {
                 var node = {
-                    id: "GROUPS_"+ groupType + "_" + customer.id.id,
+                    id: ++vm.nodeIdCounter,
                     icon: 'material-icons ' + iconForGroupType(groupType),
                     text: textForGroupType(groupType),
                     children: true,
@@ -175,6 +290,7 @@ export default function CustomersHierarchyController($scope, types, securityType
                     }
                 };
                 nodes.push(node);
+                nodesMap[groupType] = node.id;
             }
         }
         return nodes;
@@ -217,55 +333,37 @@ export default function CustomersHierarchyController($scope, types, securityType
     }
 
     function onNodeSelected(node) {
-        console.log('node selected!'); //eslint-disable-line
-        console.log(node); //eslint-disable-line
-        if (node.data.type === "groups") {
-            vm.currentTemplateUrl = entityGroupsTemplate;
-            vm.currentController = "EntityGroupsController";
-            vm.stateParams = {
-                customerId: node.data.customer.id.id,
-                groupType: node.data.groupsType
-            };
-            vm.currentLocals = {};
-            $mdUtil.nextTick(() => {
-                $scope.$broadcast('hierarchyViewChanged');
-            });
-        } else if (node.data.type === "group") {
-            var entityGroup = node.data.entity;
-            var stateParams = {
-                entityGroupId: entityGroup.id.id
-            };
-            var groupConfigFactory = getGroupConfigFactory(entityGroup.type);
-            entityGroupService.constructGroupConfig(stateParams, angular.copy(entityGroup), groupConfigFactory).then(
-                (entityGroup) => {
-                    vm.currentLocals = {
-                        entityGroup: entityGroup
-                    };
-                    vm.currentTemplateUrl = entityGroupTemplate;
-                    vm.currentController = "EntityGroupController";
-                    vm.stateParams = stateParams;
+        if (!node) {
+            return;
+        }
+        if (vm.selectedNodeId !== node.id) {
+            vm.selectedNodeId = node.id;
+            $scope.$apply(() => {
+                if (node.data.type === "groups" || node.data.type === "group") {
+                    vm.viewLoading = true;
                     $mdUtil.nextTick(() => {
-                        $scope.$broadcast('hierarchyViewChanged');
+                        if (node.data.type === "groups") {
+                            vm.viewMode = 'groups';
+                            vm.groupsStateParams.customerId = node.data.customer.id.id;
+                            vm.groupsStateParams.groupType = node.data.groupsType;
+                            vm.groupsStateParams.nodeId = node.id;
+                            vm.groupsStateParams.hierarchyCallbacks.reload();
+                        } else if (node.data.type === "group") {
+                            vm.viewMode = 'group';
+                            var entityGroup = node.data.entity;
+                            vm.groupStateParams.entityGroupId = entityGroup.id.id;
+                            if (entityGroup.ownerId.entityType === vm.types.entityType.customer) {
+                                vm.groupStateParams.customerId = entityGroup.ownerId.id;
+                            } else {
+                                vm.groupStateParams.customerId = null;
+                            }
+                            vm.groupStateParams.entityGroup = angular.copy(entityGroup);
+                            vm.groupStateParams.nodeId = node.id;
+                            vm.groupStateParams.hierarchyCallbacks.reload();
+                        }
                     });
                 }
-            );
-        }
-    }
-
-    function getGroupConfigFactory(groupType) {
-        switch (groupType) {
-            case types.entityType.customer:
-                return customerGroupConfig;
-            case types.entityType.user:
-                return userGroupConfig;
-            case vm.types.entityType.asset:
-                return assetGroupConfig;
-            case vm.types.entityType.device:
-                return deviceGroupConfig;
-            case vm.types.entityType.entityView:
-                return entityViewGroupConfig;
-            case vm.types.entityType.dashboard:
-                return dashboardGroupConfig;
+            });
         }
     }
 }

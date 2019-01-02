@@ -67,40 +67,44 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
 
         scope.types = types;
 
-        scope.entityType = attrs.entityType;
+        attrs.$observe('entityType', function() {
 
-        if (scope.entityType === types.entityType.device || scope.entityType === types.entityType.entityView) {
-            scope.attributeScopes = types.attributesScope;
-            scope.attributeScopeSelectionReadonly = false;
-        } else {
-            scope.attributeScopes = {};
-            scope.attributeScopes.server = types.attributesScope.server;
-            scope.attributeScopeSelectionReadonly = true;
-        }
+            scope.entityType = attrs.entityType;
 
-        scope.attributeScope = getAttributeScopeByValue(attrs.defaultAttributeScope);
-
-        if (scope.entityType != types.entityType.device) {
-            if (scope.attributeScope != types.latestTelemetry) {
-                scope.attributeScope = scope.attributeScopes.server;
+            if (scope.entityType === types.entityType.device || scope.entityType === types.entityType.entityView) {
+                scope.attributeScopes = types.attributesScope;
+                scope.attributeScopeSelectionReadonly = false;
+            } else {
+                scope.attributeScopes = {};
+                scope.attributeScopes.server = types.attributesScope.server;
+                scope.attributeScopeSelectionReadonly = true;
             }
-        }
 
-        scope.attributes = {
-            count: 0,
-            data: []
-        };
+            scope.attributeScope = getAttributeScopeByValue(attrs.defaultAttributeScope);
 
-        scope.selectedAttributes = [];
-        scope.mode = 'default'; // 'widget'
-        scope.subscriptionId = null;
+            if (scope.entityType != types.entityType.device) {
+                if (scope.attributeScope != types.latestTelemetry) {
+                    scope.attributeScope = scope.attributeScopes.server;
+                }
+            }
 
-        scope.query = {
-            order: 'key',
-            limit: 5,
-            page: 1,
-            search: null
-        };
+            scope.attributes = {
+                count: 0,
+                data: []
+            };
+
+            scope.selectedAttributes = [];
+            scope.mode = 'default'; // 'widget'
+            scope.subscriptionId = null;
+
+            scope.query = {
+                order: 'key',
+                limit: 5,
+                page: 1,
+                search: null
+            };
+
+        });
 
         scope.$watch("entityId", function(newVal) {
             if (newVal) {

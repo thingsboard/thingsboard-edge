@@ -103,6 +103,12 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         clearSubscriptions();
     });
 
+    if ($stateParams.hierarchyView) {
+        $stateParams.hierarchyCallbacks.reloadData = () => {
+            reload();
+        };
+    }
+
     function reloadGroupConfiguration() {
         clearSubscriptions();
 
@@ -359,7 +365,20 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
         vm.hasNext = true;
 
-        fetchMore();
+        fetchMore(() => {
+            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.viewLoaded) {
+                $stateParams.hierarchyCallbacks.viewLoaded();
+            }
+        });
+    }
+
+    function reload() {
+        vm.customerId = $stateParams.customerId;
+        vm.entityGroup = $stateParams.entityGroup;
+        vm.entityType = vm.entityGroup.type;
+        vm.translations = vm.types.entityTypeTranslations[vm.entityType];
+
+        reloadGroupConfiguration();
     }
 
     function addEnabled() {
@@ -471,7 +490,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 if (!vm.customerId) {
                     $rootScope.$broadcast(entityGroup.type + 'changed');
                 }
-                entityGroupService.constructGroupConfig($stateParams, entityGroup, vm.entityGroup.entityGroupConfigFactory).then(
+                entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
                     (entityGroup) => {
                         vm.entityGroup = entityGroup;
                         reloadGroupConfiguration();
@@ -511,13 +530,16 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             (vm.currentEntity.id.id === entity.id.id);
     }
 
-    function fetchMore() {
+    function fetchMore(cb) {
         entityGroupService.getEntityGroupEntities(vm.entityGroup.id.id, vm.pageLink).then(
             function success(entities) {
                 vm.allEntities = vm.allEntities.concat(entities.data);
                 vm.hasNext = entities.hasNext;
                 vm.pageLink = entities.nextPageLink;
                 updateEntities();
+                if (cb) {
+                    cb();
+                }
             },
             function fail() {}
         );
@@ -538,8 +560,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 targetEvent: $event
             });
         }
-        addPromise.then(function () {
+        addPromise.then(function (entity) {
             entityAdded();
+            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
+                $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, entity.id.id);
+            }
         }, function () {
         });
     }
@@ -667,6 +692,9 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         if (reloadDetails) {
             $scope.$broadcast('reloadEntityDetails');
         }
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
+            $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, entityId);
+        }
     }
 
     function onEntitiesUpdated(entityIds, reloadDetails) {
@@ -696,6 +724,9 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 if (index > -1) {
                     vm.selectedEntities.splice(index, 1);
                 }
+            }
+            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
+                $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, entityId);
             }
         });
         updateEntities();
@@ -1026,11 +1057,11 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
             if (!vm.entityGroup.groupAll) {
                 entityGroupService.addEntityToEntityGroup(vm.entityGroup.id.id, entity.id.id).then(
                     function success() {
-                        $mdDialog.hide();
+                        $mdDialog.hide(vm.entity);
                     }
                 );
             } else {
-                $mdDialog.hide();
+                $mdDialog.hide(vm.entity);
             }
         });
     }
