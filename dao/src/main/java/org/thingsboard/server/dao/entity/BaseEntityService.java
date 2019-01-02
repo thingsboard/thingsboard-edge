@@ -149,6 +149,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case BLOB_ENTITY:
                 hasName = blobEntityService.findBlobEntityInfoByIdAsync(tenantId, new BlobEntityId(entityId.getId()));
                 break;
+            case ENTITY_GROUP:
+                hasName = entityGroupService.findEntityGroupByIdAsync(tenantId, new EntityGroupId(entityId.getId()));
+                break;
             default:
                 throw new IllegalStateException("Not Implemented!");
         }
