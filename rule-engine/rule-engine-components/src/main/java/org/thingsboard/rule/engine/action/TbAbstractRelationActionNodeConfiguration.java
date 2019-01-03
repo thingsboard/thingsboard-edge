@@ -28,54 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.rule.engine.action;
 
 import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-/**
- * Created by mshvayka on 04.09.18.
- */
 @Data
-public class TbGetTelemetryNodeConfiguration implements NodeConfiguration<TbGetTelemetryNodeConfiguration> {
+public abstract class TbAbstractRelationActionNodeConfiguration {
 
-    public static final String FETCH_MODE_FIRST = "FIRST";
-    public static final String FETCH_MODE_LAST = "LAST";
-    public static final String FETCH_MODE_ALL = "ALL";
-    public static final int MAX_FETCH_SIZE = 1000;
+    private String direction;
+    private String relationType;
 
-    private int startInterval;
-    private int endInterval;
+    private String entityType;
+    private String entityNamePattern;
+    private String entityTypePattern;
 
-    private String startIntervalPattern;
-    private String endIntervalPattern;
+    private long entityCacheExpiration;
 
-    private boolean useMetadataIntervalPatterns;
-
-    private String startIntervalTimeUnit;
-    private String endIntervalTimeUnit;
-    private String fetchMode; //FIRST, LAST, LATEST
-
-    private List<String> latestTsKeyNames;
-
-
-
-    @Override
-    public TbGetTelemetryNodeConfiguration defaultConfiguration() {
-        TbGetTelemetryNodeConfiguration configuration = new TbGetTelemetryNodeConfiguration();
-        configuration.setLatestTsKeyNames(Collections.emptyList());
-        configuration.setFetchMode("FIRST");
-        configuration.setStartIntervalTimeUnit(TimeUnit.MINUTES.name());
-        configuration.setStartInterval(2);
-        configuration.setEndIntervalTimeUnit(TimeUnit.MINUTES.name());
-        configuration.setEndInterval(1);
-        configuration.setUseMetadataIntervalPatterns(false);
-        configuration.setStartIntervalPattern("");
-        configuration.setEndIntervalPattern("");
-        return configuration;
-    }
 }

@@ -29,13 +29,6 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-DROP MATERIALIZED VIEW IF EXISTS thingsboard.entity_view_by_tenant_and_name;
-DROP MATERIALIZED VIEW IF EXISTS thingsboard.entity_view_by_tenant_and_search_text;
-DROP MATERIALIZED VIEW IF EXISTS thingsboard.entity_view_by_tenant_and_customer;
-DROP MATERIALIZED VIEW IF EXISTS thingsboard.entity_view_by_tenant_and_entity_id;
-
-DROP TABLE IF EXISTS thingsboard.entity_views;
-
 CREATE TABLE IF NOT EXISTS thingsboard.entity_views (
     id timeuuid,
     entity_id timeuuid,

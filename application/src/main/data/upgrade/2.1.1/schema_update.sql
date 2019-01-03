@@ -29,10 +29,8 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-DROP TABLE IF EXISTS entity_views;
-
 CREATE TABLE IF NOT EXISTS entity_views (
-    id varchar(31) NOT NULL CONSTRAINT entity_view_pkey PRIMARY KEY,
+    id varchar(31) NOT NULL CONSTRAINT entity_views_pkey PRIMARY KEY,
     entity_id varchar(31),
     entity_type varchar(255),
     tenant_id varchar(31),
