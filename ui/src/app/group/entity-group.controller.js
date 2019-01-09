@@ -517,7 +517,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                         if (!vm.customerId) {
                             $rootScope.$broadcast(vm.currentEntityGroup.type + 'changed');
                         }
-                        $window.history.back();
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
+                            $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, null, [vm.currentEntityGroup.id.id], true);
+                        } else {
+                            $window.history.back();
+                        }
                     }
                 );
             },

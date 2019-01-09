@@ -171,7 +171,7 @@ export default function CustomersHierarchyController($scope, types, securityType
         }
     }
 
-    function refreshNode(nodeId, entityId, entityGroupIds) {
+    function refreshNode(nodeId, entityId, entityGroupIds, selectParentNode) {
         if (vm.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
             vm.nodeEditCallbacks.refreshNode(nodeId);
         }
