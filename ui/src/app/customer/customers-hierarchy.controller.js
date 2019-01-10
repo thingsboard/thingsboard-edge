@@ -389,57 +389,57 @@ export default function CustomersHierarchyController($scope, types, securityType
         }
         if (vm.selectedNodeId !== nodeId) {
             vm.selectedNodeId = nodeId;
-           // $scope.$apply(() => {
-                if (nodeId === -1) {
-                    vm.viewMode = 'groups';
-                    vm.groupsStateParams.groupType = vm.types.entityType.customer;
-                    vm.groupsStateParams.nodeId = '#';
-                    delete vm.groupsStateParams.entityGroupId;
-                    delete vm.groupsStateParams.childGroupType;
-                    delete vm.groupsStateParams.customerId;
-                    vm.groupsStateParams.hierarchyCallbacks.reload();
-                } else if (node.data.type === "groups" || node.data.type === "group") {
-                    vm.viewLoading = true;
-                    $mdUtil.nextTick(() => {
-                        var parentEntityGroupId;
-                        if (node.data.type === "groups") {
-                            vm.viewMode = 'groups';
-                            parentEntityGroupId = node.data.parentEntityGroupId;
-                            if (parentEntityGroupId) {
-                                vm.groupsStateParams.entityGroupId = parentEntityGroupId;
-                                vm.groupsStateParams.groupType = vm.types.entityType.customer;
-                                vm.groupsStateParams.childGroupType = node.data.groupsType;
-                            } else {
-                                vm.groupsStateParams.groupType = node.data.groupsType;
-                            }
-                            vm.groupsStateParams.customerId = node.data.customer.id.id;
-                            vm.groupsStateParams.nodeId = node.id;
-                            vm.groupsStateParams.hierarchyCallbacks.reload();
-                        } else if (node.data.type === "group") {
-                            vm.viewMode = 'group';
-                            var entityGroup = node.data.entity;
-                            parentEntityGroupId = node.data.parentEntityGroupId;
-                            if (parentEntityGroupId) {
-                                vm.groupStateParams.entityGroupId = parentEntityGroupId;
-                                vm.groupStateParams.groupType = vm.types.entityType.customer;
-                                vm.groupStateParams.childEntityGroupId = entityGroup.id.id;
-                                vm.groupStateParams.childGroupType = entityGroup.type;
-                            } else {
-                                vm.groupStateParams.entityGroupId = entityGroup.id.id;
-                                vm.groupStateParams.groupType = entityGroup.type;
-                            }
-                            if (entityGroup.ownerId.entityType === vm.types.entityType.customer) {
-                                vm.groupStateParams.customerId = entityGroup.ownerId.id;
-                            } else {
-                                vm.groupStateParams.customerId = null;
-                            }
-                            vm.groupStateParams.entityGroup = angular.copy(entityGroup);
-                            vm.groupStateParams.nodeId = node.id;
-                            vm.groupStateParams.hierarchyCallbacks.reload();
+            if (nodeId === -1) {
+                vm.viewMode = 'groups';
+                vm.groupsStateParams.groupType = vm.types.entityType.customer;
+                vm.groupsStateParams.nodeId = '#';
+                delete vm.groupsStateParams.entityGroupId;
+                delete vm.groupsStateParams.childGroupType;
+                delete vm.groupsStateParams.customerId;
+                vm.groupsStateParams.hierarchyCallbacks.reload();
+            } else if (node.data.type === "groups" || node.data.type === "group") {
+                vm.viewLoading = true;
+                $mdUtil.nextTick(() => {
+                    var parentEntityGroupId;
+                    if (node.data.type === "groups") {
+                        vm.viewMode = 'groups';
+                        parentEntityGroupId = node.data.parentEntityGroupId;
+                        if (parentEntityGroupId) {
+                            vm.groupsStateParams.entityGroupId = parentEntityGroupId;
+                            vm.groupsStateParams.groupType = vm.types.entityType.customer;
+                            vm.groupsStateParams.childGroupType = node.data.groupsType;
+                        } else {
+                            vm.groupsStateParams.groupType = node.data.groupsType;
                         }
-                    });
-                }
-           // });
+                        vm.groupsStateParams.customerId = node.data.customer.id.id;
+                        vm.groupsStateParams.nodeId = node.id;
+                        vm.groupsStateParams.hierarchyCallbacks.reload();
+                    } else if (node.data.type === "group") {
+                        vm.viewMode = 'group';
+                        var entityGroup = node.data.entity;
+                        parentEntityGroupId = node.data.parentEntityGroupId;
+                        if (parentEntityGroupId) {
+                            vm.groupStateParams.entityGroupId = parentEntityGroupId;
+                            vm.groupStateParams.groupType = vm.types.entityType.customer;
+                            vm.groupStateParams.childEntityGroupId = entityGroup.id.id;
+                            vm.groupStateParams.childGroupType = entityGroup.type;
+                        } else {
+                            vm.groupStateParams.entityGroupId = entityGroup.id.id;
+                            vm.groupStateParams.groupType = entityGroup.type;
+                            delete vm.groupStateParams.childEntityGroupId;
+                            delete vm.groupStateParams.childGroupType;
+                        }
+                        if (entityGroup.ownerId.entityType === vm.types.entityType.customer) {
+                            vm.groupStateParams.customerId = entityGroup.ownerId.id;
+                        } else {
+                            vm.groupStateParams.customerId = null;
+                        }
+                        vm.groupStateParams.entityGroup = angular.copy(entityGroup);
+                        vm.groupStateParams.nodeId = node.id;
+                        vm.groupStateParams.hierarchyCallbacks.reload();
+                    }
+                });
+            }
         }
     }
 }

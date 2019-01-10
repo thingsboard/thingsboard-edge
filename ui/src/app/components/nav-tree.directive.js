@@ -70,12 +70,13 @@ function NavTreeController($scope, $element, types) {
     });
 
     function initTree() {
-        vm.treeElement = angular.element('#tb-nav-tree-container', $element)
+        vm.treeElement = angular.element('.tb-nav-tree-container', $element)
             .jstree(
                 {
                     core: {
                         multiple: false,
                         check_callback: true,
+                        themes: { name: 'proton', responsive: true },
                         data: vm.loadNodes
                     }
                 }

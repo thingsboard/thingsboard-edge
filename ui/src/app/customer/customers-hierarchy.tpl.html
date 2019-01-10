@@ -52,8 +52,15 @@
                         md-is-open="vm.isNavTreeOpenReadonly"
                         md-component-id="customers-nav-tree-sidenav" layout="column">
                 <section layout="row" layout-wrap
-                         class="tb-header-buttons tb-customers-hierarchy-buttons md-fab tb-customers-nav-tree-toolbar">
-                    <md-button class="tb-btn-header tb-btn-close-nav-tree md-primary md-fab md-fab-top-right"
+                         class="tb-header-buttons tb-customers-hierarchy-buttons md-fab tb-customers-nav-tree-toolbar" layout-align="start end">
+                    <md-button class="tb-btn-header md-primary md-fab"
+                               aria-label="Return" ng-click="vm.isNavTreeOpen = false">
+                        <md-icon aria-label="Return" class="material-icons">arrow_upwards</md-icon>
+                        <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
+                            {{ 'action.close' | translate }}
+                        </md-tooltip>
+                    </md-button>
+                    <md-button class="tb-btn-header md-primary md-fab"
                                aria-label="Close" ng-click="vm.isNavTreeOpen = false">
                         <md-icon aria-label="Close" class="material-icons">chevron_left</md-icon>
                         <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
