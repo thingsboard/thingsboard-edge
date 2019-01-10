@@ -373,6 +373,9 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     }
 
     function reload() {
+        vm.isGroupDetailsOpen = false;
+        vm.isDetailsOpen = false;
+        vm.isGroupDetailsEdit = false;
         vm.customerId = $stateParams.customerId;
         vm.entityGroup = $stateParams.entityGroup;
         vm.entityType = vm.entityGroup.type;
@@ -490,6 +493,9 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 if (!vm.customerId) {
                     $rootScope.$broadcast(entityGroup.type + 'changed');
                 }
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.updateNode) {
+                    $stateParams.hierarchyCallbacks.updateNode($stateParams.nodeId, entityGroup.name);
+                }
                 entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
                     (entityGroup) => {
                         vm.entityGroup = entityGroup;
@@ -517,8 +523,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                         if (!vm.customerId) {
                             $rootScope.$broadcast(vm.currentEntityGroup.type + 'changed');
                         }
-                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
-                            $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, null, [vm.currentEntityGroup.id.id], true);
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.updateNode) {
+                            $stateParams.hierarchyCallbacks.updateNode($stateParams.nodeId, null, true);
                         } else {
                             $window.history.back();
                         }
@@ -566,8 +572,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         }
         addPromise.then(function (entity) {
             entityAdded();
-            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
-                $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, entity.id.id);
+            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntities) {
+                $stateParams.hierarchyCallbacks.refreshEntities($stateParams.nodeId, [entity.id.id], true);
             }
         }, function () {
         });
@@ -696,8 +702,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         if (reloadDetails) {
             $scope.$broadcast('reloadEntityDetails');
         }
-        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
-            $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, entityId);
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntities) {
+            $stateParams.hierarchyCallbacks.refreshEntities($stateParams.nodeId, [entityId]);
         }
     }
 
@@ -729,10 +735,10 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     vm.selectedEntities.splice(index, 1);
                 }
             }
-            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
-                $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, entityId);
-            }
         });
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntities) {
+            $stateParams.hierarchyCallbacks.refreshEntities($stateParams.nodeId, entityIds);
+        }
         updateEntities();
     }
 
@@ -849,7 +855,19 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             entities.forEach((entity) => {
                 entityIds.push(entity.id.id);
             });
-            return entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds);
+            var deferred = $q.defer();
+            entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds).then(
+                (data) => {
+                    if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroupsChildren) {
+                        $stateParams.hierarchyCallbacks.refreshEntityGroupsChildren([targetEntityGroupId]);
+                    }
+                    deferred.resolve(data);
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+            return deferred.promise;
         };
         var ownerId = userPermissionsService.getUserOwnerId();
         if (vm.customerId) {
@@ -876,7 +894,19 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             var tasks = [];
             tasks.push(entityGroupService.removeEntitiesFromEntityGroup(vm.entityGroup.id.id, entityIds));
             tasks.push(entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds));
-            return $q.all(tasks);
+            var deferred = $q.defer();
+            $q.all(tasks).then(
+                () => {
+                    if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroupsChildren) {
+                        $stateParams.hierarchyCallbacks.refreshEntityGroupsChildren([targetEntityGroupId]);
+                    }
+                    deferred.resolve();
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+            return deferred.promise;
         };
         var ownerId = userPermissionsService.getUserOwnerId();
         if (vm.customerId) {

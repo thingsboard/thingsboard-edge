@@ -468,6 +468,7 @@ export default class Subscription {
             } else {
                 this.rpcEnabled = this.ctx.$scope.widgetEditMode ? true : false;
             }
+            this.hasResolvedData = true;
             this.callbacks.rpcStateChanged(this);
             deferred.resolve();
         }

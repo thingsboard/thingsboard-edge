@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, importExport, dashboardService) {
+export default function DashboardGroupConfig($q, $translate, $state, $window, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, importExport, dashboardService) {
 
     var service = {
         createConfig: createConfig
@@ -87,7 +87,18 @@ export default function DashboardGroupConfig($q, $translate, $state, tbDialogs, 
                 event.stopPropagation();
             }
             if (entityGroup.parentEntityGroup) {
-                $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+                var stateParams = {dashboardId: entity.id.id};
+                if (params.hierarchyView) {
+                    stateParams.customerId = params.customerId;
+                    stateParams.entityGroupId = params.entityGroupId;
+                    stateParams.groupType = params.groupType;
+                    stateParams.childEntityGroupId = params.childEntityGroupId;
+                    stateParams.childGroupType = params.childGroupType;
+                    var href = $state.href('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
+                    $window.open(href, '_blank');
+                } else {
+                    $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
+                }
             } else {
                 $state.go('home.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
             }

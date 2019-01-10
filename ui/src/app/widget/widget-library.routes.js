@@ -109,8 +109,12 @@ export default function WidgetLibraryRoutes($stateProvider) {
             views: {
                 "@": {
                     templateUrl: dashboardTemplate,
-                    controller: 'DashboardController',
-                    controllerAs: 'vm'
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: null});
+                        }
                 }
             },
             data: {

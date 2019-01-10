@@ -95,6 +95,12 @@ function NavTreeController($scope, $element, types) {
                     vm.treeElement.jstree('select_node', node);
                 }
             };
+            vm.editCallbacks.getParentNodeId = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    return vm.treeElement.jstree('get_parent', node);
+                }
+            };
             vm.editCallbacks.openNode = (id, cb) => {
                 var node = vm.treeElement.jstree('get_node', id);
                 if (node) {
@@ -126,6 +132,9 @@ function NavTreeController($scope, $element, types) {
                     if (node) {
                         vm.treeElement.jstree('refresh_node', node);
                         vm.treeElement.jstree('redraw');
+                        if (node.children && !node.children.length) {
+                            vm.treeElement.jstree('open_node', node);
+                        }
                     }
                 }
             };

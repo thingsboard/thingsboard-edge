@@ -33,28 +33,44 @@
     z-index: 1;
   }
 
-  section.tb-header-buttons.tb-nav-tree-open {
+  section.tb-header-buttons.tb-customers-hierarchy-buttons {
     position: absolute;
     top: 0;
-    left: 0;
     z-index: 1;
     pointer-events: none;
 
-    .md-button.tb-btn-open-nav-tree {
-      top: 0;
-      left: 0;
+    .md-button {
       width: 36px;
       height: 36px;
-      margin: 4px 0 0 4px;
       line-height: 36px;
       opacity: .5;
+    }
+
+    &.tb-nav-tree-open {
+      left: 0;
+
+      .md-button.tb-btn-open-nav-tree {
+        top: 0;
+        left: 0;
+        margin: 4px 0 0 4px;
+      }
+    }
+
+    &.tb-customers-nav-tree-toolbar {
+      right: 0;
+
+      .md-button.tb-btn-close-nav-tree {
+        top: 0;
+        right: 0;
+        margin: 4px 4px 0 0;
+      }
     }
   }
 
   .tb-customers-nav-tree {
     z-index: 1;
-    width: 300px;
-    min-width: 300px;
+    width: 360px;
+    min-width: 360px;
 
     md-toolbar {
       height: 48px;

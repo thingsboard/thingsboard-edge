@@ -214,8 +214,8 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, entity
                 if (!vm.customerId) {
                     $rootScope.$broadcast(vm.groupType + 'changed');
                 }
-                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
-                    $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, null, [entityGroup.id.id]);
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroups) {
+                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.nodeId);
                 }
             },
             function fail() {
@@ -233,8 +233,8 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, entity
                 if (!vm.customerId) {
                     $rootScope.$broadcast(vm.groupType + 'changed');
                 }
-                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshNode) {
-                    $stateParams.hierarchyCallbacks.refreshNode($stateParams.nodeId, null, [entityGroupId]);
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroups) {
+                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.nodeId);
                 }
             },
             function fail() {
