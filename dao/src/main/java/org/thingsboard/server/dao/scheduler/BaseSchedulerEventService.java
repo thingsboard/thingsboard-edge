@@ -163,6 +163,17 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         }
     }
 
+    @Override
+    public void deleteSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteSchedulerEventsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        List<SchedulerEventInfo> schedulerEvents = schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId());
+        for (SchedulerEventInfo schedulerEvent : schedulerEvents) {
+            deleteSchedulerEvent(tenantId, schedulerEvent.getId());
+        }
+    }
+
     private DataValidator<SchedulerEvent> schedulerEventValidator =
             new DataValidator<SchedulerEvent>() {
 

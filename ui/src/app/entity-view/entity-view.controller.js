@@ -236,8 +236,8 @@ export function EntityViewController($rootScope, userService, entityViewService,
             fetchEntityViewsFunction = function (pageLink, entityViewType) {
                 return entityViewService.getCustomerEntityViews(customerId, pageLink, true, null, entityViewType);
             };
-            deleteEntityViewFunction = function (entityViewId) {
-                return entityViewService.unassignEntityViewFromCustomer(entityViewId);
+            deleteEntityViewFunction = function (/*entityViewId*/) {
+                return $q.when();//entityViewService.unassignEntityViewFromCustomer(entityViewId);
             };
             refreshEntityViewsParamsFunction = function () {
                 return {"customerId": customerId, "topIndex": vm.topIndex};
@@ -429,8 +429,8 @@ export function EntityViewController($rootScope, userService, entityViewService,
         assignToCustomer($event, entityViewIds);
     }
 
-    function unassignFromCustomer($event, entityView, isPublic) {
-        if ($event) {
+    function unassignFromCustomer(/*$event, entityView, isPublic*/) {
+       /* if ($event) {
             $event.stopPropagation();
         }
         var title;
@@ -456,11 +456,11 @@ export function EntityViewController($rootScope, userService, entityViewService,
             entityViewService.unassignEntityViewFromCustomer(entityView.id.id).then(function success() {
                 vm.grid.refreshList();
             });
-        });
+        });*/
     }
 
-    function unassignEntityViewsFromCustomer($event, items) {
-        var confirm = $mdDialog.confirm()
+    function unassignEntityViewsFromCustomer(/*$event, items*/) {
+      /*  var confirm = $mdDialog.confirm()
             .targetEvent($event)
             .title($translate.instant('entity-view.unassign-entity-views-title', {count: items.selectedCount}, 'messageformat'))
             .htmlContent($translate.instant('entity-view.unassign-entity-views-text'))
@@ -475,11 +475,11 @@ export function EntityViewController($rootScope, userService, entityViewService,
             $q.all(tasks).then(function () {
                 vm.grid.refreshList();
             });
-        });
+        });*/
     }
 
-    function makePublic($event, entityView) {
-        if ($event) {
+    function makePublic(/*$event, entityView*/) {
+      /*  if ($event) {
             $event.stopPropagation();
         }
         var confirm = $mdDialog.confirm()
@@ -493,6 +493,6 @@ export function EntityViewController($rootScope, userService, entityViewService,
             entityViewService.makeEntityViewPublic(entityView.id.id).then(function success() {
                 vm.grid.refreshList();
             });
-        });
+        });*/
     }
 }

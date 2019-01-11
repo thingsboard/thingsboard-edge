@@ -324,6 +324,17 @@ public abstract class BaseController {
         return groupType;
     }
 
+    EntityType checkPublicEntityGroupType(EntityType groupType) throws ThingsboardException {
+        if (groupType == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
+            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+            throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
     UUID toUUID(String id) {
         return UUID.fromString(id);
     }

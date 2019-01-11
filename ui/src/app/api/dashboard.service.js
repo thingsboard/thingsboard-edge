@@ -42,8 +42,7 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
 
 
     var service = {
-        assignDashboardToCustomer: assignDashboardToCustomer,
-        getCustomerDashboards: getCustomerDashboards,
+        //assignDashboardToCustomer: assignDashboardToCustomer,
         getDashboards: getDashboards,
         getServerTimeDiff: getServerTimeDiff,
         getDashboard: getDashboard,
@@ -54,12 +53,12 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         getGroupDashboards: getGroupDashboards,
         deleteDashboard: deleteDashboard,
         saveDashboard: saveDashboard,
-        unassignDashboardFromCustomer: unassignDashboardFromCustomer,
-        updateDashboardCustomers: updateDashboardCustomers,
-        addDashboardCustomers: addDashboardCustomers,
-        removeDashboardCustomers: removeDashboardCustomers,
-        makeDashboardPublic: makeDashboardPublic,
-        makeDashboardPrivate: makeDashboardPrivate,
+        //unassignDashboardFromCustomer: unassignDashboardFromCustomer,
+        //updateDashboardCustomers: updateDashboardCustomers,
+        //addDashboardCustomers: addDashboardCustomers,
+        //removeDashboardCustomers: removeDashboardCustomers,
+        //makeDashboardPublic: makeDashboardPublic,
+        //makeDashboardPrivate: makeDashboardPrivate,
         getPublicDashboardLink: getPublicDashboardLink
     }
 
@@ -99,24 +98,6 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(prepareDashboards(response.data));
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function getCustomerDashboards(customerId, pageLink, config) {
-        var deferred = $q.defer();
-        var url = '/api/customer/' + customerId + '/dashboards?limit=' + pageLink.limit;
-        if (angular.isDefined(pageLink.idOffset)) {
-            url += '&offset=' + pageLink.idOffset;
-        }
-        $http.get(url, config).then(function success(response) {
-            response.data = prepareDashboards(response.data);
-            if (pageLink.textSearch) {
-                response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
-            }
-            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -259,7 +240,7 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         return deferred.promise;
     }
 
-    function assignDashboardToCustomer(customerId, dashboardId) {
+    /*function assignDashboardToCustomer(customerId, dashboardId) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/dashboard/' + dashboardId;
         $http.post(url, null).then(function success(response) {
@@ -334,7 +315,7 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
             deferred.reject();
         });
         return deferred.promise;
-    }
+    }*/
 
     function getPublicDashboardLink(dashboard) {
         var url = $location.protocol() + '://' + $location.host();

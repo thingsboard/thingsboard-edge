@@ -36,8 +36,8 @@ import thingsboardApiCustomer from '../api/customer.service';
 
 import AssetRoutes from './asset.routes';
 import {AssetController, AssetCardController} from './asset.controller';
-import AssignAssetToCustomerController from './assign-to-customer.controller';
-import AddAssetsToCustomerController from './add-assets-to-customer.controller';
+//import AssignAssetToCustomerController from './assign-to-customer.controller';
+//import AddAssetsToCustomerController from './add-assets-to-customer.controller';
 import AssetDirective from './asset.directive';
 import AssetGroupConfig from './asset-group.config';
 
@@ -51,8 +51,8 @@ export default angular.module('thingsboard.asset', [
     .config(AssetRoutes)
     .controller('AssetController', AssetController)
     .controller('AssetCardController', AssetCardController)
-    .controller('AssignAssetToCustomerController', AssignAssetToCustomerController)
-    .controller('AddAssetsToCustomerController', AddAssetsToCustomerController)
+    //.controller('AssignAssetToCustomerController', AssignAssetToCustomerController)
+    //.controller('AddAssetsToCustomerController', AddAssetsToCustomerController)
     .directive('tbAsset', AssetDirective)
     .factory('assetGroupConfig', AssetGroupConfig)
     .name;

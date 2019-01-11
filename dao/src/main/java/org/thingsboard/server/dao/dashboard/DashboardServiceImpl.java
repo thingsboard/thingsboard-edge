@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -56,7 +57,9 @@ import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 
@@ -126,7 +129,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
         return savedDashboard;
     }
-    
+
     @Override
     public Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId) {
         Dashboard dashboard = findDashboardById(tenantId, dashboardId);
@@ -170,15 +173,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
     }
 
-    private Dashboard updateAssignedCustomer(TenantId tenantId, DashboardId dashboardId, Customer customer) {
-        Dashboard dashboard = findDashboardById(tenantId, dashboardId);
-        if (dashboard.updateAssignedCustomer(customer)) {
-            return saveDashboard(dashboard);
-        } else {
-            return dashboard;
-        }
-    }
-
     private void deleteRelation(TenantId tenantId, EntityRelation dashboardRelation) throws ExecutionException, InterruptedException {
         log.debug("Deleting Dashboard relation: {}", dashboardRelation);
         relationService.deleteRelationAsync(tenantId, dashboardRelation).get();
@@ -214,42 +208,26 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     @Override
-    public ListenableFuture<TimePageData<DashboardInfo>> findDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
-        log.trace("Executing findDashboardsByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateId(customerId, "Incorrect customerId " + customerId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        ListenableFuture<List<DashboardInfo>> dashboards = dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
-
-        return Futures.transform(dashboards, new Function<List<DashboardInfo>, TimePageData<DashboardInfo>>() {
-            @Nullable
-            @Override
-            public TimePageData<DashboardInfo> apply(@Nullable List<DashboardInfo> dashboards) {
-                return new TimePageData<>(dashboards, pageLink);
+    public void deleteDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        try {
+            List<DashboardId> dashboardIds = fetchCustomerDashboards(tenantId, customerId);
+            for (DashboardId dashboardId : dashboardIds) {
+                deleteDashboard(tenantId, dashboardId);
             }
-        });
+        } catch (Exception e) {
+            log.error("Failed to delete dashboards", e);
+            throw new RuntimeException(e);
+        }
     }
 
-    @Override
-    public void unassignCustomerDashboards(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerDashboards, customerId [{}]", customerId);
-        Validator.validateId(customerId, "Incorrect customerId " + customerId);
-        Customer customer = customerDao.findById(tenantId, customerId.getId());
-        if (customer == null) {
-            throw new DataValidationException("Can't unassign dashboards from non-existent customer!");
+    private List<DashboardId> fetchCustomerDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
+        List<DashboardId> dashboardIds = new ArrayList<>();
+        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get();
+        if (entityGroup.isPresent()) {
+            List<EntityId> childDashboardIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+            childDashboardIds.forEach(entityId -> dashboardIds.add(new DashboardId(entityId.getId())));
         }
-        new CustomerDashboardsUnassigner(customer).removeEntities(tenantId, customer);
-    }
-
-    @Override
-    public void updateCustomerDashboards(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing updateCustomerDashboards, customerId [{}]", customerId);
-        Validator.validateId(customerId, "Incorrect customerId " + customerId);
-        Customer customer = customerDao.findById(tenantId, customerId.getId());
-        if (customer == null) {
-            throw new DataValidationException("Can't update dashboards for non-existent customer!");
-        }
-        new CustomerDashboardsUpdater(customer).removeEntities(tenantId, customer);
+        return dashboardIds;
     }
 
     @Override
@@ -323,55 +301,5 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
         }
     };
-    
-    private class CustomerDashboardsUnassigner extends TimePaginatedRemover<Customer, DashboardInfo> {
-
-        private Customer customer;
-
-        CustomerDashboardsUnassigner(Customer customer) {
-            this.customer = customer;
-        }
-
-        @Override
-        protected List<DashboardInfo> findEntities(TenantId tenantId, Customer customer, TimePageLink pageLink) {
-            try {
-                return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(customer.getTenantId().getId(), customer.getId().getId(), pageLink).get();
-            } catch (InterruptedException | ExecutionException e) {
-                log.warn("Failed to get dashboards by tenantId [{}] and customerId [{}].", customer.getTenantId().getId(), customer.getId().getId());
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
-            unassignDashboardFromCustomer(customer.getTenantId(), new DashboardId(entity.getUuidId()), this.customer.getId());
-        }
-        
-    }
-
-    private class CustomerDashboardsUpdater extends TimePaginatedRemover<Customer, DashboardInfo> {
-
-        private Customer customer;
-
-        CustomerDashboardsUpdater(Customer customer) {
-            this.customer = customer;
-        }
-
-        @Override
-        protected List<DashboardInfo> findEntities(TenantId tenantId, Customer customer, TimePageLink pageLink) {
-            try {
-                return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(customer.getTenantId().getId(), customer.getId().getId(), pageLink).get();
-            } catch (InterruptedException | ExecutionException e) {
-                log.warn("Failed to get dashboards by tenantId [{}] and customerId [{}].", customer.getTenantId().getId(), customer.getId().getId());
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
-            updateAssignedCustomer(customer.getTenantId(), new DashboardId(entity.getUuidId()), this.customer);
-        }
-
-    }
 
 }

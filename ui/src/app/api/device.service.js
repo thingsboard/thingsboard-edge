@@ -38,7 +38,7 @@ export default angular.module('thingsboard.api.device', [thingsboardTypes])
 function DeviceService($http, $q, $window, userService, attributeService, customerService, types) {
 
     var service = {
-        assignDeviceToCustomer: assignDeviceToCustomer,
+        //assignDeviceToCustomer: assignDeviceToCustomer,
         deleteDevice: deleteDevice,
         getCustomerDevices: getCustomerDevices,
         getDevice: getDevice,
@@ -48,8 +48,8 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         getTenantDevices: getTenantDevices,
         saveDevice: saveDevice,
         saveDeviceCredentials: saveDeviceCredentials,
-        unassignDeviceFromCustomer: unassignDeviceFromCustomer,
-        makeDevicePublic: makeDevicePublic,
+        //unassignDeviceFromCustomer: unassignDeviceFromCustomer,
+        //makeDevicePublic: makeDevicePublic,
         getDeviceAttributes: getDeviceAttributes,
         subscribeForDeviceAttributes: subscribeForDeviceAttributes,
         unsubscribeForDeviceAttributes: unsubscribeForDeviceAttributes,
@@ -255,7 +255,7 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         return deferred.promise;
     }
 
-    function assignDeviceToCustomer(customerId, deviceId) {
+   /* function assignDeviceToCustomer(customerId, deviceId) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/device/' + deviceId;
         $http.post(url, null).then(function success(response) {
@@ -286,7 +286,7 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
             deferred.reject();
         });
         return deferred.promise;
-    }
+    }*/
 
     function getDeviceAttributes(deviceId, attributeScope, query, successCallback, config) {
         return attributeService.getEntityAttributes(types.entityType.device, deviceId, attributeScope, query, successCallback, config);

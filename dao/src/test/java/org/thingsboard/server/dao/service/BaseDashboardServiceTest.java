@@ -113,41 +113,7 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         dashboard.setTenantId(new TenantId(UUIDs.timeBased()));
         dashboardService.saveDashboard(dashboard);
     }
-    
-    @Test(expected = DataValidationException.class)
-    public void testAssignDashboardToNonExistentCustomer() {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle("My dashboard");
-        dashboard.setTenantId(tenantId);
-        dashboard = dashboardService.saveDashboard(dashboard);
-        try {
-            dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), new CustomerId(UUIDs.timeBased()));
-        } finally {
-            dashboardService.deleteDashboard(tenantId, dashboard.getId());
-        }
-    }
-    
-    @Test(expected = DataValidationException.class)
-    public void testAssignDashboardToCustomerFromDifferentTenant() {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle("My dashboard");
-        dashboard.setTenantId(tenantId);
-        dashboard = dashboardService.saveDashboard(dashboard);
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test different tenant");
-        tenant = tenantService.saveTenant(tenant);
-        Customer customer = new Customer();
-        customer.setTenantId(tenant.getId());
-        customer.setTitle("Test different customer");
-        customer = customerService.saveCustomer(customer);
-        try {
-            dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customer.getId());
-        } finally {
-            dashboardService.deleteDashboard(tenantId, dashboard.getId());
-            tenantService.deleteTenant(tenant.getId());
-        }
-    }
-    
+
     @Test
     public void testFindDashboardById() {
         Dashboard dashboard = new Dashboard();
@@ -290,53 +256,5 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
     
-    @Test
-    public void testFindDashboardsByTenantIdAndCustomerId() throws ExecutionException, InterruptedException {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-        
-        TenantId tenantId = tenant.getId();
-        
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer.setTenantId(tenantId);
-        customer = customerService.saveCustomer(customer);
-        CustomerId customerId = customer.getId();
-        
-        List<DashboardInfo> dashboards = new ArrayList<>();
-        for (int i=0;i<223;i++) {
-            Dashboard dashboard = new Dashboard();
-            dashboard.setTenantId(tenantId);
-            dashboard.setTitle("Dashboard"+i);
-            dashboard = dashboardService.saveDashboard(dashboard);
-            dashboards.add(new DashboardInfo(dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerId)));
-        }
-        
-        List<DashboardInfo> loadedDashboards = new ArrayList<>();
-        TimePageLink pageLink = new TimePageLink(23);
-        TimePageData<DashboardInfo> pageData = null;
-        do {
-            pageData = dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink).get();
-            loadedDashboards.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-        
-        Collections.sort(dashboards, idComparator);
-        Collections.sort(loadedDashboards, idComparator);
-        
-        Assert.assertEquals(dashboards, loadedDashboards);
-        
-        dashboardService.unassignCustomerDashboards(tenantId, customerId);
-
-        pageLink = new TimePageLink(42);
-        pageData = dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink).get();
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertTrue(pageData.getData().isEmpty());
-        
-        tenantService.deleteTenant(tenantId);
-    }
 
 }

@@ -229,6 +229,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.group_permission (
     user_group_id timeuuid,
     entity_group_id timeuuid,
     entity_group_type text,
+    is_public boolean,
     PRIMARY KEY (id, tenant_id, user_group_id, entity_group_id, role_id)
 );
 

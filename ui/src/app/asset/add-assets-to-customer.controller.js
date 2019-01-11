@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AddAssetsToCustomerController(assetService, $mdDialog, $q, customerId, assets) {
-
+export default function AddAssetsToCustomerController(/*assetService, $mdDialog, $q, customerId, assets*/) {
+/*
     var vm = this;
 
     vm.assets = assets;
@@ -134,5 +134,5 @@ export default function AddAssetsToCustomerController(assetService, $mdDialog, $
             pending: false
         };
     }
-
+*/
 }

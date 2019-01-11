@@ -52,11 +52,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ROLE_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -82,6 +78,9 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY)
     private EntityType entityGroupType;
 
+    @Column(name = GROUP_PERMISSION_IS_PUBLIC_PROPERTY)
+    private boolean isPublic;
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public GroupPermissionEntity() {
@@ -105,6 +104,7 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
             this.entityGroupId = toString(groupPermission.getEntityGroupId().getId());
             this.entityGroupType = groupPermission.getEntityGroupType();
         }
+        this.isPublic = groupPermission.isPublic();
     }
 
     @Override
@@ -124,6 +124,7 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
             groupPermission.setEntityGroupId(new EntityGroupId(toUUID(entityGroupId)));
             groupPermission.setEntityGroupType(entityGroupType);
         }
+        groupPermission.setPublic(isPublic);
         return groupPermission;
     }
 }

@@ -115,30 +115,6 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         return savedEntityView;
     }
 
-    @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
-    @Override
-    public EntityView assignEntityViewToCustomer(TenantId tenantId, EntityViewId entityViewId, CustomerId customerId) {
-        EntityView entityView = findEntityViewById(tenantId, entityViewId);
-        entityView.setCustomerId(customerId);
-        return saveEntityView(entityView);
-    }
-
-    @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
-    @Override
-    public EntityView unassignEntityViewFromCustomer(TenantId tenantId, EntityViewId entityViewId) {
-        EntityView entityView = findEntityViewById(tenantId, entityViewId);
-        entityView.setCustomerId(null);
-        return saveEntityView(entityView);
-    }
-
-    @Override
-    public void unassignCustomerEntityViews(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerEntityViews, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        customerEntityViewsUnAssigner.removeEntities(tenantId, customerId);
-    }
-
     @Cacheable(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
     @Override
     public EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId) {
@@ -290,7 +266,15 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     public void deleteEntityViewsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteEntityViewsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantEntityViewRemover.removeEntities(tenantId, tenantId);
+        tenantEntityViewsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteEntityViewsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerEntityViewsRemover.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -396,7 +380,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                 }
             };
 
-    private PaginatedRemover<TenantId, EntityView> tenantEntityViewRemover = new PaginatedRemover<TenantId, EntityView>() {
+    private PaginatedRemover<TenantId, EntityView> tenantEntityViewsRemover = new PaginatedRemover<TenantId, EntityView>() {
         @Override
         protected List<EntityView> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
             return entityViewDao.findEntityViewsByTenantId(id.getId(), pageLink);
@@ -408,7 +392,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         }
     };
 
-    private PaginatedRemover<CustomerId, EntityView> customerEntityViewsUnAssigner = new PaginatedRemover<CustomerId, EntityView>() {
+    private PaginatedRemover<CustomerId, EntityView> customerEntityViewsRemover = new PaginatedRemover<CustomerId, EntityView>() {
         @Override
         protected List<EntityView> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
             return entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
@@ -416,7 +400,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
 
         @Override
         protected void removeEntity(TenantId tenantId, EntityView entity) {
-            unassignEntityViewFromCustomer(tenantId, new EntityViewId(entity.getUuidId()));
+            deleteEntityView(tenantId, new EntityViewId(entity.getUuidId()));
         }
     };
 }

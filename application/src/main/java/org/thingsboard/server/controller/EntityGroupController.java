@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,15 +59,20 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -76,6 +84,8 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 public class EntityGroupController extends BaseController {
 
     public static final String ENTITY_GROUP_ID = "entityGroupId";
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private OwnersCacheService ownersCacheService;
@@ -461,6 +471,110 @@ public class EntityGroupController extends BaseController {
             }
             return new TextPageData<>(owners, pageLink);
         } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/makePublic", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void makeEntityGroupPublic(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setPublic(true);
+        groupPermission.setTenantId(getTenantId());
+
+        EntityGroup entityGroup = null;
+
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.WRITE);
+            if (!getCurrentUser().getOwnerId().equals(entityGroup.getOwnerId())) {
+                throw permissionDenied();
+            }
+            checkPublicEntityGroupType(entityGroup.getType());
+
+            if (entityGroup.isPublic()) {
+                throw new ThingsboardException("Entity group is already public!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+
+            EntityGroup publicUsers = customerService.findOrCreatePublicUserGroup(getTenantId(), getCurrentUser().getOwnerId());
+            Role publicUserRole = customerService.findOrCreatePublicUserRole(getTenantId(), getCurrentUser().getOwnerId());
+
+            groupPermission.setRoleId(publicUserRole.getId());
+            groupPermission.setUserGroupId(publicUsers.getId());
+            groupPermission.setEntityGroupId(entityGroup.getId());
+            groupPermission.setEntityGroupType(entityGroup.getType());
+
+            JsonNode additionalInfo = entityGroup.getAdditionalInfo();
+            if (additionalInfo == null) {
+                additionalInfo = mapper.createObjectNode();
+            }
+            ((ObjectNode)additionalInfo).put("isPublic", true);
+            entityGroup.setAdditionalInfo(additionalInfo);
+
+            groupPermissionService.saveGroupPermission(getTenantId(), groupPermission);
+            entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
+
+            logEntityAction(entityGroupId, null,
+                    null,
+                    ActionType.MADE_PUBLIC, null, strEntityGroupId, entityGroup.getName());
+
+        } catch (Exception e) {
+            if (entityGroup != null) {
+                logEntityAction(entityGroup.getId(), null,
+                        null,
+                        ActionType.MADE_PUBLIC, e, strEntityGroupId, entityGroup.getName());
+            }
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/makePrivate", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void makeEntityGroupPrivate(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+
+        EntityGroup entityGroup = null;
+
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.WRITE);
+            if (!getCurrentUser().getOwnerId().equals(entityGroup.getOwnerId())) {
+                throw permissionDenied();
+            }
+            checkPublicEntityGroupType(entityGroup.getType());
+
+            if (!entityGroup.isPublic()) {
+                throw new ThingsboardException("Entity group is not public!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+
+            Optional<GroupPermission> groupPermission = groupPermissionService.findPublicGroupPermissionByTenantIdAndEntityGroupId(getTenantId(), entityGroup.getId());
+            if (groupPermission.isPresent()) {
+                groupPermissionService.deleteGroupPermission(getTenantId(), groupPermission.get().getId());
+            }
+
+            JsonNode additionalInfo = entityGroup.getAdditionalInfo();
+            if (additionalInfo == null) {
+                additionalInfo = mapper.createObjectNode();
+            }
+            ((ObjectNode)additionalInfo).put("isPublic", false);
+            entityGroup.setAdditionalInfo(additionalInfo);
+
+            entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
+
+            logEntityAction(entityGroupId, null,
+                    null,
+                    ActionType.MADE_PRIVATE, null, strEntityGroupId, entityGroup.getName());
+
+        } catch (Exception e) {
+            if (entityGroup != null) {
+                logEntityAction(entityGroup.getId(), null,
+                        null,
+                        ActionType.MADE_PRIVATE, e, strEntityGroupId, entityGroup.getName());
+            }
             throw handleException(e);
         }
     }

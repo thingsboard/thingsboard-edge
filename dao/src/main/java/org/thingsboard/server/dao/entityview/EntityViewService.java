@@ -51,12 +51,6 @@ public interface EntityViewService {
 
     EntityView saveEntityView(EntityView entityView);
 
-    EntityView assignEntityViewToCustomer(TenantId tenantId, EntityViewId entityViewId, CustomerId customerId);
-
-    EntityView unassignEntityViewFromCustomer(TenantId tenantId, EntityViewId entityViewId);
-
-    void unassignCustomerEntityViews(TenantId tenantId, CustomerId customerId);
-
     EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId);
 
     EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name);
@@ -80,6 +74,8 @@ public interface EntityViewService {
     void deleteEntityView(TenantId tenantId, EntityViewId entityViewId);
 
     void deleteEntityViewsByTenantId(TenantId tenantId);
+
+    void deleteEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
     ListenableFuture<List<EntitySubtype>> findEntityViewTypesByTenantId(TenantId tenantId);
 

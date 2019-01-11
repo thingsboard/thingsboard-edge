@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface GroupPermissionService {
 
@@ -56,6 +57,8 @@ public interface GroupPermissionService {
 
     TimePageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
+    Optional<GroupPermission> findPublicGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId);
+
     ListenableFuture<List<GroupPermissionInfo>> findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
 
     TimePageData<GroupPermission> findGroupPermissionByTenantIdAndRoleId(TenantId tenantId, RoleId roleId, TimePageLink pageLink);
@@ -69,5 +72,7 @@ public interface GroupPermissionService {
     void deleteGroupPermissionsByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId);
 
     void deleteGroupPermissionsByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId);
+
+    void deleteGroupPermissionsByTenantIdAndRoleId(TenantId tenantId, RoleId roleId);
 
 }

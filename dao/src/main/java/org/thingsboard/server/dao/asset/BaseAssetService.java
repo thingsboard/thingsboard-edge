@@ -150,20 +150,6 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public Asset assignAssetToCustomer(TenantId tenantId, AssetId assetId, CustomerId customerId) {
-        Asset asset = findAssetById(tenantId, assetId);
-        asset.setCustomerId(customerId);
-        return saveAsset(asset);
-    }
-
-    @Override
-    public Asset unassignAssetFromCustomer(TenantId tenantId, AssetId assetId) {
-        Asset asset = findAssetById(tenantId, assetId);
-        asset.setCustomerId(null);
-        return saveAsset(asset);
-    }
-
-    @Override
     public void deleteAsset(TenantId tenantId, AssetId assetId) {
         log.trace("Executing deleteAsset [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
@@ -234,6 +220,14 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
+    public void deleteAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteAssetsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerAssetsRemover.removeEntities(tenantId, customerId);
+    }
+
+    @Override
     public TextPageData<Asset> findAssetsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink) {
         log.trace("Executing findAssetsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -251,14 +245,6 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateIds(assetIds, "Incorrect assetIds " + assetIds);
         return assetDao.findAssetsByTenantIdAndCustomerIdAndIdsAsync(tenantId.getId(), customerId.getId(), toUUIDs(assetIds));
-    }
-
-    @Override
-    public void unassignCustomerAssets(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerAssets, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        customerAssetsUnasigner.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -402,7 +388,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             }
         };
 
-    private PaginatedRemover<CustomerId, Asset> customerAssetsUnasigner = new PaginatedRemover<CustomerId, Asset>() {
+    private PaginatedRemover<CustomerId, Asset> customerAssetsRemover = new PaginatedRemover<CustomerId, Asset>() {
 
         @Override
         protected List<Asset> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
@@ -411,7 +397,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
         @Override
         protected void removeEntity(TenantId tenantId, Asset entity) {
-            unassignAssetFromCustomer(tenantId, new AssetId(entity.getId().getId()));
+            deleteAsset(tenantId, new AssetId(entity.getId().getId()));
         }
     };
 }

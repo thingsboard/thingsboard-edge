@@ -52,11 +52,11 @@ import dashboardLayouts from './layouts';
 import dashboardStates from './states';
 
 import DashboardRoutes from './dashboard.routes';
-import {DashboardsController, DashboardCardController, MakeDashboardPublicDialogController} from './dashboards.controller';
+import {DashboardsController, DashboardCardController/*, MakeDashboardPublicDialogController*/} from './dashboards.controller';
 import DashboardController from './dashboard.controller';
 import DashboardSettingsController from './dashboard-settings.controller';
-import AddDashboardsToCustomerController from './add-dashboards-to-customer.controller';
-import ManageAssignedCustomersController from './manage-assigned-customers.controller';
+//import AddDashboardsToCustomerController from './add-dashboards-to-customer.controller';
+//import ManageAssignedCustomersController from './manage-assigned-customers.controller';
 import AddWidgetController from './add-widget.controller';
 import DashboardDirective from './dashboard.directive';
 import EditWidgetDirective from './edit-widget.directive';
@@ -87,11 +87,11 @@ export default angular.module('thingsboard.dashboard', [
     .config(DashboardRoutes)
     .controller('DashboardsController', DashboardsController)
     .controller('DashboardCardController', DashboardCardController)
-    .controller('MakeDashboardPublicDialogController', MakeDashboardPublicDialogController)
+    //.controller('MakeDashboardPublicDialogController', MakeDashboardPublicDialogController)
     .controller('DashboardController', DashboardController)
     .controller('DashboardSettingsController', DashboardSettingsController)
-    .controller('AddDashboardsToCustomerController', AddDashboardsToCustomerController)
-    .controller('ManageAssignedCustomersController', ManageAssignedCustomersController)
+    //.controller('AddDashboardsToCustomerController', AddDashboardsToCustomerController)
+    //.controller('ManageAssignedCustomersController', ManageAssignedCustomersController)
     .controller('AddWidgetController', AddWidgetController)
     .directive('tbDashboardDetails', DashboardDirective)
     .directive('tbEditWidget', EditWidgetDirective)

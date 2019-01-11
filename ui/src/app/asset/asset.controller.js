@@ -247,8 +247,8 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             fetchAssetsFunction = function (pageLink, assetType) {
                 return assetService.getCustomerAssets(customerId, pageLink, true, null, assetType);
             };
-            deleteAssetFunction = function (assetId) {
-                return assetService.unassignAssetFromCustomer(assetId);
+            deleteAssetFunction = function (/*assetId*/) {
+                return $q.when();//assetService.unassignAssetFromCustomer(assetId);
             };
             refreshAssetsParamsFunction = function () {
                 return {"customerId": customerId, "topIndex": vm.topIndex};
@@ -374,12 +374,12 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
         return vm.assetsScope === 'customer_user';
     }
 
-    function assignToCustomer($event, assetIds) {
-        tbDialogs.assignAssetsToCustomer($event, assetIds).then(
+    function assignToCustomer(/*$event, assetIds*/) {
+        /*tbDialogs.assignAssetsToCustomer($event, assetIds).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
     function addAssetsToCustomer($event) {
@@ -426,16 +426,16 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
         assignToCustomer($event, assetIds);
     }
 
-    function unassignFromCustomer($event, asset, isPublic) {
-        tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
+    function unassignFromCustomer(/*$event, asset, isPublic*/) {
+        /*tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function unassignAssetsFromCustomer($event, items) {
-        var assetIds = [];
+    function unassignAssetsFromCustomer(/*$event, items*/) {
+       /* var assetIds = [];
         for (var id in items.selections) {
             assetIds.push(id);
         }
@@ -443,14 +443,14 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function makePublic($event, asset) {
-        tbDialogs.makeAssetPublic($event, asset).then(
+    function makePublic(/*$event, asset*/) {
+        /*tbDialogs.makeAssetPublic($event, asset).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 }

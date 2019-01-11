@@ -41,9 +41,9 @@ function AssetService($http, $q, customerService, userService) {
         getUserAssets: getUserAssets,
         saveAsset: saveAsset,
         deleteAsset: deleteAsset,
-        assignAssetToCustomer: assignAssetToCustomer,
-        unassignAssetFromCustomer: unassignAssetFromCustomer,
-        makeAssetPublic: makeAssetPublic,
+        //assignAssetToCustomer: assignAssetToCustomer,
+        //unassignAssetFromCustomer: unassignAssetFromCustomer,
+        //makeAssetPublic: makeAssetPublic,
         getTenantAssets: getTenantAssets,
         getCustomerAssets: getCustomerAssets,
         findByQuery: findByQuery,
@@ -147,6 +147,7 @@ function AssetService($http, $q, customerService, userService) {
         return deferred.promise;
     }
 
+    /*
     function assignAssetToCustomer(customerId, assetId, ignoreErrors, config) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/asset/' + assetId;
@@ -191,6 +192,7 @@ function AssetService($http, $q, customerService, userService) {
         });
         return deferred.promise;
     }
+*/
 
     function getTenantAssets(pageLink, applyCustomersInfo, config, type) {
         var deferred = $q.defer();

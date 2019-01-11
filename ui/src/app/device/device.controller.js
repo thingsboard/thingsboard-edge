@@ -259,8 +259,8 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
             fetchDevicesFunction = function (pageLink, deviceType) {
                 return deviceService.getCustomerDevices(customerId, pageLink, true, null, deviceType);
             };
-            deleteDeviceFunction = function (deviceId) {
-                return deviceService.unassignDeviceFromCustomer(deviceId);
+            deleteDeviceFunction = function (/*deviceId*/) {
+                return $q.when();//deviceService.unassignDeviceFromCustomer(deviceId);
             };
             refreshDevicesParamsFunction = function () {
                 return {"customerId": customerId, "topIndex": vm.topIndex};
@@ -408,12 +408,12 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
         return vm.devicesScope === 'customer_user';
     }
 
-    function assignToCustomer($event, deviceIds) {
-        tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
+    function assignToCustomer(/*$event, deviceIds*/) {
+        /*tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
     function addDevicesToCustomer($event) {
@@ -460,16 +460,16 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
         assignToCustomer($event, deviceIds);
     }
 
-    function unassignFromCustomer($event, device, isPublic) {
-        tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
+    function unassignFromCustomer(/*$event, device, isPublic*/) {
+        /*tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function unassignDevicesFromCustomer($event, items) {
-        var deviceIds = [];
+    function unassignDevicesFromCustomer(/*$event, items*/) {
+       /* var deviceIds = [];
         for (var id in items.selections) {
             deviceIds.push(id);
         }
@@ -477,15 +477,15 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function makePublic($event, device) {
-        tbDialogs.makeDevicePublic($event, device).then(
+    function makePublic(/*$event, device*/) {
+        /*tbDialogs.makeDevicePublic($event, device).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
     function manageCredentials($event, device) {

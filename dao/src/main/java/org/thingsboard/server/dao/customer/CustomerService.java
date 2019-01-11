@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.customer;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -41,6 +42,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.role.Role;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +61,11 @@ public interface CustomerService {
 
     void deleteCustomer(TenantId tenantId, CustomerId customerId);
 
-    Customer findOrCreatePublicCustomer(TenantId tenantId);
+    Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId);
+
+    EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId);
+
+    Role findOrCreatePublicUserRole(TenantId tenantId, EntityId ownerId);
 
     TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);
 

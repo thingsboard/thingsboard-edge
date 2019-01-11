@@ -65,4 +65,6 @@ public interface BlobEntityService {
 
     void deleteBlobEntitiesByTenantId(TenantId tenantId);
 
+    void deleteBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
 }

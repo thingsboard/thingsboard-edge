@@ -278,6 +278,13 @@ public class AuditLogServiceImpl implements AuditLogService {
                 EntityRelation relation = extractParameter(EntityRelation.class, 0, additionalInfo);
                 actionData.set("relation", objectMapper.valueToTree(relation));
                 break;
+            case MADE_PUBLIC:
+            case MADE_PRIVATE:
+                strEntityGroupId = extractParameter(String.class, 0, additionalInfo);
+                strEntityGroupName = extractParameter(String.class, 1, additionalInfo);
+                actionData.put("entityGroupId", strEntityGroupId);
+                actionData.put("entityGroupName", strEntityGroupName);
+                break;
         }
         return actionData;
     }

@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function ManageAssignedCustomersController($mdDialog, $q, types, dashboardService, actionType, dashboardIds, assignedCustomers) {
-
+export default function ManageAssignedCustomersController(/*$mdDialog, $q, types, dashboardService, actionType, dashboardIds, assignedCustomers*/) {
+/*
     var vm = this;
 
     vm.types = types;
@@ -79,6 +79,6 @@ export default function ManageAssignedCustomersController($mdDialog, $q, types, 
         $q.all(tasks).then(function () {
             $mdDialog.hide();
         });
-    }
+    }*/
 
 }

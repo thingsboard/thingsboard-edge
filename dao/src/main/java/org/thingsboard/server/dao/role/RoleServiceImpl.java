@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -79,6 +80,9 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private GroupPermissionService groupPermissionService;
 
     @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
     @Override
@@ -152,6 +156,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     public void deleteRole(TenantId tenantId, RoleId roleId) {
         log.trace("Executing deleteRole [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
+        groupPermissionService.deleteGroupPermissionsByTenantIdAndRoleId(tenantId, roleId);
         deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
     }

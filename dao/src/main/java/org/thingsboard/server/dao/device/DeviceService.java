@@ -57,10 +57,6 @@ public interface DeviceService {
 
     Device saveDevice(Device device);
 
-    Device assignDeviceToCustomer(TenantId tenantId, DeviceId deviceId, CustomerId customerId);
-
-    Device unassignDeviceFromCustomer(TenantId tenantId, DeviceId deviceId);
-
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
     TextPageData<Device> findDevicesByTenantId(TenantId tenantId, TextPageLink pageLink);
@@ -73,11 +69,11 @@ public interface DeviceService {
 
     TextPageData<Device> findDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 
+    void deleteDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
     TextPageData<Device> findDevicesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
 
     ListenableFuture<List<Device>> findDevicesByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<DeviceId> deviceIds);
-
-    void unassignCustomerDevices(TenantId tenantId, CustomerId customerId);
 
     ListenableFuture<List<Device>> findDevicesByQuery(TenantId tenantId, DeviceSearchQuery query);
 

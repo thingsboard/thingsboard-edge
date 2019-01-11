@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AddDevicesToCustomerController(deviceService, $mdDialog, $q, customerId, devices) {
-
+export default function AddDevicesToCustomerController(/*deviceService, $mdDialog, $q, customerId, devices*/) {
+/*
     var vm = this;
 
     vm.devices = devices;
@@ -134,5 +134,5 @@ export default function AddDevicesToCustomerController(deviceService, $mdDialog,
             pending: false
         };
     }
-
+*/
 }

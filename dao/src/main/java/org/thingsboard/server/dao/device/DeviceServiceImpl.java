@@ -162,20 +162,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public Device assignDeviceToCustomer(TenantId tenantId, DeviceId deviceId, CustomerId customerId) {
-        Device device = findDeviceById(tenantId, deviceId);
-        device.setCustomerId(customerId);
-        return saveDevice(device);
-    }
-
-    @Override
-    public Device unassignDeviceFromCustomer(TenantId tenantId, DeviceId deviceId) {
-        Device device = findDeviceById(tenantId, deviceId);
-        device.setCustomerId(null);
-        return saveDevice(device);
-    }
-
-    @Override
     public void deleteDevice(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing deleteDevice [{}]", deviceId);
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
@@ -252,6 +238,14 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
+    public void deleteDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerDevicesRemover.removeEntities(tenantId, customerId);
+    }
+
+    @Override
     public TextPageData<Device> findDevicesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -270,14 +264,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validateIds(deviceIds, "Incorrect deviceIds " + deviceIds);
         return deviceDao.findDevicesByTenantIdCustomerIdAndIdsAsync(tenantId.getId(),
                 customerId.getId(), toUUIDs(deviceIds));
-    }
-
-    @Override
-    public void unassignCustomerDevices(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerDevices, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        customerDeviceUnasigner.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -425,7 +411,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             }
         };
 
-    private PaginatedRemover<CustomerId, Device> customerDeviceUnasigner = new PaginatedRemover<CustomerId, Device>() {
+    private PaginatedRemover<CustomerId, Device> customerDevicesRemover = new PaginatedRemover<CustomerId, Device>() {
 
         @Override
         protected List<Device> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
@@ -434,7 +420,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
         @Override
         protected void removeEntity(TenantId tenantId, Device entity) {
-            unassignDeviceFromCustomer(tenantId, new DeviceId(entity.getUuidId()));
+            deleteDevice(tenantId, new DeviceId(entity.getUuidId()));
         }
     };
 }

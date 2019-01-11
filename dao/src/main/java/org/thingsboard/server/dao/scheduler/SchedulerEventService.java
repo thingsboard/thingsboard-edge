@@ -63,4 +63,6 @@ public interface SchedulerEventService {
 
     void deleteSchedulerEventsByTenantId(TenantId tenantId);
 
+    void deleteSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
 }

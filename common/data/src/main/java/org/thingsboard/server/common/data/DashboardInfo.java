@@ -148,6 +148,15 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
         }
     }
 
+    public boolean removeAssignedCustomerInfo(ShortCustomerInfo customerInfo) {
+        if (this.assignedCustomers != null && this.assignedCustomers.contains(customerInfo)) {
+            this.assignedCustomers.remove(customerInfo);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

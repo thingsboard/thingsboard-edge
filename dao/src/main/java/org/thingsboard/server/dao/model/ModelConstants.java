@@ -468,6 +468,7 @@ public class ModelConstants {
     public static final String GROUP_PERMISSION_USER_GROUP_ID_PROPERTY = "user_group_id";
     public static final String GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
     public static final String GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY = "entity_group_type";
+    public static final String GROUP_PERMISSION_IS_PUBLIC_PROPERTY = "is_public";
 
     public static final String GROUP_PERMISSION_BY_TENANT_ID_COLUMN_FAMILY_NAME = "group_permission_by_tenant_id";
     public static final String GROUP_PERMISSION_BY_USER_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_user_group_id";

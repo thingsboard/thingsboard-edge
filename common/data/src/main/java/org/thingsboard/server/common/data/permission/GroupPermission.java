@@ -73,6 +73,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     private RoleId roleId;
     private EntityGroupId entityGroupId;
     private EntityType entityGroupType;
+    private boolean isPublic;
 
     public GroupPermission() {
         super();

@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.dao.grouppermission;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +51,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -56,6 +60,8 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -138,6 +144,18 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     }
 
     @Override
+    public Optional<GroupPermission> findPublicGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing findPublicGroupPermissionByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        List<GroupPermission> permissions = groupPermissions.stream().filter((groupPermission -> groupPermission.isPublic())).collect(Collectors.toList());
+        if (permissions.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(permissions.get(0));
+        }
+    }
+
+    @Override
     public ListenableFuture<List<GroupPermissionInfo>> findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -167,6 +185,22 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public void deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId) {
         log.trace("Executing deleteGroupPermission [{}]", groupPermissionId);
         validateId(groupPermissionId, INCORRECT_GROUP_PERMISSION_ID + groupPermissionId);
+        GroupPermission groupPermission = groupPermissionDao.findById(tenantId, groupPermissionId.getId());
+        if (groupPermission == null) {
+            throw new IncorrectParameterException("Unable to delete non-existent group permission.");
+        }
+        if (groupPermission.isPublic() && groupPermission.getEntityGroupId() != null) {
+            EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getEntityGroupId().getId());
+            if (entityGroup != null) {
+                JsonNode additionalInfo = entityGroup.getAdditionalInfo();
+                if (additionalInfo == null) {
+                    additionalInfo = new ObjectMapper().createObjectNode();
+                }
+                ((ObjectNode) additionalInfo).put("isPublic", false);
+                entityGroup.setAdditionalInfo(additionalInfo);
+                entityGroupDao.save(tenantId, entityGroup);
+            }
+        }
         deleteEntityRelations(tenantId, groupPermissionId);
         groupPermissionDao.removeById(tenantId, groupPermissionId.getId());
     }
@@ -192,6 +226,14 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         entityGroupPermissionRemover.removeEntities(tenantId, entityGroupId);
+    }
+
+    @Override
+    public void deleteGroupPermissionsByTenantIdAndRoleId(TenantId tenantId, RoleId roleId) {
+        log.trace("Executing deleteGroupPermissionsByTenantIdAndRoleId, tenantId [{}], roleId [{}]", tenantId, roleId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(roleId, INCORRECT_ROLE_ID + roleId);
+        rolePermissionRemover.removeEntities(tenantId, roleId);
     }
 
     private ListenableFuture<List<GroupPermissionInfo>> toGroupPermissionInfoListAsync(TenantId tenantId, List<GroupPermission> groupPermissions, boolean isUserGroup) {
@@ -334,6 +376,18 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         @Override
         protected List<GroupPermission> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
             return groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, GroupPermission entity) {
+            deleteGroupPermission(tenantId, entity.getId());
+        }
+    };
+
+    private TimePaginatedRemover<RoleId, GroupPermission> rolePermissionRemover = new TimePaginatedRemover<RoleId, GroupPermission>() {
+        @Override
+        protected List<GroupPermission> findEntities(TenantId tenantId, RoleId roleId, TimePageLink pageLink) {
+            return groupPermissionDao.findGroupPermissionsByTenantIdAndRoleId(tenantId.getId(), roleId.getId(), pageLink);
         }
 
         @Override

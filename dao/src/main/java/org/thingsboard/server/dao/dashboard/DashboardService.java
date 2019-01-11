@@ -66,15 +66,10 @@ public interface DashboardService {
 
     void deleteDashboardsByTenantId(TenantId tenantId);
 
-    ListenableFuture<TimePageData<DashboardInfo>> findDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TimePageLink pageLink);
-
-    void unassignCustomerDashboards(TenantId tenantId, CustomerId customerId);
-
-    void updateCustomerDashboards(TenantId tenantId, CustomerId customerId);
+    void deleteDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
     ShortEntityView findGroupDashboard(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
     ListenableFuture<TimePageData<ShortEntityView>> findDashboardsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
-
 
 }

@@ -236,6 +236,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "REST_API_RULE_ENGINE_CALL": {
                     name: "audit-log.type-rest-api-rule-engine-call"
+                },
+                "MADE_PUBLIC": {
+                    name: "audit-log.type-made-public"
+                },
+                "MADE_PRIVATE": {
+                    name: "audit-log.type-made-private"
                 }
             },
             auditLogActionStatus: {

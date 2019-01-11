@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.group;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -57,6 +58,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     public static final String GROUP_TENANT_ADMINS_NAME = "Tenant Administrators";
     public static final String GROUP_CUSTOMER_USERS_NAME = "Customer Users";
     public static final String GROUP_CUSTOMER_ADMINS_NAME = "Customer Administrators";
+    public static final String GROUP_PUBLIC_USERS_NAME = "Public Users";
 
     @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD")
     private EntityType type;
@@ -94,6 +96,15 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
     public boolean isGroupAll() {
         return GROUP_ALL_NAME.equals(name);
+    }
+
+    @JsonIgnore
+    public boolean isPublic() {
+        if (getAdditionalInfo() != null && getAdditionalInfo().has("isPublic")) {
+            return getAdditionalInfo().get("isPublic").asBoolean();
+        }
+
+        return false;
     }
 
 }

@@ -50,13 +50,7 @@ import org.thingsboard.server.dao.model.type.EntityTypeCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_ROLE_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TABLE_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_USER_GROUP_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
 @Table(name = GROUP_PERMISSION_TABLE_FAMILY_NAME)
@@ -88,6 +82,9 @@ public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY, codec = EntityTypeCodec.class)
     private EntityType entityGroupType;
 
+    @Column(name = GROUP_PERMISSION_IS_PUBLIC_PROPERTY)
+    private boolean isPublic;
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public GroupPermissionEntity() {
@@ -111,6 +108,7 @@ public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
             this.entityGroupId = groupPermission.getEntityGroupId().getId();
             this.entityGroupType = groupPermission.getEntityGroupType();
         }
+        this.isPublic = groupPermission.isPublic();
     }
 
     @Override
@@ -130,6 +128,7 @@ public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
             groupPermission.setEntityGroupId(new EntityGroupId(entityGroupId));
             groupPermission.setEntityGroupType(entityGroupType);
         }
+        groupPermission.setPublic(isPublic);
         return groupPermission;
     }
 }

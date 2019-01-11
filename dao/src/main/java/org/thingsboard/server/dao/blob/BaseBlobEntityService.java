@@ -62,6 +62,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 public class BaseBlobEntityService extends AbstractEntityService implements BlobEntityService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_BLOB_ENTITY_ID = "Incorrect blobEntityId ";
 
 
@@ -152,6 +153,14 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
         tenantBlobEntitiesRemover.removeEntities(tenantId, tenantId);
     }
 
+    @Override
+    public void deleteBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteBlobEntitiesByTenantIdAndCustomerId, tenantId [{}], customerId", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerBlobEntitiesRemover.removeEntities(tenantId, customerId);
+    }
+
     private DataValidator<BlobEntity> blobEntityValidator =
             new DataValidator<BlobEntity>() {
 
@@ -202,6 +211,20 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
                 @Override
                 protected List<BlobEntityInfo> findEntities(TenantId tenantId, TenantId id, TimePageLink pageLink) {
                     return blobEntityInfoDao.findBlobEntitiesByTenantId(id.getId(), pageLink);
+                }
+
+                @Override
+                protected void removeEntity(TenantId tenantId, BlobEntityInfo entity) {
+                    deleteBlobEntity(tenantId, new BlobEntityId(entity.getId().getId()));
+                }
+            };
+
+    private TimePaginatedRemover<CustomerId, BlobEntityInfo> customerBlobEntitiesRemover =
+            new TimePaginatedRemover<CustomerId, BlobEntityInfo>() {
+
+                @Override
+                protected List<BlobEntityInfo> findEntities(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
+                    return blobEntityInfoDao.findBlobEntitiesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
                 }
 
                 @Override

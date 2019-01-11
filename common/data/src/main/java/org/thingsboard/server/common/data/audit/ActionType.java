@@ -55,7 +55,9 @@ public enum ActionType {
     ALARM_CLEAR (false),
     ADDED_TO_ENTITY_GROUP(false), // log entity group name
     REMOVED_FROM_ENTITY_GROUP(false), // log entity group name
-    REST_API_RULE_ENGINE_CALL(false); // log call to rule engine from REST API
+    REST_API_RULE_ENGINE_CALL(false), // log call to rule engine from REST API
+    MADE_PUBLIC(false), // log entity group name
+    MADE_PRIVATE(false); // log entity group name
 
     private final boolean isRead;
 

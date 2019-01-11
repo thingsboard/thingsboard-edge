@@ -29,10 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AddDashboardsToCustomerController(dashboardService, $mdDialog, $q, customerId, dashboards) {
+export default function AddDashboardsToCustomerController(/*dashboardService, $mdDialog, $q, customerId, dashboards*/) {
 
-    var vm = this;
-
+//    var vm = this;
+/*
     vm.dashboards = dashboards;
     vm.searchText = '';
 
@@ -133,5 +133,5 @@ export default function AddDashboardsToCustomerController(dashboardService, $mdD
             hasNext: true,
             pending: false
         };
-    }
+    }*/
 }

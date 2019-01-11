@@ -38,7 +38,7 @@ export default angular.module('thingsboard.api.entityView', [thingsboardTypes])
 function EntityViewService($http, $q, $window, userService, attributeService, customerService, types) {
 
     var service = {
-        assignEntityViewToCustomer: assignEntityViewToCustomer,
+        //assignEntityViewToCustomer: assignEntityViewToCustomer,
         deleteEntityView: deleteEntityView,
         getCustomerEntityViews: getCustomerEntityViews,
         getEntityView: getEntityView,
@@ -46,8 +46,8 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         getUserEntityViews: getUserEntityViews,
         getTenantEntityViews: getTenantEntityViews,
         saveEntityView: saveEntityView,
-        unassignEntityViewFromCustomer: unassignEntityViewFromCustomer,
-        makeEntityViewPublic: makeEntityViewPublic,
+        //unassignEntityViewFromCustomer: unassignEntityViewFromCustomer,
+        //makeEntityViewPublic: makeEntityViewPublic,
         getEntityViewAttributes: getEntityViewAttributes,
         subscribeForEntityViewAttributes: subscribeForEntityViewAttributes,
         unsubscribeForEntityViewAttributes: unsubscribeForEntityViewAttributes,
@@ -215,6 +215,7 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         return deferred.promise;
     }
 
+    /*
     function assignEntityViewToCustomer(customerId, entityViewId) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/entityView/' + entityViewId;
@@ -251,6 +252,7 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         });
         return deferred.promise;
     }
+*/
 
     function getEntityViewAttributes(entityViewId, attributeScope, query, successCallback, config) {
         return attributeService.getEntityAttributes(types.entityType.entityView, entityViewId, attributeScope, query, successCallback, config);

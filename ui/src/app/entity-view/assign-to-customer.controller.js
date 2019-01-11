@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AssignEntityViewToCustomerController(customerService, entityViewService, $mdDialog, $q, entityViewIds, customers) {
-
+export default function AssignEntityViewToCustomerController(/*customerService, entityViewService, $mdDialog, $q, entityViewIds, customers*/) {
+/*
     var vm = this;
 
     vm.customers = customers;
@@ -134,5 +134,5 @@ export default function AssignEntityViewToCustomerController(customerService, en
             hasNext: true,
             pending: false
         };
-    }
+    }*/
 }
