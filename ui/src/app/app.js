@@ -85,7 +85,8 @@ import 'angular-ui-calendar';
 import 'moment-timezone';
 import 'jstree/dist/jstree.min';
 
-import 'jstree/dist/themes/default/style.min.css';
+//import 'jstree/dist/themes/default/style.min.css';
+import 'jstree-bootstrap-theme/dist/themes/proton/style.min.css';
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
 import 'typeface-roboto';

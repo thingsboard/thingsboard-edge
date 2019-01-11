@@ -57,12 +57,8 @@
     }
 
     &.tb-customers-nav-tree-toolbar {
-      right: 0;
-
-      .md-button.tb-btn-close-nav-tree {
-        top: 0;
-        right: 0;
-        margin: 4px 4px 0 0;
+      .md-button {
+        margin: 4px 8px 0 0;
       }
     }
   }
@@ -117,5 +113,14 @@
   .tb-customers-hierarchy-content {
     z-index: 0;
     overflow: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .tb-customers-hierarchy {
+    .tb-customers-nav-tree {
+      width: 100vw;
+      min-width: 100vw;
+    }
   }
 }
