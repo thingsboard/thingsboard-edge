@@ -54,10 +54,10 @@
                 <section layout="row" layout-wrap
                          class="tb-header-buttons tb-customers-hierarchy-buttons md-fab tb-customers-nav-tree-toolbar" layout-align="start end">
                     <md-button class="tb-btn-header md-primary md-fab"
-                               aria-label="Return" ng-click="vm.isNavTreeOpen = false">
+                               aria-label="Return" ng-show="vm.selectedNodeId !== -1" ng-click="vm.selectRootNode()">
                         <md-icon aria-label="Return" class="material-icons">arrow_upwards</md-icon>
                         <md-tooltip md-direction="{{vm.isFullscreen ? 'bottom' : 'top'}}">
-                            {{ 'action.close' | translate }}
+                            {{ 'customers-hierarchy.return-to-top-level' | translate }}
                         </md-tooltip>
                     </md-button>
                     <md-button class="tb-btn-header md-primary md-fab"

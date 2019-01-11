@@ -87,6 +87,7 @@ export default function CustomersHierarchyController($scope, types, securityType
 
     vm.loadNodes = loadNodes;
     vm.onNodeSelected = onNodeSelected;
+    vm.selectRootNode = selectRootNode;
     vm.nodeEditCallbacks = {};
 
     var groupTypes = [
@@ -251,6 +252,12 @@ export default function CustomersHierarchyController($scope, types, securityType
         if (!vm.nodeEditCallbacks.nodeIsOpen(nodeId)) {
             vm.nodeEditCallbacks.openNode(nodeId, openCb);
         }
+    }
+
+    function selectRootNode() {
+        $timeout(() => {
+            vm.nodeEditCallbacks.deselectAll();
+        }, 0, false);
     }
 
     function entityGroupsToNodes(parentNodeId, parentEntityGroupId, entityGroups) {

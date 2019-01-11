@@ -96,6 +96,9 @@ function NavTreeController($scope, $element, types) {
                     vm.treeElement.jstree('select_node', node);
                 }
             };
+            vm.editCallbacks.deselectAll = () => {
+                vm.treeElement.jstree('deselect_all');
+            };
             vm.editCallbacks.getParentNodeId = (id) => {
                 var node = vm.treeElement.jstree('get_node', id);
                 if (node) {

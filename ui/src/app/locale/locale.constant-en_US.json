@@ -504,7 +504,8 @@
     },
     "customers-hierarchy": {
         "customers-hierarchy": "Customers hierarchy",
-        "open-nav-tree": "Open navigation tree"
+        "open-nav-tree": "Open navigation tree",
+        "return-to-top-level": "Return to top level"
     },
     "custom-translation": {
         "custom-translation": "Custom Translation",
