@@ -31,6 +31,6 @@
   "devDependencies": {
     "fs-extra": "^6.0.1",
     "nodemon": "^1.17.5",
-    "pkg": "^4.3.3"
+    "pkg": "^4.3.6"
   }
 }
