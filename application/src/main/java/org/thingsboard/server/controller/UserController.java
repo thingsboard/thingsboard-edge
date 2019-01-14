@@ -137,7 +137,7 @@ public class UserController extends BaseController {
             User user = checkUserId(userId, Operation.READ);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
-            MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser);
+            MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser, false);
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, userPermissions);
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
             JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);

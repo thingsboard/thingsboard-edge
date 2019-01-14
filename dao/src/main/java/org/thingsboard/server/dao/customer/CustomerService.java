@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.curator.framework.listen.Listenable;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -65,7 +66,9 @@ public interface CustomerService {
 
     EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId);
 
-    Role findOrCreatePublicUserRole(TenantId tenantId, EntityId ownerId);
+    ListenableFuture<Optional<EntityGroup>> findPublicUserGroup(TenantId tenantId, CustomerId publicCustomerId);
+
+    Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId);
 
     TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);
 

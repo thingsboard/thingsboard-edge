@@ -59,8 +59,7 @@
 		<label translate>dashboard.assignedToCustomers</label>
 		<input ng-model="dashboard.assignedCustomersText" disabled>
 	</md-input-container-->
-	<!--div layout="column" ng-show="!isEdit && ((dashboardScope === 'tenant' && dashboard.publicCustomerId ||
-		   						               dashboardScope === 'customer' && customerId == dashboard.publicCustomerId))">
+	<div layout="column" ng-show="!isEdit && isPublic">
 		<tb-social-share-panel style="padding-bottom: 10px;"
 							   share-title="{{ 'dashboard.socialshare-title' | translate:{dashboardTitle: dashboard.title} }}"
 							   share-text="{{ 'dashboard.socialshare-text' | translate:{dashboardTitle: dashboard.title} }}"
@@ -82,7 +81,7 @@
 				</md-tooltip>
 			</md-button>
 		</div>
-	</div-->
+	</div>
 	<fieldset ng-disabled="$root.loading || !isEdit">
 		<md-input-container class="md-block">
 			<label translate>dashboard.title</label>

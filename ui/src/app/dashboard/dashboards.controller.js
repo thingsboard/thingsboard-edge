@@ -41,8 +41,8 @@ import manageAssignedCustomersTemplate from './manage-assigned-customers.tpl.htm
 import './dashboard-card.scss';
 
 /*@ngInject*/
-export function MakeDashboardPublicDialogController($mdDialog, $translate, toast, dashboardService, dashboard) {
-
+export function MakeDashboardPublicDialogController(/*$mdDialog, $translate, toast, dashboardService, dashboard*/) {
+/*
     var vm = this;
 
     vm.dashboard = dashboard;
@@ -57,7 +57,7 @@ export function MakeDashboardPublicDialogController($mdDialog, $translate, toast
 
     function close() {
         $mdDialog.hide();
-    }
+    }*/
 
 }
 

@@ -39,7 +39,7 @@ import org.thingsboard.server.common.data.role.Role;
 
 public interface UserPermissionsService {
 
-    MergedUserPermissions getMergedPermissions(User user) throws ThingsboardException;
+    MergedUserPermissions getMergedPermissions(User user, boolean isPublic) throws ThingsboardException;
 
     void onRoleUpdated(Role role) throws ThingsboardException;
 

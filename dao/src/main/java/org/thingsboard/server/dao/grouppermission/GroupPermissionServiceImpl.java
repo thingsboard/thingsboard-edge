@@ -197,6 +197,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                     additionalInfo = new ObjectMapper().createObjectNode();
                 }
                 ((ObjectNode) additionalInfo).put("isPublic", false);
+                ((ObjectNode) additionalInfo).put("publicCustomerId", "");
                 entityGroup.setAdditionalInfo(additionalInfo);
                 entityGroupDao.save(tenantId, entityGroup);
             }

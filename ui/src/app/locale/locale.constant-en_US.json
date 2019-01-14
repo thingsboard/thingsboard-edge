@@ -1065,7 +1065,15 @@
         "name-starts-with": "Entity group name starts with",
         "entity-group-name-filter-required": "Entity group name filter is required.",
         "roles": "Roles",
-        "permissions": "Permissions"
+        "permissions": "Permissions",
+        "public": "Public",
+        "entity-group-public": "Entity group is public",
+        "make-public": "Make entity group public",
+        "make-private": "Make entity group private",
+        "make-public-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' public?",
+        "make-public-entity-group-text": "After the confirmation the entity group and all its entities will be made public and accessible by others.",
+        "make-private-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' private?",
+        "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others."
     },
     "entity-view": {
         "entity-view": "Entity View",

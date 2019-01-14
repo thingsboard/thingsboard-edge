@@ -254,7 +254,7 @@ public class DefaultReportService implements ReportService {
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         MergedUserPermissions mergedUserPermissions;
         try {
-            mergedUserPermissions = userPermissionsService.getMergedPermissions(user);
+            mergedUserPermissions = userPermissionsService.getMergedPermissions(user, false);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

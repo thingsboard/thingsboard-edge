@@ -68,6 +68,22 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         ));
     }
 
+    public static final Map<Resource, List<Operation>> PUBLIC_USER_PERMISSIONS = new HashMap<>();
+    static {
+        PUBLIC_USER_PERMISSIONS.put(Resource.DASHBOARD, Arrays.asList(
+                Operation.READ
+        ));
+        PUBLIC_USER_PERMISSIONS.put(Resource.WIDGETS_BUNDLE, Arrays.asList(
+                Operation.READ
+        ));
+        PUBLIC_USER_PERMISSIONS.put(Resource.WIDGET_TYPE, Arrays.asList(
+                Operation.READ
+        ));
+    }
+
+    public static final List<Operation> PUBLIC_USER_ENTITY_GROUP_PERMISSIONS =
+            Arrays.asList(Operation.READ, Operation.RPC_CALL, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY);
+
     private TenantId tenantId;
     private EntityGroupId userGroupId;
     private RoleId roleId;
@@ -90,6 +106,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         this.roleId = groupPermission.getRoleId();
         this.entityGroupId = groupPermission.getEntityGroupId();
         this.entityGroupType = groupPermission.getEntityGroupType();
+        this.isPublic = groupPermission.isPublic();
     }
 
     @Override

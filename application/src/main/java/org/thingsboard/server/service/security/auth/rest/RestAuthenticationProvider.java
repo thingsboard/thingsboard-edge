@@ -119,7 +119,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         if (user.getAuthority() == null)
             throw new InsufficientAuthenticationException("User has no authority assigned");
 
-        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, getMergedUserPermissions(user));
+        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, getMergedUserPermissions(user, false));
 
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }
@@ -146,7 +146,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         user.setFirstName("Public");
         user.setLastName("Public");
 
-        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, getMergedUserPermissions(user));
+        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, getMergedUserPermissions(user, true));
 
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }
@@ -156,9 +156,9 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
-    protected MergedUserPermissions getMergedUserPermissions(User user) {
+    protected MergedUserPermissions getMergedUserPermissions(User user, boolean isPublic) {
         try {
-            return userPermissionsService.getMergedPermissions(user);
+            return userPermissionsService.getMergedPermissions(user, isPublic);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

@@ -58,21 +58,14 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -111,16 +104,31 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
     private RoleService roleService;
 
     @Autowired
+    private CustomerService customerService;
+
+    @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     @Override
-    public MergedUserPermissions getMergedPermissions(User user) throws ThingsboardException {
+    public MergedUserPermissions getMergedPermissions(User user, boolean isPublic) throws ThingsboardException {
         if (user.getAuthority() == Authority.SYS_ADMIN) {
             return sysAdminPermissions;
         }
         MergedUserPermissions result = getMergedPermissionsFromCache(user.getTenantId(), user.getCustomerId(), user.getId());
         if (result == null) {
-            ListenableFuture<List<EntityGroupId>> groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
+            ListenableFuture<List<EntityGroupId>> groups;
+            if (isPublic) {
+                ListenableFuture<Optional<EntityGroup>> publicUserGroup = customerService.findPublicUserGroup(user.getTenantId(), user.getCustomerId());
+                groups = Futures.transform(publicUserGroup, groupOptional -> {
+                            if (groupOptional.isPresent()) {
+                                return Arrays.asList(groupOptional.get().getId());
+                            } else {
+                                return Collections.emptyList();
+                            }
+                        });
+            } else {
+                groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
+            }
             ListenableFuture<List<GroupPermission>> permissions = Futures.transformAsync(groups, toGroupPermissionsList(user.getTenantId()), dbCallbackExecutorService);
             try {
                 result = Futures.transform(permissions, groupPermissions -> toMergedUserPermissions(user.getTenantId(), groupPermissions), dbCallbackExecutorService).get();
@@ -140,17 +148,17 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         for (GroupPermission gpe : groupPermissions.getData()) {
             uniqueUserGroups.add(gpe.getUserGroupId());
         }
-        evictCacheForUserGroups(role.getTenantId(), uniqueUserGroups);
+        evictCacheForUserGroups(role.getTenantId(), uniqueUserGroups, false);
     }
 
     @Override
     public void onGroupPermissionUpdated(GroupPermission groupPermission) throws ThingsboardException {
-        evictCacheForUserGroups(groupPermission.getTenantId(), Collections.singleton(groupPermission.getUserGroupId()));
+        evictCacheForUserGroups(groupPermission.getTenantId(), Collections.singleton(groupPermission.getUserGroupId()), groupPermission.isPublic());
     }
 
     @Override
     public void onGroupPermissionDeleted(GroupPermission groupPermission) throws ThingsboardException {
-        evictCacheForUserGroups(groupPermission.getTenantId(), Collections.singleton(groupPermission.getUserGroupId()));
+        evictCacheForUserGroups(groupPermission.getTenantId(), Collections.singleton(groupPermission.getUserGroupId()), groupPermission.isPublic());
     }
 
     @Override
@@ -158,12 +166,17 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         evictMergedPermissionsToCache(user.getTenantId(), user.getCustomerId(), user.getId());
     }
 
-    private void evictCacheForUserGroups(TenantId tenantId, Set<EntityGroupId> uniqueUserGroups) throws ThingsboardException {
+    private void evictCacheForUserGroups(TenantId tenantId, Set<EntityGroupId> uniqueUserGroups, boolean isPublic) throws ThingsboardException {
         Map<EntityId, Set<EntityId>> usersByOwnerMap = new HashMap<>();
         for (EntityGroupId userGroupId : uniqueUserGroups) {
             EntityGroup userGroup = entityGroupService.findEntityGroupById(tenantId, userGroupId);
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds;
+                if (isPublic) {
+                    entityIds = Collections.singletonList(new UserId(EntityId.NULL_UUID));
+                } else {
+                    entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
+                }
                 usersByOwnerMap.computeIfAbsent(userGroup.getOwnerId(), ownerId -> new HashSet<>()).addAll(entityIds);
             } catch (InterruptedException | ExecutionException e) {
                 throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);

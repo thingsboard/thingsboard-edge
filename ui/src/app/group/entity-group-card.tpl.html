@@ -30,5 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div flex layout="column">
+<div flex layout="column" style="margin-top: -10px;">
+    <div class="tb-card-description">{{vm.item.additionalInfo.description}}</div>
+    <div style="padding-top: 5px;" class="tb-small" ng-show="vm.isPublic()">{{'entity-group.public' | translate}}</div>
 </div>

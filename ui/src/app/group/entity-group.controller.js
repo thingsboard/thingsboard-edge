@@ -56,6 +56,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     vm.onCloseGroupDetails = onCloseGroupDetails;
     vm.operatingGroup = operatingGroup;
     vm.saveGroup = saveGroup;
+    vm.makeGroupPublic = makeGroupPublic;
+    vm.makeGroupPrivate = makeGroupPrivate;
     vm.deleteEntityGroup = deleteEntityGroup;
     vm.addEnabled = addEnabled;
     vm.fetchMore = fetchMore;
@@ -248,7 +250,8 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             );
         }
 
-        if (userPermissionsService.hasEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup)) {
+        if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup) &&
+            userPermissionsService.isOwnedGroup(vm.entityGroup)) {
             if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
                 vm.groupActionDescriptors.push(
                     {
@@ -500,6 +503,40 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     (entityGroup) => {
                         vm.entityGroup = entityGroup;
                         reloadGroupConfiguration();
+                    }
+                );
+            }
+        );
+    }
+
+    function makeGroupPublic($event) {
+        tbDialogs.makeEntityGroupPublic($event, vm.currentEntityGroup).then(
+            () => {
+                entityGroupService.getEntityGroup(vm.currentEntityGroup.id.id).then(
+                    (entityGroup) => {
+                        entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
+                            (entityGroup) => {
+                                vm.entityGroup = entityGroup;
+                                reloadGroupConfiguration();
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+
+    function makeGroupPrivate($event) {
+        tbDialogs.makeEntityGroupPrivate($event, vm.currentEntityGroup).then(
+            () => {
+                entityGroupService.getEntityGroup(vm.currentEntityGroup.id.id).then(
+                    (entityGroup) => {
+                        entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
+                            (entityGroup) => {
+                                vm.entityGroup = entityGroup;
+                                reloadGroupConfiguration();
+                            }
+                        );
                     }
                 );
             }

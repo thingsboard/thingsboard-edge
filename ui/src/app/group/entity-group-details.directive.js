@@ -44,7 +44,9 @@ export default function EntityGroupDetails() {
             isEdit: '=',
             isReadOnly: '=',
             theForm: '=',
-            onDeleteEntityGroup: '&'
+            onDeleteEntityGroup: '&',
+            onMakePublic: '&',
+            onMakePrivate: '&'
         },
         controller: EntityGroupDetailsController,
         controllerAs: 'vm',

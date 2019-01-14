@@ -53,6 +53,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public static final String ROLE_CUSTOMER_ADMIN_NAME = "Customer Administrator";
     public static final String ROLE_CUSTOMER_USER_NAME = "Customer User";
     public static final String ROLE_PUBLIC_USER_NAME = "Public User";
+    public static final String ROLE_PUBLIC_USER_ENTITY_GROUP_NAME = "Entity Group Public User";
 
     private TenantId tenantId;
     private CustomerId customerId;

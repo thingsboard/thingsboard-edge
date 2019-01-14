@@ -35,10 +35,25 @@ import entityGroupFieldsetTemplate from './entity-group-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityGroupDirective($compile, $templateCache) {
+export default function EntityGroupDirective($compile, $templateCache, securityTypes, userPermissionsService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(entityGroupFieldsetTemplate);
         element.html(template);
+
+        scope.isPublic = false;
+
+        scope.$watch('entityGroup', function(newVal) {
+            if (newVal) {
+                var isPublicGroupType = securityTypes.publicGroupTypes[scope.entityGroup.type];
+                var isPublic = scope.entityGroup.additionalInfo && scope.entityGroup.additionalInfo.isPublic;
+                var isOwned = userPermissionsService.isDirectlyOwnedGroup(scope.entityGroup);
+                var isWriteAllowed = userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, scope.entityGroup);
+                scope.isPublic = isPublic;
+                scope.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
+                scope.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
+            }
+        });
+
         $compile(element.contents())(scope);
     }
     return {
@@ -48,7 +63,9 @@ export default function EntityGroupDirective($compile, $templateCache) {
             entityGroup: '=',
             isEdit: '=',
             theForm: '=',
-            onDeleteEntityGroup: '&'
+            onDeleteEntityGroup: '&',
+            onMakePublic: '&',
+            onMakePrivate: '&'
         }
     };
 }

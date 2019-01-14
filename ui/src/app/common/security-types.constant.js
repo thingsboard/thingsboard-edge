@@ -108,6 +108,12 @@ export default angular.module('thingsboard.securityTypes', [])
                 writeTelemetry: "WRITE_TELEMETRY",
                 addToGroup: "ADD_TO_GROUP",
                 removeFromGroup: "REMOVE_FROM_GROUP"
+            },
+            publicGroupTypes: {
+                "ASSET": "ASSET",
+                "DEVICE": "DEVICE",
+                "ENTITY_VIEW": "ENTITY_VIEW",
+                "DASHBOARD": "DASHBOARD"
             }
         }
     ).name;

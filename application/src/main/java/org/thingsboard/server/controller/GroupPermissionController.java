@@ -82,6 +82,10 @@ public class GroupPermissionController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation,
                     groupPermission.getId(), groupPermission);
 
+            if (groupPermission.isPublic()) {
+                permissionDenied();
+            }
+
             checkRoleId(groupPermission.getRoleId(), Operation.READ);
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
@@ -106,6 +110,9 @@ public class GroupPermissionController extends BaseController {
         try {
             GroupPermissionId groupPermissionId = new GroupPermissionId(toUUID(strGroupPermissionId));
             GroupPermission groupPermission = checkGroupPermissionId(groupPermissionId, Operation.DELETE);
+            if (groupPermission.isPublic()) {
+                permissionDenied();
+            }
 
             checkRoleId(groupPermission.getRoleId(), Operation.READ);
 
@@ -160,6 +167,9 @@ public class GroupPermissionController extends BaseController {
         for (GroupPermissionInfo groupPermission : groupPermissions) {
             Role role = groupPermission.getRole();
             groupPermission.setReadOnly(!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ, role.getId(), role));
+            if (groupPermission.isPublic()) {
+                groupPermission.setReadOnly(true);
+            }
         }
         return groupPermissions;
     }

@@ -119,7 +119,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         MergedUserPermissions userPermissions;
         try {
-            userPermissions = userPermissionsService.getMergedPermissions(user);
+            userPermissions = userPermissionsService.getMergedPermissions(user, false);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }
@@ -156,8 +156,12 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId);
 
-        //TODO: Need design session to discuss this
-        MergedUserPermissions userPermissions = new MergedUserPermissions(new HashMap<>(), new HashMap<>());
+        MergedUserPermissions userPermissions;
+        try {
+            userPermissions = userPermissionsService.getMergedPermissions(user, true);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
+        }
 
         SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, userPermissions);
 

@@ -500,9 +500,9 @@ public class EntityGroupController extends BaseController {
             }
 
             EntityGroup publicUsers = customerService.findOrCreatePublicUserGroup(getTenantId(), getCurrentUser().getOwnerId());
-            Role publicUserRole = customerService.findOrCreatePublicUserRole(getTenantId(), getCurrentUser().getOwnerId());
+            Role publicUserEntityGroupRole = customerService.findOrCreatePublicUserEntityGroupRole(getTenantId(), getCurrentUser().getOwnerId());
 
-            groupPermission.setRoleId(publicUserRole.getId());
+            groupPermission.setRoleId(publicUserEntityGroupRole.getId());
             groupPermission.setUserGroupId(publicUsers.getId());
             groupPermission.setEntityGroupId(entityGroup.getId());
             groupPermission.setEntityGroupType(entityGroup.getType());
@@ -512,10 +512,12 @@ public class EntityGroupController extends BaseController {
                 additionalInfo = mapper.createObjectNode();
             }
             ((ObjectNode)additionalInfo).put("isPublic", true);
+            ((ObjectNode)additionalInfo).put("publicCustomerId", publicUsers.getOwnerId().getId().toString());
             entityGroup.setAdditionalInfo(additionalInfo);
 
-            groupPermissionService.saveGroupPermission(getTenantId(), groupPermission);
+            GroupPermission savedGroupPermission = groupPermissionService.saveGroupPermission(getTenantId(), groupPermission);
             entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
+            userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
             logEntityAction(entityGroupId, null,
                     null,
@@ -554,6 +556,7 @@ public class EntityGroupController extends BaseController {
             Optional<GroupPermission> groupPermission = groupPermissionService.findPublicGroupPermissionByTenantIdAndEntityGroupId(getTenantId(), entityGroup.getId());
             if (groupPermission.isPresent()) {
                 groupPermissionService.deleteGroupPermission(getTenantId(), groupPermission.get().getId());
+                userPermissionsService.onGroupPermissionDeleted(groupPermission.get());
             }
 
             JsonNode additionalInfo = entityGroup.getAdditionalInfo();
@@ -561,6 +564,7 @@ public class EntityGroupController extends BaseController {
                 additionalInfo = mapper.createObjectNode();
             }
             ((ObjectNode)additionalInfo).put("isPublic", false);
+            ((ObjectNode)additionalInfo).put("publicCustomerId", "");
             entityGroup.setAdditionalInfo(additionalInfo);
 
             entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);

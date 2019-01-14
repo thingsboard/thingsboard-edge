@@ -40,7 +40,7 @@ import progressTemplate from './progress.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function Dialogs($q, $translate, $mdDialog, $document/*, deviceService, assetService, customerService, entityViewService*/) {
+export default function Dialogs($q, $translate, $mdDialog, $document, entityGroupService/*, deviceService, assetService, customerService, entityViewService*/) {
 
 
     var service = {
@@ -57,6 +57,8 @@ export default function Dialogs($q, $translate, $mdDialog, $document/*, deviceSe
         //unassignEntityViewFromCustomer: unassignEntityViewFromCustomer,
         //unassignEntityViewsFromCustomer: unassignEntityViewsFromCustomer,
         //makeEntityViewPublic: makeEntityViewPublic,
+        makeEntityGroupPublic: makeEntityGroupPublic,
+        makeEntityGroupPrivate: makeEntityGroupPrivate,
         selectEntityGroup: selectEntityGroup,
         confirm: confirm,
         progress: progress
@@ -383,6 +385,38 @@ export default function Dialogs($q, $translate, $mdDialog, $document/*, deviceSe
             );
             return deferred.promise;
         }*/
+
+    function makeEntityGroupPublic($event, entityGroup) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('entity-group.make-public-entity-group-title', {entityGroupName: entityGroup.name}),
+            $translate.instant('entity-group.make-public-entity-group-text'),
+            $translate.instant('entity-group.make-public')).then(
+            () => {
+                entityGroupService.makeEntityGroupPublic(entityGroup.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
+
+    function makeEntityGroupPrivate($event, entityGroup) {
+        var deferred = $q.defer();
+        confirm($event, $translate.instant('entity-group.make-private-entity-group-title', {entityGroupName: entityGroup.name}),
+            $translate.instant('entity-group.make-private-entity-group-text'),
+            $translate.instant('entity-group.make-private')).then(
+            () => {
+                entityGroupService.makeEntityGroupPrivate(entityGroup.id.id).then(
+                    () => {
+                        deferred.resolve();
+                    }
+                );
+            }
+        );
+        return deferred.promise;
+    }
 
     function selectEntityGroup($event, ownerId, targetGroupType, selectEntityGroupTitle,
                                confirmSelectTitle, placeholderText, notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {

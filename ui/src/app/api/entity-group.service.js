@@ -40,6 +40,8 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         getEntityGroup: getEntityGroup,
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
+        makeEntityGroupPublic: makeEntityGroupPublic,
+        makeEntityGroupPrivate: makeEntityGroupPrivate,
         getEntityGroups: getEntityGroups,
         getEntityGroupsByIds: getEntityGroupsByIds,
         getEntityGroupsByOwnerId: getEntityGroupsByOwnerId,
@@ -110,6 +112,36 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId;
         $http.delete(url).then(function success() {
+            deferred.resolve();
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function makeEntityGroupPublic(entityGroupId, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/'+entityGroupId+'/makePublic';
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.post(url, null, config).then(function success() {
+            deferred.resolve();
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function makeEntityGroupPrivate(entityGroupId, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/'+entityGroupId+'/makePrivate';
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.post(url, null, config).then(function success() {
             deferred.resolve();
         }, function fail() {
             deferred.reject();

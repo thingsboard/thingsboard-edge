@@ -38,13 +38,20 @@ import entityGroupCard from './entity-group-card.tpl.html';
 /*@ngInject*/
 export function EntityGroupCardController() {
 
-    var vm = this; //eslint-disable-line
+    var vm = this;
+
+    vm.isPublic = function() {
+        if (vm.item && vm.item.additionalInfo && vm.item.additionalInfo.isPublic) {
+            return true;
+        }
+        return false;
+    }
 
 }
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $scope, $state, utils, entityGroupService, customerService, $stateParams,
+export function EntityGroupsController($rootScope, $scope, $state, utils, tbDialogs, entityGroupService, customerService, $stateParams,
                                       $q, $translate, types, securityTypes, userPermissionsService) {
 
     var vm = this;
@@ -61,6 +68,36 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, entity
     vm.groupResource = securityTypes.groupResourceByGroupType[vm.groupType];
 
     var entityGroupActionsList = [
+        {
+            onAction: function ($event, item) {
+                makePublic($event, item);
+            },
+            name: function() { return $translate.instant('action.share') },
+            details: function() { return $translate.instant('entity-group.make-public') },
+            icon: "share",
+            isEnabled: function(item) {
+                return securityTypes.publicGroupTypes[vm.groupType]
+                       && item
+                       && (!item.additionalInfo || !item.additionalInfo.isPublic)
+                       && userPermissionsService.isDirectlyOwnedGroup(item)
+                       && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
+            }
+        },
+        {
+            onAction: function ($event, item) {
+                makePrivate($event, item);
+            },
+            name: function() { return $translate.instant('action.make-private') },
+            details: function() { return $translate.instant('entity-group.make-private') },
+            icon: "reply",
+            isEnabled: function(item) {
+                return securityTypes.publicGroupTypes[vm.groupType]
+                       && item
+                       && item.additionalInfo && item.additionalInfo.isPublic
+                       && userPermissionsService.isDirectlyOwnedGroup(item)
+                       && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
+            }
+        },
         {
             onAction: function ($event, item) {
                 vm.grid.openItem($event, item);
@@ -134,6 +171,9 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, entity
             return !entityGroup.groupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, entityGroup);
         }
     };
+
+    vm.makePublic = makePublic;
+    vm.makePrivate = makePrivate;
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
         vm.deviceGridConfig.items = $stateParams.items;
@@ -278,6 +318,22 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, entity
                 }
             }
         }
+    }
+
+    function makePublic($event, entityGroup) {
+        tbDialogs.makeEntityGroupPublic($event, entityGroup).then(
+            () => {
+                vm.grid.refreshList();
+            }
+        );
+    }
+
+    function makePrivate($event, entityGroup) {
+        tbDialogs.makeEntityGroupPrivate($event, entityGroup).then(
+            () => {
+                vm.grid.refreshList();
+            }
+        );
     }
 
     function reload() {

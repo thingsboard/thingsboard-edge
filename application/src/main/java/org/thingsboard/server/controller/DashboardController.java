@@ -223,7 +223,7 @@ public class DashboardController extends BaseController {
                 UserId userId = new UserId(toUUID(strUserId));
                 User user = checkUserId(userId, Operation.READ);
                 UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-                securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user));
+                securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
             } else {
                 securityUser = getCurrentUser();
             }

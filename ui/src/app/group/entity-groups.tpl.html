@@ -40,5 +40,7 @@
             the-form="vm.grid.detailsForm"
             is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"
             on-delete-entity-group="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"
+            on-make-public="vm.makePublic(event, vm.grid.detailsConfig.currentItem)"
+            on-make-private="vm.makePrivate(event, vm.grid.detailsConfig.currentItem)"
     ></tb-entity-group-details>
 </tb-grid>

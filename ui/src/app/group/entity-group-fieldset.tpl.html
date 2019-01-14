@@ -34,7 +34,19 @@
            ng-if="(entityGroup | hasEntityGroupPermission:'delete') && !entityGroup.groupAll"
            ng-show="!isEdit"
            class="md-raised md-primary">{{ 'entity-group.delete' | translate }}</md-button>
+<md-button ng-click="onMakePublic({event: $event})"
+           ng-if="makePublicEnabled"
+           ng-show="!isEdit"
+           class="md-raised md-primary">{{ 'entity-group.make-public' | translate }}</md-button>
+<md-button ng-click="onMakePrivate({event: $event})"
+           ng-if="makePrivateEnabled"
+           ng-show="!isEdit"
+           class="md-raised md-primary">{{ 'entity-group.make-private' | translate }}</md-button>
 <md-content class="md-padding" layout="column">
+    <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
+         ng-show="!isEdit && isPublic">
+        {{ 'entity-group.entity-group-public' | translate }}
+    </div>
     <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>entity-group.name</label>

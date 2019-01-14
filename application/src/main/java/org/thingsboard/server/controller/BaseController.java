@@ -897,9 +897,9 @@ public abstract class BaseController {
         return result;
     }
 
-    protected MergedUserPermissions getMergedUserPermissions(User user) {
+    protected MergedUserPermissions getMergedUserPermissions(User user, boolean isPublic) {
         try {
-            return userPermissionsService.getMergedPermissions(user);
+            return userPermissionsService.getMergedPermissions(user, isPublic);
         } catch (Exception e) {
             throw new BadCredentialsException("Failed to get user permissions", e);
         }

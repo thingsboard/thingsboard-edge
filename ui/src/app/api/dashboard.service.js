@@ -317,13 +317,13 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         return deferred.promise;
     }*/
 
-    function getPublicDashboardLink(dashboard) {
+    function getPublicDashboardLink(dashboard, entityGroup) {
         var url = $location.protocol() + '://' + $location.host();
         var port = $location.port();
         if (port != 80 && port != 443) {
             url += ":" + port;
         }
-        url += "/dashboard/" + dashboard.id.id + "?publicId=" + dashboard.publicCustomerId;
+        url += "/dashboard/" + dashboard.id.id + "?publicId=" + entityGroup.additionalInfo.publicCustomerId;
         return url;
     }
 
