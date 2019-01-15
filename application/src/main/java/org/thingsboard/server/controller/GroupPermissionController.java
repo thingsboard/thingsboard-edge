@@ -87,6 +87,12 @@ public class GroupPermissionController extends BaseController {
             }
 
             checkRoleId(groupPermission.getRoleId(), Operation.READ);
+            if (groupPermission.getUserGroupId() != null && !groupPermission.getUserGroupId().isNullUid()) {
+                checkEntityGroupId(groupPermission.getUserGroupId(), Operation.READ);
+            }
+            if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
+                checkEntityGroupId(groupPermission.getEntityGroupId(), Operation.READ);
+            }
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
 
@@ -115,6 +121,12 @@ public class GroupPermissionController extends BaseController {
             }
 
             checkRoleId(groupPermission.getRoleId(), Operation.READ);
+            if (groupPermission.getUserGroupId() != null && !groupPermission.getUserGroupId().isNullUid()) {
+                checkEntityGroupId(groupPermission.getUserGroupId(), Operation.READ);
+            }
+            if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
+                checkEntityGroupId(groupPermission.getEntityGroupId(), Operation.READ);
+            }
 
             groupPermissionService.deleteGroupPermission(getTenantId(), groupPermissionId);
             userPermissionsService.onGroupPermissionDeleted(groupPermission);

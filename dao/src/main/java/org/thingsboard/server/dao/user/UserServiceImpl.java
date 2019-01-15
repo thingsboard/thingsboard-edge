@@ -261,7 +261,10 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing findGroupUser, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,  new UserViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (userEntityId) -> new UserId(userEntityId.getId()),
+                (userId) -> findUserById(tenantId, userId),
+                new UserViewFunction());
     }
 
     @Override
@@ -269,20 +272,17 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new UserViewFunction(tenantId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new UserId(entityId.getId()),
+                (entityIds) -> findUsersByIdsAsync(tenantId, entityIds),
+                new UserViewFunction());
     }
 
-    class UserViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
-
-        private final TenantId tenantId;
-
-        UserViewFunction(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    class UserViewFunction implements BiFunction<User, List<EntityField>, ShortEntityView> {
 
         @Override
-        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
-            User user = findUserById(tenantId, new UserId(entityView.getId().getId()));
+        public ShortEntityView apply(User user, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(user.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();

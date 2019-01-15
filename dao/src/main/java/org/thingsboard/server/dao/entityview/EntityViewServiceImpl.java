@@ -294,7 +294,10 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         log.trace("Executing findGroupEntityView, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new EntityViewViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (entityViewEntityId) -> new EntityViewId(entityViewEntityId.getId()),
+                (entityViewId) -> findEntityViewById(tenantId, entityViewId),
+                new EntityViewViewFunction());
     }
 
     @Override
@@ -302,20 +305,17 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         log.trace("Executing findEntityViewsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new EntityViewViewFunction(tenantId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new EntityViewId(entityId.getId()),
+                (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds),
+                new EntityViewViewFunction());
     }
 
-    class EntityViewViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
-
-        private final TenantId tenantId;
-
-        EntityViewViewFunction(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    class EntityViewViewFunction implements BiFunction<EntityView, List<EntityField>, ShortEntityView> {
 
         @Override
-        public ShortEntityView apply(ShortEntityView shortEntityView, List<EntityField> entityFields) {
-            EntityView entityView = findEntityViewById(tenantId, new EntityViewId(shortEntityView.getId().getId()));
+        public ShortEntityView apply(EntityView entityView, List<EntityField> entityFields) {
+            ShortEntityView shortEntityView = new ShortEntityView(entityView.getId());
             shortEntityView.put(EntityField.NAME.name().toLowerCase(), entityView.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();

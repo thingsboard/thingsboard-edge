@@ -235,7 +235,10 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing findGroupDashboard, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new DashboardViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (dashboardEntityId) -> new DashboardId(dashboardEntityId.getId()),
+                (dashboardId) -> findDashboardInfoById(tenantId, dashboardId),
+                new DashboardViewFunction());
     }
 
     @Override
@@ -243,20 +246,17 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing findDashboardsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new DashboardViewFunction(tenantId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new DashboardId(entityId.getId()),
+                (entityIds) -> findDashboardInfoByIdsAsync(tenantId, entityIds),
+                new DashboardViewFunction());
     }
 
-    class DashboardViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
-
-        private final TenantId tenantId;
-
-        DashboardViewFunction(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    class DashboardViewFunction implements BiFunction<DashboardInfo, List<EntityField>, ShortEntityView> {
 
         @Override
-        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
-            DashboardInfo dashboard = findDashboardInfoById(tenantId, new DashboardId(entityView.getId().getId()));
+        public ShortEntityView apply(DashboardInfo dashboard, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(dashboard.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), dashboard.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();

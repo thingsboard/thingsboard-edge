@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -412,7 +413,10 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         log.trace("Executing findGroupCustomer, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new CustomerViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (customerEntityId) -> new CustomerId(customerEntityId.getId()),
+                (customerId) -> findCustomerById(tenantId, customerId),
+                new CustomerViewFunction());
     }
 
     @Override
@@ -420,20 +424,17 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new CustomerViewFunction(tenantId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new CustomerId(entityId.getId()),
+                (entityIds) -> findCustomersByTenantIdAndIdsAsync(tenantId, entityIds),
+                new CustomerViewFunction());
     }
 
-    class CustomerViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
-
-        private final TenantId tenantId;
-
-        CustomerViewFunction(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    class CustomerViewFunction implements BiFunction<Customer, List<EntityField>, ShortEntityView> {
 
         @Override
-        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
-            Customer customer = findCustomerById(tenantId, new CustomerId(entityView.getId().getId()));
+        public ShortEntityView apply(Customer customer, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(customer.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), customer.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();

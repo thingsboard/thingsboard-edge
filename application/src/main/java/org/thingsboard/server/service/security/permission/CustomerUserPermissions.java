@@ -37,11 +37,8 @@ import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
@@ -85,7 +82,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ENTITY_VIEW_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.DASHBOARD_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
-        put(Resource.GROUP_PERMISSION, customerStandaloneEntityPermissionChecker);
+        put(Resource.GROUP_PERMISSION, customerGroupPermissionEntityChecker);
     }
 
 
@@ -115,6 +112,24 @@ public class CustomerUserPermissions extends AbstractPermissions {
             } else {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
+        }
+    };
+
+    private final PermissionChecker customerGroupPermissionEntityChecker = new PermissionChecker<GroupPermissionId, GroupPermission>() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
+        public  boolean hasPermission(SecurityUser user, Operation operation, GroupPermissionId groupPermissionId, GroupPermission groupPermission) {
+            if (!user.getTenantId().equals(groupPermission.getTenantId())) {
+                return false;
+            }
+            Resource resource = Resource.resourceFromEntityType(groupPermission.getEntityType());
+
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
     };
 

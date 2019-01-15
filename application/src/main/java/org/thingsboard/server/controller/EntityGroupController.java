@@ -263,6 +263,11 @@ public class EntityGroupController extends BaseController {
                 entityIds.add(entityId);
             }
             entityGroupService.addEntitiesToEntityGroup(getTenantId(), entityGroupId, entityIds);
+            if (entityGroup.getType() == EntityType.USER) {
+                for (EntityId entityId : entityIds) {
+                    userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
+                }
+            }
             for (EntityId entityId : entityIds) {
                 logEntityAction((UUIDBased & EntityId)entityId, null,
                         null,
@@ -304,6 +309,11 @@ public class EntityGroupController extends BaseController {
                 entityIds.add(entityId);
             }
             entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
+            if (entityGroup.getType() == EntityType.USER) {
+                for (EntityId entityId : entityIds) {
+                    userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
+                }
+            }
             for (EntityId entityId : entityIds) {
                 logEntityAction((UUIDBased & EntityId)entityId, null,
                         null,

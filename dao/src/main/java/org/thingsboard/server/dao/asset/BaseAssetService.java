@@ -286,7 +286,10 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         log.trace("Executing findGroupAsset, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new AssetViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (assetEntityId) -> new AssetId(assetEntityId.getId()),
+                (assetId) -> findAssetById(tenantId, assetId),
+                new AssetViewFunction());
     }
 
     @Override
@@ -294,20 +297,17 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new AssetViewFunction(tenantId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new AssetId(entityId.getId()),
+                (entityIds) -> findAssetsByTenantIdAndIdsAsync(tenantId, entityIds),
+                new AssetViewFunction());
     }
 
-    class AssetViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
-
-        private final TenantId tenantId;
-
-        AssetViewFunction(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    class AssetViewFunction implements BiFunction<Asset, List<EntityField>, ShortEntityView> {
 
         @Override
-        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
-            Asset asset = findAssetById(tenantId, new AssetId(entityView.getId().getId()));
+        public ShortEntityView apply(Asset asset, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(asset.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), asset.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();
