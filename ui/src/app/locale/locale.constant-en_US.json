@@ -950,7 +950,8 @@
         "type-role": "Role",
         "type-roles": "Roles",
         "list-of-roles": "{ count, plural, 1 {One role} other {List of # roles} }",
-        "role-name-starts-with": "Roles whose names start with '{{prefix}}'"
+        "role-name-starts-with": "Roles whose names start with '{{prefix}}'",
+        "type-group-permission": "Group Permission"
     },
     "entity-group": {
         "entity-group": "Entity group",

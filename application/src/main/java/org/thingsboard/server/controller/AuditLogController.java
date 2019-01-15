@@ -39,14 +39,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.UUID;
 
@@ -54,7 +52,7 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class AuditLogController extends BaseController {
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/audit/logs/customer/{customerId}", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<AuditLog> getAuditLogsByCustomerId(
@@ -67,15 +65,17 @@ public class AuditLogController extends BaseController {
         try {
             checkParameter("CustomerId", strCustomerId);
             accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, new CustomerId(UUID.fromString(strCustomerId)), pageLink));
+            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/audit/logs/user/{userId}", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<AuditLog> getAuditLogsByUserId(
@@ -88,15 +88,17 @@ public class AuditLogController extends BaseController {
         try {
             checkParameter("UserId", strUserId);
             accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            UserId userId = new UserId(toUUID(strUserId));
+            checkUserId(userId, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndUserId(tenantId, new UserId(UUID.fromString(strUserId)), pageLink));
+            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndUserId(tenantId, userId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/audit/logs/entity/{entityType}/{entityId}", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<AuditLog> getAuditLogsByEntityId(
@@ -111,15 +113,17 @@ public class AuditLogController extends BaseController {
             checkParameter("EntityId", strEntityId);
             checkParameter("EntityType", strEntityType);
             accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
+            checkEntityId(entityId, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, EntityIdFactory.getByTypeAndId(strEntityType, strEntityId), pageLink));
+            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, entityId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/audit/logs", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TimePageData<AuditLog> getAuditLogs(
@@ -132,7 +136,12 @@ public class AuditLogController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, pageLink));
+            Authority authority = getCurrentUser().getAuthority();
+            if (authority == Authority.TENANT_ADMIN) {
+                return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, pageLink));
+            } else {
+                return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
@@ -49,6 +50,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,6 +61,7 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
     private Tenant savedTenant;
     private User tenantAdmin;
     private EntityGroup savedUserGroup;
+    private EntityGroup savedDeviceGroup;
 
     @Before
     public void beforeTest() throws Exception {
@@ -80,6 +83,12 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
         savedUserGroup.setType(EntityType.USER);
         savedUserGroup.setName("UserGroup");
         savedUserGroup = doPost("/api/entityGroup", savedUserGroup, EntityGroup.class);
+
+        savedDeviceGroup = new EntityGroup();
+        savedDeviceGroup.setType(EntityType.DEVICE);
+        savedDeviceGroup.setName("DeviceGroup");
+        savedDeviceGroup = doPost("/api/entityGroup", savedDeviceGroup, EntityGroup.class);
+
     }
 
     @After
@@ -91,7 +100,7 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
 
     @Test
     public void testFindGroupPermissionById() throws Exception {
-        GroupPermission groupPermission = getNewSavedGroupPermission("Test Role");
+        GroupPermission groupPermission = getNewSavedGroupPermission("Test Role", savedUserGroup, null);
         GroupPermission foundGroupPermission = doGet("/api/groupPermission/" + groupPermission.getId().getId().toString(), GroupPermission.class);
         Assert.assertNotNull(foundGroupPermission);
         assertEquals(groupPermission, foundGroupPermission);
@@ -99,19 +108,23 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
 
     @Test
     public void testSaveGroupPermission() throws Exception {
-        GroupPermission groupPermission = getNewSavedGroupPermission("Test Role");
+        GroupPermission groupPermission = getNewSavedGroupPermission("Test Role", savedUserGroup, null);
         Assert.assertNotNull(groupPermission);
         Assert.assertNotNull(groupPermission.getId());
         Assert.assertTrue(groupPermission.getCreatedTime() > 0);
         assertEquals(savedTenant.getId(), groupPermission.getTenantId());
     }
 
-    private GroupPermission getNewSavedGroupPermission(String roleName) throws Exception {
+    private GroupPermission getNewSavedGroupPermission(String roleName, EntityGroup userGroup, EntityGroup entityGroup) throws Exception {
         Role savedRole = createRole(roleName);
         savedRole = doPost("/api/role", savedRole, Role.class);
         GroupPermission groupPermission = new GroupPermission();
         groupPermission.setRoleId(savedRole.getId());
-        groupPermission.setUserGroupId(savedUserGroup.getId());
+        groupPermission.setUserGroupId(userGroup.getId());
+        if (entityGroup != null) {
+            groupPermission.setEntityGroupId(entityGroup.getId());
+            groupPermission.setEntityGroupType(entityGroup.getType());
+        }
 
         groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
         return groupPermission;
@@ -119,7 +132,7 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
 
     @Test
     public void testDeleteGroupPermission() throws Exception {
-        GroupPermission savedGroupPermission = getNewSavedGroupPermission("Test Role");
+        GroupPermission savedGroupPermission = getNewSavedGroupPermission("Test Role", savedUserGroup, null);
 
         doDelete("/api/groupPermission/" + savedGroupPermission.getId().getId().toString())
                 .andExpect(status().isOk());
@@ -129,12 +142,17 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
     }
 
     @Test
-    public void testGetGroupPermissionsByTenantIdAndUserGroupId() throws Exception {
+    public void testGetUserGroupPermissions() throws Exception {
         List<GroupPermission> groupPermissions = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
-            groupPermissions.add(getNewSavedGroupPermission("Test role " + i));
+            groupPermissions.add(getNewSavedGroupPermission("Test role " + i, savedUserGroup, null));
         }
-        List<GroupPermission> loadedGroupPermissions = loadListOf(new TimePageLink(23), "/api/groupPermissions/" + savedUserGroup.getId() + "?");
+
+        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/userGroup/"+ savedUserGroup.getId()+"/groupPermissions",
+                new TypeReference<List<GroupPermissionInfo>>(){});
+
+        List<GroupPermission> loadedGroupPermissions = loadedGroupPermissionsInfo.stream()
+                .map(groupPermissionInfo -> new GroupPermission(groupPermissionInfo)).collect(Collectors.toList());
 
         Collections.sort(groupPermissions, idComparator);
         Collections.sort(loadedGroupPermissions, idComparator);
@@ -142,20 +160,24 @@ public abstract class BaseGroupPermissionControllerTest extends AbstractControll
         assertEquals(groupPermissions, loadedGroupPermissions);
     }
 
-    private List<GroupPermission> loadListOf(TimePageLink pageLink, String urlTemplate) throws Exception {
-        List<GroupPermission> loadedItems = new ArrayList<>();
-        TimePageData<GroupPermission> pageData;
-        do {
-            pageData = doGetTypedWithTimePageLink(urlTemplate, new TypeReference<TimePageData<GroupPermission>>() {}, pageLink);
-            loadedItems.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
+    @Test
+    public void testGetEntityGroupPermissions() throws Exception {
+        List<GroupPermission> groupPermissions = new ArrayList<>();
+        for (int i = 0; i < 128; i++) {
+            groupPermissions.add(getNewSavedGroupPermission("Test role " + i, savedUserGroup, savedDeviceGroup));
+        }
 
-        return loadedItems;
+        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/entityGroup/"+ savedDeviceGroup.getId()+"/groupPermissions",
+                new TypeReference<List<GroupPermissionInfo>>(){});
+
+        List<GroupPermission> loadedGroupPermissions = loadedGroupPermissionsInfo.stream()
+                .map(groupPermissionInfo -> new GroupPermission(groupPermissionInfo)).collect(Collectors.toList());
+
+        Collections.sort(groupPermissions, idComparator);
+        Collections.sort(loadedGroupPermissions, idComparator);
+
+        assertEquals(groupPermissions, loadedGroupPermissions);
     }
-
 
     private Role createRole(String roleName) {
         Role role = new Role();

@@ -402,6 +402,7 @@ audit_log:
       "blob_entity": "${AUDIT_LOG_MASK_BLOB_ENTITY:W}"
       "entity_view": "${AUDIT_LOG_MASK_ENTITY_VIEW:W}"
       "role": "${AUDIT_LOG_MASK_ROLE:W}"
+      "group_permission": "${AUDIT_LOG_MASK_GROUP_PERMISSION:W}"
   sink:
     # Type of external sink. possible options: none, elasticsearch
     type: "${AUDIT_LOG_SINK_TYPE:none}"

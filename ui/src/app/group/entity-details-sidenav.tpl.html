@@ -104,13 +104,13 @@
                                     entity-type="{{vm.types.entityType.device}}">
                 </tb-extension-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && vm.entityType != vm.types.entityType.customer && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+            <md-tab ng-if="!vm.isEdit && vm.entityType != vm.types.entityType.customer && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
                 <tb-audit-log-table flex entity-type="vm.entityType"
                                     entity-id="vm.entityId"
                                     audit-log-mode="{{vm.types.auditLogMode.entity}}">
                 </tb-audit-log-table>
             </md-tab>
-            <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && vm.entityType == vm.types.entityType.customer && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+            <md-tab ng-if="!vm.isEdit && vm.entityType == vm.types.entityType.customer && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
                 <tb-audit-log-table flex
                                     customer-id="vm.entityId"
                                     audit-log-mode="{{vm.types.auditLogMode.customer}}">

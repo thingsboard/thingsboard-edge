@@ -102,7 +102,7 @@
                             disable-attribute-scope-selection="true">
         </tb-attribute-table>
     </md-tab>
-    <md-tab ng-if="!vm.isEdit && vm.isTenantAdmin() && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+    <md-tab ng-if="!vm.isEdit && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
         <tb-audit-log-table flex entity-type="vm.types.entityType.entityGroup"
                             entity-id="vm.entityGroup.id.id"
                             audit-log-mode="{{vm.types.auditLogMode.entity}}">

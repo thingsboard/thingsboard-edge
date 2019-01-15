@@ -40,7 +40,7 @@ export default function AuditLogRoutes($stateProvider) {
         .state('home.auditLogs', {
             url: '/auditLogs',
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: auditLogsTemplate,

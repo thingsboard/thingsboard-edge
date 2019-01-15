@@ -659,6 +659,19 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             ]
                         }
                     );
+
+                    homeSections.push(
+                        {
+                            name: 'custom-translation.custom-translation',
+                            places: [
+                                {
+                                    name: 'custom-translation.custom-translation',
+                                    icon: 'language',
+                                    state: 'home.settings.customTranslation'
+                                }
+                            ]
+                        }
+                    );
                 }
 
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.auditLog)) {
@@ -670,21 +683,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'audit-log.audit-logs',
                                     icon: 'track_changes',
                                     state: 'home.auditLogs'
-                                }
-                            ]
-                        }
-                    );
-                }
-
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
-                    homeSections.push(
-                        {
-                            name: 'custom-translation.custom-translation',
-                            places: [
-                                {
-                                    name: 'custom-translation.custom-translation',
-                                    icon: 'language',
-                                    state: 'home.settings.customTranslation'
                                 }
                             ]
                         }
@@ -783,6 +781,17 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     icon: 'format_paint'
                                 }
                             ]
+                        }
+                    );
+                }
+
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.auditLog)) {
+                    sections.push(
+                        {
+                            name: 'audit-log.audit-logs',
+                            type: 'link',
+                            state: 'home.auditLogs',
+                            icon: 'track_changes'
                         }
                     );
                 }
@@ -944,6 +953,22 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
+                
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.auditLog)) {
+                    homeSections.push(
+                        {
+                            name: 'audit-log.audit',
+                            places: [
+                                {
+                                    name: 'audit-log.audit-logs',
+                                    icon: 'track_changes',
+                                    state: 'home.auditLogs'
+                                }
+                            ]
+                        }
+                    );
+                }
+
             }
 
             if (authority === 'TENANT_ADMIN' || authority === 'CUSTOMER_USER') {

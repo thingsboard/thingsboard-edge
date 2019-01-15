@@ -792,6 +792,9 @@ export default angular.module('thingsboard.types', [])
                     typePlural: 'entity.type-roles',
                     list: 'entity.list-of-roles',
                     nameStartsWith: 'entity.role-name-starts-with'
+                },
+                "GROUP_PERMISSION": {
+                    type: 'entity.type-group-permission'
                 }
             },
             entitySearchDirection: {

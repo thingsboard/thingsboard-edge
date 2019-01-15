@@ -178,7 +178,8 @@ public enum Resource {
                 Resource.DASHBOARD_GROUP,
                 Resource.ENTITY_VIEW_GROUP,
                 Resource.GROUP_PERMISSION,
-                Resource.WHITE_LABELING)));
+                Resource.WHITE_LABELING,
+                Resource.AUDIT_LOG)));
 
     }
 

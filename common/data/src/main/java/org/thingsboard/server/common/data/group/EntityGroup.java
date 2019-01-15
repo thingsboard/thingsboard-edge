@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.group;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -90,6 +91,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     }
 
     @Override
+    @JsonProperty(access = JsonProperty.Access.READ_WRITE)
     public EntityId getOwnerId() {
         return ownerId;
     }

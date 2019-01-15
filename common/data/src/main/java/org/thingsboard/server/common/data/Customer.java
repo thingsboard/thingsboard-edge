@@ -78,6 +78,7 @@ public class Customer extends ContactBased<CustomerId> implements HasName, Tenan
     }
 
     @Override
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public CustomerId getCustomerId() {
         return parentCustomerId;
     }

@@ -23,3 +23,7 @@ DROP TABLE IF EXISTS entity_group;
 DROP TABLE IF EXISTS rule_node;
 DROP TABLE IF EXISTS rule_chain;
 DROP TABLE IF EXISTS entity_view;
+DROP TABLE IF EXISTS scheduler_event;
+DROP TABLE IF EXISTS blob_entity;
+DROP TABLE IF EXISTS role;
+DROP TABLE IF EXISTS group_permission;

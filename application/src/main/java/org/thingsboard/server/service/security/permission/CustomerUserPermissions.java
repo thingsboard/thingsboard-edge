@@ -83,6 +83,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.DASHBOARD_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, customerGroupPermissionEntityChecker);
+        put(Resource.AUDIT_LOG, TenantAdminPermissions.tenantAuditLogPermissionChecker);
     }
 
 

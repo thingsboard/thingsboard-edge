@@ -129,13 +129,13 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testGetTenantRoles() throws Exception {
+    public void testGetRoles() throws Exception {
 
         List<Role> roles = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
             roles.add(getNewSavedRole("Test role " + i));
         }
-        List<Role> loadedRoles = loadListOf(new TextPageLink(23), "/api/tenant/roles?");
+        List<Role> loadedRoles = loadListOf(new TextPageLink(23), "/api/roles?");
 
         Collections.sort(roles, idComparator);
         Collections.sort(loadedRoles, idComparator);
@@ -144,17 +144,17 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testGetTenantRolesByName() throws Exception {
+    public void testGetRolesByName() throws Exception {
         String name1 = "Entity role1";
         List<Role> namesOfRole1 = fillListOf(143, name1);
-        List<Role> loadedNamesOfRole1 = loadListOf(new TextPageLink(15, name1), "/api/tenant/roles?");
+        List<Role> loadedNamesOfRole1 = loadListOf(new TextPageLink(15, name1), "/api/roles?");
         Collections.sort(namesOfRole1, idComparator);
         Collections.sort(loadedNamesOfRole1, idComparator);
         assertEquals(namesOfRole1, loadedNamesOfRole1);
 
         String name2 = "Entity role2";
         List<Role> namesOfRole2 = fillListOf(75, name2);
-        List<Role> loadedNamesOfRole2 = loadListOf(new TextPageLink(4, name2), "/api/tenant/roles?");
+        List<Role> loadedNamesOfRole2 = loadListOf(new TextPageLink(4, name2), "/api/roles?");
         Collections.sort(namesOfRole2, idComparator);
         Collections.sort(loadedNamesOfRole2, idComparator);
         assertEquals(namesOfRole2, loadedNamesOfRole2);
@@ -162,7 +162,7 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         for (Role role : loadedNamesOfRole1) {
             doDelete("/api/role/" + role.getId().getId().toString()).andExpect(status().isOk());
         }
-        TextPageData<Role> pageData = doGetTypedWithPageLink("/api/tenant/roles?",
+        TextPageData<Role> pageData = doGetTypedWithPageLink("/api/roles?",
                 new TypeReference<TextPageData<Role>>() {
                 }, new TextPageLink(4, name1));
         Assert.assertFalse(pageData.hasNext());
@@ -171,7 +171,7 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         for (Role role : loadedNamesOfRole2) {
             doDelete("/api/role/" + role.getId().getId().toString()).andExpect(status().isOk());
         }
-        pageData = doGetTypedWithPageLink("/api/tenant/roles?", new TypeReference<TextPageData<Role>>() {
+        pageData = doGetTypedWithPageLink("/api/roles?", new TypeReference<TextPageData<Role>>() {
         }, new TextPageLink(4, name2));
         Assert.assertFalse(pageData.hasNext());
         assertEquals(0, pageData.getData().size());

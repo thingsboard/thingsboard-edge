@@ -204,7 +204,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     };
 
-    private static final PermissionChecker tenantAuditLogPermissionChecker = new PermissionChecker() {
+    public static final PermissionChecker tenantAuditLogPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
