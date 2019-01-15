@@ -108,20 +108,6 @@ public abstract class BaseAuditLogControllerTest extends AbstractControllerTest 
         loadedAuditLogs = new ArrayList<>();
         pageLink = new TimePageLink(23);
         do {
-            pageData = doGetTypedWithTimePageLink("/api/audit/logs/customer/" + ModelConstants.NULL_UUID + "?",
-                    new TypeReference<TimePageData<AuditLog>>() {
-                    }, pageLink);
-            loadedAuditLogs.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Assert.assertEquals(178, loadedAuditLogs.size());
-
-        loadedAuditLogs = new ArrayList<>();
-        pageLink = new TimePageLink(23);
-        do {
             pageData = doGetTypedWithTimePageLink("/api/audit/logs/user/" + tenantAdmin.getId().getId().toString() + "?",
                     new TypeReference<TimePageData<AuditLog>>() {
                     }, pageLink);
