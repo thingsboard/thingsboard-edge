@@ -43,13 +43,18 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     var isMenuReady = false;
     var menuReadyTasks = [];
 
+    var entityGroupSections = [];
+
     var customerGroups = {
         name: 'entity-group.customer-groups',
         type: 'toggle',
         state: 'home.customerGroups',
         height: '0px',
         icon: 'supervisor_account',
-        pages: []
+        pages: [],
+        loaded: false,
+        childState: 'home.customerGroups.customerGroup',
+        groupType: types.entityType.customer
     };
 
     var assetGroups = {
@@ -58,7 +63,10 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         state: 'home.assetGroups',
         height: '0px',
         icon: 'domain',
-        pages: []
+        pages: [],
+        loaded: false,
+        childState: 'home.assetGroups.assetGroup',
+        groupType: types.entityType.asset
     };
 
     var deviceGroups = {
@@ -67,7 +75,10 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         state: 'home.deviceGroups',
         height: '0px',
         icon: 'devices_other',
-        pages: []
+        pages: [],
+        loaded: false,
+        childState: 'home.deviceGroups.deviceGroup',
+        groupType: types.entityType.device
     };
 
     var userGroups = {
@@ -75,8 +86,11 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         type: 'toggle',
         state: 'home.userGroups',
         height: '0px',
-        icon: 'supervisor_account',
-        pages: []
+        icon: 'account_circle',
+        pages: [],
+        loaded: false,
+        childState: 'home.userGroups.userGroup',
+        groupType: types.entityType.user
     };
 
     var entityViewGroups = {
@@ -85,7 +99,10 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         state: 'home.entityViewGroups',
         height: '0px',
         icon: 'view_quilt',
-        pages: []
+        pages: [],
+        loaded: false,
+        childState: 'home.entityViewGroups.entityViewGroup',
+        groupType: types.entityType.entityView
     };
 
     var dashboardGroups = {
@@ -94,7 +111,10 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         state: 'home.dashboardGroups',
         height: '0px',
         icon: 'dashboard',
-        pages: []
+        pages: [],
+        loaded: false,
+        childState: 'home.dashboardGroups.dashboardGroup',
+        groupType: types.entityType.dashboard
     };
 
     var service = {
@@ -147,6 +167,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         var user = userService.getCurrentUser();
         if (user) {
             sections = [];
+            entityGroupSections = [];
             authority = user.authority;
             if (authority === 'SYS_ADMIN') {
                 sections = [
@@ -330,18 +351,23 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
                     sections.push(userGroups);
+                    entityGroupSections.push(userGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
                     sections.push(customerGroups);
+                    entityGroupSections.push(customerGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
                     sections.push(assetGroups);
+                    entityGroupSections.push(assetGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.device)) {
                     sections.push(deviceGroups);
+                    entityGroupSections.push(deviceGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.entityView)) {
                     sections.push(entityViewGroups);
+                    entityGroupSections.push(entityViewGroups);
                 }
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.widgetsBundle)) {
                     sections.push(
@@ -355,6 +381,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard)) {
                     sections.push(dashboardGroups);
+                    entityGroupSections.push(dashboardGroups);
                 }
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     sections.push(
@@ -485,7 +512,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             places: [
                                 {
                                     name: 'user.users',
-                                    icon: 'supervisor_account',
+                                    icon: 'account_circle',
                                     //state: 'home.customers',
                                     state: 'home.userGroups'
                                 }
@@ -503,6 +530,11 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     icon: 'supervisor_account',
                                     //state: 'home.customers',
                                     state: 'home.customerGroups'
+                                },
+                                {
+                                    name: 'customers-hierarchy.customers-hierarchy',
+                                    icon: 'sort',
+                                    state: 'home.customers-hierarchy',
                                 }
                             ]
                         }
@@ -691,21 +723,27 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
                     sections.push(userGroups);
+                    entityGroupSections.push(userGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
                     sections.push(customerGroups);
+                    entityGroupSections.push(customerGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
                     sections.push(assetGroups);
+                    entityGroupSections.push(assetGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.device)) {
                     sections.push(deviceGroups);
+                    entityGroupSections.push(deviceGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.entityView)) {
                     sections.push(entityViewGroups);
+                    entityGroupSections.push(entityViewGroups);
                 }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard)) {
                     sections.push(dashboardGroups);
+                    entityGroupSections.push(dashboardGroups);
                 }
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     sections.push(
@@ -772,7 +810,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             places: [
                                 {
                                     name: 'user.users',
-                                    icon: 'supervisor_account',
+                                    icon: 'account_circle',
                                     //state: 'home.customers',
                                     state: 'home.userGroups'
                                 }
@@ -790,6 +828,11 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     icon: 'supervisor_account',
                                     //state: 'home.customers',
                                     state: 'home.customerGroups'
+                                },
+                                {
+                                    name: 'customers-hierarchy.customers-hierarchy',
+                                    icon: 'sort',
+                                    state: 'home.customers-hierarchy',
                                 }
                             ]
                         }
@@ -904,12 +947,9 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             }
 
             if (authority === 'TENANT_ADMIN' || authority === 'CUSTOMER_USER') {
-                reloadGroups().then(() => {
-                    onMenuReady();
-                });
-            } else {
-                onMenuReady();
+                initGroups();
             }
+            onMenuReady();
         }
     }
 
@@ -923,41 +963,67 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         }
     }
 
-    function reloadGroups() {
-        var tasks = [];
-        if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
-            tasks.push(loadGroups(customerGroups, types.entityType.customer, 'home.customerGroups.customerGroup', 'supervisor_account'));
+    function initGroups() {
+        var groupTypes = [ types.entityType.customer,
+            types.entityType.asset,
+            types.entityType.device,
+            types.entityType.user,
+            types.entityType.entityView,
+            types.entityType.dashboard
+        ];
+        for (var i=0;i<groupTypes.length;i++) {
+            if (service[groupTypes[i] + 'changeHandle']) {
+                service[groupTypes[i] + 'changeHandle']();
+                service[groupTypes[i] + 'changeHandle'] = null;
+            }
         }
-        if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
-            tasks.push(loadGroups(assetGroups, types.entityType.asset, 'home.assetGroups.assetGroup', 'domain'));
+        for (i=0;i<entityGroupSections.length;i++) {
+            initGroupsType(entityGroupSections[i]);
         }
-        if (userPermissionsService.hasReadGroupsPermission(types.entityType.device)) {
-            tasks.push(loadGroups(deviceGroups, types.entityType.device, 'home.deviceGroups.deviceGroup', 'devices_other'));
+        if (!service.stateChangeSuccessHandle) {
+            service.stateChangeSuccessHandle = $rootScope.$on('$stateChangeSuccess', function () {
+                updateGroups();
+            });
         }
-        if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
-            tasks.push(loadGroups(userGroups, types.entityType.user, 'home.userGroups.userGroup', 'supervisor_account'));
-        }
-        if (userPermissionsService.hasReadGroupsPermission(types.entityType.entityView)) {
-            tasks.push(loadGroups(entityViewGroups, types.entityType.entityView, 'home.entityViewGroups.entityViewGroup', 'view_quilt'));
-        }
-        if (userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard)) {
-            tasks.push(loadGroups(dashboardGroups, types.entityType.dashboard, 'home.dashboardGroups.dashboardGroup', 'dashboard'));
-        }
-        return $q.all(tasks);
     }
 
-    function loadGroups(section, groupType, groupState, icon) {
+    function updateGroups() {
+        for (var i=0;i<entityGroupSections.length;i++) {
+            var section = entityGroupSections[i];
+            reloadGroupsType(section);
+        }
+    }
+
+    function initGroupsType(section) {
+        section.loaded = false;
+        section.pages = [];
+        section.height = '0px';
+        service[section.groupType + 'changeHandle'] = $rootScope.$on(section.groupType + 'changed', function () {
+            section.loaded = false;
+            reloadGroupsType(section);
+        });
+        reloadGroupsType(section);
+    }
+
+    function reloadGroupsType(section) {
+        if ($state.includes(section.state) && !section.loaded) {
+            section.loaded = true;
+            loadGroupsType(section);
+        }
+    }
+
+    function loadGroupsType(section) {
         var deferred = $q.defer();
-        entityGroupService.getEntityGroups(groupType).then(
+        entityGroupService.getEntityGroups(section.groupType).then(
             function success(entityGroups) {
                 var pages = [];
                 entityGroups.forEach(function(entityGroup) {
                     var page = {
                         name: entityGroup.name,
                         type: 'link',
-                        state: groupState + '({entityGroupId:\''+entityGroup.id.id+'\'})',
+                        state: section.childState + '({entityGroupId:\''+entityGroup.id.id+'\'})',
                         ignoreTranslate: true,
-                        icon: icon
+                        icon: section.icon
                     };
                     pages.push(page);
                 });
@@ -966,12 +1032,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 deferred.resolve();
             }
         );
-        if (service[groupType + 'changeHandle']) {
-            service[groupType + 'changeHandle']();
-        }
-        service[groupType + 'changeHandle'] = $rootScope.$on(groupType + 'changed', function () {
-            loadGroups(section, groupType, groupState, icon);
-        });
         return deferred.promise;
     }
 

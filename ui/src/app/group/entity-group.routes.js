@@ -108,7 +108,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.user-groups'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
             }
         })
         .state('home.customerGroups.customerGroup.userGroups.userGroup', {
@@ -131,7 +131,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.user-group'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         })
         .state('home.customerGroups.customerGroup.customerGroups', {
@@ -521,7 +521,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.user-groups'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "supervisor_account", "label": "entity-group.user-groups"}'
+                label: '{"icon": "account_circle", "label": "entity-group.user-groups"}'
             }
         })
         .state('home.userGroups.userGroup', {
@@ -544,7 +544,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.user-group'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "supervisor_account", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         })
         .state('home.entityViewGroups', {

@@ -53,6 +53,7 @@ import dashboardStates from './states';
 
 import DashboardRoutes from './dashboard.routes';
 import {DashboardsController, DashboardCardController/*, MakeDashboardPublicDialogController*/} from './dashboards.controller';
+import PublicDashboardLinkDialogController from './public-dashboard-link.controller';
 import DashboardController from './dashboard.controller';
 import DashboardSettingsController from './dashboard-settings.controller';
 //import AddDashboardsToCustomerController from './add-dashboards-to-customer.controller';
@@ -88,6 +89,7 @@ export default angular.module('thingsboard.dashboard', [
     .controller('DashboardsController', DashboardsController)
     .controller('DashboardCardController', DashboardCardController)
     //.controller('MakeDashboardPublicDialogController', MakeDashboardPublicDialogController)
+    .controller('PublicDashboardLinkDialogController', PublicDashboardLinkDialogController)
     .controller('DashboardController', DashboardController)
     .controller('DashboardSettingsController', DashboardSettingsController)
     //.controller('AddDashboardsToCustomerController', AddDashboardsToCustomerController)

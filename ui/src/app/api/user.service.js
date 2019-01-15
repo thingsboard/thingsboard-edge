@@ -689,8 +689,13 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
                     place = $rootScope.forceFullscreen ? 'dashboard' : 'home.dashboard';
                     params = {dashboardId: currentUserDetails.additionalInfo.defaultDashboardId};
                 } else if (isPublic()) {
-                    place = 'dashboard';
-                    params = {dashboardId: lastPublicDashboardId};
+                    if (lastPublicDashboardId) {
+                        place = 'dashboard';
+                        params = {dashboardId: lastPublicDashboardId};
+                    } else {
+                        $rootScope.$broadcast('forbidden');
+                        return;
+                    }
                 }
             } else if (currentUser.authority === 'SYS_ADMIN') {
                 adminService.checkUpdates().then(

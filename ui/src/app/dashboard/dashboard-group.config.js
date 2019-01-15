@@ -28,8 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+/* eslint-disable import/no-unresolved, import/default */
+
+import publicDashboardLinkDialogTemplate from './public-dashboard-link-dialog.tpl.html';
+
+/* eslint-enable import/no-unresolved, import/default */
+
+
 /*@ngInject*/
-export default function DashboardGroupConfig($q, $translate, $state, $window, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, importExport, dashboardService) {
+export default function DashboardGroupConfig($q, $translate, $state, $window, $document, $mdDialog,
+                                             tbDialogs, utils, types, securityTypes, userPermissionsService, userService, importExport, dashboardService) {
 
     var service = {
         createConfig: createConfig
@@ -104,9 +113,26 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, tb
             }
         };
 
+        groupConfig.actionCellDescriptors = [];
+
+        if (entityGroup.additionalInfo && entityGroup.additionalInfo.isPublic) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('dashboard.public-dashboard-link'),
+                    icon: 'link',
+                    isEnabled: () => {
+                        return true;
+                    },
+                    onAction: ($event, entity) => {
+                        openPublicDashboardLinkDialog($event, entity, entityGroup);
+                    }
+                }
+            );
+        }
+
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.widgetsBundle, securityTypes.operation.read) &&
             userPermissionsService.hasGenericPermission(securityTypes.resource.widgetType, securityTypes.operation.read)) {
-            groupConfig.actionCellDescriptors = [
+            groupConfig.actionCellDescriptors.push(
                 {
                     name: $translate.instant('dashboard.open-dashboard'),
                     icon: 'dashboard',
@@ -117,7 +143,7 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, tb
                         groupConfig.onOpenDashboard($event, entity);
                     }
                 }
-            ];
+            );
         }
 
         groupConfig.groupActionDescriptors = [
@@ -127,5 +153,20 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, tb
 
         deferred.resolve(groupConfig);
         return deferred.promise;
+    }
+
+    function openPublicDashboardLinkDialog($event, dashboard, entityGroup) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: 'PublicDashboardLinkDialogController',
+            controllerAs: 'vm',
+            templateUrl: publicDashboardLinkDialogTemplate,
+            locals: {dashboard: dashboard, entityGroup: entityGroup},
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function () {});
     }
 }

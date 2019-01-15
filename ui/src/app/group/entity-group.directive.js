@@ -44,13 +44,19 @@ export default function EntityGroupDirective($compile, $templateCache, securityT
 
         scope.$watch('entityGroup', function(newVal) {
             if (newVal) {
-                var isPublicGroupType = securityTypes.publicGroupTypes[scope.entityGroup.type];
-                var isPublic = scope.entityGroup.additionalInfo && scope.entityGroup.additionalInfo.isPublic;
-                var isOwned = userPermissionsService.isDirectlyOwnedGroup(scope.entityGroup);
-                var isWriteAllowed = userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, scope.entityGroup);
-                scope.isPublic = isPublic;
-                scope.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
-                scope.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
+                if (scope.entityGroup.id) {
+                    var isPublicGroupType = securityTypes.publicGroupTypes[scope.entityGroup.type];
+                    var isPublic = scope.entityGroup.additionalInfo && scope.entityGroup.additionalInfo.isPublic;
+                    var isOwned = userPermissionsService.isDirectlyOwnedGroup(scope.entityGroup);
+                    var isWriteAllowed = userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, scope.entityGroup);
+                    scope.isPublic = isPublic;
+                    scope.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
+                    scope.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
+                } else {
+                    scope.isPublic = false;
+                    scope.makePublicEnabled = false;
+                    scope.makePrivateEnabled = false;
+                }
             }
         });
 
