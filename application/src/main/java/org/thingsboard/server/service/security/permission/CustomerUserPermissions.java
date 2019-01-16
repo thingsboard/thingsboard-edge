@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -63,6 +62,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
 
     public CustomerUserPermissions() {
         super();
+        put(Resource.PROFILE, TenantAdminPermissions.genericPermissionChecker);
         put(Resource.ALARM, TenantAdminPermissions.tenantStandaloneEntityPermissionChecker);
         put(Resource.ASSET, customerGroupEntityPermissionChecker);
         put(Resource.DEVICE, customerGroupEntityPermissionChecker);
@@ -83,7 +83,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.DASHBOARD_GROUP, customerEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, customerGroupPermissionEntityChecker);
-        put(Resource.AUDIT_LOG, TenantAdminPermissions.tenantAuditLogPermissionChecker);
+        put(Resource.AUDIT_LOG, TenantAdminPermissions.genericPermissionChecker);
     }
 
 

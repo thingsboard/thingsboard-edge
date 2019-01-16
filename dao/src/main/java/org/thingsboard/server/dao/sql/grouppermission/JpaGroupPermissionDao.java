@@ -82,6 +82,16 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
     }
 
     @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndUserGroupIdAndRoleId(UUID tenantId, UUID userGroupId, UUID roleId, TimePageLink pageLink) {
+        return findGroupPermissions(tenantId, userGroupId, null, roleId, pageLink);
+    }
+
+    @Override
+    public List<GroupPermission> findGroupPermissionsByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(UUID tenantId, UUID entityGroupId, UUID userGroupId, UUID roleId, TimePageLink pageLink) {
+        return findGroupPermissions(tenantId, userGroupId, entityGroupId, roleId, pageLink);
+    }
+
+    @Override
     public List<GroupPermission> findGroupPermissionsByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, TimePageLink pageLink) {
         return findGroupPermissions(tenantId, null, entityGroupId, null, pageLink);
     }

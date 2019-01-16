@@ -46,6 +46,7 @@ public class SysAdminPermissions extends AbstractPermissions {
 
     public SysAdminPermissions() {
         super();
+        put(Resource.PROFILE, PermissionChecker.allowAllPermissionChecker);
         put(Resource.ADMIN_SETTINGS, PermissionChecker.allowAllPermissionChecker);
         put(Resource.DASHBOARD, new PermissionChecker.GenericPermissionChecker(Operation.READ));
         put(Resource.ALARM, new PermissionChecker.GenericPermissionChecker(Operation.READ));

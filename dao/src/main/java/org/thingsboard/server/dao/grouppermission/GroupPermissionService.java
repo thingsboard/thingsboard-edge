@@ -51,6 +51,10 @@ public interface GroupPermissionService {
 
     TimePageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId, TimePageLink pageLink);
 
+    TimePageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId, TimePageLink pageLink);
+
+    TimePageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(TenantId tenantId, EntityGroupId entityGroupId, EntityGroupId userGroupId, RoleId roleId, TimePageLink pageLink);
+
     ListenableFuture<List<GroupPermissionInfo>> findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(TenantId tenantId, EntityGroupId userGroupId);
 
     List<GroupPermission> findGroupPermissionListByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId entityGroupId);

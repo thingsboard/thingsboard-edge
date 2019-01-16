@@ -37,6 +37,7 @@ import java.util.*;
 
 public enum Resource {
     ALL(),
+    PROFILE(),
     ADMIN_SETTINGS(),
     ALARM(EntityType.ALARM),
     DEVICE(EntityType.DEVICE),
@@ -88,6 +89,7 @@ public enum Resource {
             }
         }
         operationsByResource.put(Resource.ALL, new HashSet<>(Arrays.asList(Operation.values())));
+        operationsByResource.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.WRITE)));
         operationsByResource.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
         operationsByResource.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE)));
         operationsByResource.put(Resource.DEVICE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE,
@@ -119,6 +121,7 @@ public enum Resource {
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
+                Resource.PROFILE,
                 Resource.ADMIN_SETTINGS,
                 Resource.DASHBOARD,
                 Resource.ALARM,
@@ -131,6 +134,7 @@ public enum Resource {
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
+                Resource.PROFILE,
                 Resource.ALARM,
                 Resource.DEVICE,
                 Resource.ASSET,
@@ -159,6 +163,7 @@ public enum Resource {
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,
+                Resource.PROFILE,
                 Resource.ALARM,
                 Resource.DEVICE,
                 Resource.ASSET,

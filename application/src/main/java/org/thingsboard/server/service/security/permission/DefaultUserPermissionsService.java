@@ -82,6 +82,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     static {
         Map<Resource, Set<Operation>> sysAdminGenericPermissions = new HashMap<>();
+        sysAdminGenericPermissions.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.DASHBOARD, new HashSet<>(Arrays.asList(Operation.READ)));
         sysAdminGenericPermissions.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.READ)));
@@ -118,7 +119,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         if (result == null) {
             ListenableFuture<List<EntityGroupId>> groups;
             if (isPublic) {
-                ListenableFuture<Optional<EntityGroup>> publicUserGroup = customerService.findPublicUserGroup(user.getTenantId(), user.getCustomerId());
+                ListenableFuture<Optional<EntityGroup>> publicUserGroup = entityGroupService.findPublicUserGroup(user.getTenantId(), user.getCustomerId());
                 groups = Futures.transform(publicUserGroup, groupOptional -> {
                             if (groupOptional.isPresent()) {
                                 return Arrays.asList(groupOptional.get().getId());

@@ -472,6 +472,8 @@ public class ModelConstants {
 
     public static final String GROUP_PERMISSION_BY_TENANT_ID_COLUMN_FAMILY_NAME = "group_permission_by_tenant_id";
     public static final String GROUP_PERMISSION_BY_USER_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_user_group_id";
+    public static final String GROUP_PERMISSION_BY_USER_GROUP_ID_AND_ROLE_ID_COLUMN_FAMILY_NAME = "group_permission_by_user_group_id_and_role_id";
+    public static final String GROUP_PERMISSION_BY_GROUP_USER_GROUP_AND_ROLE_COLUMN_FAMILY_NAME = "group_permission_by_group_user_group_and_role";
     public static final String GROUP_PERMISSION_BY_ENTITY_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_entity_group_id";
     public static final String GROUP_PERMISSION_BY_ROLE_ID_COLUMN_FAMILY_NAME = "group_permission_by_role_id";
 

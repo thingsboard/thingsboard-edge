@@ -40,6 +40,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -49,6 +51,7 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
@@ -106,6 +109,9 @@ public class InstallScripts {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     public Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -226,7 +232,8 @@ public class InstallScripts {
                             dashboard.setTenantId(tenantId);
                             Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
                             if (customerId != null && !customerId.isNullUid()) {
-                                dashboardService.assignDashboardToCustomer(new TenantId(EntityId.NULL_UUID), savedDashboard.getId(), customerId);
+                                EntityGroup dashboardGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                                entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), savedDashboard.getId());
                             }
                         } catch (Exception e) {
                             log.error("Unable to load dashboard from json: [{}]", path.toString());

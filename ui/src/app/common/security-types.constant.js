@@ -37,6 +37,7 @@ export default angular.module('thingsboard.securityTypes', [])
             },
             resource: {
                 all: "ALL",
+                profile: "PROFILE",
                 adminSettings: "ADMIN_SETTINGS",
                 alarm: "ALARM",
                 device: "DEVICE",

@@ -54,7 +54,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -73,7 +72,6 @@ import org.thingsboard.server.service.security.permission.UserPermissionsService
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -171,9 +169,11 @@ public class UserController extends BaseController {
                 user.setCustomerId(getCurrentUser().getCustomerId());
             }
 
-            if (operation != Operation.WRITE || !getCurrentUser().getId().equals(user.getId())) {
+            if (operation == Operation.CREATE || !getCurrentUser().getId().equals(user.getId())) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
                         user.getId(), user);
+            } else if (getCurrentUser().getId().equals(user.getId())) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
             }
 
             boolean sendEmail = user.getId() == null && sendActivationMail;
@@ -181,8 +181,7 @@ public class UserController extends BaseController {
 
             // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, savedUser.getTenantId(),
-                        EntityGroup.GROUP_TENANT_ADMINS_NAME, "");
+                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
             }
 

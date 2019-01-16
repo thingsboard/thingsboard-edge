@@ -50,7 +50,6 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -207,10 +206,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         userCredentials.setActivateToken(null);
         userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
         if (authority == Authority.TENANT_ADMIN) {
-            EntityGroup admins = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, user.getTenantId(), EntityGroup.GROUP_TENANT_ADMINS_NAME, "");
+            EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(user.getTenantId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), user.getId());
         } else if (authority == Authority.CUSTOMER_USER) {
-            EntityGroup users = entityGroupService.getOrCreateUserGroup(TenantId.SYS_TENANT_ID, user.getCustomerId(), EntityGroup.GROUP_CUSTOMER_USERS_NAME, "");
+            EntityGroup users = entityGroupService.findOrCreateCustomerUsersGroup(user.getTenantId(), user.getCustomerId(), null);
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, users.getId(), user.getId());
         }
         return user;
@@ -224,7 +223,6 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                                 String description) {
         Device device = new Device();
         device.setTenantId(tenantId);
-        device.setCustomerId(customerId);
         device.setType(type);
         device.setName(name);
         if (description != null) {
@@ -236,6 +234,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(TenantId.SYS_TENANT_ID, device.getId());
         deviceCredentials.setCredentialsId(accessToken);
         deviceCredentialsService.updateDeviceCredentials(TenantId.SYS_TENANT_ID, deviceCredentials);
+        if (customerId != null && !customerId.isNullUid()) {
+            EntityGroup deviceGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
+            entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
+        }
         return device;
     }
 

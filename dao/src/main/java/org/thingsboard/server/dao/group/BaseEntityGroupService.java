@@ -43,33 +43,34 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
-import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.*;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationDao;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.*;
@@ -83,6 +84,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String INCORRECT_GROUP_TYPE = "Incorrect groupType ";
     public static final String INCORRECT_ENTITY_GROUP_ID = "Incorrect entityGroupId ";
     public static final String INCORRECT_ENTITY_ID = "Incorrect entityId ";
+    public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
+    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String UNABLE_TO_FIND_ENTITY_GROUP_BY_ID = "Unable to find entity group by id ";
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -100,7 +103,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private TimeseriesService timeseriesService;
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private GroupPermissionService groupPermissionService;
+
+    @Autowired
+    private CustomerService customerService;
 
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
@@ -188,26 +197,170 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description) {
-        log.trace("Executing getOrCreateUserGroup, parentEntityId [{}], groupName [{}]", parentEntityId, groupName);
+    public EntityGroup findOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description) {
+        log.trace("Executing findOrCreateUserGroup, parentEntityId [{}], groupName [{}]", parentEntityId, groupName);
+        return findOrCreateEntityGroup(tenantId, parentEntityId, EntityType.USER, groupName, description);
+    }
+
+    @Override
+    public EntityGroup findOrCreateEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName, String description) {
+        log.trace("Executing findOrCreateEntityGroup, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
         try {
-            Optional<EntityGroup> userGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, EntityType.USER, groupName).get();
-            if (userGroupOptional.isPresent()) {
-                return userGroupOptional.get();
+            Optional<EntityGroup> entityGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName).get();
+            if (entityGroupOptional.isPresent()) {
+                return entityGroupOptional.get();
             } else {
-                EntityGroup userGroup = new EntityGroup();
-                userGroup.setName(groupName);
-                userGroup.setType(EntityType.USER);
-                JsonNode additionalInfo = userGroup.getAdditionalInfo();
+                EntityGroup entityGroup = new EntityGroup();
+                entityGroup.setName(groupName);
+                entityGroup.setType(groupType);
+                JsonNode additionalInfo = entityGroup.getAdditionalInfo();
                 if (additionalInfo == null) {
                     additionalInfo = mapper.createObjectNode();
                 }
                 ((ObjectNode)additionalInfo).put("description", description);
-                userGroup.setAdditionalInfo(additionalInfo);
-                return saveEntityGroup(tenantId, parentEntityId, userGroup);
+                entityGroup.setAdditionalInfo(additionalInfo);
+                return saveEntityGroup(tenantId, parentEntityId, entityGroup);
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Unable find or create user group!", e);
+            throw new RuntimeException("Unable find or create entity group!", e);
+        }
+    }
+
+    @Override
+    public EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId) {
+
+        // User Group 'Tenant Users' -> 'Tenant User' role -> Read only permissions
+
+        EntityGroup tenantUsers = findOrCreateUserGroup(tenantId,
+                tenantId, EntityGroup.GROUP_TENANT_USERS_NAME, "Autogenerated Tenant Users group with read-only permissions.");
+        Role tenantUserRole = roleService.findOrCreateTenantUserRole();
+        findOrCreateUserGroupPermission(tenantId, tenantUsers.getId(), tenantUserRole.getId());
+        return tenantUsers;
+    }
+
+    @Override
+    public EntityGroup findOrCreateTenantAdminsGroup(TenantId tenantId) {
+
+        // User Group 'Tenant Administrators' -> 'Tenant Administrator' role -> All permissions
+
+        EntityGroup tenantAdmins = findOrCreateUserGroup(tenantId,
+                tenantId, EntityGroup.GROUP_TENANT_ADMINS_NAME, "Autogenerated Tenant Administrators group with all permissions.");
+        Role tenantAdminRole = roleService.findOrCreateTenantAdminRole();
+        findOrCreateUserGroupPermission(tenantId, tenantAdmins.getId(), tenantAdminRole.getId());
+        return tenantAdmins;
+    }
+
+    @Override
+    public EntityGroup findOrCreateCustomerUsersGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId) {
+
+        // User Group 'Customer Users' -> 'Customer User' role -> Read only permissions
+
+        EntityGroup customerUsers = findOrCreateUserGroup(tenantId, customerId,
+                EntityGroup.GROUP_CUSTOMER_USERS_NAME, "Autogenerated Customer Users group with read-only permissions.");
+        Role customerUserRole = roleService.findOrCreateCustomerUserRole(tenantId, parentCustomerId);
+        findOrCreateUserGroupPermission(tenantId, customerUsers.getId(), customerUserRole.getId());
+        return customerUsers;
+    }
+
+    @Override
+    public EntityGroup findOrCreateCustomerAdminsGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId) {
+
+        // User Group 'Customer Administrators' -> 'Customer Administrator' role -> All permissions
+
+        EntityGroup customerAdmins = findOrCreateUserGroup(tenantId, customerId,
+                EntityGroup.GROUP_CUSTOMER_ADMINS_NAME, "Autogenerated Customer Administrators group with all permissions.");
+        Role customerAdminRole = roleService.findOrCreateCustomerAdminRole(tenantId, parentCustomerId);
+        findOrCreateUserGroupPermission(tenantId, customerAdmins.getId(), customerAdminRole.getId());
+        return customerAdmins;
+    }
+
+    @Override
+    public EntityGroup findOrCreatePublicUsersGroup(TenantId tenantId, CustomerId customerId) {
+        EntityGroup publicUsers = findOrCreateUserGroup(tenantId, customerId,
+                EntityGroup.GROUP_PUBLIC_USERS_NAME, "Autogenerated Public Users group with read-only permissions.");
+        Role publicUserRole = roleService.findOrCreatePublicUserRole(tenantId, customerId);
+        findOrCreateUserGroupPermission(tenantId, publicUsers.getId(), publicUserRole.getId());
+        return publicUsers;
+    }
+
+    @Override
+    public EntityGroup findOrCreateReadOnlyEntityGroupForCustomer(TenantId tenantId, CustomerId customerId, EntityType groupType) {
+
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer == null) {
+            throw new RuntimeException("Customer with id '"+customerId.getId().toString()+"' is not present in database!");
+        }
+
+        String groupName = customer.getTitle();
+        String description = "Autogenerated ";
+        switch (groupType) {
+            case DEVICE:
+                groupName += " Devices";
+                description += "Device";
+                break;
+            case ASSET:
+                groupName += " Assets";
+                description += "Asset";
+                break;
+            case ENTITY_VIEW:
+                groupName += " Entity Views";
+                description += "Entity View";
+                break;
+            case DASHBOARD:
+                groupName += " Dashboards";
+                description += "Dashboard";
+                break;
+            default:
+                throw new RuntimeException("Invalid entity group type '" + groupType + "' specified for read-only entity group for customer!");
+        }
+
+        description += " group with read-only access for customer '" + customer.getTitle() + "'";
+        EntityGroup readOnlyGroup = findOrCreateEntityGroup(tenantId, tenantId, groupType, groupName, description);
+        Role readOnlyGroupRole = roleService.findOrCreateReadOnlyEntityGroupRole(tenantId, null);
+        EntityGroup customerUsers = findOrCreateCustomerUsersGroup(tenantId, customer.getId(), null);
+        findOrCreateEntityGroupPermission(tenantId, readOnlyGroup.getId(), readOnlyGroup.getType(), customerUsers.getId(), readOnlyGroupRole.getId());
+        return readOnlyGroup;
+    }
+
+    @Override
+    public ListenableFuture<Optional<EntityGroup>> findPublicUserGroup(TenantId tenantId, CustomerId publicCustomerId) {
+        log.trace("Executing findPublicUserGroup, tenantId [{}], publicCustomerId [{}]", tenantId, publicCustomerId);
+        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        Validator.validateId(publicCustomerId, INCORRECT_CUSTOMER_ID + publicCustomerId);
+        return findEntityGroupByTypeAndName(tenantId, publicCustomerId, EntityType.USER, EntityGroup.GROUP_PUBLIC_USERS_NAME);
+    }
+
+    private GroupPermission findOrCreateUserGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId) {
+        List<GroupPermission> userGroupPermissions =
+                groupPermissionService.findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(tenantId,
+                        userGroupId, roleId, new TimePageLink(Integer.MAX_VALUE)).getData();
+        if (userGroupPermissions.isEmpty()) {
+            GroupPermission userGroupPermission = new GroupPermission();
+            userGroupPermission.setTenantId(tenantId);
+            userGroupPermission.setUserGroupId(userGroupId);
+            userGroupPermission.setRoleId(roleId);
+            return groupPermissionService.saveGroupPermission(tenantId, userGroupPermission);
+        } else {
+            return userGroupPermissions.get(0);
+        }
+    }
+
+    private GroupPermission findOrCreateEntityGroupPermission(TenantId tenantId, EntityGroupId entityGroupId,
+                                                              EntityType entityGroupType,
+                                                              EntityGroupId userGroupId, RoleId roleId) {
+        List<GroupPermission> entityGroupPermissions =
+                groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId,
+                        entityGroupId, userGroupId, roleId, new TimePageLink(Integer.MAX_VALUE)).getData();
+        if (entityGroupPermissions.isEmpty()) {
+            GroupPermission entityGroupPermission = new GroupPermission();
+            entityGroupPermission.setTenantId(tenantId);
+            entityGroupPermission.setEntityGroupId(entityGroupId);
+            entityGroupPermission.setEntityGroupType(entityGroupType);
+            entityGroupPermission.setUserGroupId(userGroupId);
+            entityGroupPermission.setRoleId(roleId);
+            return groupPermissionService.saveGroupPermission(tenantId, entityGroupPermission);
+        } else {
+            return entityGroupPermissions.get(0);
         }
     }
 

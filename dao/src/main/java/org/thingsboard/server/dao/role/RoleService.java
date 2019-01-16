@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -66,6 +67,23 @@ public interface RoleService {
     void deleteRolesByTenantId(TenantId tenantId);
 
     void deleteRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreateRole(TenantId tenantId, CustomerId customerId, RoleType type,
+                          String name, Object permissions, String description);
+
+    Role findOrCreateTenantUserRole();
+
+    Role findOrCreateTenantAdminRole();
+
+    Role findOrCreateCustomerUserRole(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreateCustomerAdminRole(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreatePublicUsersEntityGroupRole(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreatePublicUserRole(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreateReadOnlyEntityGroupRole(TenantId tenantId, CustomerId customerId);
 
     TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 

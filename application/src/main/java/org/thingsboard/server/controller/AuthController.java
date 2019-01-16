@@ -49,7 +49,10 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -97,6 +100,7 @@ public class AuthController extends BaseController {
     public void changePassword(
             @RequestBody JsonNode changePasswordRequest) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
             String currentPassword = changePasswordRequest.get("currentPassword").asText();
             String newPassword = changePasswordRequest.get("newPassword").asText();
             SecurityUser securityUser = getCurrentUser();
@@ -140,11 +144,19 @@ public class AuthController extends BaseController {
             HttpServletRequest request) throws ThingsboardException {
         try {
             String email = resetPasswordByEmailRequest.get("email").asText();
-            UserCredentials userCredentials = userService.requestPasswordReset(TenantId.SYS_TENANT_ID, email);
+            User user = userService.findUserByEmail(TenantId.SYS_TENANT_ID, email);
+            if (user == null) {
+                throw new IncorrectParameterException(String.format("Unable to find user by email [%s]", email));
+            }
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(TenantId.SYS_TENANT_ID, user.getId());
+            UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+            SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), principal, getMergedUserPermissions(user, false));
+            accessControlService.checkPermission(securityUser, Resource.PROFILE, Operation.WRITE);
+
+            userCredentials = userService.requestPasswordReset(TenantId.SYS_TENANT_ID, email);
             String baseUrl = constructBaseUrl(request);
             String resetUrl = String.format("%s/api/noauth/resetPassword?resetToken=%s", baseUrl,
                     userCredentials.getResetToken());
-            User user = userService.findUserById(TenantId.SYS_TENANT_ID, userCredentials.getUserId());
             mailService.sendResetPasswordEmail(user.getTenantId(), resetUrl, email);
         } catch (Exception e) {
             throw handleException(e);

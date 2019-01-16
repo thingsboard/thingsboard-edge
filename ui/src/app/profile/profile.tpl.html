@@ -42,7 +42,7 @@
         <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
         <md-card-content>
             <form name="theForm" ng-submit="vm.save()" tb-confirm-on-exit confirm-form="theForm">
-                <fieldset ng-disabled="$root.loading">
+                <fieldset ng-disabled="$root.loading || !('profile' | hasGenericPermission:'write')">
                     <md-input-container class="md-block">
                         <label translate>user.email</label>
                         <input name="email" type="email" ng-model="vm.profileUser.email">
@@ -63,11 +63,13 @@
                             </md-option>
                         </md-select>
                     </md-input-container>
-                    <md-button ng-disabled="$root.loading" ng-click="vm.changePassword($event)"
+                    <md-button ng-if="('profile' | hasGenericPermission:'write')"
+                               ng-disabled="$root.loading" ng-click="vm.changePassword($event)"
                                class="md-raised md-primary">{{ 'profile.change-password' | translate }}
                     </md-button>
                     <div layout="row" layout-align="end center" width="100%" layout-wrap>
-                        <md-button ng-disabled="$root.loading || theForm.$invalid || !theForm.$dirty" type="submit"
+                        <md-button ng-if="('profile' | hasGenericPermission:'write')"
+                                   ng-disabled="$root.loading || theForm.$invalid || !theForm.$dirty" type="submit"
                                    class="md-raised md-primary">{{ 'action.save' | translate }}
                         </md-button>
                     </div>

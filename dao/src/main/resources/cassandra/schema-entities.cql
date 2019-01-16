@@ -948,6 +948,20 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_user_grou
     PRIMARY KEY ((tenant_id, user_group_id), id, entity_group_id, role_id)
     WITH CLUSTERING ORDER BY (id DESC, entity_group_id DESC, role_id DESC);
 
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_user_group_id_and_role_id AS
+    SELECT *
+    from thingsboard.group_permission
+    WHERE tenant_id IS NOT NULL AND user_group_id IS NOT NULL AND id IS NOT NULL AND entity_group_id IS NOT NULL AND role_id IS NOT NULL
+    PRIMARY KEY ((tenant_id, user_group_id, role_id), id, entity_group_id)
+    WITH CLUSTERING ORDER BY (id DESC, entity_group_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_group_user_group_and_role AS
+    SELECT *
+    from thingsboard.group_permission
+    WHERE tenant_id IS NOT NULL AND user_group_id IS NOT NULL AND id IS NOT NULL AND entity_group_id IS NOT NULL AND role_id IS NOT NULL
+    PRIMARY KEY ((tenant_id, entity_group_id, user_group_id, role_id), id)
+    WITH CLUSTERING ORDER BY (id DESC);
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_entity_group_id AS
     SELECT *
     from thingsboard.group_permission

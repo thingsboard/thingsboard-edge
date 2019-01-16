@@ -66,8 +66,6 @@ public interface CustomerService {
 
     EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId);
 
-    ListenableFuture<Optional<EntityGroup>> findPublicUserGroup(TenantId tenantId, CustomerId publicCustomerId);
-
     Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId);
 
     TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);

@@ -1865,6 +1865,7 @@
             "no-resources-matching": "No resources matching '{{resource}}' were found.",
             "display-type": {
                 "ALL": "All",
+                "PROFILE": "Profile",
                 "ADMIN_SETTINGS": "Admin Settings",
                 "ALARM": "Alarm",
                 "DEVICE": "Device",

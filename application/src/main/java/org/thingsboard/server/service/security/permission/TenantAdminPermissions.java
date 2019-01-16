@@ -33,9 +33,6 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -65,6 +62,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     public TenantAdminPermissions() {
         super();
+        put(Resource.PROFILE, genericPermissionChecker);
         put(Resource.ALARM, tenantStandaloneEntityPermissionChecker);
         put(Resource.ASSET, tenantGroupEntityPermissionChecker);
         put(Resource.DEVICE, tenantGroupEntityPermissionChecker);
@@ -89,7 +87,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.DASHBOARD_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
-        put(Resource.AUDIT_LOG, tenantAuditLogPermissionChecker);
+        put(Resource.AUDIT_LOG, genericPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -204,7 +202,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     };
 
-    public static final PermissionChecker tenantAuditLogPermissionChecker = new PermissionChecker() {
+    public static final PermissionChecker genericPermissionChecker = new PermissionChecker() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {

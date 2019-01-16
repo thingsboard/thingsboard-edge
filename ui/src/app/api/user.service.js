@@ -427,7 +427,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         whiteLabelingService.isWhiteLabelingAllowed().then(
             (response) => {
                 whiteLabelingAllowed = !!response;
-                if (currentUser.authority === 'TENANT_ADMIN') {
+                if (currentUser && currentUser.authority === 'TENANT_ADMIN') {
                     whiteLabelingService.isCustomerWhiteLabelingAllowed().then(
                         (response) => {
                             customerWhiteLabelingAllowed = !!response;
@@ -455,7 +455,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         promises.push(loadIsUserTokenAccessEnabled());
         promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
         promises.push(timeService.loadMaxDatapointsLimit());
-        if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
+        if (currentUser && (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER')) {
             promises.push(checkIsWhiteLabelingAllowed());
         }
         promises.push(userPermissionsService.loadPermissionsInfo());

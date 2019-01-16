@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -64,7 +65,23 @@ public interface EntityGroupService {
 
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
-    EntityGroup getOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description);
+    EntityGroup findOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description);
+
+    EntityGroup findOrCreateEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName, String description);
+
+    EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
+
+    EntityGroup findOrCreateTenantAdminsGroup(TenantId tenantId);
+
+    EntityGroup findOrCreateCustomerUsersGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId);
+
+    EntityGroup findOrCreateCustomerAdminsGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId);
+
+    EntityGroup findOrCreatePublicUsersGroup(TenantId tenantId, CustomerId customerId);
+
+    EntityGroup findOrCreateReadOnlyEntityGroupForCustomer(TenantId tenantId, CustomerId customerId, EntityType groupType);
+
+    ListenableFuture<Optional<EntityGroup>> findPublicUserGroup(TenantId tenantId, CustomerId publicCustomerId);
 
     void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId);
 
