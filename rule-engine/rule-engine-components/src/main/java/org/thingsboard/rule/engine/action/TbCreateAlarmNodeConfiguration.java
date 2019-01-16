@@ -39,6 +39,7 @@ public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfigura
 
     private AlarmSeverity severity;
     private boolean propagate;
+    private boolean useMessageAlarmData;
 
     @Override
     public TbCreateAlarmNodeConfiguration defaultConfiguration() {
@@ -51,6 +52,7 @@ public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfigura
         configuration.setAlarmType("General Alarm");
         configuration.setSeverity(AlarmSeverity.CRITICAL);
         configuration.setPropagate(false);
+        configuration.setUseMessageAlarmData(false);
         return configuration;
     }
 }
