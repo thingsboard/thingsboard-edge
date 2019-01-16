@@ -48,7 +48,6 @@ public class WeeklyRepeat implements SchedulerRepeat {
 
     private long endsOn;
     private List<Integer> repeatOn;
-    private String timeZone;
 
     @Override
     public SchedulerRepeatType getType() {
@@ -56,12 +55,12 @@ public class WeeklyRepeat implements SchedulerRepeat {
     }
 
     @Override
-    public long getNext(long startTime, long ts) {
+    public long getNext(long startTime, long ts, String timezone) {
         TimeZone tz;
-        if (StringUtils.isEmpty(timeZone)) {
+        if (StringUtils.isEmpty(timezone)) {
             tz = TimeZone.getTimeZone("UTC");
         } else {
-            tz = TimeZone.getTimeZone(timeZone);
+            tz = TimeZone.getTimeZone(timezone);
         }
         Calendar calendar = Calendar.getInstance(tz);
 
