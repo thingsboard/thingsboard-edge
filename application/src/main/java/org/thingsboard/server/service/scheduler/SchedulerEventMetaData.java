@@ -42,6 +42,7 @@ class SchedulerEventMetaData {
 
     private final SchedulerEventInfo info;
     private final long startTime;
+    private final String timezone;
     private final SchedulerRepeat repeat;
     private volatile ListenableScheduledFuture<?> nextTaskFuture;
 
@@ -53,7 +54,7 @@ class SchedulerEventMetaData {
         if (ts < startTime) {
             return startTime;
         } else if (repeat != null && repeat.getEndsOn() > ts) {
-            return repeat.getNext(startTime, ts);
+            return repeat.getNext(startTime, ts, timezone);
         } else {
             return 0L;
         }

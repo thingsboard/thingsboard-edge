@@ -48,7 +48,7 @@ public class DailyRepeat implements SchedulerRepeat {
 
 
     @Override
-    public long getNext(long startTime, long ts) {
+    public long getNext(long startTime, long ts, String timezone) {
         for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
             if (tmp > ts) {
                 return tmp;
