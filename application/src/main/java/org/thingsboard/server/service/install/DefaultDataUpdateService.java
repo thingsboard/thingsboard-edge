@@ -33,6 +33,7 @@ package org.thingsboard.server.service.install;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
@@ -70,6 +72,9 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Profile("install")
@@ -123,12 +128,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private AttributesService attributesService;
-
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private GroupPermissionService groupPermissionService;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -226,26 +225,35 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             EntityGroup entityGroup;
                             Optional<EntityGroup> entityGroupOptional =
                                     entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                            boolean fetchAllTenantEntities;
                             if (!entityGroupOptional.isPresent()) {
                                 entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), groupType);
+                                fetchAllTenantEntities = true;
                             } else {
                                 entityGroup = entityGroupOptional.get();
+                                fetchAllTenantEntities = false;
                             }
                             switch (groupType) {
                                 case USER:
-                                    new TenantAdminsGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
+                                    entityGroupService.findOrCreateTenantUsersGroup(tenant.getId());
+                                    Optional<EntityGroup> tenantAdminsOptional =
+                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
+                                    if (!tenantAdminsOptional.isPresent()) {
+                                        EntityGroup tenantAdmins = entityGroupService.findOrCreateTenantAdminsGroup(tenant.getId());
+                                        new TenantAdminsGroupAllUpdater(entityGroup, tenantAdmins).updateEntities(tenant.getId());
+                                    }
                                     break;
                                 case ASSET:
-                                    new AssetsGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
+                                    new AssetsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DEVICE:
-                                    new DevicesGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
-                                    break;
-                                case DASHBOARD:
-                                    new DashboardsGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
+                                    new DevicesGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case ENTITY_VIEW:
-                                    new EntityViewGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
+                                    new EntityViewGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    break;
+                                case DASHBOARD:
+                                    new DashboardsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                             }
                         }
@@ -272,10 +280,63 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     }
 
+    private abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D extends SearchTextBased<I>
+            & TenantEntity & HasCustomerId> extends PaginatedUpdater<TenantId,D> {
+
+        protected final EntityGroup groupAll;
+        private final boolean fetchAllTenantEntities;
+        private final BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction;
+        private final BiFunction<TenantId, TextPageLink, TextPageData<D>> findTenantOnlyEntitiesFunction;
+        private final Function<D, EntityId> getEntityIdFunction;
+
+        private Map<CustomerId, EntityGroupId> customersGroupMap = new HashMap<>();
+
+        public EntityGroupAllPaginatedUpdater(EntityGroup groupAll,
+                                              boolean fetchAllTenantEntities,
+                                              BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction,
+                                              BiFunction<TenantId, TextPageLink, TextPageData<D>> findTenantOnlyEntitiesFunction,
+                                              Function<D, EntityId> getEntityIdFunction) {
+            this.groupAll = groupAll;
+            this.fetchAllTenantEntities = fetchAllTenantEntities;
+            this.findAllTenantEntitiesFunction = findAllTenantEntitiesFunction;
+            this.findTenantOnlyEntitiesFunction = findTenantOnlyEntitiesFunction;
+            this.getEntityIdFunction = getEntityIdFunction;
+        }
+
+        protected TextPageData<D> findEntities(TenantId id, TextPageLink pageLink) {
+            if (fetchAllTenantEntities) {
+                return this.findAllTenantEntitiesFunction.apply(id, pageLink);
+            } else {
+                return this.findTenantOnlyEntitiesFunction.apply(id, pageLink);
+            }
+        }
+
+        @Override
+        protected void updateEntity(D entity) {
+            EntityId entityId = getEntityIdFunction.apply(entity);
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entityId);
+            if (entity.getCustomerId() != null && entity.getCustomerId().isNullUid()) {
+                EntityGroupId customerEntityGroupId = customersGroupMap.computeIfAbsent(
+                        entity.getCustomerId(), customerId ->
+                                entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
+                                        customerId, entity.getEntityType()).getId()
+                );
+                entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerEntityGroupId, entityId);
+                unassignFromCustomer(entity);
+            }
+        }
+
+        protected abstract void unassignFromCustomer(D entity);
+
+    }
+
     private class TenantAdminsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, User> {
 
-        public TenantAdminsGroupAllUpdater(EntityGroup groupAll) {
+        private final EntityGroup tenantAdmins;
+
+        public TenantAdminsGroupAllUpdater(EntityGroup groupAll, EntityGroup tenantAdmins) {
             super(groupAll);
+            this.tenantAdmins = tenantAdmins;
         }
 
         @Override
@@ -286,18 +347,19 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected void updateGroupEntity(User entity, EntityGroup groupAll) {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
+            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, tenantAdmins.getId(), entity.getId());
         }
     }
 
     private class CustomerUsersGroupAllUpdater extends GroupAllPaginatedUpdater<CustomerId, User> {
 
         private final TenantId tenantId;
-        private final EntityGroup customerAdmins;
+        private final EntityGroup customerUsers;
 
-        public CustomerUsersGroupAllUpdater(TenantId tenantId, EntityGroup groupAll, EntityGroup customerAdmins) {
+        public CustomerUsersGroupAllUpdater(TenantId tenantId, EntityGroup groupAll, EntityGroup customerUsers) {
             super(groupAll);
             this.tenantId = tenantId;
-            this.customerAdmins = customerAdmins;
+            this.customerUsers = customerUsers;
         }
 
         @Override
@@ -308,7 +370,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected void updateGroupEntity(User entity, EntityGroup groupAll) {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerAdmins.getId(), entity.getId());
+            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerUsers.getId(), entity.getId());
         }
     }
 
@@ -325,6 +387,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         @Override
         protected void updateGroupEntity(Customer customer, EntityGroup groupAll) {
+            if (customer.isSubCustomer()) {
+                return;
+            }
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), customer.getId());
             try {
                 List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, customer.getId()).get();
@@ -339,25 +404,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     if (!entityGroupOptional.isPresent()) {
                         EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
                         if (groupType == EntityType.USER) {
-                            EntityGroup customerAdmins = new EntityGroup();
-                            //TODO (Security): validate
-                            customerAdmins.setName("Customer Admins");
-                            customerAdmins.setType(EntityType.USER);
-                            customerAdmins = entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), customerAdmins);
-                            Role customerAdminsRole = new Role();
-                            customerAdminsRole.setTenantId(customer.getTenantId());
-                            customerAdminsRole.setCustomerId(customer.getId());
-                            customerAdminsRole.setType(RoleType.GENERIC);
-                            customerAdminsRole.setName("Customer Admin");
-                            //TODO (Security):
-                            customerAdminsRole.setPermissions(new ObjectMapper().createObjectNode());
-                            customerAdminsRole = roleService.saveRole(TenantId.SYS_TENANT_ID, customerAdminsRole);
-                            GroupPermission groupPermission = new GroupPermission();
-                            groupPermission.setTenantId(customer.getTenantId());
-                            groupPermission.setUserGroupId(customerAdmins.getId());
-                            groupPermission.setRoleId(customerAdminsRole.getId());
-                            groupPermissionService.saveGroupPermission(TenantId.SYS_TENANT_ID, groupPermission);
-                            new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerAdmins).updateEntities(customer.getId());
+                            if (!customer.isPublic()) {
+                                entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
+                                Optional<EntityGroup> customerUsersOptional =
+                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME).get();
+                                if (!customerUsersOptional.isPresent()) {
+                                    EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
+                                    new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
+                                }
+                            } else {
+                                entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
+                            }
                         }
                     }
                 }
@@ -367,113 +424,104 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private class AssetsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, Asset> {
+    private class AssetsGroupAllUpdater extends EntityGroupAllPaginatedUpdater<AssetId, Asset> {
 
-        public AssetsGroupAllUpdater(EntityGroup groupAll) {
-            super(groupAll);
+        public AssetsGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
+            super(groupAll,
+                    fetchAllTenantEntities,
+                    (tenantId, pageLink) -> assetService.findAssetsByTenantId(tenantId, pageLink),
+                    (tenantId, pageLink) -> assetService.findAssetsByTenantIdAndCustomerId(tenantId, new CustomerId(CustomerId.NULL_UUID), pageLink),
+                    asset -> asset.getId());
         }
 
         @Override
-        protected TextPageData<Asset> findEntities(TenantId id, TextPageLink pageLink) {
-            return assetService.findAssetsByTenantId(id, pageLink);
+        protected void unassignFromCustomer(Asset entity) {
+            entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
+            assetService.saveAsset(entity);
+        }
+
+    }
+
+    private class DevicesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<DeviceId, Device> {
+
+        public DevicesGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
+            super(groupAll,
+                    fetchAllTenantEntities,
+                    (tenantId, pageLink) -> deviceService.findDevicesByTenantId(tenantId, pageLink),
+                    (tenantId, pageLink) -> deviceService.findDevicesByTenantIdAndCustomerId(tenantId, new CustomerId(CustomerId.NULL_UUID), pageLink),
+                    device -> device.getId());
         }
 
         @Override
-        protected void updateGroupEntity(Asset entity, EntityGroup groupAll) {
-            if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
-                entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-            }
-            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
+        protected void unassignFromCustomer(Device entity) {
+            entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
+            deviceService.saveDevice(entity);
         }
     }
 
-    private class DevicesGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, Device> {
 
-        public DevicesGroupAllUpdater(EntityGroup groupAll) {
-            super(groupAll);
+    private class EntityViewGroupAllUpdater extends EntityGroupAllPaginatedUpdater<EntityViewId, EntityView> {
+
+        public EntityViewGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
+            super(groupAll,
+                    fetchAllTenantEntities,
+                    (tenantId, pageLink) -> entityViewService.findEntityViewByTenantId(tenantId, pageLink),
+                    (tenantId, pageLink) -> entityViewService.findEntityViewsByTenantIdAndCustomerId(tenantId, new CustomerId(CustomerId.NULL_UUID), pageLink),
+                    entityView -> entityView.getId());
         }
 
-        @Override
-        protected TextPageData<Device> findEntities(TenantId id, TextPageLink pageLink) {
-            return deviceService.findDevicesByTenantId(id, pageLink);
-        }
 
         @Override
-        protected void updateGroupEntity(Device entity, EntityGroup groupAll) {
-            if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
-                entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-            }
-            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
+        protected void unassignFromCustomer(EntityView entity) {
+            entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
+            entityViewService.saveEntityView(entity);
         }
     }
 
-    private class DashboardsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, DashboardInfo> {
+    private class DashboardsGroupAllUpdater extends PaginatedUpdater<TenantId, DashboardInfo> {
 
-        private Map<CustomerId, EntityGroupId> customerDashboardGroupsMap = new HashMap<>();
+        private final EntityGroup groupAll;
+        private final boolean fetchAllTenantEntities;
 
-        public DashboardsGroupAllUpdater(EntityGroup groupAll) {
-            super(groupAll);
+        private Map<CustomerId, EntityGroupId> customersGroupMap = new HashMap<>();
+
+        public DashboardsGroupAllUpdater(EntityGroup groupAll,
+                                              boolean fetchAllTenantEntities) {
+            this.groupAll = groupAll;
+            this.fetchAllTenantEntities = fetchAllTenantEntities;
         }
 
         @Override
         protected TextPageData<DashboardInfo> findEntities(TenantId id, TextPageLink pageLink) {
-            return dashboardService.findDashboardsByTenantId(id, pageLink);
+            if (fetchAllTenantEntities) {
+                return dashboardService.findDashboardsByTenantId(id, pageLink);
+            } else {
+                try {
+                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+                    List<DashboardId> dashboardIds = entityIds.stream().map(entityId -> new DashboardId(entityId.getId())).collect(Collectors.toList());
+                    List<DashboardInfo> dashboards = dashboardService.findDashboardInfoByIdsAsync(TenantId.SYS_TENANT_ID, dashboardIds).get();
+                    return new TextPageData<>(dashboards, new TextPageLink(Integer.MAX_VALUE));
+                } catch (Exception e) {
+                    log.error("Failed to get dashboards from group all!", e);
+                    throw new RuntimeException("Failed to get dashboards from group all!", e);
+                }
+            }
         }
 
         @Override
-        protected void updateGroupEntity(DashboardInfo entity, EntityGroup groupAll) {
-            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
+        protected void updateEntity(DashboardInfo entity) {
+            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entity.getId());
             if (entity.getAssignedCustomers() != null) {
                 for (ShortCustomerInfo customer : entity.getAssignedCustomers()) {
-                    EntityGroupId groupId = getCustomerDashboardGroup(entity.getTenantId(), customer);
-                    if (groupId != null) {
-                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupId, entity.getId());
-                    }
+                    EntityGroupId customerEntityGroupId = customersGroupMap.computeIfAbsent(
+                            customer.getCustomerId(), customerId ->
+                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
+                                            customerId, entity.getEntityType()).getId()
+                    );
+                    entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerEntityGroupId, entity.getId());
                     dashboardService.unassignDashboardFromCustomer(TenantId.SYS_TENANT_ID, entity.getId(), customer.getCustomerId());
                 }
             }
-        }
-
-        private EntityGroupId getCustomerDashboardGroup(TenantId tenantId, ShortCustomerInfo customer) {
-            return customerDashboardGroupsMap.computeIfAbsent(customer.getCustomerId(), customerId -> {
-                String groupName = "Dashboards for " + customer.getTitle();
-                try {
-                    Optional<EntityGroup> entityGroupOptional = entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenantId, EntityType.DASHBOARD, groupName).get();
-                    if (entityGroupOptional.isPresent()) {
-                        return entityGroupOptional.get().getId();
-                    } else {
-                        EntityGroup entityGroup = new EntityGroup();
-                        entityGroup.setName(groupName);
-                        entityGroup.setType(EntityType.DASHBOARD);
-                        EntityGroup savedEntityGroup = entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenantId, entityGroup);
-                        //TODO (Security): Add Role and GroupPermission (Customer Admins) -> savedEntityGroup
-                        return savedEntityGroup.getId();
-                    }
-                } catch (Exception e) {
-                    log.error("Failed to find/create dashboard group for customer [{}]" + customer.getTitle(), e);
-                    return null;
-                }
-            });
-        }
-    }
-
-    private class EntityViewGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, EntityView> {
-
-        public EntityViewGroupAllUpdater(EntityGroup groupAll) {
-            super(groupAll);
-        }
-
-        @Override
-        protected TextPageData<EntityView> findEntities(TenantId id, TextPageLink pageLink) {
-            return entityViewService.findEntityViewByTenantId(id, pageLink);
-        }
-
-        @Override
-        protected void updateGroupEntity(EntityView entity, EntityGroup groupAll) {
-            if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
-                entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
-            }
-            entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getOwnerId(), entity.getId());
         }
     }
 
@@ -544,7 +592,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         if (logoImageSettings != null) {
             logoImageUrl = logoImageSettings.getJsonValue().get("value").asText();
         }
-        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl);
+        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, true);
         whiteLabelingService.saveSystemWhiteLabelingParams(preparedWhiteLabelingParams);
         adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE);
         adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, LOGO_IMAGE_CHECKSUM);
@@ -553,7 +601,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private void updateEntityWhiteLabelingParameters(EntityId entityId) {
         JsonNode storedWl = getEntityWhiteLabelParams(entityId);
         String logoImageUrl = getEntityAttributeValue(entityId, LOGO_IMAGE);
-        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl);
+        WhiteLabelingParams preparedWhiteLabelingParams = createWhiteLabelingParams(storedWl, logoImageUrl, false);
         if (entityId.getEntityType() == EntityType.TENANT) {
             whiteLabelingService.saveTenantWhiteLabelingParams(new TenantId(entityId.getId()), preparedWhiteLabelingParams);
         }
@@ -564,7 +612,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);
     }
 
-    private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl) {
+    private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl, boolean isSystem) {
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setLogoImageUrl(logoImageUrl);
         if (storedWl != null) {
@@ -621,6 +669,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
+            }
+            if (isSystem) {
+                if (!storedWl.has("helpLinkBaseUrl")) {
+                    whiteLabelingParams.setHelpLinkBaseUrl("https://thingsboard.io");
+                }
+                if (!storedWl.has("enableHelpLinks")) {
+                    whiteLabelingParams.setEnableHelpLinks(true);
+                }
             }
         }
         return whiteLabelingParams;
