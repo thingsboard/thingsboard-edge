@@ -315,7 +315,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected void updateEntity(D entity) {
             EntityId entityId = getEntityIdFunction.apply(entity);
             entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entityId);
-            if (entity.getCustomerId() != null && entity.getCustomerId().isNullUid()) {
+            if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
                 EntityGroupId customerEntityGroupId = customersGroupMap.computeIfAbsent(
                         entity.getCustomerId(), customerId ->
                                 entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
