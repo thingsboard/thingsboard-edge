@@ -1266,8 +1266,26 @@ export default angular.module('thingsboard.types', [])
                 weekly: {
                     value: 'WEEKLY',
                     name: 'scheduler.weekly'
+                },
+                timer: {
+                    value: 'TIMER',
+                    name: 'scheduler.timer'
                 }
             },
+            schedulerTimeUnit: [
+                {
+                    value: 'HOURS',
+                    name: 'scheduler.hours'
+                },
+                {
+                    value: 'MINUTES',
+                    name: 'scheduler.minutes'
+                }/*,
+                {
+                    value: 'SECONDS',
+                    name: 'scheduler.seconds'
+                },*/
+            ],
             schedulerWeekday: [
                 'scheduler.sunday',
                 'scheduler.monday',

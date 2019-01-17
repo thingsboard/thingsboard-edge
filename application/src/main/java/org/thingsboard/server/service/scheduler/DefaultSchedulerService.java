@@ -211,6 +211,7 @@ public class DefaultSchedulerService implements SchedulerService {
     private SchedulerEventMetaData getSchedulerEventMetaData(SchedulerEventInfo event) {
         JsonNode node = event.getSchedule();
         long startTime = node.get("startTime").asLong();
+        String timezone = node.get("timezone").asText();
         JsonNode repeatNode = node.get("repeat");
         SchedulerRepeat repeat = null;
         if (repeatNode != null) {
@@ -220,7 +221,7 @@ public class DefaultSchedulerService implements SchedulerService {
                 log.error("Failed to read scheduler config", e);
             }
         }
-        return new SchedulerEventMetaData(event, startTime, repeat);
+        return new SchedulerEventMetaData(event, startTime, timezone, repeat);
     }
 
     private void processEvent(TenantId tenantId, SchedulerEventId eventId) {

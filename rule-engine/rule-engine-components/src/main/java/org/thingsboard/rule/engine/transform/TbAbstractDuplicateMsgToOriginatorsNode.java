@@ -49,7 +49,7 @@ public abstract class TbAbstractDuplicateMsgToOriginatorsNode extends TbAbstract
                 return null;
             }
             List<TbMsg> messages = new ArrayList<>();
-            if (entityIds.size() == 0) {
+            if (entityIds.size() == 1) {
                 messages.add(ctx.transformMsg(msg, msg.getType(), entityIds.get(0), msg.getMetaData(), msg.getData()));
             }
             for (EntityId entityId : entityIds) {

@@ -30,26 +30,36 @@
  */
 package org.thingsboard.server.service.scheduler;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = DailyRepeat.class, name = "DAILY"),
-        @JsonSubTypes.Type(value = WeeklyRepeat.class, name = "WEEKLY"),
-        @JsonSubTypes.Type(value = TimerRepeat.class, name = "TIMER")
-})
-public interface SchedulerRepeat {
+import java.util.concurrent.TimeUnit;
 
-    long getEndsOn();
+@Data
+public class TimerRepeat implements SchedulerRepeat {
 
-    SchedulerRepeatType getType();
+    private long repeatInterval;
+    private TimeUnit timeUnit;
+    private long endsOn;
 
-    long getNext(long startTime, long ts, String timezone);
+
+    @Override
+    public long getEndsOn() {
+        return endsOn;
+    }
+
+    @Override
+    public SchedulerRepeatType getType() {
+        return SchedulerRepeatType.TIMER;
+    }
+
+    @Override
+    public long getNext(long startTime, long ts, String timezone) {
+        long interval = timeUnit.toMillis(repeatInterval);
+        for (long tmp = startTime; tmp < endsOn; tmp += interval) {
+            if (tmp > ts) {
+                return tmp;
+            }
+        }
+        return 0L;
+    }
 }

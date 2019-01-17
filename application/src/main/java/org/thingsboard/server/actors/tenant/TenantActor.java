@@ -93,7 +93,8 @@ public class TenantActor extends RuleChainManagerActor {
             initRuleChains();
             log.info("[{}] Tenant actor started.", tenantId);
         } catch (Exception e) {
-            log.warn("[{}] Unknown failure", tenantId, e);
+            log.warn("[{}] Unknown failure", tenantId);
+            log.warn("Failure:", e);
         }
     }
 

@@ -155,7 +155,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     $scope.$watch(function() { return $mdMedia('gt-md'); }, function(isGtMd) {
         vm.isGtMd = isGtMd;
         if (vm.isGtMd) {
-            vm.limitOptions = [vm.defaultPageSize, vm.defaultPageSize*2, vm.defaultPageSize*3];
+            vm.limitOptions = [vm.defaultPageSize, vm.defaultPageSize * 2, vm.defaultPageSize * 3];
         } else {
             vm.limitOptions = null;
         }
@@ -226,7 +226,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         vm.query.order = vm.defaultSortOrder;
         vm.query.limit = vm.defaultPageSize;
         if (vm.isGtMd) {
-            vm.limitOptions = [vm.defaultPageSize, vm.defaultPageSize*2, vm.defaultPageSize*3];
+            vm.limitOptions = [vm.defaultPageSize, vm.defaultPageSize * 2, vm.defaultPageSize * 3];
         } else {
             vm.limitOptions = null;
         }
@@ -237,7 +237,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         }
 
         $scope.$watch('vm.ctx.currentSchedulerMode', function() {
-                vm.mode = vm.ctx.currentSchedulerMode;
+            vm.mode = vm.ctx.currentSchedulerMode;
         });
         $scope.$watch('vm.selectedSchedulerEvents.length', function(newVal) {
             if (newVal) {
@@ -281,7 +281,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     }
 
     function onEventClick(event, $event) {
-        var result = $filter('filter')(vm.schedulerEvents, {id: {id: event.id } }, true);
+        var result = $filter('filter')(vm.schedulerEvents, {id: {id: event.id}}, true);
         if (result && result.length) {
             var parent = angular.element('#tb-event-schedule-calendar-context-menu', $element);
             var $mdOpenMousepointMenu = parent.scope().$mdOpenMousepointMenu;
@@ -308,7 +308,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     }
 
     function onEventDrop(event, delta, revertFunc/*, $event*/) {
-        var result = $filter('filter')(vm.schedulerEvents, {id: {id: event.id } }, true);
+        var result = $filter('filter')(vm.schedulerEvents, {id: {id: event.id}}, true);
         if (result && result.length) {
             var origEvent = result[0];
             moveEvent(origEvent, delta, revertFunc);
@@ -355,9 +355,9 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         );
         var tooltip = element.tooltipster('instance');
         tooltip.content(angular.element(
-            '<div class="tb-scheduler-tooltip-title">'+event.name+'</div>' +
-            '<div class="tb-scheduler-tooltip-content"><b>'+$translate.instant('scheduler.event-type') + ':</b> ' + event.type+'</div>' +
-            '<div class="tb-scheduler-tooltip-content">'+ event.info+'</div>'
+            '<div class="tb-scheduler-tooltip-title">' + event.name + '</div>' +
+            '<div class="tb-scheduler-tooltip-content"><b>' + $translate.instant('scheduler.event-type') + ':</b> ' + event.type + '</div>' +
+            '<div class="tb-scheduler-tooltip-content">' + event.info + '</div>'
         ));
 
     }
@@ -378,13 +378,13 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                         var eventDuration = moment.duration(eventEnd.diff(eventStart)); //eslint-disable-line
                         var endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
                         var repeatEndsOn = moment(event.schedule.repeat.endsOn - endOffset); //eslint-disable-line
-                        var currentDay;
+                        var currentTime;
                         if (rangeStart.isSameOrBefore(eventStart)) {
-                            currentDay = eventStart.clone();
+                            currentTime = eventStart.clone();
                         } else {
-                            currentDay = rangeStart.clone().subtract(eventDuration);
-                            currentDay.hours(eventStart.hours());
-                            currentDay.minutes(eventStart.minutes());
+                            currentTime = rangeStart.clone().subtract(eventDuration);
+                            currentTime.hours(eventStart.hours());
+                            currentTime.minutes(eventStart.minutes());
                         }
                         var endDate;
                         if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
@@ -392,15 +392,19 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                         } else {
                             endDate = rangeEnd.clone();
                         }
-                        while (currentDay.isBefore(endDate)) {
-                            var day = currentDay.day();
-                            if (event.schedule.repeat.type == types.schedulerRepeat.daily.value || event.schedule.repeat.repeatOn.indexOf(day) != -1) {
-                                var currentEventStart = currentDay.clone();
-                                var currentEventEnd = currentDay.clone().add(eventDuration);
+                        while (currentTime.isBefore(endDate)) {
+                            var day = currentTime.day();
+                            if (event.schedule.repeat.type == types.schedulerRepeat.timer.value || event.schedule.repeat.type == types.schedulerRepeat.daily.value || event.schedule.repeat.repeatOn.indexOf(day) != -1) {
+                                var currentEventStart = currentTime.clone();
+                                var currentEventEnd = currentTime.clone().add(eventDuration);
                                 calendarEvent = toCalendarEvent(event, currentEventStart, currentEventEnd);
                                 events.push(calendarEvent);
                             }
-                            currentDay.add(1, 'days');
+                            if (event.schedule.repeat.type == types.schedulerRepeat.timer.value) {
+                                currentTime.add(event.schedule.repeat.repeatInterval, event.schedule.repeat.timeUnit.toLowerCase());
+                            } else {
+                                currentTime.add(1, 'days');
+                            }
                         }
                     } else if (rangeStart.isSameOrBefore(eventEnd)) {
                         calendarEvent = toCalendarEvent(event, eventStart, eventEnd);
@@ -439,9 +443,11 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             info += $translate.instant('scheduler.starting-from') + ' ' + moment.utc(startTime).local().format('MMM DD, YYYY') + ', '; //eslint-disable-line
             if (event.schedule.repeat.type == types.schedulerRepeat.daily.value) {
                 info += $translate.instant('scheduler.daily') + ', ';
+            } else if (event.schedule.repeat.type == types.schedulerRepeat.timer.value) {
+                info += $translate.instant('scheduler.timer') + ', ';
             } else {
                 info += $translate.instant('scheduler.weekly') + ' ' + $translate.instant('scheduler.on') + ' ';
-                for (var i=0;i<event.schedule.repeat.repeatOn.length;i++) {
+                for (var i = 0; i < event.schedule.repeat.repeatOn.length; i++) {
                     var day = event.schedule.repeat.repeatOn[i];
                     info += $translate.instant(types.schedulerWeekday[day]) + ', ';
                 }
@@ -454,7 +460,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     }
 
     function changeCalendarView() {
-        calendarElem().fullCalendar('changeView',vm.currentCalendarView);
+        calendarElem().fullCalendar('changeView', vm.currentCalendarView);
     }
 
     function calendarViewTitle() {
@@ -477,7 +483,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             if (!calendar) {
                 return false;
             }
-            var now =  calendar.getNow();
+            var now = calendar.getNow();
             var view = cElem.fullCalendar('getView');
             return view.dateProfile.currentUnzonedRange.containsDate(now);
         } else {
@@ -502,13 +508,13 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         }
     }
 
-    function enterFilterMode (event) {
+    function enterFilterMode(event) {
         vm.query.search = '';
         if (vm.widgetMode) {
             vm.ctx.hideTitlePanel = true;
         }
 
-        $timeout(()=>{
+        $timeout(() => {
             if (vm.widgetMode) {
                 angular.element(vm.ctx.$container).find('.searchInput').focus();
             } else {
@@ -519,7 +525,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         })
     }
 
-    function exitFilterMode () {
+    function exitFilterMode() {
         vm.query.search = null;
         updateSchedulerEvents();
         if (vm.widgetMode) {
@@ -527,11 +533,11 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         }
     }
 
-    function onReorder () {
+    function onReorder() {
         updateSchedulerEvents();
     }
 
-    function onPaginate () {
+    function onPaginate() {
         updateSchedulerEvents();
     }
 
@@ -623,7 +629,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                 .ariaLabel(title)
                 .cancel($translate.instant('action.no'))
                 .ok($translate.instant('action.yes'));
-            $mdDialog.show(confirm).then(function () {
+            $mdDialog.show(confirm).then(function() {
                 schedulerEventService.deleteSchedulerEvent(schedulerEvent.id.id).then(
                     () => {
                         reloadSchedulerEvents();
@@ -647,11 +653,11 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                 .ariaLabel(title)
                 .cancel($translate.instant('action.no'))
                 .ok($translate.instant('action.yes'));
-            $mdDialog.show(confirm).then(function () {
+            $mdDialog.show(confirm).then(function() {
                 var tasks = [];
-                for (var i=0;i<vm.selectedSchedulerEvents.length;i++) {
+                for (var i = 0; i < vm.selectedSchedulerEvents.length; i++) {
                     var schedulerEvent = vm.selectedSchedulerEvents[i];
-                    tasks.push( schedulerEventService.deleteSchedulerEvent(schedulerEvent.id.id));
+                    tasks.push(schedulerEventService.deleteSchedulerEvent(schedulerEvent.id.id));
                 }
                 $q.all(tasks).then(
                     () => {
@@ -663,7 +669,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         }
     }
 
-    function reloadSchedulerEvents () {
+    function reloadSchedulerEvents() {
         vm.allSchedulerEvents.length = 0;
         vm.schedulerEvents.length = 0;
         vm.schedulerEventsPromise;
@@ -693,7 +699,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         )
     }
 
-    function updateSchedulerEvents () {
+    function updateSchedulerEvents() {
         vm.selectedSchedulerEvents = [];
         var result = $filter('orderBy')(vm.allSchedulerEvents, vm.query.order);
         if (vm.query.search != null) {
@@ -702,7 +708,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         vm.schedulerEventsCount = result.length;
         var startIndex = vm.query.limit * (vm.query.page - 1);
         vm.schedulerEvents = result.slice(startIndex, startIndex + vm.query.limit);
-        calendarElem().fullCalendar( 'refetchEvents' );
+        calendarElem().fullCalendar('refetchEvents');
     }
 
 }
