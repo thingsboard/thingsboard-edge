@@ -286,7 +286,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected final EntityGroup groupAll;
         private final boolean fetchAllTenantEntities;
         private final BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction;
-        private final BiFunction<TenantId, TextPageLink, TextPageData<D>> findTenantOnlyEntitiesFunction;
+        private final BiFunction<TenantId, List<I>, ListenableFuture<List<D>>> idsToEntitiesAsyncFunction;
+        private final Function<EntityId, I> toIdFunction;
         private final Function<D, EntityId> getEntityIdFunction;
 
         private Map<CustomerId, EntityGroupId> customersGroupMap = new HashMap<>();
@@ -294,12 +295,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
         public EntityGroupAllPaginatedUpdater(EntityGroup groupAll,
                                               boolean fetchAllTenantEntities,
                                               BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction,
-                                              BiFunction<TenantId, TextPageLink, TextPageData<D>> findTenantOnlyEntitiesFunction,
+                                              BiFunction<TenantId, List<I>, ListenableFuture<List<D>>> idsToEntitiesAsyncFunction,
+                                              Function<EntityId, I> toIdFunction,
                                               Function<D, EntityId> getEntityIdFunction) {
             this.groupAll = groupAll;
             this.fetchAllTenantEntities = fetchAllTenantEntities;
             this.findAllTenantEntitiesFunction = findAllTenantEntitiesFunction;
-            this.findTenantOnlyEntitiesFunction = findTenantOnlyEntitiesFunction;
+            this.idsToEntitiesAsyncFunction = idsToEntitiesAsyncFunction;
+            this.toIdFunction = toIdFunction;
             this.getEntityIdFunction = getEntityIdFunction;
         }
 
@@ -307,7 +310,20 @@ public class DefaultDataUpdateService implements DataUpdateService {
             if (fetchAllTenantEntities) {
                 return this.findAllTenantEntitiesFunction.apply(id, pageLink);
             } else {
-                return this.findTenantOnlyEntitiesFunction.apply(id, pageLink);
+                try {
+                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+                    List<I> ids = entityIds.stream().map(entityId -> toIdFunction.apply(entityId)).collect(Collectors.toList());
+                    List<D> entities;
+                    if (!ids.isEmpty()) {
+                        entities = idsToEntitiesAsyncFunction.apply(id, ids).get();
+                    } else {
+                        entities = Collections.emptyList();
+                    }
+                    return new TextPageData<>(entities, new TextPageLink(Integer.MAX_VALUE));
+                } catch (Exception e) {
+                    log.error("Failed to get entities from group all!", e);
+                    throw new RuntimeException("Failed to get entities from group all!", e);
+                }
             }
         }
 
@@ -430,7 +446,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             super(groupAll,
                     fetchAllTenantEntities,
                     (tenantId, pageLink) -> assetService.findAssetsByTenantId(tenantId, pageLink),
-                    (tenantId, pageLink) -> assetService.findAssetsByTenantIdAndCustomerId(tenantId, new CustomerId(CustomerId.NULL_UUID), pageLink),
+                    (tenantId, assetIds) -> assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds),
+                    entityId -> new AssetId(entityId.getId()),
                     asset -> asset.getId());
         }
 
@@ -448,7 +465,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             super(groupAll,
                     fetchAllTenantEntities,
                     (tenantId, pageLink) -> deviceService.findDevicesByTenantId(tenantId, pageLink),
-                    (tenantId, pageLink) -> deviceService.findDevicesByTenantIdAndCustomerId(tenantId, new CustomerId(CustomerId.NULL_UUID), pageLink),
+                    (tenantId, deviceIds) -> deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds),
+                    entityId -> new DeviceId(entityId.getId()),
                     device -> device.getId());
         }
 
@@ -466,7 +484,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             super(groupAll,
                     fetchAllTenantEntities,
                     (tenantId, pageLink) -> entityViewService.findEntityViewByTenantId(tenantId, pageLink),
-                    (tenantId, pageLink) -> entityViewService.findEntityViewsByTenantIdAndCustomerId(tenantId, new CustomerId(CustomerId.NULL_UUID), pageLink),
+                    (tenantId, entityViewIds) -> entityViewService.findEntityViewsByTenantIdAndIdsAsync(tenantId, entityViewIds),
+                    entityId -> new EntityViewId(entityId.getId()),
                     entityView -> entityView.getId());
         }
 
@@ -499,7 +518,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 try {
                     List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
                     List<DashboardId> dashboardIds = entityIds.stream().map(entityId -> new DashboardId(entityId.getId())).collect(Collectors.toList());
-                    List<DashboardInfo> dashboards = dashboardService.findDashboardInfoByIdsAsync(TenantId.SYS_TENANT_ID, dashboardIds).get();
+                    List<DashboardInfo> dashboards;
+                    if (!dashboardIds.isEmpty()) {
+                        dashboards = dashboardService.findDashboardInfoByIdsAsync(TenantId.SYS_TENANT_ID, dashboardIds).get();
+                    } else {
+                        dashboards = Collections.emptyList();
+                    }
                     return new TextPageData<>(dashboards, new TextPageLink(Integer.MAX_VALUE));
                 } catch (Exception e) {
                     log.error("Failed to get dashboards from group all!", e);
