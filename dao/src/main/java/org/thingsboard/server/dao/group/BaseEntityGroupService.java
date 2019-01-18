@@ -433,7 +433,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             for (EntityRelation relation : input) {
                 entityGroupFutures.add(entityGroupDao.findByIdAsync(tenantId, relation.getTo().getId()));
             }
-            return Futures.successfulAsList(entityGroupFutures);
+            return Futures.transform(Futures.successfulAsList(entityGroupFutures), entityGroups ->
+                    entityGroups.stream().filter(entityGroup -> entityGroup != null).collect(Collectors.toList()));
         });
     }
 
