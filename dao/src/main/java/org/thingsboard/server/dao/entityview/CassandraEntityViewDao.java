@@ -164,7 +164,6 @@ public class CassandraEntityViewDao extends CassandraAbstractSearchTextDao<Entit
         log.debug("Try to find entity views by tenantId [{}] and entity view Ids [{}]", tenantId, entityViewIds);
         Select select = select().from(getColumnFamilyName());
         Select.Where query = select.where();
-        query.and(eq(ENTITY_VIEW_TENANT_ID_PROPERTY, tenantId));
         query.and(in(ID_PROPERTY, entityViewIds));
         return findListByStatementAsync(new TenantId(tenantId), query);
     }

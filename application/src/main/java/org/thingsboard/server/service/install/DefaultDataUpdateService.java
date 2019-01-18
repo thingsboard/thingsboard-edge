@@ -48,6 +48,8 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -62,6 +64,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -128,6 +131,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private AttributesService attributesService;
+
+    @Autowired
+    private RelationService relationService;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -503,6 +509,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         private final boolean fetchAllTenantEntities;
 
         private Map<CustomerId, EntityGroupId> customersGroupMap = new HashMap<>();
+        private Map<CustomerId, Customer> customersMap = new HashMap<>();
 
         public DashboardsGroupAllUpdater(EntityGroup groupAll,
                                               boolean fetchAllTenantEntities) {
@@ -537,13 +544,25 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entity.getId());
             if (entity.getAssignedCustomers() != null) {
                 for (ShortCustomerInfo customer : entity.getAssignedCustomers()) {
-                    EntityGroupId customerEntityGroupId = customersGroupMap.computeIfAbsent(
-                            customer.getCustomerId(), customerId ->
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
-                                            customerId, entity.getEntityType()).getId()
-                    );
-                    entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerEntityGroupId, entity.getId());
-                    dashboardService.unassignDashboardFromCustomer(TenantId.SYS_TENANT_ID, entity.getId(), customer.getCustomerId());
+                    Customer customer1 = customersMap.computeIfAbsent(customer.getCustomerId(), customerId ->
+                            customerService.findCustomerById(entity.getTenantId(), customer.getCustomerId()));
+                    if (customer1 != null) {
+                        EntityGroupId customerEntityGroupId = customersGroupMap.computeIfAbsent(
+                                customer.getCustomerId(), customerId ->
+                                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
+                                                customerId, entity.getEntityType()).getId()
+                        );
+                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerEntityGroupId, entity.getId());
+                        dashboardService.unassignDashboardFromCustomer(TenantId.SYS_TENANT_ID, entity.getId(), customer.getCustomerId());
+                    } else {
+                        Dashboard dashboard = dashboardService.findDashboardById(TenantId.SYS_TENANT_ID, entity.getId());
+                        if (dashboard.removeAssignedCustomerInfo(customer)) {
+                            EntityRelation relationToDelete =
+                                    new EntityRelation(customer.getCustomerId(), entity.getId(), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.DASHBOARD);
+                            relationService.deleteRelation(TenantId.SYS_TENANT_ID, relationToDelete);
+                            dashboardService.saveDashboard(dashboard);
+                        }
+                    }
                 }
             }
         }
