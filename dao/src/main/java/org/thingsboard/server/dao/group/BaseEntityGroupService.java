@@ -572,7 +572,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
                 List<ShortEntityView> views = new ArrayList<>();
                 entities.forEach(entity -> views.add(toEntityView(tenantId, entity, columnsInfo, transformFunction)));
-                TimePageData<ShortEntityView> result = new TimePageData<>(views, pageLink);
+                TimePageData<ShortEntityView> result = new TimePageData<>(ids, views, pageLink);
                 result.getData().removeIf(ShortEntityView::isSkipEntity);
                 return result;
             });
@@ -670,7 +670,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     private <E extends BaseData> ShortEntityView toEntityView(TenantId tenantId, E entity, EntityGroupColumnsInfo columnsInfo,
-                                         BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
+                                                              BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
         ShortEntityView entityView = transformFunction.apply(entity, columnsInfo.entityFields);
         for (EntityField entityField : columnsInfo.commonEntityFields) {
             if (entityField == EntityField.CREATED_TIME) {

@@ -47,6 +47,21 @@ public class TimePageData<T extends HasId<? extends HasUUID>> {
     private final TimePageLink nextPageLink;
     private final boolean hasNext;
 
+    public TimePageData(List<? extends HasUUID> ids, List<T> data, TimePageLink pageLink) {
+        super();
+        this.data = data;
+        int limit = pageLink.getLimit();
+        if (ids != null && ids.size() == limit) {
+            int index = ids.size() - 1;
+            UUID idOffset = ids.get(index).getId();
+            nextPageLink = new TimePageLink(limit, pageLink.getStartTime(), pageLink.getEndTime(), pageLink.isAscOrder(), idOffset);
+            hasNext = true;
+        } else {
+            nextPageLink = null;
+            hasNext = false;
+        }
+    }
+
     public TimePageData(List<T> data, TimePageLink pageLink) {
         super();
         this.data = data;
