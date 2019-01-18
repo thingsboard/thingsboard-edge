@@ -68,6 +68,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.*;
 
@@ -203,7 +204,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             for (EntityRelation relation : input) {
                 entityGroupFutures.add(entityGroupDao.findByIdAsync(tenantId, relation.getTo().getId()));
             }
-            return Futures.successfulAsList(entityGroupFutures);
+            return Futures.transform(Futures.successfulAsList(entityGroupFutures), entityGroups ->
+                    entityGroups.stream().filter(entityGroup -> entityGroup != null).collect(Collectors.toList()));
         });
     }
 
