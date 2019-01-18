@@ -44,11 +44,15 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 
+import java.util.List;
+
 public interface UserService {
 	
 	User findUserById(TenantId tenantId, UserId userId);
 
 	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
+
+    ListenableFuture<List<User>> findUsersByIdsAsync(TenantId tenantId, List<UserId> userIds);
 
 	User findUserByEmail(TenantId tenantId, String email);
 

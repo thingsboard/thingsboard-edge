@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
@@ -283,8 +284,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                        BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
+    public <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
+                                                                                    java.util.function.Function<EntityId, I> toIdFunction,
+                                                                                    java.util.function.Function<I, E> toEntityFunction,
+                                                                                    BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
@@ -304,13 +307,19 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        return toEntityView(tenantId, entityId, columnsInfo, transformFunction);
+
+        E entity = toEntityFunction.apply(toIdFunction.apply(entityId));
+
+        return toEntityView(tenantId, entity, columnsInfo, transformFunction);
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>>
-                            findEntities(TenantId tenantId, EntityGroupId entityGroupId,
-                                         TimePageLink pageLink, BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
+    public <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>>
+    findEntities(TenantId tenantId, EntityGroupId entityGroupId,
+                 TimePageLink pageLink,
+                 java.util.function.Function<EntityId, I> toIdFunction,
+                 java.util.function.Function<List<I>,ListenableFuture<List<E>>> toEntitiesFunction,
+                 BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
@@ -322,22 +331,23 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        ListenableFuture<List<EntityId>> entityIds = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transform(entityIds, new Function<List<EntityId>, TimePageData<ShortEntityView>>() {
-            @Nullable
-            @Override
-            public TimePageData<ShortEntityView> apply(@Nullable List<EntityId> entityIds) {
-                List<ShortEntityView> entities = new ArrayList<>();
-                if (entityIds != null) {
-                    entityIds.forEach(entityId -> {
-                        ShortEntityView entityView = toEntityView(tenantId, entityId, columnsInfo, transformFunction);
-                        entities.add(entityView);
-                    });
-                }
-                TimePageData<ShortEntityView> result = new TimePageData<>(entities, pageLink);
+        ListenableFuture<List<EntityId>> entityIdsFuture = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
+        return Futures.transformAsync(entityIdsFuture, entityIds -> {
+            ListenableFuture<List<E>> entitiesFuture;
+            List<I> ids = new ArrayList<>();
+            if (entityIds != null) {
+                entityIds.forEach(entityId -> ids.add(toIdFunction.apply(entityId)));
+            }
+            entitiesFuture = !ids.isEmpty() ? toEntitiesFunction.apply(ids) : Futures.immediateFuture(Collections.emptyList());
+
+            return Futures.transform(entitiesFuture, entities -> {
+                entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
+                List<ShortEntityView> views = new ArrayList<>();
+                entities.forEach(entity -> views.add(toEntityView(tenantId, entity, columnsInfo, transformFunction)));
+                TimePageData<ShortEntityView> result = new TimePageData<>(ids, views, pageLink);
                 result.getData().removeIf(ShortEntityView::isSkipEntity);
                 return result;
-            }
+            });
         });
     }
 
@@ -431,17 +441,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         keys.add(column.getKey());
     }
 
-    private ShortEntityView toEntityView(TenantId tenantId, EntityId entityId, EntityGroupColumnsInfo columnsInfo,
-                                         BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> transformFunction) {
-        ShortEntityView entityView = new ShortEntityView(entityId);
+    private <E extends BaseData> ShortEntityView toEntityView(TenantId tenantId, E entity, EntityGroupColumnsInfo columnsInfo,
+                                                              BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
+        ShortEntityView entityView = transformFunction.apply(entity, columnsInfo.entityFields);
         for (EntityField entityField : columnsInfo.commonEntityFields) {
             if (entityField == EntityField.CREATED_TIME) {
-                long timestamp = UUIDs.unixTimestamp(entityId.getId());
+                long timestamp = UUIDs.unixTimestamp(entity.getId().getId());
                 entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp+"");
             }
-        }
-        if (!columnsInfo.entityFields.isEmpty()) {
-            entityView = transformFunction.apply(entityView, columnsInfo.entityFields);
         }
         if (!entityView.isSkipEntity()) {
             fetchEntityAttributes(tenantId, entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);

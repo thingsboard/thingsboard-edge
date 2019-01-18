@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.dao.sql.user;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -49,6 +51,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
@@ -114,4 +117,10 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                                 Authority.CUSTOMER_USER,
                                 new PageRequest(0, pageLink.getLimit())));
     }
+
+    @Override
+    public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> userIds) {
+        return service.submit(() -> DaoUtil.convertDataList(userRepository.findUsersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(userIds))));
+    }
+
 }

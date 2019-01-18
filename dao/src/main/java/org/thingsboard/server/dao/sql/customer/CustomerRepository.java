@@ -55,4 +55,5 @@ public interface CustomerRepository extends CrudRepository<CustomerEntity, Strin
 
     CustomerEntity findByTenantIdAndTitle(String tenantId, String title);
 
+    List<CustomerEntity> findCustomersByTenantIdAndIdIn(String tenantId, List<String> customerIds);
 }

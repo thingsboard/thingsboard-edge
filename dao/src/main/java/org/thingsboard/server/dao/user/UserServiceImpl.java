@@ -59,6 +59,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
@@ -107,6 +108,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing findUserByIdAsync [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
         return userDao.findByIdAsync(tenantId, userId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<User>> findUsersByIdsAsync(TenantId tenantId, List<UserId> userIds) {
+        log.trace("Executing findUsersByIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(userIds, "Incorrect userIds " + userIds);
+        return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
     }
 
     @Override
@@ -252,7 +261,10 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing findGroupUser, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,  new UserViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (userEntityId) -> new UserId(userEntityId.getId()),
+                (userId) -> findUserById(tenantId, userId),
+                new UserViewFunction());
     }
 
     @Override
@@ -260,20 +272,17 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new UserViewFunction(tenantId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new UserId(entityId.getId()),
+                (entityIds) -> findUsersByIdsAsync(tenantId, entityIds),
+                new UserViewFunction());
     }
 
-    class UserViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
-
-        private final TenantId tenantId;
-
-        UserViewFunction(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    class UserViewFunction implements BiFunction<User, List<EntityField>, ShortEntityView> {
 
         @Override
-        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
-            User user = findUserById(tenantId, new UserId(entityView.getId().getId()));
+        public ShortEntityView apply(User user, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(user.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();

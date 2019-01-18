@@ -69,4 +69,5 @@ public interface UserRepository extends CrudRepository<UserEntity, String> {
                                           @Param("authority") Authority authority,
                                           Pageable pageable);
 
+    List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
 }

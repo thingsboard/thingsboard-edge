@@ -323,7 +323,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId, new DeviceViewFunction(tenantId));
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (deviceEntityId) -> new DeviceId(deviceEntityId.getId()),
+                (deviceId) -> findDeviceById(tenantId, deviceId),
+                new DeviceViewFunction(tenantId));
     }
 
     @Override
@@ -331,10 +334,13 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink, new DeviceViewFunction(tenantId, customerId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new DeviceId(entityId.getId()),
+                (entityIds) -> findDevicesByTenantIdAndIdsAsync(tenantId, entityIds),
+                new DeviceViewFunction(tenantId, customerId));
     }
 
-    class DeviceViewFunction implements BiFunction<ShortEntityView, List<EntityField>, ShortEntityView> {
+    class DeviceViewFunction implements BiFunction<Device, List<EntityField>, ShortEntityView> {
 
         private final TenantId tenantId;
         private final CustomerId customerId;
@@ -349,8 +355,8 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         }
 
         @Override
-        public ShortEntityView apply(ShortEntityView entityView, List<EntityField> entityFields) {
-            Device device = findDeviceById(tenantId, new DeviceId(entityView.getId().getId()));
+        public ShortEntityView apply(Device device, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(device.getId());
             if (this.customerId != null && !this.customerId.isNullUid()
                     && !this.customerId.equals(device.getCustomerId())) {
                 entityView.setSkipEntity(true);

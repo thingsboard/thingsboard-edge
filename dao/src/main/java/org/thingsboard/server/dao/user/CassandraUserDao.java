@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.dao.user;
 
+import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Where;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.User;
@@ -48,7 +50,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -110,6 +114,16 @@ public class CassandraUserDao extends CassandraAbstractSearchTextDao<UserEntity,
                 pageLink);
         log.trace("Found customer users [{}] by tenantId [{}] and pageLink [{}]", userEntities, tenantId, pageLink);
         return DaoUtil.convertDataList(userEntities);
+    }
+
+    @Override
+    public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> userIds) {
+        log.debug("Try to find users by tenantId [{}] and user Ids [{}]", tenantId, userIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(ModelConstants.USER_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, userIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

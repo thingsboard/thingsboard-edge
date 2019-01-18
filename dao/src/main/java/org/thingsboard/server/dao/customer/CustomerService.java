@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CustomerService {
@@ -51,6 +52,8 @@ public interface CustomerService {
     Optional<Customer> findCustomerByTenantIdAndTitle(TenantId tenantId, String title);
 
     ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId);
+
+    ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(TenantId tenantId, List<CustomerId> customerIds);
 
     Customer saveCustomer(Customer customer);
 
