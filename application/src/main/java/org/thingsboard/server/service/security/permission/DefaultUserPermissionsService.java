@@ -121,12 +121,12 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
             if (isPublic) {
                 ListenableFuture<Optional<EntityGroup>> publicUserGroup = entityGroupService.findPublicUserGroup(user.getTenantId(), user.getCustomerId());
                 groups = Futures.transform(publicUserGroup, groupOptional -> {
-                            if (groupOptional.isPresent()) {
-                                return Arrays.asList(groupOptional.get().getId());
-                            } else {
-                                return Collections.emptyList();
-                            }
-                        });
+                    if (groupOptional.isPresent()) {
+                        return Arrays.asList(groupOptional.get().getId());
+                    } else {
+                        return Collections.emptyList();
+                    }
+                });
             } else {
                 groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
             }
@@ -183,9 +183,9 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                 throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
             }
         }
-        usersByOwnerMap.forEach((ownerId, userIds) -> {
-            userIds.forEach(userId -> evictMergedPermissionsToCache(tenantId, EntityType.CUSTOMER.equals(ownerId.getEntityType()) ? ownerId : null, userId));
-        });
+        usersByOwnerMap.forEach((ownerId, userIds) ->
+                userIds.forEach(userId -> evictMergedPermissionsToCache(tenantId,
+                                EntityType.CUSTOMER.equals(ownerId.getEntityType()) ? ownerId : new CustomerId(CustomerId.NULL_UUID), userId)));
     }
 
     private MergedUserPermissions getMergedPermissionsFromCache(TenantId tenantId, CustomerId customerId, UserId userId) {
