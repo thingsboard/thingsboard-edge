@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.integration.opcua;
 
 public class OpcUaIntegrationException extends Exception {
-    public OpcUaIntegrationException(String s) {
+    public OpcUaIntegrationException(String s, Exception e) {
         super(s);
     }
 }

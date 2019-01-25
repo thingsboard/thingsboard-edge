@@ -224,7 +224,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 endpoints = UaTcpStackClient.getEndpoints(endpointUrl).get();
             } catch (ExecutionException e) {
                 log.error("[{}] Failed to connect to provided endpoint!", this.configuration.getName(), e);
-                throw new OpcUaIntegrationException("Failed to connect to provided endpoint: " + endpointUrl);
+                throw new OpcUaIntegrationException("Failed to connect to provided endpoint: " + endpointUrl, e);
             }
 
             EndpointDescription endpoint = Arrays.stream(endpoints)
@@ -248,6 +248,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             client = new OpcUaClient(config);
             client.connect().get();
+            log.info("[{}] OPC-UA Client connected successfully!", this.configuration.getName());
             sendConnectionSucceededMessageToRuleEngine();
             subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
         } catch (Exception e) {
@@ -256,7 +257,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 t = e.getCause();
             }
             log.error("[{}] Failed to connect to OPC-UA server. Reason: {}", this.configuration.getName(), t.getMessage(), t);
-            throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + t.getMessage());
+            throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + t.getMessage(), e);
         }
     }
 
@@ -288,7 +289,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (connected) {
             try {
                 connected = false;
-                client.disconnect().get(10, TimeUnit.SECONDS);
+                disconnect();
             } catch (Exception e) {
                 log.warn("[{}] Failed to disconnect", this.configuration.getName(), e);
             }
@@ -302,10 +303,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         try {
             devices.clear();
             devicesByTags.clear();
-            if (client != null) {
-                executor.submit(() -> client.disconnect().get(10, TimeUnit.SECONDS));
-                client = null;
-            }
+            disconnect();
             initClient(opcUaServerConfiguration);
             scheduleReconnect = false;
             return true;
@@ -315,6 +313,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             scheduleReconnect = true;
         }
         return false;
+    }
+
+    private void disconnect() {
+        if (client != null) {
+            try {
+                client.disconnect().get(10, TimeUnit.SECONDS);
+            }catch (Exception e){
+                log.warn("Error: ", e);
+            }
+            client = null;
+            log.info("[{}] OPC-UA client disconnected", this.configuration.getName());
+        }
     }
 
     private void scheduleScan() {
@@ -368,6 +378,10 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         });
 
         try {
+            if (client == null) {
+                initClient(opcUaServerConfiguration);
+                scheduleReconnect = false;
+            }
             BrowseResult browseResult = client.browse(getBrowseDescription(node.getNodeId())).get();
             List<ReferenceDescription> references = toList(browseResult.getReferences());
             for (ReferenceDescription rd : references) {
