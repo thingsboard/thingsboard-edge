@@ -235,8 +235,27 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             }
             return Futures.successfulAsList(futures);
         });
-        assets = Futures.transform(assets, (Function<List<Asset>, List<Asset>>)assetList ->
-            assetList == null ? Collections.emptyList() : assetList.stream().filter(asset -> query.getAssetTypes().contains(asset.getType())).collect(Collectors.toList())
+        try {
+            int i = 0;
+            List<EntityRelation> relationList = relations.get();
+            for (Asset asset : assets.get()) {
+                if (asset == null) {
+                    log.warn("FAILED to find asset for relation: {}", relationList.get(i));
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            log.warn("Exception: ", e);
+        }
+        assets = Futures.transform(assets, (Function<List<Asset>, List<Asset>>) assetList ->
+                assetList == null ? Collections.emptyList() : assetList.stream()
+                        .filter(asset -> {
+                            if (asset != null) {
+                                return query.getAssetTypes().contains(asset.getType());
+                            } else {
+                                return false;
+                            }
+                        }).collect(Collectors.toList())
         );
         return assets;
     }
@@ -300,7 +319,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                         break;
                     case ASSIGNED_CUSTOMER:
                         String assignedCustomerName = "";
-                        if(!asset.getCustomerId().isNullUid()) {
+                        if (!asset.getCustomerId().isNullUid()) {
                             try {
                                 assignedCustomerName = entityService.fetchEntityNameAsync(asset.getCustomerId()).get();
                             } catch (InterruptedException | ExecutionException e) {

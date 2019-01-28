@@ -399,7 +399,7 @@ public final class PluginProcessingContext implements PluginContext {
             ListenableFuture<Asset> assetFuture = pluginCtx.assetService.findAssetByIdAsync(new AssetId(entityId.getId()));
             Futures.addCallback(assetFuture, getCallback(callback, asset -> {
                 if (asset == null) {
-                    return ValidationResult.entityNotFound("Asset with requested id wasn't found!");
+                    return ValidationResult.entityNotFound("Asset with requested id [" + entityId + "] wasn't found!");
                 } else {
                     if (!asset.getTenantId().equals(ctx.getTenantId())) {
                         return ValidationResult.accessDenied("Asset doesn't belong to the current Tenant!");
