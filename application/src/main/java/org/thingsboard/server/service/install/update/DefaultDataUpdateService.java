@@ -33,25 +33,20 @@ package org.thingsboard.server.service.install.update;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
@@ -63,9 +58,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -75,8 +68,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
@@ -252,13 +243,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     }
                                     break;
                                 case ASSET:
-                                    new AssetsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new AssetsGroupAllUpdater(assetService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DEVICE:
-                                    new DevicesGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new DevicesGroupAllUpdater(deviceService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case ENTITY_VIEW:
-                                    new EntityViewGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new EntityViewGroupAllUpdater(entityViewService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DASHBOARD:
                                     new DashboardsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
@@ -365,65 +356,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private class AssetsGroupAllUpdater extends EntityGroupAllPaginatedUpdater<AssetId, Asset> {
-
-        public AssetsGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
-            super(DefaultDataUpdateService.this.entityGroupService,
-                    groupAll,
-                    fetchAllTenantEntities,
-                    (tenantId, pageLink) -> assetService.findAssetsByTenantId(tenantId, pageLink),
-                    (tenantId, assetIds) -> assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds),
-                    entityId -> new AssetId(entityId.getId()),
-                    asset -> asset.getId());
-        }
-
-        @Override
-        protected void unassignFromCustomer(Asset entity) {
-            entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
-            assetService.saveAsset(entity);
-        }
-
-    }
-
-    private class DevicesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<DeviceId, Device> {
-
-        public DevicesGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
-            super(DefaultDataUpdateService.this.entityGroupService,
-                    groupAll,
-                    fetchAllTenantEntities,
-                    (tenantId, pageLink) -> deviceService.findDevicesByTenantId(tenantId, pageLink),
-                    (tenantId, deviceIds) -> deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds),
-                    entityId -> new DeviceId(entityId.getId()),
-                    device -> device.getId());
-        }
-
-        @Override
-        protected void unassignFromCustomer(Device entity) {
-            entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
-            deviceService.saveDevice(entity);
-        }
-    }
-
-
-    private class EntityViewGroupAllUpdater extends EntityGroupAllPaginatedUpdater<EntityViewId, EntityView> {
-
-        public EntityViewGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
-            super(DefaultDataUpdateService.this.entityGroupService,
-                    groupAll,
-                    fetchAllTenantEntities,
-                    (tenantId, pageLink) -> entityViewService.findEntityViewByTenantId(tenantId, pageLink),
-                    (tenantId, entityViewIds) -> entityViewService.findEntityViewsByTenantIdAndIdsAsync(tenantId, entityViewIds),
-                    entityId -> new EntityViewId(entityId.getId()),
-                    entityView -> entityView.getId());
-        }
-
-
-        @Override
-        protected void unassignFromCustomer(EntityView entity) {
-            entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
-            entityViewService.saveEntityView(entity);
-        }
-    }
 
     private class DashboardsGroupAllUpdater extends PaginatedUpdater<TenantId, DashboardInfo> {
 
