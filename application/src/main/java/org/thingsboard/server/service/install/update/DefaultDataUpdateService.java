@@ -368,7 +368,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private class AssetsGroupAllUpdater extends EntityGroupAllPaginatedUpdater<AssetId, Asset> {
 
         public AssetsGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
-            super(entityGroupService,
+            super(DefaultDataUpdateService.this.entityGroupService,
                     groupAll,
                     fetchAllTenantEntities,
                     (tenantId, pageLink) -> assetService.findAssetsByTenantId(tenantId, pageLink),
@@ -388,7 +388,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private class DevicesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<DeviceId, Device> {
 
         public DevicesGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
-            super(entityGroupService,
+            super(DefaultDataUpdateService.this.entityGroupService,
                     groupAll,
                     fetchAllTenantEntities,
                     (tenantId, pageLink) -> deviceService.findDevicesByTenantId(tenantId, pageLink),
@@ -408,7 +408,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private class EntityViewGroupAllUpdater extends EntityGroupAllPaginatedUpdater<EntityViewId, EntityView> {
 
         public EntityViewGroupAllUpdater(EntityGroup groupAll, boolean fetchAllTenantEntities) {
-            super(entityGroupService,
+            super(DefaultDataUpdateService.this.entityGroupService,
                     groupAll,
                     fetchAllTenantEntities,
                     (tenantId, pageLink) -> entityViewService.findEntityViewByTenantId(tenantId, pageLink),
