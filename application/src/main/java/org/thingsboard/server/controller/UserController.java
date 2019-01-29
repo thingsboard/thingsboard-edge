@@ -132,7 +132,7 @@ public class UserController extends BaseController {
             }
             UserId userId = new UserId(toUUID(strUserId));
             SecurityUser authUser = getCurrentUser();
-            User user = checkUserId(userId, Operation.READ);
+            User user = checkUserId(userId, Operation.IMPERSONATE);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
             MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser, false);

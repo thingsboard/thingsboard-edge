@@ -101,7 +101,9 @@ public enum Resource {
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.USER, Operation.defaultEntityOperations);
+        Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
+        userOperations.add(Operation.IMPERSONATE);
+        operationsByResource.put(Resource.USER, userOperations);
         operationsByResource.put(Resource.WIDGETS_BUNDLE, Operation.crudOperations);
         operationsByResource.put(Resource.WIDGET_TYPE, Operation.crudOperations);
         operationsByResource.put(Resource.CONVERTER, Operation.defaultEntityOperations);

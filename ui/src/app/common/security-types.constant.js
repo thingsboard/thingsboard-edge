@@ -107,6 +107,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 writeAttributes: "WRITE_ATTRIBUTES",
                 readTelemetry: "READ_TELEMETRY",
                 writeTelemetry: "WRITE_TELEMETRY",
+                impersonate: "IMPERSONATE",
                 addToGroup: "ADD_TO_GROUP",
                 removeFromGroup: "REMOVE_FROM_GROUP"
             },

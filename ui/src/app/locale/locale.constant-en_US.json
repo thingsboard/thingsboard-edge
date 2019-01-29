@@ -1917,6 +1917,7 @@
                 "WRITE_ATTRIBUTES": "Write Attributes",
                 "READ_TELEMETRY": "Read Telemetry",
                 "WRITE_TELEMETRY": "Write Telemetry",
+                "IMPERSONATE": "Impersonate",
                 "ADD_TO_GROUP": "Add to Group",
                 "REMOVE_FROM_GROUP": "Remove from Group"
             }
