@@ -28,10 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
 
-public interface DataUpdateService {
+package org.thingsboard.server.service.install.update;
 
-    void updateData(String fromVersion) throws Exception;
+import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.UUIDBased;
+
+public abstract class GroupAllPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> extends PaginatedUpdater<I,D> {
+
+    protected final EntityGroup groupAll;
+
+    public GroupAllPaginatedUpdater(EntityGroup groupAll) {
+        this.groupAll = groupAll;
+    }
+
+    @Override
+    protected void updateEntity(D entity) {
+        updateGroupEntity(entity, groupAll);
+    }
+
+    protected abstract void updateGroupEntity(D entity, EntityGroup groupAll);
 
 }

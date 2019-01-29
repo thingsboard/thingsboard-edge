@@ -61,6 +61,8 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     private String name;
     private RoleType type;
     private transient JsonNode permissions;
+    @JsonIgnore
+    private byte[] permissionsBytes;
 
     public Role() {
         super();
@@ -72,6 +74,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
 
     public Role(Role role) {
         super(role);
+        setPermissions(role.getPermissions());
     }
 
     @Override
@@ -88,6 +91,14 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.ROLE;
+    }
+
+    public JsonNode getPermissions() {
+        return getJson(() -> permissions, () -> permissionsBytes);
+    }
+
+    public void setPermissions(JsonNode permissions) {
+        setJson(permissions, json -> this.permissions = json, bytes -> this.permissionsBytes = bytes);
     }
 
 }
