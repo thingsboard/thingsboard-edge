@@ -1272,7 +1272,6 @@
         "modbus-register-count": "Contador del registro",
         "modbus-register-count-range": "Contador del registro debe ser un valor positivo.",
         "modbus-byte-order": "Orden del byte",
-
         "sync": {
             "status": "Estado",
             "sync": "Sincronización",
@@ -1280,7 +1279,6 @@
             "last-sync-time": "Último tiempo de sincroniación",
             "not-available": "No disponible"
         },
-
         "export-extensions-configuration": "Exportar configuración de extensiones",
         "import-extensions-configuration": "Importar configuración de extensiones",
         "import-extensions": "Importar extensiones",
@@ -2150,7 +2148,8 @@
     "language": {
         "language": "Lenguaje",
         "locales": {
-			"fr_FR": "Francés",
+            "de_DE": "Alemán",
+            "fr_FR": "Francés",
             "zh_CN": "Chino",
             "en_US": "Inglés",
             "it_IT": "Italiano",
