@@ -68,26 +68,27 @@ export default function SelectEntityGroupController($rootScope, $scope, $mdDialo
             vm.newEntityGroup.ownerId = vm.ownerId;
             entityGroupService.saveEntityGroup(vm.newEntityGroup).then(
                 (entityGroup) => {
-                    groupSelected(entityGroup.id.id);
+                    groupSelected({groupId: entityGroup.id.id, group: entityGroup, isNew: true});
                     if (userPermissionsService.isDirectlyOwnedGroup(entityGroup)) {
                         $rootScope.$broadcast(targetGroupType + 'changed');
                     }
+                    //TODO: update hierarchy!
                 }
             );
         } else {
-            groupSelected(vm.targetEntityGroupId);
+            groupSelected({groupId: vm.targetEntityGroupId, isNew: false});
         }
     }
 
-    function groupSelected(entityGroupId) {
+    function groupSelected(selectedGroupData) {
         if (onEntityGroupSelected) {
-            onEntityGroupSelected(entityGroupId).then(
+            onEntityGroupSelected(selectedGroupData).then(
                 () => {
                     $mdDialog.hide();
                 }
             );
         } else {
-            $mdDialog.hide(entityGroupId);
+            $mdDialog.hide(selectedGroupData);
         }
     }
 }

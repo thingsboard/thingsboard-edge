@@ -117,22 +117,49 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
+            return hasPermission(user, operation, entityId, entity, null);
+        }
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity, EntityGroupId entityGroupId) throws ThingsboardException {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
             Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
-            // This entity does have groups, so we are checking generic level permissions and then group specific permissions
-            if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
-                return true;
-            } else if (entityId != null) {
-                if (!operation.isAllowedForGroupRole()) {
+
+            if (entityGroupId != null) {
+                if (!ownersCacheService.getOwners(user.getTenantId(), entityGroupId).contains(user.getOwnerId())) {
                     return false;
                 }
+            }
+
+            if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                return true;
+            }
+
+            // Group permissions check
+            if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+
+            if (entityGroupId != null) {
+                if (user.getUserPermissions().hasGroupPermissions(entityGroupId, operation)) {
+                    return true;
+                }
+            }
+
+            if (entityId != null) {
                 try {
                     List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
-                    for (EntityGroupId entityGroupId : entityGroupIds) {
-                        if (user.getUserPermissions().hasGroupPermissions(entityGroupId, operation)) {
-                            return true;
+                    for (EntityGroupId groupId : entityGroupIds) {
+                        if (user.getUserPermissions().hasGroupPermissions(groupId, operation)) {
+                            if (operation.isAllowedForGroupOwnerOnly()) {
+                                if (ownersCacheService.getOwners(user.getTenantId(), groupId).contains(user.getOwnerId())) {
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -174,13 +201,17 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (operation == Operation.CREATE) {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
-            if (ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId())) {
+            boolean isOwner = ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId());
+            if (isOwner) {
                 // This entity is a group, so we are checking group generic permission first
                 if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
                     return true;
                 }
             }
             if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+            if (operation.isGroupOperationAllowedForGroupOwnerOnly()) {
                 return false;
             }
             //Just in case, we are also checking specific group permission

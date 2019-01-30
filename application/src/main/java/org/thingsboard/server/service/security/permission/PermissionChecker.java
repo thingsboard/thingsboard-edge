@@ -56,6 +56,10 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
         return false;
     }
 
+    default boolean hasPermission(SecurityUser user, Operation operation, I entityId, T entity, EntityGroupId entityGroupId) throws ThingsboardException {
+        return false;
+    }
+
     default boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException {
         return false;
     }
@@ -79,6 +83,11 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
         }
 
         @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, I entityId, T entity, EntityGroupId entityGroupId) {
+            return allowedOperations.contains(Operation.ALL) || allowedOperations.contains(operation);
+        }
+
+        @Override
         public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) {
             return allowedOperations.contains(Operation.ALL) || allowedOperations.contains(operation);
         }
@@ -97,6 +106,11 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+            return true;
+        }
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity, EntityGroupId entityGroupId) {
             return true;
         }
 

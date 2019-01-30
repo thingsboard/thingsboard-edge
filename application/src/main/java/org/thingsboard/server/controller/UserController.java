@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +55,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -154,6 +156,7 @@ public class UserController extends BaseController {
     @ResponseBody
     public User saveUser(@RequestBody User user,
                          @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
+                         @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
                          HttpServletRequest request) throws ThingsboardException {
         try {
 
@@ -169,9 +172,14 @@ public class UserController extends BaseController {
                 user.setCustomerId(getCurrentUser().getCustomerId());
             }
 
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
             if (operation == Operation.CREATE || !getCurrentUser().getId().equals(user.getId())) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
-                        user.getId(), user);
+                        user.getId(), user, entityGroupId);
             } else if (getCurrentUser().getId().equals(user.getId())) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
             }
@@ -183,6 +191,8 @@ public class UserController extends BaseController {
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
                 EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
+            } else if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedUser.getId());
             }
 
             if (sendEmail) {
@@ -364,7 +374,7 @@ public class UserController extends BaseController {
             return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.USER, Operation.READ, entityId -> new UserId(entityId.getId()),
                     (entityIds) -> {
                         try {
-                            return userService.findUsersByIdsAsync(getTenantId(), entityIds).get();
+                            return userService.findUsersByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -388,7 +398,7 @@ public class UserController extends BaseController {
             for (String strUserId : strUserIds) {
                 userIds.add(new UserId(toUUID(strUserId)));
             }
-            List<User> users = checkNotNull(userService.findUsersByIdsAsync(tenantId, userIds).get());
+            List<User> users = checkNotNull(userService.findUsersByTenantIdAndIdsAsync(tenantId, userIds).get());
             return filterUsersByReadPermission(users);
         } catch (Exception e) {
             throw handleException(e);

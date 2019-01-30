@@ -44,6 +44,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
+        saveGroupEntity: saveGroupEntity,
         getEntities: getEntities,
         getEntitiesByNameFilter: getEntitiesByNameFilter,
         resolveAlias: resolveAlias,
@@ -187,9 +188,56 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function saveEntity(entity, config) {
+    function saveEntity(entity, config, entityGroupId) {
         var deferred = $q.defer();
-        var promise = saveEntityPromise(entity, config);
+        var promise = saveEntityPromise(entity, config, entityGroupId);
+        if (promise) {
+            promise.then(
+                function success(result) {
+                    deferred.resolve(result);
+                },
+                function fail() {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.reject();
+        }
+        return deferred.promise;
+    }
+
+    function saveGroupEntityPromise(entity, entityGroupId, config) {
+        var promise;
+        var entityType = entity.id.entityType;
+        if (!entity.id.id) {
+            delete entity.id;
+        }
+        switch (entityType) {
+            case types.entityType.device:
+                promise = deviceService.saveDevice(entity, entityGroupId);
+                break;
+            case types.entityType.asset:
+                promise = assetService.saveAsset(entity, true, config, entityGroupId);
+                break;
+            case types.entityType.entityView:
+                promise = entityViewService.saveEntityView(entity, entityGroupId);
+                break;
+            case types.entityType.customer:
+                promise = customerService.saveCustomer(entity, entityGroupId);
+                break;
+            case types.entityType.dashboard:
+                promise = dashboardService.saveDashboard(entity, entityGroupId);
+                break;
+            case types.entityType.user:
+                promise = userService.saveUser(entity, false, entityGroupId);
+                break;
+        }
+        return promise;
+    }
+
+    function saveGroupEntity(entity, entityGroupId, config) {
+        var deferred = $q.defer();
+        var promise = saveGroupEntityPromise(entity, entityGroupId, config);
         if (promise) {
             promise.then(
                 function success(result) {

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -116,10 +118,10 @@ public class CustomerController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
-    public Customer saveCustomer(@RequestBody Customer customer) throws ThingsboardException {
+    public Customer saveCustomer(@RequestBody Customer customer,
+                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             customer.setTenantId(getCurrentUser().getTenantId());
-
 
             Operation operation = customer.getId() == null ? Operation.CREATE : Operation.WRITE;
 
@@ -133,9 +135,18 @@ public class CustomerController extends BaseController {
                 customer.setParentCustomerId(getCurrentUser().getCustomerId());
             }
 
-            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, operation, customer.getId(), customer);
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, operation, customer.getId(), customer, entityGroupId);
 
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedCustomer.getId());
+            }
 
             logEntityAction(savedCustomer.getId(), savedCustomer,
                     savedCustomer.getId(),

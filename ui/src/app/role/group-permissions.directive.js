@@ -45,8 +45,7 @@ export default function GroupPermissions() {
         restrict: "E",
         scope: true,
         bindToController: {
-            entityId: '=',
-            groupType: '@'
+            entityGroup: '='
         },
         controller: GroupPermissionsController,
         controllerAs: 'vm',
@@ -60,12 +59,6 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
                                        entityService, roleService, userPermissionsService) {
 
     let vm = this;
-
-    vm.isUserGroup = vm.groupType === types.entityType.user;
-
-    vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.write);
-    vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.create);
-    vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.delete);
 
     vm.types = types;
 
@@ -95,7 +88,7 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
 
     reloadGroupPermissions();
 
-    $scope.$watch("vm.entityId", function(newVal, prevVal) {
+    $scope.$watch("vm.entityGroup", function(newVal, prevVal) {
         if (newVal && !angular.equals(newVal, prevVal)) {
             reloadGroupPermissions();
         }
@@ -156,14 +149,14 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
             if (vm.isUserGroup) {
                 groupPermission.userGroupId = {
                     entityType: vm.types.entityType.entityGroup,
-                    id: vm.entityId
+                    id: vm.entityGroup.id.id
                 };
             } else {
                 groupPermission.entityGroupId = {
                     entityType: vm.types.entityType.entityGroup,
-                    id: vm.entityId
+                    id: vm.entityGroup.id.id
                 };
-                groupPermission.entityGroupType = vm.groupType;
+                groupPermission.entityGroupType = vm.entityGroup.type;
             }
         } else {
             groupPermission = angular.copy(groupPermission);
@@ -233,14 +226,30 @@ function GroupPermissionsController($scope, $q, $mdEditDialog, $mdDialog,
     }
 
     function reloadGroupPermissions () {
+
         vm.allGroupPermissions.length = 0;
         vm.groupPermissions.length = 0;
-        if (vm.entityId) {
+        if (vm.entityGroup) {
+
+            vm.editEnabled = false;
+            vm.addEnabled = false;
+            vm.deleteEnabled = false;
+
+            vm.isUserGroup = vm.entityGroup.type === types.entityType.user;
+
+            var readOnlyGroup = !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, vm.entityGroup);
+
+            if (!readOnlyGroup) {
+                vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.write);
+                vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.create);
+                vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.groupPermission, securityTypes.operation.delete);
+            }
+
             vm.groupPermissionsPromise;
             if (vm.isUserGroup) {
-                vm.groupPermissionsPromise = roleService.getUserGroupPermissions(vm.entityId);
+                vm.groupPermissionsPromise = roleService.getUserGroupPermissions(vm.entityGroup.id.id);
             } else {
-                vm.groupPermissionsPromise = roleService.getEntityGroupPermissions(vm.entityId);
+                vm.groupPermissionsPromise = roleService.getEntityGroupPermissions(vm.entityGroup.id.id);
             }
             vm.groupPermissionsPromise.then(
                 function success(allGroupPermissions) {

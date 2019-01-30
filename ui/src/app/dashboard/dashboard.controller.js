@@ -51,7 +51,7 @@ export default function DashboardController(types, securityTypes, utils, dashboa
     vm.widgetEditMode = $state.$current.data.widgetEditMode;
     vm.entityGroup = entityGroup;
     if (vm.entityGroup) {
-        vm.readonly = !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, entityGroup);
+        vm.readonly = !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.write, entityGroup);
         vm.entityGroupId = vm.entityGroup.id.id;
     } else {
         if (!vm.widgetEditMode && !$stateParams.edit) {

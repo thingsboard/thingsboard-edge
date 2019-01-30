@@ -59,10 +59,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.permission.*;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -70,10 +67,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
@@ -154,6 +148,16 @@ public class EntityGroupController extends BaseController {
                 throw new ThingsboardException("Unable to remove entity group: " +
                         "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
             }
+
+            List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get();
+            if (entityGroup.getType() == EntityType.USER) {
+                groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(getTenantId(), entityGroupId).get());
+            }
+
+            for (GroupPermission groupPermission : groupPermissions) {
+                userPermissionsService.onGroupPermissionDeleted(groupPermission);
+            }
+
             entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
             logEntityAction(entityGroupId, entityGroup,
@@ -196,7 +200,7 @@ public class EntityGroupController extends BaseController {
                 }
                 return toEntityGroupsInfo(groups);
             } else {
-                throw permissionDenied();
+                return Collections.emptyList();
             }
         } catch (Exception e) {
             throw handleException(e);

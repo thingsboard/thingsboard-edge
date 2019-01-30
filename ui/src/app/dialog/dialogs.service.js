@@ -442,8 +442,8 @@ export default function Dialogs($q, $translate, $mdDialog, $document, entityGrou
             parent: angular.element($document[0].body),
             fullscreen: true,
             targetEvent: $event
-        }).then((targetEntityGroupId) => {
-            deferred.resolve(targetEntityGroupId);
+        }).then((selectedGroupData) => {
+            deferred.resolve(selectedGroupData);
         }, () => {
             deferred.reject();
         });

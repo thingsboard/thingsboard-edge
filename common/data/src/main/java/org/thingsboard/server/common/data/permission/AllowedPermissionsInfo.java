@@ -44,6 +44,8 @@ public class AllowedPermissionsInfo {
 
     private Map<Resource, Set<Operation>> operationsByResource;
     private Set<Operation> allowedForGroupRoleOperations;
+    private Set<Operation> allowedForGroupOwnerOnlyOperations;
+    private Set<Operation> allowedForGroupOwnerOnlyGroupOperations;
     private Set<Resource> allowedResources;
     private MergedUserPermissions userPermissions;
     private EntityId userOwnerId;

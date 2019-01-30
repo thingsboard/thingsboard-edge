@@ -115,7 +115,8 @@ public class DashboardController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard", method = RequestMethod.POST)
     @ResponseBody 
-    public Dashboard saveDashboard(@RequestBody Dashboard dashboard) throws ThingsboardException {
+    public Dashboard saveDashboard(@RequestBody Dashboard dashboard,
+                                   @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             dashboard.setTenantId(getCurrentUser().getTenantId());
 
@@ -127,10 +128,19 @@ public class DashboardController extends BaseController {
                 dashboard.setCustomerId(getCurrentUser().getCustomerId());
             }
 
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, operation,
-                    dashboard.getId(), dashboard);
+                    dashboard.getId(), dashboard, entityGroupId);
 
             Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDashboard.getId());
+            }
 
             logEntityAction(savedDashboard.getId(), savedDashboard,
                     null,

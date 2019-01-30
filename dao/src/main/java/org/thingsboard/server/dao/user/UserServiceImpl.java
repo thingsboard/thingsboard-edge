@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.user;
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -111,8 +110,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public ListenableFuture<List<User>> findUsersByIdsAsync(TenantId tenantId, List<UserId> userIds) {
-        log.trace("Executing findUsersByIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
+    public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds) {
+        log.trace("Executing findUsersByTenantIdAndIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateIds(userIds, "Incorrect userIds " + userIds);
         return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
@@ -274,7 +273,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
         return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
                 (entityId) -> new UserId(entityId.getId()),
-                (entityIds) -> findUsersByIdsAsync(tenantId, entityIds),
+                (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds),
                 new UserViewFunction());
     }
 

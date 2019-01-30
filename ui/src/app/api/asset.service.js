@@ -117,9 +117,12 @@ function AssetService($http, $q, customerService, userService) {
         return deferred.promise;
     }
 
-    function saveAsset(asset, ignoreErrors, config) {
+    function saveAsset(asset, ignoreErrors, config, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/asset';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         if (!config) {
             config = {};
         }

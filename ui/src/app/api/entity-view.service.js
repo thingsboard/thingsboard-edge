@@ -192,10 +192,12 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         return deferred.promise;
     }
 
-    function saveEntityView(entityView) {
+    function saveEntityView(entityView, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/entityView';
-
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, entityView).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {

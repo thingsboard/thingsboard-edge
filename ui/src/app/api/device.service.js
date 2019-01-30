@@ -198,9 +198,12 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         return deferred.promise;
     }
 
-    function saveDevice(device) {
+    function saveDevice(device, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/device';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, device).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {

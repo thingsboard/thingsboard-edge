@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -234,6 +235,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                             }
                             switch (groupType) {
                                 case USER:
+                                    new CustomerUsersTenantGroupAllRemover(entityGroup).updateEntities(tenant.getId());
                                     entityGroupService.findOrCreateTenantUsersGroup(tenant.getId());
                                     Optional<EntityGroup> tenantAdminsOptional =
                                             entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
@@ -280,6 +282,40 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected void updateGroupEntity(User entity, EntityGroup groupAll) {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, tenantAdmins.getId(), entity.getId());
+        }
+    }
+
+    private class CustomerUsersTenantGroupAllRemover extends PaginatedUpdater<TenantId, User> {
+
+        private final EntityGroup groupAll;
+
+        public CustomerUsersTenantGroupAllRemover(EntityGroup groupAll) {
+            this.groupAll = groupAll;
+        }
+
+        @Override
+        protected TextPageData<User> findEntities(TenantId id, TextPageLink pageLink) {
+            try {
+                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+                List<UserId> userIds = entityIds.stream().map(entityId -> new UserId(entityId.getId())).collect(Collectors.toList());
+                List<User> users;
+                if (!userIds.isEmpty()) {
+                    users = userService.findUsersByTenantIdAndIdsAsync(id, userIds).get();
+                } else {
+                    users = Collections.emptyList();
+                }
+                return new TextPageData<>(users, new TextPageLink(Integer.MAX_VALUE));
+            } catch (Exception e) {
+                log.error("Failed to get users from group all!", e);
+                throw new RuntimeException("Failed to get users from group all!", e);
+            }
+        }
+
+        @Override
+        protected void updateEntity(User entity) {
+            if (entity.getAuthority() == Authority.CUSTOMER_USER) {
+                entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
+            }
         }
     }
 

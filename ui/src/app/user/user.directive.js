@@ -37,7 +37,7 @@ import userFieldsetTemplate from './user-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function UserDirective($compile, $templateCache, userService) {
+export default function UserDirective($compile, $templateCache, securityTypes, userService, userPermissionsService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(userFieldsetTemplate);
         element.html(template);
@@ -50,7 +50,8 @@ export default function UserDirective($compile, $templateCache, userService) {
             return scope.user && scope.user.authority === 'CUSTOMER_USER';
         };
 
-        scope.loginAsUserEnabled = userService.isUserTokenAccessEnabled();
+        scope.loginAsUserEnabled = userService.isUserTokenAccessEnabled() &&
+            userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.impersonate);
 
         $compile(element.contents())(scope);
     }

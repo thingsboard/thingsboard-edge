@@ -91,6 +91,15 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
             importExport.exportDashboard(entity.id.id);
         };
 
+        groupConfig.onImportDashboard = (event)  => {
+            var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
+            importExport.importDashboard(event, entityGroupId).then(
+                function() {
+                    groupConfig.onEntityAdded();
+                }
+            );
+        };
+
         groupConfig.onOpenDashboard = (event, entity) => {
             if (event) {
                 event.stopPropagation();
@@ -146,8 +155,39 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
             );
         }
 
+        groupConfig.actionCellDescriptors.push(
+            {
+                name: $translate.instant('dashboard.export'),
+                icon: 'file_download',
+                isEnabled: () => {
+                    return true;
+                },
+                onAction: ($event, entity) => {
+                    groupConfig.onExportDashboard($event, entity);
+                }
+            }
+        );
+
         groupConfig.groupActionDescriptors = [
         ];
+
+        groupConfig.headerActionDescriptors = [
+        ];
+
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, entityGroup)) {
+            groupConfig.headerActionDescriptors.push(
+                {
+                    name: $translate.instant('dashboard.import'),
+                    icon: 'file_upload',
+                    isEnabled: () => {
+                        return groupConfig.addEnabled();
+                    },
+                    onAction: ($event) => {
+                        groupConfig.onImportDashboard($event);
+                    }
+                }
+            );
+        }
 
         utils.groupConfigDefaults(groupConfig);
 

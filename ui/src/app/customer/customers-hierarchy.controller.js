@@ -42,10 +42,15 @@ export default function CustomersHierarchyController($scope, types, securityType
     vm.nodeIdCounter = 0;
     vm.selectedNodeId = -1;
 
+    vm.parentIdToGroupAllNodeId = {};
+
     vm.entityGroupNodesMap = {};
-    vm.nodeToGroupAll = {};
     vm.customerNodesMap = {};
     vm.customerGroupsNodesMap = {};
+
+    vm.internalIdToNodeIds = {};
+    vm.internalIdToParentNodeIds = {};
+    vm.nodeIdToInternalId = {};
 
     vm.viewLoaded = false;
     vm.viewMode = 'groups';
@@ -69,9 +74,13 @@ export default function CustomersHierarchyController($scope, types, securityType
                 vm.viewLoading = false;
             },
             customerGroupsSelected: onCustomerGroupsSelected,
-            refreshEntities: refreshEntities,
-            updateNode: updateNode,
-            refreshEntityGroupsChildren: refreshEntityGroupsChildren
+            customerAdded: customerAdded,
+            customerUpdated: customerUpdated,
+            customersDeleted: customersDeleted,
+            groupUpdated: groupUpdated,
+            groupDeleted: groupDeleted,
+            refreshCustomerGroups: refreshCustomerGroups,
+            groupAdded: groupAdded
         }
     };
     vm.groupLocals = {};
@@ -183,68 +192,134 @@ export default function CustomersHierarchyController($scope, types, securityType
     }
 
     //entity group level
-    function refreshEntities(parentNodeId, entityIds, isAdded) {
-        if (isAdded) {
-            if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
-                vm.nodeEditCallbacks.refreshNode(parentNodeId);
-            }
-            var groupAllNodeId = vm.nodeToGroupAll[parentNodeId];
-            if (groupAllNodeId && vm.nodeEditCallbacks.nodeIsLoaded(groupAllNodeId)) {
-                vm.nodeEditCallbacks.refreshNode(groupAllNodeId);
-            }
-        }
-        for (var i=0;i<entityIds.length;i++) {
-            var entityId = entityIds[i];
-            for (parentNodeId in vm.customerNodesMap) {
-                var nodesMap = vm.customerNodesMap[parentNodeId];
-                if (nodesMap[entityId]) {
-                    if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
-                        vm.nodeEditCallbacks.refreshNode(parentNodeId);
+    function customerAdded(parentNodeId, customer) {
+
+        var parentInternalId = vm.nodeIdToInternalId[parentNodeId];
+        var parentNodeIds = vm.internalIdToNodeIds[parentInternalId];
+        if (parentNodeIds) {
+            var targetParentNodeIds = angular.copy(parentNodeIds);
+            for (var i=0;i<parentNodeIds.length;i++) {
+                var nodeId = parentNodeIds[i];
+                var groupAllParentId = vm.nodeEditCallbacks.getParentNodeId(nodeId);
+                if (groupAllParentId) {
+                    var groupAllNodeId = vm.parentIdToGroupAllNodeId[groupAllParentId];
+                    if (groupAllNodeId && targetParentNodeIds.indexOf(groupAllNodeId) === -1) {
+                        targetParentNodeIds.push(groupAllNodeId);
                     }
-                    continue;
+                }
+            }
+            for (var n=0;n<targetParentNodeIds.length;n++) {
+                var targetParentNodeId = targetParentNodeIds[n];
+                if (vm.nodeEditCallbacks.nodeIsLoaded(targetParentNodeId)) {
+                    var groupId = vm.nodeIdToInternalId[targetParentNodeId];
+                    if (groupId) {
+                        var node = createCustomerNode(targetParentNodeId, customer, groupId);
+                        vm.nodeEditCallbacks.createNode(targetParentNodeId, node, 'last');
+                    }
                 }
             }
         }
     }
 
     //entity group level
-    function updateNode(nodeId, newName, isDeleted) {
-        if (isDeleted) {
-            var parentId = vm.nodeEditCallbacks.getParentNodeId(nodeId);
-            if (parentId) {
-                if (vm.nodeEditCallbacks.nodeIsLoaded(parentId)) {
-                    vm.nodeEditCallbacks.refreshNode(parentId);
-                }
-                $timeout(() => {
-                    vm.nodeEditCallbacks.selectNode(parentId);
-                }, 0, false);
+    function customerUpdated(customer) {
+        var nodeIds = vm.internalIdToNodeIds[customer.id.id];
+        if (nodeIds) {
+            for (var i=0;i<nodeIds.length;i++) {
+                var nodeId = nodeIds[i];
+                vm.nodeEditCallbacks.updateNode(nodeId, customer.title);
             }
-        } else {
-            vm.nodeEditCallbacks.updateNode(nodeId, newName);
         }
     }
 
     //entity group level
-    function refreshEntityGroupsChildren(entityGroupIds) {
-        for (var i=0;i<entityGroupIds.length;i++) {
-            var entityGroupId = entityGroupIds[i];
-            for (var parentNodeId in vm.entityGroupNodesMap) {
-                var nodesMap = vm.entityGroupNodesMap[parentNodeId];
-                var nodeId = nodesMap[entityGroupId];
-                if (nodeId) {
+    function customersDeleted(customerIds) {
+        for (var i=0;i<customerIds.length;i++) {
+            var customerId = customerIds[i];
+            var nodeIds = vm.internalIdToNodeIds[customerId];
+            for (var n=0;n<nodeIds.length;n++) {
+                var nodeId = nodeIds[n];
+                vm.nodeEditCallbacks.deleteNode(nodeId);
+            }
+        }
+    }
+
+    //entity group level
+    function groupUpdated(entityGroup) {
+        var nodeIds = vm.internalIdToNodeIds[entityGroup.id.id];
+        if (nodeIds) {
+            for (var i=0;i<nodeIds.length;i++) {
+                var nodeId = nodeIds[i];
+                vm.nodeEditCallbacks.updateNode(nodeId, entityGroup.name);
+            }
+        }
+    }
+
+    //entity group level
+    function groupDeleted(groupNodeId, entityGroupId) {
+        var parentId = vm.nodeEditCallbacks.getParentNodeId(groupNodeId);
+        if (parentId) {
+            $timeout(() => {
+                vm.nodeEditCallbacks.selectNode(parentId);
+            }, 0, false);
+        }
+        var nodeIds = vm.internalIdToNodeIds[entityGroupId];
+        for (var n=0;n<nodeIds.length;n++) {
+            var nodeId = nodeIds[n];
+            vm.nodeEditCallbacks.deleteNode(nodeId);
+        }
+    }
+
+    //entity group level
+    function refreshCustomerGroups(customerGroupIds) {
+        for (var i=0;i<customerGroupIds.length;i++) {
+            var groupId = customerGroupIds[i];
+            var nodeIds = vm.internalIdToNodeIds[groupId];
+            if (nodeIds) {
+                for (var n = 0; n < nodeIds.length; n++) {
+                    var nodeId = nodeIds[n];
                     if (vm.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
                         vm.nodeEditCallbacks.refreshNode(nodeId);
                     }
-                    continue;
+                }
+            }
+        }
+    }
+
+    //entity group level
+    function groupAdded(entityGroup, existingGroupId) {
+        var parentNodeIds = vm.internalIdToParentNodeIds[existingGroupId];
+        if (parentNodeIds) {
+            for (var i=0;i<parentNodeIds.length; i++) {
+                var parentNodeId = parentNodeIds[i];
+                if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
+                    var parentEntityGroupId = null;
+                    var parentNode = vm.nodeEditCallbacks.getNode(parentNodeId);
+                    if (parentNode && parentNode.data && parentNode.data.parentEntityGroupId) {
+                        parentEntityGroupId = parentNode.data.parentEntityGroupId;
+                    }
+                    var node = createEntityGroupNode(parentNodeId, entityGroup, parentEntityGroupId);
+                    vm.nodeEditCallbacks.createNode(parentNodeId, node, 'last');
                 }
             }
         }
     }
 
     //entity groups level
-    function refreshEntityGroups(parentNodeId) {
-        if (vm.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
-            vm.nodeEditCallbacks.refreshNode(parentNodeId);
+    function refreshEntityGroups(internalId) {
+        var nodeIds;
+        if (internalId && internalId != '#') {
+            nodeIds = vm.internalIdToNodeIds[internalId];
+        } else {
+            nodeIds = ['#'];
+        }
+        if (nodeIds) {
+            for (var i=0;i<nodeIds.length; i++) {
+                var nodeId = nodeIds[i];
+                if (vm.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
+                    vm.nodeEditCallbacks.refreshNode(nodeId);
+                }
+            }
         }
     }
 
@@ -265,36 +340,39 @@ export default function CustomersHierarchyController($scope, types, securityType
         var nodesMap = {};
         vm.entityGroupNodesMap[parentNodeId] = nodesMap;
         if (entityGroups) {
-            var groupAllNodeId;
             for (var i = 0; i < entityGroups.length; i++) {
                 var entityGroup = entityGroups[i];
-                var node = {
-                    id: ++vm.nodeIdCounter,
-                    icon: 'material-icons ' + iconForGroupType(entityGroup.type),
-                    text: entityGroup.name,
-                    children: entityGroup.type === vm.types.entityType.customer,
-                    data: {
-                        type: "group",
-                        entity: entityGroup,
-                        parentEntityGroupId: parentEntityGroupId
-                    }
-                };
+                var node = createEntityGroupNode(parentNodeId, entityGroup, parentEntityGroupId);
                 nodes.push(node);
-                nodesMap[entityGroup.id.id] = node.id;
                 if (entityGroup.groupAll) {
-                    groupAllNodeId = node.id;
-                }
-            }
-            if (groupAllNodeId) {
-                for (var n = 0; n < nodes.length; n++) {
-                    var nodeId = nodes[n].id;
-                    if (nodeId !== groupAllNodeId) {
-                        vm.nodeToGroupAll[nodeId] = groupAllNodeId;
-                    }
+                    vm.parentIdToGroupAllNodeId[parentNodeId] = node.id;
                 }
             }
         }
         return nodes;
+    }
+
+    function createEntityGroupNode(parentNodeId, entityGroup, parentEntityGroupId) {
+        var nodesMap = vm.entityGroupNodesMap[parentNodeId];
+        if (!nodesMap) {
+            nodesMap = {};
+            vm.entityGroupNodesMap[parentNodeId] = nodesMap;
+        }
+        var node = {
+            id: ++vm.nodeIdCounter,
+            icon: 'material-icons ' + iconForGroupType(entityGroup.type),
+            text: entityGroup.name,
+            children: entityGroup.type === vm.types.entityType.customer,
+            data: {
+                type: "group",
+                entity: entityGroup,
+                parentEntityGroupId: parentEntityGroupId,
+                internalId: entityGroup.id.id
+            }
+        };
+        nodesMap[entityGroup.id.id] = node.id;
+        registerNode(node, parentNodeId);
+        return node;
     }
 
     function customersToNodes(parentNodeId, groupId, customers) {
@@ -304,25 +382,37 @@ export default function CustomersHierarchyController($scope, types, securityType
         if (customers) {
             for (var i = 0; i < customers.length; i++) {
                 var customer = customers[i];
-                var node = {
-                    id: ++vm.nodeIdCounter,
-                    icon: 'material-icons tb-customer',
-                    text: customer.title,
-                    children: true,
-                    state: {
-                        disabled: true
-                    },
-                    data: {
-                        type: "customer",
-                        entity: customer,
-                        parentEntityGroupId: groupId
-                    }
-                };
+                var node = createCustomerNode(parentNodeId, customer, groupId);
                 nodes.push(node);
-                nodesMap[customer.id.id] = node.id;
             }
         }
         return nodes;
+    }
+
+    function createCustomerNode(parentNodeId, customer, groupId) {
+        var nodesMap = vm.customerNodesMap[parentNodeId];
+        if (!nodesMap) {
+            nodesMap = {};
+            vm.customerNodesMap[parentNodeId] = nodesMap;
+        }
+        var node = {
+            id: ++vm.nodeIdCounter,
+            icon: 'material-icons tb-customer',
+            text: customer.title,
+            children: true,
+            state: {
+                disabled: true
+            },
+            data: {
+                type: "customer",
+                entity: customer,
+                parentEntityGroupId: groupId,
+                internalId: customer.id.id
+            }
+        };
+        nodesMap[customer.id.id] = node.id;
+        registerNode(node, parentNodeId);
+        return node;
     }
 
     function loadNodesForCustomer(parentNodeId, parentEntityGroupId, customer) {
@@ -341,14 +431,39 @@ export default function CustomersHierarchyController($scope, types, securityType
                         type: "groups",
                         groupsType: groupType,
                         customer: customer,
-                        parentEntityGroupId: parentEntityGroupId
+                        parentEntityGroupId: parentEntityGroupId,
+                        internalId: customer.id.id + '_' + groupType
                     }
                 };
                 nodes.push(node);
                 nodesMap[groupType] = node.id;
+
+                registerNode(node, parentNodeId);
             }
         }
         return nodes;
+    }
+
+
+    function registerNode(node, parentNodeId) {
+        var nodeIds = vm.internalIdToNodeIds[node.data.internalId];
+        if (!nodeIds) {
+            nodeIds = [];
+            vm.internalIdToNodeIds[node.data.internalId] = nodeIds;
+        }
+        if (nodeIds.indexOf(node.id) === -1) {
+            nodeIds.push(node.id);
+        }
+        var parentNodeIds = vm.internalIdToParentNodeIds[node.data.internalId];
+        if (!parentNodeIds) {
+            parentNodeIds = [];
+            vm.internalIdToParentNodeIds[node.data.internalId] = parentNodeIds;
+        }
+        if (parentNodeIds.indexOf(parentNodeId) === -1) {
+            parentNodeIds.push(parentNodeId);
+        }
+
+        vm.nodeIdToInternalId[node.id] = node.data.internalId;
     }
 
     function iconForGroupType(groupType) {
@@ -400,6 +515,7 @@ export default function CustomersHierarchyController($scope, types, securityType
                 vm.viewMode = 'groups';
                 vm.groupsStateParams.groupType = vm.types.entityType.customer;
                 vm.groupsStateParams.nodeId = '#';
+                vm.groupsStateParams.internalId = '#';
                 delete vm.groupsStateParams.entityGroupId;
                 delete vm.groupsStateParams.childGroupType;
                 delete vm.groupsStateParams.customerId;
@@ -420,6 +536,7 @@ export default function CustomersHierarchyController($scope, types, securityType
                         }
                         vm.groupsStateParams.customerId = node.data.customer.id.id;
                         vm.groupsStateParams.nodeId = node.id;
+                        vm.groupsStateParams.internalId = node.data.internalId;
                         vm.groupsStateParams.hierarchyCallbacks.reload();
                     } else if (node.data.type === "group") {
                         vm.viewMode = 'group';
@@ -443,6 +560,7 @@ export default function CustomersHierarchyController($scope, types, securityType
                         }
                         vm.groupStateParams.entityGroup = angular.copy(entityGroup);
                         vm.groupStateParams.nodeId = node.id;
+                        vm.groupStateParams.internalId = node.data.internalId;
                         vm.groupStateParams.hierarchyCallbacks.reload();
                     }
                 });

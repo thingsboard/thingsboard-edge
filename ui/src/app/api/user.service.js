@@ -545,11 +545,16 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         return deferred.promise;
     }
 
-    function saveUser(user, sendActivationMail) {
+    function saveUser(user, sendActivationMail, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/user';
+        var paramsPrefix = '?';
         if (angular.isDefined(sendActivationMail)) {
-            url += '?sendActivationMail=' + sendActivationMail;
+            url += paramsPrefix + 'sendActivationMail=' + sendActivationMail;
+            paramsPrefix = '&';
+        }
+        if (entityGroupId) {
+            url += paramsPrefix + 'entityGroupId=' + entityGroupId;
         }
         $http.post(url, user).then(function success(response) {
             deferred.resolve(response.data);

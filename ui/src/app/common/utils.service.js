@@ -655,6 +655,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
 
         groupConfig.actionCellDescriptors = groupConfig.actionCellDescriptors || [];
         groupConfig.groupActionDescriptors = groupConfig.groupActionDescriptors || [];
+        groupConfig.headerActionDescriptors = groupConfig.headerActionDescriptors || [];
 
         groupConfig.addEnabled = groupConfig.addEnabled ||
             (() => { return true });

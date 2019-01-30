@@ -637,10 +637,11 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         delete dashboard.publicCustomerId;
         delete dashboard.assignedCustomersText;
         delete dashboard.assignedCustomersIds;
+        delete dashboard.ownerId;
         return dashboard;
     }
 
-    function importDashboard($event) {
+    function importDashboard($event, entityGroupId) {
         var deferred = $q.defer();
         openImportDialog($event, 'dashboard.import', 'dashboard.dashboard-file').then(
             function success(dashboard) {
@@ -662,22 +663,22 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                                                 for (var aliasId in updatedEntityAliases) {
                                                     entityAliases[aliasId] = updatedEntityAliases[aliasId];
                                                 }
-                                                saveImportedDashboard(dashboard, deferred);
+                                                saveImportedDashboard(dashboard, entityGroupId, deferred);
                                             },
                                             function fail() {
                                                 deferred.reject();
                                             }
                                         );
                                     } else {
-                                        saveImportedDashboard(dashboard, deferred);
+                                        saveImportedDashboard(dashboard, entityGroupId, deferred);
                                     }
                                 }
                             )
                         } else {
-                            saveImportedDashboard(dashboard, deferred);
+                            saveImportedDashboard(dashboard, entityGroupId, deferred);
                         }
                     } else {
-                        saveImportedDashboard(dashboard, deferred);
+                        saveImportedDashboard(dashboard, entityGroupId, deferred);
                     }
                 }
             },
@@ -688,8 +689,8 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         return deferred.promise;
     }
 
-    function saveImportedDashboard(dashboard, deferred) {
-        dashboardService.saveDashboard(dashboard).then(
+    function saveImportedDashboard(dashboard, entityGroupId, deferred) {
+        dashboardService.saveDashboard(dashboard, entityGroupId).then(
             function success() {
                 deferred.resolve();
             },

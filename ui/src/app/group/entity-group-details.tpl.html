@@ -72,15 +72,13 @@
     <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.roles' | translate }}"
             ng-if="vm.entityGroup.type === vm.types.entityType.user && !vm.isEdit && ('groupPermission' | hasGenericPermission:'read')">
         <tb-group-permissions
-                entity-id="vm.entityGroup.id.id"
-                group-type="{{vm.entityGroup.type}}">
+                entity-group="vm.entityGroup">
         </tb-group-permissions>
     </md-tab>
     <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.permissions' | translate }}"
             ng-if="vm.entityGroup.type !== vm.types.entityType.user && !vm.isEdit && ('groupPermission' | hasGenericPermission:'read')">
         <tb-group-permissions
-                entity-id="vm.entityGroup.id.id"
-                group-type="{{vm.entityGroup.type}}">
+                entity-group="vm.entityGroup">
         </tb-group-permissions>
     </md-tab>
     <md-tab ng-if="!vm.isEdit  && (vm.entityGroup | hasEntityGroupPermission:'readAttributes')" md-on-select="vm.triggerResize()" label="{{ 'attribute.attributes' | translate }}">

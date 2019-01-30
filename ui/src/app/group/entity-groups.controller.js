@@ -255,7 +255,7 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
                     $rootScope.$broadcast(vm.groupType + 'changed');
                 }
                 if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroups) {
-                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.nodeId);
+                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.internalId);
                 }
             },
             function fail() {
@@ -274,7 +274,7 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
                     $rootScope.$broadcast(vm.groupType + 'changed');
                 }
                 if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroups) {
-                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.nodeId);
+                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.internalId);
                 }
             },
             function fail() {

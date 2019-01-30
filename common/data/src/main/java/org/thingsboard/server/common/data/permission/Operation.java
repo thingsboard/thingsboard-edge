@@ -37,8 +37,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum Operation {
-    ALL(true), CREATE, READ(true), WRITE(true), DELETE, ASSIGN_TO_CUSTOMER, UNASSIGN_FROM_CUSTOMER, RPC_CALL(true),
-    READ_CREDENTIALS(true), WRITE_CREDENTIALS(true), READ_ATTRIBUTES(true), WRITE_ATTRIBUTES(true), READ_TELEMETRY(true), WRITE_TELEMETRY(true), ADD_TO_GROUP, REMOVE_FROM_GROUP,
+    ALL(true), CREATE(true, true, true), READ(true), WRITE(true, false, true), DELETE(true, true, true), RPC_CALL(true),
+    READ_CREDENTIALS(true), WRITE_CREDENTIALS(true), READ_ATTRIBUTES(true), WRITE_ATTRIBUTES(true, false, true), READ_TELEMETRY(true), WRITE_TELEMETRY(true, false, true), ADD_TO_GROUP(), REMOVE_FROM_GROUP(),
     IMPERSONATE;
 
     public static Set<Operation> defaultEntityOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
@@ -59,14 +59,48 @@ public enum Operation {
         }
     }
 
+    public static Set<Operation> allowedForGroupOwnerOnlyOperations = new HashSet<>();
+    static {
+        for (Operation operation : Operation.values()) {
+            if (operation.isAllowedForGroupOwnerOnly()) {
+                allowedForGroupOwnerOnlyOperations.add(operation);
+            }
+        }
+    }
+
+    public static Set<Operation> allowedForGroupOwnerOnlyGroupOperations = new HashSet<>();
+    static {
+        for (Operation operation : Operation.values()) {
+            if (operation.isGroupOperationAllowedForGroupOwnerOnly()) {
+                allowedForGroupOwnerOnlyGroupOperations.add(operation);
+            }
+        }
+    }
+
     @Getter
     private boolean allowedForGroupRole;
 
+    @Getter
+    private boolean allowedForGroupOwnerOnly;
+
+    @Getter
+    private boolean groupOperationAllowedForGroupOwnerOnly;
+
     Operation() {
-        this(false);
+        this(false, false, false);
     }
 
     Operation(boolean allowedForGroupRole) {
+        this(allowedForGroupRole, false, false);
+    }
+
+    Operation(boolean allowedForGroupRole, boolean allowedForGroupOwnerOnly) {
+        this(allowedForGroupRole, allowedForGroupOwnerOnly, false);
+    }
+
+    Operation(boolean allowedForGroupRole, boolean allowedForGroupOwnerOnly, boolean groupOperationAllowedForGroupOwnerOnly) {
         this.allowedForGroupRole = allowedForGroupRole;
+        this.allowedForGroupOwnerOnly = allowedForGroupOwnerOnly;
+        this.groupOperationAllowedForGroupOwnerOnly = groupOperationAllowedForGroupOwnerOnly;
     }
 }

@@ -76,17 +76,10 @@ export default function AddGroupUserController($scope, $mdDialog, $state, $state
             vm.item.authority = "CUSTOMER_USER";
             vm.item.customerId = vm.entityGroup.ownerId;
         }
-        userService.saveUser(vm.item, sendActivationMail).then(function success(item) {
+        var entityGroupId = !vm.entityGroup.groupAll ? vm.entityGroup.id.id : null;
+        userService.saveUser(vm.item, sendActivationMail, entityGroupId).then(function success(item) {
             $scope.theForm.$setPristine();
-            if (!vm.entityGroup.groupAll) {
-                entityGroupService.addEntityToEntityGroup(vm.entityGroup.id.id, item.id.id).then(
-                    function success() {
-                        onAdd($event, item);
-                    }
-                );
-            } else {
-                onAdd($event, item);
-            }
+            onAdd($event, item);
         });
     }
 

@@ -52,7 +52,7 @@ public interface UserService {
 
 	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
 
-    ListenableFuture<List<User>> findUsersByIdsAsync(TenantId tenantId, List<UserId> userIds);
+    ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds);
 
 	User findUserByEmail(TenantId tenantId, String email);
 

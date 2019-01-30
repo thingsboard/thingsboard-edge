@@ -33,7 +33,8 @@ import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
 import addUserTemplate from './add-user.tpl.html';
 
 /*@ngInject*/
-export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, securityTypes, toast, userService) {
+export default function UserGroupConfig($q, $translate, $document, $mdDialog, tbDialogs, utils, types, securityTypes, toast,
+                                        userService, userPermissionsService) {
 
     var service = {
         createConfig: createConfig
@@ -114,7 +115,8 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
 
         groupConfig.actionCellDescriptors = [];
 
-        if (userService.isUserTokenAccessEnabled()) {
+        if (userService.isUserTokenAccessEnabled() &&
+            userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.impersonate)) {
             var isTenantAdmins = entityGroup.ownerId.entityType === types.entityType.tenant;
             groupConfig.actionCellDescriptors.push(
                 {

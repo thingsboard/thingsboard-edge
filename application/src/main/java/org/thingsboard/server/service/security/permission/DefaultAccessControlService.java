@@ -92,6 +92,14 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
+    public <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity, EntityGroupId entityGroupId) throws ThingsboardException {
+        PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
+        if (!permissionChecker.hasPermission(user, operation, entityId, entity, entityGroupId)) {
+            entityOperationPermissionDenied(resource, operation, entityId, entity);
+        }
+    }
+
+    @Override
     public <I extends EntityId, T extends TenantEntity> boolean hasPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, false);
         if (permissionChecker != null) {

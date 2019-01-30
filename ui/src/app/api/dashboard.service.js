@@ -218,9 +218,12 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         return deferred.promise;
     }
 
-    function saveDashboard(dashboard) {
+    function saveDashboard(dashboard, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/dashboard';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, cleanDashboard(dashboard)).then(function success(response) {
             deferred.resolve(prepareDashboard(response.data));
         }, function fail() {

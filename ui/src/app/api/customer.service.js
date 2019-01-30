@@ -208,9 +208,12 @@ function CustomerService($http, $q, types) {
         return deferred.promise;
     }
 
-    function saveCustomer(customer) {
+    function saveCustomer(customer, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/customer';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, customer).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {

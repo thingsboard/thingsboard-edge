@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,7 +100,8 @@ public class EntityViewController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView", method = RequestMethod.POST)
     @ResponseBody
-    public EntityView saveEntityView(@RequestBody EntityView entityView) throws ThingsboardException {
+    public EntityView saveEntityView(@RequestBody EntityView entityView,
+                                     @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             entityView.setTenantId(getCurrentUser().getTenantId());
 
@@ -111,10 +113,20 @@ public class EntityViewController extends BaseController {
                 entityView.setCustomerId(getCurrentUser().getCustomerId());
             }
 
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation,
-                    entityView.getId(), entityView);
+                    entityView.getId(), entityView, entityGroupId);
 
             EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntityView.getId());
+            }
+
             List<ListenableFuture<List<Void>>> futures = new ArrayList<>();
             if (savedEntityView.getKeys() != null && savedEntityView.getKeys().getAttributes() != null) {
                 futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));

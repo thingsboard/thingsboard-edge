@@ -53,6 +53,14 @@
                         {{ vm.translations.add | translate }}
                     </md-tooltip>
                 </md-button>
+                <md-button ng-disabled="$root.loading"
+                           ng-show="actionDescriptor.isEnabled()" class="md-icon-button" ng-repeat="actionDescriptor in vm.headerActionDescriptors"
+                           ng-click="actionDescriptor.onAction($event)">
+                    <md-icon>{{actionDescriptor.icon}}</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ actionDescriptor.name }}
+                    </md-tooltip>
+                </md-button>
                 <md-button ng-disabled="$root.loading" ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode($event)">
                     <md-icon>search</md-icon>
                     <md-tooltip md-direction="top">
@@ -118,12 +126,12 @@
                                    maxWidth: vm.actionCellDescriptors.length*36+'px',
                                    width: vm.actionCellDescriptors.length*36+'px'}">
                         <md-button ng-show="actionDescriptor.isEnabled(entity)" class="md-icon-button" ng-repeat="actionDescriptor in vm.actionCellDescriptors"
-                                   aria-label="{{ actionDescriptor.name }}"
+                                   aria-label="{{ vm.actionName(actionDescriptor, entity) }}"
                                    ng-click="actionDescriptor.onAction($event, entity)">
-                            <md-icon ng-if="!actionDescriptor.isNgIcon" aria-label="{{ actionDescriptor.name }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
-                            <ng-md-icon ng-if="actionDescriptor.isNgIcon" aria-label="{{ actionDescriptor.name }}" icon="{{actionDescriptor.icon}}"></ng-md-icon>
+                            <md-icon ng-if="!actionDescriptor.isNgIcon" aria-label="{{ vm.actionName(actionDescriptor, entity) }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
+                            <ng-md-icon ng-if="actionDescriptor.isNgIcon" aria-label="{{ vm.actionName(actionDescriptor, entity) }}" icon="{{actionDescriptor.icon}}"></ng-md-icon>
                             <md-tooltip md-direction="top">
-                                {{ actionDescriptor.name }}
+                                {{ vm.actionName(actionDescriptor, entity) }}
                             </md-tooltip>
                         </md-button>
                     </td>

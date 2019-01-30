@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -85,7 +87,8 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
-    public Asset saveAsset(@RequestBody Asset asset) throws ThingsboardException {
+    public Asset saveAsset(@RequestBody Asset asset,
+                           @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             asset.setTenantId(getCurrentUser().getTenantId());
 
@@ -97,10 +100,19 @@ public class AssetController extends BaseController {
                 asset.setCustomerId(getCurrentUser().getCustomerId());
             }
 
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation,
-                    asset.getId(), asset);
+                    asset.getId(), asset, entityGroupId);
 
             Asset savedAsset  = checkNotNull(assetService.saveAsset(asset));
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedAsset.getId());
+            }
 
             logEntityAction(savedAsset.getId(), savedAsset,
                     savedAsset.getCustomerId(),

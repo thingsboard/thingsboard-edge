@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -86,7 +88,8 @@ public class DeviceController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device", method = RequestMethod.POST)
     @ResponseBody
-    public Device saveDevice(@RequestBody Device device) throws ThingsboardException {
+    public Device saveDevice(@RequestBody Device device,
+                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             device.setTenantId(getCurrentUser().getTenantId());
 
@@ -98,10 +101,19 @@ public class DeviceController extends BaseController {
                 device.setCustomerId(getCurrentUser().getCustomerId());
             }
 
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
             accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation,
-                    device.getId(), device);
+                    device.getId(), device, entityGroupId);
 
             Device savedDevice = checkNotNull(deviceService.saveDevice(device));
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDevice.getId());
+            }
 
             actorService
                     .onDeviceNameOrTypeUpdate(

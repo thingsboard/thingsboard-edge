@@ -99,6 +99,10 @@ function NavTreeController($scope, $element, types) {
             vm.editCallbacks.deselectAll = () => {
                 vm.treeElement.jstree('deselect_all');
             };
+            vm.editCallbacks.getNode = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                return node;
+            };
             vm.editCallbacks.getParentNodeId = (id) => {
                 var node = vm.treeElement.jstree('get_node', id);
                 if (node) {
@@ -134,9 +138,10 @@ function NavTreeController($scope, $element, types) {
                 } else {
                     var node = vm.treeElement.jstree('get_node', id);
                     if (node) {
+                        var opened = vm.treeElement.jstree('is_open', node);
                         vm.treeElement.jstree('refresh_node', node);
                         vm.treeElement.jstree('redraw');
-                        if (node.children && !node.children.length) {
+                        if (node.children && opened/* && !node.children.length*/) {
                             vm.treeElement.jstree('open_node', node);
                         }
                     }
@@ -146,6 +151,18 @@ function NavTreeController($scope, $element, types) {
                 var node = vm.treeElement.jstree('get_node', id);
                 if (node) {
                     vm.treeElement.jstree('rename_node', node, newName);
+                }
+            };
+            vm.editCallbacks.createNode = (parentId, node, pos) => {
+                var parentNode = vm.treeElement.jstree('get_node', parentId);
+                if (parentNode) {
+                    vm.treeElement.jstree('create_node', parentNode, node, pos);
+                }
+            };
+            vm.editCallbacks.deleteNode = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    vm.treeElement.jstree('delete_node', node);
                 }
             };
         }

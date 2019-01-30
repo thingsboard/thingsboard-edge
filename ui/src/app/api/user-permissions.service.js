@@ -39,6 +39,8 @@ function UserPermissionsService($http, $q, types, securityTypes) {
 
     var operationsByResource;
     var allowedGroupRoleOperations;
+    var allowedGroupOwnerOnlyOperations;
+    var allowedGroupOwnerOnlyGroupOperations;
     var allowedResources;
     var userPermissions;
     var userOwnerId;
@@ -66,6 +68,8 @@ function UserPermissionsService($http, $q, types, securityTypes) {
         $http.get(url).then(function success(response) {
             operationsByResource = response.data.operationsByResource;
             allowedGroupRoleOperations = response.data.allowedForGroupRoleOperations;
+            allowedGroupOwnerOnlyOperations = response.data.allowedForGroupOwnerOnlyOperations;
+            allowedGroupOwnerOnlyGroupOperations = response.data.allowedForGroupOwnerOnlyGroupOperations;
             allowedResources = response.data.allowedResources;
             userPermissions = response.data.userPermissions;
             userOwnerId = response.data.userOwnerId;
@@ -201,23 +205,31 @@ function UserPermissionsService($http, $q, types, securityTypes) {
         } else {
             resource = securityTypes.resourceByEntityType[entityGroup.type];
         }
-        if (operation === securityTypes.operation.create) {
-            return hasGenericPermission(resource, operation);
-        }
         if (isCurrentUserOwner(entityGroup)) {
             if (hasGenericPermission(resource, operation)) {
                 return true;
             }
         }
+        return hasGroupPermissions(entityGroup, operation, isGroup);
+    }
+
+    function hasGroupPermissions(entityGroup, operation, isGroup) {
         if (!allowedGroupRoleOperations || allowedGroupRoleOperations.indexOf(operation) == -1) {
             return false;
         }
-        return hasGroupPermissions(entityGroup.id.id, operation);
-    }
-
-    function hasGroupPermissions(entityGroupId, operation) {
+        if (isGroup) {
+            if (allowedGroupOwnerOnlyGroupOperations && allowedGroupOwnerOnlyGroupOperations.indexOf(operation) > -1) {
+                return false;
+            }
+        } else {
+            if (allowedGroupOwnerOnlyOperations && allowedGroupOwnerOnlyOperations.indexOf(operation) > -1) {
+                if (!isCurrentUserOwner(entityGroup)) {
+                    return false;
+                }
+            }
+        }
         if (userPermissions && userPermissions.groupPermissions) {
-            var permissionInfo = userPermissions.groupPermissions[entityGroupId];
+            var permissionInfo = userPermissions.groupPermissions[entityGroup.id.id];
             return permissionInfo && checkOperation(permissionInfo.operations, operation);
         }
         return false;
