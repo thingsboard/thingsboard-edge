@@ -91,7 +91,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         String cacheKey = entityId.getId().toString();
         byte[] data = cache.get(cacheKey, byte[].class);
         Set<EntityId> result = null;
-        if (data != null) {
+        if (data != null && data.length > 0) {
             try {
                 result = fromBytes(data);
             } catch (InvalidProtocolBufferException e) {
