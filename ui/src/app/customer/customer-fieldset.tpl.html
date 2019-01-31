@@ -85,7 +85,9 @@
 			<textarea ng-model="customer.additionalInfo.description" rows="2"></textarea>
 		</md-input-container>
 		<md-input-container class="md-block">
-			<md-checkbox ng-disabled="$root.loading || !isEdit || !allowCustomerWhiteLabeling" aria-label="{{ 'customer.allow-white-labeling' | translate }}"
+			<md-checkbox ng-disabled="$root.loading || !isEdit"
+                         ng-show="allowCustomerWhiteLabeling"
+                         aria-label="{{ 'customer.allow-white-labeling' | translate }}"
                          ng-change="onAllowWhitelabelingChanged()"
 						 ng-model="allowWhiteLabeling">{{ 'customer.allow-white-labeling' | translate }}
 			</md-checkbox>

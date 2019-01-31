@@ -65,7 +65,8 @@
                          ng-change="onAllowWhitelabelingChanged('allowWhiteLabeling')"
 						 ng-model="allowWhiteLabeling">{{ 'tenant.allow-white-labeling' | translate }}
 			</md-checkbox>
-			<md-checkbox ng-disabled="$root.loading || !isEdit || !allowWhiteLabeling"
+			<md-checkbox ng-disabled="$root.loading || !isEdit"
+                         ng-show="allowWhiteLabeling"
 						 aria-label="{{ 'tenant.allow-customer-white-labeling' | translate }}"
                          ng-change="onAllowWhitelabelingChanged('allowCustomerWhiteLabeling')"
 						 ng-model="allowCustomerWhiteLabeling">{{ 'tenant.allow-customer-white-labeling' | translate }}
