@@ -60,6 +60,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -73,6 +74,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
+
+    private ReentrantLock deviceCreationLock = new ReentrantLock();
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -152,18 +155,26 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
         Device device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
         if (device == null) {
-            device = new Device();
-            device.setName(data.getDeviceName());
-            device.setType(data.getDeviceType());
-            device.setTenantId(configuration.getTenantId());
-            device = context.getDeviceService().saveDevice(device);
-            EntityRelation relation = new EntityRelation();
-            relation.setFrom(configuration.getId());
-            relation.setTo(device.getId());
-            relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.INTEGRATION_TYPE);
-            context.getRelationService().saveRelation(configuration.getTenantId(), relation);
-            context.getActorService().onDeviceAdded(device);
+            deviceCreationLock.lock();
+            try {
+                device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+                if (device == null) {
+                    device = new Device();
+                    device.setName(data.getDeviceName());
+                    device.setType(data.getDeviceType());
+                    device.setTenantId(configuration.getTenantId());
+                    device = context.getDeviceService().saveDevice(device);
+                    EntityRelation relation = new EntityRelation();
+                    relation.setFrom(configuration.getId());
+                    relation.setTo(device.getId());
+                    relation.setTypeGroup(RelationTypeGroup.COMMON);
+                    relation.setType(EntityRelation.INTEGRATION_TYPE);
+                    context.getRelationService().saveRelation(configuration.getTenantId(), relation);
+                    context.getActorService().onDeviceAdded(device);
+                }
+            } finally {
+                deviceCreationLock.unlock();
+            }
         }
         return device;
     }
