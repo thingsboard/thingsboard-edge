@@ -497,7 +497,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
     }
 
-    private void refreshAllIntegrations() {
+    private synchronized void refreshAllIntegrations() {
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
             if (clusterRoutingService.resolveById(integrationId).isPresent()) {
@@ -520,7 +520,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                     log.info("[{}] Unable to initialize integration {}", integration.getId(), integration.getName(), e);
                 }
             }
-            Futures.allAsList(futures).get();
+            Futures.successfulAsList(futures).get();
             log.info("{} Integrations refreshed", allIntegrations.size());
         } catch (Throwable th) {
             log.error("Could not init integrations", th);
