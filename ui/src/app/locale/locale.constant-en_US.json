@@ -1791,7 +1791,6 @@
         "management": "Role management",
         "view-roles": "View Roles",
         "no-roles-matching": "No roles matching '{{entity}}' were found.",
-        "name-starts-with": "Role name starts with",
         "role-list": "Role list",
         "add": "Add Role",
         "view": "View Role",

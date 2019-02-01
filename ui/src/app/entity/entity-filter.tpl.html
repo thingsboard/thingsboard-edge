@@ -226,20 +226,6 @@
                    aria-label="{{ 'entity-view.name-starts-with' | translate }}">
         </md-input-container>
     </section>
-    <section layout="column" ng-if="filter.type == types.aliasFilterType.roleType.value" id="roleTypeFilter">
-        <tb-entity-subtype-autocomplete
-                tb-required="true"
-                the-form="theForm"
-                ng-model="filter.roleType"
-                entity-type="types.entityType.role">
-        </tb-entity-subtype-autocomplete>
-        <md-input-container class="md-block">
-            <label translate>role.name-starts-with</label>
-            <input name="roleNameFilter"
-                   ng-model="filter.roleNameFilter"
-                   aria-label="{{ 'role.name-starts-with' | translate }}">
-        </md-input-container>
-    </section>
     <section layout="column" ng-if="filter.type == types.aliasFilterType.relationsQuery.value" id="relationsQueryFilter">
         <label class="tb-small">{{ 'alias.root-entity' | translate }}</label>
         <section class="tb-root-state-entity-switch" layout="row" layout-align="start center" style="padding-left: 0px;">

@@ -971,8 +971,6 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     return entityTypes.indexOf(types.entityType.device)  > -1 ? true : false;
                 case types.aliasFilterType.entityViewType.value:
                     return entityTypes.indexOf(types.entityType.entityView)  > -1 ? true : false;
-                case types.aliasFilterType.roleType.value:
-                    return entityTypes.indexOf(types.entityType.role)  > -1 ? true : false;
                 case types.aliasFilterType.relationsQuery.value:
                     if (filter.filters && filter.filters.length) {
                         var match = false;
@@ -1027,8 +1025,6 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 return entityType === types.entityType.device;
             case types.aliasFilterType.entityViewType.value:
                 return entityType === types.entityType.entityView;
-            case types.aliasFilterType.roleType.value:
-                return entityType === types.entityType.role;
             case types.aliasFilterType.relationsQuery.value:
                 return true;
             case types.aliasFilterType.assetSearchQuery.value:
