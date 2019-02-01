@@ -47,12 +47,12 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         getTenantEntityViews: getTenantEntityViews,
         saveEntityView: saveEntityView,
         //unassignEntityViewFromCustomer: unassignEntityViewFromCustomer,
-        //makeEntityViewPublic: makeEntityViewPublic,
         getEntityViewAttributes: getEntityViewAttributes,
         subscribeForEntityViewAttributes: subscribeForEntityViewAttributes,
         unsubscribeForEntityViewAttributes: unsubscribeForEntityViewAttributes,
         findByQuery: findByQuery,
-        getEntityViewTypes: getEntityViewTypes
+        getEntityViewTypes: getEntityViewTypes//,
+        //makeEntityViewPublic: makeEntityViewPublic
     }
 
     return service;
@@ -239,21 +239,6 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         });
         return deferred.promise;
     }
-
-    function makeEntityViewPublic(entityViewId, ignoreErrors, config) {
-        var deferred = $q.defer();
-        var url = '/api/customer/public/entityView/' + entityViewId;
-        if (!config) {
-            config = {};
-        }
-        config = Object.assign(config, { ignoreErrors: ignoreErrors });
-        $http.post(url, null, config).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
 */
 
     function getEntityViewAttributes(entityViewId, attributeScope, query, successCallback, config) {
@@ -293,5 +278,17 @@ function EntityViewService($http, $q, $window, userService, attributeService, cu
         });
         return deferred.promise;
     }
+
+/*    function makeEntityViewPublic(entityViewId) {
+        var deferred = $q.defer();
+        var url = '/api/customer/public/entityView/' + entityViewId;
+        $http.post(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }*/
+
 
 }

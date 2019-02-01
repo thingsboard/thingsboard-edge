@@ -375,4 +375,5 @@ public class EntityViewController extends BaseController {
             throw handleException(e);
         }
     }
+
 }
