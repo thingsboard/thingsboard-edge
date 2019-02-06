@@ -42,6 +42,7 @@ public class TbRestApiCallNodeConfiguration implements NodeConfiguration<TbRestA
     private String restEndpointUrlPattern;
     private String requestMethod;
     private Map<String, String> headers;
+    private boolean useSimpleClientHttpFactory;
 
     @Override
     public TbRestApiCallNodeConfiguration defaultConfiguration() {
@@ -49,6 +50,7 @@ public class TbRestApiCallNodeConfiguration implements NodeConfiguration<TbRestA
         configuration.setRestEndpointUrlPattern("http://localhost/api");
         configuration.setRequestMethod("POST");
         configuration.setHeaders(Collections.emptyMap());
+        configuration.setUseSimpleClientHttpFactory(false);
         return configuration;
     }
 }
