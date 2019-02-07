@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -79,6 +81,11 @@ public class SysAdminPermissions extends AbstractPermissions {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity) {
+            return hasPermission(user, operation, userId, userEntity, null);
+        }
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity, EntityGroupId entityGroupId) {
             if (userEntity.getAuthority() == Authority.CUSTOMER_USER) {
                 return false;
             }
