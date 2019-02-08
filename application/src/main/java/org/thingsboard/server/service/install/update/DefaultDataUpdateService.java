@@ -579,11 +579,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
             }
             if (isSystem) {
-                if (!storedWl.has("helpLinkBaseUrl")) {
-                    whiteLabelingParams.setHelpLinkBaseUrl("https://thingsboard.io");
-                } else {
-                    whiteLabelingParams.setHelpLinkBaseUrl(storedWl.get("helpLinkBaseUrl").asText());
+                String helpLinkBaseUrl = "https://thingsboard.io";
+                if (storedWl.has("helpLinkBaseUrl")) {
+                    JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
+                    if (helpLinkBaseUrlJson.isTextual()) {
+                        if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
+                            helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
+                        }
+                    }
                 }
+                whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
                 if (!storedWl.has("enableHelpLinks")) {
                     whiteLabelingParams.setEnableHelpLinks(true);
                 } else {
