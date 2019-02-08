@@ -109,6 +109,7 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -189,6 +190,9 @@ public abstract class BaseController {
 
     @Autowired
     protected EntityGroupService entityGroupService;
+
+    @Autowired
+    private OwnersCacheService ownersCacheService;
 
     @Autowired
     protected SchedulerEventService schedulerEventService;
@@ -1024,10 +1028,13 @@ public abstract class BaseController {
             Set<EntityId> entityIds = new HashSet<>();
             Set<EntityGroupId> groupIds = new HashSet<>();
             if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
-                Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), securityUser.getOwnerId(),
-                        entityType, EntityGroup.GROUP_ALL_NAME).get();
-                if (entityGroup.isPresent()) {
-                    groupIds.add(entityGroup.get().getId());
+                Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), securityUser.getOwnerId());
+                for (EntityId ownerId : ownerIds) {
+                    Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), ownerId,
+                            entityType, EntityGroup.GROUP_ALL_NAME).get();
+                    if (entityGroup.isPresent()) {
+                        groupIds.add(entityGroup.get().getId());
+                    }
                 }
             }
             if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
