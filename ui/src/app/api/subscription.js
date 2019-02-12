@@ -906,7 +906,7 @@ export default class Subscription {
         return subscriptionsChanged;
     }
 
-    idDataResolved() {
+    isDataResolved() {
         return this.hasResolvedData;
     }
 

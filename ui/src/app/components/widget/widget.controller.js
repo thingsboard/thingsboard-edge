@@ -904,7 +904,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
     function displayWidgetInstance() {
         if (widget.type !== types.widgetType.static.value) {
             for (var id in widgetContext.subscriptions) {
-                if (widgetContext.subscriptions[id].idDataResolved()) {
+                if (widgetContext.subscriptions[id].isDataResolved()) {
                     return true;
                 }
             }
@@ -915,6 +915,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
     }
 
     function onDestroy() {
+        var shouldDestroyWidgetInstance = displayWidgetInstance();
         for (var id in widgetContext.subscriptions) {
             var subscription = widgetContext.subscriptions[id];
             subscription.destroy();
@@ -930,7 +931,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
             }
             try {
-                if (displayWidgetInstance()) {
+                if (shouldDestroyWidgetInstance) {
                     widgetTypeInstance.onDestroy();
                 }
             } catch (e) {
