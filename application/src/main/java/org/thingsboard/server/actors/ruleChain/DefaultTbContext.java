@@ -132,12 +132,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
         scheduleMsgWithDelay(new RuleNodeToSelfMsg(msg), delayMs, nodeCtx.getSelfActor());
     }
 
-    @Override
-    public boolean isLocalEntity(EntityId entityId) {
-        Optional<ServerAddress> address = mainCtx.getRoutingService().resolveById(entityId);
-        return !address.isPresent();
-    }
-
     private void scheduleMsgWithDelay(Object msg, long delayInMs, ActorRef target) {
         mainCtx.getScheduler().scheduleOnce(Duration.create(delayInMs, TimeUnit.MILLISECONDS), target, msg, mainCtx.getActorSystem().dispatcher(), nodeCtx.getSelfActor());
     }
