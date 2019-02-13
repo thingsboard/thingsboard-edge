@@ -320,12 +320,9 @@ export default class TbMapWidgetV2 {
 		}
 
 		function updateLocationPolygonColor(location, color) {
-			if (!location.settings.calculatedPolygonColor || location.settings.calculatedPolygonColor !== color) {
+			if (location.polygon && color) {
 				location.settings.calculatedPolygonColor = color;
-				if (location.polygon) {
-					tbMap.map.updatePolygonColor(location.polygon, location.settings, color);
-				}
-
+				tbMap.map.updatePolygonColor(location.polygon, location.settings, color);
 			}
 		}
 
@@ -353,10 +350,8 @@ export default class TbMapWidgetV2 {
 		function updateLocationStyle(location, dataMap) {
 			updateLocationLabel(location, dataMap);
 			var color = calculateLocationColor(location, dataMap);
-			var polygonColor = calculateLocationPolygonColor(location, dataMap);
 			var image = calculateLocationMarkerImage(location, dataMap);
 			updateLocationColor(location, color, image);
-			if (location.settings.usePolygonColorFunction) updateLocationPolygonColor(location, polygonColor);
 			updateLocationMarkerIcon(location, image);
 		}
 
@@ -456,6 +451,7 @@ export default class TbMapWidgetV2 {
 					if (location.marker) {
 						updateLocationStyle(location, dataMap);
 					}
+
 				}
 			}
 			return locationChanged;
@@ -471,11 +467,13 @@ export default class TbMapWidgetV2 {
 						locationPolygonClick(event, location);
 					}, [location.dsIndex]);
 					tbMap.polygons.push(location.polygon);
+					if (location.settings.usePolygonColorFunction) updateLocationPolygonColor(location, calculateLocationPolygonColor(location, dataMap));
 				} else if (polygonLatLngs.length > 0) {
 					let prevPolygonArr = tbMap.map.getPolygonLatLngs(location.polygon);
 					if (!prevPolygonArr || !arraysEqual(prevPolygonArr, polygonLatLngs)) {
 						tbMap.map.setPolygonLatLngs(location.polygon, polygonLatLngs);
 					}
+					if (location.settings.usePolygonColorFunction) updateLocationPolygonColor(location, calculateLocationPolygonColor(location, dataMap));
 				}
 			}
 		}

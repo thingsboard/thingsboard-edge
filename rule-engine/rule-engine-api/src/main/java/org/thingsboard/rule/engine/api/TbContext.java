@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.api;
 
+import io.netty.channel.EventLoopGroup;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -126,4 +127,7 @@ public interface TbContext {
     String getNodeId();
 
     RuleChainTransactionService getRuleChainTransactionService();
+
+    EventLoopGroup getSharedEventLoop();
+
 }

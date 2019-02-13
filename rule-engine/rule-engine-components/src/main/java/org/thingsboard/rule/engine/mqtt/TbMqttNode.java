@@ -74,15 +74,13 @@ public class TbMqttNode implements TbNode {
 
     private TbMqttNodeConfiguration config;
 
-    private EventLoopGroup eventLoopGroup;
     private MqttClient mqttClient;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         try {
             this.config = TbNodeUtils.convert(configuration, TbMqttNodeConfiguration.class);
-            this.eventLoopGroup = new NioEventLoopGroup();
-            this.mqttClient = initClient();
+            this.mqttClient = initClient(ctx);
         } catch (Exception e) {
             throw new TbNodeException(e);
         }
@@ -114,12 +112,9 @@ public class TbMqttNode implements TbNode {
         if (this.mqttClient != null) {
             this.mqttClient.disconnect();
         }
-        if (this.eventLoopGroup != null) {
-            this.eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);
-        }
     }
 
-    private MqttClient initClient() throws Exception {
+    private MqttClient initClient(TbContext ctx) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext();
         MqttClientConfig config = sslContextOpt.isPresent() ? new MqttClientConfig(sslContextOpt.get()) : new MqttClientConfig();
         if (!StringUtils.isEmpty(this.config.getClientId())) {
@@ -128,7 +123,7 @@ public class TbMqttNode implements TbNode {
         config.setCleanSession(this.config.isCleanSession());
         this.config.getCredentials().configure(config);
         MqttClient client = MqttClient.create(config, null);
-        client.setEventLoop(this.eventLoopGroup);
+        client.setEventLoop(ctx.getSharedEventLoop());
         Future<MqttConnectResult> connectFuture = client.connect(this.config.getHost(), this.config.getPort());
         MqttConnectResult result;
         try {

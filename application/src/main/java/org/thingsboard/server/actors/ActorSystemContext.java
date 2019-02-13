@@ -89,6 +89,7 @@ import org.thingsboard.server.service.executors.ClusterRpcCallbackExecutorServic
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.rpc.DeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
@@ -244,6 +245,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private ExternalCallExecutorService externalCallExecutorService;
+
+    @Autowired
+    @Getter
+    private SharedEventLoopGroupService sharedEventLoopGroupService;
 
     @Autowired
     @Getter

@@ -57,7 +57,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     public void init() {
         if (useJsSandbox()) {
             sandbox = NashornSandboxes.create();
-            monitorExecutorService = Executors.newFixedThreadPool(getMonitorThreadPoolSize());
+            monitorExecutorService = Executors.newWorkStealingPool(getMonitorThreadPoolSize());
             sandbox.setExecutor(monitorExecutorService);
             sandbox.setMaxCPUTime(getMaxCpuTime());
             sandbox.allowNoBraces(false);

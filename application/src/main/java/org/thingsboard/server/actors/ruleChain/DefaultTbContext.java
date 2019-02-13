@@ -35,6 +35,7 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.FutureCallback;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.*;
+import io.netty.channel.EventLoopGroup;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
@@ -290,6 +291,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleChainTransactionService getRuleChainTransactionService() {
         return mainCtx.getRuleChainTransactionService();
+    }
+
+    @Override
+    public EventLoopGroup getSharedEventLoop() {
+        return mainCtx.getSharedEventLoopGroupService().getSharedEventLoopGroup();
     }
 
     @Override
