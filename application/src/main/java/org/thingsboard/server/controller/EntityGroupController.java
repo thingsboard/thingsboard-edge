@@ -149,7 +149,8 @@ public class EntityGroupController extends BaseController {
                         "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
             }
 
-            List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get();
+            List<GroupPermissionInfo> groupPermissions = new ArrayList<>();
+            groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get());
             if (entityGroup.getType() == EntityType.USER) {
                 groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(getTenantId(), entityGroupId).get());
             }
