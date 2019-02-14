@@ -83,6 +83,7 @@ public class RemoteTransportApiService {
 
         TBKafkaProducerTemplate.TBKafkaProducerTemplateBuilder<TransportApiResponseMsg> responseBuilder = TBKafkaProducerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
+        responseBuilder.clientId("producer-transport-api-response-" + nodeIdProvider.getNodeId());
         responseBuilder.encoder(new TransportApiResponseEncoder());
 
         TBKafkaConsumerTemplate.TBKafkaConsumerTemplateBuilder<TransportApiRequestMsg> requestBuilder = TBKafkaConsumerTemplate.builder();

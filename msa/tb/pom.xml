@@ -55,7 +55,7 @@
         <tb-cassandra.docker.name>tb-pe-cassandra</tb-cassandra.docker.name>
         <pkg.user>thingsboard</pkg.user>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <pkg.upgradeVersion>2.2.0</pkg.upgradeVersion>
+        <pkg.upgradeVersion>2.3.0</pkg.upgradeVersion>
     </properties>
 
     <dependencies>
