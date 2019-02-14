@@ -34,5 +34,5 @@ import org.thingsboard.server.dao.service.BaseDeviceCredentialsCacheTest;
 import org.thingsboard.server.dao.service.DaoNoSqlTest;
 
 @DaoNoSqlTest
-public class DeviceCredentialCacheNoSqlTest extends BaseDeviceCredentialsCacheTest {
+public class DeviceCredentialCacheServiceNoSqlTest extends BaseDeviceCredentialsCacheTest {
 }
