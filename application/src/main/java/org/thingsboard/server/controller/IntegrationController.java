@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -54,6 +56,9 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 public class IntegrationController extends BaseController {
+
+    @Autowired
+    private PlatformIntegrationService platformIntegrationService;
 
     private static final String INTEGRATION_ID = "integrationId";
 
@@ -97,6 +102,8 @@ public class IntegrationController extends BaseController {
 
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation,
                     integration.getId(), integration);
+
+            platformIntegrationService.validateIntegrationConfiguration(integration);
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
             actorService.onEntityStateChange(result.getTenantId(), result.getId(),

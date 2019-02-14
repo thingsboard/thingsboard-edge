@@ -41,6 +41,8 @@ public interface ThingsboardPlatformIntegration<T> {
 
     Integration getConfiguration();
 
+    void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts);
+
     void init(TbIntegrationInitParams params) throws Exception;
 
     void update(TbIntegrationInitParams params) throws Exception;

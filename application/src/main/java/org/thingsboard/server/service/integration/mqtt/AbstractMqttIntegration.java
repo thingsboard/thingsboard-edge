@@ -34,6 +34,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.util.StringUtils;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
@@ -47,6 +48,7 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -69,6 +71,21 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 MqttClientConfiguration.class);
         setupConfiguration(mqttClientConfiguration);
+    }
+
+    @Override
+    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+        MqttClientConfiguration mqttClientConfiguration;
+        try {
+            mqttClientConfiguration = mapper.readValue(
+                    mapper.writeValueAsString(configuration.get("clientConfiguration")),
+                    MqttClientConfiguration.class);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid MQTT Integration Configuration structure!");
+        }
+        if (!allowLocalNetworkHosts && isLocalNetworkHost(mqttClientConfiguration.getHost())) {
+            throw new IllegalArgumentException("Usage of local network host for MQTT broker connection is not allowed!");
+        }
     }
 
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {

@@ -175,6 +175,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Value("${integrations.statistics.persist_frequency}")
     private long statisticsPersistFrequency;
 
+    @Value("${integrations.allow_Local_network_hosts:true}")
+    private boolean allowLocalNetworkHosts;
+
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService reinitExecutorService;
     private ListeningExecutorService refreshExecutorService;
@@ -211,6 +214,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         integrationsByIdMap.clear();
         integrationsByRoutingKeyMap.clear();
         refreshExecutorService.shutdownNow();
+    }
+
+    @Override
+    public void validateIntegrationConfiguration(Integration integration) {
+        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
+        platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
     }
 
     @Override
@@ -570,7 +579,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     private ThingsboardPlatformIntegration newIntegration(Integration integration) {
-        return createThingsboardPlatformIntegration(integration);
+        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
+        platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
+        return platformIntegration;
     }
 
     private ThingsboardPlatformIntegration initIntegration(ThingsboardPlatformIntegration integration, Integration configuration) throws Exception {

@@ -64,6 +64,7 @@ import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -121,6 +122,21 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         connected = true;
         executor = Executors.newSingleThreadScheduledExecutor();
         executor.execute(this::scanForDevices);
+    }
+
+    @Override
+    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+        OpcUaServerConfiguration opcUaServerConfiguration;
+        try {
+            opcUaServerConfiguration = mapper.readValue(
+                    mapper.writeValueAsString(configuration.get("clientConfiguration")),
+                    OpcUaServerConfiguration.class);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid OPC-UA Integration Configuration structure!");
+        }
+        if (!allowLocalNetworkHosts && isLocalNetworkHost(opcUaServerConfiguration.getHost())) {
+            throw new IllegalArgumentException("Usage of local network host for OPC-UA server connection is not allowed!");
+        }
     }
 
     @Override

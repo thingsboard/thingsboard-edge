@@ -54,6 +54,8 @@ import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -108,6 +110,14 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
+    public void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) {
+        if (configuration == null || configuration.getConfiguration() == null) {
+            throw new IllegalArgumentException("Integration configuration is empty!");
+        }
+        doValidateConfiguration(configuration.getConfiguration(), allowLocalNetworkHosts);
+    }
+
+    @Override
     public void destroy() {
 
     }
@@ -122,6 +132,23 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         IntegrationStatistics statistics = this.integrationStatistics;
         this.integrationStatistics = new IntegrationStatistics();
         return statistics;
+    }
+
+    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+
+    }
+
+    protected static boolean isLocalNetworkHost(String host) {
+        try {
+            InetAddress address = InetAddress.getByName(host);
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() ||
+                    address.isSiteLocalAddress()) {
+                return true;
+            }
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Unable to resolve provided hostname: " + host);
+        }
+        return false;
     }
 
     protected Device processUplinkData(IntegrationContext context, UplinkData data) {

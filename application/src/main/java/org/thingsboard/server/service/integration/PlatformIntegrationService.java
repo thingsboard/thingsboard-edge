@@ -48,6 +48,8 @@ import java.util.Optional;
  */
 public interface PlatformIntegrationService extends DiscoveryServiceListener {
 
+    void validateIntegrationConfiguration(Integration integration);
+
     ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
 
     ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration integration);
