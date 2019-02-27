@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -88,22 +88,24 @@ export function processPattern(pattern, datasources, dsIndex) {
 
 export function fillPattern(pattern, replaceInfo, data) {
     var text = angular.copy(pattern);
-    for (var v = 0; v < replaceInfo.variables.length; v++) {
-        var variableInfo = replaceInfo.variables[v];
-        var txtVal = '';
-        if (variableInfo.dataKeyIndex > -1 && data[variableInfo.dataKeyIndex]) {
-            var varData = data[variableInfo.dataKeyIndex].data;
-            if (varData.length > 0) {
-                var val = varData[varData.length - 1][1];
-                if (isNumber(val)) {
-                    txtVal = padValue(val, variableInfo.valDec, 0);
-                } else {
-                    txtVal = val;
-                }
-            }
-        }
-        text = text.split(variableInfo.variable).join(txtVal);
-    }
+    if (replaceInfo) {
+		for (var v = 0; v < replaceInfo.variables.length; v++) {
+			var variableInfo = replaceInfo.variables[v];
+			var txtVal = '';
+			if (variableInfo.dataKeyIndex > -1 && data[variableInfo.dataKeyIndex]) {
+				var varData = data[variableInfo.dataKeyIndex].data;
+				if (varData.length > 0) {
+					var val = varData[varData.length - 1][1];
+					if (isNumber(val)) {
+						txtVal = padValue(val, variableInfo.valDec, 0);
+					} else {
+						txtVal = val;
+					}
+				}
+			}
+			text = text.split(variableInfo.variable).join(txtVal);
+		}
+	}
     return text;
 }
 
@@ -154,7 +156,9 @@ export function toLabelValueMap(data, datasources) {
     var dataMap = {};
     var dsDataMap = [];
     for (var d=0;d<datasources.length;d++) {
-        dsDataMap[d] = {};
+        dsDataMap[d] = {
+            $datasource: datasources[d]
+        };
     }
     for (var i = 0; i < data.length; i++) {
         var dataKey = data[i].dataKey;

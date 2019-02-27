@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.dao.user;
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityField;
@@ -54,9 +54,11 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
+
 import java.util.List;
 import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.*;
 
 @Service
@@ -67,91 +69,109 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
+    @Value("${security.user_login_case_sensitive:true}")
+    private boolean userLoginCaseSensitive;
+
     @Autowired
     private UserDao userDao;
-    
+
     @Autowired
     private UserCredentialsDao userCredentialsDao;
-    
+
     @Autowired
     private TenantDao tenantDao;
-    
+
     @Autowired
     private CustomerDao customerDao;
-    
-	@Override
-	public User findUserByEmail(String email) {
-	    log.trace("Executing findUserByEmail [{}]", email);
-		validateString(email, "Incorrect email " + email);
-		return userDao.findByEmail(email);
-	}
-
-	@Override
-	public User findUserById(UserId userId) {
-	    log.trace("Executing findUserById [{}]", userId);
-		validateId(userId, INCORRECT_USER_ID + userId);
-		return userDao.findById(userId.getId());
-	}
 
     @Override
-    public ListenableFuture<User> findUserByIdAsync(UserId userId) {
+    public User findUserByEmail(TenantId tenantId, String email) {
+        log.trace("Executing findUserByEmail [{}]", email);
+        validateString(email, "Incorrect email " + email);
+        if (userLoginCaseSensitive) {
+            return userDao.findByEmail(tenantId, email);
+        } else {
+            return userDao.findByEmail(tenantId, email.toLowerCase());
+        }
+    }
+
+    @Override
+    public User findUserById(TenantId tenantId, UserId userId) {
+        log.trace("Executing findUserById [{}]", userId);
+        validateId(userId, INCORRECT_USER_ID + userId);
+        return userDao.findById(tenantId, userId.getId());
+    }
+
+    @Override
+    public ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId) {
         log.trace("Executing findUserByIdAsync [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
-        return userDao.findByIdAsync(userId.getId());
+        return userDao.findByIdAsync(tenantId, userId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds) {
+        log.trace("Executing findUsersByTenantIdAndIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(userIds, "Incorrect userIds " + userIds);
+        return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
     }
 
     @Override
     public User saveUser(User user) {
         log.trace("Executing saveUser [{}]", user);
-        userValidator.validate(user);
-        User savedUser = userDao.save(user);
+        userValidator.validate(user, User::getTenantId);
+        if (user.getId() == null && !userLoginCaseSensitive) {
+            user.setEmail(user.getEmail().toLowerCase());
+        }
+        User savedUser = userDao.save(user.getTenantId(), user);
         if (user.getId() == null) {
             UserCredentials userCredentials = new UserCredentials();
             userCredentials.setEnabled(false);
             userCredentials.setActivateToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
             userCredentials.setUserId(new UserId(savedUser.getUuidId()));
-            userCredentialsDao.save(userCredentials);
+            userCredentialsDao.save(user.getTenantId(), userCredentials);
             if (!user.getTenantId().isNullUid()) {
-                entityGroupService.addEntityToEntityGroupAll(savedUser.getTenantId(), savedUser.getId());
+                entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
             }
-        }        
+        }
         return savedUser;
     }
-    
+
     @Override
-    public UserCredentials findUserCredentialsByUserId(UserId userId) {
+    public UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId) {
         log.trace("Executing findUserCredentialsByUserId [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
-        return userCredentialsDao.findByUserId(userId.getId());
+        return userCredentialsDao.findByUserId(tenantId, userId.getId());
     }
 
     @Override
-    public UserCredentials findUserCredentialsByActivateToken(String activateToken) {
+    public UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken) {
         log.trace("Executing findUserCredentialsByActivateToken [{}]", activateToken);
         validateString(activateToken, "Incorrect activateToken " + activateToken);
-        return userCredentialsDao.findByActivateToken(activateToken);
+        return userCredentialsDao.findByActivateToken(tenantId, activateToken);
     }
 
     @Override
-    public UserCredentials findUserCredentialsByResetToken(String resetToken) {
+    public UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken) {
         log.trace("Executing findUserCredentialsByResetToken [{}]", resetToken);
         validateString(resetToken, "Incorrect resetToken " + resetToken);
-        return userCredentialsDao.findByResetToken(resetToken);
+        return userCredentialsDao.findByResetToken(tenantId, resetToken);
     }
 
     @Override
-    public UserCredentials saveUserCredentials(UserCredentials userCredentials) {
+    public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
         log.trace("Executing saveUserCredentials [{}]", userCredentials);
-        userCredentialsValidator.validate(userCredentials);
-        return userCredentialsDao.save(userCredentials);
+        userCredentialsValidator.validate(userCredentials, data -> tenantId);
+        return userCredentialsDao.save(tenantId, userCredentials);
     }
-    
+
     @Override
-    public UserCredentials activateUserCredentials(String activateToken, String password) {
+    public UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password) {
         log.trace("Executing activateUserCredentials activateToken [{}], password [{}]", activateToken, password);
         validateString(activateToken, "Incorrect activateToken " + activateToken);
         validateString(password, "Incorrect password " + password);
-        UserCredentials userCredentials = userCredentialsDao.findByActivateToken(activateToken);
+        UserCredentials userCredentials = userCredentialsDao.findByActivateToken(tenantId, activateToken);
         if (userCredentials == null) {
             throw new IncorrectParameterException(String.format("Unable to find user credentials by activateToken [%s]", activateToken));
         }
@@ -161,35 +181,35 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userCredentials.setEnabled(true);
         userCredentials.setActivateToken(null);
         userCredentials.setPassword(password);
-        
-        return saveUserCredentials(userCredentials);
+
+        return saveUserCredentials(tenantId, userCredentials);
     }
 
     @Override
-    public UserCredentials requestPasswordReset(String email) {
+    public UserCredentials requestPasswordReset(TenantId tenantId, String email) {
         log.trace("Executing requestPasswordReset email [{}]", email);
         validateString(email, "Incorrect email " + email);
-        User user = userDao.findByEmail(email);
+        User user = userDao.findByEmail(tenantId, email);
         if (user == null) {
             throw new IncorrectParameterException(String.format("Unable to find user by email [%s]", email));
         }
-        UserCredentials userCredentials = userCredentialsDao.findByUserId(user.getUuidId());
+        UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, user.getUuidId());
         if (!userCredentials.isEnabled()) {
             throw new IncorrectParameterException("Unable to reset password for inactive user");
         }
         userCredentials.setResetToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
-        return saveUserCredentials(userCredentials);
+        return saveUserCredentials(tenantId, userCredentials);
     }
 
 
     @Override
-    public void deleteUser(UserId userId) {
+    public void deleteUser(TenantId tenantId, UserId userId) {
         log.trace("Executing deleteUser [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
-        UserCredentials userCredentials = userCredentialsDao.findByUserId(userId.getId());
-        userCredentialsDao.removeById(userCredentials.getUuidId());
-        deleteEntityRelations(userId);
-        userDao.removeById(userId.getId());
+        UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, userId.getId());
+        userCredentialsDao.removeById(tenantId, userCredentials.getUuidId());
+        deleteEntityRelations(tenantId, userId);
+        userDao.removeById(tenantId, userId.getId());
     }
 
     @Override
@@ -205,7 +225,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public void deleteTenantAdmins(TenantId tenantId) {
         log.trace("Executing deleteTenantAdmins, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantAdminsRemover.removeEntities(tenantId);
+        tenantAdminsRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
@@ -219,62 +239,81 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public TextPageData<User> findAllCustomerUsers(TenantId tenantId, TextPageLink pageLink) {
+        log.trace("Executing findAllCustomerUsers, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        List<User> users = userDao.findAllCustomerUsers(tenantId.getId(), pageLink);
+        return new TextPageData<>(users, pageLink);
+    }
+
+    @Override
     public void deleteCustomerUsers(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteCustomerUsers, customerId [{}]", customerId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, "Incorrect customerId " + customerId);
-        new CustomerUsersRemover(tenantId).removeEntities(customerId);
+        customerUsersRemover.removeEntities(tenantId, customerId);
     }
 
     @Override
-    public EntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupUser(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupUser, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, userViewFunction);
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (userEntityId) -> new UserId(userEntityId.getId()),
+                (userId) -> findUserById(tenantId, userId),
+                new UserViewFunction());
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, userViewFunction);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new UserId(entityId.getId()),
+                (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds),
+                new UserViewFunction());
     }
 
-    private BiFunction<EntityView, List<EntityField>, EntityView> userViewFunction = ((entityView, entityFields) -> {
-        User user = findUserById(new UserId(entityView.getId().getId()));
-        entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
-        for (EntityField field : entityFields) {
-            String key = field.name().toLowerCase();
-            switch (field) {
-                case AUTHORITY:
-                    entityView.put(key, user.getAuthority().name());
-                    break;
-                case FIRST_NAME:
-                    entityView.put(key, user.getFirstName());
-                    break;
-                case LAST_NAME:
-                    entityView.put(key, user.getLastName());
-                    break;
-                case EMAIL:
-                    entityView.put(key, user.getEmail());
-                    break;
+    class UserViewFunction implements BiFunction<User, List<EntityField>, ShortEntityView> {
+
+        @Override
+        public ShortEntityView apply(User user, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(user.getId());
+            entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case AUTHORITY:
+                        entityView.put(key, user.getAuthority().name());
+                        break;
+                    case FIRST_NAME:
+                        entityView.put(key, user.getFirstName());
+                        break;
+                    case LAST_NAME:
+                        entityView.put(key, user.getLastName());
+                        break;
+                    case EMAIL:
+                        entityView.put(key, user.getEmail());
+                        break;
+                }
             }
+            return entityView;
         }
-        return entityView;
-    });
+    }
 
     private DataValidator<User> userValidator =
             new DataValidator<User>() {
                 @Override
-                protected void validateDataImpl(User user) {
+                protected void validateDataImpl(TenantId requestTenantId, User user) {
                     if (StringUtils.isEmpty(user.getEmail())) {
                         throw new DataValidationException("User email should be specified!");
                     }
-                    
+
                     validateEmail(user.getEmail());
-                    
+
                     Authority authority = user.getAuthority();
                     if (authority == null) {
                         throw new DataValidationException("User authority isn't defined!");
@@ -289,12 +328,12 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                         customerId = new CustomerId(ModelConstants.NULL_UUID);
                         user.setCustomerId(customerId);
                     }
-                    
+
                     switch (authority) {
                         case SYS_ADMIN:
                             if (!tenantId.getId().equals(ModelConstants.NULL_UUID)
                                     || !customerId.getId().equals(ModelConstants.NULL_UUID)) {
-                                    throw new DataValidationException("System administrator can't be assigned neither to tenant nor to customer!");
+                                throw new DataValidationException("System administrator can't be assigned neither to tenant nor to customer!");
                             }
                             break;
                         case TENANT_ADMIN:
@@ -306,46 +345,46 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                             break;
                         case CUSTOMER_USER:
                             if (tenantId.getId().equals(ModelConstants.NULL_UUID)
-                                || customerId.getId().equals(ModelConstants.NULL_UUID) ) {
+                                    || customerId.getId().equals(ModelConstants.NULL_UUID)) {
                                 throw new DataValidationException("Customer user should be assigned to customer!");
                             }
                             break;
                         default:
                             break;
                     }
-                    
-                    User existentUserWithEmail = findUserByEmail(user.getEmail());
+
+                    User existentUserWithEmail = findUserByEmail(tenantId, user.getEmail());
                     if (existentUserWithEmail != null && !isSameData(existentUserWithEmail, user)) {
                         throw new DataValidationException("User with email '" + user.getEmail() + "' "
                                 + " already present in database!");
                     }
                     if (!tenantId.getId().equals(ModelConstants.NULL_UUID)) {
-                        Tenant tenant = tenantDao.findById(user.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, user.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("User is referencing to non-existent tenant!");
                         }
                     }
                     if (!customerId.getId().equals(ModelConstants.NULL_UUID)) {
-                        Customer customer = customerDao.findById(user.getCustomerId().getId());
+                        Customer customer = customerDao.findById(tenantId, user.getCustomerId().getId());
                         if (customer == null) {
                             throw new DataValidationException("User is referencing to non-existent customer!");
                         } else if (!customer.getTenantId().getId().equals(tenantId.getId())) {
                             throw new DataValidationException("User can't be assigned to customer from different tenant!");
                         }
                     }
-                 }
-    };
-    
-    private DataValidator<UserCredentials> userCredentialsValidator = 
+                }
+            };
+
+    private DataValidator<UserCredentials> userCredentialsValidator =
             new DataValidator<UserCredentials>() {
-        
+
                 @Override
-                protected void validateCreate(UserCredentials userCredentials) {
+                protected void validateCreate(TenantId tenantId, UserCredentials userCredentials) {
                     throw new IncorrectParameterException("Creation of new user credentials is prohibited.");
                 }
-                
+
                 @Override
-                protected void validateDataImpl(UserCredentials userCredentials) {
+                protected void validateDataImpl(TenantId tenantId, UserCredentials userCredentials) {
                     if (userCredentials.getUserId() == null) {
                         throw new DataValidationException("User credentials should be assigned to user!");
                     }
@@ -357,50 +396,40 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                             throw new DataValidationException("Enabled user credentials can't have activate token!");
                         }
                     }
-                    UserCredentials existingUserCredentialsEntity = userCredentialsDao.findById(userCredentials.getId().getId());
+                    UserCredentials existingUserCredentialsEntity = userCredentialsDao.findById(tenantId, userCredentials.getId().getId());
                     if (existingUserCredentialsEntity == null) {
                         throw new DataValidationException("Unable to update non-existent user credentials!");
                     }
-                    User user = findUserById(userCredentials.getUserId());
+                    User user = findUserById(tenantId, userCredentials.getUserId());
                     if (user == null) {
                         throw new DataValidationException("Can't assign user credentials to non-existent user!");
                     }
                 }
-    };
-    
-    private PaginatedRemover<TenantId, User> tenantAdminsRemover =
-            new PaginatedRemover<TenantId, User>() {
-        
+            };
+
+    private PaginatedRemover<TenantId, User> tenantAdminsRemover = new PaginatedRemover<TenantId, User>() {
         @Override
-        protected List<User> findEntities(TenantId id, TextPageLink pageLink) {
+        protected List<User> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
             return userDao.findTenantAdmins(id.getId(), pageLink);
         }
 
         @Override
-        protected void removeEntity(User entity) {
-            deleteUser(new UserId(entity.getUuidId()));
+        protected void removeEntity(TenantId tenantId, User entity) {
+            deleteUser(tenantId, new UserId(entity.getUuidId()));
         }
     };
-    
-    private class CustomerUsersRemover extends PaginatedRemover<CustomerId, User> {
-        
-        private TenantId tenantId;
-        
-        CustomerUsersRemover(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
 
+    private PaginatedRemover<CustomerId, User> customerUsersRemover = new PaginatedRemover<CustomerId, User>() {
         @Override
-        protected List<User> findEntities(CustomerId id, TextPageLink pageLink) {
+        protected List<User> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
             return userDao.findCustomerUsers(tenantId.getId(), id.getId(), pageLink);
- 
+
         }
 
         @Override
-        protected void removeEntity(User entity) {
-            deleteUser(new UserId(entity.getUuidId()));
+        protected void removeEntity(TenantId tenantId, User entity) {
+            deleteUser(tenantId, new UserId(entity.getUuidId()));
         }
-        
-    }
-    
+    };
+
 }

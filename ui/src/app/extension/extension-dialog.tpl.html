@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-dialog class="extensionDialog" aria-label="{{ (vm.isAdd ? 'extension.add' : 'extension.edit' ) | translate }}">
+<md-dialog class="extensionDialog" aria-label="{{vm.isAdd ? 'extension.create' : (vm.readonly ? 'extension.view' : 'extension.edit')}}">
     <form name="theForm" ng-submit="vm.save()" novalidate>
         <md-toolbar>
             <div class="md-toolbar-tools">
-                <h2 translate>{{ vm.isAdd ? 'extension.add' : 'extension.edit'}}</h2>
+                <h2 translate>{{vm.isAdd ? 'extension.create' : (vm.readonly ? 'extension.view' : 'extension.edit')}}</h2>
                 <span flex></span>
                 <md-button class="md-icon-button" ng-click="vm.cancel()">
                     <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
@@ -49,7 +49,7 @@
         <md-dialog-content>
             <div class="md-dialog-content">
                 <md-content class="md-padding" layout="column">
-                    <fieldset ng-disabled="$root.loading">
+                    <fieldset ng-disabled="$root.loading || vm.readonly">
                         <section flex layout="row">
                             <md-input-container flex="60" class="md-block" md-is-error="theForm.extensionId.$touched && theForm.extensionId.$invalid">
                                 <label translate>extension.extension-id</label>
@@ -74,22 +74,24 @@
                                 </div>
                             </md-input-container>
                         </section>
-                        <div tb-extension-form-http config="vm.extension.configuration" is-add="vm.isAdd" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.http"></div>
-                        <div tb-extension-form-mqtt config="vm.extension.configuration" is-add="vm.isAdd" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.mqtt"></div>
-                        <div tb-extension-form-opc  configuration="vm.extension.configuration"  ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.opc"></div>
+                        <div tb-extension-form-http config="vm.extension.configuration" is-add="vm.isAdd" readonly="vm.readonly" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.http"></div>
+                        <div tb-extension-form-mqtt config="vm.extension.configuration" is-add="vm.isAdd" readonly="vm.readonly" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.mqtt"></div>
+                        <div tb-extension-form-opc  configuration="vm.extension.configuration" readonly="vm.readonly" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.opc"></div>
+                        <div tb-extension-form-modbus  configuration="vm.extension.configuration" readonly="vm.readonly" ng-if="vm.extension.type && vm.extension.type == vm.types.extensionType.modbus"></div>
                     </fieldset>
                 </md-content>
             </div>
         </md-dialog-content>
 
         <md-dialog-actions layout="row">
-            <md-button type="submit"
+            <md-button ng-if="!vm.readonly"
+                       type="submit"
                        class="md-raised md-primary"
             >
                 {{ (vm.isAdd  ? 'action.add' : 'action.save') | translate }}
             </md-button>
 
-            <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ 'action.cancel' | translate }}
+            <md-button ng-disabled="$root.loading" ng-click="vm.cancel()" style="margin-right:20px;">{{ (vm.readonly ? 'action.close' : 'action.cancel') | translate }}
             </md-button>
         </md-dialog-actions>
     </form>

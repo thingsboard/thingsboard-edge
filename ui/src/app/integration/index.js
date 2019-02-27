@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,10 +31,28 @@
 import IntegrationRoutes from './integration.routes';
 import {IntegrationController, IntegrationCardController} from './integration.controller';
 import IntegrationDirective from './integration.directive';
+import IntegrationHttpDirective from './integration-forms/integration-http.directive';
+import IntegrationMqttDirective from './integration-forms/integration-mqtt.directive';
+import IntegrationOpcUaDirective from './integration-forms/integration-opc-ua.directive';
+import IntegrationAwsIotDirective from './integration-forms/integration-aws-iot.directive';
+import IntegrationIbmWatsonIotDirective from './integration-forms/integration-ibm-watson-iot.directive';
+import IntegrationTtnDirective from './integration-forms/integration-ttn.directive';
+import MqttTopicFiltersDirective from './integration-forms/mqtt-topic-filters.directive';
+import OpcUaSubscriptionTagsDirective from './integration-forms/opc-ua-subscription-tags.directive';
+import IntegrationAzureEventHubDirective from './integration-forms/integration-azure-event-hub.directive';
 
 export default angular.module('thingsboard.integration', [])
     .config(IntegrationRoutes)
     .controller('IntegrationController', IntegrationController)
     .controller('IntegrationCardController', IntegrationCardController)
     .directive('tbIntegration', IntegrationDirective)
+    .directive('tbIntegrationHttp', IntegrationHttpDirective)
+    .directive('tbIntegrationMqtt', IntegrationMqttDirective)
+    .directive('tbIntegrationOpcUa', IntegrationOpcUaDirective)
+    .directive('tbIntegrationAwsIot', IntegrationAwsIotDirective)
+    .directive('tbIntegrationIbmWatsonIot', IntegrationIbmWatsonIotDirective)
+    .directive('tbIntegrationTtn', IntegrationTtnDirective)
+    .directive('tbMqttTopicFilters', MqttTopicFiltersDirective)
+    .directive('tbOpcUaSubscriptionTags', OpcUaSubscriptionTagsDirective)
+    .directive('tbIntegrationAzureEventHub', IntegrationAzureEventHubDirective)
     .name;

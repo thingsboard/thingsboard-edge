@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,12 +36,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -53,14 +53,10 @@ import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.jpa.domain.Specifications.where;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 
@@ -76,7 +72,7 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     private RelationRepository relationRepository;
 
     @Override
-    public ListenableFuture<List<EntityRelation>> findAllByFrom(EntityId from, RelationTypeGroup typeGroup) {
+    public ListenableFuture<List<EntityRelation>> findAllByFrom(TenantId tenantId, EntityId from, RelationTypeGroup typeGroup) {
         return service.submit(() -> DaoUtil.convertDataList(
                 relationRepository.findAllByFromIdAndFromTypeAndRelationTypeGroup(
                         UUIDConverter.fromTimeUUID(from.getId()),
@@ -85,7 +81,7 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<List<EntityRelation>> findAllByFromAndType(EntityId from, String relationType, RelationTypeGroup typeGroup) {
+    public ListenableFuture<List<EntityRelation>> findAllByFromAndType(TenantId tenantId, EntityId from, String relationType, RelationTypeGroup typeGroup) {
         return service.submit(() -> DaoUtil.convertDataList(
                 relationRepository.findAllByFromIdAndFromTypeAndRelationTypeAndRelationTypeGroup(
                         UUIDConverter.fromTimeUUID(from.getId()),
@@ -95,7 +91,7 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<List<EntityRelation>> findAllByTo(EntityId to, RelationTypeGroup typeGroup) {
+    public ListenableFuture<List<EntityRelation>> findAllByTo(TenantId tenantId, EntityId to, RelationTypeGroup typeGroup) {
         return service.submit(() -> DaoUtil.convertDataList(
                 relationRepository.findAllByToIdAndToTypeAndRelationTypeGroup(
                         UUIDConverter.fromTimeUUID(to.getId()),
@@ -104,7 +100,7 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<List<EntityRelation>> findAllByToAndType(EntityId to, String relationType, RelationTypeGroup typeGroup) {
+    public ListenableFuture<List<EntityRelation>> findAllByToAndType(TenantId tenantId, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         return service.submit(() -> DaoUtil.convertDataList(
                 relationRepository.findAllByToIdAndToTypeAndRelationTypeAndRelationTypeGroup(
                         UUIDConverter.fromTimeUUID(to.getId()),
@@ -114,13 +110,13 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<Boolean> checkRelation(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+    public ListenableFuture<Boolean> checkRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
         return service.submit(() -> relationRepository.findOne(key) != null);
     }
 
     @Override
-    public ListenableFuture<EntityRelation> getRelation(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+    public ListenableFuture<EntityRelation> getRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
         return service.submit(() -> DaoUtil.getData(relationRepository.findOne(key)));
     }
@@ -135,76 +131,76 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public boolean saveRelation(EntityRelation relation) {
+    public boolean saveRelation(TenantId tenantId, EntityRelation relation) {
         return relationRepository.save(new RelationEntity(relation)) != null;
     }
 
     @Override
-    public ListenableFuture<Boolean> saveRelationAsync(EntityRelation relation) {
+    public ListenableFuture<Boolean> saveRelationAsync(TenantId tenantId, EntityRelation relation) {
         return service.submit(() -> relationRepository.save(new RelationEntity(relation)) != null);
     }
 
     @Override
-    public boolean deleteRelation(EntityRelation relation) {
+    public boolean deleteRelation(TenantId tenantId, EntityRelation relation) {
         RelationCompositeKey key = new RelationCompositeKey(relation);
+        return deleteRelationIfExists(key);
+    }
+
+    @Override
+    public ListenableFuture<Boolean> deleteRelationAsync(TenantId tenantId, EntityRelation relation) {
+        RelationCompositeKey key = new RelationCompositeKey(relation);
+        return service.submit(
+                () -> deleteRelationIfExists(key));
+    }
+
+    @Override
+    public boolean deleteRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
+        return deleteRelationIfExists(key);
+    }
+
+    @Override
+    public ListenableFuture<Boolean> deleteRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
+        return service.submit(
+                () -> deleteRelationIfExists(key));
+    }
+
+    private boolean deleteRelationIfExists(RelationCompositeKey key) {
         boolean relationExistsBeforeDelete = relationRepository.exists(key);
-        relationRepository.delete(key);
+        if (relationExistsBeforeDelete) {
+            relationRepository.delete(key);
+        }
         return relationExistsBeforeDelete;
     }
 
     @Override
-    public ListenableFuture<Boolean> deleteRelationAsync(EntityRelation relation) {
-        RelationCompositeKey key = new RelationCompositeKey(relation);
-        return service.submit(
-                () -> {
-                    boolean relationExistsBeforeDelete = relationRepository.exists(key);
-                    relationRepository.delete(key);
-                    return relationExistsBeforeDelete;
-                });
-    }
-
-    @Override
-    public boolean deleteRelation(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
-        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
-        boolean relationExistsBeforeDelete = relationRepository.exists(key);
-        relationRepository.delete(key);
-        return relationExistsBeforeDelete;
-    }
-
-    @Override
-    public ListenableFuture<Boolean> deleteRelationAsync(EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
-        RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
-        return service.submit(
-                () -> {
-                    boolean relationExistsBeforeDelete = relationRepository.exists(key);
-                    relationRepository.delete(key);
-                    return relationExistsBeforeDelete;
-                });
-    }
-
-    @Override
-    public boolean deleteOutboundRelations(EntityId entity) {
+    public boolean deleteOutboundRelations(TenantId tenantId, EntityId entity) {
         boolean relationExistsBeforeDelete = relationRepository
                 .findAllByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name())
                 .size() > 0;
-        relationRepository.deleteByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name());
+        if (relationExistsBeforeDelete) {
+            relationRepository.deleteByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name());
+        }
         return relationExistsBeforeDelete;
     }
 
     @Override
-    public ListenableFuture<Boolean> deleteOutboundRelationsAsync(EntityId entity) {
+    public ListenableFuture<Boolean> deleteOutboundRelationsAsync(TenantId tenantId, EntityId entity) {
         return service.submit(
                 () -> {
                     boolean relationExistsBeforeDelete = relationRepository
                             .findAllByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name())
                             .size() > 0;
-                    relationRepository.deleteByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name());
+                    if (relationExistsBeforeDelete) {
+                        relationRepository.deleteByFromIdAndFromType(UUIDConverter.fromTimeUUID(entity.getId()), entity.getEntityType().name());
+                    }
                     return relationExistsBeforeDelete;
                 });
     }
 
     @Override
-    public ListenableFuture<List<EntityRelation>> findRelations(EntityId from, String relationType, RelationTypeGroup typeGroup, EntityType childType, TimePageLink pageLink) {
+    public ListenableFuture<List<EntityRelation>> findRelations(TenantId tenantId, EntityId from, String relationType, RelationTypeGroup typeGroup, EntityType childType, TimePageLink pageLink) {
         Specification<RelationEntity> timeSearchSpec = JpaAbstractSearchTimeDao.getTimeSearchPageSpec(pageLink, "toId");
         Specification<RelationEntity> fieldsSpec = getEntityFieldsSpec(from, relationType, typeGroup, childType);
         Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;

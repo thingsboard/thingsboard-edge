@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,34 +32,16 @@ package org.thingsboard.server.service.cluster.rpc;
 
 import org.thingsboard.server.actors.rpc.RpcBroadcastMsg;
 import org.thingsboard.server.actors.rpc.RpcSessionCreateRequestMsg;
-import org.thingsboard.server.actors.rpc.RpcSessionTellMsg;
-import org.thingsboard.server.common.msg.cluster.ToAllNodesMsg;
-import org.thingsboard.server.common.msg.core.ToDeviceSessionActorMsg;
-import org.thingsboard.server.common.msg.device.ToDeviceActorMsg;
-import org.thingsboard.server.extensions.api.device.ToDeviceActorNotificationMsg;
-import org.thingsboard.server.extensions.api.plugins.msg.ToPluginActorMsg;
-import org.thingsboard.server.extensions.api.plugins.rpc.PluginRpcMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
 
 /**
  * @author Andrew Shvayka
  */
+
 public interface RpcMsgListener {
-
-    void onMsg(ToDeviceActorMsg msg);
-
-    void onMsg(ToDeviceActorNotificationMsg msg);
-
-    void onMsg(ToDeviceSessionActorMsg msg);
-
-    void onMsg(ToAllNodesMsg nodeMsg);
-
-    void onMsg(ToPluginActorMsg msg);
-
-    void onMsg(RpcSessionCreateRequestMsg msg);
-
-    void onMsg(RpcSessionTellMsg rpcSessionTellMsg);
-
-    void onMsg(RpcBroadcastMsg rpcBroadcastMsg);
-
+    void onReceivedMsg(ServerAddress remoteServer, ClusterAPIProtos.ClusterMessage msg);
+    void onSendMsg(ClusterAPIProtos.ClusterMessage msg);
+    void onRpcSessionCreateRequestMsg(RpcSessionCreateRequestMsg msg);
+    void onBroadcastMsg(RpcBroadcastMsg msg);
 }

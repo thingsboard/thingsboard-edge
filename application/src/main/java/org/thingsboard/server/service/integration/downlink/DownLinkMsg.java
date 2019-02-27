@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,14 +32,12 @@ package org.thingsboard.server.service.integration.downlink;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ashvayka on 22.02.18.
@@ -47,66 +45,20 @@ import java.util.*;
 @Data
 public class DownLinkMsg implements Serializable {
 
-    private final DeviceId deviceId;
-    private final String deviceName;
-    private final String deviceType;
+    private final List<TbMsg> msgs = new ArrayList<>();
 
-    private Map<String, Map<String,String>> currentAttributes = new HashMap<>();
-    {
-        currentAttributes.put("server", new HashMap<>());
-        currentAttributes.put("shared", new HashMap<>());
-        currentAttributes.put("client", new HashMap<>());
-    }
-    private Set<String> deletedAttributes = new HashSet<>();
-    private Map<String, AttributeUpdate> updatedAttributes = new HashMap<>();
-    private List<RPCCall> rpcCalls = new LinkedList<>();
-
-    public static DownLinkMsg from(RPCCallIntegrationMsg msg) {
-        return merge(new DownLinkMsg(msg.getDeviceId(), msg.getDeviceName(), msg.getDeviceType()), msg);
+    public static DownLinkMsg from(IntegrationDownlinkMsg msg) {
+        return merge(new DownLinkMsg(), msg);
     }
 
-    public static DownLinkMsg merge(DownLinkMsg result, RPCCallIntegrationMsg msg) {
-        RPCCall call = new RPCCall();
-        call.setId(msg.getId());
-        call.setExpirationTime(msg.getExpirationTime());
-        call.setMethod(msg.getBody().getMethod());
-        call.setParams(msg.getBody().getParams());
-        result.rpcCalls.add(call);
+    public static DownLinkMsg merge(DownLinkMsg result, IntegrationDownlinkMsg msg) {
+        result.getMsgs().clear();
+        result.getMsgs().add(msg.getTbMsg());
         return result;
-    }
-
-    public static DownLinkMsg from(SharedAttributesUpdateIntegrationMsg msg) {
-        return merge(new DownLinkMsg(msg.getDeviceId(), msg.getDeviceName(), msg.getDeviceType()), msg);
-    }
-
-    public static DownLinkMsg merge(DownLinkMsg result, SharedAttributesUpdateIntegrationMsg msg) {
-        if (msg.getDeletedKeys() != null) {
-            msg.getDeletedKeys().forEach(key -> result.deletedAttributes.add(key.getAttributeKey()));
-        }
-
-        if (msg.getUpdatedValues() != null) {
-            msg.getUpdatedValues().forEach(value -> result.getUpdatedAttributes().put(value.getKey(), new AttributeUpdate(value.getLastUpdateTs(), value.getValueAsString())));
-        }
-
-        return result;
-    }
-
-    public void addCurrentAttribute(String scope, String key, String value) {
-        String scopeKey = "";
-        if (DataConstants.SERVER_SCOPE.equals(scope)) {
-            scopeKey = "server";
-        } else if (DataConstants.SHARED_SCOPE.equals(scope)) {
-            scopeKey = "shared";
-        } else if (DataConstants.CLIENT_SCOPE.equals(scope)) {
-            scopeKey = "client";
-        }
-        if (!StringUtils.isEmpty(scopeKey)) {
-            currentAttributes.get(scopeKey).put(key, value);
-        }
     }
 
     @JsonIgnore
     public boolean isEmpty() {
-        return deletedAttributes.isEmpty() && updatedAttributes.isEmpty() && rpcCalls.isEmpty();
+        return msgs.isEmpty();
     }
 }

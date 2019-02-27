@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,12 +35,14 @@ import customerFieldsetTemplate from './customer-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function CustomerDirective($compile, $templateCache, $translate, toast) {
+export default function CustomerDirective($compile, $templateCache, $translate, toast, userService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(customerFieldsetTemplate);
         element.html(template);
 
         scope.isPublic = false;
+
+        scope.allowCustomerWhiteLabeling = userService.isCustomerWhiteLabelingAllowed();
 
         scope.onCustomerIdCopied = function() {
             toast.showSuccess($translate.instant('customer.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
@@ -50,11 +52,21 @@ export default function CustomerDirective($compile, $templateCache, $translate, 
             if (newVal) {
                 if (scope.customer.additionalInfo) {
                     scope.isPublic = scope.customer.additionalInfo.isPublic;
+                    scope.allowWhiteLabeling = angular.isUndefined(scope.customer.additionalInfo.allowWhiteLabeling) ||
+                        scope.customer.additionalInfo.allowWhiteLabeling === true;
                 } else {
                     scope.isPublic = false;
+                    scope.allowWhiteLabeling = true;
                 }
             }
         });
+
+        scope.onAllowWhitelabelingChanged = function () {
+            if (!scope.customer.additionalInfo) {
+                scope.customer.additionalInfo = {};
+            }
+            scope.customer.additionalInfo.allowWhiteLabeling = scope.allowWhiteLabeling;
+        };
 
         $compile(element.contents())(scope);
 
@@ -63,18 +75,23 @@ export default function CustomerDirective($compile, $templateCache, $translate, 
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             customer: '=',
             isEdit: '=',
             theForm: '=',
             onManageUsers: '&',
+            onManageCustomers: '&',
             onManageAssets: '&',
             onManageDevices: '&',
+            onManageEntityViews: '&',
             onManageDashboards: '&',
             onDeleteCustomer: '&',
             hideDelete: '=',
             hideManageUsers: '=',
+            hideManageCustomers: '=',
             hideManageAssets: '=',
             hideManageDevices: '=',
+            hideManageEntityViews: '=',
             hideManageDashboards: '='
         }
     };

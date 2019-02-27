@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -45,6 +45,9 @@ const httpProxy = require('http-proxy');
 const forwardHost = 'localhost';
 const forwardPort = 8080;
 
+const ruleNodeUiforwardHost = 'localhost';
+const ruleNodeUiforwardPort = 8080;
+
 const app = express();
 const server = http.createServer(app);
 
@@ -67,15 +70,32 @@ const apiProxy = httpProxy.createProxyServer({
     }
 });
 
+const ruleNodeUiApiProxy = httpProxy.createProxyServer({
+    target: {
+        host: ruleNodeUiforwardHost,
+        port: ruleNodeUiforwardPort
+    }
+});
+
 apiProxy.on('error', function (err, req, res) {
     console.warn('API proxy error: ' + err);
     res.end('Error.');
 });
 
+ruleNodeUiApiProxy.on('error', function (err, req, res) {
+    console.warn('RuleNode UI API proxy error: ' + err);
+    res.end('Error.');
+});
+
 console.info(`Forwarding API requests to http://${forwardHost}:${forwardPort}`);
+console.info(`Forwarding Rule Node UI requests to http://${ruleNodeUiforwardHost}:${ruleNodeUiforwardPort}`);
 
 app.all('/api/*', (req, res) => {
     apiProxy.web(req, res);
+});
+
+app.all('/static/rulenode/*', (req, res) => {
+    ruleNodeUiApiProxy.web(req, res);
 });
 
 app.get('*', function(req, res) {

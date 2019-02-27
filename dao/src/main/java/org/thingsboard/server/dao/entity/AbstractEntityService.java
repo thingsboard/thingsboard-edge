@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.relation.RelationService;
 
 @Slf4j
@@ -45,13 +46,13 @@ public abstract class AbstractEntityService {
     @Autowired
     protected EntityGroupService entityGroupService;
 
-    protected void deleteEntityRelations(EntityId entityId) {
+    protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
-        relationService.deleteEntityRelations(entityId);
+        relationService.deleteEntityRelations(tenantId, entityId);
     }
 
-    protected void deleteEntityGroups(EntityId entityId) {
+    protected void deleteEntityGroups(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityGroups [{}]", entityId);
-        entityGroupService.deleteAllEntityGroups(entityId);
+        entityGroupService.deleteAllEntityGroups(tenantId, entityId);
     }
 }

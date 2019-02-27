@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,47 +30,54 @@
  */
 package org.thingsboard.server.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.exception.ThingsboardException;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.converter.js.JSDownlinkEvaluator;
 import org.thingsboard.server.service.converter.js.JSUplinkEvaluator;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
+import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
 @Slf4j
 public class ConverterController extends BaseController {
+    
+    @Autowired
+    private EventService eventService;
 
     @Autowired
-    private DataConverterService dataConverterService;
+    private JsInvokeService jsSandboxService;
 
     public static final String CONVERTER_ID = "converterId";
 
@@ -83,7 +90,7 @@ public class ConverterController extends BaseController {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            return checkConverterId(converterId);
+            return checkConverterId(converterId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -95,13 +102,16 @@ public class ConverterController extends BaseController {
     public Converter saveConverter(@RequestBody Converter converter) throws ThingsboardException {
         try {
             converter.setTenantId(getCurrentUser().getTenantId());
-            boolean create = converter.getId() == null;
+            boolean created = converter.getId() == null;
+
+            Operation operation = created ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, operation,
+                    converter.getId(), converter);
+
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            if (create) {
-                dataConverterService.createConverter(result);
-            } else {
-                dataConverterService.updateConverter(result);
-            }
+            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(result.getId(), result,
                     null,
@@ -124,6 +134,7 @@ public class ConverterController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
@@ -139,9 +150,9 @@ public class ConverterController extends BaseController {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            Converter converter = checkConverterId(converterId);
-            converterService.deleteConverter(converterId);
-            dataConverterService.deleteConverter(converterId);
+            Converter converter = checkConverterId(converterId, Operation.DELETE);
+            converterService.deleteConverter(getTenantId(), converterId);
+            actorService.onEntityStateChange(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
 
             logEntityAction(converterId, converter,
                     null,
@@ -154,6 +165,63 @@ public class ConverterController extends BaseController {
                     null,
                     ActionType.DELETED, e, strConverterId);
 
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
+    @ResponseBody
+    public JsonNode getLatestConverterDebugInput(@PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
+        checkParameter(CONVERTER_ID, strConverterId);
+        try {
+            ConverterId converterId = new ConverterId(toUUID(strConverterId));
+            checkConverterId(converterId, Operation.READ);
+            List<Event> events = eventService.findLatestEvents(getTenantId(), converterId, DataConstants.DEBUG_CONVERTER, 1);
+            JsonNode result = null;
+            if (events != null && !events.isEmpty()) {
+                Event event = events.get(0);
+                JsonNode body = event.getBody();
+                if (body.has("type")) {
+                    String type = body.get("type").asText();
+                    if (type.equals("Uplink") || type.equals("Downlink")) {
+                        ObjectNode debugIn = objectMapper.createObjectNode();
+                        String inContentType = body.get("inMessageType").asText();
+                        debugIn.put("inContentType", inContentType);
+                        if (type.equals("Uplink")) {
+                            String inContent = body.get("in").asText();
+                            debugIn.put("inContent", inContent);
+                            String inMetadata = body.get("metadata").asText();
+                            debugIn.put("inMetadata", inMetadata);
+                        } else { //Downlink
+                            String inContent = "";
+                            String inMsgType = "";
+                            String inMetadata = "";
+                            String in = body.get("in").asText();
+                            JsonNode inJson = objectMapper.readTree(in);
+                            if (inJson.isArray() && inJson.size() > 0) {
+                                JsonNode msgJson = inJson.get(inJson.size()-1);
+                                JsonNode msg = msgJson.get("msg");
+                                if (msg.isTextual()) {
+                                    inContent = "";
+                                } else if (msg.isObject()) {
+                                    inContent = objectMapper.writeValueAsString(msg);
+                                }
+                                inMsgType = msgJson.get("msgType").asText();
+                                inMetadata = objectMapper.writeValueAsString(msgJson.get("metadata"));
+                            }
+                            debugIn.put("inContent", inContent);
+                            debugIn.put("inMsgType", inMsgType);
+                            debugIn.put("inMetadata", inMetadata);
+                            String inIntegrationMetadata = body.get("metadata").asText();
+                            debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
+                        }
+                        result = debugIn;
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
             throw handleException(e);
         }
     }
@@ -176,7 +244,7 @@ public class ConverterController extends BaseController {
             String errorText = "";
             JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
-                jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+                jsUplinkEvaluator = new JSUplinkEvaluator(jsSandboxService, getCurrentUser().getId(), decoder);
                 output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
@@ -200,21 +268,25 @@ public class ConverterController extends BaseController {
     @ResponseBody
     public JsonNode testDownLinkConverter(@RequestBody JsonNode inputParams) throws ThingsboardException {
         try {
-            String payload = inputParams.get("payload").asText();
+            String data = inputParams.get("msg").asText();
             JsonNode metadata = inputParams.get("metadata");
+            String msgType = inputParams.get("msgType").asText();
+            JsonNode integrationMetadata = inputParams.get("integrationMetadata");
             String encoder = inputParams.get("encoder").asText();
 
             Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {});
-            DownLinkMetaData downLinkMetaData = new DownLinkMetaData(metadataMap);
 
-            String output = "";
+            Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {});
+            IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
+
+            JsonNode output = null;
             String errorText = "";
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
-                DownLinkMsg downLinkMsg = objectMapper.readValue(payload, DownLinkMsg.class);
-                jsDownlinkEvaluator = new JSDownlinkEvaluator(encoder);
-                output = jsDownlinkEvaluator.execute(payload, downLinkMetaData);
-                validateDownLinkOutput(output, downLinkMsg);
+                TbMsg inMsg = TbMsg.createNewMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadataMap), data);
+                jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, getCurrentUser().getId(), encoder);
+                output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
+                validateDownLinkOutput(output);
             } catch (Exception e) {
                 log.error("Error evaluating JS Downlink Converter function", e);
                 errorText = e.getMessage();
@@ -224,7 +296,7 @@ public class ConverterController extends BaseController {
                 }
             }
             ObjectNode result = objectMapper.createObjectNode();
-            result.put("output", output);
+            result.put("output", objectMapper.writeValueAsString(output));
             result.put("error", errorText);
             return result;
         } catch (Exception e) {
@@ -232,24 +304,56 @@ public class ConverterController extends BaseController {
         }
     }
 
-    private void validateDownLinkOutput(String output, DownLinkMsg downLinkMsg) throws Exception {
-        JsonElement element = new JsonParser().parse(output);
-        if (element.isJsonArray()) {
-            for (JsonElement downlinkJson : element.getAsJsonArray()) {
-                if (downlinkJson.isJsonObject()) {
-                    validateDownLinkObject(downlinkJson.getAsJsonObject(), downLinkMsg);
+    private void validateDownLinkOutput(JsonNode output) throws Exception {
+        if (output.isArray()) {
+            for (JsonNode downlinkJson : output) {
+                if (downlinkJson.isObject()) {
+                    validateDownLinkObject(downlinkJson);
                 } else {
                     throw new JsonParseException("Invalid downlink output format!");
                 }
             }
-        } else if (element.isJsonObject()) {
-            validateDownLinkObject(element.getAsJsonObject(), downLinkMsg);
+        } else if (output.isObject()) {
+            validateDownLinkObject(output);
         } else {
             throw new JsonParseException("Invalid downlink output format!");
         }
     }
 
-    private void validateDownLinkObject(JsonObject src, DownLinkMsg downLinkMsg) throws Exception {
-        AbstractDownlinkDataConverter.parseDownlinkData(src, downLinkMsg);
+    private void validateDownLinkObject(JsonNode src) throws Exception {
+        AbstractDownlinkDataConverter.parseDownlinkData(src);
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Converter> getConvertersByIds(
+            @RequestParam("converterIds") String[] strConverterIds) throws ThingsboardException {
+        checkArrayParameter("converterIds", strConverterIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<ConverterId> converterIds = new ArrayList<>();
+            for (String strConverterId : strConverterIds) {
+                converterIds.add(new ConverterId(toUUID(strConverterId)));
+            }
+            List<Converter> converters = checkNotNull(converterService.findConvertersByIdsAsync(tenantId, converterIds).get());
+            return filterConvertersByReadPermission(converters);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Converter> filterConvertersByReadPermission(List<Converter> converters) {
+        return converters.stream().filter(converter -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ, converter.getId(), converter);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 }

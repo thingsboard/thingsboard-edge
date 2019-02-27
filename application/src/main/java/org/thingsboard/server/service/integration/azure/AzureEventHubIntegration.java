@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,20 +34,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.microsoft.azure.eventhubs.*;
-import com.microsoft.azure.sdk.iot.service.*;
+import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement;
+import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
+import com.microsoft.azure.sdk.iot.service.Message;
+import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Base64Utils;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -64,7 +66,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private EventHubClient ehClient;
     private ServiceClient serviceClient;
     private List<PartitionReceiver> receivers;
-    private transient boolean started = false;
+    private volatile boolean started = false;
     private ExecutorService executorService;
     private List<Future> receiverFutures;
 
@@ -157,7 +159,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             doProcess(context, msg);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
-            log.warn("Failed to apply data converter function", e);
+            log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
             exception = e;
             status = "ERROR";
         }
@@ -174,24 +176,15 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-        logDownlink(context, "SharedAttributeUpdate", msg);
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+        TbMsg msg = downlink.getTbMsg();
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
-            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
-            processDownLinkMsg(context, downLinkMsg);
+            processDownLinkMsg(context, msg);
         }
     }
 
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
-        logDownlink(context, "RPCCall", msg);
-        if (downlinkConverter != null) {
-            DownLinkMsg downLinkMsg = DownLinkMsg.from(msg);
-            processDownLinkMsg(context, downLinkMsg);
-        }
-    }
-
-    protected void processDownLinkMsg(IntegrationContext context, DownLinkMsg msg) {
+    protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -224,7 +217,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
     }
 
-    private boolean doProcessDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception {
+    private boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         if (serviceClient == null) {
             return false;
         }
@@ -238,10 +231,10 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return !deviceIdToMessage.isEmpty();
     }
 
-    private Map<String, List<Message>> convertDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception {
+    private Map<String, List<Message>> convertDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<Message>> deviceIdToMessage = new HashMap<>();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new DownLinkMetaData(mdMap));
+        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
         for (DownlinkData data : result) {
             if (!data.isEmpty()) {
                 String deviceId = data.getMetadata().get("deviceId");
@@ -295,16 +288,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                     clientConfiguration.getIotHubName()));
         }
         return serviceClient;
-    }
-
-    private <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
     }
 
     private void logEventHubDownlink(IntegrationContext context, Message message, String deviceId, String contentType) {

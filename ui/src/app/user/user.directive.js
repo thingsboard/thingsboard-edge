@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,18 +37,21 @@ import userFieldsetTemplate from './user-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function UserDirective($compile, $templateCache/*, dashboardService*/) {
+export default function UserDirective($compile, $templateCache, securityTypes, userService, userPermissionsService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(userFieldsetTemplate);
         element.html(template);
 
         scope.isTenantAdmin = function() {
             return scope.user && scope.user.authority === 'TENANT_ADMIN';
-        }
+        };
 
         scope.isCustomerUser = function() {
             return scope.user && scope.user.authority === 'CUSTOMER_USER';
-        }
+        };
+
+        scope.loginAsUserEnabled = userService.isUserTokenAccessEnabled() &&
+            userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.impersonate);
 
         $compile(element.contents())(scope);
     }
@@ -56,11 +59,13 @@ export default function UserDirective($compile, $templateCache/*, dashboardServi
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             user: '=',
             isEdit: '=',
             theForm: '=',
             onDisplayActivationLink: '&',
             onResendActivation: '&',
+            onLoginAsUser: '&',
             onDeleteUser: '&'
         }
     };

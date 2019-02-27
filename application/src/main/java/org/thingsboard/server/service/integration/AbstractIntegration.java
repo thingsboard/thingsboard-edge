@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -42,23 +42,27 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.common.msg.session.AdaptorToSessionActorMsg;
-import org.thingsboard.server.common.msg.session.BasicAdaptorToSessionActorMsg;
-import org.thingsboard.server.common.msg.session.BasicToDeviceActorSessionMsg;
-import org.thingsboard.server.service.converter.*;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-import org.thingsboard.server.service.integration.http.IntegrationHttpSessionCtx;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
+import org.thingsboard.server.service.converter.TBUplinkDataConverter;
+import org.thingsboard.server.service.converter.UplinkData;
+import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -72,6 +76,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
+
+    private ReentrantLock deviceCreationLock = new ReentrantLock();
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -104,16 +110,21 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
+    public void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) {
+        if (configuration == null || configuration.getConfiguration() == null) {
+            throw new IllegalArgumentException("Integration configuration is empty!");
+        }
+        doValidateConfiguration(configuration.getConfiguration(), allowLocalNetworkHosts);
+    }
+
+    @Override
     public void destroy() {
 
     }
 
     @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-    }
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg) {
 
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
     }
 
     @Override
@@ -123,17 +134,46 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return statistics;
     }
 
+    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+
+    }
+
+    protected static boolean isLocalNetworkHost(String host) {
+        try {
+            InetAddress address = InetAddress.getByName(host);
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() ||
+                    address.isSiteLocalAddress()) {
+                return true;
+            }
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Unable to resolve provided hostname: " + host);
+        }
+        return false;
+    }
+
     protected Device processUplinkData(IntegrationContext context, UplinkData data) {
         Device device = getOrCreateDevice(context, data);
 
+        UUID sessionId = UUID.randomUUID();
+        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+                .setSessionIdMSB(sessionId.getMostSignificantBits())
+                .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                .build();
+
         if (data.getTelemetry() != null) {
-            AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getTelemetry());
-            context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
+            context.getIntegrationService().process(sessionInfo, data.getTelemetry(), null);
         }
 
         if (data.getAttributesUpdate() != null) {
-            AdaptorToSessionActorMsg msg = new BasicAdaptorToSessionActorMsg(new IntegrationHttpSessionCtx(), data.getAttributesUpdate());
-            context.getSessionMsgProcessor().process(new BasicToDeviceActorSessionMsg(device, msg));
+            context.getIntegrationService().process(sessionInfo, data.getAttributesUpdate(), null);
+        }
+
+        if (data.getAttributesRequest() != null) {
+            context.getIntegrationService().process(sessionInfo, data.getAttributesRequest(), null);
         }
 
         return device;
@@ -142,17 +182,26 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
         Device device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
         if (device == null) {
-            device = new Device();
-            device.setName(data.getDeviceName());
-            device.setType(data.getDeviceType());
-            device.setTenantId(configuration.getTenantId());
-            device = context.getDeviceService().saveDevice(device);
-            EntityRelation relation = new EntityRelation();
-            relation.setFrom(configuration.getId());
-            relation.setTo(device.getId());
-            relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.INTEGRATION_TYPE);
-            context.getRelationService().saveRelation(relation);
+            deviceCreationLock.lock();
+            try {
+                device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+                if (device == null) {
+                    device = new Device();
+                    device.setName(data.getDeviceName());
+                    device.setType(data.getDeviceType());
+                    device.setTenantId(configuration.getTenantId());
+                    device = context.getDeviceService().saveDevice(device);
+                    EntityRelation relation = new EntityRelation();
+                    relation.setFrom(configuration.getId());
+                    relation.setTo(device.getId());
+                    relation.setTypeGroup(RelationTypeGroup.COMMON);
+                    relation.setType(EntityRelation.INTEGRATION_TYPE);
+                    context.getRelationService().saveRelation(configuration.getTenantId(), relation);
+                    context.getActorService().onDeviceAdded(device);
+                }
+            } finally {
+                deviceCreationLock.unlock();
+            }
         }
         return device;
     }
@@ -185,7 +234,14 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
-        return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
+        try {
+            return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
+            }
+            throw e;
+        }
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
@@ -204,9 +260,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    protected void reportDownlinkError(IntegrationContext context, DownLinkMsg msg, String status, Exception exception) {
+    protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
+            if (log.isDebugEnabled()) {
+                log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());
+            }
             if (configuration.isDebugMode()) {
                 try {
                     persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
@@ -225,6 +284,16 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             return new TextNode(new String(data.getData(), StandardCharsets.UTF_8));
         } else { //BINARY
             return new TextNode(Base64Utils.encodeToString(data.getData()));
+        }
+    }
+
+    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
+        if (configuration.isDebugMode()) {
+            try {
+                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+            } catch (Exception e) {
+                log.warn("Failed to persist debug message", e);
+            }
         }
     }
 

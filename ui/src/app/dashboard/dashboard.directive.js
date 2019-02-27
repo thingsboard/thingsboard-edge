@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -40,13 +40,21 @@ export default function DashboardDirective($compile, $templateCache, $translate,
         var template = $templateCache.get(dashboardFieldsetTemplate);
         element.html(template);
         scope.publicLink = null;
+        scope.isPublic = false;
         scope.$watch('dashboard', function(newVal) {
             if (newVal) {
-                if (scope.dashboard.publicCustomerId) {
+                if (scope.entityGroup && scope.entityGroup.additionalInfo && scope.entityGroup.additionalInfo.isPublic) {
+                    scope.isPublic = true;
+                    scope.publicLink = dashboardService.getPublicDashboardLink(scope.dashboard, scope.entityGroup);
+                } else {
+                    scope.isPublic = false;
+                    scope.publicLink = null;
+                }
+/*                if (scope.dashboard.publicCustomerId) {
                     scope.publicLink = dashboardService.getPublicDashboardLink(scope.dashboard);
                 } else {
                     scope.publicLink = null;
-                }
+                }*/
             }
         });
 
@@ -60,17 +68,21 @@ export default function DashboardDirective($compile, $templateCache, $translate,
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             dashboard: '=',
             isEdit: '=',
             customerId: '=',
-            dashboardScope: '=',
             theForm: '=',
             onMakePublic: '&',
             onMakePrivate: '&',
             onManageAssignedCustomers: '&',
             onUnassignFromCustomer: '&',
+            onOpenDashboard: '&',
             onExportDashboard: '&',
-            onDeleteDashboard: '&'
+            onDeleteDashboard: '&',
+            hideAssignmentActions: '=',
+            hideDelete: '=',
+            hideOpen: '='
         }
     };
 }

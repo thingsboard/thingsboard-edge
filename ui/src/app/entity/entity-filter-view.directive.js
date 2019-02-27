@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -110,6 +110,15 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                             scope.filterDisplayValue = $translate.instant('alias.filter-type-device-type-description', {deviceType: deviceType});
                         }
                         break;
+                    case types.aliasFilterType.entityViewType.value:
+                        var entityViewType = scope.filter.entityViewType;
+                        prefix = scope.filter.entityViewNameFilter;
+                        if (prefix && prefix.length) {
+                            scope.filterDisplayValue = $translate.instant('alias.filter-type-entity-view-type-and-name-description', {entityViewType: entityViewType, prefix: prefix});
+                        } else {
+                            scope.filterDisplayValue = $translate.instant('alias.filter-type-entity-view-type-description', {entityViewType: entityViewType});
+                        }
+                        break;
                     case types.aliasFilterType.relationsQuery.value:
                         var rootEntityText;
                         var directionText;
@@ -167,6 +176,7 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                         break;
                     case types.aliasFilterType.assetSearchQuery.value:
                     case types.aliasFilterType.deviceSearchQuery.value:
+                    case types.aliasFilterType.entityViewSearchQuery.value:
                         allEntitiesText = $translate.instant('alias.all-entities');
                         anyRelationText = $translate.instant('alias.any-relation');
                         if (scope.filter.rootStateEntity) {
@@ -198,7 +208,7 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                             scope.filterDisplayValue = $translate.instant('alias.filter-type-asset-search-query-description',
                                 translationValues
                             );
-                        } else {
+                        } else if (scope.filter.type == types.aliasFilterType.deviceSearchQuery.value) {
                             var deviceTypesQuoted = [];
                             scope.filter.deviceTypes.forEach(function(deviceType) {
                                 deviceTypesQuoted.push("'"+deviceType+"'");
@@ -206,6 +216,16 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                             var deviceTypesText = deviceTypesQuoted.join(', ');
                             translationValues.deviceTypes = deviceTypesText;
                             scope.filterDisplayValue = $translate.instant('alias.filter-type-device-search-query-description',
+                                translationValues
+                            );
+                        } else if (scope.filter.type == types.aliasFilterType.entityViewSearchQuery.value) {
+                            var entityViewTypesQuoted = [];
+                            scope.filter.entityViewTypes.forEach(function(entityViewType) {
+                                entityViewTypesQuoted.push("'"+entityViewType+"'");
+                            });
+                            var entityViewTypesText = entityViewTypesQuoted.join(', ');
+                            translationValues.entityViewTypes = entityViewTypesText;
+                            scope.filterDisplayValue = $translate.instant('alias.filter-type-entity-view-search-query-description',
                                 translationValues
                             );
                         }

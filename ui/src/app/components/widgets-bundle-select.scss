@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,9 +32,10 @@
 
 tb-widgets-bundle-select {
   md-select {
-    margin: 0;
     padding: 5px 20px;
+    margin: 0;
   }
+
   .tb-bundle-item {
     height: 24px;
     line-height: 24px;
@@ -48,24 +49,29 @@ tb-widgets-bundle-select {
   }
 }
 
-tb-widgets-bundle-select, .tb-widgets-bundle-select {
+tb-widgets-bundle-select,
+.tb-widgets-bundle-select {
   .md-text {
     display: block;
     width: 100%;
   }
+
   .tb-bundle-item {
     display: inline-block;
     width: 100%;
+
     span {
       display: inline-block;
       vertical-align: middle;
     }
+
     .tb-bundle-system {
-      font-size: 0.8rem;
-      opacity: 0.8;
       float: right;
+      font-size: .8rem;
+      opacity: .8;
     }
   }
+
   md-option {
     height: auto !important;
     white-space: normal !important;
@@ -75,19 +81,23 @@ tb-widgets-bundle-select, .tb-widgets-bundle-select {
 md-toolbar {
   tb-widgets-bundle-select {
     md-select {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, .2);
+
       .md-select-value {
-        color: #fff;
         font-size: 1.2rem;
-        span:first-child:after {
-            color: #fff;
+        color: #fff;
+
+        span:first-child::after {
+          color: #fff;
         }
       }
+
       .md-select-value.md-select-placeholder {
         color: #fff;
-        opacity: 0.8;
+        opacity: .8;
       }
     }
+
     md-select.ng-invalid.ng-touched {
       .md-select-value {
         color: #fff !important;

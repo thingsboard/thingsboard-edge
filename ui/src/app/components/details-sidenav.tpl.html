@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -31,7 +31,7 @@
 
 -->
 <md-sidenav class="md-sidenav-right md-whiteframe-4dp tb-sidenav-details"
-      md-disable-backdrop="true"
+      md-disable-backdrop
       md-is-open="isOpen"
       md-component-id="right"
       layout="column">
@@ -39,7 +39,7 @@
 	      <md-toolbar class="md-theme-light" ng-style="{'height':headerHeightPx+'px'}">
 	      	<div class="md-toolbar-tools" layout="row">
 	      		<div flex class="md-toolbar-tools" layout="column" layout-align="start start">
-		        	<span class="tb-details-title">{{headerTitle}}</span>
+		        	<span class="tb-details-title">{{utils.customTranslation(headerTitle, headerTitle)}}</span>
 		        	<span class="tb-details-subtitle">{{headerSubtitle}}</span>
 					<span style="width: 100%;" ng-transclude="headerPane"></span>
 	        	</div>

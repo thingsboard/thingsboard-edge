@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onMakePublic({event: $event})"
+<!--md-button ng-click="onMakePublic({event: $event})"
            ng-show="!hideAssignmentActions && !isEdit && assetScope === 'tenant' && !isAssignedToCustomer && !isPublic"
            class="md-raised md-primary">{{ 'asset.make-public' | translate }}</md-button>
 <md-button ng-click="onAssignToCustomer({event: $event})"
@@ -38,9 +38,10 @@
            class="md-raised md-primary">{{ 'asset.assign-to-customer' | translate }}</md-button>
 <md-button ng-click="onUnassignFromCustomer({event: $event, isPublic: isPublic})"
            ng-show="!hideAssignmentActions && !isEdit && (assetScope === 'customer' || assetScope === 'tenant') && isAssignedToCustomer"
-           class="md-raised md-primary">{{ isPublic ? 'asset.make-private' : 'asset.unassign-from-customer' | translate }}</md-button>
+           class="md-raised md-primary">{{ isPublic ? 'asset.make-private' : 'asset.unassign-from-customer' | translate }}</md-button-->
 <md-button ng-click="onDeleteAsset({event: $event})"
-           ng-show="!hideDelete && !isEdit && assetScope === 'tenant'"
+           ng-if="entityGroup | hasGroupEntityPermission:'delete'"
+           ng-show="!hideDelete && !isEdit"
            class="md-raised md-primary">{{ 'asset.delete' | translate }}</md-button>
 
 <div layout="row">
@@ -54,15 +55,15 @@
 </div>
 
 <md-content class="md-padding" layout="column">
-    <md-input-container class="md-block"
+    <!--md-input-container class="md-block"
                         ng-show="!isEdit && isAssignedToCustomer && !isPublic && assetScope === 'tenant'">
         <label translate>asset.assignedToCustomer</label>
         <input ng-model="assignedCustomer.title" disabled>
-    </md-input-container>
-    <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
+    </md-input-container-->
+    <!--div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
          ng-show="!isEdit && isPublic && (assetScope === 'customer' || assetScope === 'tenant')">
         {{ 'asset.asset-public' | translate }}
-    </div>
+    </div-->
     <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>asset.name</label>

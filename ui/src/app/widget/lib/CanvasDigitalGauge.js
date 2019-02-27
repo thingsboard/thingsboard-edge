@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -219,8 +219,13 @@ export default class CanvasDigitalGauge extends canvasGauges.BaseGauge {
             }
 
             var valueChanged = false;
-
-            if (!this.elementValueClone.initialized || this.elementValueClone.renderedValue !== this.value || (options.showTimestamp && this.elementValueClone.renderedTimestamp !== this.timestamp)) {
+            if (!this.elementValueClone.initialized || angular.isDefined(this._value) && this.elementValueClone.renderedValue !== this._value || (options.showTimestamp && this.elementValueClone.renderedTimestamp !== this.timestamp)) {
+                if (angular.isDefined(this._value)) {
+                    this.elementValueClone.renderedValue = this._value;
+                }
+                if (angular.isUndefined(this.elementValueClone.renderedValue)) {
+                    this.elementValueClone.renderedValue = this.value;
+                }
                 let context = this.contextValueClone;
                 // clear the cache
                 context.clearRect(x, y, w, h);
@@ -229,7 +234,7 @@ export default class CanvasDigitalGauge extends canvasGauges.BaseGauge {
                 context.drawImage(canvas.elementClone, x, y, w, h);
                 context.save();
 
-                drawDigitalValue(context, options, this.value);
+                drawDigitalValue(context, options, this.elementValueClone.renderedValue);
 
                 if (options.showTimestamp) {
                     drawDigitalLabel(context, options);
@@ -237,7 +242,6 @@ export default class CanvasDigitalGauge extends canvasGauges.BaseGauge {
                 }
 
                 this.elementValueClone.initialized = true;
-                this.elementValueClone.renderedValue = this.value;
 
                 valueChanged = true;
             }

@@ -1,0 +1,141 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+.tb-blob-entities {
+  background-color: #fff;
+}
+
+.tb-blob-entity-toolbar {
+  font-size: 20px;
+
+  input {
+    font-size: 20px;
+  }
+
+  span.tb-blob-entities-title {
+    padding-right: 16px;
+  }
+
+  md-input-container.tb-blob-entity-search-input {
+    .md-errors-spacer {
+      min-height: 0;
+    }
+  }
+}
+
+.tb-blob-entity-container {
+  overflow-x: auto;
+}
+
+
+md-list.tb-blob-entity-table {
+  padding: 0;
+
+  md-list-item {
+    padding: 0;
+  }
+
+  .tb-row {
+    height: 48px;
+    padding: 0;
+    overflow: hidden;
+
+    &.tb-header {
+      height: 56px;
+    }
+  }
+
+  .tb-row:hover {
+    background-color: #eee;
+  }
+
+  .tb-header:hover {
+    background: none;
+  }
+
+  .tb-header {
+    .tb-cell {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(0, 0, 0, .54);
+      white-space: nowrap;
+      background: none;
+    }
+  }
+
+  .tb-cell {
+    padding: 0 12px;
+    margin: auto 0;
+    overflow: hidden;
+    font-size: 13px;
+    color: rgba(0, 0, 0, .87);
+    text-align: left;
+    vertical-align: middle;
+
+    .md-button {
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  .tb-cell.tb-number {
+    text-align: right;
+  }
+
+  .tb-cell.tb-buttons {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    padding: 0 8px;
+
+    .md-button.md-icon-button {
+      width: 36px;
+      height: 36px;
+      padding: 6px;
+      margin: 0;
+    }
+  }
+}
+
+div.tb-widget-title {
+  div.tb-blob-entities-title-toolbar {
+    height: 55px;
+    min-height: 55px;
+    color: rgba(0, 0, 0, .87);
+    background-color: transparent;
+    box-shadow: none;
+
+    .md-toolbar-tools {
+      height: 55px;
+      min-height: 55px;
+      max-height: 55px;
+    }
+  }
+}

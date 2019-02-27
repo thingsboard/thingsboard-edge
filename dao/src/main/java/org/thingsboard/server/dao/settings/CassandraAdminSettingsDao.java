@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,6 +34,7 @@ import com.datastax.driver.core.querybuilder.Select.Where;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.nosql.AdminSettingsEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractModelDao;
@@ -41,7 +42,9 @@ import org.thingsboard.server.dao.util.NoSqlDao;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ADMIN_SETTINGS_BY_KEY_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ADMIN_SETTINGS_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ADMIN_SETTINGS_KEY_PROPERTY;
 
 @Component
 @Slf4j
@@ -59,11 +62,11 @@ public class CassandraAdminSettingsDao extends CassandraAbstractModelDao<AdminSe
     }
 
     @Override
-    public AdminSettings findByKey(String key) {
+    public AdminSettings findByKey(TenantId tenantId, String key) {
         log.debug("Try to find admin settings by key [{}] ", key);
         Where query = select().from(ADMIN_SETTINGS_BY_KEY_COLUMN_FAMILY_NAME).where(eq(ADMIN_SETTINGS_KEY_PROPERTY, key));
         log.trace("Execute query {}", query);
-        AdminSettingsEntity adminSettingsEntity = findOneByStatement(query);
+        AdminSettingsEntity adminSettingsEntity = findOneByStatement(tenantId, query);
         log.trace("Found admin settings [{}] by key [{}]", adminSettingsEntity, key);
         return DaoUtil.getData(adminSettingsEntity);
     }

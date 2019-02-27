@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,7 +37,7 @@ import auditLogRowTemplate from './audit-log-row.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function AuditLogRowDirective($compile, $templateCache, types, $mdDialog, $document) {
+export default function AuditLogRowDirective($compile, $templateCache, types, $mdDialog, $document, utils) {
 
     var linker = function (scope, element, attrs) {
 
@@ -47,6 +47,7 @@ export default function AuditLogRowDirective($compile, $templateCache, types, $m
         scope.auditLog = attrs.auditLog;
         scope.auditLogMode = attrs.auditLogMode;
         scope.types = types;
+        scope.utils = utils;
 
         scope.showAuditLogDetails = function($event) {
             var onShowingCallback = {
@@ -63,7 +64,7 @@ export default function AuditLogRowDirective($compile, $templateCache, types, $m
                 parent: angular.element($document[0].body),
                 targetEvent: $event,
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 onShowing: function(scope, element) {
                     onShowingCallback.onShowing(scope, element);
                 }

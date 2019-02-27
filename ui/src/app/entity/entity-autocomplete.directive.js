@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,7 +37,7 @@ import entityAutocompleteTemplate from './entity-autocomplete.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityAutocomplete($compile, $templateCache, $q, $filter, entityService, types) {
+export default function EntityAutocomplete($compile, $templateCache, $q, $filter, entityService, types, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(entityAutocompleteTemplate);
@@ -46,6 +46,7 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
         scope.entity = null;
         scope.entitySearchText = '';
+        scope.utils = utils;
 
         scope.fetchEntities = function(searchText) {
             var deferred = $q.defer();
@@ -160,17 +161,17 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.noEntitiesMatchingText = 'device.no-devices-matching';
                     scope.entityRequiredText = 'device.device-required';
                     break;
-                case types.entityType.rule:
-                    scope.selectEntityText = 'rule.select-rule';
-                    scope.entityText = 'rule.rule';
-                    scope.noEntitiesMatchingText = 'rule.no-rules-matching';
-                    scope.entityRequiredText = 'rule.rule-required';
+                case types.entityType.entityView:
+                    scope.selectEntityText = 'entity-view.select-entity-view';
+                    scope.entityText = 'entity-view.entity-view';
+                    scope.noEntitiesMatchingText = 'entity-view.no-entity-views-matching';
+                    scope.entityRequiredText = 'entity-view.entity-view-required';
                     break;
-                case types.entityType.plugin:
-                    scope.selectEntityText = 'plugin.select-plugin';
-                    scope.entityText = 'plugin.plugin';
-                    scope.noEntitiesMatchingText = 'plugin.no-plugins-matching';
-                    scope.entityRequiredText = 'plugin.plugin-required';
+                case types.entityType.rulechain:
+                    scope.selectEntityText = 'rulechain.select-rulechain';
+                    scope.entityText = 'rulechain.rulechain';
+                    scope.noEntitiesMatchingText = 'rulechain.no-rulechains-matching';
+                    scope.entityRequiredText = 'rulechain.rulechain-required';
                     break;
                 case types.entityType.tenant:
                     scope.selectEntityText = 'tenant.select-tenant';
@@ -219,6 +220,24 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.entityText = 'integration.integration';
                     scope.noEntitiesMatchingText = 'integration.no-integrations-matching';
                     scope.entityRequiredText = 'integration.integration-required'
+                    break;
+                case types.entityType.schedulerEvent:
+                    scope.selectEntityText = 'scheduler.select-scheduler-event';
+                    scope.entityText = 'scheduler.scheduler-event';
+                    scope.noEntitiesMatchingText = 'scheduler.no-scheduler-events-matching';
+                    scope.entityRequiredText = 'scheduler.scheduler-event-required'
+                    break;
+                case types.entityType.blobEntity:
+                    scope.selectEntityText = 'blob-entity.select-blob-entity';
+                    scope.entityText = 'blob-entity.blob-entity';
+                    scope.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
+                    scope.entityRequiredText = 'blob-entity.blob-entity-required'
+                    break;
+                case types.entityType.role:
+                    scope.selectEntityText = 'role.select-role';
+                    scope.entityText = 'role.role';
+                    scope.noEntitiesMatchingText = 'role.no-roles-matching';
+                    scope.entityRequiredText = 'role.role-required';
                     break;
             }
             if (scope.labelText && scope.labelText.length) {

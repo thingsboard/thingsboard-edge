@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,22 +30,19 @@
  */
 package org.thingsboard.server.service.integration.downlink;
 
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 /**
  * Created by ashvayka on 22.02.18.
  */
 public interface DownlinkService {
 
-    DownLinkMsg get(IntegrationId integrationId, DeviceId deviceId);
+    DownLinkMsg get(IntegrationId integrationId, EntityId entityId);
 
-    DownLinkMsg put(RPCCallIntegrationMsg msg);
+    DownLinkMsg put(IntegrationDownlinkMsg msg);
 
-    DownLinkMsg put(SharedAttributesUpdateIntegrationMsg msg);
-
-    void remove(IntegrationId integrationId, DeviceId deviceId);
+    void remove(IntegrationId integrationId, EntityId entityId);
 
 }

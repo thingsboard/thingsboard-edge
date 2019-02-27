@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,14 +35,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.rule.engine.filter.TbJsFilterNode;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.extensions.core.action.telemetry.TelemetryPluginAction;
-import org.thingsboard.server.extensions.core.plugin.telemetry.TelemetryStoragePlugin;
 
 import java.util.List;
 
@@ -50,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public abstract class BaseComponentDescriptorControllerTest extends AbstractControllerTest {
 
-    private static final int AMOUNT_OF_DEFAULT_PLUGINS_DESCRIPTORS = 5;
+    private static final int AMOUNT_OF_DEFAULT_FILTER_NODES = 4;
     private Tenant savedTenant;
     private User tenantAdmin;
 
@@ -84,38 +83,28 @@ public abstract class BaseComponentDescriptorControllerTest extends AbstractCont
     @Test
     public void testGetByClazz() throws Exception {
         ComponentDescriptor descriptor =
-                doGet("/api/component/" + TelemetryStoragePlugin.class.getName(), ComponentDescriptor.class);
+                doGet("/api/component/" + TbJsFilterNode.class.getName(), ComponentDescriptor.class);
 
         Assert.assertNotNull(descriptor);
         Assert.assertNotNull(descriptor.getId());
         Assert.assertNotNull(descriptor.getName());
         Assert.assertEquals(ComponentScope.TENANT, descriptor.getScope());
-        Assert.assertEquals(ComponentType.PLUGIN, descriptor.getType());
+        Assert.assertEquals(ComponentType.FILTER, descriptor.getType());
         Assert.assertEquals(descriptor.getClazz(), descriptor.getClazz());
     }
 
     @Test
     public void testGetByType() throws Exception {
         List<ComponentDescriptor> descriptors = readResponse(
-                doGet("/api/components/" + ComponentType.PLUGIN).andExpect(status().isOk()), new TypeReference<List<ComponentDescriptor>>() {
+                doGet("/api/components/" + ComponentType.FILTER).andExpect(status().isOk()), new TypeReference<List<ComponentDescriptor>>() {
                 });
 
         Assert.assertNotNull(descriptors);
-        Assert.assertEquals(AMOUNT_OF_DEFAULT_PLUGINS_DESCRIPTORS, descriptors.size());
+        Assert.assertTrue(descriptors.size() >= AMOUNT_OF_DEFAULT_FILTER_NODES);
 
         for (ComponentType type : ComponentType.values()) {
             doGet("/api/components/" + type).andExpect(status().isOk());
         }
     }
 
-    @Test
-    public void testGetActionsByType() throws Exception {
-        List<ComponentDescriptor> descriptors = readResponse(
-                doGet("/api/components/actions/" + TelemetryStoragePlugin.class.getName()).andExpect(status().isOk()), new TypeReference<List<ComponentDescriptor>>() {
-                });
-
-        Assert.assertNotNull(descriptors);
-        Assert.assertEquals(1, descriptors.size());
-        Assert.assertEquals(TelemetryPluginAction.class.getName(), descriptors.get(0).getClazz());
-    }
 }

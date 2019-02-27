@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -47,7 +47,8 @@ export default function RelationTable() {
         scope: true,
         bindToController: {
             entityId: '=',
-            entityType: '@'
+            entityType: '@',
+            readonly: '='
         },
         controller: RelationTableController,
         controllerAs: 'vm',
@@ -56,7 +57,8 @@ export default function RelationTable() {
 }
 
 /*@ngInject*/
-function RelationTableController($scope, $q, $mdDialog, $document, $translate, $filter, utils, types, entityRelationService) {
+function RelationTableController($scope, $q, $mdDialog, $document, $translate, $filter, $timeout, utils, types, securityTypes, userPermissionsService,
+                                 entityRelationService) {
 
     let vm = this;
 
@@ -86,6 +88,7 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
     vm.deleteRelations = deleteRelations;
     vm.reloadRelations = reloadRelations;
     vm.updateRelations = updateRelations;
+    vm.isRelationEditable = isRelationEditable;
 
     $scope.$watch("vm.entityId", function(newVal, prevVal) {
         if (newVal && !angular.equals(newVal, prevVal)) {
@@ -105,8 +108,15 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
         }
     });
 
-    function enterFilterMode () {
+    function enterFilterMode (event) {
+        let $button = angular.element(event.currentTarget);
+        let $toolbarsContainer = $button.closest('.toolbarsContainer');
+
         vm.query.search = '';
+
+        $timeout(()=>{
+            $toolbarsContainer.find('.searchInput').focus();
+        })
     }
 
     function exitFilterMode () {
@@ -168,7 +178,7 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
                       showingCallback: onShowingCallback},
             targetEvent: $event,
             fullscreen: true,
-            skipHide: true,
+            multiple: true,
             onShowing: function(scope, element) {
                 onShowingCallback.onShowing(scope, element);
             }
@@ -296,6 +306,15 @@ function RelationTableController($scope, $q, $mdDialog, $document, $translate, $
         vm.relationsCount = result.length;
         var startIndex = vm.query.limit * (vm.query.page - 1);
         vm.relations = result.slice(startIndex, startIndex + vm.query.limit);
+    }
+
+    function isRelationEditable(relation) {
+        if (vm.readonly) {
+            return false;
+        }
+        var entityType = vm.direction == vm.types.entitySearchDirection.from ? relation.to.entityType : relation.from.entityType;
+        var resource = securityTypes.resourceByEntityType[entityType];
+        return userPermissionsService.hasGenericPermission(resource, securityTypes.operation.write);
     }
 
 }

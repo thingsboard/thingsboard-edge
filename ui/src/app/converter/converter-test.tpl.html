@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -48,12 +48,12 @@
                     <div id="top_left_panel" class="tb-split tb-content">
                         <div class="tb-resize-container">
                             <div class="tb-editor-area-title-panel">
-                                <label translate>converter.payload</label>
+                                <label>{{(vm.isDecoder ? 'converter.payload' : 'converter.message') | translate}}</label>
                             </div>
                             <ng-form name="payloadForm">
                                 <div layout="column" style="height: 100%;">
-                                    <div layout="row" ng-if="vm.isDecoder">
-                                        <md-input-container class="md-block" style="margin-bottom: 0px; min-width: 200px;">
+                                    <div layout="row">
+                                        <md-input-container ng-if="vm.isDecoder" class="md-block" style="margin-bottom: 0px; min-width: 200px;">
                                             <label translate>converter.payload-content-type</label>
                                             <md-select name="payloadContentType" aria-label="{{ 'converter.payload-content-type' | translate }}"
                                                        ng-model="vm.inputParams.payloadContentType">
@@ -62,10 +62,17 @@
                                                 </md-option>
                                             </md-select>
                                         </md-input-container>
+                                        <md-input-container ng-if="!vm.isDecoder" class="md-block" style="margin-bottom: 0px; min-width: 300px;">
+                                            <label translate>converter.message-type</label>
+                                            <input required name="msgType" ng-model="vm.inputParams.msgType">
+                                            <div ng-messages="payloadForm.msgType.$error">
+                                                <div translate ng-message="required">converter.message-type-required</div>
+                                            </div>
+                                        </md-input-container>
                                     </div>
                                     <tb-json-content flex
                                                      ng-model="vm.inputParams.stringContent"
-                                                     label="{{ 'converter.payload-content' | translate }}"
+                                                     label="{{(vm.isDecoder ? 'converter.payload-content' : 'converter.message') | translate}}"
                                                      content-type="vm.inputParams.payloadContentType"
                                                      validate-content="vm.inputParams.payloadContentType == vm.types.contentType.JSON.value"
                                                      validation-trigger-arg="validatePayload"
@@ -76,28 +83,37 @@
                         </div>
                     </div>
                     <div id="top_right_panel" class="tb-split tb-content">
-                        <div class="tb-resize-container" id="metadata-panel">
+                        <div class="tb-resize-container" layout="row">
                             <div class="tb-editor-area-title-panel">
                                 <label translate>converter.metadata</label>
                             </div>
-                            <ng-form name="metadataForm">
-                                <tb-key-val-map title-text="converter.metadata" ng-disabled="$root.loading"
-                                                key-val-map="vm.inputParams.metadata"></tb-key-val-map>
-                            </ng-form>
+                            <div flex id="metadata-panel">
+                                <ng-form name="metadataForm">
+                                    <tb-key-val-map title-text="converter.metadata" ng-disabled="$root.loading"
+                                                    key-val-map="vm.inputParams.metadata"></tb-key-val-map>
+                                </ng-form>
+                            </div>
+                            <div flex ng-if="!vm.isDecoder" id="integration-metadata-panel">
+                                <ng-form name="integrationMetadataForm">
+                                    <tb-key-val-map title-text="converter.integration-metadata" ng-disabled="$root.loading"
+                                                    key-val-map="vm.inputParams.integrationMetadata"></tb-key-val-map>
+                                </ng-form>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div id="bottom_panel" class="tb-split tb-split-vertical">
                     <div id="bottom_left_panel" class="tb-split tb-content">
                         <div class="tb-resize-container">
-                            <div class="tb-editor-area-title-panel">
+                            <div class="tb-editor-area-title-panel tb-js-function">
                                 <label>{{ (vm.isDecoder ? 'converter.decoder' : 'converter.encoder') | translate }}</label>
                             </div>
                             <ng-form name="funcBodyForm">
                                 <tb-js-func id="funcBodyInput" ng-model="vm.funcBody"
                                             function-name="{{vm.isDecoder ? 'Decoder' : 'Encoder'}}"
-                                            function-args="{{ ['payload', 'metadata'] }}"
-                                            validation-args="{{ [[vm.inputParams.payload, vm.inputParams.metadata]] }}"
+                                            function-args="{{ vm.isDecoder ? ['payload', 'metadata'] : ['msg', 'metadata', 'msgType', 'integrationMetadata'] }}"
+                                            validation-args="{{ vm.isDecoder ? [[vm.inputParams.payload, vm.inputParams.metadata]] :
+                                                                    [[vm.inputParams.msg, vm.inputParams.metadata, vm.inputParams.msgType, vm.inputParams.integrationMetadata]] }}"
                                             validation-trigger-arg="validateFuncBody"
                                             result-type="object"
                                             fill-height="true">

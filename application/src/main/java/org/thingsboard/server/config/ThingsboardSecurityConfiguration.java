@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -52,15 +51,18 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
+import org.thingsboard.server.service.security.auth.jwt.JwtAuthenticationProvider;
+import org.thingsboard.server.service.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
+import org.thingsboard.server.service.security.auth.jwt.RefreshTokenAuthenticationProvider;
+import org.thingsboard.server.service.security.auth.jwt.RefreshTokenProcessingFilter;
+import org.thingsboard.server.service.security.auth.jwt.SkipPathRequestMatcher;
+import org.thingsboard.server.service.security.auth.jwt.extractor.TokenExtractor;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationProvider;
 import org.thingsboard.server.service.security.auth.rest.RestLoginProcessingFilter;
-import org.thingsboard.server.service.security.auth.jwt.*;
-import org.thingsboard.server.service.security.auth.jwt.extractor.TokenExtractor;
 import org.thingsboard.server.service.security.auth.rest.RestPublicLoginProcessingFilter;
 
 import java.util.ArrayList;
@@ -103,6 +105,8 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
     @Autowired private AuthenticationManager authenticationManager;
 
     @Autowired private ObjectMapper objectMapper;
+
+    @Autowired private RateLimitProcessingFilter rateLimitProcessingFilter;
 
     @Bean
     protected RestLoginProcessingFilter buildRestLoginProcessingFilter() throws Exception {
@@ -199,7 +203,8 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .addFilterBefore(buildRestPublicLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildRefreshTokenProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(buildWsJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(buildWsJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(rateLimitProcessingFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
 

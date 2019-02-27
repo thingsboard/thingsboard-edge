@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,45 +30,59 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
-import org.thingsboard.server.service.converter.UplinkMetaData;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
+import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.service.script.JsScriptType;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class JSDownlinkEvaluator extends AbstractJSEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(jsonStr, metadata) { " +
-            "    var payload = JSON.parse(jsonStr); " +
-            "    return JSON.stringify(Encoder(payload, metadata));" +
-            "    function Encoder(payload, metadata) {";
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final String JS_WRAPPER_SUFFIX = "}\n}";
-
-    private final String functionName;
-
-    public JSDownlinkEvaluator(String encoder) {
-        this.functionName = "encodeInternal" + this.hashCode();
-        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
-        compileScript(jsWrapperPrefix
-                + encoder
-                + JS_WRAPPER_SUFFIX);
+    public JSDownlinkEvaluator(JsInvokeService sandboxService, EntityId entityId, String script) {
+        super(sandboxService, entityId, JsScriptType.DOWNLINK_CONVERTER_SCRIPT, script);
     }
 
-    public void destroy() {
-        //engine = null;
+    public JsonNode execute(TbMsg msg, IntegrationMetaData metadata) throws ScriptException {
+        try {
+            validateSuccessfulScriptLazyInit();
+            String[] inArgs = prepareArgs(msg, metadata);
+            String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
+            return mapper.readTree(eval);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ScriptException) {
+                throw (ScriptException)e.getCause();
+            } else {
+                throw new ScriptException("Failed to execute js script: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            throw new ScriptException("Failed to execute js script: " + e.getMessage());
+        }
     }
 
-    public String execute(String payload, DownLinkMetaData metadata) throws ScriptException, NoSuchMethodException, JsonProcessingException {
-        return ((Invocable)engine).invokeFunction(this.functionName, payload, metadata.getKvMap()).toString();
+    private static String[] prepareArgs(TbMsg msg, IntegrationMetaData metadata) {
+        try {
+            String[] args = new String[4];
+            if (msg.getData() != null) {
+                args[0] = msg.getData();
+            } else {
+                args[0] = "";
+            }
+            args[1] = mapper.writeValueAsString(msg.getMetaData().getData());
+            args[2] = msg.getType();
+            args[3] = mapper.writeValueAsString(metadata.getKvMap());
+            return args;
+        } catch (Throwable th) {
+            throw new IllegalArgumentException("Cannot bind js args", th);
+        }
     }
 
 }

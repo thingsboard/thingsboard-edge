@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,6 +31,7 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import customersTemplate from './customers.tpl.html';
+import customersHierarchyTemplate from './customers-hierarchy.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -56,6 +57,25 @@ export default function CustomerRoutes($stateProvider) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "supervisor_account", "label": "customer.customers"}'
+            }
+        })
+        .state('home.customers-hierarchy', {
+            url: '/customersHierarchy',
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: customersHierarchyTemplate,
+                    controllerAs: 'vm',
+                    controller: 'CustomersHierarchyController'
+                }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'customers-hierarchy.customers-hierarchy'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "sort", "label": "customers-hierarchy.customers-hierarchy"}'
             }
         });
 

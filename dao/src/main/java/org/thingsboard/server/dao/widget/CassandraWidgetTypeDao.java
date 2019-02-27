@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.widget;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.nosql.WidgetTypeEntity;
@@ -44,7 +45,11 @@ import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGET_TYPE_ALIAS_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGET_TYPE_BUNDLE_ALIAS_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGET_TYPE_BY_TENANT_AND_ALIASES_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGET_TYPE_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGET_TYPE_TENANT_ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -68,7 +73,7 @@ public class CassandraWidgetTypeDao extends CassandraAbstractModelDao<WidgetType
                 .where()
                 .and(eq(WIDGET_TYPE_TENANT_ID_PROPERTY, tenantId))
                 .and(eq(WIDGET_TYPE_BUNDLE_ALIAS_PROPERTY, bundleAlias));
-        List<WidgetTypeEntity> widgetTypesEntities = findListByStatement(query);
+        List<WidgetTypeEntity> widgetTypesEntities = findListByStatement(new TenantId(tenantId), query);
         log.trace("Found widget types [{}] by tenantId [{}] and bundleAlias [{}]", widgetTypesEntities, tenantId, bundleAlias);
         return DaoUtil.convertDataList(widgetTypesEntities);
     }
@@ -82,7 +87,7 @@ public class CassandraWidgetTypeDao extends CassandraAbstractModelDao<WidgetType
                 .and(eq(WIDGET_TYPE_BUNDLE_ALIAS_PROPERTY, bundleAlias))
                 .and(eq(WIDGET_TYPE_ALIAS_PROPERTY, alias));
         log.trace("Execute query {}", query);
-        WidgetTypeEntity widgetTypeEntity = findOneByStatement(query);
+        WidgetTypeEntity widgetTypeEntity = findOneByStatement(new TenantId(tenantId), query);
         log.trace("Found widget type [{}] by tenantId [{}], bundleAlias [{}] and alias [{}]",
                 widgetTypeEntity, tenantId, bundleAlias, alias);
         return DaoUtil.getData(widgetTypeEntity);

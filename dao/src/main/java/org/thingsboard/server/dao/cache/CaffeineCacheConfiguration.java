@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,8 +31,11 @@
 package org.thingsboard.server.dao.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.Ticker;
+import com.github.benmanes.caffeine.cache.Weigher;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -43,6 +46,8 @@ import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -53,12 +58,14 @@ import java.util.stream.Collectors;
 @ConfigurationProperties(prefix = "caffeine")
 @EnableCaching
 @Data
+@Slf4j
 public class CaffeineCacheConfiguration {
 
     private Map<String, CacheSpecs> specs;
 
     @Bean
     public CacheManager cacheManager() {
+        log.trace("Initializing cache: {}", Arrays.toString(RemovalCause.values()));
         SimpleCacheManager manager = new SimpleCacheManager();
         if (specs != null) {
             List<CaffeineCache> caches =
@@ -74,8 +81,9 @@ public class CaffeineCacheConfiguration {
     private CaffeineCache buildCache(String name, CacheSpecs cacheSpec) {
         final Caffeine<Object, Object> caffeineBuilder
                 = Caffeine.newBuilder()
+                .weigher(collectionSafeWeigher())
+                .maximumWeight(cacheSpec.getMaxSize())
                 .expireAfterWrite(cacheSpec.getTimeToLiveInMinutes(), TimeUnit.MINUTES)
-                .maximumSize(cacheSpec.getMaxSize())
                 .ticker(ticker());
         return new CaffeineCache(name, caffeineBuilder.build());
     }
@@ -90,4 +98,12 @@ public class CaffeineCacheConfiguration {
         return new PreviousDeviceCredentialsIdKeyGenerator();
     }
 
+    private Weigher<? super Object, ? super Object> collectionSafeWeigher() {
+        return (Weigher<Object, Object>) (key, value) -> {
+            if(value instanceof Collection) {
+                return ((Collection) value).size();
+            }
+            return 1;
+        };
+    }
 }

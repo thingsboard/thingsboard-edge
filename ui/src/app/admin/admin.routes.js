@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,6 +33,7 @@
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
 import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
 import whiteLabelingTemplate from './white-labeling.tpl.html';
+import customTranslationTemplate from './custom-translation.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -46,7 +47,7 @@ export default function AdminRoutes($stateProvider) {
             redirectTo: {
                 'SYS_ADMIN': 'home.settings.outgoing-mail',
                 'TENANT_ADMIN': 'home.settings.outgoing-mail',
-                'CUSTOMER_USER': 'home.settings.whiteLabel'},
+                'CUSTOMER_USER': 'home.settings.customTranslation'},
             ncyBreadcrumb: {
                 label: '{"icon": "settings", "label": "admin.system-settings"}'
             }
@@ -111,7 +112,7 @@ export default function AdminRoutes($stateProvider) {
         .state('home.settings.loginWhiteLabel', {
             url: '/loginWhiteLabel',
             module: 'private',
-            auth: ['SYS_ADMIN'],
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: whiteLabelingTemplate,
@@ -126,6 +127,23 @@ export default function AdminRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "format_paint", "label": "white-labeling.login-white-labeling"}'
             }
+        })
+        .state('home.settings.customTranslation', {
+            url: '/customTranslation',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: customTranslationTemplate,
+                    controllerAs: 'vm',
+                    controller: 'CustomTranslationController'
+                }
+            },
+            data: {
+                pageTitle: 'custom-translation.custom-translation'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "language", "label": "custom-translation.custom-translation"}'
+            }
         });
-
 }

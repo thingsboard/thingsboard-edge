@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,6 +37,8 @@ import thingsboardLegendConfig from '../legend-config.directive';
 import thingsboardJsonForm from '../json-form.directive';
 import thingsboardManageWidgetActions from './action/manage-widget-actions.directive';
 import 'angular-ui-ace';
+
+import fixAceEditor from './../ace-editor-fix';
 
 import './widget-config.scss';
 
@@ -87,6 +89,9 @@ function WidgetConfig($compile, $templateCache, $rootScope, $translate, $timeout
                 enableSnippets: true,
                 enableBasicAutocompletion: true,
                 enableLiveAutocompletion: true
+            },
+            onLoad: function (_ace) {
+                fixAceEditor(_ace);
             }
         };
 

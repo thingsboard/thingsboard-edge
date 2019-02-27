@@ -1,12 +1,12 @@
 --
--- Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+-- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+-- Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
--- the property of Thingsboard OÜ and its suppliers,
+-- the property of ThingsBoard, Inc. and its suppliers,
 -- if any.  The intellectual and technical concepts contained
--- herein are proprietary to Thingsboard OÜ
+-- herein are proprietary to ThingsBoard, Inc.
 -- and its suppliers and may be covered by U.S. and Foreign Patents,
 -- patents in process, and are protected by trade secret or copyright law.
 --
@@ -57,23 +57,3 @@ VALUES ( '1e746126eaaefa6a91992ebcb67fe33', 'mail', '{
 	"username": "",
 	"password": ""
 }' );
-
-/** System plugins and rules **/
-INSERT INTO plugin ( id, tenant_id, name, state, search_text, api_token, plugin_class, public_access, configuration )
-VALUES ( '1e7461160cb2da2a91992ebcb67fe33', '1b21dd2138140008080808080808080', 'System Telemetry Plugin', 'ACTIVE',
-         'system telemetry plugin', 'telemetry',
-         'org.thingsboard.server.extensions.core.plugin.telemetry.TelemetryStoragePlugin', true, '{}' );
-
-INSERT INTO rule ( id, tenant_id, name, plugin_token, state, search_text, weight, filters, processor, action )
-VALUES ( '1e7461165abad4ca91992ebcb67fe33', '1b21dd2138140008080808080808080', 'System Telemetry Rule', 'telemetry', 'ACTIVE',
-         'system telemetry rule', 0,
-         '[{"clazz":"org.thingsboard.server.extensions.core.filter.MsgTypeFilter", "name":"TelemetryFilter", "configuration": {"messageTypes":["POST_TELEMETRY","POST_ATTRIBUTES","GET_ATTRIBUTES"]}}]',
-         null,
-         '{"clazz":"org.thingsboard.server.extensions.core.action.telemetry.TelemetryPluginAction", "name":"TelemetryMsgConverterAction", "configuration":{}}'
-);
-
-INSERT INTO plugin ( id, tenant_id, name, state, search_text, api_token, plugin_class, public_access, configuration )
-VALUES ( '1e746116b3b8994a91992ebcb67fe33', '1b21dd2138140008080808080808080', 'System RPC Plugin', 'ACTIVE',
-         'system rpc plugin', 'rpc', 'org.thingsboard.server.extensions.core.plugin.rpc.RpcPlugin', true, '{
-       "defaultTimeout": 20000
-     }' );

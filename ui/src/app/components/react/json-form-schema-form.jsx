@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -78,11 +78,15 @@ class ThingsboardSchemaForm extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onColorClick = this.onColorClick.bind(this);
+        this.hasConditions = false;
     }
 
     onChange(key, val) {
         //console.log('SchemaForm.onChange', key, val);
         this.props.onModelChange(key, val);
+        if (this.hasConditions) {
+            this.forceUpdate();
+        }
     }
 
     onColorClick(event, key, val) {
@@ -96,8 +100,11 @@ class ThingsboardSchemaForm extends React.Component {
             console.log('Invalid field: \"' + form.key[0] + '\"!');
             return null;
         }
-        if(form.condition && eval(form.condition) === false) {
-            return null;
+        if(form.condition) {
+            this.hasConditions = true;
+            if (eval(form.condition) === false) {
+                return null;
+            }
         }
         return <Field model={model} form={form} key={index} onChange={onChange} onColorClick={onColorClick} mapper={mapper} builder={this.builder}/>
     }

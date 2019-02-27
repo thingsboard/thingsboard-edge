@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.user;
 
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.Dao;
 
@@ -46,7 +47,7 @@ public interface UserCredentialsDao extends Dao<UserCredentials> {
      * @param userCredentials the user credentials object
      * @return saved user credentials object
      */
-    UserCredentials save(UserCredentials userCredentials);
+    UserCredentials save(TenantId tenantId, UserCredentials userCredentials);
 
     /**
      * Find user credentials by user id.
@@ -54,7 +55,7 @@ public interface UserCredentialsDao extends Dao<UserCredentials> {
      * @param userId the user id
      * @return the user credentials object
      */
-    UserCredentials findByUserId(UUID userId);
+    UserCredentials findByUserId(TenantId tenantId, UUID userId);
 
     /**
      * Find user credentials by activate token.
@@ -62,7 +63,7 @@ public interface UserCredentialsDao extends Dao<UserCredentials> {
      * @param activateToken the activate token
      * @return the user credentials object
      */
-    UserCredentials findByActivateToken(String activateToken);
+    UserCredentials findByActivateToken(TenantId tenantId, String activateToken);
 
     /**
      * Find user credentials by reset token.
@@ -70,6 +71,6 @@ public interface UserCredentialsDao extends Dao<UserCredentials> {
      * @param resetToken the reset token
      * @return the user credentials object
      */
-    UserCredentials findByResetToken(String resetToken);
+    UserCredentials findByResetToken(TenantId tenantId, String resetToken);
 
 }

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -52,6 +52,7 @@ export default class Subscription {
         this.id = this.ctx.utils.guid();
         this.cafs = {};
         this.registrations = [];
+        this.hasResolvedData = false;
 
         var subscription = this;
         var deferred = this.ctx.$q.defer();
@@ -187,9 +188,9 @@ export default class Subscription {
         if (this.type === this.ctx.types.widgetType.rpc.value) {
             if (this.targetDeviceId) {
                 entityId = {
-                    entityType: this.ctx.entityType.device,
+                    entityType: this.ctx.types.entityType.device,
                     id: this.targetDeviceId
-                }
+                };
                 entityName = this.targetDeviceName;
             }
         } else if (this.type == this.ctx.types.widgetType.alarm.value) {
@@ -197,7 +198,7 @@ export default class Subscription {
                 entityId = {
                     entityType: this.alarmSource.entityType,
                     id: this.alarmSource.entityId
-                }
+                };
                 entityName = this.alarmSource.entityName;
             }
         } else {
@@ -207,7 +208,7 @@ export default class Subscription {
                     entityId = {
                         entityType: datasource.entityType,
                         id: datasource.entityId
-                    }
+                    };
                     entityName = datasource.entityName;
                     break;
                 }
@@ -250,12 +251,16 @@ export default class Subscription {
         var subscription = this;
         this.loadStDiff().then(() => {
             if (!subscription.ctx.aliasController) {
+                subscription.hasResolvedData = true;
                 subscription.configureAlarmsData();
                 deferred.resolve();
             } else {
                 subscription.ctx.aliasController.resolveAlarmSource(subscription.alarmSource).then(
                     function success(alarmSource) {
                         subscription.alarmSource = alarmSource;
+                        if (alarmSource) {
+                            subscription.hasResolvedData = true;
+                        }
                         subscription.configureAlarmsData();
                         deferred.resolve();
                     },
@@ -282,6 +287,14 @@ export default class Subscription {
         } else {
             this.startWatchingTimewindow();
         }
+        registration = this.ctx.$scope.$watch(function () {
+            return subscription.alarmSearchStatus;
+        }, function (newAlarmSearchStatus, prevAlarmSearchStatus) {
+            if (!angular.equals(newAlarmSearchStatus, prevAlarmSearchStatus)) {
+                subscription.update();
+            }
+        }, true);
+        this.registrations.push(registration);
     }
 
     initDataSubscription() {
@@ -289,12 +302,16 @@ export default class Subscription {
         var subscription = this;
         this.loadStDiff().then(() => {
             if (!subscription.ctx.aliasController) {
+                subscription.hasResolvedData = true;
                 subscription.configureData();
                 deferred.resolve();
             } else {
                 subscription.ctx.aliasController.resolveDatasources(subscription.datasources).then(
                     function success(datasources) {
                         subscription.datasources = datasources;
+                        if (datasources && datasources.length) {
+                            subscription.hasResolvedData = true;
+                        }
                         subscription.configureData();
                         deferred.resolve();
                     },
@@ -314,6 +331,7 @@ export default class Subscription {
             for (var a = 0; a < datasource.dataKeys.length; a++) {
                 var dataKey = datasource.dataKeys[a];
                 dataKey.hidden = false;
+                dataKey.label = this.ctx.utils.customTranslation(dataKey.label,dataKey.label);
                 dataKey.pattern = angular.copy(dataKey.label);
                 var datasourceData = {
                     datasource: datasource,
@@ -426,6 +444,7 @@ export default class Subscription {
                         } else {
                             subscription.rpcEnabled = subscription.ctx.$scope.widgetEditMode ? true : false;
                         }
+                        subscription.hasResolvedData = subscription.rpcEnabled;
                         subscription.callbacks.rpcStateChanged(subscription);
                         deferred.resolve();
                     } else {
@@ -449,6 +468,7 @@ export default class Subscription {
             } else {
                 this.rpcEnabled = this.ctx.$scope.widgetEditMode ? true : false;
             }
+            this.hasResolvedData = true;
             this.callbacks.rpcStateChanged(this);
             deferred.resolve();
         }
@@ -655,6 +675,12 @@ export default class Subscription {
     }
 
     dataUpdated(sourceData, datasourceIndex, dataKeyIndex, apply) {
+        for (var x = 0; x < this.datasourceListeners.length; x++) {
+            this.datasources[x].dataReceived = this.datasources[x].dataReceived === true;
+            if (this.datasourceListeners[x].datasourceIndex === datasourceIndex && sourceData.data.length > 0) {
+                this.datasources[x].dataReceived = true;
+            }
+        }
         this.notifyDataLoaded();
         var update = true;
         var currentData;
@@ -880,6 +906,10 @@ export default class Subscription {
         return subscriptionsChanged;
     }
 
+    isDataResolved() {
+        return this.hasResolvedData;
+    }
+
     exportData() {
         var exportedData = [], dataObj, col, row, ts, key, value;
         if (this.type == this.ctx.types.widgetType.timeseries.value || this.type == this.ctx.types.widgetType.latest.value) {
@@ -925,7 +955,7 @@ export default class Subscription {
                     dataObj["Timestamp"] = tsRow["Timestamp"];
                     for (col=0;col<rowKeys.length;col++) {
                         key = rowKeys[col];
-                        if (tsRow[key]) {
+                        if (angular.isDefined(tsRow[key])) {
                             dataObj[key] = tsRow[key];
                         } else {
                             dataObj[key] = null;

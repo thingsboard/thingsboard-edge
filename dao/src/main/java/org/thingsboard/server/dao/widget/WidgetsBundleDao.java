@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.widget;
 
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.Dao;
@@ -45,10 +46,11 @@ public interface WidgetsBundleDao extends Dao<WidgetsBundle> {
     /**
      * Save or update widgets bundle object
      *
+     * @param tenantId the tenantId
      * @param widgetsBundle the widgets bundle object
      * @return saved widgets bundle object
      */
-    WidgetsBundle save(WidgetsBundle widgetsBundle);
+    WidgetsBundle save(TenantId tenantId, WidgetsBundle widgetsBundle);
 
     /**
      * Find widgets bundle by tenantId and alias.
@@ -65,7 +67,7 @@ public interface WidgetsBundleDao extends Dao<WidgetsBundle> {
      * @param pageLink the page link
      * @return the list of widgets bundles objects
      */
-    List<WidgetsBundle> findSystemWidgetsBundles(TextPageLink pageLink);
+    List<WidgetsBundle> findSystemWidgetsBundles(TenantId tenantId, TextPageLink pageLink);
 
     /**
      * Find tenant widgets bundles by tenantId and page link.

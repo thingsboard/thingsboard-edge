@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.integration;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
@@ -59,7 +60,7 @@ public interface IntegrationDao extends Dao<Integration> {
      * @param routingKey the integration routingKey
      * @return the optional integration object
      */
-    Optional<Integration> findByRoutingKey(String routingKey);
+    Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey);
 
     /**
      * Find integrations by converterId.
@@ -67,6 +68,16 @@ public interface IntegrationDao extends Dao<Integration> {
      * @param converterId the converterId
      * @return the list of integration objects
      */
-    List<Integration> findByConverterId(UUID converterId);
+    List<Integration> findByConverterId(UUID tenantId, UUID converterId);
+
+    /**
+     * Find integrations by tenantId and integration Ids.
+     *
+     * @param tenantId the tenantId
+     * @param integrationIds the integration Ids
+     * @return the list of integration objects
+     */
+    ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
+
 
 }

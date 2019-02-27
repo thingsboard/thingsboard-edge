@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,8 +33,12 @@ package org.thingsboard.server.dao.model;
 import com.datastax.driver.core.utils.UUIDs;
 import org.apache.commons.lang3.ArrayUtils;
 import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.util.UUID;
 
 public class ModelConstants {
@@ -44,6 +48,7 @@ public class ModelConstants {
 
     public static final UUID NULL_UUID = UUIDs.startOf(0);
     public static final String NULL_UUID_STR = UUIDConverter.fromTimeUUID(NULL_UUID);
+    public static final TenantId SYSTEM_TENANT = new TenantId(ModelConstants.NULL_UUID);
 
     /**
      * Generic constants.
@@ -66,7 +71,6 @@ public class ModelConstants {
     public static final String ATTRIBUTE_KEY_COLUMN = "attribute_key";
     public static final String LAST_UPDATE_TS_COLUMN = "last_update_ts";
 
-
     /**
      * Cassandra user constants.
      */
@@ -83,6 +87,7 @@ public class ModelConstants {
     public static final String USER_BY_EMAIL_COLUMN_FAMILY_NAME = "user_by_email";
     public static final String USER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_and_search_text";
     public static final String USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_customer_and_search_text";
+    public static final String USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_authority_and_search_text";
 
     /**
      * Cassandra user_credentials constants.
@@ -134,6 +139,7 @@ public class ModelConstants {
      */
     public static final String CUSTOMER_COLUMN_FAMILY_NAME = "customer";
     public static final String CUSTOMER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String CUSTOMER_PARENT_CUSTOMER_ID_PROPERTY = "parent_customer_id";
     public static final String CUSTOMER_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String CUSTOMER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
@@ -144,18 +150,38 @@ public class ModelConstants {
      * Cassandra device constants.
      */
     public static final String DEVICE_COLUMN_FAMILY_NAME = "device";
+    public static final String DEVICE_FAMILY_NAME = "device";
     public static final String DEVICE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String DEVICE_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
     public static final String DEVICE_NAME_PROPERTY = "name";
     public static final String DEVICE_TYPE_PROPERTY = "type";
     public static final String DEVICE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
-
     public static final String DEVICE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_tenant_and_search_text";
     public static final String DEVICE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_tenant_by_type_and_search_text";
     public static final String DEVICE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_customer_and_search_text";
     public static final String DEVICE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_customer_by_type_and_search_text";
     public static final String DEVICE_BY_TENANT_AND_NAME_VIEW_NAME = "device_by_tenant_and_name";
     public static final String DEVICE_TYPES_BY_TENANT_VIEW_NAME = "device_types_by_tenant";
+
+    /**
+     * Cassandra entityView constants.
+     */
+    public static final String ENTITY_VIEW_TABLE_FAMILY_NAME = "entity_view";
+    public static final String ENTITY_VIEW_ENTITY_ID_PROPERTY = ENTITY_ID_COLUMN;
+    public static final String ENTITY_VIEW_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String ENTITY_VIEW_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String ENTITY_VIEW_NAME_PROPERTY = DEVICE_NAME_PROPERTY;
+    public static final String ENTITY_VIEW_BY_TENANT_AND_CUSTOMER_CF = "entity_view_by_tenant_and_customer";
+    public static final String ENTITY_VIEW_BY_TENANT_AND_CUSTOMER_AND_TYPE_CF = "entity_view_by_tenant_and_customer_and_type";
+    public static final String ENTITY_VIEW_BY_TENANT_AND_ENTITY_ID_CF = "entity_view_by_tenant_and_entity_id";
+    public static final String ENTITY_VIEW_KEYS_PROPERTY = "keys";
+    public static final String ENTITY_VIEW_TYPE_PROPERTY = "type";
+    public static final String ENTITY_VIEW_START_TS_PROPERTY = "start_ts";
+    public static final String ENTITY_VIEW_END_TS_PROPERTY = "end_ts";
+    public static final String ENTITY_VIEW_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String ENTITY_VIEW_BY_TENANT_AND_SEARCH_TEXT_CF = "entity_view_by_tenant_and_search_text";
+    public static final String ENTITY_VIEW_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF = "entity_view_by_tenant_by_type_and_search_text";
+    public static final String ENTITY_VIEW_BY_TENANT_AND_NAME = "entity_view_by_tenant_and_name";
 
     /**
      * Cassandra audit log constants.
@@ -279,6 +305,8 @@ public class ModelConstants {
     public static final String ENTITY_GROUP_COLUMN_FAMILY_NAME = "entity_group";
     public static final String ENTITY_GROUP_TYPE_PROPERTY = "type";
     public static final String ENTITY_GROUP_NAME_PROPERTY = "name";
+    public static final String ENTITY_GROUP_OWNER_ID_PROPERTY = "owner_id";
+    public static final String ENTITY_GROUP_OWNER_TYPE_PROPERTY = "owner_type";
     public static final String ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String ENTITY_GROUP_CONFIGURATION_PROPERTY = "configuration";
 
@@ -323,26 +351,12 @@ public class ModelConstants {
      */
     public static final String DASHBOARD_COLUMN_FAMILY_NAME = "dashboard";
     public static final String DASHBOARD_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String DASHBOARD_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
     public static final String DASHBOARD_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String DASHBOARD_CONFIGURATION_PROPERTY = "configuration";
     public static final String DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY = "assigned_customers";
 
     public static final String DASHBOARD_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "dashboard_by_tenant_and_search_text";
-
-    /**
-     * Cassandra plugin metadata constants.
-     */
-    public static final String PLUGIN_COLUMN_FAMILY_NAME = "plugin";
-    public static final String PLUGIN_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
-    public static final String PLUGIN_NAME_PROPERTY = "name";
-    public static final String PLUGIN_API_TOKEN_PROPERTY = "api_token";
-    public static final String PLUGIN_CLASS_PROPERTY = "plugin_class";
-    public static final String PLUGIN_ACCESS_PROPERTY = "public_access";
-    public static final String PLUGIN_STATE_PROPERTY = STATE_PROPERTY;
-    public static final String PLUGIN_CONFIGURATION_PROPERTY = "configuration";
-
-    public static final String PLUGIN_BY_API_TOKEN_COLUMN_FAMILY_NAME = "plugin_by_api_token";
-    public static final String PLUGIN_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "plugin_by_tenant_and_search_text";
 
     /**
      * Cassandra plugin component metadata constants.
@@ -360,22 +374,6 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_BY_ID = "component_desc_by_id";
 
     /**
-     * Cassandra rule metadata constants.
-     */
-    public static final String RULE_COLUMN_FAMILY_NAME = "rule";
-    public static final String RULE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
-    public static final String RULE_NAME_PROPERTY = "name";
-    public static final String RULE_STATE_PROPERTY = STATE_PROPERTY;
-    public static final String RULE_WEIGHT_PROPERTY = "weight";
-    public static final String RULE_PLUGIN_TOKEN_PROPERTY = "plugin_token";
-    public static final String RULE_FILTERS = "filters";
-    public static final String RULE_PROCESSOR = "processor";
-    public static final String RULE_ACTION = "action";
-
-    public static final String RULE_BY_PLUGIN_TOKEN = "rule_by_plugin_token";
-    public static final String RULE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "rule_by_tenant_and_search_text";
-
-    /**
      * Cassandra event constants.
      */
     public static final String EVENT_COLUMN_FAMILY_NAME = "event";
@@ -388,6 +386,96 @@ public class ModelConstants {
 
     public static final String EVENT_BY_TYPE_AND_ID_VIEW_NAME = "event_by_type_and_id";
     public static final String EVENT_BY_ID_VIEW_NAME = "event_by_id";
+
+    public static final String DEBUG_MODE = "debug_mode";
+
+    /**
+     * Cassandra rule chain constants.
+     */
+    public static final String RULE_CHAIN_COLUMN_FAMILY_NAME = "rule_chain";
+    public static final String RULE_CHAIN_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String RULE_CHAIN_NAME_PROPERTY = "name";
+    public static final String RULE_CHAIN_FIRST_RULE_NODE_ID_PROPERTY = "first_rule_node_id";
+    public static final String RULE_CHAIN_ROOT_PROPERTY = "root";
+    public static final String RULE_CHAIN_CONFIGURATION_PROPERTY = "configuration";
+
+    public static final String RULE_CHAIN_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "rule_chain_by_tenant_and_search_text";
+
+    /**
+     * Cassandra rule node constants.
+     */
+    public static final String RULE_NODE_COLUMN_FAMILY_NAME = "rule_node";
+    public static final String RULE_NODE_CHAIN_ID_PROPERTY = "rule_chain_id";
+    public static final String RULE_NODE_TYPE_PROPERTY = "type";
+    public static final String RULE_NODE_NAME_PROPERTY = "name";
+    public static final String RULE_NODE_CONFIGURATION_PROPERTY = "configuration";
+
+    /**
+     * Cassandra scheduler event constants.
+     */
+    public static final String SCHEDULER_EVENT_COLUMN_FAMILY_NAME = "scheduler_event";
+    public static final String SCHEDULER_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_NAME_PROPERTY = "name";
+    public static final String SCHEDULER_EVENT_TYPE_PROPERTY = "type";
+    public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = "configuration";
+    public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
+
+    public static final String SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant";
+    public static final String SCHEDULER_EVENT_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant_and_type";
+    public static final String SCHEDULER_EVENT_BY_CUSTOMER_COLUMN_FAMILY_NAME = "scheduler_event_by_customer";
+    public static final String SCHEDULER_EVENT_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_customer_and_type";
+
+    /**
+     * Cassandra blob entity constants.
+     */
+    public static final String BLOB_ENTITY_COLUMN_FAMILY_NAME = "blob_entity";
+    public static final String BLOB_ENTITY_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String BLOB_ENTITY_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String BLOB_ENTITY_NAME_PROPERTY = "name";
+    public static final String BLOB_ENTITY_TYPE_PROPERTY = "type";
+    public static final String BLOB_ENTITY_CONTENT_TYPE_PROPERTY = "content_type";
+    public static final String BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String BLOB_ENTITY_DATA_PROPERTY = "data";
+
+    public static final String BLOB_ENTITY_BY_TENANT_COLUMN_FAMILY_NAME = "blob_entity_by_tenant";
+    public static final String BLOB_ENTITY_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_tenant_and_type";
+    public static final String BLOB_ENTITY_BY_CUSTOMER_COLUMN_FAMILY_NAME = "blob_entity_by_customer";
+    public static final String BLOB_ENTITY_BY_CUSTOMER_AND_TYPE_COLUMN_FAMILY_NAME = "blob_entity_by_customer_and_type";
+
+    /**
+     * Cassandra role constants.
+     */
+    public static final String ROLE_TABLE_FAMILY_NAME = "role";
+    public static final String ROLE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String ROLE_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String ROLE_NAME_PROPERTY = DEVICE_NAME_PROPERTY;
+    public static final String ROLE_TYPE_PROPERTY = "type";
+    public static final String ROLE_PERMISSIONS_PROPERTY = "permissions";
+    public static final String ROLE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+
+    public static final String ROLE_BY_TENANT_AND_CUSTOMER_AND_NAME_COLUMN_FAMILY_NAME = "role_by_tenant_and_customer_and_name";
+    public static final String ROLE_BY_TENANT_AND_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_tenant_and_customer_and_search_text";
+    public static final String ROLE_BY_TENANT_CUSTOMER_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "role_by_tenant_customer_type_and_search_text";
+
+    /**
+     * Group permission constants.
+     */
+    public static final String GROUP_PERMISSION_TABLE_FAMILY_NAME = "group_permission";
+    public static final String GROUP_PERMISSION_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String GROUP_PERMISSION_ROLE_ID_PROPERTY = "role_id";
+    public static final String GROUP_PERMISSION_USER_GROUP_ID_PROPERTY = "user_group_id";
+    public static final String GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
+    public static final String GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY = "entity_group_type";
+    public static final String GROUP_PERMISSION_IS_PUBLIC_PROPERTY = "is_public";
+
+    public static final String GROUP_PERMISSION_BY_TENANT_ID_COLUMN_FAMILY_NAME = "group_permission_by_tenant_id";
+    public static final String GROUP_PERMISSION_BY_USER_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_user_group_id";
+    public static final String GROUP_PERMISSION_BY_USER_GROUP_ID_AND_ROLE_ID_COLUMN_FAMILY_NAME = "group_permission_by_user_group_id_and_role_id";
+    public static final String GROUP_PERMISSION_BY_GROUP_USER_GROUP_AND_ROLE_COLUMN_FAMILY_NAME = "group_permission_by_group_user_group_and_role";
+    public static final String GROUP_PERMISSION_BY_ENTITY_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_entity_group_id";
+    public static final String GROUP_PERMISSION_BY_ROLE_ID_COLUMN_FAMILY_NAME = "group_permission_by_role_id";
 
     /**
      * Cassandra attributes and timeseries constants.

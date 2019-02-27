@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,12 +39,12 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.Collections;
 import java.util.List;
@@ -69,13 +69,13 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
 
         Assert.assertTrue(saveRelation(relation));
 
-        Assert.assertTrue(relationService.checkRelation(parentId, childId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertTrue(relationService.checkRelation(SYSTEM_TENANT_ID, parentId, childId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
 
-        Assert.assertFalse(relationService.checkRelation(parentId, childId, "NOT_EXISTING_TYPE", RelationTypeGroup.COMMON).get());
+        Assert.assertFalse(relationService.checkRelation(SYSTEM_TENANT_ID, parentId, childId, "NOT_EXISTING_TYPE", RelationTypeGroup.COMMON).get());
 
-        Assert.assertFalse(relationService.checkRelation(childId, parentId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertFalse(relationService.checkRelation(SYSTEM_TENANT_ID, childId, parentId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
 
-        Assert.assertFalse(relationService.checkRelation(childId, parentId, "NOT_EXISTING_TYPE", RelationTypeGroup.COMMON).get());
+        Assert.assertFalse(relationService.checkRelation(SYSTEM_TENANT_ID, childId, parentId, "NOT_EXISTING_TYPE", RelationTypeGroup.COMMON).get());
     }
 
     @Test
@@ -90,13 +90,13 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         saveRelation(relationA);
         saveRelation(relationB);
 
-        Assert.assertTrue(relationService.deleteRelationAsync(relationA).get());
+        Assert.assertTrue(relationService.deleteRelationAsync(SYSTEM_TENANT_ID, relationA).get());
 
-        Assert.assertFalse(relationService.checkRelation(parentId, childId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertFalse(relationService.checkRelation(SYSTEM_TENANT_ID, parentId, childId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
 
-        Assert.assertTrue(relationService.checkRelation(childId, subChildId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertTrue(relationService.checkRelation(SYSTEM_TENANT_ID, childId, subChildId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
 
-        Assert.assertTrue(relationService.deleteRelationAsync(childId, subChildId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertTrue(relationService.deleteRelationAsync(SYSTEM_TENANT_ID, childId, subChildId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
     }
 
     @Test
@@ -111,11 +111,11 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         saveRelation(relationA);
         saveRelation(relationB);
 
-        Assert.assertTrue(relationService.deleteEntityRelationsAsync(childId).get());
+        Assert.assertNull(relationService.deleteEntityRelationsAsync(SYSTEM_TENANT_ID, childId).get());
 
-        Assert.assertFalse(relationService.checkRelation(parentId, childId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertFalse(relationService.checkRelation(SYSTEM_TENANT_ID, parentId, childId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
 
-        Assert.assertFalse(relationService.checkRelation(childId, subChildId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
+        Assert.assertFalse(relationService.checkRelation(SYSTEM_TENANT_ID, childId, subChildId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON).get());
     }
 
     @Test
@@ -137,7 +137,7 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         saveRelation(relationB1);
         saveRelation(relationB2);
 
-        List<EntityRelation> relations = relationService.findByFrom(parentA, RelationTypeGroup.COMMON);
+        List<EntityRelation> relations = relationService.findByFrom(SYSTEM_TENANT_ID, parentA, RelationTypeGroup.COMMON);
         Assert.assertEquals(2, relations.size());
         for (EntityRelation relation : relations) {
             Assert.assertEquals(EntityRelation.CONTAINS_TYPE, relation.getType());
@@ -145,13 +145,13 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
             Assert.assertTrue(childA.equals(relation.getTo()) || childB.equals(relation.getTo()));
         }
 
-        relations = relationService.findByFromAndType(parentA, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByFromAndType(SYSTEM_TENANT_ID, parentA, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(2, relations.size());
 
-        relations = relationService.findByFromAndType(parentA, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByFromAndType(SYSTEM_TENANT_ID, parentA, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(0, relations.size());
 
-        relations = relationService.findByFrom(parentB, RelationTypeGroup.COMMON);
+        relations = relationService.findByFrom(SYSTEM_TENANT_ID, parentB, RelationTypeGroup.COMMON);
         Assert.assertEquals(2, relations.size());
         for (EntityRelation relation : relations) {
             Assert.assertEquals(EntityRelation.MANAGES_TYPE, relation.getType());
@@ -159,15 +159,15 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
             Assert.assertTrue(childA.equals(relation.getTo()) || childB.equals(relation.getTo()));
         }
 
-        relations = relationService.findByFromAndType(parentB, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByFromAndType(SYSTEM_TENANT_ID, parentB, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(0, relations.size());
 
-        relations = relationService.findByFromAndType(parentB, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByFromAndType(SYSTEM_TENANT_ID, parentB, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(0, relations.size());
     }
 
     private Boolean saveRelation(EntityRelation relationA1) throws ExecutionException, InterruptedException {
-        return relationService.saveRelationAsync(relationA1).get();
+        return relationService.saveRelationAsync(SYSTEM_TENANT_ID, relationA1).get();
     }
 
     @Test
@@ -192,26 +192,26 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         // Data propagation to views is async
         Thread.sleep(3000);
 
-        List<EntityRelation> relations = relationService.findByTo(childA, RelationTypeGroup.COMMON);
+        List<EntityRelation> relations = relationService.findByTo(SYSTEM_TENANT_ID, childA, RelationTypeGroup.COMMON);
         Assert.assertEquals(2, relations.size());
         for (EntityRelation relation : relations) {
             Assert.assertEquals(childA, relation.getTo());
             Assert.assertTrue(parentA.equals(relation.getFrom()) || parentB.equals(relation.getFrom()));
         }
 
-        relations = relationService.findByToAndType(childA, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByToAndType(SYSTEM_TENANT_ID, childA, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(1, relations.size());
 
-        relations = relationService.findByToAndType(childB, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByToAndType(SYSTEM_TENANT_ID, childB, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(1, relations.size());
 
-        relations = relationService.findByToAndType(parentA, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByToAndType(SYSTEM_TENANT_ID, parentA, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(0, relations.size());
 
-        relations = relationService.findByToAndType(parentB, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
+        relations = relationService.findByToAndType(SYSTEM_TENANT_ID, parentB, EntityRelation.MANAGES_TYPE, RelationTypeGroup.COMMON);
         Assert.assertEquals(0, relations.size());
 
-        relations = relationService.findByTo(childB, RelationTypeGroup.COMMON);
+        relations = relationService.findByTo(SYSTEM_TENANT_ID, childB, RelationTypeGroup.COMMON);
         Assert.assertEquals(2, relations.size());
         for (EntityRelation relation : relations) {
             Assert.assertEquals(childB, relation.getTo());
@@ -237,7 +237,14 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         EntityRelationsQuery query = new EntityRelationsQuery();
         query.setParameters(new RelationsSearchParameters(assetA, EntitySearchDirection.FROM, -1));
         query.setFilters(Collections.singletonList(new EntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.singletonList(EntityType.ASSET))));
-        List<EntityRelation> relations = relationService.findByQuery(query).get();
+        List<EntityRelation> relations = relationService.findByQuery(SYSTEM_TENANT_ID, query).get();
+        Assert.assertEquals(3, relations.size());
+        Assert.assertTrue(relations.contains(relationA));
+        Assert.assertTrue(relations.contains(relationB));
+        Assert.assertTrue(relations.contains(relationC));
+
+        //Test from cache
+        relations = relationService.findByQuery(SYSTEM_TENANT_ID, query).get();
         Assert.assertEquals(3, relations.size());
         Assert.assertTrue(relations.contains(relationA));
         Assert.assertTrue(relations.contains(relationB));
@@ -264,7 +271,13 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         EntityRelationsQuery query = new EntityRelationsQuery();
         query.setParameters(new RelationsSearchParameters(assetA, EntitySearchDirection.FROM, -1));
         query.setFilters(Collections.singletonList(new EntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.singletonList(EntityType.ASSET))));
-        List<EntityRelation> relations = relationService.findByQuery(query).get();
+        List<EntityRelation> relations = relationService.findByQuery(SYSTEM_TENANT_ID, query).get();
+        Assert.assertEquals(2, relations.size());
+        Assert.assertTrue(relations.contains(relationAB));
+        Assert.assertTrue(relations.contains(relationBC));
+
+        //Test from cache
+        relations = relationService.findByQuery(SYSTEM_TENANT_ID, query).get();
         Assert.assertEquals(2, relations.size());
         Assert.assertTrue(relations.contains(relationAB));
         Assert.assertTrue(relations.contains(relationBC));

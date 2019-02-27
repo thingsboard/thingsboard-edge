@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -53,7 +53,7 @@ export default function EntityTypeSelect($compile, $templateCache, utils, entity
 
         scope.ngModelCtrl = ngModelCtrl;
 
-        scope.entityTypes = entityService.prepareAllowedEntityTypesList(scope.allowedEntityTypes, scope.useAliasEntityTypes);
+        scope.entityTypes = entityService.prepareAllowedEntityTypesList(scope.allowedEntityTypes, scope.useAliasEntityTypes, scope.operation);
 
         scope.typeName = function(type) {
             return type ? types.entityTypeTranslations[type].type : '';
@@ -94,7 +94,8 @@ export default function EntityTypeSelect($compile, $templateCache, utils, entity
             tbRequired: '=?',
             disabled:'=ngDisabled',
             allowedEntityTypes: "=?",
-            useAliasEntityTypes: "=?"
+            useAliasEntityTypes: "=?",
+            operation: "=?"
         }
     };
 }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,8 +32,6 @@ package org.thingsboard.server.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,6 +40,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.service.security.exception.AuthMethodNotSupportedException;
 import org.thingsboard.server.service.security.exception.JwtExpiredTokenException;
 
@@ -49,6 +51,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 @Component
 @Slf4j
 public class ThingsboardErrorResponseHandler implements AccessDeniedHandler {
@@ -77,6 +80,8 @@ public class ThingsboardErrorResponseHandler implements AccessDeniedHandler {
 
                 if (exception instanceof ThingsboardException) {
                     handleThingsboardException((ThingsboardException) exception, response);
+                } else if (exception instanceof TbRateLimitsException) {
+                    handleRateLimitException(response, (TbRateLimitsException) exception);
                 } else if (exception instanceof AccessDeniedException) {
                     handleAccessDeniedException(response);
                 } else if (exception instanceof AuthenticationException) {
@@ -91,6 +96,7 @@ public class ThingsboardErrorResponseHandler implements AccessDeniedHandler {
             }
         }
     }
+
 
     private void handleThingsboardException(ThingsboardException thingsboardException, HttpServletResponse response) throws IOException {
 
@@ -124,6 +130,15 @@ public class ThingsboardErrorResponseHandler implements AccessDeniedHandler {
         response.setStatus(status.value());
         mapper.writeValue(response.getWriter(), ThingsboardErrorResponse.of(thingsboardException.getMessage(), errorCode, status));
     }
+
+    private void handleRateLimitException(HttpServletResponse response, TbRateLimitsException exception) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        String message = "Too many requests for current " + exception.getEntityType().name().toLowerCase() + "!";
+        mapper.writeValue(response.getWriter(),
+                ThingsboardErrorResponse.of(message,
+                        ThingsboardErrorCode.TOO_MANY_REQUESTS, HttpStatus.TOO_MANY_REQUESTS));
+    }
+
 
     private void handleAccessDeniedException(HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.FORBIDDEN.value());

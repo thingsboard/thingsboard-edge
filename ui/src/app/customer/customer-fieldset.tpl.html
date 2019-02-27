@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -30,11 +30,36 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onManageUsers({event: $event})" ng-show="!hideManageUsers && !isEdit && !isPublic" class="md-raised md-primary">{{ 'customer.manage-users' | translate }}</md-button>
-<md-button ng-click="onManageAssets({event: $event})" ng-show="!hideManageAssets && !isEdit && !isPublic" class="md-raised md-primary">{{ 'customer.manage-assets' | translate }}</md-button>
-<md-button ng-click="onManageDevices({event: $event})" ng-show="!hideManageDevices && !isEdit" class="md-raised md-primary">{{ 'customer.manage-devices' | translate }}</md-button>
-<md-button ng-click="onManageDashboards({event: $event})" ng-show="!hideManageDashboards && !isEdit" class="md-raised md-primary">{{ 'customer.manage-dashboards' | translate }}</md-button>
-<md-button ng-click="onDeleteCustomer({event: $event})" ng-show="!hideDelete && !isEdit && !isPublic" class="md-raised md-primary">{{ 'customer.delete' | translate }}</md-button>
+<md-button ng-click="onManageUsers({event: $event})"
+           ng-if="'userGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageUsers && !isEdit && !isPublic"
+           class="md-raised md-primary">{{ 'customer.manage-user-groups' | translate }}
+</md-button>
+<md-button ng-click="onManageCustomers({event: $event})"
+           ng-if="'customerGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageCustomers && !isEdit && !isPublic"
+           class="md-raised md-primary">{{ 'customer.manage-customer-groups' | translate }}
+</md-button>
+<md-button ng-click="onManageAssets({event: $event})"
+           ng-if="'assetGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageAssets && !isEdit && !isPublic"
+           class="md-raised md-primary">{{ 'customer.manage-asset-groups' | translate }}</md-button>
+<md-button ng-click="onManageDevices({event: $event})"
+           ng-if="'deviceGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageDevices && !isEdit"
+           class="md-raised md-primary">{{ 'customer.manage-device-groups' | translate }}</md-button>
+<md-button ng-click="onManageEntityViews({event: $event})"
+           ng-if="'entityViewGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageEntityViews && !isEdit"
+           class="md-raised md-primary">{{ 'customer.manage-entity-view-groups' | translate }}</md-button>
+<md-button ng-click="onManageDashboards({event: $event})"
+           ng-if="'dashboardGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageDashboards && !isEdit"
+           class="md-raised md-primary">{{ 'customer.manage-dashboard-groups' | translate }}</md-button>
+<md-button ng-click="onDeleteCustomer({event: $event})"
+           ng-if="entityGroup | hasGroupEntityPermission:'delete'"
+           ng-show="!hideDelete && !isEdit && !isPublic"
+           class="md-raised md-primary">{{ 'customer.delete' | translate }}</md-button>
 
 <div layout="row">
 	<md-button ngclipboard data-clipboard-action="copy"
@@ -58,6 +83,14 @@
 		<md-input-container class="md-block">
 			<label translate>customer.description</label>
 			<textarea ng-model="customer.additionalInfo.description" rows="2"></textarea>
+		</md-input-container>
+		<md-input-container class="md-block">
+			<md-checkbox ng-disabled="$root.loading || !isEdit"
+                         ng-show="allowCustomerWhiteLabeling"
+                         aria-label="{{ 'customer.allow-white-labeling' | translate }}"
+                         ng-change="onAllowWhitelabelingChanged()"
+						 ng-model="allowWhiteLabeling">{{ 'customer.allow-white-labeling' | translate }}
+			</md-checkbox>
 		</md-input-container>
 		<tb-contact contact="customer" the-form="theForm" is-edit="isEdit"></tb-contact>
 	</fieldset>

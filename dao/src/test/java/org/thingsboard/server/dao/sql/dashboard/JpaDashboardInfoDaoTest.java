@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,12 +35,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
+import org.thingsboard.server.dao.service.AbstractServiceTest;
 
 import java.util.List;
 import java.util.UUID;
@@ -77,6 +77,6 @@ public class JpaDashboardInfoDaoTest extends AbstractJpaDaoTest {
         dashboardInfo.setId(new DashboardId(UUIDs.timeBased()));
         dashboardInfo.setTenantId(new TenantId(tenantId));
         dashboardInfo.setTitle("DASHBOARD_" + index);
-        dashboardInfoDao.save(dashboardInfo);
+        dashboardInfoDao.save(AbstractServiceTest.SYSTEM_TENANT_ID, dashboardInfo);
     }
 }

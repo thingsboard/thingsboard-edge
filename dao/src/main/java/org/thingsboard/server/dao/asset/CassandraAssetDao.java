@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.EntitySubtypeEntity;
@@ -51,10 +52,30 @@ import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_BY_TENANT_AND_NAME_VIEW_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ASSET_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_SUBTYPE_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -72,19 +93,19 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
     }
 
     @Override
-    public Asset save(Asset domain) {
-        Asset savedAsset = super.save(domain);
+    public Asset save(TenantId tenantId, Asset domain) {
+        Asset savedAsset = super.save(tenantId, domain);
         EntitySubtype entitySubtype = new EntitySubtype(savedAsset.getTenantId(), EntityType.ASSET, savedAsset.getType());
         EntitySubtypeEntity entitySubtypeEntity = new EntitySubtypeEntity(entitySubtype);
         Statement saveStatement = cluster.getMapper(EntitySubtypeEntity.class).saveQuery(entitySubtypeEntity);
-        executeWrite(saveStatement);
+        executeWrite(tenantId, saveStatement);
         return savedAsset;
     }
 
     @Override
     public List<Asset> findAssetsByTenantId(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find assets by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<AssetEntity> assetEntities = findPageWithTextSearch(ASSET_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<AssetEntity> assetEntities = findPageWithTextSearch(new TenantId(tenantId), ASSET_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Collections.singletonList(eq(ASSET_TENANT_ID_PROPERTY, tenantId)), pageLink);
 
         log.trace("Found assets [{}] by tenantId [{}] and pageLink [{}]", assetEntities, tenantId, pageLink);
@@ -94,7 +115,7 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
     @Override
     public List<Asset> findAssetsByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
         log.debug("Try to find assets by tenantId [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
-        List<AssetEntity> assetEntities = findPageWithTextSearch(ASSET_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<AssetEntity> assetEntities = findPageWithTextSearch(new TenantId(tenantId), ASSET_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ASSET_TYPE_PROPERTY, type),
                         eq(ASSET_TENANT_ID_PROPERTY, tenantId)), pageLink);
         log.trace("Found assets [{}] by tenantId [{}], type [{}] and pageLink [{}]", assetEntities, tenantId, type, pageLink);
@@ -107,13 +128,13 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
         Select.Where query = select.where();
         query.and(eq(ASSET_TENANT_ID_PROPERTY, tenantId));
         query.and(in(ID_PROPERTY, assetIds));
-        return findListByStatementAsync(query);
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
     @Override
     public List<Asset> findAssetsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink) {
         log.debug("Try to find assets by tenantId [{}], customerId[{}] and pageLink [{}]", tenantId, customerId, pageLink);
-        List<AssetEntity> assetEntities = findPageWithTextSearch(ASSET_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<AssetEntity> assetEntities = findPageWithTextSearch(new TenantId(tenantId), ASSET_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ASSET_CUSTOMER_ID_PROPERTY, customerId),
                         eq(ASSET_TENANT_ID_PROPERTY, tenantId)),
                 pageLink);
@@ -125,7 +146,7 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
     @Override
     public List<Asset> findAssetsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
         log.debug("Try to find assets by tenantId [{}], customerId [{}], type [{}] and pageLink [{}]", tenantId, customerId, type, pageLink);
-        List<AssetEntity> assetEntities = findPageWithTextSearch(ASSET_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<AssetEntity> assetEntities = findPageWithTextSearch(new TenantId(tenantId), ASSET_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ASSET_TYPE_PROPERTY, type),
                         eq(ASSET_CUSTOMER_ID_PROPERTY, customerId),
                         eq(ASSET_TENANT_ID_PROPERTY, tenantId)),
@@ -143,7 +164,7 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
         query.and(eq(ASSET_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ASSET_CUSTOMER_ID_PROPERTY, customerId));
         query.and(in(ID_PROPERTY, assetIds));
-        return findListByStatementAsync(query);
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
     @Override
@@ -152,7 +173,7 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
         Select.Where query = select.where();
         query.and(eq(ASSET_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ASSET_NAME_PROPERTY, assetName));
-        AssetEntity assetEntity = (AssetEntity) findOneByStatement(query);
+        AssetEntity assetEntity = (AssetEntity) findOneByStatement(new TenantId(tenantId), query);
         return Optional.ofNullable(DaoUtil.getData(assetEntity));
     }
 
@@ -163,7 +184,7 @@ public class CassandraAssetDao extends CassandraAbstractSearchTextDao<AssetEntit
         query.and(eq(ENTITY_SUBTYPE_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(ENTITY_SUBTYPE_ENTITY_TYPE_PROPERTY, EntityType.ASSET));
         query.setConsistencyLevel(cluster.getDefaultReadConsistencyLevel());
-        ResultSetFuture resultSetFuture = getSession().executeAsync(query);
+        ResultSetFuture resultSetFuture = executeAsyncRead(new TenantId(tenantId), query);
         return Futures.transform(resultSetFuture, new Function<ResultSet, List<EntitySubtype>>() {
             @Nullable
             @Override

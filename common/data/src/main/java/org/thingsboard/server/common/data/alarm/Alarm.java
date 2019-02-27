@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,13 +30,18 @@
  */
 package org.thingsboard.server.common.data.alarm;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -46,7 +51,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Data
 @Builder
 @AllArgsConstructor
-public class Alarm extends BaseData<AlarmId> implements HasName {
+public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
 
     private TenantId tenantId;
     private String type;
@@ -88,5 +93,11 @@ public class Alarm extends BaseData<AlarmId> implements HasName {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return type;
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.ASSET;
     }
 }

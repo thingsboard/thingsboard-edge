@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -46,6 +46,21 @@ public class TimePageData<T extends HasId<? extends HasUUID>> {
     private final List<T> data;
     private final TimePageLink nextPageLink;
     private final boolean hasNext;
+
+    public TimePageData(List<? extends HasUUID> ids, List<T> data, TimePageLink pageLink) {
+        super();
+        this.data = data;
+        int limit = pageLink.getLimit();
+        if (ids != null && ids.size() == limit) {
+            int index = ids.size() - 1;
+            UUID idOffset = ids.get(index).getId();
+            nextPageLink = new TimePageLink(limit, pageLink.getStartTime(), pageLink.getEndTime(), pageLink.isAscOrder(), idOffset);
+            hasNext = true;
+        } else {
+            nextPageLink = null;
+            hasNext = false;
+        }
+    }
 
     public TimePageData(List<T> data, TimePageLink pageLink) {
         super();

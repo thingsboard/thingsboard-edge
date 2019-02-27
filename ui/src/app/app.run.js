@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,7 +33,7 @@ import UrlHandler from './url.handler';
 
 /*@ngInject*/
 export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
-                               whiteLabelingService, loginService, userService, $translate) {
+                               whiteLabelingService, loginService, userService, customTranslationService, $translate) {
 
     $window.Flow = Flow;
     var frame = null;
@@ -43,8 +43,8 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         // ie11 fix
     }
 
-    var unauthorizedDialog = null;
     var forbiddenDialog = null;
+    var permissionDeniedDialog = null;
 
     $mdTheming.generateTheme('default');
     $mdTheming.generateTheme('tb-dark');
@@ -60,10 +60,13 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             $rootScope.editWidgetInfo = angular.fromJson(dataWidgetAttr);
             $rootScope.widgetEditMode = true;
         }
+        var stateSelectViewAttr = angular.element(frame).attr('state-select-view');
+        if (stateSelectViewAttr) {
+            $rootScope.stateSelectView = true;
+        }
     }
 
     initWatchers();
-
 
     var skipStateChange = false;
 
@@ -82,6 +85,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
 
         $rootScope.forbiddenHandle = $rootScope.$on('forbidden', function () {
             showForbiddenDialog();
+        });
+
+        $rootScope.permissionDeniedHandle = $rootScope.$on('permissionDenied', function () {
+            showPermissionDeniedDialog();
         });
 
         $rootScope.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
@@ -140,6 +147,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             to.auth.indexOf(authority) === -1) {
                             evt.preventDefault();
                             showForbiddenDialog();
+                        } else if (angular.isDefined(to.permissions) &&
+                            !$filter('hasGenericPermission')(to.permissions.resources, to.permissions.operations)) {
+                            evt.preventDefault();
+                            showForbiddenDialog();
                         } else if (to.redirectTo) {
                             evt.preventDefault();
                             var redirect;
@@ -148,7 +159,10 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             } else {
                                 redirect = to.redirectTo;
                             }
-                            $state.go(redirect, params)
+                            $state.go(redirect, params);
+                        } else if (to.name === 'home.dashboard' && $rootScope.forceFullscreen) {
+                            evt.preventDefault();
+                            $state.go('dashboard', params);
                         }
                     }
                 } else {
@@ -157,11 +171,11 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                         reloadUserFromPublicId();
                     } else if (to.module === 'private') {
                         evt.preventDefault();
-                        if (to.url === '/home' || to.url === '/') {
-                            gotoPublicModule('login', params);
-                        } else {
-                            showUnauthorizedDialog();
-                        }
+                        var redirectParams = {};
+                        redirectParams.toName = to.name;
+                        redirectParams.params = params;
+                        userService.setRedirectParams(redirectParams);
+                        gotoPublicModule('login', params);
                     } else {
                         evt.preventDefault();
                         gotoPublicModule(to.name, params);
@@ -177,7 +191,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         updatePageTitle();
 
         $rootScope.stateChangeSuccessHandle = $rootScope.$on('$stateChangeSuccess', function (evt, to, params) {
-            if (userService.isPublic() && to.name === 'home.dashboards.dashboard') {
+            if (userService.isPublic() && to.name === 'dashboard') {
                 $location.search('publicId', userService.getPublicId());
                 userService.updateLastPublicDashboardId(params.dashboardId);
             }
@@ -188,6 +202,14 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             updateFavicon();
             var pageTitle = $state.current.data ? $state.current.data.pageTitle : '';
             updatePageTitle(pageTitle);
+        });
+
+        $rootScope.globalTranslateOnReadyListener = $rootScope.$on('$translateReady', function () {
+            customTranslationService.updateCustomTranslations();
+        });
+
+        $rootScope.globalTranslateOnChangeListener = $rootScope.$on('$translateChangeEnd', function () {
+            customTranslationService.updateCustomTranslations();
         });
     }
 
@@ -227,31 +249,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         );
     }
 
-    function showUnauthorizedDialog() {
-        if (unauthorizedDialog === null) {
-            $translate(['access.unauthorized-access',
-                        'access.unauthorized-access-text',
-                        'access.unauthorized',
-                        'action.cancel',
-                        'action.sign-in']).then(function (translations) {
-                if (unauthorizedDialog === null) {
-                    unauthorizedDialog = $mdDialog.confirm()
-                        .title(translations['access.unauthorized-access'])
-                        .textContent(translations['access.unauthorized-access-text'])
-                        .ariaLabel(translations['access.unauthorized'])
-                        .cancel(translations['action.cancel'])
-                        .ok(translations['action.sign-in']);
-                    $mdDialog.show(unauthorizedDialog).then(function () {
-                        unauthorizedDialog = null;
-                        gotoPublicModule('login');
-                    }, function () {
-                        unauthorizedDialog = null;
-                    });
-                }
-            });
-        }
-    }
-
     function showForbiddenDialog() {
         if (forbiddenDialog === null) {
             $translate(['access.access-forbidden',
@@ -276,4 +273,27 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
             });
         }
     }
+
+    function showPermissionDeniedDialog() {
+        if (permissionDeniedDialog === null) {
+            $translate(['access.permission-denied',
+                'access.permission-denied-text',
+                'access.permission-denied',
+                'action.close']).then(function (translations) {
+                if (permissionDeniedDialog === null) {
+                    permissionDeniedDialog = $mdDialog.alert()
+                        .title(translations['access.permission-denied'])
+                        .htmlContent(translations['access.permission-denied-text'])
+                        .ariaLabel(translations['access.permission-denied'])
+                        .ok(translations['action.close']);
+                    $mdDialog.show(permissionDeniedDialog).then(function () {
+                        permissionDeniedDialog = null;
+                    }, function () {
+                        permissionDeniedDialog = null;
+                    });
+                }
+            });
+        }
+    }
+
 }

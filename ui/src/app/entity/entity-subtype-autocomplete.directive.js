@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,7 +37,7 @@ import entitySubtypeAutocompleteTemplate from './entity-subtype-autocomplete.tpl
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, $filter, assetService, deviceService, types) {
+export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, $filter, assetService, deviceService, entityViewService, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(entitySubtypeAutocompleteTemplate);
@@ -55,7 +55,7 @@ export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, 
             if ((actual === null) || (expected === null)) {
                 return actual === expected;
             }
-            return actual.indexOf(expected) !== -1;
+            return actual.startsWith(expected);
         };
 
         scope.fetchSubTypes = function(searchText) {
@@ -64,6 +64,10 @@ export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, 
                 function success(subTypes) {
                     var result = $filter('filter')(subTypes, {'$': searchText}, comparator);
                     if (result && result.length) {
+                        if (searchText && searchText.length && result.indexOf(searchText) === -1) {
+                            result.push(searchText);
+                        }
+                        result.sort();
                         deferred.resolve(result);
                     } else {
                         deferred.resolve([searchText]);
@@ -77,6 +81,7 @@ export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, 
         }
 
         scope.subTypeSearchTextChanged = function() {
+            //scope.subType = scope.subTypeSearchText;
         }
 
         scope.updateView = function () {
@@ -111,6 +116,8 @@ export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, 
                     entitySubtypesPromise = assetService.getAssetTypes({ignoreLoading: true});
                 } else if (scope.entityType == types.entityType.device) {
                     entitySubtypesPromise = deviceService.getDeviceTypes({ignoreLoading: true});
+                } else if (scope.entityType == types.entityType.entityView) {
+                    entitySubtypesPromise = entityViewService.getEntityViewTypes({ignoreLoading: true});
                 }
                 if (entitySubtypesPromise) {
                     entitySubtypesPromise.then(
@@ -147,6 +154,13 @@ export default function EntitySubtypeAutocomplete($compile, $templateCache, $q, 
                 scope.entitySubtypeText = 'device.device-type';
                 scope.entitySubtypeRequiredText = 'device.device-type-required';
                 scope.$on('deviceSaved', function() {
+                    scope.entitySubtypes = null;
+                });
+            } else if (scope.entityType == types.entityType.entityView) {
+                scope.selectEntitySubtypeText = 'entity-view.select-entity-view-type';
+                scope.entitySubtypeText = 'entity-view.entity-view-type';
+                scope.entitySubtypeRequiredText = 'entity-view.entity-view-type-required';
+                scope.$on('entityViewSaved', function() {
                     scope.entitySubtypes = null;
                 });
             }

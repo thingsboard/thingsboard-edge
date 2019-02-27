@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -42,12 +42,22 @@ import selectTargetLayoutTemplate from './layouts/select-target-layout.tpl.html'
 import AliasController from '../api/alias-controller';
 
 /*@ngInject*/
-export default function DashboardController(types, utils, dashboardUtils, widgetService, userService,
-                                            dashboardService, timeService, entityService, itembuffer, importExport, hotkeys, $window, $rootScope,
-                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter) {
+export default function DashboardController(types, securityTypes, utils, dashboardUtils, widgetService, userService,
+                                            dashboardService, timeService, entityService, itembuffer, importExport, reportService, userPermissionsService, hotkeys, $window, $rootScope,
+                                            $scope, $element, $state, $stateParams, $mdDialog, $mdMedia, $timeout, $document, $q, $translate, $filter, $location, entityGroup) {
 
     var vm = this;
 
+    vm.widgetEditMode = $state.$current.data.widgetEditMode;
+    vm.entityGroup = entityGroup;
+    if (vm.entityGroup) {
+        vm.readonly = !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.write, entityGroup);
+        vm.entityGroupId = vm.entityGroup.id.id;
+    } else {
+        if (!vm.widgetEditMode && !$stateParams.edit) {
+            vm.readonly = true;
+        }
+    }
     vm.user = userService.getCurrentUser();
     vm.dashboard = null;
     vm.editingWidget = null;
@@ -64,7 +74,6 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.rpcWidgetTypes = [];
     vm.alarmWidgetTypes = [];
     vm.staticWidgetTypes = [];
-    vm.widgetEditMode = $state.$current.data.widgetEditMode;
     vm.iframeMode = $rootScope.iframeMode;
 
     vm.isToolbarOpened = false;
@@ -72,17 +81,10 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.thingsboardVersion = THINGSBOARD_VERSION; //eslint-disable-line
 
     vm.currentDashboardId = $stateParams.dashboardId;
-    if ($stateParams.customerId) {
-        vm.currentCustomerId = $stateParams.customerId;
-        vm.currentDashboardScope = 'customer';
-    } else {
-        vm.currentDashboardScope = vm.user.authority === 'TENANT_ADMIN' ? 'tenant' : 'customer';
-        vm.currentCustomerId = vm.user.customerId;
-    }
 
     Object.defineProperty(vm, 'toolbarOpened', {
         get: function() {
-            return !vm.widgetEditMode &&
+            return !vm.widgetEditMode && !$rootScope.reportView &&
                 (toolbarAlwaysOpen() || vm.isToolbarOpened || vm.isEdit || vm.showRightLayoutSwitch()); },
         set: function() { }
     });
@@ -188,10 +190,12 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.addWidget = addWidget;
     vm.addWidgetFromType = addWidgetFromType;
     vm.exportDashboard = exportDashboard;
+    vm.generateDashboardReport = generateDashboardReport;
     vm.importWidget = importWidget;
     vm.isPublicUser = isPublicUser;
     vm.isTenantAdmin = isTenantAdmin;
     vm.isSystemAdmin = isSystemAdmin;
+    vm.canEdit = canEdit;
     vm.dashboardConfigurationError = dashboardConfigurationError;
     vm.showDashboardToolbar = showDashboardToolbar;
     vm.onAddWidgetClosed = onAddWidgetClosed;
@@ -211,6 +215,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     vm.displayDashboardTimewindow = displayDashboardTimewindow;
     vm.displayDashboardsSelect = displayDashboardsSelect;
     vm.displayEntitiesSelect = displayEntitiesSelect;
+    vm.hideFullscreenButton = hideFullscreenButton;
 
     vm.widgetsBundle;
 
@@ -267,14 +272,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
 
     $scope.$watch('vm.currentDashboardId', function (newVal, prevVal) {
         if (newVal !== prevVal && !vm.widgetEditMode) {
-            if (vm.currentDashboardScope === 'customer' && vm.user.authority === 'TENANT_ADMIN') {
-                $state.go('home.customers.dashboards.dashboard', {
-                    customerId: vm.currentCustomerId,
-                    dashboardId: vm.currentDashboardId
-                });
-            } else {
-                $state.go('home.dashboards.dashboard', {dashboardId: vm.currentDashboardId});
-            }
+            $state.go('.', {dashboardId: vm.currentDashboardId});
         }
     });
 
@@ -379,7 +377,11 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                     vm.dashboard = dashboardUtils.validateAndUpdateDashboard(dashboard);
                     vm.dashboardConfiguration = vm.dashboard.configuration;
                     vm.dashboardCtx.dashboard = vm.dashboard;
-                    vm.dashboardCtx.dashboardTimewindow = vm.dashboardConfiguration.timewindow;
+                    if ($rootScope.reportTimewindow) {
+                        vm.dashboardCtx.dashboardTimewindow = $rootScope.reportTimewindow;
+                    } else {
+                        vm.dashboardCtx.dashboardTimewindow = vm.dashboardConfiguration.timewindow;
+                    }
                     vm.dashboardCtx.aliasController = new AliasController($scope, $q, $filter, utils,
                         types, entityService, vm.dashboardCtx.stateController, vm.dashboardConfiguration.entityAliases);
                 }, function fail() {
@@ -443,12 +445,20 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         return vm.user.isPublic === true;
     }
 
+    function isCustomerUser() {
+        return vm.user.authority === 'CUSTOMER_USER';
+    }
+
     function isTenantAdmin() {
         return vm.user.authority === 'TENANT_ADMIN';
     }
 
     function isSystemAdmin() {
         return vm.user.authority === 'SYS_ADMIN';
+    }
+
+    function canEdit() {
+        return isTenantAdmin() || isCustomerUser();
     }
 
     function dashboardConfigurationError() {
@@ -473,7 +483,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                 }
             },
             parent: angular.element($document[0].body),
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (entityAliases) {
@@ -498,7 +508,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                 gridSettings: gridSettings
             },
             parent: angular.element($document[0].body),
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (data) {
@@ -520,7 +530,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                 layouts: angular.copy(vm.dashboard.configuration.states[vm.dashboardCtx.state].layouts)
             },
             parent: angular.element($document[0].body),
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (layouts) {
@@ -541,7 +551,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                 states: states
             },
             parent: angular.element($document[0].body),
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (states) {
@@ -600,6 +610,12 @@ export default function DashboardController(types, utils, dashboardUtils, widget
     function exportDashboard($event) {
         $event.stopPropagation();
         importExport.exportDashboard(vm.currentDashboardId);
+    }
+
+    function generateDashboardReport($event, reportType) {
+        var locationSearch = $location.search();
+        reportService.downloadDashboardReport($event, vm.currentDashboardId, reportType,
+            locationSearch.state, vm.dashboardCtx.dashboardTimewindow, Date.getTimezoneOffset());
     }
 
     function exportWidget($event, layoutCtx, widget) {
@@ -820,6 +836,10 @@ export default function DashboardController(types, utils, dashboardUtils, widget
         }
     }
 
+    function hideFullscreenButton() {
+        return vm.widgetEditMode || vm.iframeMode || $rootScope.forceFullscreen || $state.current.name === 'dashboard';
+    }
+
     function onRevertWidgetEdit(widgetForm) {
         if (widgetForm.$dirty) {
             widgetForm.$setPristine();
@@ -879,7 +899,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                 templateUrl: selectTargetLayoutTemplate,
                 parent: angular.element($document[0].body),
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 targetEvent: $event
             }).then(
                 function success(layoutId) {
@@ -947,7 +967,7 @@ export default function DashboardController(types, utils, dashboardUtils, widget
                         },
                         parent: angular.element($document[0].body),
                         fullscreen: true,
-                        skipHide: true,
+                        multiple: true,
                         targetEvent: event,
                         onComplete: function () {
                             var w = angular.element($window);

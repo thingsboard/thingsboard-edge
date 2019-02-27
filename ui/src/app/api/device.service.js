@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,17 +38,18 @@ export default angular.module('thingsboard.api.device', [thingsboardTypes])
 function DeviceService($http, $q, $window, userService, attributeService, customerService, types) {
 
     var service = {
-        assignDeviceToCustomer: assignDeviceToCustomer,
+        //assignDeviceToCustomer: assignDeviceToCustomer,
         deleteDevice: deleteDevice,
         getCustomerDevices: getCustomerDevices,
         getDevice: getDevice,
         getDevices: getDevices,
+        getUserDevices: getUserDevices,
         getDeviceCredentials: getDeviceCredentials,
         getTenantDevices: getTenantDevices,
         saveDevice: saveDevice,
         saveDeviceCredentials: saveDeviceCredentials,
-        unassignDeviceFromCustomer: unassignDeviceFromCustomer,
-        makeDevicePublic: makeDevicePublic,
+        //unassignDeviceFromCustomer: unassignDeviceFromCustomer,
+        //makeDevicePublic: makeDevicePublic,
         getDeviceAttributes: getDeviceAttributes,
         subscribeForDeviceAttributes: subscribeForDeviceAttributes,
         unsubscribeForDeviceAttributes: unsubscribeForDeviceAttributes,
@@ -174,9 +175,35 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         return deferred.promise;
     }
 
-    function saveDevice(device) {
+    function getUserDevices(pageLink, config, type) {
+        var deferred = $q.defer();
+        var url = '/api/user/devices?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        if (angular.isDefined(type) && type.length) {
+            url += '&type=' + type;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function saveDevice(device, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/device';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, device).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -231,7 +258,7 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         return deferred.promise;
     }
 
-    function assignDeviceToCustomer(customerId, deviceId) {
+   /* function assignDeviceToCustomer(customerId, deviceId) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/device/' + deviceId;
         $http.post(url, null).then(function success(response) {
@@ -262,7 +289,7 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
             deferred.reject();
         });
         return deferred.promise;
-    }
+    }*/
 
     function getDeviceAttributes(deviceId, attributeScope, query, successCallback, config) {
         return attributeService.getEntityAttributes(types.entityType.device, deviceId, attributeScope, query, successCallback, config);

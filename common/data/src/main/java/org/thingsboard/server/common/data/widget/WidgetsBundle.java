@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,13 +30,18 @@
  */
 package org.thingsboard.server.common.data.widget;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 
 import java.util.Arrays;
 
-public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> {
+public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -131,6 +136,12 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> {
         sb.append(", image=").append(Arrays.toString(image));
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.WIDGETS_BUNDLE;
     }
 
 }

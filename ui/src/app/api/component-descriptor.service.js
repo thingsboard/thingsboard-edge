@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -41,7 +41,8 @@ function ComponentDescriptorService($http, $q) {
     var service = {
         getComponentDescriptorsByType: getComponentDescriptorsByType,
         getComponentDescriptorByClazz: getComponentDescriptorByClazz,
-        getPluginActionsByPluginClazz: getPluginActionsByPluginClazz
+        getPluginActionsByPluginClazz: getPluginActionsByPluginClazz,
+        getComponentDescriptorsByTypes: getComponentDescriptorsByTypes
     }
 
     return service;
@@ -63,6 +64,41 @@ function ComponentDescriptorService($http, $q) {
                 deferred.reject();
             });
 
+        }
+        return deferred.promise;
+    }
+
+    function getComponentDescriptorsByTypes(componentTypes) {
+        var deferred = $q.defer();
+        var result = [];
+        for (var i=componentTypes.length-1;i>=0;i--) {
+            var componentType = componentTypes[i];
+            if (componentsByType[componentType]) {
+                result = result.concat(componentsByType[componentType]);
+                componentTypes.splice(i, 1);
+            }
+        }
+        if (!componentTypes.length) {
+            deferred.resolve(result);
+        } else {
+            var url = '/api/components?componentTypes=' + componentTypes.join(',');
+            $http.get(url, null).then(function success(response) {
+                var components = response.data;
+                for (var i = 0; i < components.length; i++) {
+                    var component = components[i];
+                    var componentsList = componentsByType[component.type];
+                    if (!componentsList) {
+                        componentsList = [];
+                        componentsByType[component.type] = componentsList;
+                    }
+                    componentsList.push(component);
+                    componentsByClazz[component.clazz] = component;
+                }
+                result = result.concat(components);
+                deferred.resolve(components);
+            }, function fail() {
+                deferred.reject();
+            });
         }
         return deferred.promise;
     }

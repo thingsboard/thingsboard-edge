@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,6 +37,7 @@ import eventRowStatsTemplate from './event-row-stats.tpl.html';
 import eventRowErrorTemplate from './event-row-error.tpl.html';
 import eventRowDebugConverterTemplate from './event-row-debug-converter.tpl.html';
 import eventRowDebugIntegrationTemplate from './event-row-debug-integration.tpl.html';
+import eventRowDebugRuleNodeTemplate from './event-row-debug-rulenode.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -62,6 +63,12 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                     break;
                 case types.debugEventType.debugIntegration.value:
                     template = eventRowDebugIntegrationTemplate;
+                    break;
+                case types.debugEventType.debugRuleNode.value:
+                    template = eventRowDebugRuleNodeTemplate;
+                    break;
+                case types.debugEventType.debugRuleChain.value:
+                    template = eventRowDebugRuleNodeTemplate;
                     break;
             }
             return $templateCache.get(template);
@@ -95,11 +102,19 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                 parent: angular.element($document[0].body),
                 fullscreen: true,
                 targetEvent: $event,
-                skipHide: true,
+                multiple: true,
                 onShowing: function(scope, element) {
                     onShowingCallback.onShowing(scope, element);
                 }
             });
+        }
+
+        scope.checkTooltip = function($event) {
+            var el = $event.target;
+            var $el = angular.element(el);
+            if(el.offsetWidth < el.scrollWidth && !$el.attr('title')){
+                $el.attr('title', $el.text());
+            }
         }
 
         $compile(element.contents())(scope);

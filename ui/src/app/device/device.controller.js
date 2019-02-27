@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -62,7 +62,7 @@ export function DeviceCardController(types) {
 
 /*@ngInject*/
 export function DeviceController($rootScope, tbDialogs, userService, deviceService, customerService, $state, $stateParams,
-                                 $document, $mdDialog, $q, $translate, types) {
+                                 $document, $mdDialog, $q, $translate, types, utils) {
 
     var customerId = $stateParams.customerId;
 
@@ -259,8 +259,8 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
             fetchDevicesFunction = function (pageLink, deviceType) {
                 return deviceService.getCustomerDevices(customerId, pageLink, true, null, deviceType);
             };
-            deleteDeviceFunction = function (deviceId) {
-                return deviceService.unassignDeviceFromCustomer(deviceId);
+            deleteDeviceFunction = function (/*deviceId*/) {
+                return $q.when();//deviceService.unassignDeviceFromCustomer(deviceId);
             };
             refreshDevicesParamsFunction = function () {
                 return {"customerId": customerId, "topIndex": vm.topIndex};
@@ -375,7 +375,7 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
     }
 
     function getDeviceTitle(device) {
-        return device ? device.name : '';
+        return device ? utils.customTranslation(device.name, device.name) : '';
     }
 
     function saveDevice(device) {
@@ -408,12 +408,12 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
         return vm.devicesScope === 'customer_user';
     }
 
-    function assignToCustomer($event, deviceIds) {
-        tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
+    function assignToCustomer(/*$event, deviceIds*/) {
+        /*tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
     function addDevicesToCustomer($event) {
@@ -460,16 +460,16 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
         assignToCustomer($event, deviceIds);
     }
 
-    function unassignFromCustomer($event, device, isPublic) {
-        tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
+    function unassignFromCustomer(/*$event, device, isPublic*/) {
+        /*tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function unassignDevicesFromCustomer($event, items) {
-        var deviceIds = [];
+    function unassignDevicesFromCustomer(/*$event, items*/) {
+       /* var deviceIds = [];
         for (var id in items.selections) {
             deviceIds.push(id);
         }
@@ -477,15 +477,15 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function makePublic($event, device) {
-        tbDialogs.makeDevicePublic($event, device).then(
+    function makePublic(/*$event, device*/) {
+        /*tbDialogs.makeDevicePublic($event, device).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
     function manageCredentials($event, device) {

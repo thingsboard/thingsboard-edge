@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,8 +33,10 @@ import './json-content.scss';
 import 'brace/ext/language_tools';
 import 'brace/mode/json';
 import 'brace/mode/text';
-import 'ace-builds/src-min-noconflict/snippets/json';
-import 'ace-builds/src-min-noconflict/snippets/text';
+import 'brace/snippets/json';
+import 'brace/snippets/text';
+
+import fixAceEditor from './ace-editor-fix';
 
 /* eslint-disable import/no-unresolved, import/default */
 
@@ -42,12 +44,16 @@ import jsonContentTemplate from './json-content.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
+import beautify from 'js-beautify';
+
+const js_beautify = beautify.js;
+
 export default angular.module('thingsboard.directives.jsonContent', [])
     .directive('tbJsonContent', JsonContent)
     .name;
 
 /*@ngInject*/
-function JsonContent($compile, $templateCache, toast, types, utils) {
+function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(jsonContentTemplate);
@@ -65,11 +71,41 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
             updateEditorSize();
         };
 
+        scope.beautifyJson = function () {
+            var res = js_beautify(scope.contentBody, {indent_size: 4, wrap_line_length: 60});
+            scope.contentBody = res;
+        };
+
         function updateEditorSize() {
             if (scope.json_editor) {
                 scope.json_editor.resize();
                 scope.json_editor.renderer.updateFull();
             }
+        }
+
+        function updateEditorPlaceholder() {
+            var shouldShow = !scope.json_editor.session.getValue().length;
+            var node = scope.json_editor.renderer.emptyMessageNode;
+            if (!shouldShow && node) {
+                scope.json_editor.renderer.scroller.removeChild(scope.json_editor.renderer.emptyMessageNode);
+                scope.json_editor.renderer.emptyMessageNode = null;
+            } else if (shouldShow && !node) {
+                var placeholderElement = angular.element("<textarea></textarea>");
+                placeholderElement.text(scope.tbPlaceholder);
+                placeholderElement.addClass("ace_invisible ace_emptyMessage");
+                placeholderElement.css("padding", "0 9px");
+                placeholderElement.css("width", "100%");
+                placeholderElement.css("border", "none");
+                var rows = scope.tbPlaceholder.split('\n').length;
+                placeholderElement.attr("rows", rows);
+                node = scope.json_editor.renderer.emptyMessageNode = placeholderElement[0];
+                scope.json_editor.renderer.scroller.appendChild(node);
+            }
+        }
+
+        function createPlaceholder() {
+            scope.json_editor.on("input", updateEditorPlaceholder);
+            $timeout(updateEditorPlaceholder, 100);
         }
 
         var mode;
@@ -92,6 +128,10 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
                 scope.json_editor.session.on("change", function () {
                     scope.cleanupJsonErrors();
                 });
+                fixAceEditor(_ace);
+                if (scope.tbPlaceholder && scope.tbPlaceholder.length) {
+                    createPlaceholder();
+                }
             }
         };
 
@@ -180,7 +220,8 @@ function JsonContent($compile, $templateCache, toast, types, utils) {
             contentType: '=',
             validateContent: '=?',
             readonly:'=ngReadonly',
-            fillHeight:'=?'
+            fillHeight:'=?',
+            tbPlaceholder:'=?'
         },
         link: linker
     };

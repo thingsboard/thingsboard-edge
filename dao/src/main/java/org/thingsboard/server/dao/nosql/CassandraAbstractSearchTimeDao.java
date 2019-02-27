@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,6 +36,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.datastax.driver.core.utils.UUIDs;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -50,24 +51,24 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 public abstract class CassandraAbstractSearchTimeDao<E extends BaseEntity<D>, D> extends CassandraAbstractModelDao<E, D> {
 
 
-    protected List<E> findPageWithTimeSearch(String searchView, List<Clause> clauses, TimePageLink pageLink) {
-        return findPageWithTimeSearch(searchView, clauses, Collections.emptyList(), pageLink);
+    protected List<E> findPageWithTimeSearch(TenantId tenantId, String searchView, List<Clause> clauses, TimePageLink pageLink) {
+        return findPageWithTimeSearch(tenantId, searchView, clauses, Collections.emptyList(), pageLink);
     }
 
-    protected List<E> findPageWithTimeSearch(String searchView, List<Clause> clauses, Ordering ordering, TimePageLink pageLink) {
-        return findPageWithTimeSearch(searchView, clauses, Collections.singletonList(ordering), pageLink);
+    protected List<E> findPageWithTimeSearch(TenantId tenantId, String searchView, List<Clause> clauses, Ordering ordering, TimePageLink pageLink) {
+        return findPageWithTimeSearch(tenantId, searchView, clauses, Collections.singletonList(ordering), pageLink);
     }
 
-    protected List<E> findPageWithTimeSearch(String searchView, List<Clause> clauses, List<Ordering> topLevelOrderings, TimePageLink pageLink) {
-        return findPageWithTimeSearch(searchView, clauses, topLevelOrderings, pageLink, ModelConstants.ID_PROPERTY);
+    protected List<E> findPageWithTimeSearch(TenantId tenantId, String searchView, List<Clause> clauses, List<Ordering> topLevelOrderings, TimePageLink pageLink) {
+        return findPageWithTimeSearch(tenantId, searchView, clauses, topLevelOrderings, pageLink, ModelConstants.ID_PROPERTY);
     }
 
-    protected List<E> findPageWithTimeSearch(String searchView, List<Clause> clauses, TimePageLink pageLink, String idColumn) {
-        return findPageWithTimeSearch(searchView, clauses, Collections.emptyList(), pageLink, idColumn);
+    protected List<E> findPageWithTimeSearch(TenantId tenantId, String searchView, List<Clause> clauses, TimePageLink pageLink, String idColumn) {
+        return findPageWithTimeSearch(tenantId, searchView, clauses, Collections.emptyList(), pageLink, idColumn);
     }
 
-    protected List<E> findPageWithTimeSearch(String searchView, List<Clause> clauses, List<Ordering> topLevelOrderings, TimePageLink pageLink, String idColumn) {
-        return findListByStatement(buildQuery(searchView, clauses, topLevelOrderings, pageLink, idColumn));
+    protected List<E> findPageWithTimeSearch(TenantId tenantId, String searchView, List<Clause> clauses, List<Ordering> topLevelOrderings, TimePageLink pageLink, String idColumn) {
+        return findListByStatement(tenantId, buildQuery(searchView, clauses, topLevelOrderings, pageLink, idColumn));
     }
 
     public static Where buildQuery(String searchView, List<Clause> clauses, TimePageLink pageLink, String idColumn) {

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,49 +31,59 @@
 package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 
+import java.util.List;
+
 public interface UserService {
 	
-	User findUserById(UserId userId);
+	User findUserById(TenantId tenantId, UserId userId);
 
-	ListenableFuture<User> findUserByIdAsync(UserId userId);
+	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
 
-	User findUserByEmail(String email);
+    ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds);
+
+	User findUserByEmail(TenantId tenantId, String email);
 
 	User saveUser(User user);
 
-	UserCredentials findUserCredentialsByUserId(UserId userId);
+	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 	
-	UserCredentials findUserCredentialsByActivateToken(String activateToken);
+	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
-	UserCredentials findUserCredentialsByResetToken(String resetToken);
+	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
-	UserCredentials saveUserCredentials(UserCredentials userCredentials);
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 	
-	UserCredentials activateUserCredentials(String activateToken, String password);
+	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
-	UserCredentials requestPasswordReset(String email);
+	UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
-	void deleteUser(UserId userId);
+	void deleteUser(TenantId tenantId, UserId userId);
 	
 	TextPageData<User> findTenantAdmins(TenantId tenantId, TextPageLink pageLink);
 	
 	void deleteTenantAdmins(TenantId tenantId);
 	
 	TextPageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
-	    
+
+	TextPageData<User> findAllCustomerUsers(TenantId tenantId, TextPageLink pageLink);
+
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
-	EntityView findGroupUser(EntityGroupId entityGroupId, EntityId entityId);
+	ShortEntityView findGroupUser(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-	ListenableFuture<TimePageData<EntityView>> findUsersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

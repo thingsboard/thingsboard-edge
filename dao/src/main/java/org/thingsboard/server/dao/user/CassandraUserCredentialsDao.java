@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.user;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -63,33 +64,33 @@ public class CassandraUserCredentialsDao extends CassandraAbstractModelDao<UserC
     }
 
     @Override
-    public UserCredentials findByUserId(UUID userId) {
+    public UserCredentials findByUserId(TenantId tenantId, UUID userId) {
         log.debug("Try to find user credentials by userId [{}] ", userId);
         Where query = select().from(ModelConstants.USER_CREDENTIALS_BY_USER_COLUMN_FAMILY_NAME).where(eq(ModelConstants.USER_CREDENTIALS_USER_ID_PROPERTY, userId));
         log.trace(EXECUTE_QUERY, query);
-        UserCredentialsEntity userCredentialsEntity = findOneByStatement(query);
+        UserCredentialsEntity userCredentialsEntity = findOneByStatement(tenantId, query);
         log.trace("Found user credentials [{}] by userId [{}]", userCredentialsEntity, userId);
         return DaoUtil.getData(userCredentialsEntity);
     }
 
     @Override
-    public UserCredentials findByActivateToken(String activateToken) {
+    public UserCredentials findByActivateToken(TenantId tenantId, String activateToken) {
         log.debug("Try to find user credentials by activateToken [{}] ", activateToken);
         Where query = select().from(ModelConstants.USER_CREDENTIALS_BY_ACTIVATE_TOKEN_COLUMN_FAMILY_NAME)
                 .where(eq(ModelConstants.USER_CREDENTIALS_ACTIVATE_TOKEN_PROPERTY, activateToken));
         log.trace(EXECUTE_QUERY, query);
-        UserCredentialsEntity userCredentialsEntity = findOneByStatement(query);
+        UserCredentialsEntity userCredentialsEntity = findOneByStatement(tenantId, query);
         log.trace("Found user credentials [{}] by activateToken [{}]", userCredentialsEntity, activateToken);
         return DaoUtil.getData(userCredentialsEntity);
     }
 
     @Override
-    public UserCredentials findByResetToken(String resetToken) {
+    public UserCredentials findByResetToken(TenantId tenantId, String resetToken) {
         log.debug("Try to find user credentials by resetToken [{}] ", resetToken);
         Where query = select().from(ModelConstants.USER_CREDENTIALS_BY_RESET_TOKEN_COLUMN_FAMILY_NAME)
                 .where(eq(ModelConstants.USER_CREDENTIALS_RESET_TOKEN_PROPERTY, resetToken));
         log.trace(EXECUTE_QUERY, query);
-        UserCredentialsEntity userCredentialsEntity = findOneByStatement(query);
+        UserCredentialsEntity userCredentialsEntity = findOneByStatement(tenantId, query);
         log.trace("Found user credentials [{}] by resetToken [{}]", userCredentialsEntity, resetToken);
         return DaoUtil.getData(userCredentialsEntity);
     }

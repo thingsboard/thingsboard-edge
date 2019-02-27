@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,243 +38,28 @@ import addEntityTemplate from './add-entity.tpl.html';
 
 
 /*@ngInject*/
-export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $document, utils, tbDialogs, entityGroupService, telemetryWebsocketService,
-                                              $stateParams, $q, $translate, $filter, types, entityGroup) {
+export default function EntityGroupController($rootScope, $scope, $state, $injector, $mdMedia, $mdDialog, $window, $document, $timeout, utils,
+                                              tbDialogs, entityGroupService, telemetryWebsocketService,
+                                              $stateParams, $q, $translate, $filter, types, securityTypes, userPermissionsService, entityGroup) {
 
     var vm = this;
 
     vm.types = types;
 
+    vm.customerId = $stateParams.customerId;
     vm.entityGroup = entityGroup;
-    vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
     vm.entityType = vm.entityGroup.type;
-    vm.columns = vm.entityGroup.configuration.columns;
-    vm.columns.forEach((column) => {
-        if (column.useCellStyleFunction && column.cellStyleFunction && column.cellStyleFunction.length) {
-            try {
-                column.cellStyleFunction = new Function('value, entity', column.cellStyleFunction);
-            } catch (e) {
-                delete column.cellStyleFunction;
-            }
-        } else {
-            delete column.cellStyleFunction;
-        }
-        if (column.useCellContentFunction && column.cellContentFunction && column.cellContentFunction.length) {
-            try {
-                column.cellContentFunction = new Function('value, entity, $filter', column.cellContentFunction);
-            } catch (e) {
-                delete column.cellContentFunction;
-            }
-        } else {
-            delete column.cellContentFunction;
-        }
-    });
-
     vm.translations = vm.types.entityTypeTranslations[vm.entityType];
 
-    vm.entityGroupConfig.onDeleteEntity = deleteEntity;
-    vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
-    vm.entityGroupConfig.onEntitiesUpdated = onEntitiesUpdated;
-
-    vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
-    if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
-        vm.tableTitle = vm.settings.groupTableTitle;
-        vm.entitiesTitle = '';
-    } else {
-        vm.tableTitle = vm.entityGroup.name;
-        vm.entitiesTitle = ': ' + $translate.instant(types.entityTypeTranslations[vm.entityType].typePlural);
-    }
-
-    vm.actionDescriptorsBySourceId = {};
-    if (vm.entityGroup.configuration.actions) {
-        for (var actionSourceId in vm.entityGroup.configuration.actions) {
-            var descriptors = vm.entityGroup.configuration.actions[actionSourceId];
-            var actionDescriptors = [];
-            descriptors.forEach(function(descriptor) {
-                var actionDescriptor = angular.copy(descriptor);
-                actionDescriptor.displayName = utils.customTranslation(descriptor.name, descriptor.name);
-                actionDescriptors.push(actionDescriptor);
-            });
-            vm.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
-        }
-    }
-
-    var actionCellButtonDescriptors = vm.actionDescriptorsBySourceId['actionCellButton'];
-    vm.actionCellDescriptors = [];
-    if (actionCellButtonDescriptors) {
-        actionCellButtonDescriptors.forEach((descriptor) => {
-            vm.actionCellDescriptors.push(
-                {
-                    name: descriptor.displayName,
-                    icon: descriptor.icon,
-                    isEnabled: () => {
-                        return true;
-                    },
-                    onAction: ($event, entity) => {
-                        handleDescriptorAction($event, entity, descriptor);
-                    }
-                }
-            );
-        });
-    }
-
-    vm.entityGroupConfig.actionCellDescriptors.forEach((descriptor) => {
-        vm.actionCellDescriptors.push(descriptor);
-    });
-    if (vm.settings.detailsMode == types.entityGroup.detailsMode.onActionButtonClick.value) {
-        vm.actionCellDescriptors.push(
-            {
-                name: $translate.instant(vm.translations.details),
-                icon: 'edit',
-                isEnabled: () => {
-                    return true;
-                },
-                onAction: ($event, entity) => {
-                    toggleEntityDetails($event, entity);
-                }
-            }
-        );
-    }
-    vm.actionCellDescriptors.push(
-        {
-            name: $translate.instant('action.delete'),
-            icon: 'delete',
-            isEnabled: (entity) => {
-                return vm.entityGroupConfig.deleteEnabled(entity);
-            },
-            onAction: ($event, entity) => {
-                deleteEntity($event, entity);
-            }
-        }
-    );
-
-    vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
-
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('entity-group.add-to-group'),
-            icon: 'add_circle',
-            isEnabled: () => {
-                return vm.settings.enableGroupTransfer;
-            },
-            onAction: ($event, entities) => {
-                addEntitiesToEntityGroup($event, entities);
-            }
-        }
-    );
-
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('entity-group.move-to-group'),
-            icon: 'swap_vertical_circle',
-            isEnabled: () => {
-                return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-            },
-            onAction: ($event, entities) => {
-                moveEntitiesToEntityGroup($event, entities);
-            }
-        }
-    );
-
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('entity-group.remove-from-group'),
-            icon: 'remove_circle',
-            isEnabled: () => {
-                return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
-            },
-            onAction: ($event, entities) => {
-                removeEntitiesFromEntityGroup($event, entities);
-            }
-        }
-    );
-
-    vm.groupActionDescriptors.push(
-        {
-            name: $translate.instant('action.delete'),
-            icon: 'delete',
-            isEnabled: () => {
-                return vm.entityGroupConfig.entitiesDeleteEnabled();
-            },
-            onAction: ($event, entities) => {
-                deleteEntities($event, entities);
-            }
-        }
-    );
-
-    var tsKeysList = [];
-    var attrKeysList = [];
-
-    function addIfAbsent(list, key) {
-        var index = list.indexOf(key);
-        if (index == -1) {
-            list.push(key);
-        }
-    }
-
-    vm.columns.forEach(function(column) {
-        var key = column.key;
-        if (column.type == types.entityGroup.columnType.timeseries.value) {
-            addIfAbsent(tsKeysList, key);
-        } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
-                   column.type == types.entityGroup.columnType.sharedAttribute.value ||
-                   column.type == types.entityGroup.columnType.serverAttribute.value) {
-            addIfAbsent(attrKeysList, key);
-        }
-    });
-
-    vm.tsKeys = tsKeysList.join(',');
-    vm.attrKeys = attrKeysList.join(',');
-    vm.hasTsData = vm.tsKeys.length > 0;
-    vm.hasAttrData = vm.attrKeys.length > 0;
-    vm.hasSubscriptionData = vm.hasTsData || vm.hasAttrData;
-
-    vm.entitySubscriptions = {};
-
-    vm.scheduledSubscribe = [];
-    vm.scheduledUnsubscribe = [];
-
-    vm.showData = true;
-    vm.hasData = false;
-
-    vm.entities = [];
-    vm.selectedEntities = [];
-    vm.entitiesCount = 0;
-
-    vm.allEntities = [];
-
-    vm.currentEntity = null;
-    vm.isDetailsOpen = false;
-
-    vm.displayPagination = vm.settings.displayPagination;
-    vm.defaultPageSize = vm.settings.defaultPageSize;
-    vm.defaultSortOrder = '-' + types.entityGroup.entityField.created_time.value;
-
-    for (var i=0;i<vm.columns.length;i++) {
-        var column = vm.columns[i];
-        if (column.sortOrder && column.sortOrder !== types.entityGroup.sortOrder.none.value) {
-            if (column.sortOrder == types.entityGroup.sortOrder.desc.value) {
-                vm.defaultSortOrder = '-' + column.key;
-            } else {
-                vm.defaultSortOrder = column.key;
-            }
-            break;
-        }
-    }
-
-    vm.query = {
-        order: vm.defaultSortOrder,
-        limit: vm.defaultPageSize,
-        page: 1,
-        search: null
-    };
-
-    vm.pageLink = {
-        limit: 100
-    };
-
-    vm.hasNext = true;
-
+    vm.toggleGroupDetails = toggleGroupDetails;
+    vm.onToggleGroupEditMode = onToggleGroupEditMode;
+    vm.onCloseGroupDetails = onCloseGroupDetails;
+    vm.operatingGroup = operatingGroup;
+    vm.saveGroup = saveGroup;
+    vm.makeGroupPublic = makeGroupPublic;
+    vm.makeGroupPrivate = makeGroupPrivate;
+    vm.deleteEntityGroup = deleteEntityGroup;
+    vm.addEnabled = addEnabled;
     vm.fetchMore = fetchMore;
     vm.addEntity = addEntity;
     vm.getColumnTitle = getColumnTitle;
@@ -286,12 +71,13 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     vm.isCurrent = isCurrent;
 
+    vm.actionName = actionName;
     vm.cellStyle = cellStyle;
     vm.cellContent = cellContent;
 
     vm.onEntityUpdated = onEntityUpdated;
 
-    fetchMore();
+    reloadGroupConfiguration();
 
     $scope.$watch("vm.query.search", function(newVal, prevVal) {
         if (!angular.equals(newVal, prevVal) && vm.query.search != null) {
@@ -320,8 +106,308 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         clearSubscriptions();
     });
 
-    function enterFilterMode () {
+    if ($stateParams.hierarchyView) {
+        $stateParams.hierarchyCallbacks.reloadData = () => {
+            reload();
+        };
+    }
+
+    function reloadGroupConfiguration() {
+        clearSubscriptions();
+
+        vm.currentEntityGroup = vm.entityGroup.origEntityGroup;
+        vm.isGroupDetailsReadOnly = !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, vm.entityGroup);
+
+        vm.entityGroupConfig = vm.entityGroup.entityGroupConfig;
+        vm.columns = vm.entityGroup.configuration.columns.filter((column) => {
+            if (column.type == types.entityGroup.columnType.timeseries.value) {
+                return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readTelemetry, vm.entityGroup);
+            } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
+                column.type == types.entityGroup.columnType.sharedAttribute.value ||
+                column.type == types.entityGroup.columnType.serverAttribute.value) {
+                return userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readAttributes, vm.entityGroup);
+            } else {
+                return true;
+            }
+        });
+
+        vm.columns.forEach((column) => {
+            if (column.useCellStyleFunction && column.cellStyleFunction && column.cellStyleFunction.length) {
+                try {
+                    column.cellStyleFunction = new Function('value, entity', column.cellStyleFunction);
+                } catch (e) {
+                    delete column.cellStyleFunction;
+                }
+            } else {
+                delete column.cellStyleFunction;
+            }
+            if (column.useCellContentFunction && column.cellContentFunction && column.cellContentFunction.length) {
+                try {
+                    column.cellContentFunction = new Function('value, entity, $filter', column.cellContentFunction);
+                } catch (e) {
+                    delete column.cellContentFunction;
+                }
+            } else {
+                delete column.cellContentFunction;
+            }
+        });
+
+        vm.entityGroupConfig.onDeleteEntity = deleteEntity;
+        vm.entityGroupConfig.onEntityAdded = onEntityAdded;
+        vm.entityGroupConfig.onEntityUpdated = onEntityUpdated;
+        vm.entityGroupConfig.onEntitiesUpdated = onEntitiesUpdated;
+
+        vm.settings = utils.groupSettingsDefaults(vm.entityType, vm.entityGroup.configuration.settings);
+        if (vm.settings.groupTableTitle && vm.settings.groupTableTitle.length) {
+            vm.tableTitle = utils.customTranslation(vm.settings.groupTableTitle, vm.settings.groupTableTitle);
+            vm.entitiesTitle = '';
+        } else {
+            vm.tableTitle = utils.customTranslation(vm.entityGroup.name, vm.entityGroup.name);
+            vm.entitiesTitle = ': ' + $translate.instant(types.entityTypeTranslations[vm.entityType].typePlural);
+        }
+
+        vm.actionDescriptorsBySourceId = {};
+        if (vm.entityGroup.configuration.actions) {
+            for (var actionSourceId in vm.entityGroup.configuration.actions) {
+                var descriptors = vm.entityGroup.configuration.actions[actionSourceId];
+                var actionDescriptors = [];
+                descriptors.forEach(function(descriptor) {
+                    var actionDescriptor = angular.copy(descriptor);
+                    actionDescriptor.displayName = utils.customTranslation(descriptor.name, descriptor.name);
+                    actionDescriptors.push(actionDescriptor);
+                });
+                vm.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
+            }
+        }
+
+        var actionCellButtonDescriptors = vm.actionDescriptorsBySourceId['actionCellButton'];
+        vm.actionCellDescriptors = [];
+        if (actionCellButtonDescriptors) {
+            actionCellButtonDescriptors.forEach((descriptor) => {
+                vm.actionCellDescriptors.push(
+                    {
+                        name: descriptor.displayName,
+                        icon: descriptor.icon,
+                        isEnabled: () => {
+                            return true;
+                        },
+                        onAction: ($event, entity) => {
+                            handleDescriptorAction($event, entity, descriptor);
+                        }
+                    }
+                );
+            });
+        }
+
+        vm.entityGroupConfig.actionCellDescriptors.forEach((descriptor) => {
+            vm.actionCellDescriptors.push(descriptor);
+        });
+        if (vm.settings.detailsMode == types.entityGroup.detailsMode.onActionButtonClick.value) {
+            if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.read, vm.entityGroup)) {
+                vm.actionCellDescriptors.push(
+                    {
+                        name: $translate.instant(vm.translations.details),
+                        icon: 'edit',
+                        isEnabled: () => {
+                            return true;
+                        },
+                        onAction: ($event, entity) => {
+                            toggleEntityDetails($event, entity);
+                        }
+                    }
+                );
+            }
+        }
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
+            vm.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('action.delete'),
+                    icon: 'delete',
+                    isEnabled: (entity) => {
+                        return vm.entityGroupConfig.deleteEnabled(entity);
+                    },
+                    onAction: ($event, entity) => {
+                        deleteEntity($event, entity);
+                    }
+                }
+            );
+        }
+
+        vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
+
+        if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup) &&
+            userPermissionsService.isOwnedGroup(vm.entityGroup) &&
+            userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('entity-group.add-to-group'),
+                    icon: 'add_circle',
+                    isEnabled: () => {
+                        return vm.settings.enableGroupTransfer;
+                    },
+                    onAction: ($event, entities) => {
+                        addEntitiesToEntityGroup($event, entities);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasEntityGroupPermission(securityTypes.operation.removeFromGroup, vm.entityGroup) &&
+            userPermissionsService.isOwnedGroup(vm.entityGroup)) {
+            if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup)) {
+                vm.groupActionDescriptors.push(
+                    {
+                        name: $translate.instant('entity-group.move-to-group'),
+                        icon: 'swap_vertical_circle',
+                        isEnabled: () => {
+                            return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                        },
+                        onAction: ($event, entities) => {
+                            moveEntitiesToEntityGroup($event, entities);
+                        }
+                    }
+                );
+            }
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('entity-group.remove-from-group'),
+                    icon: 'remove_circle',
+                    isEnabled: () => {
+                        return vm.settings.enableGroupTransfer && !vm.entityGroup.groupAll;
+                    },
+                    onAction: ($event, entities) => {
+                        removeEntitiesFromEntityGroup($event, entities);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.delete, vm.entityGroup)) {
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('action.delete'),
+                    icon: 'delete',
+                    isEnabled: () => {
+                        return vm.entityGroupConfig.entitiesDeleteEnabled();
+                    },
+                    onAction: ($event, entities) => {
+                        deleteEntities($event, entities);
+                    }
+                }
+            );
+        }
+
+        vm.headerActionDescriptors = angular.copy(vm.entityGroupConfig.headerActionDescriptors);
+
+        var tsKeysList = [];
+        var attrKeysList = [];
+
+        function addIfAbsent(list, key) {
+            var index = list.indexOf(key);
+            if (index == -1) {
+                list.push(key);
+            }
+        }
+
+        vm.columns.forEach(function(column) {
+            var key = column.key;
+            if (column.type == types.entityGroup.columnType.timeseries.value) {
+                addIfAbsent(tsKeysList, key);
+            } else if (column.type == types.entityGroup.columnType.clientAttribute.value ||
+                column.type == types.entityGroup.columnType.sharedAttribute.value ||
+                column.type == types.entityGroup.columnType.serverAttribute.value) {
+                addIfAbsent(attrKeysList, key);
+            }
+        });
+
+        vm.tsKeys = tsKeysList.join(',');
+        vm.attrKeys = attrKeysList.join(',');
+        vm.hasTsData = vm.tsKeys.length > 0;
+        vm.hasAttrData = vm.attrKeys.length > 0;
+        vm.hasSubscriptionData = vm.hasTsData || vm.hasAttrData;
+
+        vm.entitySubscriptions = {};
+
+        vm.scheduledSubscribe = [];
+        vm.scheduledUnsubscribe = [];
+
+        vm.showData = true;
+        vm.hasData = false;
+
+        vm.entities = [];
+        vm.selectedEntities = [];
+        vm.entitiesCount = 0;
+
+        vm.allEntities = [];
+
+        vm.currentEntity = null;
+        vm.isDetailsOpen = false;
+
+        vm.displayPagination = vm.settings.displayPagination;
+        vm.defaultPageSize = vm.settings.defaultPageSize;
+        vm.defaultSortOrder = '-' + types.entityGroup.entityField.created_time.value;
+
+        for (var i=0;i<vm.columns.length;i++) {
+            var column = vm.columns[i];
+            if (column.sortOrder && column.sortOrder !== types.entityGroup.sortOrder.none.value) {
+                if (column.sortOrder == types.entityGroup.sortOrder.desc.value) {
+                    vm.defaultSortOrder = '-' + column.key;
+                } else {
+                    vm.defaultSortOrder = column.key;
+                }
+                break;
+            }
+        }
+
+        vm.query = {
+            order: vm.defaultSortOrder,
+            limit: vm.defaultPageSize,
+            page: 1,
+            search: null
+        };
+
+        vm.pageLink = {
+            limit: 100
+        };
+
+        vm.hasNext = true;
+
+        fetchMore(() => {
+            if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.viewLoaded) {
+                $stateParams.hierarchyCallbacks.viewLoaded();
+            }
+        });
+    }
+
+    function reload() {
+        vm.isGroupDetailsOpen = false;
+        vm.isDetailsOpen = false;
+        vm.isGroupDetailsEdit = false;
+        vm.customerId = $stateParams.customerId;
+        vm.entityGroup = $stateParams.entityGroup;
+        vm.entityType = vm.entityGroup.type;
+        vm.translations = vm.types.entityTypeTranslations[vm.entityType];
+
+        reloadGroupConfiguration();
+    }
+
+    function addEnabled() {
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, vm.entityGroup)) {
+            return vm.entityGroupConfig.addEnabled();
+        } else {
+            return false;
+        }
+    }
+
+    function enterFilterMode (event) {
+        let $button = angular.element(event.currentTarget);
+        let $toolbarsContainer = $button.closest('.toolbarsContainer');
+
         vm.query.search = '';
+
+        $timeout(()=>{
+            $toolbarsContainer.find('.searchInput').focus();
+        })
     }
 
     function exitFilterMode () {
@@ -339,7 +425,9 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
     function onRowClick($event, entity) {
         if (vm.settings.detailsMode == types.entityGroup.detailsMode.onRowClick.value) {
-            toggleEntityDetails($event, entity);
+            if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.read, vm.entityGroup)) {
+                toggleEntityDetails($event, entity);
+            }
         } else {
             var descriptors = vm.actionDescriptorsBySourceId['rowClick'];
             if (descriptors && descriptors.length) {
@@ -356,9 +444,135 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         if (vm.currentEntity != entity) {
             vm.currentEntity = entity;
             vm.isDetailsOpen = true;
+            vm.isGroupDetailsOpen = false;
         } else {
             vm.isDetailsOpen = !vm.isDetailsOpen;
+            if (vm.isDetailsOpen) {
+                vm.isGroupDetailsOpen = false;
+            }
         }
+    }
+
+    function toggleGroupDetails($event) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        if (!vm.isGroupDetailsOpen) {
+            //vm.currentEntityGroup = vm.entityGroup.origEntityGroup;
+            vm.isGroupDetailsOpen = true;
+            vm.isDetailsOpen = false;
+            vm.isGroupDetailsEdit = false;
+        } else {
+            vm.isGroupDetailsOpen = false;
+        }
+    }
+
+    function onToggleGroupEditMode(theForm) {
+        if (!vm.isGroupDetailsEdit) {
+            theForm.$setPristine();
+        }
+    }
+
+    function onCloseGroupDetails() {
+        //vm.currentEntityGroup = null;
+    }
+
+    function operatingGroup() {
+        if (!vm.isGroupDetailsEdit) {
+            if (vm.editingEntityGroup) {
+                vm.editingEntityGroup = null;
+            }
+            return vm.currentEntityGroup;
+        } else {
+            if (!vm.editingEntityGroup) {
+                vm.editingEntityGroup = angular.copy(vm.currentEntityGroup);
+            }
+            return vm.editingEntityGroup;
+        }
+    }
+
+    function saveGroup(theForm) {
+        entityGroupService.saveEntityGroup(vm.editingEntityGroup).then(
+            (entityGroup) => {
+                theForm.$setPristine();
+                vm.isGroupDetailsEdit = false;
+                if (!vm.customerId) {
+                    $rootScope.$broadcast(entityGroup.type + 'changed');
+                }
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.groupUpdated) {
+                    $stateParams.hierarchyCallbacks.groupUpdated(entityGroup);
+                }
+                entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
+                    (entityGroup) => {
+                        vm.entityGroup = entityGroup;
+                        reloadGroupConfiguration();
+                    }
+                );
+            }
+        );
+    }
+
+    function makeGroupPublic($event) {
+        tbDialogs.makeEntityGroupPublic($event, vm.currentEntityGroup).then(
+            () => {
+                entityGroupService.getEntityGroup(vm.currentEntityGroup.id.id).then(
+                    (entityGroup) => {
+                        entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
+                            (entityGroup) => {
+                                vm.entityGroup = entityGroup;
+                                reloadGroupConfiguration();
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+
+    function makeGroupPrivate($event) {
+        tbDialogs.makeEntityGroupPrivate($event, vm.currentEntityGroup).then(
+            () => {
+                entityGroupService.getEntityGroup(vm.currentEntityGroup.id.id).then(
+                    (entityGroup) => {
+                        entityGroupService.constructGroupConfig($stateParams, entityGroup).then(
+                            (entityGroup) => {
+                                vm.entityGroup = entityGroup;
+                                reloadGroupConfiguration();
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+
+    function deleteEntityGroup($event) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title($translate.instant('entity-group.delete-entity-group-title', {entityGroupName: vm.currentEntityGroup.name}))
+            .htmlContent($translate.instant('entity-group.delete-entity-group-text'))
+            .ariaLabel($translate.instant('grid.delete-item'))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+                entityGroupService.deleteEntityGroup(vm.currentEntityGroup.id.id).then(
+                    function success() {
+                        if (!vm.customerId) {
+                            $rootScope.$broadcast(vm.currentEntityGroup.type + 'changed');
+                        }
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.groupDeleted) {
+                            $stateParams.hierarchyCallbacks.groupDeleted($stateParams.nodeId, vm.currentEntityGroup.id.id);
+                        } else {
+                            $window.history.back();
+                        }
+                    }
+                );
+            },
+            function () {
+            });
     }
 
     function isCurrent(entity) {
@@ -366,34 +580,48 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             (vm.currentEntity.id.id === entity.id.id);
     }
 
-    function fetchMore() {
+    function fetchMore(cb) {
         entityGroupService.getEntityGroupEntities(vm.entityGroup.id.id, vm.pageLink).then(
             function success(entities) {
                 vm.allEntities = vm.allEntities.concat(entities.data);
                 vm.hasNext = entities.hasNext;
                 vm.pageLink = entities.nextPageLink;
                 updateEntities();
+                if (cb) {
+                    cb();
+                }
             },
             function fail() {}
         );
     }
 
     function addEntity($event) {
-        $mdDialog.show({
-            controller: AddEntityController,
-            controllerAs: 'vm',
-            templateUrl: addEntityTemplate,
-            parent: angular.element($document[0].body),
-            locals: {entityGroup: vm.entityGroup},
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-            entityAdded();
+        var addPromise;
+        if (vm.entityGroupConfig.addEntity) {
+            addPromise = vm.entityGroupConfig.addEntity($event, vm.entityGroup);
+        } else {
+            addPromise = $mdDialog.show({
+                controller: AddEntityController,
+                controllerAs: 'vm',
+                templateUrl: addEntityTemplate,
+                parent: angular.element($document[0].body),
+                locals: {entityGroup: vm.entityGroup},
+                fullscreen: true,
+                targetEvent: $event
+            });
+        }
+        addPromise.then(function (entity) {
+            onEntityAdded();
+            if (vm.entityGroup.type === types.entityType.customer) {
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.customerAdded) {
+                    $stateParams.hierarchyCallbacks.customerAdded($stateParams.nodeId, entity);
+                }
+            }
         }, function () {
         });
     }
 
-    function entityAdded() {
+    function onEntityAdded() {
         var pageLink = {
             limit: 100
         };
@@ -441,6 +669,19 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         }
     }
 
+    function actionName(actionDescriptor, entity) {
+        if (actionDescriptor.name) {
+            if (angular.isFunction(actionDescriptor.name)) {
+                return actionDescriptor.name(entity);
+            }
+            else {
+                return actionDescriptor.name;
+            }
+        } else {
+            return '';
+        }
+    }
+
     function cellStyle(entity, column) {
         var style;
         if (column.cellStyleFunction) {
@@ -459,6 +700,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     function cellContent(entity, column) {
         var content;
         var value = entity[column.key];
+        value = utils.customTranslation(value, value);
         if (column.cellContentFunction) {
             var strContent = '';
             if (angular.isDefined(value)) {
@@ -508,6 +750,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                             createSubscription(entity);
                             commitSubscriptions();
                         }
+                    }
+                }
+                if (vm.entityGroup.type === types.entityType.customer) {
+                    if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.customerUpdated) {
+                        $stateParams.hierarchyCallbacks.customerUpdated(entity);
                     }
                 }
             }
@@ -575,7 +822,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     dashboardId: targetDashboardId,
                     state: utils.objToBase64([ stateObject ])
                 }
-                $state.go('home.dashboards.dashboard', stateParams);
+                $state.go('home.dashboard', stateParams);
                 break;
             case types.widgetActionTypes.custom.value:
                 var customFunction = descriptor.customFunction;
@@ -624,6 +871,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         $mdDialog.show(confirm).then(function () {
                 vm.entityGroupConfig.deleteEntity(entity.id.id).then(function success() {
                     onEntitiesDeleted([entity.id.id]);
+                    if (vm.entityGroup.type === types.entityType.customer) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.customersDeleted) {
+                            $stateParams.hierarchyCallbacks.customersDeleted([entity.id.id]);
+                        }
+                    }
                 });
             },
             function () {
@@ -650,6 +902,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 });
                 $q.all(tasks).then(function () {
                     onEntitiesDeleted(entityIds);
+                    if (vm.entityGroup.type === types.entityType.customer) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.customersDeleted) {
+                            $stateParams.hierarchyCallbacks.customersDeleted(entityIds);
+                        }
+                    }
                 });
             },
             function () {}
@@ -657,14 +914,40 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     }
 
     function addEntitiesToEntityGroup($event, entities) {
-        var onEntityGroupSelected = (targetEntityGroupId) => {
+        var onEntityGroupSelected = (selectedGroupData) => {
+            if (selectedGroupData.isNew) {
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.groupAdded) {
+                    $stateParams.hierarchyCallbacks.groupAdded(selectedGroupData.group, vm.entityGroup.id.id);
+                }
+            }
             var entityIds = [];
             entities.forEach((entity) => {
                 entityIds.push(entity.id.id);
             });
-            return entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds);
+            var deferred = $q.defer();
+            entityGroupService.addEntitiesToEntityGroup(selectedGroupData.groupId, entityIds).then(
+                (data) => {
+                    if (vm.entityGroup.type === types.entityType.customer) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshCustomerGroups) {
+                            $stateParams.hierarchyCallbacks.refreshCustomerGroups([selectedGroupData.groupId]);
+                        }
+                    }
+                    deferred.resolve(data);
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+            return deferred.promise;
         };
-        tbDialogs.selectEntityGroup($event, vm.entityType,
+        var ownerId = userPermissionsService.getUserOwnerId();
+        if (vm.customerId) {
+            ownerId = {
+                id: vm.customerId,
+                entityType: types.entityType.customer
+            }
+        }
+        tbDialogs.selectEntityGroup($event, ownerId,  vm.entityType,
             'entity-group.add-to-group', 'action.add',
             vm.translations.selectGroupToAdd,
             'entity-group.no-entity-groups-matching',
@@ -678,13 +961,39 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
         entities.forEach((entity) => {
             entityIds.push(entity.id.id);
         });
-        var onEntityGroupSelected = (targetEntityGroupId) => {
+        var onEntityGroupSelected = (selectedGroupData) => {
+            if (selectedGroupData.isNew) {
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.groupAdded) {
+                    $stateParams.hierarchyCallbacks.groupAdded(selectedGroupData.group, vm.entityGroup.id.id);
+                }
+            }
             var tasks = [];
             tasks.push(entityGroupService.removeEntitiesFromEntityGroup(vm.entityGroup.id.id, entityIds));
-            tasks.push(entityGroupService.addEntitiesToEntityGroup(targetEntityGroupId, entityIds));
-            return $q.all(tasks);
+            tasks.push(entityGroupService.addEntitiesToEntityGroup(selectedGroupData.groupId, entityIds));
+            var deferred = $q.defer();
+            $q.all(tasks).then(
+                () => {
+                    if (vm.entityGroup.type === types.entityType.customer) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshCustomerGroups) {
+                            $stateParams.hierarchyCallbacks.refreshCustomerGroups([vm.entityGroup.id.id, selectedGroupData.groupId]);
+                        }
+                    }
+                    deferred.resolve();
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+            return deferred.promise;
         };
-        tbDialogs.selectEntityGroup($event, vm.entityType,
+        var ownerId = userPermissionsService.getUserOwnerId();
+        if (vm.customerId) {
+            ownerId = {
+                id: vm.customerId,
+                entityType: types.entityType.customer
+            }
+        }
+        tbDialogs.selectEntityGroup($event, ownerId, vm.entityType,
             'entity-group.move-to-group', 'action.move',
             vm.translations.selectGroupToMove,
             'entity-group.no-entity-groups-matching',
@@ -703,6 +1012,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             });
             entityGroupService.removeEntitiesFromEntityGroup(vm.entityGroup.id.id, entityIds).then(() => {
                 onEntitiesDeleted(entityIds);
+                if (vm.entityGroup.type === types.entityType.customer) {
+                    if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshCustomerGroups) {
+                        $stateParams.hierarchyCallbacks.refreshCustomerGroups([vm.entityGroup.id.id]);
+                    }
+                }
             });
         });
     }
@@ -784,10 +1098,14 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     }
 
     function commitSubscriptions() {
-        telemetryWebsocketService.batchUnsubscribe(vm.scheduledUnsubscribe)
-        vm.scheduledUnsubscribe.length = 0;
-        telemetryWebsocketService.batchSubscribe(vm.scheduledSubscribe);
-        vm.scheduledSubscribe.length = 0;
+        if (vm.scheduledUnsubscribe) {
+            telemetryWebsocketService.batchUnsubscribe(vm.scheduledUnsubscribe);
+            vm.scheduledUnsubscribe.length = 0;
+        }
+        if (vm.scheduledSubscribe) {
+            telemetryWebsocketService.batchSubscribe(vm.scheduledSubscribe);
+            vm.scheduledSubscribe.length = 0;
+        }
         telemetryWebsocketService.publishCommands();
     }
 
@@ -843,18 +1161,18 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
     }
 
     function add() {
-        entityService.saveEntity(vm.entity).then(function success(entity) {
+        if (vm.entityGroup.ownerId.entityType === types.entityType.customer) {
+            if (vm.entityType === types.entityType.customer) {
+                vm.entity.parentCustomerId = vm.entityGroup.ownerId;
+            } else {
+                vm.entity.customerId = vm.entityGroup.ownerId;
+            }
+        }
+        var entityGroupId = !vm.entityGroup.groupAll ? vm.entityGroup.id.id : null;
+        entityService.saveGroupEntity(vm.entity, entityGroupId).then(function success(entity) {
             vm.entity = entity;
             $scope.theForm.$setPristine();
-            if (!vm.entityGroup.groupAll) {
-                entityGroupService.addEntityToEntityGroup(vm.entityGroup.id.id, entity.id.id).then(
-                    function success() {
-                        $mdDialog.hide();
-                    }
-                );
-            } else {
-                $mdDialog.hide();
-            }
+            $mdDialog.hide(vm.entity);
         });
     }
 }

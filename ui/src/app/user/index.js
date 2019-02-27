@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,8 +36,10 @@ import thingsboardToast from '../services/toast';
 import UserRoutes from './user.routes';
 import UserController from './user.controller';
 import AddUserController from './add-user.controller';
+import AddGroupUserController from './add-group-user.controller';
 import ActivationLinkDialogController from './activation-link.controller';
 import UserDirective from './user.directive';
+import UserGroupConfig from './user-group.config';
 
 export default angular.module('thingsboard.user', [
     uiRouter,
@@ -48,6 +50,8 @@ export default angular.module('thingsboard.user', [
     .config(UserRoutes)
     .controller('UserController', UserController)
     .controller('AddUserController', AddUserController)
+    .controller('AddGroupUserController', AddGroupUserController)
     .controller('ActivationLinkDialogController', ActivationLinkDialogController)
     .directive('tbUser', UserDirective)
+    .factory('userGroupConfig', UserGroupConfig)
     .name;

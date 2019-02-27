@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,18 +37,15 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.ToDeviceIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.DOWNLINK_CACHE;
 
 /**
@@ -61,33 +58,28 @@ public class DefaultDownlinkService implements DownlinkService {
     @Autowired
     private CacheManager cacheManager;
 
-    @Cacheable(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #deviceId}")
+    @Cacheable(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
     @Override
-    public DownLinkMsg get(IntegrationId integrationId, DeviceId deviceId) {
+    public DownLinkMsg get(IntegrationId integrationId, EntityId entityId) {
         return null;
     }
 
     @Override
-    public DownLinkMsg put(RPCCallIntegrationMsg msg) {
+    public DownLinkMsg put(IntegrationDownlinkMsg msg) {
         return getAndMerge(msg, DownLinkMsg::from, DownLinkMsg::merge);
     }
 
+    @CacheEvict(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
     @Override
-    public DownLinkMsg put(SharedAttributesUpdateIntegrationMsg msg) {
-        return getAndMerge(msg, DownLinkMsg::from, DownLinkMsg::merge);
-    }
-
-    @CacheEvict(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #deviceId}")
-    @Override
-    public void remove(IntegrationId integrationId, DeviceId deviceId) {
+    public void remove(IntegrationId integrationId, EntityId entityId) {
 
     }
 
-    private <T extends ToDeviceIntegrationMsg> DownLinkMsg getAndMerge(T msg, Function<T, DownLinkMsg> from, BiFunction<DownLinkMsg, T, DownLinkMsg> merge) {
+    private <T extends IntegrationDownlinkMsg> DownLinkMsg getAndMerge(T msg, Function<T, DownLinkMsg> from, BiFunction<DownLinkMsg, T, DownLinkMsg> merge) {
         Cache cache = cacheManager.getCache(DOWNLINK_CACHE);
         List<Object> key = new ArrayList<>();
         key.add(msg.getIntegrationId());
-        key.add(msg.getDeviceId());
+        key.add(msg.getEntityId());
 
         DownLinkMsg result = cache.get(key, DownLinkMsg.class);
 

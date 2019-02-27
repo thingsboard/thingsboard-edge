@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -59,7 +59,7 @@ function TimeseriesTableWidget() {
 }
 
 /*@ngInject*/
-function TimeseriesTableWidgetController($element, $scope, $filter) {
+function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, types) {
     var vm = this;
     let dateFormatFilter = 'yyyy-MM-dd HH:mm:ss';
 
@@ -77,6 +77,9 @@ function TimeseriesTableWidgetController($element, $scope, $filter) {
     function enterFilterMode () {
         vm.query.search = '';
         vm.ctx.hideTitlePanel = true;
+        $timeout(()=>{
+            angular.element(vm.ctx.$container).find('.searchInput').focus();
+        })
     }
 
     function exitFilterMode () {
@@ -229,7 +232,9 @@ function TimeseriesTableWidgetController($element, $scope, $filter) {
                     content = strContent;
                 }
             } else {
-                content = vm.ctx.utils.formatValue(value, contentInfo.decimals, contentInfo.units);
+                var decimals = (contentInfo.decimals || contentInfo.decimals === 0) ? contentInfo.decimals : vm.widgetConfig.decimals;
+                var units = contentInfo.units || vm.widgetConfig.units;
+                content = vm.ctx.utils.formatValue(value, decimals, units, true);
             }
             return content;
         }
@@ -238,8 +243,28 @@ function TimeseriesTableWidgetController($element, $scope, $filter) {
     $scope.$watch('vm.sourceIndex', function(newIndex, oldIndex) {
         if (newIndex != oldIndex) {
             updateSourceData(vm.sources[vm.sourceIndex]);
+            updateActiveEntityInfo();
         }
     });
+
+    function updateActiveEntityInfo() {
+        var source = vm.sources[vm.sourceIndex];
+        var activeEntityInfo = null;
+        if (source) {
+            var datasource = source.datasource;
+            if (datasource.type === types.datasourceType.entity &&
+                datasource.entityType && datasource.entityId) {
+                activeEntityInfo = {
+                    entityId: {
+                        entityType: datasource.entityType,
+                        id: datasource.entityId
+                    },
+                    entityName: datasource.entityName
+                };
+            }
+        }
+        vm.ctx.activeEntityInfo = activeEntityInfo;
+    }
 
     function updateDatasources() {
         vm.sources = [];
@@ -324,6 +349,7 @@ function TimeseriesTableWidgetController($element, $scope, $filter) {
                 vm.sources.push(source);
             }
         }
+        updateActiveEntityInfo();
     }
 
     function updatePage(source) {

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,35 +31,25 @@
 package org.thingsboard.server.service.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.msg.core.TelemetryUploadRequest;
-import org.thingsboard.server.common.msg.core.UpdateAttributesRequest;
 import org.thingsboard.server.common.transport.adaptor.JsonConverter;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.ConverterContext;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ashvayka on 18.12.17.
  */
 @Slf4j
 public abstract class AbstractUplinkDataConverter extends AbstractDataConverter implements TBUplinkDataConverter {
-
-    private final AtomicInteger telemetryIdSeq = new AtomicInteger();
-    private final AtomicInteger attrRequestIdSeq = new AtomicInteger();
-
 
     @Override
     public void init(Converter configuration) {
@@ -110,16 +100,15 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         }
 
         //TODO: add support of attribute requests and client-side RPC.
-
         return builder.build();
     }
 
-    private TelemetryUploadRequest parseTelemetry(JsonElement src) {
-        return JsonConverter.convertToTelemetry(src, telemetryIdSeq.getAndIncrement());
+    private TransportProtos.PostTelemetryMsg parseTelemetry(JsonElement src) {
+        return JsonConverter.convertToTelemetryProto(src);
     }
 
-    private UpdateAttributesRequest parseAttributesUpdate(JsonElement src) {
-        return JsonConverter.convertToAttributes(src, attrRequestIdSeq.getAndIncrement());
+    private TransportProtos.PostAttributeMsg parseAttributesUpdate(JsonElement src) {
+        return JsonConverter.convertToAttributesProto(src);
     }
 
     private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,7 +38,7 @@ import activationLinkDialogTemplate from './activation-link.dialog.tpl.html';
 
 
 /*@ngInject*/
-export default function UserController(userService, toast, $scope, $mdDialog, $document, $controller, $state, $stateParams, $translate, types) {
+export default function UserController(userService, toast, $scope, $mdDialog, $document, $controller, $state, $stateParams, $translate, types, securityTypes, userPermissionsService) {
 
     var tenantId = $stateParams.tenantId;
     var customerId = $stateParams.customerId;
@@ -47,19 +47,38 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
     var userActionsList = [
         {
             onAction: function ($event, item) {
+                loginAsUser(item);
+            },
+            name: function() { return $translate.instant('login.login') },
+            details: function() { return $translate.instant(usersType === 'tenant' ? 'user.login-as-tenant-admin' : 'user.login-as-customer-user') },
+            icon: "login",
+            isEnabled: function() {
+                return userService.isUserTokenAccessEnabled();
+            }
+        },
+        {
+            onAction: function ($event, item) {
                 vm.grid.deleteItem($event, item);
             },
             name: function() { return $translate.instant('action.delete') },
             details: function() { return $translate.instant('user.delete') },
-            icon: "delete"
+            icon: "delete",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.delete);
+            }
         }
     ];
+
+    var userGroupActionsList = [];
 
     var vm = this;
 
     vm.types = types;
 
     vm.userGridConfig = {
+
+        resource: securityTypes.resource.user,
+
         deleteItemTitleFunc: deleteUserTitle,
         deleteItemContentFunc: deleteUserText,
         deleteItemsTitleFunc: deleteUsersTitle,
@@ -72,6 +91,7 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
         itemCardTemplateUrl: userCard,
 
         actionsList: userActionsList,
+        groupActionsList: userGroupActionsList,
 
         onGridInited: gridInited,
 
@@ -93,6 +113,7 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
 
     vm.displayActivationLink = displayActivationLink;
     vm.resendActivation = resendActivation;
+    vm.loginAsUser = loginAsUser;
 
     initController();
 
@@ -116,6 +137,17 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
             refreshUsersParamsFunction = function () {
                 return {"tenantId": tenantId, "topIndex": vm.topIndex};
             };
+
+            userGroupActionsList.push(
+                {
+                    onAction: function ($event) {
+                        vm.grid.deleteItems($event);
+                    },
+                    name: function() { return $translate.instant('user.delete-users') },
+                    details: deleteUsersActionTitle,
+                    icon: "delete"
+                }
+            );
 
         } else if (usersType === 'customer') {
             fetchUsersFunction = function (pageLink) {
@@ -189,7 +221,7 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
             },
             parent: angular.element($document[0].body),
             fullscreen: true,
-            skipHide: true,
+            multiple: true,
             targetEvent: event
         });
     }
@@ -198,5 +230,9 @@ export default function UserController(userService, toast, $scope, $mdDialog, $d
         userService.sendActivationEmail(user.email).then(function success() {
             toast.showSuccess($translate.instant('user.activation-email-sent-message'));
         });
+    }
+
+    function loginAsUser(user) {
+        userService.loginAsUser(user.id.id);
     }
 }

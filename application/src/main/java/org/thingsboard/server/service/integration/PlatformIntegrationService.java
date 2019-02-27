@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,29 +30,42 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.service.integration.msg.IntegrationMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.util.Optional;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
-public interface PlatformIntegrationService {
+public interface PlatformIntegrationService extends DiscoveryServiceListener {
 
-    ThingsboardPlatformIntegration createIntegration(Integration integration) throws Exception;
+    void validateIntegrationConfiguration(Integration integration);
 
-    ThingsboardPlatformIntegration updateIntegration(Integration integration) throws Exception;
+    ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
 
-    void deleteIntegration(IntegrationId integration);
+    ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration integration);
 
-    Optional<ThingsboardPlatformIntegration> getIntegrationById(IntegrationId id);
+    ListenableFuture<Void> deleteIntegration(IntegrationId integration);
 
-    Optional<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
+    ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
 
-    void onMsg(IntegrationMsg msg);
+    void onDownlinkMsg(IntegrationDownlinkMsg msg, FutureCallback<Void> callback);
+
+    void onRemoteDownlinkMsg(ServerAddress serverAddress, byte[] bytes);
+
+    void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.PostTelemetryMsg msg, TransportServiceCallback<Void> callback);
+
+    void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.PostAttributeMsg msg, TransportServiceCallback<Void> callback);
+
+    void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.GetAttributeRequestMsg msg, TransportServiceCallback<Void> callback);
 
 }

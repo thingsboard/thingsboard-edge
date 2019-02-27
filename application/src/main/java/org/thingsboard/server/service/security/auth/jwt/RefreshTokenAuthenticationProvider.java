@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,7 +31,10 @@
 package org.thingsboard.server.service.security.auth.jwt;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -39,20 +42,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UUIDBased;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.RefreshAuthenticationToken;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.model.token.RawAccessJwtToken;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -60,13 +66,19 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
     private final JwtTokenFactory tokenFactory;
     private final UserService userService;
+    private final EntityGroupService entityGroupService;
     private final CustomerService customerService;
+    private final UserPermissionsService userPermissionsService;
 
     @Autowired
-    public RefreshTokenAuthenticationProvider(final UserService userService, final CustomerService customerService, final JwtTokenFactory tokenFactory) {
+    public RefreshTokenAuthenticationProvider(final UserService userService, final EntityGroupService entityGroupService,
+                                              final CustomerService customerService, final JwtTokenFactory tokenFactory,
+                                              final UserPermissionsService userPermissionsService) {
         this.userService = userService;
+        this.entityGroupService = entityGroupService;
         this.customerService = customerService;
         this.tokenFactory = tokenFactory;
+        this.userPermissionsService = userPermissionsService;
     }
 
     @Override
@@ -85,12 +97,13 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
     }
 
     private SecurityUser authenticateByUserId(UserId userId) {
-        User user = userService.findUserById(userId);
+        TenantId systemId = new TenantId(EntityId.NULL_UUID);
+        User user = userService.findUserById(systemId, userId);
         if (user == null) {
             throw new UsernameNotFoundException("User not found by refresh token");
         }
 
-        UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getId());
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(systemId, user.getId());
         if (userCredentials == null) {
             throw new UsernameNotFoundException("User credentials not found");
         }
@@ -99,23 +112,32 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
             throw new DisabledException("User is not active");
         }
 
-        if (user.getAuthority() == null) throw new InsufficientAuthenticationException("User has no authority assigned");
+        if (user.getAuthority() == null)
+            throw new InsufficientAuthenticationException("User has no authority assigned");
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
 
-        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal);
+        MergedUserPermissions userPermissions;
+        try {
+            userPermissions = userPermissionsService.getMergedPermissions(user, false);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
+        }
+
+        SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, userPermissions);
 
         return securityUser;
     }
 
     private SecurityUser authenticateByPublicId(String publicId) {
+        TenantId systemId = new TenantId(EntityId.NULL_UUID);
         CustomerId customerId;
         try {
             customerId = new CustomerId(UUID.fromString(publicId));
         } catch (Exception e) {
             throw new BadCredentialsException("Refresh token is not valid");
         }
-        Customer publicCustomer = customerService.findCustomerById(customerId);
+        Customer publicCustomer = customerService.findCustomerById(systemId, customerId);
         if (publicCustomer == null) {
             throw new UsernameNotFoundException("Public entity not found by refresh token");
         }
@@ -134,7 +156,14 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
         UserPrincipal userPrincipal = new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, publicId);
 
-        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal);
+        MergedUserPermissions userPermissions;
+        try {
+            userPermissions = userPermissionsService.getMergedPermissions(user, true);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
+        }
+
+        SecurityUser securityUser = new SecurityUser(user, true, userPrincipal, userPermissions);
 
         return securityUser;
     }

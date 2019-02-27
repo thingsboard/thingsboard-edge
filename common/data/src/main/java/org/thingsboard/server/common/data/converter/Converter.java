@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,15 +30,20 @@
  */
 package org.thingsboard.server.common.data.converter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Converter extends SearchTextBased<ConverterId> implements HasName {
+public class Converter extends SearchTextBased<ConverterId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = -1541581333235769915L;
 
@@ -143,4 +148,11 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName {
         builder.append("]");
         return builder.toString();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.CONVERTER;
+    }
+
 }

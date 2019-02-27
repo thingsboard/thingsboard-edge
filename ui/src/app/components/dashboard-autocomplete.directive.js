@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -45,7 +45,7 @@ export default angular.module('thingsboard.directives.dashboardAutocomplete', [t
     .name;
 
 /*@ngInject*/
-function DashboardAutocomplete($compile, $templateCache, $q, dashboardService, userService) {
+function DashboardAutocomplete($compile, $templateCache, $q, dashboardService) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(dashboardAutocompleteTemplate);
@@ -60,24 +60,7 @@ function DashboardAutocomplete($compile, $templateCache, $q, dashboardService, u
 
             var deferred = $q.defer();
 
-            var promise;
-            if (scope.dashboardsScope === 'customer' || userService.getAuthority() === 'CUSTOMER_USER') {
-                if (scope.customerId) {
-                    promise = dashboardService.getCustomerDashboards(scope.customerId, pageLink, {ignoreLoading: true});
-                } else {
-                    promise = $q.when({data: []});
-                }
-            } else {
-                if (userService.getAuthority() === 'SYS_ADMIN') {
-                    if (scope.tenantId) {
-                        promise = dashboardService.getTenantDashboardsByTenantId(scope.tenantId, pageLink, {ignoreLoading: true});
-                    } else {
-                        promise = $q.when({data: []});
-                    }
-                } else {
-                    promise = dashboardService.getTenantDashboards(pageLink, {ignoreLoading: true});
-                }
-            }
+            var promise = dashboardService.getUserDashboards(scope.userId, scope.operation, pageLink, {ignoreLoading: true});
 
             promise.then(function success(result) {
                 deferred.resolve(result.data);
@@ -149,9 +132,8 @@ function DashboardAutocomplete($compile, $templateCache, $q, dashboardService, u
         require: "^ngModel",
         link: linker,
         scope: {
-            dashboardsScope: '@',
-            tenantId: '=',
-            customerId: '=',
+            userId: '=?',
+            operation: '=?',
             theForm: '=?',
             tbRequired: '=?',
             disabled:'=ngDisabled',

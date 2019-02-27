@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,12 +32,31 @@ package org.thingsboard.server.dao.model.sql;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.kv.*;
+import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+import org.thingsboard.server.common.data.kv.DoubleDataEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.model.ToData;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.BOOLEAN_VALUE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.DOUBLE_VALUE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_ID_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.LONG_VALUE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.STRING_VALUE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
 
 @Data
 @Entity

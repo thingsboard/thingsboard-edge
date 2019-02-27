@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,10 +30,17 @@
  */
 package org.thingsboard.server.actors.service;
 
+import akka.actor.Terminated;
 import akka.actor.UntypedActor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.msg.TbActorMsg;
+
 
 public abstract class ContextAwareActor extends UntypedActor {
+
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     public static final int ENTITY_PACK_LIMIT = 1024;
 
@@ -43,4 +50,29 @@ public abstract class ContextAwareActor extends UntypedActor {
         super();
         this.systemContext = systemContext;
     }
+
+    @Override
+    public void onReceive(Object msg) {
+        if (log.isDebugEnabled()) {
+            log.debug("Processing msg: {}", msg);
+        }
+        if (msg instanceof TbActorMsg) {
+            try {
+                if (!process((TbActorMsg) msg)) {
+                    log.warn("Unknown message: {}!", msg);
+                }
+            } catch (Exception e) {
+                throw e;
+            }
+        } else if (msg instanceof Terminated) {
+            processTermination((Terminated) msg);
+        } else {
+            log.warn("Unknown message: {}!", msg);
+        }
+    }
+
+    protected void processTermination(Terminated msg) {
+    }
+
+    protected abstract boolean process(TbActorMsg msg);
 }

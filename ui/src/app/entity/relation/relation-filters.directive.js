@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -59,13 +59,18 @@ export default function RelationFilters($compile, $templateCache) {
         scope.removeFilter = removeFilter;
 
         ngModelCtrl.$render = function () {
+            if (scope.relationFiltersWatch) {
+                scope.relationFiltersWatch();
+                scope.relationFiltersWatch = null;
+            }
             if (ngModelCtrl.$viewValue) {
                 var value = ngModelCtrl.$viewValue;
+                scope.relationFilters.length = 0;
                 value.forEach(function (filter) {
                     scope.relationFilters.push(filter);
                 });
             }
-            scope.$watch('relationFilters', function (newVal, prevVal) {
+            scope.relationFiltersWatch = scope.$watch('relationFilters', function (newVal, prevVal) {
                 if (!angular.equals(newVal, prevVal)) {
                     updateValue();
                 }
@@ -88,11 +93,16 @@ export default function RelationFilters($compile, $templateCache) {
         }
 
         function updateValue() {
-            var value = [];
+            var value = ngModelCtrl.$viewValue;
+            if (!value) {
+                value = [];
+                ngModelCtrl.$setViewValue(value);
+            } else {
+                value.length = 0;
+            }
             scope.relationFilters.forEach(function (filter) {
                 value.push(filter);
             });
-            ngModelCtrl.$setViewValue(value);
         }
         $compile(element.contents())(scope);
     }

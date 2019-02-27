@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -48,6 +50,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
@@ -68,14 +71,19 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
-    public Optional<Integration> findByRoutingKey(String routingKey) {
+    public Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey) {
         Integration integration = DaoUtil.getData(integrationRepository.findByRoutingKey(routingKey));
         return Optional.ofNullable(integration);
     }
 
     @Override
-    public List<Integration> findByConverterId(UUID converterId) {
+    public List<Integration> findByConverterId(UUID tenantId, UUID converterId) {
         return DaoUtil.convertDataList(integrationRepository.findByConverterId(fromTimeUUID(converterId)));
+    }
+
+    @Override
+    public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
+        return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(integrationIds))));
     }
 
     @Override

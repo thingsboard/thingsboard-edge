@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.SearchTextEntity;
@@ -73,6 +74,9 @@ public final class DashboardEntity implements SearchTextEntity<Dashboard> {
     @Column(name = DASHBOARD_TENANT_ID_PROPERTY)
     private UUID tenantId;
 
+    @Column(name = DASHBOARD_CUSTOMER_ID_PROPERTY)
+    private UUID customerId;
+
     @Column(name = DASHBOARD_TITLE_PROPERTY)
     private String title;
     
@@ -95,6 +99,9 @@ public final class DashboardEntity implements SearchTextEntity<Dashboard> {
         }
         if (dashboard.getTenantId() != null) {
             this.tenantId = dashboard.getTenantId().getId();
+        }
+        if (dashboard.getCustomerId() != null) {
+            this.customerId = dashboard.getCustomerId().getId();
         }
         this.title = dashboard.getTitle();
         if (dashboard.getAssignedCustomers() != null) {
@@ -121,6 +128,14 @@ public final class DashboardEntity implements SearchTextEntity<Dashboard> {
 
     public void setTenantId(UUID tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(UUID customerId) {
+        this.customerId = customerId;
     }
 
     public String getTitle() {
@@ -167,6 +182,9 @@ public final class DashboardEntity implements SearchTextEntity<Dashboard> {
         dashboard.setCreatedTime(UUIDs.unixTimestamp(id));
         if (tenantId != null) {
             dashboard.setTenantId(new TenantId(tenantId));
+        }
+        if (customerId != null) {
+            dashboard.setCustomerId(new CustomerId(customerId));
         }
         dashboard.setTitle(title);
         if (!StringUtils.isEmpty(assignedCustomers)) {

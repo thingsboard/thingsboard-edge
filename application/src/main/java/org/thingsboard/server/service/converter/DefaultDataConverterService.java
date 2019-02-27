@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,9 +34,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
 import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;
@@ -51,6 +53,9 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Autowired
     private ConverterService converterService;
+
+    @Autowired
+    private JsInvokeService jsSandbox;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
@@ -85,20 +90,20 @@ public class DefaultDataConverterService implements DataConverterService {
     }
 
     @Override
-    public Optional<TBUplinkDataConverter> getUplinkConverterById(ConverterId converterId) {
-        return Optional.of((TBUplinkDataConverter) getConverterById(converterId));
+    public Optional<TBUplinkDataConverter> getUplinkConverterById(TenantId tenantId, ConverterId converterId) {
+        return Optional.of((TBUplinkDataConverter) getConverterById(tenantId, converterId));
     }
 
     @Override
-    public Optional<TBDownlinkDataConverter> getDownlinkConverterById(ConverterId converterId) {
-        return Optional.ofNullable((TBDownlinkDataConverter) getConverterById(converterId));
+    public Optional<TBDownlinkDataConverter> getDownlinkConverterById(TenantId tenantId, ConverterId converterId) {
+        return Optional.ofNullable((TBDownlinkDataConverter) getConverterById(tenantId, converterId));
     }
 
-    private TBDataConverter getConverterById(ConverterId converterId) {
+    private TBDataConverter getConverterById(TenantId tenantId, ConverterId converterId) {
         if (converterId == null) return null;
         TBDataConverter converter = convertersByIdMap.get(converterId);
         if (converter == null) {
-            Converter configuration = converterService.findConverterById(converterId);
+            Converter configuration = converterService.findConverterById(tenantId, converterId);
             if (configuration != null) {
                 converter = createConverter(configuration);
             }
@@ -109,11 +114,11 @@ public class DefaultDataConverterService implements DataConverterService {
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
             case UPLINK:
-                JSUplinkDataConverter uplink = new JSUplinkDataConverter();
+                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsSandbox);
                 uplink.init(converter);
                 return uplink;
             case DOWNLINK:
-                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter();
+                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsSandbox);
                 downlink.init(converter);
                 return downlink;
             default:

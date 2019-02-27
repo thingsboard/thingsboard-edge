@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,25 +30,30 @@
  */
 package org.thingsboard.server.service.converter.js;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.service.converter.*;
-import org.thingsboard.server.service.integration.ConverterContext;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-
-import java.util.List;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.service.converter.AbstractDownlinkDataConverter;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
-    private JSDownlinkEvaluator jsDownlinkEvaluator;
+    private final JsInvokeService sandboxService;
+    private JSDownlinkEvaluator evaluator;
+
+    public JSDownlinkDataConverter(JsInvokeService sandboxService) {
+        this.sandboxService = sandboxService;
+    }
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
         String encoder = configuration.getConfiguration().get("encoder").asText();
-        jsDownlinkEvaluator = new JSDownlinkEvaluator(encoder);
+        this.evaluator = new JSDownlinkEvaluator(sandboxService, configuration.getId(), encoder);
     }
 
     @Override
@@ -59,18 +64,14 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
     @Override
     public void destroy() {
-        if (jsDownlinkEvaluator != null) {
-            jsDownlinkEvaluator.destroy();
+        if (this.evaluator != null) {
+            this.evaluator.destroy();
         }
     }
 
-
     @Override
-    protected String doConvertDownlink(String payload, DownLinkMetaData metadata) throws Exception {
-        return applyJsFunction(payload, metadata);
+    protected JsonNode doConvertDownlink(TbMsg msg, IntegrationMetaData metadata) throws Exception {
+        return evaluator.execute(msg, metadata);
     }
 
-    private String applyJsFunction(String payload, DownLinkMetaData metadata) throws Exception {
-        return jsDownlinkEvaluator.execute(payload, metadata);
-    }
 }

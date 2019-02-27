@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -28,44 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+@import "../../scss/constants";
 
 .tb-details-title {
-  font-size: 1.000rem;
-  @media (min-width: $layout-breakpoint-gt-sm) {
-    font-size: 1.600rem;
-  }
-  font-weight: 400;
-  text-transform: uppercase;
+  width: inherit;
   margin: 20px 8px 0 0;
   overflow: hidden;
+  font-size: 1rem;
+  font-weight: 400;
   text-overflow: ellipsis;
+  text-transform: uppercase;
   white-space: nowrap;
-  width: inherit;
+
+  @media (min-width: $layout-breakpoint-gt-sm) {
+    font-size: 1.6rem;
+  }
 }
 
 .tb-details-subtitle {
-  font-size: 1.000rem;
+  width: inherit;
   margin: 10px 0;
-  opacity: 0.8;
   overflow: hidden;
+  font-size: 1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: inherit;
+  opacity: .8;
 }
 
 md-sidenav.tb-sidenav-details {
   .md-toolbar-tools {
-      min-height: 100px;
-      max-height: 120px;
-      height: 100%;
+    height: 100%;
+    min-height: 100px;
+    max-height: 120px;
   }
+  z-index: 59 !important;
   width: 100% !important;
   max-width: 100% !important;
-  z-index: 59 !important;
+
   @media (min-width: $layout-breakpoint-gt-sm) {
     width: 80% !important;
   }
+
   @media (min-width: $layout-breakpoint-gt-md) {
     width: 65% !important;
   }

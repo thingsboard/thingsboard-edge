@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -44,7 +44,7 @@ export function IntegrationCardController(types) {
 }
 
 /*@ngInject*/
-export function IntegrationController(integrationService, $state, $stateParams, $translate, types, helpLinks) {
+export function IntegrationController(integrationService, $state, $stateParams, $translate, types, securityTypes, helpLinks, userPermissionsService) {
 
     var integrationActionsList = [
         {
@@ -55,7 +55,7 @@ export function IntegrationController(integrationService, $state, $stateParams, 
             details: function() { return $translate.instant('integration.delete') },
             icon: "delete",
             isEnabled: function() {
-                return true;
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.integration, securityTypes.operation.delete);
             }
         }
     ];
@@ -67,6 +67,8 @@ export function IntegrationController(integrationService, $state, $stateParams, 
     vm.helpLinkIdForIntegration = helpLinkIdForIntegration;
 
     vm.integrationGridConfig = {
+
+        resource: securityTypes.resource.integration,
 
         refreshParamsFunc: null,
 
@@ -98,10 +100,10 @@ export function IntegrationController(integrationService, $state, $stateParams, 
             return $translate.instant('integration.integration-details');
         },
         isSelectionEnabled: function () {
-            return true;
+            return userPermissionsService.hasGenericPermission(securityTypes.resource.integration, securityTypes.operation.delete);
         },
         isDetailsReadOnly: function () {
-            return false;
+            return !userPermissionsService.hasGenericPermission(securityTypes.resource.integration, securityTypes.operation.write);
         }
     };
 

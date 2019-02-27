@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -83,15 +83,15 @@ public class JpaDeviceDaoTest extends AbstractJpaDaoTest {
         UUID tenantId = UUIDs.timeBased();
         UUID customerId = UUIDs.timeBased();
         Device device = getDevice(tenantId, customerId);
-        deviceDao.save(device);
+        deviceDao.save(new TenantId(tenantId), device);
 
         UUID uuid = device.getId().getId();
-        Device entity = deviceDao.findById(uuid);
+        Device entity = deviceDao.findById(new TenantId(tenantId), uuid);
         assertNotNull(entity);
         assertEquals(uuid, entity.getId().getId());
 
         ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
-        ListenableFuture<Device> future = service.submit(() -> deviceDao.findById(uuid));
+        ListenableFuture<Device> future = service.submit(() -> deviceDao.findById(new TenantId(tenantId), uuid));
         Device asyncDevice = future.get();
         assertNotNull("Async device expected to be not null", asyncDevice);
     }
@@ -108,8 +108,8 @@ public class JpaDeviceDaoTest extends AbstractJpaDaoTest {
         for(int i = 0; i < 5; i++) {
             UUID deviceId1 = UUIDs.timeBased();
             UUID deviceId2 = UUIDs.timeBased();
-            deviceDao.save(getDevice(tenantId1, customerId1, deviceId1));
-            deviceDao.save(getDevice(tenantId2, customerId2, deviceId2));
+            deviceDao.save(new TenantId(tenantId1), getDevice(tenantId1, customerId1, deviceId1));
+            deviceDao.save(new TenantId(tenantId2), getDevice(tenantId2, customerId2, deviceId2));
             deviceIds.add(deviceId1);
             deviceIds.add(deviceId2);
         }
@@ -131,8 +131,8 @@ public class JpaDeviceDaoTest extends AbstractJpaDaoTest {
         for(int i = 0; i < 20; i++) {
             UUID deviceId1 = UUIDs.timeBased();
             UUID deviceId2 = UUIDs.timeBased();
-            deviceDao.save(getDevice(tenantId1, customerId1, deviceId1));
-            deviceDao.save(getDevice(tenantId2, customerId2, deviceId2));
+            deviceDao.save(new TenantId(tenantId1), getDevice(tenantId1, customerId1, deviceId1));
+            deviceDao.save(new TenantId(tenantId2), getDevice(tenantId2, customerId2, deviceId2));
             deviceIds.add(deviceId1);
             deviceIds.add(deviceId2);
         }
@@ -144,8 +144,8 @@ public class JpaDeviceDaoTest extends AbstractJpaDaoTest {
 
     private void createDevices(UUID tenantId1, UUID tenantId2, UUID customerId1, UUID customerId2, int count) {
         for (int i = 0; i < count / 2; i++) {
-            deviceDao.save(getDevice(tenantId1, customerId1));
-            deviceDao.save(getDevice(tenantId2, customerId2));
+            deviceDao.save(new TenantId(tenantId1), getDevice(tenantId1, customerId1));
+            deviceDao.save(new TenantId(tenantId2), getDevice(tenantId2, customerId2));
         }
     }
 

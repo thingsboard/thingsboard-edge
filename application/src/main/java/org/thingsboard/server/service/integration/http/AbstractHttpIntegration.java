@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -55,7 +55,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
-            log.warn("Failed to apply data converter function", e);
+            log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
             exception = e;
             status = "ERROR";
         }
@@ -65,16 +65,6 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         if (configuration.isDebugMode()) {
             try {
                 persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
-    }
-
-    protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

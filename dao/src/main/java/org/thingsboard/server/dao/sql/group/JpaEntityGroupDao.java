@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,14 +30,21 @@
  */
 package org.thingsboard.server.dao.sql.group;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
 @SqlDao
@@ -55,4 +62,10 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     protected CrudRepository<EntityGroupEntity, String> getCrudRepository() {
         return entityGroupRepository;
     }
+
+    @Override
+    public ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds) {
+        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByIdIn(fromTimeUUIDs(entityGroupIds))));
+    }
+
 }

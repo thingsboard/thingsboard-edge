@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,39 +32,75 @@ package org.thingsboard.server.actors.shared;
 
 import akka.actor.ActorContext;
 import akka.event.LoggingAdapter;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.stats.StatsPersistTick;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 
-public abstract class ComponentMsgProcessor<T> extends AbstractContextAwareMsgProcessor {
+import javax.annotation.Nullable;
+import java.util.function.Consumer;
+
+@Slf4j
+public abstract class ComponentMsgProcessor<T extends EntityId> extends AbstractContextAwareMsgProcessor {
 
     protected final TenantId tenantId;
     protected final T entityId;
+    protected ComponentLifecycleState state;
 
-    protected ComponentMsgProcessor(ActorSystemContext systemContext, LoggingAdapter logger, TenantId tenantId, T id) {
-        super(systemContext, logger);
+    protected ComponentMsgProcessor(ActorSystemContext systemContext, TenantId tenantId, T id) {
+        super(systemContext);
         this.tenantId = tenantId;
         this.entityId = id;
     }
 
-    public abstract void start() throws Exception;
+    public abstract String getComponentName();
 
-    public abstract void stop() throws Exception;
+    public abstract void start(ActorContext context) throws Exception;
 
-    public abstract void onCreated(ActorContext context) throws Exception;
-
-    public abstract void onUpdate(ActorContext context) throws Exception;
-
-    public abstract void onActivate(ActorContext context) throws Exception;
-
-    public abstract void onSuspend(ActorContext context) throws Exception;
-
-    public abstract void onStop(ActorContext context) throws Exception;
+    public abstract void stop(ActorContext context) throws Exception;
 
     public abstract void onClusterEventMsg(ClusterEventMsg msg) throws Exception;
+
+    public void onCreated(ActorContext context) throws Exception {
+        start(context);
+    }
+
+    public void onUpdate(ActorContext context) throws Exception {
+        restart(context);
+    }
+
+    public void onActivate(ActorContext context) throws Exception {
+        restart(context);
+    }
+
+    public void onSuspend(ActorContext context) throws Exception {
+        stop(context);
+    }
+
+    public void onStop(ActorContext context) throws Exception {
+        stop(context);
+    }
+
+    private void restart(ActorContext context) throws Exception {
+        stop(context);
+        start(context);
+    }
 
     public void scheduleStatsPersistTick(ActorContext context, long statsPersistFrequency) {
         schedulePeriodicMsgWithDelay(context, new StatsPersistTick(), statsPersistFrequency, statsPersistFrequency);
     }
+
+    protected void checkActive() {
+        if (state != ComponentLifecycleState.ACTIVE) {
+            log.debug("Component is not active. Current state [{}] for processor [{}][{}] tenant [{}]", state, entityId.getEntityType(), entityId, tenantId);
+            throw new IllegalStateException("Rule chain is not active! " + entityId + " - " + tenantId);
+        }
+    }
+
 }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -28,23 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+@import "../../scss/constants";
 
 
 .extension-table {
-
   md-input-container .md-errors-spacer {
     min-height: 0;
   }
 
-  /*&.tb-data-table table.md-table tbody tr td.tb-action-cell,
+  /*
+  &.tb-data-table table.md-table tbody tr td.tb-action-cell,
   &.tb-data-table table.md-table.md-row-select tbody tr td.tb-action-cell {
     width: 114px;
-  }*/
+  }
+  */
+
   .sync-widget {
     max-height: 90px;
     overflow: hidden;
   }
+
   .toolbar-widget {
     min-height: 39px;
     max-height: 39px;
@@ -52,11 +55,13 @@
 }
 
 .extension__syncStatus--black {
-  color: #000000!important;
+  color: #000 !important;
 }
+
 .extension__syncStatus--green {
-  color: #228634!important;
+  color: #228634 !important;
 }
+
 .extension__syncStatus--red {
-  color: #862222!important;
+  color: #862222 !important;
 }

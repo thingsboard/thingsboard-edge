@@ -1,0 +1,79 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-button ng-click="onDeleteRuleNode({event: $event})"
+           ng-show="!isEdit && !isReadOnly"
+           class="md-raised md-primary">{{ 'rulenode.delete' | translate }}</md-button>
+
+<md-content class="md-padding tb-rulenode" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit || isReadOnly">
+        <section ng-if="ruleNode.component.type != types.ruleNodeType.RULE_CHAIN.value">
+            <section layout="column" layout-gt-sm="row">
+                <md-input-container flex class="md-block">
+                    <label translate>rulenode.name</label>
+                    <input required name="name" ng-model="ruleNode.name">
+                    <div ng-messages="theForm.name.$error">
+                        <div translate ng-message="required">rulenode.name-required</div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'rulenode.debug-mode' | translate }}"
+                                 ng-model="ruleNode.debugMode">{{ 'rulenode.debug-mode' | translate }}
+                    </md-checkbox>
+                </md-input-container>
+            </section>
+            <tb-rule-node-config ng-model="ruleNode.configuration"
+                                 rule-node-id="ruleNode.ruleNodeId.id"
+                                 ng-required="true"
+                                 node-definition="ruleNode.component.configurationDescriptor.nodeDefinition"
+                                 ng-readonly="$root.loading || !isEdit || isReadOnly">
+            </tb-rule-node-config>
+            <md-input-container class="md-block">
+                <label translate>rulenode.description</label>
+                <textarea ng-model="ruleNode.additionalInfo.description" rows="2"></textarea>
+            </md-input-container>
+        </section>
+        <section ng-if="ruleNode.component.type == types.ruleNodeType.RULE_CHAIN.value">
+            <tb-entity-autocomplete the-form="theForm"
+                                    ng-disabled="$root.loading || !isEdit || isReadOnly"
+                                    tb-required="true"
+                                    exclude-entity-ids="[ruleChainId]"
+                                    entity-type="types.entityType.rulechain"
+                                    ng-model="params.targetRuleChainId">
+            </tb-entity-autocomplete>
+            <md-input-container class="md-block">
+                <label translate>rulenode.description</label>
+                <textarea ng-model="ruleNode.additionalInfo.description" rows="2"></textarea>
+            </md-input-container>
+        </section>
+    </fieldset>
+</md-content>

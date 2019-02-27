@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -111,10 +111,10 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         savedIntegration.setName("My new integration");
 
         integrationService.saveIntegration(savedIntegration);
-        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertEquals(foundIntegration.getName(), savedIntegration.getName());
 
-        integrationService.deleteIntegration(savedIntegration.getId());
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
     }
 
     @Test(expected = DataValidationException.class)
@@ -172,10 +172,10 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
-        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNotNull(foundIntegration);
         Assert.assertEquals(savedIntegration, foundIntegration);
-        integrationService.deleteIntegration(savedIntegration.getId());
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
     }
 
     @Test
@@ -188,10 +188,10 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
-        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNotNull(foundIntegration);
-        integrationService.deleteIntegration(savedIntegration.getId());
-        foundIntegration = integrationService.findIntegrationById(savedIntegration.getId());
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
+        foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNull(foundIntegration);
     }
 

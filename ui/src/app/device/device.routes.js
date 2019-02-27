@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -82,36 +82,5 @@ export default function DeviceRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "devices_other", "label": "{{ vm.customerDevicesTitle }}", "translate": "false"}'
             }
-        })
-        .state('home.customerGroups.customerGroup.devices', {
-            url: '/:customerId/devices',
-            params: {'topIndex': 0},
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            views: {
-                "content@home": {
-                    templateUrl: devicesTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $controller, entityGroup) {
-                            var ctrl = $controller('DeviceController as vm',{$scope: $scope, $stateParams: $stateParams});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                    }
-                }
-            },
-            data: {
-                devicesType: 'customer',
-                searchEnabled: true,
-                searchByEntitySubtype: true,
-                searchEntityType: types.entityType.device,
-                pageTitle: 'customer.devices'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "devices_other", "label": "{{ vm.customerDevicesTitle }}", "translate": "false"}'
-            }
         });
-
-
 }

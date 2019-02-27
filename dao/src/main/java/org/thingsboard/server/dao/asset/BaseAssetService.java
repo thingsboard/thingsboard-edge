@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,24 +32,28 @@ package org.thingsboard.server.dao.asset;
 
 
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -61,19 +65,28 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.CacheConstants.ASSET_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -95,58 +108,71 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     @Autowired
     private EntityService entityService;
 
+    @Autowired
+    private EntityViewService entityViewService;
+
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
-    public Asset findAssetById(AssetId assetId) {
+    public Asset findAssetById(TenantId tenantId, AssetId assetId) {
         log.trace("Executing findAssetById [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
-        return assetDao.findById(assetId.getId());
+        return assetDao.findById(tenantId, assetId.getId());
     }
 
     @Override
-    public ListenableFuture<Asset> findAssetByIdAsync(AssetId assetId) {
+    public ListenableFuture<Asset> findAssetByIdAsync(TenantId tenantId, AssetId assetId) {
         log.trace("Executing findAssetById [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
-        return assetDao.findByIdAsync(assetId.getId());
+        return assetDao.findByIdAsync(tenantId, assetId.getId());
     }
 
+    @Cacheable(cacheNames = ASSET_CACHE, key = "{#tenantId, #name}")
     @Override
-    public Optional<Asset> findAssetByTenantIdAndName(TenantId tenantId, String name) {
+    public Asset findAssetByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findAssetByTenantIdAndName [{}][{}]", tenantId, name);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        return assetDao.findAssetsByTenantIdAndName(tenantId.getId(), name);
+        return assetDao.findAssetsByTenantIdAndName(tenantId.getId(), name)
+                .orElse(null);
     }
 
+    @CacheEvict(cacheNames = ASSET_CACHE, key = "{#asset.tenantId, #asset.name}")
     @Override
     public Asset saveAsset(Asset asset) {
         log.trace("Executing saveAsset [{}]", asset);
-        assetValidator.validate(asset);
-        Asset savedAsset = assetDao.save(asset);
+        assetValidator.validate(asset, Asset::getTenantId);
+        Asset savedAsset = assetDao.save(asset.getTenantId(), asset);
         if (asset.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getId());
+            entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
         }
         return savedAsset;
     }
 
     @Override
-    public Asset assignAssetToCustomer(AssetId assetId, CustomerId customerId) {
-        Asset asset = findAssetById(assetId);
-        asset.setCustomerId(customerId);
-        return saveAsset(asset);
-    }
-
-    @Override
-    public Asset unassignAssetFromCustomer(AssetId assetId) {
-        Asset asset = findAssetById(assetId);
-        asset.setCustomerId(null);
-        return saveAsset(asset);
-    }
-
-    @Override
-    public void deleteAsset(AssetId assetId) {
+    public void deleteAsset(TenantId tenantId, AssetId assetId) {
         log.trace("Executing deleteAsset [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);
-        deleteEntityRelations(assetId);
-        assetDao.removeById(assetId.getId());
+        deleteEntityRelations(tenantId, assetId);
+
+        Asset asset = assetDao.findById(tenantId, assetId.getId());
+        try {
+            List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(asset.getTenantId(), assetId).get();
+            if (entityViews != null && !entityViews.isEmpty()) {
+                throw new DataValidationException("Can't delete asset that is assigned to entity views!");
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Exception while finding entity views for assetId [{}]", assetId, e);
+            throw new RuntimeException("Exception while finding entity views for assetId [" + assetId + "]", e);
+        }
+
+        List<Object> list = new ArrayList<>();
+        list.add(asset.getTenantId());
+        list.add(asset.getName());
+        Cache cache = cacheManager.getCache(ASSET_CACHE);
+        cache.evict(list);
+
+        assetDao.removeById(tenantId, assetId.getId());
     }
 
     @Override
@@ -180,7 +206,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     public void deleteAssetsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteAssetsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantAssetsRemover.removeEntities(tenantId);
+        tenantAssetsRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
@@ -191,6 +217,14 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<Asset> assets = assetDao.findAssetsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
         return new TextPageData<>(assets, pageLink);
+    }
+
+    @Override
+    public void deleteAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteAssetsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerAssetsRemover.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -214,27 +248,20 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     }
 
     @Override
-    public void unassignCustomerAssets(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerAssets, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        new CustomerAssetsUnassigner(tenantId).removeEntities(customerId);
-    }
-
-    @Override
-    public ListenableFuture<List<Asset>> findAssetsByQuery(AssetSearchQuery query) {
-        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(query.toEntitySearchQuery());
-        ListenableFuture<List<Asset>> assets = Futures.transform(relations, (AsyncFunction<List<EntityRelation>, List<Asset>>) relations1 -> {
+    public ListenableFuture<List<Asset>> findAssetsByQuery(TenantId tenantId, AssetSearchQuery query) {
+        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());
+        ListenableFuture<List<Asset>> assets = Futures.transformAsync(relations, r -> {
             EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();
             List<ListenableFuture<Asset>> futures = new ArrayList<>();
-            for (EntityRelation relation : relations1) {
+            for (EntityRelation relation : r) {
                 EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();
                 if (entityId.getEntityType() == EntityType.ASSET) {
-                    futures.add(findAssetByIdAsync(new AssetId(entityId.getId())));
+                    futures.add(findAssetByIdAsync(tenantId, new AssetId(entityId.getId())));
                 }
             }
             return Futures.successfulAsList(futures);
         });
+
         try {
             int i = 0;
             List<EntityRelation> relationList = relations.get();
@@ -247,16 +274,11 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         } catch (Exception e) {
             log.warn("Exception: ", e);
         }
-        assets = Futures.transform(assets, (Function<List<Asset>, List<Asset>>) assetList ->
-                assetList == null ? Collections.emptyList() : assetList.stream()
-                        .filter(asset -> {
-                            if (asset != null) {
-                                return query.getAssetTypes().contains(asset.getType());
-                            } else {
-                                return false;
-                            }
-                        }).collect(Collectors.toList())
+
+        assets = Futures.transform(assets, assetList ->
+            assetList == null ? Collections.emptyList() : assetList.stream().filter(asset -> query.getAssetTypes().contains(asset.getType())).collect(Collectors.toList())
         );
+
         return assets;
     }
 
@@ -266,67 +288,47 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         ListenableFuture<List<EntitySubtype>> tenantAssetTypes = assetDao.findTenantAssetTypesAsync(tenantId.getId());
         return Futures.transform(tenantAssetTypes,
-                (Function<List<EntitySubtype>, List<EntitySubtype>>) assetTypes -> {
-                    if (assetTypes != null) {
-                        assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                    }
-                    return assetTypes;
-                });
+            assetTypes -> {
+                if (assetTypes != null) {
+                    assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                }
+                return assetTypes;
+            });
     }
 
     @Override
-    public EntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupAsset(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupAsset, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, new AssetViewFunction());
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (assetEntityId) -> new AssetId(assetEntityId.getId()),
+                (assetId) -> findAssetById(tenantId, assetId),
+                new AssetViewFunction());
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, new AssetViewFunction(customerId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new AssetId(entityId.getId()),
+                (entityIds) -> findAssetsByTenantIdAndIdsAsync(tenantId, entityIds),
+                new AssetViewFunction());
     }
 
-    class AssetViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
-
-        private final CustomerId customerId;
-
-        AssetViewFunction() {
-            this.customerId = null;
-        }
-
-        AssetViewFunction(CustomerId customerId) {
-            this.customerId = customerId;
-        }
+    class AssetViewFunction implements BiFunction<Asset, List<EntityField>, ShortEntityView> {
 
         @Override
-        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
-            Asset asset = findAssetById(new AssetId(entityView.getId().getId()));
-            if (this.customerId != null && !this.customerId.isNullUid()
-                    && !this.customerId.equals(asset.getCustomerId())) {
-                entityView.setSkipEntity(true);
-                return entityView;
-            }
+        public ShortEntityView apply(Asset asset, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(asset.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), asset.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();
                 switch (field) {
                     case TYPE:
                         entityView.put(key, asset.getType());
-                        break;
-                    case ASSIGNED_CUSTOMER:
-                        String assignedCustomerName = "";
-                        if (!asset.getCustomerId().isNullUid()) {
-                            try {
-                                assignedCustomerName = entityService.fetchEntityNameAsync(asset.getCustomerId()).get();
-                            } catch (InterruptedException | ExecutionException e) {
-                                log.error("Failed to fetch assigned customer name!", e);
-                            }
-                        }
-                        entityView.put(key, assignedCustomerName);
                         break;
                 }
             }
@@ -338,7 +340,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             new DataValidator<Asset>() {
 
                 @Override
-                protected void validateCreate(Asset asset) {
+                protected void validateCreate(TenantId tenantId, Asset asset) {
                     assetDao.findAssetsByTenantIdAndName(asset.getTenantId().getId(), asset.getName()).ifPresent(
                             d -> {
                                 throw new DataValidationException("Asset with such name already exists!");
@@ -347,7 +349,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                 }
 
                 @Override
-                protected void validateUpdate(Asset asset) {
+                protected void validateUpdate(TenantId tenantId, Asset asset) {
                     assetDao.findAssetsByTenantIdAndName(asset.getTenantId().getId(), asset.getName()).ifPresent(
                             d -> {
                                 if (!d.getId().equals(asset.getId())) {
@@ -358,7 +360,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                 }
 
                 @Override
-                protected void validateDataImpl(Asset asset) {
+                protected void validateDataImpl(TenantId tenantId, Asset asset) {
                     if (StringUtils.isEmpty(asset.getType())) {
                         throw new DataValidationException("Asset type should be specified!");
                     }
@@ -368,7 +370,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                     if (asset.getTenantId() == null) {
                         throw new DataValidationException("Asset should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(asset.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, asset.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Asset is referencing to non-existent tenant!");
                         }
@@ -376,7 +378,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                     if (asset.getCustomerId() == null) {
                         asset.setCustomerId(new CustomerId(NULL_UUID));
                     } else if (!asset.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(asset.getCustomerId().getId());
+                        Customer customer = customerDao.findById(tenantId, asset.getCustomerId().getId());
                         if (customer == null) {
                             throw new DataValidationException("Can't assign asset to non-existent customer!");
                         }
@@ -388,35 +390,29 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             };
 
     private PaginatedRemover<TenantId, Asset> tenantAssetsRemover =
-            new PaginatedRemover<TenantId, Asset>() {
+        new PaginatedRemover<TenantId, Asset>() {
 
-                @Override
-                protected List<Asset> findEntities(TenantId id, TextPageLink pageLink) {
-                    return assetDao.findAssetsByTenantId(id.getId(), pageLink);
-                }
+            @Override
+            protected List<Asset> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+                return assetDao.findAssetsByTenantId(id.getId(), pageLink);
+            }
 
-                @Override
-                protected void removeEntity(Asset entity) {
-                    deleteAsset(new AssetId(entity.getId().getId()));
-                }
-            };
+            @Override
+            protected void removeEntity(TenantId tenantId, Asset entity) {
+                deleteAsset(tenantId, new AssetId(entity.getId().getId()));
+            }
+        };
 
-    class CustomerAssetsUnassigner extends PaginatedRemover<CustomerId, Asset> {
-
-        private TenantId tenantId;
-
-        CustomerAssetsUnassigner(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    private PaginatedRemover<CustomerId, Asset> customerAssetsRemover = new PaginatedRemover<CustomerId, Asset>() {
 
         @Override
-        protected List<Asset> findEntities(CustomerId id, TextPageLink pageLink) {
+        protected List<Asset> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
             return assetDao.findAssetsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
         }
 
         @Override
-        protected void removeEntity(Asset entity) {
-            unassignAssetFromCustomer(new AssetId(entity.getId().getId()));
+        protected void removeEntity(TenantId tenantId, Asset entity) {
+            deleteAsset(tenantId, new AssetId(entity.getId().getId()));
         }
-    }
+    };
 }

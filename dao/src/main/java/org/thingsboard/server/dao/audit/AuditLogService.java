@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,15 +30,16 @@
  */
 package org.thingsboard.server.dao.audit;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionStatus;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
@@ -54,15 +55,14 @@ public interface AuditLogService {
 
     TimePageData<AuditLog> findAuditLogsByTenantId(TenantId tenantId, TimePageLink pageLink);
 
-    <E extends BaseData<I> & HasName,
-            I extends UUIDBased & EntityId> ListenableFuture<List<Void>> logEntityAction(
-                                                        TenantId tenantId,
-                                                        CustomerId customerId,
-                                                        UserId userId,
-                                                        String userName,
-                                                        I entityId,
-                                                        E entity,
-                                                        ActionType actionType,
-                                                        Exception e, Object... additionalInfo);
+    <E extends HasName, I extends EntityId> ListenableFuture<List<Void>> logEntityAction(
+            TenantId tenantId,
+            CustomerId customerId,
+            UserId userId,
+            String userName,
+            I entityId,
+            E entity,
+            ActionType actionType,
+            Exception e, Object... additionalInfo);
 
 }

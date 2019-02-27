@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,11 +30,14 @@
  */
 package org.thingsboard.server.dao.tenant;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface TenantDao extends Dao<Tenant> {
 
@@ -44,7 +47,7 @@ public interface TenantDao extends Dao<Tenant> {
      * @param tenant the tenant object
      * @return saved tenant object
      */
-    Tenant save(Tenant tenant);
+    Tenant save(TenantId tenantId, Tenant tenant);
     
     /**
      * Find tenants by region and page link.
@@ -53,6 +56,15 @@ public interface TenantDao extends Dao<Tenant> {
      * @param pageLink the page link
      * @return the list of tenant objects
      */
-    List<Tenant> findTenantsByRegion(String region, TextPageLink pageLink);
+    List<Tenant> findTenantsByRegion(TenantId tenantId, String region, TextPageLink pageLink);
+
+    /**
+     * Find tenants by tenant Ids.
+     *
+     * @param tenantIds the tenant Ids
+     * @return the list of tenant objects
+     */
+    ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds);
+
     
 }

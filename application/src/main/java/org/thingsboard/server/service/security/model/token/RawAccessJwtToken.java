@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,7 +30,14 @@
  */
 package org.thingsboard.server.service.security.model.token;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -38,11 +45,10 @@ import org.thingsboard.server.service.security.exception.JwtExpiredTokenExceptio
 
 import java.io.Serializable;
 
+@Slf4j
 public class RawAccessJwtToken implements JwtToken, Serializable {
 
     private static final long serialVersionUID = -797397445703066079L;
-
-    private static Logger logger = LoggerFactory.getLogger(RawAccessJwtToken.class);
 
     private String token;
 
@@ -61,10 +67,10 @@ public class RawAccessJwtToken implements JwtToken, Serializable {
         try {
             return Jwts.parser().setSigningKey(signingKey).parseClaimsJws(this.token);
         } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
-            logger.error("Invalid JWT Token", ex);
+            log.error("Invalid JWT Token", ex);
             throw new BadCredentialsException("Invalid JWT token: ", ex);
         } catch (ExpiredJwtException expiredEx) {
-            logger.info("JWT Token is expired", expiredEx);
+            log.info("JWT Token is expired", expiredEx);
             throw new JwtExpiredTokenException(this, "JWT Token expired", expiredEx);
         }
     }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,14 +30,23 @@
  */
 package org.thingsboard.server.dao.group;
 
+import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.nosql.EntityGroupEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractModelDao;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
+import java.util.List;
+import java.util.UUID;
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -52,6 +61,15 @@ public class CassandraEntityGroupDao extends CassandraAbstractModelDao<EntityGro
     @Override
     protected String getColumnFamilyName() {
         return ENTITY_GROUP_COLUMN_FAMILY_NAME;
+    }
+
+    @Override
+    public ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds) {
+        log.debug("Try to find entity groups by entity group Ids [{}]", entityGroupIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(in(ID_PROPERTY, entityGroupIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

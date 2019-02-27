@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,9 +30,12 @@
  */
 package org.thingsboard.server.dao.tenant;
 
+import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.nosql.TenantEntity;
@@ -41,9 +44,13 @@ import org.thingsboard.server.dao.util.NoSqlDao;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -61,13 +68,22 @@ public class CassandraTenantDao extends CassandraAbstractSearchTextDao<TenantEnt
     }
 
     @Override
-    public List<Tenant> findTenantsByRegion(String region, TextPageLink pageLink) {
+    public List<Tenant> findTenantsByRegion(TenantId tenantId, String region, TextPageLink pageLink) {
         log.debug("Try to find tenants by region [{}] and pageLink [{}]", region, pageLink);
-        List<TenantEntity> tenantEntities = findPageWithTextSearch(TENANT_BY_REGION_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME, 
+        List<TenantEntity> tenantEntities = findPageWithTextSearch(tenantId, TENANT_BY_REGION_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(TENANT_REGION_PROPERTY, region)), 
                 pageLink); 
         log.trace("Found tenants [{}] by region [{}] and pageLink [{}]", tenantEntities, region, pageLink);
         return DaoUtil.convertDataList(tenantEntities);
+    }
+
+    @Override
+    public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds) {
+        log.debug("Try to find tenants by tenant Ids [{}]", tenantIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(in(ID_PROPERTY, tenantIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

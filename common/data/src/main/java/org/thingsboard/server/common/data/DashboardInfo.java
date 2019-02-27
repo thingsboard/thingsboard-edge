@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,16 +30,19 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.*;
 
-public class DashboardInfo extends SearchTextBased<DashboardId> implements HasName {
+public class DashboardInfo extends SearchTextBased<DashboardId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private TenantId tenantId;
+    private CustomerId customerId;
     private String title;
     private Set<ShortCustomerInfo> assignedCustomers;
 
@@ -54,6 +57,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
     public DashboardInfo(DashboardInfo dashboardInfo) {
         super(dashboardInfo);
         this.tenantId = dashboardInfo.getTenantId();
+        this.customerId = dashboardInfo.getCustomerId();
         this.title = dashboardInfo.getTitle();
         this.assignedCustomers = dashboardInfo.getAssignedCustomers();
     }
@@ -64,6 +68,19 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
 
     public void setTenantId(TenantId tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public CustomerId getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(CustomerId customerId) {
+        this.customerId = customerId;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     public String getTitle() {
@@ -113,6 +130,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
     public boolean updateAssignedCustomer(Customer customer) {
         ShortCustomerInfo customerInfo = customer.toShortCustomerInfo();
         if (this.assignedCustomers != null && this.assignedCustomers.contains(customerInfo)) {
+            this.assignedCustomers.remove(customerInfo);
             this.assignedCustomers.add(customerInfo);
             return true;
         } else {
@@ -122,6 +140,15 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
 
     public boolean removeAssignedCustomer(Customer customer) {
         ShortCustomerInfo customerInfo = customer.toShortCustomerInfo();
+        if (this.assignedCustomers != null && this.assignedCustomers.contains(customerInfo)) {
+            this.assignedCustomers.remove(customerInfo);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean removeAssignedCustomerInfo(ShortCustomerInfo customerInfo) {
         if (this.assignedCustomers != null && this.assignedCustomers.contains(customerInfo)) {
             this.assignedCustomers.remove(customerInfo);
             return true;
@@ -146,6 +173,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((tenantId == null) ? 0 : tenantId.hashCode());
+        result = prime * result + ((customerId == null) ? 0 : customerId.hashCode());
         result = prime * result + ((title == null) ? 0 : title.hashCode());
         return result;
     }
@@ -164,6 +192,11 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
                 return false;
         } else if (!tenantId.equals(other.tenantId))
             return false;
+        if (customerId == null) {
+            if (other.customerId != null)
+                return false;
+        } else if (!customerId.equals(other.customerId))
+            return false;
         if (title == null) {
             if (other.title != null)
                 return false;
@@ -177,10 +210,19 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
         StringBuilder builder = new StringBuilder();
         builder.append("DashboardInfo [tenantId=");
         builder.append(tenantId);
+        builder.append(", customerId=");
+        builder.append(customerId);
         builder.append(", title=");
         builder.append(title);
         builder.append("]");
         return builder.toString();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.DASHBOARD;
+    }
+
 
 }

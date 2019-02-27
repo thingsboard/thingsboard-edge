@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,11 +38,12 @@ function AssetService($http, $q, customerService, userService) {
     var service = {
         getAsset: getAsset,
         getAssets: getAssets,
+        getUserAssets: getUserAssets,
         saveAsset: saveAsset,
         deleteAsset: deleteAsset,
-        assignAssetToCustomer: assignAssetToCustomer,
-        unassignAssetFromCustomer: unassignAssetFromCustomer,
-        makeAssetPublic: makeAssetPublic,
+        //assignAssetToCustomer: assignAssetToCustomer,
+        //unassignAssetFromCustomer: unassignAssetFromCustomer,
+        //makeAssetPublic: makeAssetPublic,
         getTenantAssets: getTenantAssets,
         getCustomerAssets: getCustomerAssets,
         findByQuery: findByQuery,
@@ -93,9 +94,35 @@ function AssetService($http, $q, customerService, userService) {
         return deferred.promise;
     }
 
-    function saveAsset(asset, ignoreErrors, config) {
+    function getUserAssets(pageLink, config, type) {
+        var deferred = $q.defer();
+        var url = '/api/user/assets?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        if (angular.isDefined(type) && type.length) {
+            url += '&type=' + type;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function saveAsset(asset, ignoreErrors, config, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/asset';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         if (!config) {
             config = {};
         }
@@ -123,6 +150,7 @@ function AssetService($http, $q, customerService, userService) {
         return deferred.promise;
     }
 
+    /*
     function assignAssetToCustomer(customerId, assetId, ignoreErrors, config) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/asset/' + assetId;
@@ -167,6 +195,7 @@ function AssetService($http, $q, customerService, userService) {
         });
         return deferred.promise;
     }
+*/
 
     function getTenantAssets(pageLink, applyCustomersInfo, config, type) {
         var deferred = $q.defer();

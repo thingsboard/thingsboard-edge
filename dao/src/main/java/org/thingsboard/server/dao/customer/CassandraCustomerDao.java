@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,9 +31,11 @@
 package org.thingsboard.server.dao.customer;
 
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -47,8 +49,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
+
 @Component
 @Slf4j
 @NoSqlDao
@@ -67,9 +71,9 @@ public class CassandraCustomerDao extends CassandraAbstractSearchTextDao<Custome
     @Override
     public List<Customer> findCustomersByTenantId(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find customers by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<CustomerEntity> customerEntities = findPageWithTextSearch(ModelConstants.CUSTOMER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<CustomerEntity> customerEntities = findPageWithTextSearch(new TenantId(tenantId), ModelConstants.CUSTOMER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.CUSTOMER_TENANT_ID_PROPERTY, tenantId)),
-                pageLink); 
+                pageLink);
         log.trace("Found customers [{}] by tenantId [{}] and pageLink [{}]", customerEntities, tenantId, pageLink);
         return DaoUtil.convertDataList(customerEntities);
     }
@@ -80,9 +84,19 @@ public class CassandraCustomerDao extends CassandraAbstractSearchTextDao<Custome
         Select.Where query = select.where();
         query.and(eq(CUSTOMER_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(CUSTOMER_TITLE_PROPERTY, title));
-        CustomerEntity customerEntity = findOneByStatement(query);
+        CustomerEntity customerEntity = findOneByStatement(new TenantId(tenantId), query);
         Customer customer = DaoUtil.getData(customerEntity);
         return Optional.ofNullable(customer);
+    }
+
+    @Override
+    public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> customerIds) {
+        log.debug("Try to find customers by tenantId [{}] and customer Ids [{}]", tenantId, customerIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(CUSTOMER_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, customerIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

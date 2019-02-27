@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -313,7 +313,7 @@ export default class TbImageMap {
         onMarkerIconReady(iconInfo);
     }
 
-    createMarker(position, settings, onClickListener, markerArgs) {
+    createMarker(position, dsIndex, settings, onClickListener, markerArgs) {
         var pos = this.posFunction(position.x, position.y);
         var x = pos.x * this.width;
         var y = pos.y * this.height;
@@ -334,7 +334,7 @@ export default class TbImageMap {
         });
 
         if (settings.displayTooltip) {
-            this.createTooltip(marker, settings.tooltipPattern, settings.tooltipReplaceInfo, settings.autocloseTooltip, markerArgs);
+            this.createTooltip(marker, dsIndex, settings, markerArgs);
         }
 
         if (onClickListener) {
@@ -363,15 +363,15 @@ export default class TbImageMap {
         }
     }
 
-    createTooltip(marker, pattern, replaceInfo, autoClose, markerArgs) {
+    createTooltip(marker, dsIndex, settings, markerArgs) {
         var popup = L.popup();
         popup.setContent('');
-        marker.bindPopup(popup, {autoClose: autoClose, closeOnClick: false});
+        marker.bindPopup(popup, {autoClose: settings.autocloseTooltip, closeOnClick: false});
         this.tooltips.push( {
             markerArgs: markerArgs,
             popup: popup,
-            pattern: pattern,
-            replaceInfo: replaceInfo
+            locationSettings: settings,
+            dsIndex: dsIndex
         });
     }
 
@@ -383,6 +383,21 @@ export default class TbImageMap {
 
     removePolyline(/*polyline*/) {
     }
+
+	createPolygon(/*latLangs, settings*/) {
+	}
+
+	removePolygon(/*latLangs, settings*/) {
+	}
+
+	updatePolygonColor(/*latLangs, settings*/) {
+	}
+
+	getPolygonLatLngs(/*latLangs, settings*/) {
+	}
+
+	setPolygonLatLngs(/*latLangs, settings*/) {
+	}
 
     fitBounds() {
     }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.event;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,13 +55,19 @@ public class BaseEventService implements EventService {
 
     @Override
     public Event save(Event event) {
-        eventValidator.validate(event);
-        return eventDao.save(event);
+        eventValidator.validate(event, Event::getTenantId);
+        return eventDao.save(event.getTenantId(), event);
+    }
+
+    @Override
+    public ListenableFuture<Event> saveAsync(Event event) {
+        eventValidator.validate(event, Event::getTenantId);
+        return eventDao.saveAsync(event);
     }
 
     @Override
     public Optional<Event> saveIfNotExists(Event event) {
-        eventValidator.validate(event);
+        eventValidator.validate(event, Event::getTenantId);
         if (StringUtils.isEmpty(event.getUid())) {
             throw new DataValidationException("Event uid should be specified!.");
         }
@@ -97,10 +104,15 @@ public class BaseEventService implements EventService {
         return new TimePageData<>(events, pageLink);
     }
 
+    @Override
+    public List<Event> findLatestEvents(TenantId tenantId, EntityId entityId, String eventType, int limit) {
+        return eventDao.findLatestEvents(tenantId.getId(), entityId, eventType, limit);
+    }
+
     private DataValidator<Event> eventValidator =
             new DataValidator<Event>() {
                 @Override
-                protected void validateDataImpl(Event event) {
+                protected void validateDataImpl(TenantId tenantId, Event event) {
                     if (event.getEntityId() == null) {
                         throw new DataValidationException("Entity id should be specified!.");
                     }

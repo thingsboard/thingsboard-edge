@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -52,7 +52,9 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
@@ -75,22 +77,30 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public Converter saveConverter(Converter converter) {
         log.trace("Executing saveConverter [{}]", converter);
-        converterValidator.validate(converter);
-        return converterDao.save(converter);
+        converterValidator.validate(converter, Converter::getTenantId);
+        return converterDao.save(converter.getTenantId(), converter);
     }
 
     @Override
-    public Converter findConverterById(ConverterId converterId) {
+    public Converter findConverterById(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        return converterDao.findById(converterId.getId());
+        return converterDao.findById(tenantId, converterId.getId());
     }
 
     @Override
-    public ListenableFuture<Converter> findConverterByIdAsync(ConverterId converterId) {
+    public ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        return converterDao.findByIdAsync(converterId.getId());
+        return converterDao.findByIdAsync(tenantId, converterId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds) {
+        log.trace("Executing findConvertersByIdsAsync, tenantId [{}], converterIds [{}]", tenantId, converterIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(converterIds, "Incorrect converterIds " + converterIds);
+        return converterDao.findConvertersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(converterIds));
     }
 
     @Override
@@ -103,17 +113,17 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
-    public void deleteConverter(ConverterId converterId) {
+    public void deleteConverter(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing deleteConverter [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
-        checkIntegrationsAndDelete(converterId);
+        checkIntegrationsAndDelete(tenantId, converterId);
     }
 
-    private void checkIntegrationsAndDelete(ConverterId converterId) {
-        List<Integration> affectedIntegrations = integrationService.findIntegrationsByConverterId(converterId);
+    private void checkIntegrationsAndDelete(TenantId tenantId, ConverterId converterId) {
+        List<Integration> affectedIntegrations = integrationService.findIntegrationsByConverterId(tenantId, converterId);
         if (affectedIntegrations.isEmpty()) {
-            deleteEntityRelations(converterId);
-            converterDao.removeById(converterId.getId());
+            deleteEntityRelations(tenantId, converterId);
+            converterDao.removeById(tenantId, converterId.getId());
         } else {
             throw new DataValidationException("Converter deletion will affect existing integrations!");
         }
@@ -123,14 +133,14 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public void deleteConvertersByTenantId(TenantId tenantId) {
         log.trace("Executing deleteConvertersByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantConvertersRemover.removeEntities(tenantId);
+        tenantConvertersRemover.removeEntities(tenantId, tenantId);
     }
 
     private DataValidator<Converter> converterValidator =
             new DataValidator<Converter>() {
 
                 @Override
-                protected void validateCreate(Converter converter) {
+                protected void validateCreate(TenantId tenantId, Converter converter) {
                     converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
                             d -> {
                                 throw new DataValidationException("Converter with such name already exists!");
@@ -139,7 +149,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 }
 
                 @Override
-                protected void validateUpdate(Converter converter) {
+                protected void validateUpdate(TenantId tenantId, Converter converter) {
                     converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
                             d -> {
                                 if (!d.getId().equals(converter.getId())) {
@@ -150,7 +160,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 }
 
                 @Override
-                protected void validateDataImpl(Converter converter) {
+                protected void validateDataImpl(TenantId tenantId, Converter converter) {
                     if (StringUtils.isEmpty(converter.getType())) {
                         throw new DataValidationException("Converter type should be specified!");
                     }
@@ -160,7 +170,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                     if (converter.getTenantId() == null || converter.getTenantId().isNullUid()) {
                         throw new DataValidationException("Converter should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(converter.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(tenantId, converter.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Converter is referencing to non-existent tenant!");
                         }
@@ -172,13 +182,13 @@ public class BaseConverterService extends AbstractEntityService implements Conve
             new PaginatedRemover<TenantId, Converter>() {
 
                 @Override
-                protected List<Converter> findEntities(TenantId id, TextPageLink pageLink) {
+                protected List<Converter> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
                     return converterDao.findByTenantIdAndPageLink(id.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(Converter entity) {
-                    deleteConverter(new ConverterId(entity.getId().getId()));
+                protected void removeEntity(TenantId tenantId, Converter entity) {
+                    deleteConverter(tenantId, new ConverterId(entity.getId().getId()));
                 }
             };
 }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.dao.sql.alarm;
 
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -86,6 +84,11 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     }
 
     @Override
+    public Boolean deleteAlarm(TenantId tenantId, Alarm alarm) {
+        return removeById(tenantId, alarm.getUuidId());
+    }
+
+    @Override
     public ListenableFuture<Alarm> findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
         return service.submit(() -> {
             List<AlarmEntity> latest = alarmRepository.findLatestByOriginatorAndType(
@@ -99,12 +102,12 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     }
 
     @Override
-    public ListenableFuture<Alarm> findAlarmByIdAsync(UUID key) {
-        return findByIdAsync(key);
+    public ListenableFuture<Alarm> findAlarmByIdAsync(TenantId tenantId, UUID key) {
+        return findByIdAsync(tenantId, key);
     }
 
     @Override
-    public ListenableFuture<List<AlarmInfo>> findAlarms(AlarmQuery query) {
+    public ListenableFuture<List<AlarmInfo>> findAlarms(TenantId tenantId, AlarmQuery query) {
         log.trace("Try to find alarms by entity [{}], status [{}] and pageLink [{}]", query.getAffectedEntityId(), query.getStatus(), query.getPageLink());
         EntityId affectedEntity = query.getAffectedEntityId();
         String searchStatusName;
@@ -116,13 +119,13 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
             searchStatusName = query.getStatus().name();
         }
         String relationType = BaseAlarmService.ALARM_RELATION_PREFIX + searchStatusName;
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(affectedEntity, relationType, RelationTypeGroup.ALARM, EntityType.ALARM, query.getPageLink());
-        return Futures.transform(relations, (AsyncFunction<List<EntityRelation>, List<AlarmInfo>>) input -> {
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(tenantId, affectedEntity, relationType, RelationTypeGroup.ALARM, EntityType.ALARM, query.getPageLink());
+        return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<AlarmInfo>> alarmFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
                 alarmFutures.add(Futures.transform(
-                        findAlarmByIdAsync(relation.getTo().getId()),
-                        (Function<Alarm, AlarmInfo>) AlarmInfo::new));
+                        findAlarmByIdAsync(tenantId, relation.getTo().getId()),
+                        AlarmInfo::new));
             }
             return Futures.successfulAsList(alarmFutures);
         });

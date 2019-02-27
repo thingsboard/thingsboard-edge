@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,7 +31,10 @@
 package org.thingsboard.server.dao.model.nosql;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.datastax.driver.mapping.annotations.*;
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
+import com.datastax.driver.mapping.annotations.Column;
+import com.datastax.driver.mapping.annotations.PartitionKey;
+import com.datastax.driver.mapping.annotations.Table;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,7 +49,14 @@ import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_BODY_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ENTITY_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ENTITY_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_UID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 /**
  * @author Andrew Shvayka

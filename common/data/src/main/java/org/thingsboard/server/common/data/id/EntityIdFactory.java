@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -52,6 +52,10 @@ public class EntityIdFactory {
         return getByTypeAndUuid(EntityType.valueOf(type), uuid);
     }
 
+    public static EntityId getByTypeAndUuid(EntityType type, String uuid) {
+        return getByTypeAndUuid(type, UUID.fromString(uuid));
+    }
+
     public static EntityId getByTypeAndUuid(EntityType type, UUID uuid) {
         switch (type) {
             case TENANT:
@@ -60,10 +64,6 @@ public class EntityIdFactory {
                 return new CustomerId(uuid);
             case USER:
                 return new UserId(uuid);
-            case RULE:
-                return new RuleId(uuid);
-            case PLUGIN:
-                return new PluginId(uuid);
             case DASHBOARD:
                 return new DashboardId(uuid);
             case DEVICE:
@@ -78,7 +78,26 @@ public class EntityIdFactory {
                 return new AlarmId(uuid);
             case ENTITY_GROUP:
                 return new EntityGroupId(uuid);
+            case RULE_CHAIN:
+                return new RuleChainId(uuid);
+            case RULE_NODE:
+                return new RuleNodeId(uuid);
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(uuid);
+            case BLOB_ENTITY:
+                return new BlobEntityId(uuid);
+            case ENTITY_VIEW:
+                return new EntityViewId(uuid);
+            case ROLE:
+                return new RoleId(uuid);
+            case GROUP_PERMISSION:
+                return new GroupPermissionId(uuid);
+            case WIDGETS_BUNDLE:
+                return new WidgetsBundleId(uuid);
+            case WIDGET_TYPE:
+                return new WidgetTypeId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }
+
 }

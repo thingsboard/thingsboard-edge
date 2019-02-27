@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,10 +35,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EventId;
-import org.thingsboard.server.common.data.id.RuleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -81,15 +81,15 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
         long endTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 13, 0).toEpochSecond(ZoneOffset.UTC);
         long timeAfterEndTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 13, 30).toEpochSecond(ZoneOffset.UTC);
 
-        RuleId ruleId = new RuleId(UUIDs.timeBased());
+        CustomerId customerId = new CustomerId(UUIDs.timeBased());
         TenantId tenantId = new TenantId(UUIDs.timeBased());
-        saveEventWithProvidedTime(timeBeforeStartTime, ruleId, tenantId);
-        Event savedEvent = saveEventWithProvidedTime(eventTime, ruleId, tenantId);
-        Event savedEvent2 = saveEventWithProvidedTime(eventTime+1, ruleId, tenantId);
-        Event savedEvent3 = saveEventWithProvidedTime(eventTime+2, ruleId, tenantId);
-        saveEventWithProvidedTime(timeAfterEndTime, ruleId, tenantId);
+        saveEventWithProvidedTime(timeBeforeStartTime, customerId, tenantId);
+        Event savedEvent = saveEventWithProvidedTime(eventTime, customerId, tenantId);
+        Event savedEvent2 = saveEventWithProvidedTime(eventTime+1, customerId, tenantId);
+        Event savedEvent3 = saveEventWithProvidedTime(eventTime+2, customerId, tenantId);
+        saveEventWithProvidedTime(timeAfterEndTime, customerId, tenantId);
 
-        TimePageData<Event> events = eventService.findEvents(tenantId, ruleId, DataConstants.STATS,
+        TimePageData<Event> events = eventService.findEvents(tenantId, customerId, DataConstants.STATS,
                 new TimePageLink(2, startTime, endTime, true));
 
         Assert.assertNotNull(events.getData());
@@ -99,7 +99,7 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
         Assert.assertTrue(events.hasNext());
         Assert.assertNotNull(events.getNextPageLink());
 
-        events = eventService.findEvents(tenantId, ruleId, DataConstants.STATS, events.getNextPageLink());
+        events = eventService.findEvents(tenantId, customerId, DataConstants.STATS, events.getNextPageLink());
 
         Assert.assertNotNull(events.getData());
         Assert.assertTrue(events.getData().size() == 1);
@@ -116,15 +116,15 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
         long endTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 13, 0).toEpochSecond(ZoneOffset.UTC);
         long timeAfterEndTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 13, 30).toEpochSecond(ZoneOffset.UTC);
 
-        RuleId ruleId = new RuleId(UUIDs.timeBased());
+        CustomerId customerId = new CustomerId(UUIDs.timeBased());
         TenantId tenantId = new TenantId(UUIDs.timeBased());
-        saveEventWithProvidedTime(timeBeforeStartTime, ruleId, tenantId);
-        Event savedEvent = saveEventWithProvidedTime(eventTime, ruleId, tenantId);
-        Event savedEvent2 = saveEventWithProvidedTime(eventTime+1, ruleId, tenantId);
-        Event savedEvent3 = saveEventWithProvidedTime(eventTime+2, ruleId, tenantId);
-        saveEventWithProvidedTime(timeAfterEndTime, ruleId, tenantId);
+        saveEventWithProvidedTime(timeBeforeStartTime, customerId, tenantId);
+        Event savedEvent = saveEventWithProvidedTime(eventTime, customerId, tenantId);
+        Event savedEvent2 = saveEventWithProvidedTime(eventTime+1, customerId, tenantId);
+        Event savedEvent3 = saveEventWithProvidedTime(eventTime+2, customerId, tenantId);
+        saveEventWithProvidedTime(timeAfterEndTime, customerId, tenantId);
 
-        TimePageData<Event> events = eventService.findEvents(tenantId, ruleId, DataConstants.STATS,
+        TimePageData<Event> events = eventService.findEvents(tenantId, customerId, DataConstants.STATS,
                 new TimePageLink(2, startTime, endTime, false));
 
         Assert.assertNotNull(events.getData());
@@ -134,7 +134,7 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
         Assert.assertTrue(events.hasNext());
         Assert.assertNotNull(events.getNextPageLink());
 
-        events = eventService.findEvents(tenantId, ruleId, DataConstants.STATS, events.getNextPageLink());
+        events = eventService.findEvents(tenantId, customerId, DataConstants.STATS, events.getNextPageLink());
 
         Assert.assertNotNull(events.getData());
         Assert.assertTrue(events.getData().size() == 1);

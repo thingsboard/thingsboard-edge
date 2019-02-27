@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -45,13 +45,17 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.event.EventDao;
+import org.thingsboard.server.dao.service.AbstractServiceTest;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.thingsboard.server.common.data.DataConstants.ALARM;
 import static org.thingsboard.server.common.data.DataConstants.STATS;
 
@@ -86,7 +90,7 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
         String eventType = STATS;
         String eventUid = "be41c7a3-31f5-11e7-9cfd-2786e6aa2046";
         Event event = eventDao.findEvent(tenantId, new DeviceId(entityId), eventType, eventUid);
-        eventDao.find().stream().forEach(System.out::println);
+        eventDao.find(AbstractServiceTest.SYSTEM_TENANT_ID).stream().forEach(System.out::println);
         assertNotNull("Event expected to be not null", event);
         assertEquals("be41c7a2-31f5-11e7-9cfd-2786e6aa2046", event.getId().getId().toString());
     }
@@ -157,10 +161,10 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
             String type = i % 2 == 0 ? STATS : ALARM;
             UUID eventId1 = UUIDs.timeBased();
             Event event1 = getEvent(eventId1, tenantId, entityId1, type);
-            eventDao.save(event1);
+            eventDao.save(new TenantId(tenantId), event1);
             UUID eventId2 = UUIDs.timeBased();
             Event event2 = getEvent(eventId2, tenantId, entityId2, type);
-            eventDao.save(event2);
+            eventDao.save(new TenantId(tenantId), event2);
         }
         return System.currentTimeMillis();
     }
@@ -169,10 +173,10 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
         for (int i = 0; i < count / 2; i++) {
             UUID eventId1 = UUIDs.timeBased();
             Event event1 = getEvent(eventId1, tenantId, entityId1);
-            eventDao.save(event1);
+            eventDao.save(new TenantId(tenantId), event1);
             UUID eventId2 = UUIDs.timeBased();
             Event event2 = getEvent(eventId2, tenantId, entityId2);
-            eventDao.save(event2);
+            eventDao.save(new TenantId(tenantId), event2);
         }
         return System.currentTimeMillis();
     }

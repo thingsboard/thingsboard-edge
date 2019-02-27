@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,12 +30,6 @@
  */
 package org.thingsboard.server.config;
 
-import java.util.Map;
-
-import org.thingsboard.server.exception.ThingsboardErrorCode;
-import org.thingsboard.server.exception.ThingsboardException;
-import org.thingsboard.server.controller.plugin.PluginWebSocketHandler;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -50,13 +44,18 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.controller.plugin.TbWebSocketHandler;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.Map;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
     public static final String WS_PLUGIN_PREFIX = "/api/ws/plugins/";
-    public static final String WS_SECURITY_USER_ATTRIBUTE = "SECURITY_USER";
     private static final String WS_PLUGIN_MAPPING = WS_PLUGIN_PREFIX + "**";
 
     @Bean
@@ -69,7 +68,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(pluginWsHandler(), WS_PLUGIN_MAPPING).setAllowedOrigins("*")
+        registry.addHandler(wsHandler(), WS_PLUGIN_MAPPING).setAllowedOrigins("*")
                 .addInterceptors(new HttpSessionHandshakeInterceptor(), new HandshakeInterceptor() {
 
                     @Override
@@ -83,7 +82,6 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
                             response.setStatusCode(HttpStatus.UNAUTHORIZED);
                             return false;
                         } else {
-                            attributes.put(WS_SECURITY_USER_ATTRIBUTE, user);
                             return true;
                         }
                     }
@@ -97,8 +95,8 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
     }
 
     @Bean
-    public WebSocketHandler pluginWsHandler() {
-        return new PluginWebSocketHandler();
+    public WebSocketHandler wsHandler() {
+        return new TbWebSocketHandler();
     }
 
     protected SecurityUser getCurrentUser() throws ThingsboardException {

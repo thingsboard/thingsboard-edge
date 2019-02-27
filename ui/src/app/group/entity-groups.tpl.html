@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -34,45 +34,13 @@
     <details-buttons tb-help="'entityGroups'" help-container-id="help-container">
         <div id="help-container"></div>
     </details-buttons>
-    <md-tabs id="tabs" md-border-bottom flex class="tb-absolute-fill">
-        <md-tab label="{{ 'entity-group.details' | translate }}">
-            <tb-entity-group entity-group="vm.grid.operatingItem()"
-                       is-edit="vm.grid.detailsConfig.isDetailsEditMode"
-                       the-form="vm.grid.detailsForm"
-                       on-delete-entity-group="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"></tb-entity-group>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.columns' | translate }}">
-            <tb-entity-group-columns
-                    columns="vm.grid.operatingItem().configuration.columns"
-                    entity-type="vm.grid.operatingItem().type"
-                    is-edit="vm.grid.detailsConfig.isDetailsEditMode"
-                    is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"
-                    the-form="vm.grid.detailsForm">
-            </tb-entity-group-columns>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.settings' | translate }}">
-            <tb-entity-group-settings
-                    settings="vm.grid.operatingItem().configuration.settings"
-                    entity-type="vm.grid.operatingItem().type"
-                    is-edit="vm.grid.detailsConfig.isDetailsEditMode"
-                    the-form="vm.grid.detailsForm">
-            </tb-entity-group-settings>
-        </md-tab>
-        <md-tab md-on-select="vm.grid.triggerResize()" label="{{ 'entity-group.actions' | translate }}">
-            <div class="md-padding">
-                <tb-manage-widget-actions
-                        ng-disabled="!vm.grid.detailsConfig.isDetailsEditMode"
-                        action-types="vm.types.entityGroupActionTypes"
-                        action-sources="vm.actionSources"
-                        custom-function-args="['$event', '$injector', 'entityId', 'entityName']"
-                        widget-actions="vm.grid.operatingItem().configuration.actions">
-                </tb-manage-widget-actions>
-            </div>
-        </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
-            <tb-audit-log-table flex entity-type="vm.types.entityType.entityGroup"
-                                entity-id="vm.grid.operatingItem().id.id"
-                                audit-log-mode="{{vm.types.auditLogMode.entity}}">
-            </tb-audit-log-table>
-        </md-tab>
+    <tb-entity-group-details
+            entity-group="vm.grid.operatingItem()"
+            is-edit="vm.grid.detailsConfig.isDetailsEditMode"
+            the-form="vm.grid.detailsForm"
+            is-read-only="vm.grid.isDetailsReadOnly(vm.grid.operatingItem())"
+            on-delete-entity-group="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"
+            on-make-public="vm.makePublic(event, vm.grid.detailsConfig.currentItem)"
+            on-make-private="vm.makePrivate(event, vm.grid.detailsConfig.currentItem)"
+    ></tb-entity-group-details>
 </tb-grid>

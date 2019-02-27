@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,24 +30,56 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.service.script.JsScriptType;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import java.util.UUID;
 
 @Slf4j
 public abstract class AbstractJSEvaluator {
 
-    protected static NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-    protected static ScriptEngine engine = factory.getScriptEngine("--no-java");
+    protected final JsInvokeService sandboxService;
+    private final JsScriptType scriptType;
+    private final String script;
+    protected final EntityId entityId;
 
-    protected static void compileScript(String script) {
-        try {
-            engine.eval(script);
-        } catch (ScriptException e) {
-            log.warn("Failed to compile filter script: {}", e.getMessage(), e);
-            throw new IllegalArgumentException("Can't compile script: " + e.getMessage());
+    protected volatile UUID scriptId;
+    private volatile boolean isErrorScript = false;
+
+
+    public AbstractJSEvaluator(JsInvokeService sandboxService, EntityId entityId, JsScriptType scriptType, String script) {
+        this.sandboxService = sandboxService;
+        this.scriptType = scriptType;
+        this.script = script;
+        this.entityId = entityId;
+    }
+
+    public void destroy() {
+        if (this.scriptId != null) {
+            this.sandboxService.release(this.scriptId);
+        }
+    }
+
+    void validateSuccessfulScriptLazyInit() {
+        if (this.scriptId != null) {
+            return;
+        }
+
+        if (isErrorScript) {
+            throw new IllegalArgumentException("Can't compile uplink converter script ");
+        }
+
+        synchronized (this) {
+            if (this.scriptId == null) {
+                try {
+                    this.scriptId = this.sandboxService.eval(scriptType, script).get();
+                } catch (Exception e) {
+                    isErrorScript = true;
+                    throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
+                }
+            }
         }
     }
 

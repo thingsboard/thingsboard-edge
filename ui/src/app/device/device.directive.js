@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,17 +35,17 @@ import deviceFieldsetTemplate from './device-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function DeviceDirective($compile, $templateCache, toast, $translate, types, clipboardService, deviceService, customerService) {
+export default function DeviceDirective($compile, $templateCache, toast, $translate, types, clipboardService, deviceService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(deviceFieldsetTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.isAssignedToCustomer = false;
-        scope.isPublic = false;
-        scope.assignedCustomer = null;
+        //scope.isAssignedToCustomer = false;
+        //scope.isPublic = false;
+        //scope.assignedCustomer = null;
 
-        scope.$watch('device', function(newVal) {
+        /*scope.$watch('device', function(newVal) {
             if (newVal) {
                 if (scope.device.customerId && scope.device.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
@@ -61,7 +61,7 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
                     scope.assignedCustomer = null;
                 }
             }
-        });
+        });*/
 
         scope.onDeviceIdCopied = function() {
             toast.showSuccess($translate.instant('device.idCopiedMessage'), 750, angular.element(element).closest("md-tab-content"), 'bottom left');
@@ -89,9 +89,10 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             device: '=',
             isEdit: '=',
-            deviceScope: '=',
+            //deviceScope: '=',
             theForm: '=',
             onAssignToCustomer: '&',
             onMakePublic: '&',

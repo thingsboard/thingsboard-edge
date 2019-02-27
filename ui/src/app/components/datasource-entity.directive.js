@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -201,7 +201,7 @@ function DatasourceEntity($compile, $templateCache, $q, $mdDialog, $window, $doc
                 random: tinycolor.random(),
                 clickOutsideToClose: false,
                 hasBackdrop: false,
-                skipHide: true,
+                multiple: true,
                 preserveScope: false,
 
                 mdColorAlphaChannel: true,
@@ -235,7 +235,7 @@ function DatasourceEntity($compile, $templateCache, $q, $mdDialog, $window, $doc
                 parent: angular.element($document[0].body),
                 fullscreen: true,
                 targetEvent: event,
-                skipHide: true,
+                multiple: true,
                 onComplete: function () {
                     var w = angular.element($window);
                     w.triggerHandler('resize');

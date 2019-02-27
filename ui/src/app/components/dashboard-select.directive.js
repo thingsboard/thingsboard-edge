@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -49,7 +49,7 @@ export default angular.module('thingsboard.directives.dashboardSelect', [thingsb
     .name;
 
 /*@ngInject*/
-function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $document, types, dashboardService, userService) {
+function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $document, types, dashboardService, userService, utils) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(dashboardSelectTemplate);
@@ -59,18 +59,12 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
         scope.dashboardId = null;
 
         var pageLink = {limit: 100};
-
         var promise;
-        if (scope.dashboardsScope === 'customer' || userService.getAuthority() === 'CUSTOMER_USER') {
-            if (scope.customerId && scope.customerId != types.id.nullUid) {
-                promise = dashboardService.getCustomerDashboards(scope.customerId, pageLink, {ignoreLoading: true});
-            } else {
-                promise = $q.when({data: []});
-            }
+        if (scope.groupId) {
+            promise = dashboardService.getGroupDashboards(scope.groupId, pageLink, {ignoreLoading: true});
         } else {
-            promise = dashboardService.getTenantDashboards(pageLink, {ignoreLoading: true});
+            promise = dashboardService.getUserDashboards(null, scope.operation, pageLink, {ignoreLoading: true});
         }
-
         promise.then(function success(result) {
             scope.dashboards = result.data;
         }, function fail() {
@@ -146,6 +140,10 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
             });
         }
 
+        scope.getDashboardTitle = function(title) {
+            return utils.customTranslation(title, title);
+        }
+
         $compile(element.contents())(scope);
     }
 
@@ -154,8 +152,8 @@ function DashboardSelect($compile, $templateCache, $q, $mdMedia, $mdPanel, $docu
         require: "^ngModel",
         link: linker,
         scope: {
-            dashboardsScope: '@',
-            customerId: '=',
+            groupId: '=?',
+            operation: '=?',
             tbRequired: '=?',
             disabled:'=ngDisabled'
         }

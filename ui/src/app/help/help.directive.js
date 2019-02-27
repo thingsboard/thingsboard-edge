@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -41,7 +41,7 @@ export default angular.module('thingsboard.directives.help', [thingsboardHelpLin
 /* eslint-disable angular/angularelement */
 
 /*@ngInject*/
-function Help($compile, $window, helpLinks) {
+function Help($compile, $window, helpLinks, whiteLabelingService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -50,31 +50,41 @@ function Help($compile, $window, helpLinks) {
                 $event.stopPropagation();
             }
             var helpUrl = helpLinks.linksMap[scope.helpLinkId];
+            if (!helpUrl && scope.helpLinkId &&
+                    (scope.helpLinkId.startsWith('http://') || scope.helpLinkId.startsWith('https://'))) {
+                helpUrl = scope.helpLinkId;
+            }
             if (helpUrl) {
+                var baseUrl =  whiteLabelingService.getHelpLinkBaseUrl();
+                if (baseUrl) {
+                    helpUrl = helpUrl.replace("https://thingsboard.io", baseUrl);
+                }
                 $window.open(helpUrl, '_blank');
             }
         }
 
-        var html = '<md-tooltip md-direction="top">' +
-            '{{\'help.goto-help-page\' | translate}}' +
-            '</md-tooltip>' +
-            '<md-icon class="material-icons">' +
+        if (whiteLabelingService.isEnableHelpLinks()) {
+            var html = '<md-tooltip md-direction="top">' +
+                '{{\'help.goto-help-page\' | translate}}' +
+                '</md-tooltip>' +
+                '<md-icon class="material-icons">' +
                 'help' +
-            '</md-icon>';
+                '</md-icon>';
 
-        var helpButton = angular.element('<md-button class="tb-help-button-style tb-help-button-pos md-icon-button" ' +
-            'ng-click="gotoHelpPage($event)">' +
-            html +
-            '</md-button>');
+            var helpButton = angular.element('<md-button class="tb-help-button-style tb-help-button-pos md-icon-button" ' +
+                'ng-click="gotoHelpPage($event)">' +
+                html +
+                '</md-button>');
 
-        if (attrs.helpContainerId) {
-            var helpContainer = $('#' + attrs.helpContainerId, element)[0];
-            helpContainer = angular.element(helpContainer);
-            helpContainer.append(helpButton);
-            $compile(helpContainer.contents())(scope);
-        } else {
-            $compile(helpButton)(scope);
-            element.append(helpButton);
+            if (attrs.helpContainerId) {
+                var helpContainer = $('#' + attrs.helpContainerId, element)[0];
+                helpContainer = angular.element(helpContainer);
+                helpContainer.append(helpButton);
+                $compile(helpContainer.contents())(scope);
+            } else {
+                $compile(helpButton)(scope);
+                element.append(helpButton);
+            }
         }
     }
 

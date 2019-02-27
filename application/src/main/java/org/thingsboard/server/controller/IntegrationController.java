@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,26 +36,31 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.exception.ThingsboardErrorCode;
-import org.thingsboard.server.exception.ThingsboardException;
-import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
 public class IntegrationController extends BaseController {
 
-    private static final String INTEGRATION_ID = "integrationId";
-
     @Autowired
     private PlatformIntegrationService platformIntegrationService;
 
+    private static final String INTEGRATION_ID = "integrationId";
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
@@ -64,7 +69,7 @@ public class IntegrationController extends BaseController {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            return checkIntegrationId(integrationId);
+            return checkIntegrationId(integrationId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -76,8 +81,10 @@ public class IntegrationController extends BaseController {
     public Integration getIntegrationByRoutingKey(
             @PathVariable("routingKey") String routingKey) throws ThingsboardException {
         try {
-            Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(routingKey));
-            return checkIntegration(integration);
+            Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
+            checkNotNull(integration);
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
+            return integration;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -89,32 +96,19 @@ public class IntegrationController extends BaseController {
     public Integration saveIntegration(@RequestBody Integration integration) throws ThingsboardException {
         try {
             integration.setTenantId(getCurrentUser().getTenantId());
-            boolean create = integration.getId() == null;
-            Integration old = null;
-            if (!create) {
-                old = checkNotNull(integrationService.findIntegrationById(integration.getId()));
-            }
+            boolean created = integration.getId() == null;
+
+            Operation operation = created ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation,
+                    integration.getId(), integration);
+
+            platformIntegrationService.validateIntegrationConfiguration(integration);
+
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            try {
-                if (create) {
-                    platformIntegrationService.createIntegration(result);
-                } else {
-                    platformIntegrationService.updateIntegration(result);
-                }
-            } catch (Exception e) {
-                if (create) {
-                    integrationService.deleteIntegration(result.getId()); e.printStackTrace();
-                } else {
-                    integrationService.saveIntegration(old);
-                    platformIntegrationService.updateIntegration(old);
-                }
-                throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-
-            logEntityAction(result.getId(), result,
-                    null,
-                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
+            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
             return result;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.INTEGRATION), integration,
@@ -133,6 +127,7 @@ public class IntegrationController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
@@ -148,9 +143,10 @@ public class IntegrationController extends BaseController {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            Integration integration = checkIntegrationId(integrationId);
-            integrationService.deleteIntegration(integrationId);
-            platformIntegrationService.deleteIntegration(integrationId);
+            Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
+            integrationService.deleteIntegration(getTenantId(), integrationId);
+
+            actorService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(integrationId, integration,
                     null,
@@ -165,6 +161,39 @@ public class IntegrationController extends BaseController {
 
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/integrations", params = {"integrationIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Integration> getIntegrationsByIds(
+            @RequestParam("integrationIds") String[] strIntegrationIds) throws ThingsboardException {
+        checkArrayParameter("integrationIds", strIntegrationIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<IntegrationId> integrationIds = new ArrayList<>();
+            for (String strIntegrationId : strIntegrationIds) {
+                integrationIds.add(new IntegrationId(toUUID(strIntegrationId)));
+            }
+            List<Integration> integrations = checkNotNull(integrationService.findIntegrationsByIdsAsync(tenantId, integrationIds).get());
+            return filterIntegrationsByReadPermission(integrations);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private List<Integration> filterIntegrationsByReadPermission(List<Integration> integrations) {
+        return integrations.stream().filter(integration -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
 }

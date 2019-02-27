@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -31,23 +31,37 @@
 
 -->
 <div class="tb-absolute-fill tb-entity-group-table tb-data-table md-padding" layout="column">
-    <div ng-show="vm.showData" flex class="md-whiteframe-z1 tb-entity-group-table-content" layout="column">
+    <div ng-show="vm.showData" flex class="md-whiteframe-z1 toolbarsContainer tb-entity-group-table-content" layout="column">
         <md-toolbar class="md-table-toolbar md-default" ng-show="!vm.selectedEntities.length
                                                                  && vm.query.search === null">
             <div class="md-toolbar-tools">
                 <span class="group-table-title">{{ vm.tableTitle }}</span>
                 <span hide-xs hide-sm class="group-table-entities-title">{{ vm.entitiesTitle }}</span>
+                <md-button ng-disabled="$root.loading" class="md-icon-button" ng-click="vm.toggleGroupDetails($event)">
+                    <md-icon>edit</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'entity-group.entity-group-details' | translate }}
+                    </md-tooltip>
+                </md-button>
                 <span flex></span>
                 <md-button class="fetch-more" ng-disabled="$root.loading" ng-show="vm.hasNext" class="md-primary" ng-click="vm.fetchMore($event)">
                     {{ 'entity-group.fetch-more' | translate }}
                 </md-button>
-                <md-button ng-disabled="$root.loading" ng-show="vm.entityGroupConfig.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
+                <md-button ng-disabled="$root.loading" ng-show="vm.addEnabled()" class="md-icon-button" ng-click="vm.addEntity($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.add | translate }}
                     </md-tooltip>
                 </md-button>
-                <md-button ng-disabled="$root.loading" ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode()">
+                <md-button ng-disabled="$root.loading"
+                           ng-show="actionDescriptor.isEnabled()" class="md-icon-button" ng-repeat="actionDescriptor in vm.headerActionDescriptors"
+                           ng-click="actionDescriptor.onAction($event)">
+                    <md-icon>{{actionDescriptor.icon}}</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ actionDescriptor.name }}
+                    </md-tooltip>
+                </md-button>
+                <md-button ng-disabled="$root.loading" ng-show="vm.settings.enableSearch" class="md-icon-button" ng-click="vm.enterFilterMode($event)">
                     <md-icon>search</md-icon>
                     <md-tooltip md-direction="top">
                         {{ vm.translations.search | translate }}
@@ -66,7 +80,7 @@
                 </md-button>
                 <md-input-container flex>
                     <label>&nbsp;</label>
-                    <input ng-model="vm.query.search" placeholder="{{ vm.translations.search | translate }}"/>
+                    <input ng-model="vm.query.search" class="searchInput" name="querySearchInput" placeholder="{{ vm.translations.search | translate }}"/>
                 </md-input-container>
                 <md-button class="md-icon-button" aria-label="Close" ng-click="vm.exitFilterMode()">
                     <md-icon aria-label="Close" class="material-icons">close</md-icon>
@@ -92,8 +106,8 @@
             </div>
         </md-toolbar>
         <md-table-container flex>
-            <table md-table md-row-select="vm.settings.enableSelection" multiple="" ng-model="vm.selectedEntities">
-                <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
+            <table md-table md-row-select="vm.settings.enableSelection && vm.groupActionDescriptors.length" multiple="" ng-model="vm.selectedEntities">
+                <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
                     <th md-column ng-if="!column.mobileHide || vm.isGtMd" md-order-by="{{ column.key }}" ng-repeat="column in vm.columns"><span>{{ vm.getColumnTitle(column) }}</span></th>
                     <th md-column ng-if="vm.actionCellDescriptors.length"><span>&nbsp</span></th>
@@ -112,11 +126,12 @@
                                    maxWidth: vm.actionCellDescriptors.length*36+'px',
                                    width: vm.actionCellDescriptors.length*36+'px'}">
                         <md-button ng-show="actionDescriptor.isEnabled(entity)" class="md-icon-button" ng-repeat="actionDescriptor in vm.actionCellDescriptors"
-                                   aria-label="{{ actionDescriptor.name }}"
+                                   aria-label="{{ vm.actionName(actionDescriptor, entity) }}"
                                    ng-click="actionDescriptor.onAction($event, entity)">
-                            <md-icon aria-label="{{ actionDescriptor.name }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
+                            <md-icon ng-if="!actionDescriptor.isNgIcon" aria-label="{{ vm.actionName(actionDescriptor, entity) }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>
+                            <ng-md-icon ng-if="actionDescriptor.isNgIcon" aria-label="{{ vm.actionName(actionDescriptor, entity) }}" icon="{{actionDescriptor.icon}}"></ng-md-icon>
                             <md-tooltip md-direction="top">
-                                {{ actionDescriptor.name }}
+                                {{ vm.actionName(actionDescriptor, entity) }}
                             </md-tooltip>
                         </md-button>
                     </td>
@@ -139,9 +154,35 @@
           class="tb-absolute-fill" translate>entity.no-data</span>
 </div>
 <tb-entity-details-sidenav
+        entity-group="vm.entityGroup"
         entity-group-config="vm.entityGroupConfig"
         entity-type="vm.entityGroup.type"
         entity-id="vm.currentEntity.id.id"
         is-open="vm.isDetailsOpen"
         on-entity-updated="vm.onEntityUpdated(entity.id.id)">
 </tb-entity-details-sidenav>
+<tb-details-sidenav
+        header-title="{{vm.operatingGroup().name}}"
+        header-subtitle="{{'entity-group.entity-group-details' | translate }}"
+        is-read-only="vm.isGroupDetailsReadOnly"
+        is-open="vm.isGroupDetailsOpen"
+        is-edit="vm.isGroupDetailsEdit"
+        on-close-details="vm.onCloseGroupDetails()"
+        on-toggle-details-edit-mode="vm.onToggleGroupEditMode(vm.groupDetailsForm)"
+        on-apply-details="vm.saveGroup(vm.groupDetailsForm)"
+        the-form="vm.groupDetailsForm">
+    <details-buttons tb-help="'entityGroups'" help-container-id="help-container">
+        <div id="help-container"></div>
+    </details-buttons>
+    <form name="vm.groupDetailsForm">
+        <tb-entity-group-details
+            entity-group="vm.operatingGroup()"
+            is-edit="vm.isGroupDetailsEdit"
+            the-form="vm.groupDetailsForm"
+            is-read-only="vm.isGroupDetailsReadOnly"
+            on-delete-entity-group="vm.deleteEntityGroup(event)"
+            on-make-public="vm.makeGroupPublic(event)"
+            on-make-private="vm.makeGroupPrivate(event)"
+        ></tb-entity-group-details>
+    </form>
+</tb-details-sidenav>

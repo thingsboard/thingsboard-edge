@@ -1,0 +1,84 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section layout="column" class="tb-permission-list">
+    <div class="header" flex layout="row">
+        <span class="cell" flex="30" translate>{{ 'permission.resource.resource' }}</span>
+        <span class="cell" flex="70" translate>{{ 'permission.operation.operations' }}</span>
+        <span ng-show="!disabled" style="width: 52px;">&nbsp</span>
+    </div>
+    <div class="body">
+        <div class="row" ng-form name="permissionForm" flex layout="row" layout-align="start center" ng-repeat="permission in permissionList track by $index">
+            <tb-resource-type-autocomplete
+                    class="cell md-block" flex="30"
+                    the-form="permissionForm"
+                    tb-required="true"
+                    ng-disabled="disabled"
+                    ng-model="permission.resource">
+            </tb-resource-type-autocomplete>
+            <tb-operation-type-list
+                    class="cell md-block" flex="70"
+                    tb-required="true"
+                    ng-disabled="disabled"
+                    resource="permission.resource"
+                    ng-model="permission.operations">
+            </tb-operation-type-list>
+            <md-button ng-show="!disabled" ng-disabled="loading" class="md-icon-button md-primary"
+                       ng-click="removePermission($index)"
+                       aria-label="{{ 'action.remove' | translate }}">
+                <md-tooltip md-direction="top">
+                    {{ 'permission.remove-permission' | translate }}
+                </md-tooltip>
+                <md-icon aria-label="{{ 'action.delete' | translate }}"
+                         class="material-icons">
+                    close
+                </md-icon>
+            </md-button>
+        </div>
+    </div>
+    <div class="tb-error-messages" ng-messages="ngModelCtrl.$error" role="alert">
+        <div translate ng-message="permissionMap" class="tb-error-message">permission.permissions-required</div>
+    </div>
+    <div>
+        <md-button ng-show="!disabled" ng-disabled="loading" class="md-primary md-raised"
+                   ng-click="addPermission()"
+                   aria-label="{{ 'action.add' | translate }}">
+            <md-tooltip md-direction="top">
+                {{ 'permission.add-permission' | translate }}
+            </md-tooltip>
+            <md-icon aria-label="{{ 'action.add' | translate }}" class="material-icons">
+                add
+            </md-icon>
+            {{ 'action.add' | translate }}
+        </md-button>
+    </div>
+</section>

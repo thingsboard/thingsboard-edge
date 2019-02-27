@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,17 +33,17 @@ export default angular.module('thingsboard.directives.confirmOnExit', [])
     .name;
 
 /*@ngInject*/
-function ConfirmOnExit($state, $mdDialog, $window, $filter, userService) {
+function ConfirmOnExit($state, $mdDialog, $window, $filter, $parse, userService) {
     return {
-        link: function ($scope) {
-
+        link: function ($scope, $element, $attributes) {
+            $scope.confirmForm = $scope.$eval($attributes.confirmForm);
             $window.onbeforeunload = function () {
-                if (userService.isAuthenticated() && (($scope.confirmForm && $scope.confirmForm.$dirty) || $scope.isDirty)) {
+                if (userService.isAuthenticated() && (($scope.confirmForm && $scope.confirmForm.$dirty) || $scope.$eval($attributes.isDirty))) {
                     return $filter('translate')('confirm-on-exit.message');
                 }
             }
             $scope.$on('$stateChangeStart', function (event, next, current, params) {
-                if (userService.isAuthenticated() && (($scope.confirmForm && $scope.confirmForm.$dirty) || $scope.isDirty)) {
+                if (userService.isAuthenticated() && (($scope.confirmForm && $scope.confirmForm.$dirty) || $scope.$eval($attributes.isDirty))) {
                     event.preventDefault();
                     var confirm = $mdDialog.confirm()
                         .title($filter('translate')('confirm-on-exit.title'))
@@ -55,10 +55,12 @@ function ConfirmOnExit($state, $mdDialog, $window, $filter, userService) {
                         if ($scope.confirmForm) {
                             $scope.confirmForm.$setPristine();
                         } else {
-                            $scope.isDirty = false;
+                            var remoteSetter = $parse($attributes.isDirty).assign;
+                            remoteSetter($scope, false);
+                            //$scope.isDirty = false;
                         }
-                        if ($scope.onConfirm) {
-                            $scope.onConfirm();
+                        if ($attributes.tbConfirmOnExit) {
+                            $scope.$eval($attributes.tbConfirmOnExit);
                         }
                         $state.go(next.name, params);
                     }, function () {
@@ -66,10 +68,6 @@ function ConfirmOnExit($state, $mdDialog, $window, $filter, userService) {
                 }
             });
         },
-        scope: {
-            confirmForm: '=',
-            isDirty: '=',
-            onConfirm: '&?tbConfirmOnExit'
-        }
+        scope: false
     };
 }

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,7 +36,7 @@ import tenantCard from './tenant-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function TenantController(tenantService, $state, $stateParams, $translate, types) {
+export default function TenantController(tenantService, $state, $stateParams, $translate, types, securityTypes, utils, userPermissionsService) {
 
     var tenantActionsList = [
         {
@@ -45,7 +45,10 @@ export default function TenantController(tenantService, $state, $stateParams, $t
             },
             name: function() { return $translate.instant('tenant.admins') },
             details: function() { return $translate.instant('tenant.manage-tenant-admins') },
-            icon: "account_circle"
+            icon: "account_circle",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.read);
+            }
         },
         {
             onAction: function ($event, item) {
@@ -53,7 +56,10 @@ export default function TenantController(tenantService, $state, $stateParams, $t
             },
             name: function() { return $translate.instant('action.delete') },
             details: function() { return $translate.instant('tenant.delete') },
-            icon: "delete"
+            icon: "delete",
+            isEnabled: function() {
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.tenant, securityTypes.operation.delete);
+            }
         }
     ];
 
@@ -62,6 +68,8 @@ export default function TenantController(tenantService, $state, $stateParams, $t
     vm.types = types;
 
     vm.tenantGridConfig = {
+
+        resource: securityTypes.resource.tenant,
 
         refreshParamsFunc: null,
 
@@ -137,7 +145,7 @@ export default function TenantController(tenantService, $state, $stateParams, $t
     }
 
     function getTenantTitle(tenant) {
-        return tenant ? tenant.title : '';
+        return tenant ? utils.customTranslation(tenant.name, tenant.name) : '';
     }
 
     function openTenantUsers($event, tenant) {

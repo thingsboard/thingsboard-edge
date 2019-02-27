@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -45,7 +45,7 @@ import AliasController from '../../api/alias-controller';
 
 /*@ngInject*/
 export default function AttributeTableDirective($compile, $templateCache, $rootScope, $q, $mdEditDialog, $mdDialog,
-                                                $mdUtil, $document, $translate, $filter, utils, types, dashboardUtils,
+                                                $mdUtil, $document, $translate, $filter, $timeout, utils, types, dashboardUtils,
                                                 entityService, attributeService, widgetService) {
 
     var linker = function (scope, element, attrs) {
@@ -67,40 +67,44 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
 
         scope.types = types;
 
-        scope.entityType = attrs.entityType;
+        attrs.$observe('entityType', function() {
 
-        if (scope.entityType === types.entityType.device) {
-            scope.attributeScopes = types.attributesScope;
-            scope.attributeScopeSelectionReadonly = false;
-        } else {
-            scope.attributeScopes = {};
-            scope.attributeScopes.server = types.attributesScope.server;
-            scope.attributeScopeSelectionReadonly = true;
-        }
+            scope.entityType = attrs.entityType;
 
-        scope.attributeScope = getAttributeScopeByValue(attrs.defaultAttributeScope);
-
-        if (scope.entityType != types.entityType.device) {
-            if (scope.attributeScope != types.latestTelemetry) {
-                scope.attributeScope = scope.attributeScopes.server;
+            if (scope.entityType === types.entityType.device || scope.entityType === types.entityType.entityView) {
+                scope.attributeScopes = types.attributesScope;
+                scope.attributeScopeSelectionReadonly = false;
+            } else {
+                scope.attributeScopes = {};
+                scope.attributeScopes.server = types.attributesScope.server;
+                scope.attributeScopeSelectionReadonly = true;
             }
-        }
 
-        scope.attributes = {
-            count: 0,
-            data: []
-        };
+            scope.attributeScope = getAttributeScopeByValue(attrs.defaultAttributeScope);
 
-        scope.selectedAttributes = [];
-        scope.mode = 'default'; // 'widget'
-        scope.subscriptionId = null;
+            if (scope.entityType != types.entityType.device) {
+                if (scope.attributeScope != types.latestTelemetry) {
+                    scope.attributeScope = scope.attributeScopes.server;
+                }
+            }
 
-        scope.query = {
-            order: 'key',
-            limit: 5,
-            page: 1,
-            search: null
-        };
+            scope.attributes = {
+                count: 0,
+                data: []
+            };
+
+            scope.selectedAttributes = [];
+            scope.mode = 'default'; // 'widget'
+            scope.subscriptionId = null;
+
+            scope.query = {
+                order: 'key',
+                limit: 5,
+                page: 1,
+                search: null
+            };
+
+        });
 
         scope.$watch("entityId", function(newVal) {
             if (newVal) {
@@ -125,8 +129,15 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
             scope.attributeScope = getAttributeScopeByValue(attrs.defaultAttributeScope);
         }
 
-        scope.enterFilterMode = function() {
+        scope.enterFilterMode = function(event) {
+            let $button = angular.element(event.currentTarget);
+            let $toolbarsContainer = $button.closest('.toolbarsContainer');
+
             scope.query.search = '';
+
+            $timeout(()=>{
+                $toolbarsContainer.find('.searchInput').focus();
+            })
         }
 
         scope.exitFilterMode = function() {
@@ -290,6 +301,19 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
                 scope.widgetsBundleWatch = null;
             }
 
+            dashboardUtils.createSingleEntityFilter(scope.entityType, scope.entityId).then(
+                (filter) => {
+                    var entityAlias = {
+                        id: utils.guid(),
+                        alias: scope.entityName,
+                        filter: filter
+                    };
+                    configureWidgetMode(entityAlias);
+                }
+            );
+        };
+
+        function configureWidgetMode(entityAlias) {
             scope.mode = 'widget';
             scope.checkSubscription();
             scope.widgetsList = [];
@@ -302,11 +326,6 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
             scope.firstBundle = true;
             scope.selectedWidgetsBundleAlias = types.systemBundleAlias.cards;
 
-            var entityAlias = {
-                id: utils.guid(),
-                alias: scope.entityName,
-                filter: dashboardUtils.createSingleEntityFilter(scope.entityType, scope.entityId)
-            };
             var entitiAliases = {};
             entitiAliases[entityAlias.id] = entityAlias;
 
@@ -453,7 +472,8 @@ export default function AttributeTableDirective($compile, $templateCache, $rootS
         scope: {
             entityId: '=',
             entityName: '=',
-            disableAttributeScopeSelection: '@?'
+            disableAttributeScopeSelection: '@?',
+            readonly: '='
         }
     };
 }

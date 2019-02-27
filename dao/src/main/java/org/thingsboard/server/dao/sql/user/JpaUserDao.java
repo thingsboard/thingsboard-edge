@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,11 +30,14 @@
  */
 package org.thingsboard.server.dao.sql.user;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.DaoUtil;
@@ -48,6 +51,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
@@ -71,7 +75,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     }
 
     @Override
-    public User findByEmail(String email) {
+    public User findByEmail(TenantId tenantId, String email) {
         return DaoUtil.getData(userRepository.findByEmail(email));
     }
 
@@ -100,5 +104,22 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                                 Authority.CUSTOMER_USER,
                                 new PageRequest(0, pageLink.getLimit())));
 
+    }
+
+    @Override
+    public List<User> findAllCustomerUsers(UUID tenantId, TextPageLink pageLink) {
+        return DaoUtil.convertDataList(
+                userRepository
+                        .findAllTenantUsersByAuthority(
+                                fromTimeUUID(tenantId),
+                                pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
+                                Objects.toString(pageLink.getTextSearch(), ""),
+                                Authority.CUSTOMER_USER,
+                                new PageRequest(0, pageLink.getLimit())));
+    }
+
+    @Override
+    public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> userIds) {
+        return service.submit(() -> DaoUtil.convertDataList(userRepository.findUsersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(userIds))));
     }
 }

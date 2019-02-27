@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.device;
 
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +42,18 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -62,6 +67,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -69,18 +75,22 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
-import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -106,20 +116,23 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     private EntityService entityService;
 
     @Autowired
+    private EntityViewService entityViewService;
+
+    @Autowired
     private CacheManager cacheManager;
 
     @Override
-    public Device findDeviceById(DeviceId deviceId) {
+    public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
-        return deviceDao.findById(deviceId.getId());
+        return deviceDao.findById(tenantId, deviceId.getId());
     }
 
     @Override
-    public ListenableFuture<Device> findDeviceByIdAsync(DeviceId deviceId) {
+    public ListenableFuture<Device> findDeviceByIdAsync(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
-        return deviceDao.findByIdAsync(deviceId.getId());
+        return deviceDao.findByIdAsync(tenantId, deviceId.getId());
     }
 
     @Cacheable(cacheNames = DEVICE_CACHE, key = "{#tenantId, #name}")
@@ -135,49 +148,48 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     @Override
     public Device saveDevice(Device device) {
         log.trace("Executing saveDevice [{}]", device);
-        deviceValidator.validate(device);
-        Device savedDevice = deviceDao.save(device);
+        deviceValidator.validate(device, Device::getTenantId);
+        Device savedDevice = deviceDao.save(device.getTenantId(), device);
         if (device.getId() == null) {
             DeviceCredentials deviceCredentials = new DeviceCredentials();
             deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
             deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
-            deviceCredentialsService.createDeviceCredentials(deviceCredentials);
-            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getId());
+            deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
+            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         return savedDevice;
     }
 
     @Override
-    public Device assignDeviceToCustomer(DeviceId deviceId, CustomerId customerId) {
-        Device device = findDeviceById(deviceId);
-        device.setCustomerId(customerId);
-        return saveDevice(device);
-    }
-
-    @Override
-    public Device unassignDeviceFromCustomer(DeviceId deviceId) {
-        Device device = findDeviceById(deviceId);
-        device.setCustomerId(null);
-        return saveDevice(device);
-    }
-
-    @Override
-    public void deleteDevice(DeviceId deviceId) {
+    public void deleteDevice(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing deleteDevice [{}]", deviceId);
-        Cache cache = cacheManager.getCache(DEVICE_CACHE);
         validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
-        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(deviceId);
-        if (deviceCredentials != null) {
-            deviceCredentialsService.deleteDeviceCredentials(deviceCredentials);
+
+        Device device = deviceDao.findById(tenantId, deviceId.getId());
+        try {
+            List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(device.getTenantId(), deviceId).get();
+            if (entityViews != null && !entityViews.isEmpty()) {
+                throw new DataValidationException("Can't delete device that is assigned to entity views!");
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Exception while finding entity views for deviceId [{}]", deviceId, e);
+            throw new RuntimeException("Exception while finding entity views for deviceId [" + deviceId + "]", e);
         }
-        deleteEntityRelations(deviceId);
-        Device device = deviceDao.findById(deviceId.getId());
+
+        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
+        if (deviceCredentials != null) {
+            deviceCredentialsService.deleteDeviceCredentials(tenantId, deviceCredentials);
+        }
+        deleteEntityRelations(tenantId, deviceId);
+
         List<Object> list = new ArrayList<>();
         list.add(device.getTenantId());
         list.add(device.getName());
+        Cache cache = cacheManager.getCache(DEVICE_CACHE);
         cache.evict(list);
-        deviceDao.removeById(deviceId.getId());
+
+        deviceDao.removeById(tenantId, deviceId.getId());
     }
 
     @Override
@@ -212,7 +224,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     public void deleteDevicesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteDevicesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        tenantDevicesRemover.removeEntities(tenantId);
+        tenantDevicesRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
@@ -223,6 +235,14 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
         List<Device> devices = deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
         return new TextPageData<>(devices, pageLink);
+    }
+
+    @Override
+    public void deleteDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerDevicesRemover.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -247,23 +267,15 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public void unassignCustomerDevices(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerDevices, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        new CustomerDevicesUnassigner(tenantId).removeEntities(customerId);
-    }
-
-    @Override
-    public ListenableFuture<List<Device>> findDevicesByQuery(DeviceSearchQuery query) {
-        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(query.toEntitySearchQuery());
-        ListenableFuture<List<Device>> devices = Futures.transform(relations, (AsyncFunction<List<EntityRelation>, List<Device>>) relations1 -> {
+    public ListenableFuture<List<Device>> findDevicesByQuery(TenantId tenantId, DeviceSearchQuery query) {
+        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());
+        ListenableFuture<List<Device>> devices = Futures.transformAsync(relations, r -> {
             EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();
             List<ListenableFuture<Device>> futures = new ArrayList<>();
-            for (EntityRelation relation : relations1) {
+            for (EntityRelation relation : r) {
                 EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();
                 if (entityId.getEntityType() == EntityType.DEVICE) {
-                    futures.add(findDeviceByIdAsync(new DeviceId(entityId.getId())));
+                    futures.add(findDeviceByIdAsync(tenantId, new DeviceId(entityId.getId())));
                 }
             }
             return Futures.successfulAsList(futures);
@@ -286,65 +298,45 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         ListenableFuture<List<EntitySubtype>> tenantDeviceTypes = deviceDao.findTenantDeviceTypesAsync(tenantId.getId());
         return Futures.transform(tenantDeviceTypes,
-                (Function<List<EntitySubtype>, List<EntitySubtype>>) deviceTypes -> {
+                deviceTypes -> {
                     deviceTypes.sort(Comparator.comparing(EntitySubtype::getType));
                     return deviceTypes;
                 });
     }
 
     @Override
-    public EntityView findGroupDevice(EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupDevice(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(entityGroupId, entityId, new DeviceViewFunction());
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (deviceEntityId) -> new DeviceId(deviceEntityId.getId()),
+                (deviceId) -> findDeviceById(tenantId, deviceId),
+                new DeviceViewFunction());
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findDevicesByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink) {
+    public ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(entityGroupId, pageLink, new DeviceViewFunction(customerId));
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new DeviceId(entityId.getId()),
+                (entityIds) -> findDevicesByTenantIdAndIdsAsync(tenantId, entityIds),
+                new DeviceViewFunction());
     }
 
-    class DeviceViewFunction implements BiFunction<EntityView, List<EntityField>, EntityView> {
-
-        private final CustomerId customerId;
-
-        DeviceViewFunction() {
-            this.customerId = null;
-        }
-
-        DeviceViewFunction(CustomerId customerId) {
-            this.customerId = customerId;
-        }
+    class DeviceViewFunction implements BiFunction<Device, List<EntityField>, ShortEntityView> {
 
         @Override
-        public EntityView apply(EntityView entityView, List<EntityField> entityFields) {
-            Device device = findDeviceById(new DeviceId(entityView.getId().getId()));
-            if (this.customerId != null && !this.customerId.isNullUid()
-                    && !this.customerId.equals(device.getCustomerId())) {
-                entityView.setSkipEntity(true);
-                return entityView;
-            }
+        public ShortEntityView apply(Device device, List<EntityField> entityFields) {
+            ShortEntityView entityView = new ShortEntityView(device.getId());
             entityView.put(EntityField.NAME.name().toLowerCase(), device.getName());
             for (EntityField field : entityFields) {
                 String key = field.name().toLowerCase();
                 switch (field) {
                     case TYPE:
                         entityView.put(key, device.getType());
-                        break;
-                    case ASSIGNED_CUSTOMER:
-                        String assignedCustomerName = "";
-                        if(!device.getCustomerId().isNullUid()) {
-                            try {
-                                assignedCustomerName = entityService.fetchEntityNameAsync(device.getCustomerId()).get();
-                            } catch (InterruptedException | ExecutionException e) {
-                                log.error("Failed to fetch assigned customer name!", e);
-                            }
-                        }
-                        entityView.put(key, assignedCustomerName);
                         break;
                 }
             }
@@ -356,7 +348,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             new DataValidator<Device>() {
 
                 @Override
-                protected void validateCreate(Device device) {
+                protected void validateCreate(TenantId tenantId, Device device) {
                     deviceDao.findDeviceByTenantIdAndName(device.getTenantId().getId(), device.getName()).ifPresent(
                             d -> {
                                 throw new DataValidationException("Device with such name already exists!");
@@ -365,7 +357,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 }
 
                 @Override
-                protected void validateUpdate(Device device) {
+                protected void validateUpdate(TenantId tenantId, Device device) {
                     deviceDao.findDeviceByTenantIdAndName(device.getTenantId().getId(), device.getName()).ifPresent(
                             d -> {
                                 if (!d.getUuidId().equals(device.getUuidId())) {
@@ -376,7 +368,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 }
 
                 @Override
-                protected void validateDataImpl(Device device) {
+                protected void validateDataImpl(TenantId tenantId, Device device) {
                     if (StringUtils.isEmpty(device.getType())) {
                         throw new DataValidationException("Device type should be specified!");
                     }
@@ -386,7 +378,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     if (device.getTenantId() == null) {
                         throw new DataValidationException("Device should be assigned to tenant!");
                     } else {
-                        Tenant tenant = tenantDao.findById(device.getTenantId().getId());
+                        Tenant tenant = tenantDao.findById(device.getTenantId(), device.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Device is referencing to non-existent tenant!");
                         }
@@ -394,7 +386,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     if (device.getCustomerId() == null) {
                         device.setCustomerId(new CustomerId(NULL_UUID));
                     } else if (!device.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(device.getCustomerId().getId());
+                        Customer customer = customerDao.findById(device.getTenantId(), device.getCustomerId().getId());
                         if (customer == null) {
                             throw new DataValidationException("Can't assign device to non-existent customer!");
                         }
@@ -406,36 +398,29 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             };
 
     private PaginatedRemover<TenantId, Device> tenantDevicesRemover =
-            new PaginatedRemover<TenantId, Device>() {
+        new PaginatedRemover<TenantId, Device>() {
 
-                @Override
-                protected List<Device> findEntities(TenantId id, TextPageLink pageLink) {
-                    return deviceDao.findDevicesByTenantId(id.getId(), pageLink);
-                }
+            @Override
+            protected List<Device> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+                return deviceDao.findDevicesByTenantId(id.getId(), pageLink);
+            }
 
-                @Override
-                protected void removeEntity(Device entity) {
-                    deleteDevice(new DeviceId(entity.getUuidId()));
-                }
-            };
+            @Override
+            protected void removeEntity(TenantId tenantId, Device entity) {
+                deleteDevice(tenantId, new DeviceId(entity.getUuidId()));
+            }
+        };
 
-    private class CustomerDevicesUnassigner extends PaginatedRemover<CustomerId, Device> {
-
-        private TenantId tenantId;
-
-        CustomerDevicesUnassigner(TenantId tenantId) {
-            this.tenantId = tenantId;
-        }
+    private PaginatedRemover<CustomerId, Device> customerDevicesRemover = new PaginatedRemover<CustomerId, Device>() {
 
         @Override
-        protected List<Device> findEntities(CustomerId id, TextPageLink pageLink) {
+        protected List<Device> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
             return deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
         }
 
         @Override
-        protected void removeEntity(Device entity) {
-            unassignDeviceFromCustomer(new DeviceId(entity.getUuidId()));
+        protected void removeEntity(TenantId tenantId, Device entity) {
+            deleteDevice(tenantId, new DeviceId(entity.getUuidId()));
         }
-
-    }
+    };
 }

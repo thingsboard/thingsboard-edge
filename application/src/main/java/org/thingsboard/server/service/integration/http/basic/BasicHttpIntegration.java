@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,14 +31,14 @@
 package org.thingsboard.server.service.integration.http.basic;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
@@ -46,8 +46,7 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.RPCCallIntegrationMsg;
-import org.thingsboard.server.service.integration.msg.SharedAttributesUpdateIntegrationMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -89,16 +88,8 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     }
 
     @Override
-    public void onSharedAttributeUpdate(IntegrationContext context, SharedAttributesUpdateIntegrationMsg msg) {
-        logDownlink(context, "SharedAttributeUpdate", msg);
-        if (downlinkConverter != null) {
-            context.getDownlinkService().put(msg);
-        }
-    }
-
-    @Override
-    public void onRPCCall(IntegrationContext context, RPCCallIntegrationMsg msg) {
-        logDownlink(context, "RPCCall", msg);
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg) {
+        logDownlink(context, "Downlink: " + msg.getTbMsg().getType(), msg);
         if (downlinkConverter != null) {
             context.getDownlinkService().put(msg);
         }
@@ -106,11 +97,11 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
 
     private ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> uplinkData, HttpIntegrationMsg msg) throws Exception {
         if (downlinkConverter != null) {
-            List<DownLinkMsg> pendingDownlinks = new ArrayList<>();
+            List<TbMsg> tbMsgs = new ArrayList<>();
             for (Device device : uplinkData.keySet()) {
                 DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
-                if (pending != null) {
-                    pendingDownlinks.add(pending);
+                if (pending != null && !pending.isEmpty()) {
+                    tbMsgs.addAll(pending.getMsgs());
                 }
             }
             Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
@@ -120,7 +111,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
                     }
             );
 
-            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pendingDownlinks, new DownLinkMetaData(mdMap));
+            List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), tbMsgs, new IntegrationMetaData(mdMap));
 
             for (Device device : uplinkData.keySet()) {
                 context.getDownlinkService().remove(configuration.getId(), device.getId());

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,7 +38,9 @@ export default angular.module('thingsboard.types', [])
                 permissionDenied: 20,
                 invalidArguments: 30,
                 badRequestParams: 31,
-                itemNotFound: 32
+                itemNotFound: 32,
+                tooManyRequests: 33,
+                tooManyUpdates: 34
             },
             entryPoints: {
                 login: "/api/auth/login",
@@ -216,6 +218,30 @@ export default angular.module('thingsboard.types', [])
                 },
                 "REMOVED_FROM_ENTITY_GROUP": {
                     name: "audit-log.type-removed-from-entity-group"
+                },
+                "RELATION_ADD_OR_UPDATE": {
+                    name: "audit-log.type-relation-add-or-update"
+                },
+                "RELATION_DELETED": {
+                    name: "audit-log.type-relation-delete"
+                },
+                "RELATIONS_DELETED": {
+                    name: "audit-log.type-relations-delete"
+                },
+                "ALARM_ACK": {
+                    name: "audit-log.type-alarm-ack"
+                },
+                "ALARM_CLEAR": {
+                    name: "audit-log.type-alarm-clear"
+                },
+                "REST_API_RULE_ENGINE_CALL": {
+                    name: "audit-log.type-rest-api-rule-engine-call"
+                },
+                "MADE_PUBLIC": {
+                    name: "audit-log.type-made-public"
+                },
+                "MADE_PRIVATE": {
+                    name: "audit-log.type-made-private"
                 }
             },
             auditLogActionStatus: {
@@ -271,6 +297,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'deviceType',
                     name: 'alias.filter-type-device-type'
                 },
+                entityViewType: {
+                    value: 'entityViewType',
+                    name: 'alias.filter-type-entity-view-type'
+                },
                 relationsQuery: {
                     value: 'relationsQuery',
                     name: 'alias.filter-type-relations-query'
@@ -282,6 +312,10 @@ export default angular.module('thingsboard.types', [])
                 deviceSearchQuery: {
                     value: 'deviceSearchQuery',
                     name: 'alias.filter-type-device-search-query'
+                },
+                entityViewSearchQuery: {
+                    value: 'entityViewSearchQuery',
+                    name: 'alias.filter-type-entity-view-search-query'
                 }
             },
             position: {
@@ -362,6 +396,11 @@ export default angular.module('thingsboard.types', [])
                     value: "THINGPARK",
                     http: true
                 },
+                "TMOBILE_IOT_CDP": {
+                    name: "integration.type-tmobile-iot-cdp",
+                    value: "TMOBILE_IOT_CDP",
+                    http: true
+                },
                 "MQTT": {
                     name: "integration.type-mqtt",
                     value: "MQTT",
@@ -385,19 +424,22 @@ export default angular.module('thingsboard.types', [])
                 "AZURE_EVENT_HUB": {
                     name: "integration.type-azure-event-hub",
                     value: "AZURE_EVENT_HUB"
+                },
+                "OPC_UA": {
+                    name: "integration.type-opc-ua",
+                    value: "OPC_UA"
                 }
             },
             componentType: {
+                enrichment: "ENRICHMENT",
                 filter: "FILTER",
-                processor: "PROCESSOR",
+                transformation: "TRANSFORMATION",
                 action: "ACTION",
-                plugin: "PLUGIN"
+                external: "EXTERNAL"
             },
             entityType: {
                 device: "DEVICE",
                 asset: "ASSET",
-                rule: "RULE",
-                plugin: "PLUGIN",
                 tenant: "TENANT",
                 customer: "CUSTOMER",
                 user: "USER",
@@ -405,7 +447,13 @@ export default angular.module('thingsboard.types', [])
                 alarm: "ALARM",
                 entityGroup: "ENTITY_GROUP",
                 converter: "CONVERTER",
-                integration: "INTEGRATION"
+                integration: "INTEGRATION",
+                rulechain: "RULE_CHAIN",
+                rulenode: "RULE_NODE",
+                schedulerEvent: "SCHEDULER_EVENT",
+                blobEntity: "BLOB_ENTITY",
+                entityView: "ENTITY_VIEW",
+                role: "ROLE"
             },
             entityGroup: {
                 sortOrder: {
@@ -559,6 +607,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "INTEGRATION": {
                     helpId: 'integrations'
+                },
+                "RULE_CHAIN": {
+                    helpId: 'rulechains'
+                },
+                "ENTITY_VIEW": {
+                    helpId: 'entityViews'
                 }
             },
             aliasEntityType: {
@@ -599,21 +653,22 @@ export default angular.module('thingsboard.types', [])
                     groupList: 'asset.list-of-groups',
                     groupNameStartsWith: 'asset.group-name-starts-with'
                 },
-                "RULE": {
-                    type: 'entity.type-rule',
-                    typePlural: 'entity.type-rules',
-                    list: 'entity.list-of-rules',
-                    nameStartsWith: 'entity.rule-name-starts-with',
-                    details: 'rule.rule-details',
-                    add: 'rule.add'
-                },
-                "PLUGIN": {
-                    type: 'entity.type-plugin',
-                    typePlural: 'entity.type-plugins',
-                    list: 'entity.list-of-plugins',
-                    nameStartsWith: 'entity.plugin-name-starts-with',
-                    details: 'plugin.plugin-details',
-                    add: 'plugin.add'
+                "ENTITY_VIEW": {
+                    type: 'entity.type-entity-view',
+                    typePlural: 'entity.type-entity-views',
+                    list: 'entity.list-of-entity-views',
+                    nameStartsWith: 'entity.entity-view-name-starts-with',
+                    details: 'entity-view.entity-view-details',
+                    add: 'entity-view.add',
+                    noEntities: 'entity-view.no-entity-views-text',
+                    selectedEntities: 'entity-view.selected-entity-views',
+                    search: 'entity-view.search',
+                    selectGroupToAdd: 'entity-view.select-group-to-add',
+                    selectGroupToMove: 'entity-view.select-group-to-move',
+                    removeFromGroup: 'entity-view.remove-entity-views-from-group',
+                    group: 'entity-view.group',
+                    groupList: 'entity-view.list-of-groups',
+                    groupNameStartsWith: 'entity-view.group-name-starts-with'
                 },
                 "TENANT": {
                     type: 'entity.type-tenant',
@@ -652,7 +707,13 @@ export default angular.module('thingsboard.types', [])
                     add: 'user.add',
                     noEntities: 'user.no-users-text',
                     selectedEntities: 'user.selected-users',
-                    search: 'user.search'
+                    search: 'user.search',
+                    selectGroupToAdd: 'user.select-group-to-add',
+                    selectGroupToMove: 'user.select-group-to-move',
+                    removeFromGroup: 'user.remove-users-from-group',
+                    group: 'user.group',
+                    groupList: 'user.list-of-groups',
+                    groupNameStartsWith: 'user.group-name-starts-with'
                 },
                 "DASHBOARD": {
                     type: 'entity.type-dashboard',
@@ -660,7 +721,16 @@ export default angular.module('thingsboard.types', [])
                     list: 'entity.list-of-dashboards',
                     nameStartsWith: 'entity.dashboard-name-starts-with',
                     details: 'dashboard.dashboard-details',
-                    add: 'dashboard.add'
+                    add: 'dashboard.add',
+                    noEntities: 'dashboard.no-dashboards-text',
+                    selectedEntities: 'dashboard.selected-dashboards',
+                    search: 'dashboard.search',
+                    selectGroupToAdd: 'dashboard.select-group-to-add',
+                    selectGroupToMove: 'dashboard.select-group-to-move',
+                    removeFromGroup: 'dashboard.remove-dashboards-from-group',
+                    group: 'dashboard.group',
+                    groupList: 'dashboard.list-of-groups',
+                    groupNameStartsWith: 'dashboard.group-name-starts-with'
                 },
                 "ALARM": {
                     type: 'entity.type-alarm',
@@ -689,9 +759,42 @@ export default angular.module('thingsboard.types', [])
                     details: 'integration.integration-details',
                     add: 'integration.add'
                 },
+                "RULE_CHAIN": {
+                    type: 'entity.type-rulechain',
+                    typePlural: 'entity.type-rulechains',
+                    list: 'entity.list-of-rulechains',
+                    nameStartsWith: 'entity.rulechain-name-starts-with'
+                },
+                "RULE_NODE": {
+                    type: 'entity.type-rulenode',
+                    typePlural: 'entity.type-rulenodes',
+                    list: 'entity.list-of-rulenodes',
+                    nameStartsWith: 'entity.rulenode-name-starts-with'
+                },
                 "CURRENT_CUSTOMER": {
                     type: 'entity.type-current-customer',
                     list: 'entity.type-current-customer'
+                },
+                "SCHEDULER_EVENT": {
+                    type: 'entity.type-scheduler-event',
+                    typePlural: 'entity.type-scheduler-events',
+                    list: 'entity.list-of-scheduler-events',
+                    nameStartsWith: 'entity.scheduler-event-name-starts-with'
+                },
+                "BLOB_ENTITY": {
+                    type: 'entity.type-blob-entity',
+                    typePlural: 'entity.type-blob-entities',
+                    list: 'entity.list-of-blob-entities',
+                    nameStartsWith: 'entity.blob-entity-name-starts-with'
+                },
+                "ROLE": {
+                    type: 'entity.type-role',
+                    typePlural: 'entity.type-roles',
+                    list: 'entity.list-of-roles',
+                    nameStartsWith: 'entity.role-name-starts-with'
+                },
+                "GROUP_PERMISSION": {
+                    type: 'entity.type-group-permission'
                 }
             },
             entitySearchDirection: {
@@ -724,12 +827,21 @@ export default angular.module('thingsboard.types', [])
                 debugIntegration: {
                     value: "DEBUG_INTEGRATION",
                     name: "event.type-debug-integration"
+                },
+                debugRuleNode: {
+                    value: "DEBUG_RULE_NODE",
+                    name: "event.type-debug-rule-node"
+                },
+                debugRuleChain: {
+                    value: "DEBUG_RULE_CHAIN",
+                    name: "event.type-debug-rule-chain"
                 }
             },
             extensionType: {
                 http: "HTTP",
                 mqtt: "MQTT",
-                opc: "OPC UA"
+                opc: "OPC UA",
+                modbus: "MODBUS"
             },
             extensionValueType: {
                 string: 'value.string',
@@ -773,19 +885,43 @@ export default angular.module('thingsboard.types', [])
                     name: 'integration.mqtt-qos-exactly-once'
                 }
             },
-            extensionOpcSecurityTypes: {
+            opcSecurityTypes: {
                 Basic128Rsa15: "Basic128Rsa15",
                 Basic256: "Basic256",
                 Basic256Sha256: "Basic256Sha256",
                 None: "None"
             },
-            extensionIdentityType: {
+            identityType: {
                 anonymous: "extension.anonymous",
                 username: "extension.username"
             },
             extensionKeystoreType: {
                 PKCS12: "PKCS12",
                 JKS: "JKS"
+            },
+            extensionModbusFunctionCodes: {
+                1: "Read Coils (1)",
+                2: "Read Discrete Inputs (2)",
+                3: "Read Multiple Holding Registers (3)",
+                4: "Read Input Registers (4)"
+            },
+            extensionModbusTransports: {
+                tcp: "TCP",
+                udp: "UDP",
+                rtu: "RTU"
+            },
+            extensionModbusRtuParities: {
+                none: "none",
+                even: "even",
+                odd: "odd"
+            },
+            extensionModbusRtuEncodings: {
+                ascii: "ascii",
+                rtu: "rtu"
+            },
+            opcUaMappingType: {
+                ID: "ID",
+                FQN: "Fully Qualified Name"
             },
             latestTelemetry: {
                 value: "LATEST_TELEMETRY",
@@ -807,6 +943,188 @@ export default angular.module('thingsboard.types', [])
                     value: "SHARED_SCOPE",
                     name: "attribute.scope-shared",
                     clientSide: false
+                }
+            },
+            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],
+            ruleChainNodeComponent: {
+                type: 'RULE_CHAIN',
+                name: 'rule chain',
+                clazz: 'tb.internal.RuleChain',
+                configurationDescriptor: {
+                    nodeDefinition: {
+                        description: "",
+                        details: "Forwards incoming messages to specified Rule Chain",
+                        inEnabled: true,
+                        outEnabled: false,
+                        relationTypes: [],
+                        customRelations: false,
+                        defaultConfiguration: {}
+                    }
+                }
+            },
+            unknownNodeComponent: {
+                type: 'UNKNOWN',
+                name: 'unknown',
+                clazz: 'tb.internal.Unknown',
+                configurationDescriptor: {
+                    nodeDefinition: {
+                        description: "",
+                        details: "",
+                        inEnabled: true,
+                        outEnabled: true,
+                        relationTypes: [],
+                        customRelations: false,
+                        defaultConfiguration: {}
+                    }
+                }
+            },
+            inputNodeComponent: {
+                type: 'INPUT',
+                name: 'Input',
+                clazz: 'tb.internal.Input'
+            },
+            ruleNodeType: {
+                FILTER: {
+                    value: "FILTER",
+                    name: "rulenode.type-filter",
+                    details: "rulenode.type-filter-details",
+                    nodeClass: "tb-filter-type",
+                    icon: "filter_list"
+                },
+                ENRICHMENT: {
+                    value: "ENRICHMENT",
+                    name: "rulenode.type-enrichment",
+                    details: "rulenode.type-enrichment-details",
+                    nodeClass: "tb-enrichment-type",
+                    icon: "playlist_add"
+                },
+                TRANSFORMATION: {
+                    value: "TRANSFORMATION",
+                    name: "rulenode.type-transformation",
+                    details: "rulenode.type-transformation-details",
+                    nodeClass: "tb-transformation-type",
+                    icon: "transform"
+                },
+                ACTION: {
+                    value: "ACTION",
+                    name: "rulenode.type-action",
+                    details: "rulenode.type-action-details",
+                    nodeClass: "tb-action-type",
+                    icon: "flash_on"
+                },
+                ANALYTICS: {
+                    value: "ANALYTICS",
+                    name: "rulenode.type-analytics",
+                    details: "rulenode.type-analytics-details",
+                    nodeClass: "tb-analytics-type",
+                    icon: "timeline"
+                },
+                EXTERNAL: {
+                    value: "EXTERNAL",
+                    name: "rulenode.type-external",
+                    details: "rulenode.type-external-details",
+                    nodeClass: "tb-external-type",
+                    icon: "cloud_upload"
+                },
+                RULE_CHAIN: {
+                    value: "RULE_CHAIN",
+                    name: "rulenode.type-rule-chain",
+                    details: "rulenode.type-rule-chain-details",
+                    nodeClass: "tb-rule-chain-type",
+                    icon: "settings_ethernet"
+                },
+                INPUT: {
+                    value: "INPUT",
+                    name: "rulenode.type-input",
+                    details: "rulenode.type-input-details",
+                    nodeClass: "tb-input-type",
+                    icon: "input",
+                    special: true
+                },
+                UNKNOWN: {
+                    value: "UNKNOWN",
+                    name: "rulenode.type-unknown",
+                    details: "rulenode.type-unknown-details",
+                    nodeClass: "tb-unknown-type",
+                    icon: "help_outline"
+                }
+            },
+            messageType: {
+                'POST_ATTRIBUTES_REQUEST': {
+                    name: 'Post attributes',
+                    value: 'POST_ATTRIBUTES_REQUEST'
+                },
+                'POST_TELEMETRY_REQUEST': {
+                    name: 'Post telemetry',
+                    value: 'POST_TELEMETRY_REQUEST'
+                },
+                'TO_SERVER_RPC_REQUEST': {
+                    name: 'RPC Request from Device',
+                    value: 'TO_SERVER_RPC_REQUEST'
+                },
+                'RPC_CALL_FROM_SERVER_TO_DEVICE': {
+                    name: 'RPC Request to Device',
+                    value: 'RPC_CALL_FROM_SERVER_TO_DEVICE'
+                },
+                'ACTIVITY_EVENT': {
+                    name: 'Activity Event',
+                    value: 'ACTIVITY_EVENT'
+                },
+                'INACTIVITY_EVENT': {
+                    name: 'Inactivity Event',
+                    value: 'INACTIVITY_EVENT'
+                },
+                'CONNECT_EVENT': {
+                    name: 'Connect Event',
+                    value: 'CONNECT_EVENT'
+                },
+                'DISCONNECT_EVENT': {
+                    name: 'Disconnect Event',
+                    value: 'DISCONNECT_EVENT'
+                },
+                'ENTITY_CREATED': {
+                    name: 'Entity Created',
+                    value: 'ENTITY_CREATED'
+                },
+                'ENTITY_UPDATED': {
+                    name: 'Entity Updated',
+                    value: 'ENTITY_UPDATED'
+                },
+                'ENTITY_DELETED': {
+                    name: 'Entity Deleted',
+                    value: 'ENTITY_DELETED'
+                },
+                'ENTITY_ASSIGNED': {
+                    name: 'Entity Assigned',
+                    value: 'ENTITY_ASSIGNED'
+                },
+                'ENTITY_UNASSIGNED': {
+                    name: 'Entity Unassigned',
+                    value: 'ENTITY_UNASSIGNED'
+                },
+                'ATTRIBUTES_UPDATED': {
+                    name: 'Attributes Updated',
+                    value: 'ATTRIBUTES_UPDATED'
+                },
+                'ATTRIBUTES_DELETED': {
+                    name: 'Attributes Deleted',
+                    value: 'ATTRIBUTES_DELETED'
+                },
+                'ADDED_TO_ENTITY_GROUP': {
+                    name: 'Added to Group',
+                    value: 'ADDED_TO_ENTITY_GROUP'
+                },
+                'REMOVED_FROM_ENTITY_GROUP': {
+                    name: 'Removed from Group',
+                    value: 'REMOVED_FROM_ENTITY_GROUP'
+                },
+                'REST_API_REQUEST': {
+                    name: 'REST API request',
+                    value: 'REST_API_REQUEST'
+                },
+                'generateReport': {
+                    name: 'Generate Report',
+                    value: 'generateReport'
                 }
             },
             valueType: {
@@ -940,12 +1258,133 @@ export default angular.module('thingsboard.types', [])
                     value: 'custom'
                 }
             },
+            schedulerRepeat: {
+                daily: {
+                    value: 'DAILY',
+                    name: 'scheduler.daily'
+                },
+                weekly: {
+                    value: 'WEEKLY',
+                    name: 'scheduler.weekly'
+                },
+                timer: {
+                    value: 'TIMER',
+                    name: 'scheduler.timer'
+                }
+            },
+            schedulerTimeUnit: [
+                {
+                    value: 'HOURS',
+                    name: 'scheduler.hours'
+                },
+                {
+                    value: 'MINUTES',
+                    name: 'scheduler.minutes'
+                }/*,
+                {
+                    value: 'SECONDS',
+                    name: 'scheduler.seconds'
+                },*/
+            ],
+            schedulerWeekday: [
+                'scheduler.sunday',
+                'scheduler.monday',
+                'scheduler.tuesday',
+                'scheduler.wednesday',
+                'scheduler.thursday',
+                'scheduler.friday',
+                'scheduler.saturday'
+            ],
+            schedulerCalendarView: {
+                'month': {
+                    name: 'scheduler.month',
+                    value: 'month'
+                },
+                'basicWeek': {
+                    name: 'scheduler.week',
+                    value: 'basicWeek'
+                },
+                'basicDay': {
+                    name: 'scheduler.day',
+                    value: 'basicDay'
+                },
+                'listYear': {
+                    name: 'scheduler.list-year',
+                    value: 'listYear'
+                },
+                'listMonth': {
+                    name: 'scheduler.list-month',
+                    value: 'listMonth'
+                },
+                'listWeek': {
+                    name: 'scheduler.list-week',
+                    value: 'listWeek'
+                },
+                'listDay': {
+                    name: 'scheduler.list-day',
+                    value: 'listDay'
+                },
+                'agendaWeek': {
+                    name: 'scheduler.agenda-week',
+                    value: 'agendaWeek'
+                },
+                'agendaDay': {
+                    name: 'scheduler.agenda-day',
+                    value: 'agendaDay'
+                }
+            },
+            schedulerEventConfigTypes: [
+                {
+                    name: 'Generate Report',
+                    value: 'generateReport',
+                    directive: 'tbGenerateReportEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                },
+                {
+                    name: 'Update Attributes',
+                    value: 'updateAttributes',
+                    directive: 'tbUpdateAttributesEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                },
+                {
+                    name: 'Send RPC Request to Device',
+                    value: 'sendRpcRequest',
+                    directive: 'tbSendRpcRequestEventConfig',
+                    originator: false,
+                    msgType: false,
+                    metadata: false
+                }
+            ],
+            reportType: {
+                'pdf': {
+                    name: 'PDF',
+                    value: 'pdf'
+                },
+                'png': {
+                    name: 'PNG',
+                    value: 'png'
+                },
+                'jpeg': {
+                    name: 'JPEG',
+                    value: 'jpeg'
+                }
+            },
+            blobEntityType: {
+                "report": {
+                    name: "blob-entity.report"
+                }
+            },
             systemBundleAlias: {
                 charts: "charts",
                 cards: "cards"
             },
             translate: {
-                customTranslationsPrefix: "custom."
+                customTranslationsPrefix: "custom.",
+                i18nPrefix: "i18n"
             }
         }
     ).name;

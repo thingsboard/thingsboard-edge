@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -41,7 +41,7 @@ const WS_IDLE_TIMEOUT = 90000;
 const MAX_PUBLISH_COMMANDS = 10;
 
 /*@ngInject*/
-function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, types, userService) {
+function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, $mdUtil, $log, toast, types, userService) {
 
     var isOpening = false,
         isOpened = false,
@@ -129,7 +129,11 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
         }
     }
 
-    function onError (/*message*/) {
+    function onError (errorEvent) {
+        if (errorEvent) {
+            //showWsError(0, errorEvent);
+            $log.warn('WebSocket error event', errorEvent);
+        }
         isOpening = false;
     }
 
@@ -155,7 +159,10 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
         }
     }
 
-    function onClose () {
+    function onClose (closeEvent) {
+        if (closeEvent && closeEvent.code > 1000 && closeEvent.code !== 1006) {
+            showWsError(closeEvent.code, closeEvent.reason);
+        }
         isOpening = false;
         isOpened = false;
         if (isActive) {
@@ -180,7 +187,9 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
     function onMessage (message) {
         if (message.data) {
             var data = angular.fromJson(message.data);
-            if (data.subscriptionId) {
+            if (data.errorCode) {
+                showWsError(data.errorCode, data.errorMsg);
+            } else if (data.subscriptionId) {
                 var subscriber = subscribers[data.subscriptionId];
                 if (subscriber && data) {
                     var keys = fetchKeys(data.subscriptionId);
@@ -198,6 +207,18 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, ty
             }
         }
         checkToClose();
+    }
+
+    function showWsError(errorCode, errorMsg) {
+        var message = 'WebSocket Error: ';
+        if (errorMsg) {
+            message += errorMsg;
+        } else {
+            message += "error code - " + errorCode + ".";
+        }
+        $mdUtil.nextTick(function () {
+            toast.showError(message);
+        });
     }
 
     function fetchKeys(subscriptionId) {

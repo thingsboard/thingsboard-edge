@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -62,7 +62,7 @@ export function AssetCardController(types) {
 
 /*@ngInject*/
 export function AssetController($rootScope, tbDialogs, userService, assetService, customerService, $state, $stateParams,
-                                $document, $mdDialog, $q, $translate, types) {
+                                $document, $mdDialog, $q, $translate, types, utils) {
 
     var customerId = $stateParams.customerId;
 
@@ -247,8 +247,8 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             fetchAssetsFunction = function (pageLink, assetType) {
                 return assetService.getCustomerAssets(customerId, pageLink, true, null, assetType);
             };
-            deleteAssetFunction = function (assetId) {
-                return assetService.unassignAssetFromCustomer(assetId);
+            deleteAssetFunction = function (/*assetId*/) {
+                return $q.when();//assetService.unassignAssetFromCustomer(assetId);
             };
             refreshAssetsParamsFunction = function () {
                 return {"customerId": customerId, "topIndex": vm.topIndex};
@@ -341,7 +341,7 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
     }
 
     function getAssetTitle(asset) {
-        return asset ? asset.name : '';
+        return asset ? utils.customTranslation(asset.name, asset.name) : '';
     }
 
     function saveAsset(asset) {
@@ -374,12 +374,12 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
         return vm.assetsScope === 'customer_user';
     }
 
-    function assignToCustomer($event, assetIds) {
-        tbDialogs.assignAssetsToCustomer($event, assetIds).then(
+    function assignToCustomer(/*$event, assetIds*/) {
+        /*tbDialogs.assignAssetsToCustomer($event, assetIds).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
     function addAssetsToCustomer($event) {
@@ -426,16 +426,16 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
         assignToCustomer($event, assetIds);
     }
 
-    function unassignFromCustomer($event, asset, isPublic) {
-        tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
+    function unassignFromCustomer(/*$event, asset, isPublic*/) {
+        /*tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function unassignAssetsFromCustomer($event, items) {
-        var assetIds = [];
+    function unassignAssetsFromCustomer(/*$event, items*/) {
+       /* var assetIds = [];
         for (var id in items.selections) {
             assetIds.push(id);
         }
@@ -443,14 +443,14 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 
-    function makePublic($event, asset) {
-        tbDialogs.makeAssetPublic($event, asset).then(
+    function makePublic(/*$event, asset*/) {
+        /*tbDialogs.makeAssetPublic($event, asset).then(
             () => {
                 vm.grid.refreshList();
             }
-        );
+        );*/
     }
 }

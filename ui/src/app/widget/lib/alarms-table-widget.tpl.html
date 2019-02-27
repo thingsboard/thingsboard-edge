@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -43,7 +43,7 @@
                 </md-button>
                 <md-input-container flex>
                     <label>&nbsp;</label>
-                    <input ng-model="vm.query.search" placeholder="{{'alarm.search' | translate}}"/>
+                    <input ng-model="vm.query.search" class="searchInput" placeholder="{{'alarm.search' | translate}}"/>
                 </md-input-container>
                 <md-button class="md-icon-button" aria-label="Close" ng-click="vm.exitFilterMode()">
                     <md-icon aria-label="Close" class="material-icons">close</md-icon>
@@ -74,36 +74,48 @@
             </div>
         </md-toolbar>
         <md-table-container flex>
-            <table md-table md-row-select="vm.enableSelection" multiple="" ng-model="vm.selectedAlarms">
-                <thead md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
+            <table md-table md-row-select="vm.enableSelection && !vm.readonly" multiple="" ng-model="vm.selectedAlarms">
+                <thead fix-head md-head md-order="vm.query.order" md-on-reorder="vm.onReorder">
                 <tr md-row>
-                    <th md-column md-order-by="{{ key.name }}" ng-repeat="key in vm.alarmSource.dataKeys"><span>{{ key.title }}</span></th>
-                    <th md-column ng-if="vm.displayDetails"><span>&nbsp</span></th>
-                    <th md-column ng-if="vm.actionCellDescriptors.length"><span>&nbsp</span></th>
+                    <th ng-if="key.display" md-column md-order-by="{{ key.name }}" ng-repeat="key in vm.alarmSource.dataKeys"><span>{{ key.title | translate }}</span></th>
+                    <th md-column class="tb-action-cell" layout="row" layout-align="end center">
+                        <md-button class="md-icon-button"
+                                   aria-label="{{'alarm.alarm-status-filter' | translate}}"
+                                   ng-click="vm.editAlarmStatusFilter($event)">
+                            <md-icon aria-label="{{'alarm.alarm-status-filter' | translate}}"
+                                     class="material-icons">filter_list
+                            </md-icon>
+                            <md-tooltip md-direction="top">
+                                {{'alarm.alarm-status-filter' | translate}}
+                            </md-tooltip>
+                        </md-button>
+                        <md-button class="md-icon-button"
+                                   aria-label="{{'entity.columns-to-display' | translate}}"
+                                   ng-click="vm.editColumnsToDisplay($event)">
+                            <md-icon aria-label="{{'entity.columns-to-display' | translate}}"
+                                     class="material-icons">view_column
+                            </md-icon>
+                            <md-tooltip md-direction="top">
+                                {{'entity.columns-to-display' | translate}}
+                            </md-tooltip>
+                        </md-button>
+                    </th>
                 </tr>
                 </thead>
                 <tbody md-body>
                 <tr ng-show="vm.alarms.length" md-row md-select="alarm"
                     md-select-id="id.id" md-auto-select="false" ng-repeat="alarm in vm.alarms"
                     ng-click="vm.onRowClick($event, alarm)" ng-class="{'tb-current': vm.isCurrent(alarm)}">
-                    <td md-cell flex ng-repeat="key in vm.alarmSource.dataKeys"
+                    <td ng-if="key.display" md-cell flex ng-repeat="key in vm.alarmSource.dataKeys"
                         ng-style="vm.cellStyle(alarm, key)"
                         ng-bind-html="vm.cellContent(alarm, key)">
                     </td>
-                    <td md-cell ng-if="vm.displayDetails" class="tb-action-cell">
-                        <md-button class="md-icon-button" aria-label="{{ 'alarm.details' | translate }}"
-                                   ng-click="vm.openAlarmDetails($event, alarm)" ng-disabled="$root.loading">
-                            <md-icon aria-label="{{ 'alarm.details' | translate }}" class="material-icons">more_horiz</md-icon>
-                            <md-tooltip md-direction="top">
-                                {{ 'alarm.details' | translate }}
-                            </md-tooltip>
-                        </md-button>
-                    </td>
-                    <td md-cell ng-if="vm.actionCellDescriptors.length" class="tb-action-cell"
+                    <td md-cell class="tb-action-cell"
                         ng-style="{minWidth: vm.actionCellDescriptors.length*36+'px',
                                    maxWidth: vm.actionCellDescriptors.length*36+'px',
                                    width: vm.actionCellDescriptors.length*36+'px'}">
                         <md-button class="md-icon-button" ng-repeat="actionDescriptor in vm.actionCellDescriptors"
+                                   ng-disabled="!vm.actionEnabled(alarm, actionDescriptor)"
                                    aria-label="{{ actionDescriptor.displayName }}"
                                    ng-click="vm.onActionButtonClick($event, alarm, actionDescriptor)" ng-disabled="$root.loading">
                             <md-icon aria-label="{{ actionDescriptor.displayName }}" class="material-icons">{{actionDescriptor.icon}}</md-icon>

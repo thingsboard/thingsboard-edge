@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,12 +30,10 @@
  */
 package org.thingsboard.server.service.cluster.discovery;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.gen.discovery.ServerInstanceProtos.ServerInfo;
 
 /**
  * @author Andrew Shvayka
@@ -44,8 +42,6 @@ import org.thingsboard.server.gen.discovery.ServerInstanceProtos.ServerInfo;
 @EqualsAndHashCode(exclude = {"serverInfo", "serverAddress"})
 public final class ServerInstance implements Comparable<ServerInstance> {
 
-    @Getter(AccessLevel.PACKAGE)
-    private final ServerInfo serverInfo;
     @Getter
     private final String host;
     @Getter
@@ -53,11 +49,10 @@ public final class ServerInstance implements Comparable<ServerInstance> {
     @Getter
     private final ServerAddress serverAddress;
 
-    public ServerInstance(ServerInfo serverInfo) {
-        this.serverInfo = serverInfo;
-        this.host = serverInfo.getHost();
-        this.port = serverInfo.getPort();
-        this.serverAddress = new ServerAddress(host, port);
+    public ServerInstance(ServerAddress serverAddress) {
+        this.serverAddress = serverAddress;
+        this.host = serverAddress.getHost();
+        this.port = serverAddress.getPort();
     }
 
     @Override

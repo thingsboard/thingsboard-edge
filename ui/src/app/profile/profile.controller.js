@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,17 +39,9 @@ export default function ProfileController(userService, $scope, $document, $mdDia
     var vm = this;
 
     vm.profileUser = {};
-
     vm.save = save;
     vm.changePassword = changePassword;
-    vm.languageList = {
-        en_US: {value : "en_US", name: "language.en_US"}, 
-        ko_KR: {value : "ko_KR", name: "language.ko_KR"},
-        zh_CN: {value : "zh_CN", name: "language.zh_CN"},
-        ru_RU: {value : "ru_RU", name: "language.ru_RU"},
-        es_ES: {value : "es_ES", name: "language.es_ES"},
-        fr_FR: {value : "fr_FR", name: "language.fr_FR"},
-    };
+    vm.languageList = SUPPORTED_LANGS; //eslint-disable-line
 
     loadProfile();
 

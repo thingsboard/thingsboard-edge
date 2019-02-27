@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
@@ -40,7 +42,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName {
+public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -83,6 +85,11 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements H
 
     public void setCustomerId(CustomerId customerId) {
         this.customerId = customerId;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     public String getEmail() {
@@ -151,6 +158,27 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements H
         builder.append(id);
         builder.append("]");
         return builder.toString();
+    }
+
+    @JsonIgnore
+    public boolean isSystemAdmin() {
+        return tenantId == null || EntityId.NULL_UUID.equals(tenantId.getId());
+    }
+
+    @JsonIgnore
+    public boolean isTenantAdmin() {
+        return !isSystemAdmin() && (customerId == null || EntityId.NULL_UUID.equals(customerId.getId()));
+    }
+
+    @JsonIgnore
+    public boolean isCustomerUser() {
+        return !isSystemAdmin() && !isTenantAdmin();
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.USER;
     }
 
 }

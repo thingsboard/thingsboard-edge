@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,14 +30,15 @@
  */
 package org.thingsboard.server.common.msg.plugin;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
-import org.thingsboard.server.common.data.id.PluginId;
-import org.thingsboard.server.common.data.id.RuleId;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.aware.TenantAwareMsg;
 import org.thingsboard.server.common.msg.cluster.ToAllNodesMsg;
 
@@ -47,34 +48,26 @@ import java.util.Optional;
  * @author Andrew Shvayka
  */
 @ToString
-public class ComponentLifecycleMsg implements TenantAwareMsg, ToAllNodesMsg {
+public class ComponentLifecycleMsg implements TbActorMsg, TenantAwareMsg, ToAllNodesMsg {
     @Getter
     private final TenantId tenantId;
-    private final PluginId pluginId;
-    private final RuleId ruleId;
+    @Getter
+    private final EntityId entityId;
     @Getter
     private final ComponentLifecycleEvent event;
 
-    public static ComponentLifecycleMsg forPlugin(TenantId tenantId, PluginId pluginId, ComponentLifecycleEvent event) {
-        return new ComponentLifecycleMsg(tenantId, pluginId, null, event);
-    }
-
-    public static ComponentLifecycleMsg forRule(TenantId tenantId, RuleId ruleId, ComponentLifecycleEvent event) {
-        return new ComponentLifecycleMsg(tenantId, null, ruleId, event);
-    }
-
-    private ComponentLifecycleMsg(TenantId tenantId, PluginId pluginId, RuleId ruleId, ComponentLifecycleEvent event) {
+    public ComponentLifecycleMsg(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent event) {
         this.tenantId = tenantId;
-        this.pluginId = pluginId;
-        this.ruleId = ruleId;
+        this.entityId = entityId;
         this.event = event;
     }
 
-    public Optional<PluginId> getPluginId() {
-        return Optional.ofNullable(pluginId);
+    public Optional<RuleChainId> getRuleChainId() {
+        return entityId.getEntityType() == EntityType.RULE_CHAIN ? Optional.of((RuleChainId) entityId) : Optional.empty();
     }
 
-    public Optional<RuleId> getRuleId() {
-        return Optional.ofNullable(ruleId);
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.COMPONENT_LIFE_CYCLE_MSG;
     }
 }

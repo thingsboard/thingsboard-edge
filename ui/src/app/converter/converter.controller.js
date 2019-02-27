@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -44,7 +44,7 @@ export function ConverterCardController(types) {
 }
 
 /*@ngInject*/
-export function ConverterController(converterService, $state, $stateParams, $translate, importExport, types) {
+export function ConverterController(converterService, $state, $stateParams, $translate, importExport, securityTypes, types, helpLinks, utils, userPermissionsService) {
 
     var converterActionsList = [
         {
@@ -63,7 +63,7 @@ export function ConverterController(converterService, $state, $stateParams, $tra
             details: function() { return $translate.instant('converter.delete') },
             icon: "delete",
             isEnabled: function() {
-                return true;
+                return userPermissionsService.hasGenericPermission(securityTypes.resource.converter, securityTypes.operation.delete);
             }
         }
     ];
@@ -95,7 +95,11 @@ export function ConverterController(converterService, $state, $stateParams, $tra
 
     vm.types = types;
 
+    vm.helpLinkIdForConverter = helpLinkIdForConverter;
+
     vm.converterGridConfig = {
+
+        resource: securityTypes.resource.converter,
 
         refreshParamsFunc: null,
 
@@ -128,10 +132,10 @@ export function ConverterController(converterService, $state, $stateParams, $tra
             return $translate.instant('converter.converter-details');
         },
         isSelectionEnabled: function () {
-            return true;
+            return userPermissionsService.hasGenericPermission(securityTypes.resource.converter, securityTypes.operation.delete);
         },
         isDetailsReadOnly: function () {
-            return false;
+            return !userPermissionsService.hasGenericPermission(securityTypes.resource.converter, securityTypes.operation.write);
         }
     };
 
@@ -144,6 +148,10 @@ export function ConverterController(converterService, $state, $stateParams, $tra
     }
 
     vm.exportConverter = exportConverter;
+
+    function helpLinkIdForConverter() {
+        return helpLinks.getConverterLink(vm.grid.operatingItem());
+    }
 
     function deleteConverterTitle(converter) {
         return $translate.instant('converter.delete-converter-title', {converterName: converter.name});
@@ -182,7 +190,7 @@ export function ConverterController(converterService, $state, $stateParams, $tra
     }
 
     function getConverterTitle(converter) {
-        return converter ? converter.name : '';
+        return converter ? utils.customTranslation(converter.name, converter.name) : '';
     }
 
     function exportConverter($event, converter) {

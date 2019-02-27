@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,13 +32,17 @@ import EntityGroupRoutes from './entity-group.routes';
 import {EntityGroupsController, EntityGroupCardController} from './entity-groups.controller';
 import EntityGroupController from './entity-group.controller';
 import EntityGroupDirective from './entity-group.directive';
+import EntityGroupDetails from './entity-group-details.directive';
 import EntityGroupSettings from './entity-group-settings.directive';
 import EntityGroupAutocompleteDirective from './entity-group-autocomplete.directive';
+import EntityGroupSelectDirective from './entity-group-select.directive';
 import EntityGroupListDirective from './entity-group-list.directive';
 import EntityGroupColumn from './entity-group-column.directive';
 import EntityGroupColumns from './entity-group-columns.directive';
 import EntityDetailsSidenav from './entity-details-sidenav.directive';
 import Entity from './entity.directive';
+import OwnerAutocompleteDirective from './owner-autocomplete.directive';
+
 
 export default angular.module('thingsboard.entityGroup', [])
     .config(EntityGroupRoutes)
@@ -46,11 +50,14 @@ export default angular.module('thingsboard.entityGroup', [])
     .controller('EntityGroupCardController', EntityGroupCardController)
     .controller('EntityGroupController', EntityGroupController)
     .directive('tbEntityGroup', EntityGroupDirective)
+    .directive('tbEntityGroupDetails', EntityGroupDetails)
     .directive('tbEntityGroupSettings', EntityGroupSettings)
     .directive('tbEntityGroupAutocomplete', EntityGroupAutocompleteDirective)
+    .directive('tbEntityGroupSelect', EntityGroupSelectDirective)
     .directive('tbEntityGroupList', EntityGroupListDirective)
     .directive('tbEntityGroupColumn', EntityGroupColumn)
     .directive('tbEntityGroupColumns', EntityGroupColumns)
     .directive('tbEntityDetailsSidenav', EntityDetailsSidenav)
     .directive('tbEntity', Entity)
+    .directive('tbOwnerAutocomplete', OwnerAutocompleteDirective)
     .name;

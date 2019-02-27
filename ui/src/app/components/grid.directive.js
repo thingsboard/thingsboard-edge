@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -140,7 +140,8 @@ function Grid() {
 }
 
 /*@ngInject*/
-function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $timeout, $translate, $mdMedia, $templateCache, $window, userService) {
+function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $timeout, $translate, $mdMedia, $templateCache, $window, securityTypes,
+                        userPermissionsService, userService) {
 
     var vm = this;
 
@@ -169,6 +170,7 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
     vm.openItem = openItem;
     vm.operatingItem = operatingItem;
     vm.refreshList = refreshList;
+    vm.reInit = reInit;
     vm.saveItem = saveItem;
     vm.toggleItemSelection = toggleItemSelection;
     vm.triggerResize = triggerResize;
@@ -384,33 +386,43 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                 };
         }
 
-        vm.groupActionsList = vm.config.groupActionsList || [
-                {
-                    onAction: function ($event) {
-                        deleteItems($event);
-                    },
-                    name: function() { return $translate.instant('action.delete') },
-                    details: vm.deleteItemsActionTitleFunc,
-                    icon: "delete"
-                }
-            ];
+        if (!vm.config.groupActionsList) {
+            vm.groupActionsList = [];
+            if (userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.delete)) {
+                vm.groupActionsList.push(
+                    {
+                        onAction: function ($event) {
+                            deleteItems($event);
+                        },
+                        name: function() { return $translate.instant('action.delete') },
+                        details: vm.deleteItemsActionTitleFunc,
+                        icon: "delete"
+                    }
+                );
+            }
+        }
 
         vm.addItemText = vm.config.addItemText || function () {
                 return $translate.instant('grid.add-item-text');
             };
 
-        vm.addItemAction = vm.config.addItemAction || {
+        if (userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.create)) {
+            vm.addItemAction = vm.config.addItemAction || {
                 onAction: function ($event) {
                     addItem($event);
                 },
-                name: function() { return $translate.instant('action.add') },
-                details: function() { return vm.addItemText() },
+                name: function () {
+                    return $translate.instant('action.add')
+                },
+                details: function () {
+                    return vm.addItemText()
+                },
                 icon: "add"
             };
+            vm.addItemActions = vm.config.addItemActions || [];
+        }
 
         vm.addItemActionsOpen = false;
-
-        vm.addItemActions = vm.config.addItemActions || [];
 
         vm.onGridInited = vm.config.onGridInited || function () {
             };
@@ -426,12 +438,12 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             };
 
         vm.isDetailsReadOnly = vm.config.isDetailsReadOnly || function () {
-                return false;
-            };
+                return !userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.write);
+        };
 
         vm.isSelectionEnabled = vm.config.isSelectionEnabled || function () {
-                return true;
-            };
+                return userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.delete);
+        };
 
         vm.topIndex = vm.config.topIndex || 0;
 
@@ -486,6 +498,11 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             vm.items.reloadPending = false;
             vm.itemRows.getItemAtIndex(pageSize);
         }
+    }
+
+    function reInit() {
+        initGridConfiguration();
+        refreshList();
     }
 
     function refreshList() {

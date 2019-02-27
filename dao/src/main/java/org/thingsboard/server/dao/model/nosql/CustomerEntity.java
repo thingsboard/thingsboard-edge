@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -59,6 +59,9 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
     @PartitionKey(value = 1)
     @Column(name = CUSTOMER_TENANT_ID_PROPERTY)
     private UUID tenantId;
+
+    @Column(name = CUSTOMER_PARENT_CUSTOMER_ID_PROPERTY)
+    private UUID parentCustomerId;
     
     @Column(name = CUSTOMER_TITLE_PROPERTY)
     private String title;
@@ -102,6 +105,9 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
             this.id = customer.getId().getId();
         }
         this.tenantId = customer.getTenantId().getId();
+        if (customer.getParentCustomerId() != null) {
+            this.parentCustomerId = customer.getParentCustomerId().getId();
+        }
         this.title = customer.getTitle();
         this.country = customer.getCountry();
         this.state = customer.getState();
@@ -128,6 +134,14 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
 
     public void setTenantId(UUID tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public UUID getParentCustomerId() {
+        return parentCustomerId;
+    }
+
+    public void setParentCustomerId(UUID parentCustomerId) {
+        this.parentCustomerId = parentCustomerId;
     }
 
     public String getTitle() {
@@ -229,6 +243,9 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
         Customer customer = new Customer(new CustomerId(id));
         customer.setCreatedTime(UUIDs.unixTimestamp(id));
         customer.setTenantId(new TenantId(tenantId));
+        if (parentCustomerId != null) {
+            customer.setParentCustomerId(new CustomerId(parentCustomerId));
+        }
         customer.setTitle(title);
         customer.setCountry(country);
         customer.setState(state);

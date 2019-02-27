@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,23 +33,50 @@ export default angular.module('thingsboard.api.entityGroup', [])
     .name;
 
 /*@ngInject*/
-function EntityGroupService($http, $q, utils) {
+function EntityGroupService($http, $q, $translate, $injector, customerService, types, utils) {
 
     var service = {
+        getOwners: getOwners,
         getEntityGroup: getEntityGroup,
         saveEntityGroup: saveEntityGroup,
         deleteEntityGroup: deleteEntityGroup,
-        getTenantEntityGroups: getTenantEntityGroups,
-        getTenantEntityGroupsByPageLink: getTenantEntityGroupsByPageLink,
+        makeEntityGroupPublic: makeEntityGroupPublic,
+        makeEntityGroupPrivate: makeEntityGroupPrivate,
+        getEntityGroups: getEntityGroups,
+        getEntityGroupsByIds: getEntityGroupsByIds,
+        getEntityGroupsByOwnerId: getEntityGroupsByOwnerId,
+        getEntityGroupsByPageLink: getEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
         removeEntityFromEntityGroup: removeEntityFromEntityGroup,
         removeEntitiesFromEntityGroup: removeEntitiesFromEntityGroup,
         getEntityGroupEntity: getEntityGroupEntity,
-        getEntityGroupEntities: getEntityGroupEntities
+        getEntityGroupEntities: getEntityGroupEntities,
+        constructGroupConfigByStateParams: constructGroupConfigByStateParams,
+        constructGroupConfig: constructGroupConfig
     }
 
     return service;
+
+    function getOwners(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/owners?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
     function getEntityGroup(entityGroupId, ignoreErrors, config) {
         var deferred = $q.defer();
@@ -92,9 +119,39 @@ function EntityGroupService($http, $q, utils) {
         return deferred.promise;
     }
 
-    function getTenantEntityGroups(groupType, ignoreErrors, config) {
+    function makeEntityGroupPublic(entityGroupId, ignoreErrors, config) {
         var deferred = $q.defer();
-        var url = '/api/tenant/entityGroups/' + groupType;
+        var url = '/api/entityGroup/'+entityGroupId+'/makePublic';
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.post(url, null, config).then(function success() {
+            deferred.resolve();
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function makeEntityGroupPrivate(entityGroupId, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/'+entityGroupId+'/makePrivate';
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.post(url, null, config).then(function success() {
+            deferred.resolve();
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEntityGroups(groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroups/' + groupType;
         if (!config) {
             config = {};
         }
@@ -107,9 +164,50 @@ function EntityGroupService($http, $q, utils) {
         return deferred.promise;
     }
 
-    function getTenantEntityGroupsByPageLink(pageLink, groupType, ignoreErrors, config) {
+    function getEntityGroupsByIds(entityGroupIds, config) {
         var deferred = $q.defer();
-        getTenantEntityGroups(groupType, ignoreErrors, config).then(
+        var ids = '';
+        for (var i=0;i<entityGroupIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += entityGroupIds[i];
+        }
+        var url = '/api/entityGroups?entityGroupIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = entityGroupIds.indexOf(id1);
+                var index2 = entityGroupIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEntityGroupsByOwnerId(ownerType, ownerId, groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroups/' + ownerType + '/' + ownerId + '/' + groupType;
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEntityGroupsByPageLink(pageLink, groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        getEntityGroups(groupType, ignoreErrors, config).then(
             function success(entityGroups) {
                 utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
             },
@@ -197,6 +295,114 @@ function EntityGroupService($http, $q, utils) {
             deferred.reject();
         });
         return deferred.promise;
+    }
+
+    function constructGroupConfigByStateParams($stateParams) {
+        var deferred = $q.defer();
+        var entityGroupId = $stateParams.childEntityGroupId || $stateParams.entityGroupId;
+        getEntityGroup(entityGroupId).then(
+            (entityGroup) => {
+                constructGroupConfig($stateParams, entityGroup).then(
+                    (entityGroup) => {
+                        deferred.resolve(entityGroup);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            },
+            () => {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
+    }
+
+    function constructGroupConfig($stateParams, entityGroup) {
+        var deferred = $q.defer();
+        entityGroup.origEntityGroup = angular.copy(entityGroup);
+        resolveParentGroupInfo($stateParams, entityGroup).then(
+            (entityGroup) => {
+                getGroupConfigFactory(entityGroup.type).createConfig($stateParams, entityGroup).then(
+                    (entityGroupConfig) => {
+                        entityGroup.entityGroupConfig = entityGroupConfig;
+                        deferred.resolve(entityGroup);
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
+            },
+            () => {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
+    }
+
+    function resolveParentGroupInfo($stateParams, entityGroup) {
+        var deferred = $q.defer();
+        if ($stateParams.customerId) {
+            var groupType = $stateParams.childGroupType || $stateParams.groupType;
+            customerService.getShortCustomerInfo($stateParams.customerId).then(
+                (info) => {
+                    entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
+                    if ($stateParams.childEntityGroupId) {
+                        getEntityGroup($stateParams.entityGroupId).then(
+                            (parentEntityGroup) => {
+                                entityGroup.parentEntityGroup = parentEntityGroup;
+                                deferred.resolve(entityGroup);
+                            },
+                            () => {
+                                deferred.reject();
+                            }
+                        )
+                    } else {
+                        deferred.resolve(entityGroup);
+                    }
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.resolve(entityGroup);
+        }
+        return deferred.promise;
+    }
+
+    function entityGroupsTitle(groupType) {
+        switch(groupType) {
+            case types.entityType.asset:
+                return 'entity-group.asset-groups';
+            case types.entityType.device:
+                return 'entity-group.device-groups';
+            case types.entityType.customer:
+                return 'entity-group.customer-groups';
+            case types.entityType.user:
+                return 'entity-group.user-groups';
+            case types.entityType.entityView:
+                return 'entity-group.entity-view-groups';
+            case types.entityType.dashboard:
+                return 'entity-group.dashboard-groups';
+        }
+    }
+
+    function getGroupConfigFactory(groupType) {
+        switch (groupType) {
+            case types.entityType.customer:
+                return $injector.get('customerGroupConfig');
+            case types.entityType.user:
+                return $injector.get('userGroupConfig');
+            case types.entityType.asset:
+                return $injector.get('assetGroupConfig');
+            case types.entityType.device:
+                return $injector.get('deviceGroupConfig');
+            case types.entityType.entityView:
+                return $injector.get('entityViewGroupConfig');
+            case types.entityType.dashboard:
+                return $injector.get('dashboardGroupConfig');
+        }
     }
 
 }

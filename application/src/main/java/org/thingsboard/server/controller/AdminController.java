@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -44,9 +45,11 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.exception.ThingsboardException;
-import org.thingsboard.server.service.mail.MailService;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.update.UpdateService;
 import org.thingsboard.server.service.update.model.UpdateMessage;
 
@@ -81,7 +84,8 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                return checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+                return checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
                 return getTenantAdminSettings(key, systemByDefault);
             }
@@ -97,7 +101,8 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
-                adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(adminSettings));
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
+                adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
             } else {
                 adminSettings = saveTenantAdminSettings(adminSettings);
             }
@@ -111,6 +116,12 @@ public class AdminController extends BaseController {
     @RequestMapping(value = "/settings/testMail", method = RequestMethod.POST)
     public void sendTestMail(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
+            Authority authority = getCurrentUser().getAuthority();
+            if (authority == Authority.SYS_ADMIN) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            } else {
+                accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
+            }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
                String email = getCurrentUser().getEmail();
@@ -133,6 +144,7 @@ public class AdminController extends BaseController {
     }
 
     private AdminSettings getTenantAdminSettings(String key, boolean systemByDefault) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
         String jsonString = getEntityAttributeValue(getTenantId(), key);
         JsonNode jsonValue = null;
         if (!StringUtils.isEmpty(jsonString)) {
@@ -142,7 +154,7 @@ public class AdminController extends BaseController {
         }
         if (jsonValue == null) {
             if (systemByDefault) {
-                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(key));
+                AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(getTenantId(), key));
                 jsonValue = systemAdminSettings.getJsonValue();
             } else {
                 jsonValue = objectMapper.createObjectNode();
@@ -155,6 +167,7 @@ public class AdminController extends BaseController {
     }
 
     private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
         String jsonString = null;
         if (jsonValue != null) {
@@ -171,7 +184,7 @@ public class AdminController extends BaseController {
 
     private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                attributesService.find(getTenantId(), entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();
@@ -184,7 +197,7 @@ public class AdminController extends BaseController {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
-        attributesService.save(entityId, DataConstants.SERVER_SCOPE, attributes).get();
+        attributesService.save(getTenantId(), entityId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
 }

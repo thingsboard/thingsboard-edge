@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -58,7 +58,10 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
 
     @Column(name = ModelConstants.CUSTOMER_TENANT_ID_PROPERTY)
     private String tenantId;
-    
+
+    @Column(name = ModelConstants.CUSTOMER_PARENT_CUSTOMER_ID_PROPERTY)
+    private String parentCustomerId;
+
     @Column(name = ModelConstants.CUSTOMER_TITLE_PROPERTY)
     private String title;
     
@@ -102,6 +105,9 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
             this.setId(customer.getId().getId());
         }
         this.tenantId = UUIDConverter.fromTimeUUID(customer.getTenantId().getId());
+        if (customer.getParentCustomerId() != null) {
+            this.parentCustomerId = UUIDConverter.fromTimeUUID(customer.getParentCustomerId().getId());
+        }
         this.title = customer.getTitle();
         this.country = customer.getCountry();
         this.state = customer.getState();
@@ -129,6 +135,9 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
         Customer customer = new Customer(new CustomerId(getId()));
         customer.setCreatedTime(UUIDs.unixTimestamp(getId()));
         customer.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+        if (parentCustomerId != null) {
+            customer.setParentCustomerId(new CustomerId(UUIDConverter.fromString(parentCustomerId)));
+        }
         customer.setTitle(title);
         customer.setCountry(country);
         customer.setState(state);

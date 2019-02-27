@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,7 +39,11 @@ import org.springframework.context.annotation.Configuration;
 import org.thingsboard.server.common.data.security.Authority;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.schema.AlternateTypeRule;
-import springfox.documentation.service.*;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.Contact;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -75,7 +79,8 @@ public class SwaggerConfiguration {
                     .paths(apiPaths())
                     .build()
                     .securitySchemes(newArrayList(jwtTokenKey()))
-                    .securityContexts(newArrayList(securityContext()));
+                    .securityContexts(newArrayList(securityContext()))
+                    .enableUrlTemplating(true);
       }
 
       private ApiKey jwtTokenKey() {

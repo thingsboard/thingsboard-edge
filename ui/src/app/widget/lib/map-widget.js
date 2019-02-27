@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -418,7 +418,7 @@ export default class TbMapWidget {
                 if (image && (!location.settings.currentImage || !angular.equals(location.settings.currentImage, image))) {
                     location.settings.currentImage = image;
                 }
-                location.marker = tbMap.map.createMarker(markerLocation, location.settings,
+                location.marker = tbMap.map.createMarker(markerLocation, location.dsIndex, location.settings,
                     function() {
                         tbMap.callbacks.onLocationClick(location);
                     }
@@ -578,8 +578,9 @@ export default class TbMapWidget {
                 var tooltips = this.map.getTooltips();
                 for (var t=0; t < tooltips.length; t++) {
                     var tooltip = tooltips[t];
-                    var text = tooltip.pattern;
-                    var replaceInfo = tooltip.replaceInfo;
+                    var settings = tooltip.locationSettings;
+                    var text = settings.tooltipPattern;
+                    var replaceInfo = settings.tooltipReplaceInfo;
                     for (var v = 0; v < replaceInfo.variables.length; v++) {
                         var variableInfo = replaceInfo.variables[v];
                         var txtVal = '';

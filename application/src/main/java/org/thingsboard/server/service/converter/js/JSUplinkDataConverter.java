@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,19 +33,25 @@ package org.thingsboard.server.service.converter.js;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.service.converter.AbstractUplinkDataConverter;
 import org.thingsboard.server.service.converter.UplinkMetaData;
+import org.thingsboard.server.service.script.JsInvokeService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
-    private JSUplinkEvaluator jsUplinkEvaluator;
+    private final JsInvokeService sandboxService;
+    private JSUplinkEvaluator evaluator;
+
+    public JSUplinkDataConverter(JsInvokeService sandboxService) {
+        this.sandboxService = sandboxService;
+    }
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
         String decoder = configuration.getConfiguration().get("decoder").asText();
-        jsUplinkEvaluator = new JSUplinkEvaluator(decoder);
+        this.evaluator = new JSUplinkEvaluator(sandboxService,  configuration.getId(), decoder);
     }
 
     @Override
@@ -56,17 +62,14 @@ public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
     @Override
     public void destroy() {
-        if (jsUplinkEvaluator != null) {
-            jsUplinkEvaluator.destroy();
+        if (this.evaluator != null) {
+            this.evaluator.destroy();
         }
     }
 
     @Override
     public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return applyJsFunction(data, metadata);
+        return evaluator.execute(data, metadata);
     }
 
-    private String applyJsFunction(byte[] data, UplinkMetaData metadata) throws Exception {
-        return jsUplinkEvaluator.execute(data, metadata);
-    }
 }

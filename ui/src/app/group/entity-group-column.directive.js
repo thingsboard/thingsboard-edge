@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -69,11 +69,13 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
         case types.entityType.user:
         case types.entityType.customer:
         case types.entityType.asset:
+        case types.entityType.dashboard:
             vm.columnTypes.serverAttribute = types.entityGroup.columnType.serverAttribute;
             vm.columnTypes.timeseries = types.entityGroup.columnType.timeseries;
             vm.columnTypes.entityField = types.entityGroup.columnType.entityField;
             break;
         case types.entityType.device:
+        case types.entityType.entityView:
             vm.columnTypes = types.entityGroup.columnType;
             break;
     }
@@ -101,8 +103,12 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
             break;
         case types.entityType.asset:
         case types.entityType.device:
+        case types.entityType.entityView:
             vm.entityField.type = types.entityGroup.entityField.type;
             vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
+            break;
+        case types.entityType.dashboard:
+            vm.entityField.title = types.entityGroup.entityField.title;
             break;
     }
 
@@ -128,7 +134,7 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
                 columnTypes: vm.columnTypes,
                 entityField: vm.entityField
             },
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (column) {

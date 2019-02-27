@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,8 +31,10 @@
 package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.curator.framework.listen.Listenable;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -41,29 +43,37 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.role.Role;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CustomerService {
 
-    Customer findCustomerById(CustomerId customerId);
+    Customer findCustomerById(TenantId tenantId, CustomerId customerId);
 
     Optional<Customer> findCustomerByTenantIdAndTitle(TenantId tenantId, String title);
 
-    ListenableFuture<Customer> findCustomerByIdAsync(CustomerId customerId);
+    ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId);
+
+    ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(TenantId tenantId, List<CustomerId> customerIds);
 
     Customer saveCustomer(Customer customer);
 
-    void deleteCustomer(CustomerId customerId);
+    void deleteCustomer(TenantId tenantId, CustomerId customerId);
 
-    Customer findOrCreatePublicCustomer(TenantId tenantId);
+    Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId);
+
+    EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId);
+
+    Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId);
 
     TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);
 
     void deleteCustomersByTenantId(TenantId tenantId);
 
-    EntityView findGroupCustomer(EntityGroupId entityGroupId, EntityId entityId);
+    ShortEntityView findGroupCustomer(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<EntityView>> findCustomersByEntityGroupId(EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

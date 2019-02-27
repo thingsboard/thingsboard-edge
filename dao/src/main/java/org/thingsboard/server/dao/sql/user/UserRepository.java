@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -58,5 +58,17 @@ public interface UserRepository extends CrudRepository<UserEntity, String> {
                                           @Param("searchText") String searchText,
                                           @Param("authority") Authority authority,
                                           Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
+            "AND u.authority = :authority " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))" +
+            "AND u.id > :idOffset ORDER BY u.id")
+    List<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") String tenantId,
+                                          @Param("idOffset") String idOffset,
+                                          @Param("searchText") String searchText,
+                                          @Param("authority") Authority authority,
+                                          Pageable pageable);
+
+    List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
 
 }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,18 +30,22 @@
  */
 .tb-audit-logs {
   background-color: #fff;
+
   .tb-audit-log-margin-18px {
     margin-bottom: 18px;
   }
+
   .tb-audit-log-toolbar {
     font-size: 20px;
+
     input {
       font-size: 20px;
     }
   }
+
   md-input-container.tb-audit-log-search-input {
     .md-errors-spacer {
-      min-height: 0px;
+      min-height: 0;
     }
   }
 }
@@ -50,27 +54,26 @@
   overflow-x: auto;
 }
 
-
-
 md-list.tb-audit-log-table {
-  padding: 0px;
   min-width: 700px;
+  padding: 0;
+
   &.tb-audit-log-table-full {
     min-width: 900px;
   }
 
   md-list-item {
-    padding: 0px;
+    padding: 0;
   }
 
   .tb-row {
     height: 48px;
-    padding: 0px;
+    padding: 0;
     overflow: hidden;
   }
 
   .tb-row:hover {
-    background-color: #EEEEEE;
+    background-color: #eee;
   }
 
   .tb-header:hover {
@@ -79,9 +82,9 @@ md-list.tb-audit-log-table {
 
   .tb-header {
     .tb-cell {
-      color: rgba(0,0,0,.54);
       font-size: 12px;
       font-weight: 700;
+      color: rgba(0, 0, 0, .54);
       white-space: nowrap;
       background: none;
     }
@@ -90,11 +93,12 @@ md-list.tb-audit-log-table {
   .tb-cell {
     padding: 0 24px;
     margin: auto 0;
-    color: rgba(0,0,0,.87);
-    font-size: 13px;
-    vertical-align: middle;
-    text-align: left;
     overflow: hidden;
+    font-size: 13px;
+    color: rgba(0, 0, 0, .87);
+    text-align: left;
+    vertical-align: middle;
+
     .md-button {
       padding: 0;
       margin: 0;
@@ -104,5 +108,4 @@ md-list.tb-audit-log-table {
   .tb-cell.tb-number {
     text-align: right;
   }
-
 }

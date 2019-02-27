@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,12 +31,19 @@
 package org.thingsboard.server.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.exception.ThingsboardException;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -67,12 +74,16 @@ public class ComponentDescriptorController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN','TENANT_ADMIN')")
-    @RequestMapping(value = "/components/actions/{pluginClazz:.+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/components", params = {"componentTypes"}, method = RequestMethod.GET)
     @ResponseBody
-    public List<ComponentDescriptor> getPluginActionsByPluginClazz(@PathVariable("pluginClazz") String pluginClazz) throws ThingsboardException {
-        checkParameter("pluginClazz", pluginClazz);
+    public List<ComponentDescriptor> getComponentDescriptorsByTypes(@RequestParam("componentTypes") String[] strComponentTypes) throws ThingsboardException {
+        checkArrayParameter("componentTypes", strComponentTypes);
         try {
-            return checkPluginActionsByPluginClazz(pluginClazz);
+            Set<ComponentType> componentTypes = new HashSet<>();
+            for (String strComponentType : strComponentTypes) {
+                componentTypes.add(ComponentType.valueOf(strComponentType));
+            }
+            return checkComponentDescriptorsByTypes(componentTypes);
         } catch (Exception e) {
             throw handleException(e);
         }

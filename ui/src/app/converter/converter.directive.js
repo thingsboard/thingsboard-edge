@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,16 +37,12 @@ import jsEncoderTemplate from './js-encoder.tpl.txt';
 
 /* eslint-enable import/no-unresolved, import/default */
 
-import './converter.scss';
-
 /*@ngInject*/
-export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, $mdExpansionPanel, toast, types) {
+export default function ConverterDirective($compile, $templateCache, $translate, $mdDialog, $document, toast, types, converterService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(converterFieldsetTemplate);
         element.html(template);
 
-        scope.fetchDeviceAttributesPanelId = (Math.random()*1000).toFixed(0);
-        scope.$mdExpansionPanel = $mdExpansionPanel;
         scope.types = types;
 
         scope.converterTypeChanged = () => {
@@ -56,7 +52,6 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                 }
                 if (scope.converter.type == types.converterType.UPLINK.value) {
                     delete scope.converter.configuration.encoder;
-                    delete scope.converter.configuration.fetchAttributes;
                     if (!scope.converter.configuration.decoder || !scope.converter.configuration.decoder.length) {
                         scope.converter.configuration.decoder = jsDecoderTemplate;
                     }
@@ -64,15 +59,6 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     delete scope.converter.configuration.decoder;
                     if (!scope.converter.configuration.encoder || !scope.converter.configuration.encoder.length) {
                         scope.converter.configuration.encoder = jsEncoderTemplate;
-                    }
-                    if (!scope.converter.configuration.fetchAttributes) {
-                        scope.converter.configuration.fetchAttributes = {};
-                    }
-                    for (var attrScope in types.attributesScope) {
-                        var scopeValue = types.attributesScope[attrScope].value;
-                        if (!scope.converter.configuration.fetchAttributes[scopeValue]) {
-                            scope.converter.configuration.fetchAttributes[scopeValue] = [];
-                        }
                     }
                 }
             }
@@ -95,6 +81,19 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             if ($event) {
                 $event.stopPropagation();
             }
+            if (scope.converter.id) {
+                converterService.getLatestConverterDebugInput(scope.converter.id.id).then(
+                    (debugIn) => {
+                        showConverterTestDialog($event, isDecoder, debugIn);
+                    },
+                    () => {}
+                );
+            } else {
+                showConverterTestDialog($event, isDecoder, null);
+            }
+        };
+
+        function showConverterTestDialog($event, isDecoder, debugIn) {
             var funcBody;
             if (isDecoder) {
                 funcBody = angular.copy(scope.converter.configuration.decoder);
@@ -113,10 +112,11 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                 locals: {
                     isDecoder: isDecoder,
                     funcBody: funcBody,
-                    onShowingCallback: onShowingCallback
+                    onShowingCallback: onShowingCallback,
+                    debugIn: debugIn
                 },
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 targetEvent: $event,
                 onComplete: () => {
                     onShowingCallback.onShowed();
@@ -131,7 +131,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
                     scope.theForm.$setDirty();
                 }
             );
-        };
+        }
 
         $compile(element.contents())(scope);
 
@@ -143,6 +143,7 @@ export default function ConverterDirective($compile, $templateCache, $translate,
             converter: '=',
             isEdit: '=',
             theForm: '=',
+            isCreate: '<',
             onExportConverter: '&',
             onDeleteConverter: '&'
         }

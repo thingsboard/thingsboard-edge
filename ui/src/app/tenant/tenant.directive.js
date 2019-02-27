@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -42,6 +42,27 @@ export default function TenantDirective($compile, $templateCache, $translate, to
 
         scope.onTenantIdCopied = function() {
             toast.showSuccess($translate.instant('tenant.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
+        };
+
+        scope.$watch('tenant', function() {
+            if (scope.tenant) {
+                if (scope.tenant.additionalInfo) {
+                    scope.allowWhiteLabeling = angular.isUndefined(scope.tenant.additionalInfo.allowWhiteLabeling) ||
+                                               scope.tenant.additionalInfo.allowWhiteLabeling === true;
+                    scope.allowCustomerWhiteLabeling = angular.isUndefined(scope.tenant.additionalInfo.allowCustomerWhiteLabeling) ||
+                                                       scope.tenant.additionalInfo.allowCustomerWhiteLabeling === true;
+                } else {
+                    scope.allowWhiteLabeling = true;
+                    scope.allowCustomerWhiteLabeling = true;
+                }
+            }
+        });
+
+        scope.onAllowWhitelabelingChanged = function (fieldName) {
+            if (!scope.tenant.additionalInfo) {
+                scope.tenant.additionalInfo = {};
+            }
+            scope.tenant.additionalInfo[fieldName] = scope[fieldName];
         };
 
         $compile(element.contents())(scope);

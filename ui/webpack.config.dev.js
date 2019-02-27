@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,8 +33,26 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
+
 const webpack = require('webpack');
 const path = require('path');
+const dirTree = require('directory-tree');
+const jsonminify = require("jsonminify");
+
+const HappyPack = require('happypack');
+
+const PUBLIC_RESOURCE_PATH = '/';
+
+var langs = [];
+dirTree('./src/app/locale/', {extensions:/\.json$/}, (item) => {
+    /* It is expected what the name of a locale file has the following format: */
+    /* 'locale.constant-LANG_CODE[_REGION_CODE].json', e.g. locale.constant-es.json or locale.constant-zh_CN.json*/
+    langs.push(item.name.slice(item.name.lastIndexOf('-') + 1, -5));
+});
+
+
+var happyThreadPool = HappyPack.ThreadPool({ size: 3 });
 
 /* devtool: 'cheap-module-eval-source-map', */
 
@@ -47,7 +65,7 @@ module.exports = {
     ],
     output: {
         path: path.resolve(__dirname, 'target/generated-resources/public/static'),
-        publicPath: '/',
+        publicPath: PUBLIC_RESOURCE_PATH,
         filename: 'bundle.js',
     },
     plugins: [
@@ -60,7 +78,18 @@ module.exports = {
             moment: "moment"
         }),
         new CopyWebpackPlugin([
-            { from: './src/thingsboard.ico', to: 'thingsboard.ico' }
+            {
+                from: './src/thingsboard.ico',
+                to: 'thingsboard.ico'
+            },
+            {
+                from: './src/app/locale',
+                to: 'locale',
+                ignore: [ '*.js' ],
+                transform: function(content, path) {
+                    return Buffer.from(jsonminify(content.toString()));
+                }
+            }
         ]),
         new webpack.HotModuleReplacementPlugin(),
         new HtmlWebpackPlugin({
@@ -69,6 +98,7 @@ module.exports = {
             title: 'ThingsBoard',
             inject: 'body',
         }),
+        new StyleLintPlugin(),
         new webpack.optimize.OccurrenceOrderPlugin(),
         new webpack.NoErrorsPlugin(),
         new ExtractTextPlugin('style.[contentHash].css', {
@@ -80,7 +110,24 @@ module.exports = {
             'process.env': {
                 NODE_ENV: JSON.stringify('development'),
             },
+            PUBLIC_PATH: JSON.stringify(PUBLIC_RESOURCE_PATH),
+            SUPPORTED_LANGS: JSON.stringify(langs)
         }),
+        new HappyPack({
+            threadPool: happyThreadPool,
+            id: 'cached-babel',
+            loaders: ["babel-loader?cacheDirectory=true"]
+        }),
+        new HappyPack({
+            threadPool: happyThreadPool,
+            id: 'eslint',
+            loaders: ["eslint-loader?{parser: 'babel-eslint'}"]
+        }),
+        new HappyPack({
+            threadPool: happyThreadPool,
+            id: 'ng-annotate-and-cached-babel-loader',
+            loaders: ['ng-annotate', 'babel-loader?cacheDirectory=true']
+        })
     ],
     node: {
         tls: "empty",
@@ -90,19 +137,19 @@ module.exports = {
         loaders: [
             {
                 test: /\.jsx$/,
-                loader: 'babel',
+                loader: 'happypack/loader?id=cached-babel',
                 exclude: /node_modules/,
                 include: __dirname,
             },
             {
                 test: /\.js$/,
-                loaders: ['ng-annotate', 'babel'],
+                loaders: ['happypack/loader?id=ng-annotate-and-cached-babel-loader'],
                 exclude: /node_modules/,
                 include: __dirname,
             },
             {
                 test: /\.js$/,
-                loader: "eslint-loader?{parser: 'babel-eslint'}",
+                loader: 'happypack/loader?id=eslint',
                 exclude: /node_modules|vendor/,
                 include: __dirname,
             },
@@ -137,6 +184,12 @@ module.exports = {
                     'img?minimize'
                 ]
             },
+            {
+                test: /\.json$/,
+                loader: 'json-loader',
+                exclude: /locale\.constant.*$/,
+                include: __dirname,
+            }
         ],
     },
     'html-minifier-loader': {

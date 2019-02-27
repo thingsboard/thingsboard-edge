@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -129,8 +129,15 @@ function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
         }
     });
 
-    function enterFilterMode () {
+    function enterFilterMode (event) {
+        let $button = angular.element(event.currentTarget);
+        let $toolbarsContainer = $button.closest('.toolbarsContainer');
+
         vm.query.search = '';
+
+        $timeout(()=>{
+            $toolbarsContainer.find('.searchInput').focus();
+        })
     }
 
     function exitFilterMode () {
@@ -175,7 +182,7 @@ function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
                 .cancel($translate.instant('action.no'))
                 .ok($translate.instant('action.yes'));
 
-            confirm._options.skipHide = true;
+            confirm._options.multiple = true;
             confirm._options.fullscreen = true;
 
             $mdDialog.show(confirm).then(function () {
@@ -226,7 +233,7 @@ function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
                 widgetActions: vm.widgetActions,
                 customFunctionArgs: vm.customFunctionArgs,
                 action: angular.copy(action)},
-            skipHide: true,
+            multiple: true,
             fullscreen: true,
             targetEvent: $event
         }).then(function (action) {
@@ -258,13 +265,18 @@ function ManageWidgetActionsController($scope, $document, $mdDialog, $filter,
             vm.widgetActions[actionSourceId] = targetActions;
         }
         if (prevActionId) {
-            var index = getActionIndex(prevActionId, vm.allActions);
-            if (index > -1) {
-                vm.allActions[index] = action;
+            const indexInTarget = getActionIndex(prevActionId, targetActions);
+            const indexInAllActions = getActionIndex(prevActionId, vm.allActions);
+            if (indexInTarget > -1) {
+                targetActions[indexInTarget] = widgetAction;
+            } else if (indexInAllActions > -1) {
+                const prevActionSourceId = vm.allActions[indexInAllActions].actionSourceId;
+                const index = getActionIndex(prevActionId,vm.widgetActions[prevActionSourceId]);
+                vm.widgetActions[prevActionSourceId].splice(index,1);
+                targetActions.push(widgetAction);
             }
-            index = getActionIndex(prevActionId, targetActions);
-            if (index > -1) {
-                targetActions[index] = widgetAction;
+            if (indexInAllActions > -1) {
+                vm.allActions[indexInAllActions] = action;
             }
         } else {
             vm.allActions.push(action);

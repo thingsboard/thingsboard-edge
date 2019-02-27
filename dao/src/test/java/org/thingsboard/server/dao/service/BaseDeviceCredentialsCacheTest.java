@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -51,7 +51,10 @@ import org.thingsboard.server.dao.device.DeviceService;
 
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public abstract class BaseDeviceCredentialsCacheTest extends AbstractServiceTest {
 
@@ -84,54 +87,54 @@ public abstract class BaseDeviceCredentialsCacheTest extends AbstractServiceTest
 
     @Test
     public void testFindDeviceCredentialsByCredentialsId_Cached() {
-        when(deviceCredentialsDao.findByCredentialsId(CREDENTIALS_ID_1)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
+        when(deviceCredentialsDao.findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
 
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
 
-        verify(deviceCredentialsDao, times(1)).findByCredentialsId(CREDENTIALS_ID_1);
+        verify(deviceCredentialsDao, times(1)).findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1);
     }
 
     @Test
     public void testDeleteDeviceCredentials_EvictsCache() {
-        when(deviceCredentialsDao.findByCredentialsId(CREDENTIALS_ID_1)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
+        when(deviceCredentialsDao.findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
 
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
 
-        verify(deviceCredentialsDao, times(1)).findByCredentialsId(CREDENTIALS_ID_1);
+        verify(deviceCredentialsDao, times(1)).findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1);
 
-        deviceCredentialsService.deleteDeviceCredentials(createDummyDeviceCredentials(CREDENTIALS_ID_1, deviceId));
+        deviceCredentialsService.deleteDeviceCredentials(SYSTEM_TENANT_ID, createDummyDeviceCredentials(CREDENTIALS_ID_1, deviceId));
 
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
 
-        verify(deviceCredentialsDao, times(2)).findByCredentialsId(CREDENTIALS_ID_1);
+        verify(deviceCredentialsDao, times(2)).findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1);
     }
 
     @Test
     public void testSaveDeviceCredentials_EvictsPreviousCache() throws Exception {
-        when(deviceCredentialsDao.findByCredentialsId(CREDENTIALS_ID_1)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
+        when(deviceCredentialsDao.findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
 
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
 
-        verify(deviceCredentialsDao, times(1)).findByCredentialsId(CREDENTIALS_ID_1);
+        verify(deviceCredentialsDao, times(1)).findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1);
 
-        when(deviceCredentialsDao.findByDeviceId(deviceId)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
+        when(deviceCredentialsDao.findByDeviceId(SYSTEM_TENANT_ID, deviceId)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
 
         UUID deviceCredentialsId = UUID.randomUUID();
-        when(deviceCredentialsDao.findById(deviceCredentialsId)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
-        when(deviceService.findDeviceById(new DeviceId(deviceId))).thenReturn(new Device());
+        when(deviceCredentialsDao.findById(SYSTEM_TENANT_ID, deviceCredentialsId)).thenReturn(createDummyDeviceCredentialsEntity(CREDENTIALS_ID_1));
+        when(deviceService.findDeviceById(SYSTEM_TENANT_ID, new DeviceId(deviceId))).thenReturn(new Device());
 
-        deviceCredentialsService.updateDeviceCredentials(createDummyDeviceCredentials(deviceCredentialsId, CREDENTIALS_ID_2, deviceId));
+        deviceCredentialsService.updateDeviceCredentials(SYSTEM_TENANT_ID, createDummyDeviceCredentials(deviceCredentialsId, CREDENTIALS_ID_2, deviceId));
 
-        when(deviceCredentialsDao.findByCredentialsId(CREDENTIALS_ID_1)).thenReturn(null);
+        when(deviceCredentialsDao.findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1)).thenReturn(null);
 
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
         deviceCredentialsService.findDeviceCredentialsByCredentialsId(CREDENTIALS_ID_1);
 
-        verify(deviceCredentialsDao, times(3)).findByCredentialsId(CREDENTIALS_ID_1);
+        verify(deviceCredentialsDao, times(3)).findByCredentialsId(SYSTEM_TENANT_ID, CREDENTIALS_ID_1);
     }
 
     private DeviceCredentialsService unwrapDeviceCredentialsService() throws Exception {

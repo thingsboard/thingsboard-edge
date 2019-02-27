@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -52,15 +52,17 @@ import dashboardLayouts from './layouts';
 import dashboardStates from './states';
 
 import DashboardRoutes from './dashboard.routes';
-import {DashboardsController, DashboardCardController, MakeDashboardPublicDialogController} from './dashboards.controller';
+import {DashboardsController, DashboardCardController/*, MakeDashboardPublicDialogController*/} from './dashboards.controller';
+import PublicDashboardLinkDialogController from './public-dashboard-link.controller';
 import DashboardController from './dashboard.controller';
 import DashboardSettingsController from './dashboard-settings.controller';
-import AddDashboardsToCustomerController from './add-dashboards-to-customer.controller';
-import ManageAssignedCustomersController from './manage-assigned-customers.controller';
+//import AddDashboardsToCustomerController from './add-dashboards-to-customer.controller';
+//import ManageAssignedCustomersController from './manage-assigned-customers.controller';
 import AddWidgetController from './add-widget.controller';
 import DashboardDirective from './dashboard.directive';
 import EditWidgetDirective from './edit-widget.directive';
 import DashboardToolbar from './dashboard-toolbar.directive';
+import DashboardGroupConfig from './dashboard-group.config';
 
 export default angular.module('thingsboard.dashboard', [
     uiRouter,
@@ -86,13 +88,15 @@ export default angular.module('thingsboard.dashboard', [
     .config(DashboardRoutes)
     .controller('DashboardsController', DashboardsController)
     .controller('DashboardCardController', DashboardCardController)
-    .controller('MakeDashboardPublicDialogController', MakeDashboardPublicDialogController)
+    //.controller('MakeDashboardPublicDialogController', MakeDashboardPublicDialogController)
+    .controller('PublicDashboardLinkDialogController', PublicDashboardLinkDialogController)
     .controller('DashboardController', DashboardController)
     .controller('DashboardSettingsController', DashboardSettingsController)
-    .controller('AddDashboardsToCustomerController', AddDashboardsToCustomerController)
-    .controller('ManageAssignedCustomersController', ManageAssignedCustomersController)
+    //.controller('AddDashboardsToCustomerController', AddDashboardsToCustomerController)
+    //.controller('ManageAssignedCustomersController', ManageAssignedCustomersController)
     .controller('AddWidgetController', AddWidgetController)
     .directive('tbDashboardDetails', DashboardDirective)
     .directive('tbEditWidget', EditWidgetDirective)
     .directive('tbDashboardToolbar', DashboardToolbar)
+    .factory('dashboardGroupConfig', DashboardGroupConfig)
     .name;

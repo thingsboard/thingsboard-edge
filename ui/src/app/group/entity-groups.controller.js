@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,18 +38,66 @@ import entityGroupCard from './entity-group-card.tpl.html';
 /*@ngInject*/
 export function EntityGroupCardController() {
 
-    var vm = this; //eslint-disable-line
+    var vm = this;
+
+    vm.isPublic = function() {
+        if (vm.item && vm.item.additionalInfo && vm.item.additionalInfo.isPublic) {
+            return true;
+        }
+        return false;
+    }
 
 }
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $state, utils, entityGroupService, $stateParams,
-                                      $q, $translate, types) {
+export function EntityGroupsController($rootScope, $scope, $state, utils, tbDialogs, entityGroupService, customerService, $stateParams,
+                                      $q, $translate, types, securityTypes, userPermissionsService) {
 
-    var groupType = $stateParams.groupType;
+    var vm = this;
+
+    vm.customerId = $stateParams.customerId;
+    if (vm.customerId && $stateParams.childGroupType) {
+        vm.groupType = $stateParams.childGroupType;
+    } else {
+        vm.groupType = $stateParams.groupType;
+    }
+
+    vm.types = types;
+
+    vm.groupResource = securityTypes.groupResourceByGroupType[vm.groupType];
 
     var entityGroupActionsList = [
+        {
+            onAction: function ($event, item) {
+                makePublic($event, item);
+            },
+            name: function() { return $translate.instant('action.share') },
+            details: function() { return $translate.instant('entity-group.make-public') },
+            icon: "share",
+            isEnabled: function(item) {
+                return securityTypes.publicGroupTypes[vm.groupType]
+                       && item
+                       && (!item.additionalInfo || !item.additionalInfo.isPublic)
+                       && userPermissionsService.isDirectlyOwnedGroup(item)
+                       && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
+            }
+        },
+        {
+            onAction: function ($event, item) {
+                makePrivate($event, item);
+            },
+            name: function() { return $translate.instant('action.make-private') },
+            details: function() { return $translate.instant('entity-group.make-private') },
+            icon: "reply",
+            isEnabled: function(item) {
+                return securityTypes.publicGroupTypes[vm.groupType]
+                       && item
+                       && item.additionalInfo && item.additionalInfo.isPublic
+                       && userPermissionsService.isDirectlyOwnedGroup(item)
+                       && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
+            }
+        },
         {
             onAction: function ($event, item) {
                 vm.grid.openItem($event, item);
@@ -66,15 +114,11 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
             details: function() { return $translate.instant('entity-group.delete') },
             icon: "delete",
             isEnabled: function(entityGroup) {
-                return !entityGroup.groupAll;
+                return !entityGroup.groupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, entityGroup);
             }
         }
 
     ];
-
-    var vm = this;
-
-    vm.types = types;
 
     vm.actionSources = {
         'actionCellButton': {
@@ -88,6 +132,8 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
     };
 
     vm.entityGroupGridConfig = {
+
+        resource: vm.groupResource,
 
         refreshParamsFunc: null,
 
@@ -118,13 +164,16 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         addItemText: function() { return $translate.instant('entity-group.add-entity-group-text') },
         noItemsText: function() { return $translate.instant('entity-group.no-entity-groups-text') },
         itemDetailsText: function() { return $translate.instant('entity-group.entity-group-details') },
-        isDetailsReadOnly: function() {
-            return false;
+        isDetailsReadOnly: function(entityGroup) {
+            return !userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, entityGroup);
         },
         isSelectionEnabled: function(entityGroup) {
-            return !entityGroup.groupAll;
+            return !entityGroup.groupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, entityGroup);
         }
     };
+
+    vm.makePublic = makePublic;
+    vm.makePrivate = makePrivate;
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
         vm.deviceGridConfig.items = $stateParams.items;
@@ -132,6 +181,12 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     if (angular.isDefined($stateParams.topIndex) && $stateParams.topIndex > 0) {
         vm.deviceGridConfig.topIndex = $stateParams.topIndex;
+    }
+
+    if ($stateParams.hierarchyView) {
+        $stateParams.hierarchyCallbacks.reloadData = () => {
+            reload();
+        };
     }
 
     function deleteEntityGroupTitle(entityGroup) {
@@ -156,15 +211,24 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function gridInited(grid) {
         vm.grid = grid;
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.viewLoaded) {
+            $stateParams.hierarchyCallbacks.viewLoaded();
+        }
     }
 
     function getEntityGroupTitle(entityGroup) {
-        return entityGroup ? entityGroup.name : '';
+        return entityGroup ? utils.customTranslation(entityGroup.name, entityGroup.name) : '';
     }
 
     function fetchEntityGroups(pageLink) {
         var deferred = $q.defer();
-        entityGroupService.getTenantEntityGroups(groupType).then(
+        var fetchPromise;
+        if (vm.customerId) {
+            fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
+        } else {
+            fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
+        }
+        fetchPromise.then(
             function success(entityGroups) {
                 utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
             },
@@ -177,11 +241,22 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
 
     function saveEntityGroup(entityGroup) {
         var deferred = $q.defer();
-        entityGroup.type = groupType;
+        entityGroup.type = vm.groupType;
+        if (vm.customerId) {
+            entityGroup.ownerId = {
+                entityType: types.entityType.customer,
+                id: vm.customerId
+            };
+        }
         entityGroupService.saveEntityGroup(entityGroup).then(
             function success(entityGroup) {
                 deferred.resolve(entityGroup);
-                $rootScope.$broadcast(groupType+'changed');
+                if (!vm.customerId) {
+                    $rootScope.$broadcast(vm.groupType + 'changed');
+                }
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroups) {
+                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.internalId);
+                }
             },
             function fail() {
                 deferred.reject();
@@ -195,7 +270,12 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         entityGroupService.deleteEntityGroup(entityGroupId).then(
             function success() {
                 deferred.resolve();
-                $rootScope.$broadcast(groupType+'changed');
+                if (!vm.customerId) {
+                    $rootScope.$broadcast(vm.groupType + 'changed');
+                }
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEntityGroups) {
+                    $stateParams.hierarchyCallbacks.refreshEntityGroups($stateParams.internalId);
+                }
             },
             function fail() {
                 deferred.reject();
@@ -208,17 +288,72 @@ export function EntityGroupsController($rootScope, $state, utils, entityGroupSer
         if ($event) {
             $event.stopPropagation();
         }
-        var targetState;
-        if (entityGroup.type == types.entityType.asset) {
-            targetState = 'home.assetGroups.assetGroup';
-        } else if (entityGroup.type == types.entityType.device) {
-            targetState = 'home.deviceGroups.deviceGroup';
-        } else if (entityGroup.type == types.entityType.customer) {
-            targetState = 'home.customerGroups.customerGroup';
-        }
-        if (targetState) {
-            $state.go(targetState, {entityGroupId: entityGroup.id.id});
+        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.groupSelected) {
+            $stateParams.hierarchyCallbacks.groupSelected($stateParams.nodeId, entityGroup.id.id);
+        } else {
+            var targetStatePrefix = 'home.';
+            if (vm.customerId) {
+                targetStatePrefix = 'home.customerGroups.customerGroup.';
+            }
+            var targetState;
+            if (entityGroup.type == types.entityType.asset) {
+                targetState = 'assetGroups.assetGroup';
+            } else if (entityGroup.type == types.entityType.device) {
+                targetState = 'deviceGroups.deviceGroup';
+            } else if (entityGroup.type == types.entityType.customer) {
+                targetState = 'customerGroups.customerGroup';
+            } else if (entityGroup.type == types.entityType.user) {
+                targetState = 'userGroups.userGroup';
+            } else if (entityGroup.type == types.entityType.entityView) {
+                targetState = 'entityViewGroups.entityViewGroup';
+            } else if (entityGroup.type == types.entityType.dashboard) {
+                targetState = 'dashboardGroups.dashboardGroup';
+            }
+            if (targetState) {
+                targetState = targetStatePrefix + targetState;
+                if (vm.customerId) {
+                    $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+                } else {
+                    $state.go(targetState, {entityGroupId: entityGroup.id.id});
+                }
+            }
         }
     }
 
+    function makePublic($event, entityGroup) {
+        tbDialogs.makeEntityGroupPublic($event, entityGroup).then(
+            () => {
+                vm.grid.refreshList();
+            }
+        );
+    }
+
+    function makePrivate($event, entityGroup) {
+        tbDialogs.makeEntityGroupPrivate($event, entityGroup).then(
+            () => {
+                vm.grid.refreshList();
+            }
+        );
+    }
+
+    function reload() {
+        vm.customerId = $stateParams.customerId;
+        if (vm.customerId && $stateParams.childGroupType) {
+            vm.groupType = $stateParams.childGroupType;
+        } else {
+            vm.groupType = $stateParams.groupType;
+        }
+
+        vm.types = types;
+
+        vm.groupResource = securityTypes.groupResourceByGroupType[vm.groupType];
+        vm.entityGroupGridConfig.resource = vm.groupResource;
+
+        if (vm.grid) {
+            vm.grid.reInit();
+        }
+        if ($stateParams.hierarchyCallbacks.viewLoaded) {
+            $stateParams.hierarchyCallbacks.viewLoaded();
+        }
+    }
 }

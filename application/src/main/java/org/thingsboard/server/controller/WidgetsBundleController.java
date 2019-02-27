@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,15 +32,23 @@ package org.thingsboard.server.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.exception.ThingsboardException;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.List;
 
@@ -55,7 +63,7 @@ public class WidgetsBundleController extends BaseController {
         checkParameter("widgetsBundleId", strWidgetsBundleId);
         try {
             WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
-            return checkWidgetsBundleId(widgetsBundleId, false);
+            return checkWidgetsBundleId(widgetsBundleId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -67,10 +75,16 @@ public class WidgetsBundleController extends BaseController {
     public WidgetsBundle saveWidgetsBundle(@RequestBody WidgetsBundle widgetsBundle) throws ThingsboardException {
         try {
             if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                widgetsBundle.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+                widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
             } else {
                 widgetsBundle.setTenantId(getCurrentUser().getTenantId());
             }
+
+            Operation operation = widgetsBundle.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, operation,
+                    widgetsBundle.getId(), widgetsBundle);
+
             return checkNotNull(widgetsBundleService.saveWidgetsBundle(widgetsBundle));
         } catch (Exception e) {
             throw handleException(e);
@@ -84,8 +98,8 @@ public class WidgetsBundleController extends BaseController {
         checkParameter("widgetsBundleId", strWidgetsBundleId);
         try {
             WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
-            checkWidgetsBundleId(widgetsBundleId, true);
-            widgetsBundleService.deleteWidgetsBundle(widgetsBundleId);
+            checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
+            widgetsBundleService.deleteWidgetsBundle(getTenantId(), widgetsBundleId);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -100,9 +114,10 @@ public class WidgetsBundleController extends BaseController {
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByPageLink(pageLink));
+                return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByPageLink(getTenantId(), pageLink));
             } else {
                 TenantId tenantId = getCurrentUser().getTenantId();
                 return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink));
@@ -117,8 +132,9 @@ public class WidgetsBundleController extends BaseController {
     @ResponseBody
     public List<WidgetsBundle> getWidgetsBundles() throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
             if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                return checkNotNull(widgetsBundleService.findSystemWidgetsBundles());
+                return checkNotNull(widgetsBundleService.findSystemWidgetsBundles(getTenantId()));
             } else {
                 TenantId tenantId = getCurrentUser().getTenantId();
                 return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));

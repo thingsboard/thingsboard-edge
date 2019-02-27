@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -40,6 +40,7 @@ export default function EntityDetailsSidenav() {
         restrict: "E",
         scope: true,
         bindToController: {
+            entityGroup: '=',
             entityGroupConfig: '=',
             isOpen: '=',
             entityType: '=',
@@ -53,7 +54,7 @@ export default function EntityDetailsSidenav() {
 }
 
 /*@ngInject*/
-function EntityDetailsSidenavController($scope, $window, types, userService, entityService, helpLinks) {
+function EntityDetailsSidenavController($scope, $window, types, securityTypes, userPermissionsService, userService, entityService, helpLinks) {
 
     var vm = this;
 
@@ -65,7 +66,7 @@ function EntityDetailsSidenavController($scope, $window, types, userService, ent
     vm.entity = null;
     vm.editingEntity = null;
     vm.isEdit = false;
-    vm.isReadOnly = false;
+    vm.isReadOnly = !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.write, vm.entityGroup);
 
     vm.onToggleEditMode = onToggleEditMode;
     vm.onCloseDetails = onCloseDetails;
@@ -87,13 +88,16 @@ function EntityDetailsSidenavController($scope, $window, types, userService, ent
     });
 
     function reload() {
+        vm.translations = vm.types.entityTypeTranslations[vm.entityType];
+        vm.resources = vm.types.entityTypeResources[vm.entityType];
+        vm.isReadOnly = !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.write, vm.entityGroup);
         vm.isEdit = false;
         vm.detailsForm.$setPristine();
         loadEntity();
     }
 
     function loadEntity() {
-        entityService.getEntity(vm.entityType, vm.entityId).then(
+        entityService.getEntity(vm.entityType, vm.entityId, {loadEntityDetails: true}).then(
             function success(entity) {
                 vm.entity = entity;
                 vm.editingEntity = angular.copy(vm.entity);

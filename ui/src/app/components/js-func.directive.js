@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,11 +37,17 @@ import thingsboardToast from '../services/toast';
 import thingsboardUtils from '../common/utils.service';
 import thingsboardExpandFullscreen from './expand-fullscreen.directive';
 
+import fixAceEditor from './ace-editor-fix';
+
 /* eslint-disable import/no-unresolved, import/default */
 
 import jsFuncTemplate from './js-func.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
+
+import beautify from 'js-beautify';
+
+const js_beautify = beautify.js;
 
 /* eslint-disable angular/angularelement */
 
@@ -74,7 +80,7 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
 
 
         scope.functionArgsString = '';
-        for (var i in scope.functionArgs) {
+        for (var i = 0; i < scope.functionArgs.length; i++) {
             if (scope.functionArgsString.length > 0) {
                 scope.functionArgsString += ', ';
             }
@@ -83,6 +89,11 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
 
         scope.onFullscreenChanged = function () {
             updateEditorSize();
+        };
+
+        scope.beautifyJs = function () {
+            var res = js_beautify(scope.functionBody, {indent_size: 4, wrap_line_length: 60});
+            scope.functionBody = res;
         };
 
         function updateEditorSize() {
@@ -105,6 +116,7 @@ function JsFunc($compile, $templateCache, toast, utils, $translate) {
                 scope.js_editor.session.on("change", function () {
                     scope.cleanupJsErrors();
                 });
+                fixAceEditor(_ace);
             }
         };
 

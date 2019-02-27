@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import './ie.support';
+import './tz.support';
 
 import 'event-source-polyfill';
 
@@ -46,6 +47,7 @@ import 'angular-translate-interpolation-messageformat';
 import 'md-color-picker';
 import mdPickers from 'mdPickers';
 import ngSanitize from 'angular-sanitize';
+import FBAngular from 'angular-fullscreen';
 import vAccordion from 'v-accordion';
 import 'angular-material-expansion-panel';
 import ngAnimate from 'angular-animate';
@@ -54,6 +56,7 @@ import uiRouter from 'angular-ui-router';
 import angularJwt from 'angular-jwt';
 import 'angular-drag-and-drop-lists';
 import mdDataTable from 'angular-material-data-table';
+import fixedTableHeader from 'angular-fixed-table-header';
 import ngTouch from 'angular-touch';
 import 'tinymce/tinymce.min';
 import 'tinymce/themes/modern/theme.min';
@@ -75,8 +78,33 @@ import 'material-ui';
 import 'react-schema-form';
 import react from 'ngreact';
 import '@flowjs/ng-flow/dist/ng-flow-standalone.min';
+import 'ngFlowchart/dist/ngFlowchart';
+import 'fullcalendar/dist/fullcalendar.min.css';
+import 'fullcalendar/dist/fullcalendar.min.js';
+import 'angular-ui-calendar';
+import 'moment-timezone';
+import 'jstree/dist/jstree.min';
 
-import thingsboardLocales from './locale/locale.constant';
+//import 'jstree/dist/themes/default/style.min.css';
+import 'jstree-bootstrap-theme/dist/themes/proton/style.min.css';
+import 'tinymce/skins/lightgray/skin.min.css';
+import 'tinymce/skins/lightgray/content.min.css';
+import 'typeface-roboto';
+import 'font-awesome/css/font-awesome.min.css';
+import 'angular-material/angular-material.min.css';
+import 'angular-material-icons/angular-material-icons.css';
+import 'angular-gridster/dist/angular-gridster.min.css';
+import 'v-accordion/dist/v-accordion.min.css'
+import 'md-color-picker/dist/mdColorPicker.min.css';
+import 'mdPickers/dist/mdPickers.min.css';
+import 'angular-hotkeys/build/hotkeys.min.css';
+import 'angular-carousel/dist/angular-carousel.min.css';
+import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
+import 'ngFlowchart/dist/flowchart.css';
+import '../scss/main.scss';
+
+import thingsboardThirdpartyFix from './common/thirdparty-fix';
+import thingsboardTranslateHandler from './locale/translate-handler';
 import thingsboardLogin from './login';
 import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
 import thingsboardDialogs from './dialog';
@@ -85,6 +113,7 @@ import thingsboardRaf from './common/raf.provider';
 import thingsboardUtils from './common/utils.service';
 import thingsboardDashboardUtils from './common/dashboard-utils.service';
 import thingsboardTypes from './common/types.constant';
+import thingsboardSecurityTypes from './common/security-types.constant';
 import thingsboardApiTime from './api/time.service';
 import thingsboardKeyboardShortcut from './components/keyboard-shortcut.filter';
 import thingsboardHelp from './help/help.directive';
@@ -93,6 +122,7 @@ import thingsboardClipboard from './services/clipboard.service';
 import thingsboardHome from './layout';
 import thingsboardApiLogin from './api/login.service';
 import thingsboardApiDevice from './api/device.service';
+import thingsboardApiEntityView from './api/entity-view.service';
 import thingsboardApiUser from './api/user.service';
 import thingsboardApiEntityRelation from './api/entity-relation.service';
 import thingsboardApiAsset from './api/asset.service';
@@ -104,21 +134,14 @@ import thingsboardApiWhiteLabeling from './api/white-labeling.service';
 import thingsboardApiConverter from './api/converter.service';
 import thingsboardApiIntegration from './api/integration.service';
 import thingsboardApiAuditLog from './api/audit-log.service';
-
-import 'tinymce/skins/lightgray/skin.min.css';
-import 'tinymce/skins/lightgray/content.min.css';
-import 'typeface-roboto';
-import 'font-awesome/css/font-awesome.min.css';
-import 'angular-material/angular-material.min.css';
-import 'angular-material-icons/angular-material-icons.css';
-import 'angular-gridster/dist/angular-gridster.min.css';
-import 'v-accordion/dist/v-accordion.min.css'
-import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
-import 'md-color-picker/dist/mdColorPicker.min.css';
-import 'mdPickers/dist/mdPickers.min.css';
-import 'angular-hotkeys/build/hotkeys.min.css';
-import 'angular-carousel/dist/angular-carousel.min.css';
-import '../scss/main.scss';
+import thingsboardApiComponentDescriptor from './api/component-descriptor.service';
+import thingsboardApiRuleChain from './api/rule-chain.service';
+import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
+import thingsboardApiReport from './api/report.service';
+import thingsboardApiBlobEntity from './api/blob-entity.service';
+import thingsboardApiCustomTranslation from './api/custom-translation.service';
+import thingsboardApiRole from './api/role.service';
+import thingsboardApiUserPermissions from './api/user-permissions.service';
 
 import AppConfig from './app.config';
 import GlobalInterceptor from './global-interceptor.service';
@@ -133,6 +156,7 @@ angular.module('thingsboard', [
     'mdColorPicker',
     mdPickers,
     ngSanitize,
+    FBAngular.name,
     vAccordion,
     'material.components.expansionPanels',
     ngAnimate,
@@ -140,13 +164,17 @@ angular.module('thingsboard', [
     angularJwt,
     'dndLists',
     mdDataTable,
+    fixedTableHeader,
     ngTouch,
     'ui.tinymce',
     'angular-carousel',
     'ngclipboard',
     react.name,
     'flow',
-    thingsboardLocales,
+    'flowchart',
+    'ui.calendar',
+    thingsboardThirdpartyFix,
+    thingsboardTranslateHandler,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
     thingsboardDialogs,
@@ -155,6 +183,7 @@ angular.module('thingsboard', [
     thingsboardUtils,
     thingsboardDashboardUtils,
     thingsboardTypes,
+    thingsboardSecurityTypes,
     thingsboardApiTime,
     thingsboardKeyboardShortcut,
     thingsboardHelp,
@@ -163,6 +192,7 @@ angular.module('thingsboard', [
     thingsboardHome,
     thingsboardApiLogin,
     thingsboardApiDevice,
+    thingsboardApiEntityView,
     thingsboardApiUser,
     thingsboardApiEntityRelation,
     thingsboardApiAsset,
@@ -174,6 +204,14 @@ angular.module('thingsboard', [
     thingsboardApiConverter,
     thingsboardApiIntegration,
     thingsboardApiAuditLog,
+    thingsboardApiComponentDescriptor,
+    thingsboardApiRuleChain,
+    thingsboardApiSchedulerEvent,
+    thingsboardApiReport,
+    thingsboardApiBlobEntity,
+    thingsboardApiCustomTranslation,
+    thingsboardApiRole,
+    thingsboardApiUserPermissions,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

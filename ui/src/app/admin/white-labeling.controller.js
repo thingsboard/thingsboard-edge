@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -42,10 +42,14 @@ const maxLogoSize = 4194304;
 
 /*@ngInject*/
 export default function WhiteLabelingController($state, userService, $scope, $mdDialog, $document, $q,
-                                                $translate, toast, whiteLabelingService, $mdTheming, $filter) {
+                                                $translate, toast, securityTypes, userPermissionsService, whiteLabelingService, $mdTheming, $filter) {
     var vm = this;
 
+    vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.whiteLabeling, securityTypes.operation.write);
+
     vm.isLoginWl = $state.current.data.isLoginWl;
+
+    vm.isSysAdmin = userService.getAuthority() === 'SYS_ADMIN';
 
     vm.maxFaviconSizeKb = maxFaviconSize / 1024;
     vm.maxLogoSizeKb = maxLogoSize / 1024;
@@ -224,6 +228,9 @@ export default function WhiteLabelingController($state, userService, $scope, $md
                         whiteLabelingService.saveWhiteLabelParams(vm.whiteLabelingParams);
         savePromise.then(() => {
             vm.whiteLabelForm.$setPristine();
+            if (vm.isLoginWl) {
+                loadWhiteLabelingParams();
+            }
         });
     }
 
@@ -303,7 +310,7 @@ export default function WhiteLabelingController($state, userService, $scope, $md
                 palette: angular.copy(palette)
             },
             fullscreen: true,
-            skipHide: true,
+            multiple: true,
             targetEvent: $event
         }).then((colors) => {
             if (angular.equals(colors, {})) {
@@ -376,7 +383,7 @@ function PaletteDialogController($scope, $mdDialog, $mdTheming, $mdColorPicker, 
             random: tinycolor.random(),
             clickOutsideToClose: false,
             hasBackdrop: false,
-            skipHide: true,
+            multiple: true,
             preserveScope: false,
 
             mdColorAlphaChannel: false,

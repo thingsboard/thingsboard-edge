@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
-# the property of Thingsboard OÜ and its suppliers,
+# the property of ThingsBoard, Inc. and its suppliers,
 # if any.  The intellectual and technical concepts contained
-# herein are proprietary to Thingsboard OÜ
+# herein are proprietary to ThingsBoard, Inc.
 # and its suppliers and may be covered by U.S. and Foreign Patents,
 # patents in process, and are protected by trade secret or copyright law.
 #
@@ -43,15 +43,15 @@ export LOADER_PATH=${BASE}/conf,${BASE}/extensions
 export SQL_DATA_FOLDER=${SQL_DATA_FOLDER:-/tmp}
 
 
-run_user=thingsboard
+run_user="$USER"
 
-su -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
+sudo -u "$run_user" -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
                     -Dinstall.data_dir=${installDir} \
                     -Dinstall.load_demo=${loadDemo} \
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dinstall.upgrade=false \
                     -Dlogging.config=logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher" "$run_user"
+                    org.springframework.boot.loader.PropertiesLauncher"
 
 if [ $? -ne 0 ]; then
     echo "ThingsBoard DB installation failed!"

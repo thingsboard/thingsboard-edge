@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,6 +38,8 @@ import CustomerRoutes from './customer.routes';
 import CustomerController from './customer.controller';
 import CustomerDirective from './customer.directive';
 import CustomerGroupConfig from './customer-group.config';
+import CustomersHierarchyController from './customers-hierarchy.controller';
+import CustomerHierarchyViewDirective from './customer-hierarchy-view.directive';
 
 export default angular.module('thingsboard.customer', [
     uiRouter,
@@ -48,6 +50,8 @@ export default angular.module('thingsboard.customer', [
 ])
     .config(CustomerRoutes)
     .controller('CustomerController', CustomerController)
+    .controller('CustomersHierarchyController', CustomersHierarchyController)
     .directive('tbCustomer', CustomerDirective)
+    .directive('tbCustomerHierarchyViewDirective', CustomerHierarchyViewDirective)
     .factory('customerGroupConfig', CustomerGroupConfig)
     .name;

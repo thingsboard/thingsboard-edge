@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -68,7 +68,7 @@ public class JpaAlarmDaoTest extends AbstractJpaDaoTest {
         saveAlarm(alarm1Id, tenantId, originator1Id, "TEST_ALARM");
         saveAlarm(alarm2Id, tenantId, originator1Id, "TEST_ALARM");
         saveAlarm(alarm3Id, tenantId, originator2Id, "TEST_ALARM");
-        assertEquals(3, alarmDao.find().size());
+        assertEquals(3, alarmDao.find(new TenantId(tenantId)).size());
         ListenableFuture<Alarm> future = alarmDao
                 .findLatestByOriginatorAndType(new TenantId(tenantId), new DeviceId(originator1Id), "TEST_ALARM");
         Alarm alarm = future.get();
@@ -86,6 +86,6 @@ public class JpaAlarmDaoTest extends AbstractJpaDaoTest {
         alarm.setStartTs(System.currentTimeMillis());
         alarm.setEndTs(System.currentTimeMillis());
         alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
-        alarmDao.save(alarm);
+        alarmDao.save(new TenantId(tenantId), alarm);
     }
 }

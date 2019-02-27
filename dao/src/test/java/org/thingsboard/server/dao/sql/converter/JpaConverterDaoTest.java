@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -63,7 +63,7 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.UPLINK);
         }
-        assertEquals(60, converterDao.find().size());
+        assertEquals(60, converterDao.find(TenantId.SYS_TENANT_ID).size());
 
         TextPageLink pageLink1 = new TextPageLink(20, "CONVERTER_");
         List<Converter> converters1 = converterDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
@@ -102,6 +102,6 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         converter.setTenantId(new TenantId(tenantId));
         converter.setName(name);
         converter.setType(type);
-        converterDao.save(converter);
+        converterDao.save(new TenantId(tenantId), converter);
     }
 }

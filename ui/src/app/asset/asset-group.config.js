@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -40,18 +40,9 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
     function createConfig(params, entityGroup) {
         var deferred = $q.defer();
 
-        var authority = userService.getAuthority();
-
-        var entityScope = 'tenant';
-        if (authority === 'CUSTOMER_USER') {
-            entityScope = 'customer_user';
-        }
-
         var settings = utils.groupSettingsDefaults(types.entityType.asset, entityGroup.configuration.settings);
 
         var groupConfig = {
-
-            entityScope: entityScope,
 
             tableTitle: entityGroup.name + ': ' + $translate.instant('asset.assets'),
 
@@ -89,7 +80,7 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
             }
         };
 
-        groupConfig.onAssignToCustomer = (event, entity) => {
+       /* groupConfig.onAssignToCustomer = (event, entity) => {
             tbDialogs.assignAssetsToCustomer(event, [entity.id.id]).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
@@ -105,9 +96,9 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
             tbDialogs.makeAssetPublic(event, entity).then(
                 () => { groupConfig.onEntityUpdated(entity.id.id, true); }
             );
-        };
+        };*/
 
-        groupConfig.groupActionDescriptors = [
+      /*  groupConfig.groupActionDescriptors = [
             {
                 name: $translate.instant('asset.assign-assets'),
                 icon: "assignment_ind",
@@ -140,7 +131,7 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
                     );
                 },
             }
-        ];
+        ];*/
 
         utils.groupConfigDefaults(groupConfig);
 

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -68,7 +68,7 @@ export default function AddWidgetToDashboardDialogController($scope, $mdDialog, 
                     states: states
                 },
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 targetEvent: $event
             }).then(
                 function success(stateId) {
@@ -96,7 +96,7 @@ export default function AddWidgetToDashboardDialogController($scope, $mdDialog, 
                 templateUrl: selectTargetLayoutTemplate,
                 parent: angular.element($document[0].body),
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 targetEvent: $event
             }).then(
                 function success(layoutId) {
@@ -140,27 +140,32 @@ export default function AddWidgetToDashboardDialogController($scope, $mdDialog, 
             datasourceAliases: {},
             targetDeviceAliases: {}
         };
-        aliasesInfo.datasourceAliases[0] = {
-            alias: entityName,
-            filter: dashboardUtils.createSingleEntityFilter(entityType, entityId)
-        };
-        itembuffer.addWidgetToDashboard(theDashboard, targetState, targetLayout, vm.widget, aliasesInfo, null, 48, null, -1, -1).then(
-            function(theDashboard) {
-                dashboardService.saveDashboard(theDashboard).then(
-                    function success(dashboard) {
-                        $scope.theForm.$setPristine();
-                        $mdDialog.hide();
-                        if (vm.openDashboard) {
-                            var stateParams = {
-                                dashboardId: dashboard.id.id
+        dashboardUtils.createSingleEntityFilter(entityType, entityId).then(
+            (filter) => {
+                aliasesInfo.datasourceAliases[0] = {
+                    alias: entityName,
+                    filter: filter
+                };
+                itembuffer.addWidgetToDashboard(theDashboard, targetState, targetLayout, vm.widget, aliasesInfo, null, 48, null, -1, -1).then(
+                    function(theDashboard) {
+                        dashboardService.saveDashboard(theDashboard).then(
+                            function success(dashboard) {
+                                $scope.theForm.$setPristine();
+                                $mdDialog.hide();
+                                if (vm.openDashboard) {
+                                    var stateParams = {
+                                        dashboardId: dashboard.id.id
+                                    }
+                                    var stateIds = Object.keys(dashboard.configuration.states);
+                                    var stateIndex = stateIds.indexOf(targetState);
+                                    if (stateIndex > 0) {
+                                        stateParams.state = utils.objToBase64([ {id: targetState, params: {}} ]);
+                                    }
+                                    stateParams.edit = true;
+                                    $state.go('home.dashboard', stateParams);
+                                }
                             }
-                            var stateIds = Object.keys(dashboard.configuration.states);
-                            var stateIndex = stateIds.indexOf(targetState);
-                            if (stateIndex > 0) {
-                                stateParams.state = utils.objToBase64([ {id: targetState, params: {}} ]);
-                            }
-                            $state.go('home.dashboards.dashboard', stateParams);
-                        }
+                        );
                     }
                 );
             }

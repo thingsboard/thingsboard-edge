@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,17 +37,21 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 
+import java.util.List;
+
 public interface ConverterService {
 
     Converter saveConverter(Converter converter);
 
-    Converter findConverterById(ConverterId converterId);
+    Converter findConverterById(TenantId tenantId, ConverterId converterId);
 
-    ListenableFuture<Converter> findConverterByIdAsync(ConverterId converterId);
+    ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
+
+    ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
 
     TextPageData<Converter> findTenantConverters(TenantId tenantId, TextPageLink pageLink);
 
-    void deleteConverter(ConverterId converterId);
+    void deleteConverter(TenantId tenantId, ConverterId converterId);
 
     void deleteConvertersByTenantId(TenantId tenantId);
 

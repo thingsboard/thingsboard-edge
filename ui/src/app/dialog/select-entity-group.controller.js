@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,12 +31,14 @@
 import './select-entity-group.scss';
 
 /*@ngInject*/
-export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService,
+export default function SelectEntityGroupController($rootScope, $scope, $mdDialog, entityGroupService, securityTypes,
+                                                    userPermissionsService, ownerId,
                                                     targetGroupType, selectEntityGroupTitle, confirmSelectTitle, placeholderText,
                                                     notFoundText, requiredText, onEntityGroupSelected, excludeGroupIds) {
 
     var vm = this;
 
+    vm.ownerId = ownerId;
     vm.targetGroupType = targetGroupType;
     vm.selectEntityGroupTitle = selectEntityGroupTitle;
     vm.confirmSelectTitle = confirmSelectTitle;
@@ -51,6 +53,8 @@ export default function SelectEntityGroupController($rootScope, $scope, $mdDialo
         type: targetGroupType
     };
 
+    vm.createEnabled = userPermissionsService.hasGenericEntityGroupTypePermission(securityTypes.operation.create, vm.targetGroupType);
+
     vm.selectEntityGroup = selectEntityGroup;
     vm.cancel = cancel;
 
@@ -61,26 +65,30 @@ export default function SelectEntityGroupController($rootScope, $scope, $mdDialo
     function selectEntityGroup() {
         $scope.theForm.$setPristine();
         if (vm.addToGroupType === 1) {
+            vm.newEntityGroup.ownerId = vm.ownerId;
             entityGroupService.saveEntityGroup(vm.newEntityGroup).then(
                 (entityGroup) => {
-                    groupSelected(entityGroup.id.id);
-                    $rootScope.$broadcast(targetGroupType+'changed');
+                    groupSelected({groupId: entityGroup.id.id, group: entityGroup, isNew: true});
+                    if (userPermissionsService.isDirectlyOwnedGroup(entityGroup)) {
+                        $rootScope.$broadcast(targetGroupType + 'changed');
+                    }
+                    //TODO: update hierarchy!
                 }
             );
         } else {
-            groupSelected(vm.targetEntityGroupId);
+            groupSelected({groupId: vm.targetEntityGroupId, isNew: false});
         }
     }
 
-    function groupSelected(entityGroupId) {
+    function groupSelected(selectedGroupData) {
         if (onEntityGroupSelected) {
-            onEntityGroupSelected(entityGroupId).then(
+            onEntityGroupSelected(selectedGroupData).then(
                 () => {
                     $mdDialog.hide();
                 }
             );
         } else {
-            $mdDialog.hide(entityGroupId);
+            $mdDialog.hide(selectedGroupData);
         }
     }
 }

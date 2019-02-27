@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -95,20 +95,6 @@ public abstract class BaseAuditLogControllerTest extends AbstractControllerTest 
         TimePageData<AuditLog> pageData;
         do {
             pageData = doGetTypedWithTimePageLink("/api/audit/logs?",
-                    new TypeReference<TimePageData<AuditLog>>() {
-                    }, pageLink);
-            loadedAuditLogs.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Assert.assertEquals(178, loadedAuditLogs.size());
-
-        loadedAuditLogs = new ArrayList<>();
-        pageLink = new TimePageLink(23);
-        do {
-            pageData = doGetTypedWithTimePageLink("/api/audit/logs/customer/" + ModelConstants.NULL_UUID + "?",
                     new TypeReference<TimePageData<AuditLog>>() {
                     }, pageLink);
             loadedAuditLogs.addAll(pageData.getData());

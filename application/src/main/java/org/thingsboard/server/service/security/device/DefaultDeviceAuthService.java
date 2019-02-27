@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,16 +33,12 @@ package org.thingsboard.server.service.security.device;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsFilter;
 import org.thingsboard.server.common.transport.auth.DeviceAuthResult;
 import org.thingsboard.server.common.transport.auth.DeviceAuthService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
-
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -80,8 +76,4 @@ public class DefaultDeviceAuthService implements DeviceAuthService {
         }
     }
 
-    @Override
-    public Optional<Device> findDeviceById(DeviceId deviceId) {
-        return Optional.ofNullable(deviceService.findDeviceById(deviceId));
-    }
 }

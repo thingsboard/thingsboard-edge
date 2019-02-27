@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,12 +37,17 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, loginService, whiteLabelingService, toast, store, jwtHelper, $translate, $state, $location) {
+function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService,
+                     userPermissionsService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
         allowedDashboardIds = [],
-        userLoaded = false;
+        redirectParams = null,
+        userTokenAccessEnabled = false,
+        userLoaded = false,
+        whiteLabelingAllowed = false,
+        customerWhiteLabelingAllowed = false;
 
     var refreshTokenQueue = [];
 
@@ -55,7 +60,10 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         isAuthenticated: isAuthenticated,
         getCurrentUser: getCurrentUser,
         getCustomerUsers: getCustomerUsers,
+        getAllCustomerUsers: getAllCustomerUsers,
         getUser: getUser,
+        getUsers: getUsers,
+        getUserUsers: getUserUsers,
         getTenantAdmins: getTenantAdmins,
         isUserLoaded: isUserLoaded,
         saveUser: saveUser,
@@ -70,11 +78,16 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         refreshTokenPending: refreshTokenPending,
         updateAuthorizationHeader: updateAuthorizationHeader,
         setAuthorizationRequestHeader: setAuthorizationRequestHeader,
+        setRedirectParams: setRedirectParams,
         gotoDefaultPlace: gotoDefaultPlace,
         forceDefaultPlace: forceDefaultPlace,
         updateLastPublicDashboardId: updateLastPublicDashboardId,
         logout: logout,
-        reloadUser: reloadUser
+        reloadUser: reloadUser,
+        isUserTokenAccessEnabled: isUserTokenAccessEnabled,
+        loginAsUser: loginAsUser,
+        isWhiteLabelingAllowed: isWhiteLabelingAllowed,
+        isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed
     }
 
     reloadUser();
@@ -120,6 +133,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         currentUser = null;
         currentUserDetails = null;
         lastPublicDashboardId = null;
+        userTokenAccessEnabled = false;
         allowedDashboardIds = [];
         if (!jwtToken) {
             clearTokenData();
@@ -142,11 +156,11 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function isAuthenticated() {
-        return store.get('jwt_token');
+        return _storeGet('jwt_token');
     }
 
     function getJwtToken() {
-        return store.get('jwt_token');
+        return _storeGet('jwt_token');
     }
 
     function logout() {
@@ -162,8 +176,16 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function isTokenValid(prefix) {
-        var clientExpiration = store.get(prefix + '_expiration');
+        var clientExpiration = _storeGet(prefix + '_expiration');
         return clientExpiration && clientExpiration > new Date().valueOf();
+    }
+
+    function _storeGet(key) {
+        if ($rootScope.reportView) {
+            return reportStore.get(key);
+        } else {
+            return store.get(key);
+        }
     }
 
     function validateJwtToken(doRefresh) {
@@ -207,7 +229,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         var deferred = $q.defer();
         refreshTokenQueue.push(deferred);
         if (refreshTokenQueue.length === 1) {
-            var refreshToken = store.get('refresh_token');
+            var refreshToken = _storeGet('refresh_token');
             var refreshTokenValid = isTokenValid('refresh_token');
             setUserFromJwtToken(null, null, false, false);
             if (!refreshTokenValid) {
@@ -250,6 +272,18 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         }
     }
 
+    function isWhiteLabelingAllowed() {
+        return whiteLabelingAllowed;
+    }
+
+    function isCustomerWhiteLabelingAllowed() {
+        if (currentUser.authority === 'TENANT_ADMIN') {
+            return customerWhiteLabelingAllowed;
+        } else {
+            return false;
+        }
+    }
+
     function getPublicId() {
         if (isPublic()) {
             return currentUser.sub;
@@ -279,12 +313,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
 
         function fetchAllowedDashboardIds() {
             var pageLink = {limit: 100};
-            var fetchDashboardsPromise;
-            if (currentUser.authority === 'TENANT_ADMIN') {
-                fetchDashboardsPromise = dashboardService.getTenantDashboards(pageLink);
-            } else {
-                fetchDashboardsPromise = dashboardService.getCustomerDashboards(currentUser.customerId, pageLink);
-            }
+            var fetchDashboardsPromise = dashboardService.getUserDashboards(null, null, pageLink, {ignoreLoading: true});
             fetchDashboardsPromise.then(
                 function success(result) {
                     var dashboards = result.data;
@@ -307,24 +336,24 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
 
         function procceedJwtTokenValidate() {
             validateJwtToken(doTokenRefresh).then(function success() {
-                var jwtToken = store.get('jwt_token');
+                var jwtToken = _storeGet('jwt_token');
                 currentUser = jwtHelper.decodeToken(jwtToken);
                 if (currentUser && currentUser.scopes && currentUser.scopes.length > 0) {
                     currentUser.authority = currentUser.scopes[0];
                 } else if (currentUser) {
                     currentUser.authority = "ANONYMOUS";
                 }
-                var wlPromise = whiteLabelingService.loadUserWhiteLabelingParams();
+                var sysParamsPromise = loadSystemParams();
                 if (currentUser.isPublic) {
                     $rootScope.forceFullscreen = true;
-                    wlPromise.then(
+                    sysParamsPromise.then(
                         () => { fetchAllowedDashboardIds(); },
                         () => { deferred.reject(); }
                     );
                 } else if (currentUser.userId) {
                     getUser(currentUser.userId, true).then(
                         function success(user) {
-                            wlPromise.then(
+                            sysParamsPromise.then(
                                 () => {
                                     currentUserDetails = user;
                                     updateUserLang();
@@ -380,6 +409,59 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         return deferred.promise;
     }
 
+    function loadIsUserTokenAccessEnabled() {
+        var deferred = $q.defer();
+        var url = '/api/user/tokenAccessEnabled';
+        $http.get(url).then(function success(response) {
+            userTokenAccessEnabled = response.data;
+            deferred.resolve(response.data);
+        }, function fail() {
+            userTokenAccessEnabled = false;
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function checkIsWhiteLabelingAllowed() {
+        var deferred = $q.defer();
+        whiteLabelingService.isWhiteLabelingAllowed().then(
+            (response) => {
+                whiteLabelingAllowed = !!response;
+                if (currentUser && currentUser.authority === 'TENANT_ADMIN') {
+                    whiteLabelingService.isCustomerWhiteLabelingAllowed().then(
+                        (response) => {
+                            customerWhiteLabelingAllowed = !!response;
+                            deferred.resolve();
+                        },
+                        () => {
+                            whiteLabelingAllowed = false;
+                            deferred.reject();
+                        }
+                    )
+                } else {
+                    deferred.resolve();
+                }
+            },
+            () => {
+                whiteLabelingAllowed = false;
+                deferred.reject();
+            }
+        )
+        return deferred.promise;
+    }
+
+    function loadSystemParams() {
+        var promises = [];
+        promises.push(loadIsUserTokenAccessEnabled());
+        promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
+        promises.push(timeService.loadMaxDatapointsLimit());
+        if (currentUser && (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER')) {
+            promises.push(checkIsWhiteLabelingAllowed());
+        }
+        promises.push(userPermissionsService.loadPermissionsInfo());
+        return $q.all(promises);
+    }
+
     function notifyUserLoaded() {
         if (!userLoaded) {
             userLoaded = true;
@@ -388,7 +470,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function updateAuthorizationHeader(headers) {
-        var jwtToken = store.get('jwt_token');
+        var jwtToken = _storeGet('jwt_token');
         if (jwtToken) {
             headers['X-Authorization'] = 'Bearer ' + jwtToken;
         }
@@ -396,7 +478,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
     }
 
     function setAuthorizationRequestHeader(request) {
-        var jwtToken = store.get('jwt_token');
+        var jwtToken = _storeGet('jwt_token');
         if (jwtToken) {
             request.setRequestHeader('X-Authorization', 'Bearer ' + jwtToken);
         }
@@ -443,11 +525,36 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         return deferred.promise;
     }
 
-    function saveUser(user, sendActivationMail) {
+    function getAllCustomerUsers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/customer/users?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function saveUser(user, sendActivationMail, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/user';
+        var paramsPrefix = '?';
         if (angular.isDefined(sendActivationMail)) {
-            url += '?sendActivationMail=' + sendActivationMail;
+            url += paramsPrefix + 'sendActivationMail=' + sendActivationMail;
+            paramsPrefix = '&';
+        }
+        if (entityGroupId) {
+            url += paramsPrefix + 'entityGroupId=' + entityGroupId;
         }
         $http.post(url, user).then(function success(response) {
             deferred.resolve(response.data);
@@ -464,6 +571,52 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
             config = {};
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUsers(userIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<userIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += userIds[i];
+        }
+        var url = '/api/users?userIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = userIds.indexOf(id1);
+                var index2 = userIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUserUsers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/user/users?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
@@ -515,7 +668,8 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
                         } else {
                             return true;
                         }
-                    } else if (to.name === 'home.dashboards.dashboard' && allowedDashboardIds.indexOf(params.dashboardId) > -1) {
+                    } else if ((to.name === 'home.dashboard' || to.name === 'dashboard')
+                        && allowedDashboardIds.indexOf(params.dashboardId) > -1) {
                         return false;
                     } else {
                         return true;
@@ -526,16 +680,27 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         return false;
     }
 
+    function setRedirectParams(params) {
+        redirectParams = params;
+    }
+
     function gotoDefaultPlace(params) {
         if (currentUser && isAuthenticated()) {
-            var place = 'home.links';
+            var place = redirectParams ? redirectParams.toName : 'home.links';
+            params = redirectParams ? redirectParams.params : params;
+            redirectParams = null;
             if (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER') {
                 if (userHasDefaultDashboard()) {
-                    place = 'home.dashboards.dashboard';
+                    place = $rootScope.forceFullscreen ? 'dashboard' : 'home.dashboard';
                     params = {dashboardId: currentUserDetails.additionalInfo.defaultDashboardId};
                 } else if (isPublic()) {
-                    place = 'home.dashboards.dashboard';
-                    params = {dashboardId: lastPublicDashboardId};
+                    if (lastPublicDashboardId) {
+                        place = 'dashboard';
+                        params = {dashboardId: lastPublicDashboardId};
+                    } else {
+                        $rootScope.$broadcast('forbidden');
+                        return;
+                    }
                 }
             } else if (currentUser.authority === 'SYS_ADMIN') {
                 adminService.checkUpdates().then(
@@ -546,7 +711,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
                     }
                 );
             }
-            $state.go(place, params);
+            $state.go(place, params, {reload: true});
         } else {
             $state.go('login', params);
         }
@@ -573,6 +738,20 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, logi
         if (isPublic()) {
             lastPublicDashboardId = dashboardId;
         }
+    }
+
+    function isUserTokenAccessEnabled() {
+        return userTokenAccessEnabled;
+    }
+
+    function loginAsUser(userId) {
+        var url = '/api/user/' + userId + '/token';
+        $http.get(url).then(function success(response) {
+            var token = response.data.token;
+            var refreshToken = response.data.refreshToken;
+            setUserFromJwtToken(token, refreshToken, true);
+        }, function fail() {
+        });
     }
 
 }

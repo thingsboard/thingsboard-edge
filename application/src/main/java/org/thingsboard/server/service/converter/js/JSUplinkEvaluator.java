@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,48 +30,38 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Base64Utils;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.service.converter.UplinkMetaData;
-
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.service.script.JsScriptType;
 
 @Slf4j
 public class JSUplinkEvaluator extends AbstractJSEvaluator {
 
-    private static final String JS_WRAPPER_PREFIX_TEMPLATE = "load('classpath:js/converter-helpers.js'); function %s(bytes, metadata) { " +
-            "    var payload = convertBytes(bytes); " +
-            "    return JSON.stringify(Decoder(payload, metadata));" +
-            "    function Decoder(payload, metadata) {";
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final String JS_WRAPPER_SUFFIX = "}" +
-            "    function convertBytes(bytes) {\n" +
-            "       var payload = [];\n" +
-            "       for (var i = 0; i < bytes.length; i++) {\n" +
-            "           payload.push(bytes[i]);\n" +
-            "       }\n" +
-            "       return payload;\n" +
-            "    }\n" +
-            "\n}";
-
-    private final String functionName;
-
-    public JSUplinkEvaluator(String decoder) {
-        this.functionName = "decodeInternal" + this.hashCode();
-        String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, this.functionName);
-        compileScript(jsWrapperPrefix
-                + decoder
-                + JS_WRAPPER_SUFFIX);
+    public JSUplinkEvaluator(JsInvokeService sandboxService, EntityId entityId, String script) {
+        super(sandboxService, entityId, JsScriptType.UPLINK_CONVERTER_SCRIPT, script);
     }
 
-    public void destroy() {
-        //engine = null;
+    public String execute(byte[] data, UplinkMetaData metadata) throws Exception {
+        validateSuccessfulScriptLazyInit();
+        String[] inArgs = prepareArgs(data, metadata);
+        return sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1]).get().toString();
     }
 
-    public String execute(byte[] data, UplinkMetaData metadata) throws ScriptException, NoSuchMethodException {
-        return ((Invocable)engine).invokeFunction(this.functionName, data, metadata.getKvMap()).toString();
+    private static String[] prepareArgs(byte[] data, UplinkMetaData metadata) {
+        try {
+            String[] args = new String[2];
+            args[0] = Base64Utils.encodeToString(data);
+            args[1] = mapper.writeValueAsString(metadata.getKvMap());
+            return args;
+        } catch (Throwable th) {
+            throw new IllegalArgumentException("Cannot bind js args", th);
+        }
     }
 
 }

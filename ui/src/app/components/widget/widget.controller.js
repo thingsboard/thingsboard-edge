@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -154,7 +154,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         headerAction.icon = descriptor.icon;
         headerAction.descriptor = descriptor;
         headerAction.onAction = function($event) {
-            var entityInfo = getFirstEntityInfo();
+            var entityInfo = getActiveEntityInfo();
             var entityId = entityInfo ? entityInfo.entityId : null;
             var entityName = entityInfo ? entityInfo.entityName : null;
             handleWidgetAction($event, this.descriptor, entityId, entityName);
@@ -314,7 +314,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
 
         options.callbacks = {
             onDataUpdated: function() {
-                widgetTypeInstance.onDataUpdated();
+                if (displayWidgetInstance()) {
+                    widgetTypeInstance.onDataUpdated();
+                }
             },
             onDataUpdateError: function(subscription, e) {
                 handleWidgetException(e);
@@ -495,7 +497,11 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                     dashboardId: targetDashboardId,
                     state: utils.objToBase64([ stateObject ])
                 }
-                $state.go('home.dashboards.dashboard', stateParams);
+                if ($state.current.name === 'dashboard') {
+                    $state.go('dashboard', stateParams);
+                } else {
+                    $state.go('home.dashboard', stateParams);
+                }
                 break;
             case types.widgetActionTypes.custom.value:
                 var customFunction = descriptor.customFunction;
@@ -539,13 +545,15 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         }
     }
 
-    function getFirstEntityInfo() {
-        var entityInfo;
-        for (var id in widgetContext.subscriptions) {
-            var subscription = widgetContext.subscriptions[id];
-            entityInfo = subscription.getFirstEntityInfo();
-            if (entityInfo) {
-                break;
+    function getActiveEntityInfo() {
+        var entityInfo = widgetContext.activeEntityInfo;
+        if (!entityInfo) {
+            for (var id in widgetContext.subscriptions) {
+                var subscription = widgetContext.subscriptions[id];
+                entityInfo = subscription.getFirstEntityInfo();
+                if (entityInfo) {
+                    break;
+                }
             }
         }
         return entityInfo;
@@ -573,6 +581,10 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
 
         var html = '<div class="tb-absolute-fill tb-widget-error" ng-if="widgetErrorData">' +
             '<span>Widget Error: {{ widgetErrorData.name + ": " + widgetErrorData.message}}</span>' +
+            '</div>' +
+            '<div class="tb-absolute-fill tb-widget-no-data" ng-if="displayNoData">' +
+            '<span layout-align="center center"\n' +
+            '      style="text-transform: uppercase; display: flex;" class="tb-absolute-fill" translate>widget.no-data</span>' +
             '</div>' +
             '<div class="tb-absolute-fill tb-widget-loading" ng-show="loadingData" layout="column" layout-align="center center">' +
             '<md-progress-circular md-mode="indeterminate" ng-disabled="!loadingData" class="md-accent" md-diameter="40"></md-progress-circular>' +
@@ -761,7 +773,12 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         if (!widgetContext.inited && isReady()) {
             widgetContext.inited = true;
             try {
-                widgetTypeInstance.onInit();
+                if (displayWidgetInstance()) {
+                    widgetTypeInstance.onInit();
+                } else {
+                    $scope.loadingData = false;
+                    $scope.displayNoData = true;
+                }
             } catch (e) {
                 handleWidgetException(e);
             }
@@ -798,7 +815,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 cafs['resize'] = tbRaf(function() {
                     try {
-                        widgetTypeInstance.onResize();
+                        if (displayWidgetInstance()) {
+                            widgetTypeInstance.onResize();
+                        }
                     } catch (e) {
                         handleWidgetException(e);
                     }
@@ -828,7 +847,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 cafs['editMode'] = tbRaf(function() {
                     try {
-                        widgetTypeInstance.onEditModeChanged();
+                        if (displayWidgetInstance()) {
+                            widgetTypeInstance.onEditModeChanged();
+                        }
                     } catch (e) {
                         handleWidgetException(e);
                     }
@@ -847,7 +868,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
                 cafs['mobileMode'] = tbRaf(function() {
                     try {
-                        widgetTypeInstance.onMobileModeChanged();
+                        if (displayWidgetInstance()) {
+                            widgetTypeInstance.onMobileModeChanged();
+                        }
                     } catch (e) {
                         handleWidgetException(e);
                     }
@@ -880,7 +903,21 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         }
     }
 
+    function displayWidgetInstance() {
+        if (widget.type !== types.widgetType.static.value) {
+            for (var id in widgetContext.subscriptions) {
+                if (widgetContext.subscriptions[id].isDataResolved()) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     function onDestroy() {
+        var shouldDestroyWidgetInstance = displayWidgetInstance();
         for (var id in widgetContext.subscriptions) {
             var subscription = widgetContext.subscriptions[id];
             subscription.destroy();
@@ -896,7 +933,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 }
             }
             try {
-                widgetTypeInstance.onDestroy();
+                if (shouldDestroyWidgetInstance) {
+                    widgetTypeInstance.onDestroy();
+                }
             } catch (e) {
                 handleWidgetException(e);
             }

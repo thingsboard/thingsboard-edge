@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,7 +39,7 @@ const js_beautify = beautify.js;
 
 /*@ngInject*/
 export default function AlarmDetailsDialogController($mdDialog, $filter, $translate, types,
-                                                     alarmService, alarmId, allowAcknowledgment, allowClear, displayDetails, showingCallback) {
+                                                     alarmService, alarmId, alarm, allowAcknowledgment, allowClear, displayDetails, showingCallback) {
 
     var vm = this;
 
@@ -48,7 +48,11 @@ export default function AlarmDetailsDialogController($mdDialog, $filter, $transl
     vm.allowClear = allowClear;
     vm.displayDetails = displayDetails;
     vm.types = types;
-    vm.alarm = null;
+    if (!alarmId) {
+        vm.alarm = alarm;
+    } else {
+        vm.alarm = null;
+    }
 
     vm.alarmUpdated = false;
 
@@ -78,7 +82,11 @@ export default function AlarmDetailsDialogController($mdDialog, $filter, $transl
     vm.acknowledge = acknowledge;
     vm.clear = clear;
 
-    loadAlarm();
+    if (!vm.alarm) {
+        loadAlarm();
+    } else {
+        loadAlarmFields();
+    }
 
     function updateEditorSize(element) {
         var newWidth = 600;
@@ -131,21 +139,25 @@ export default function AlarmDetailsDialogController($mdDialog, $filter, $transl
     }
 
     function acknowledge () {
-        alarmService.ackAlarm(vm.alarmId).then(
-            function success() {
-                vm.alarmUpdated = true;
-                loadAlarm();
-            }
-        );
+        if (vm.alarmId) {
+            alarmService.ackAlarm(vm.alarmId).then(
+                function success() {
+                    vm.alarmUpdated = true;
+                    loadAlarm();
+                }
+            );
+        }
     }
 
     function clear () {
-        alarmService.clearAlarm(vm.alarmId).then(
-            function success() {
-                vm.alarmUpdated = true;
-                loadAlarm();
-            }
-        );
+        if (vm.alarmId) {
+            alarmService.clearAlarm(vm.alarmId).then(
+                function success() {
+                    vm.alarmUpdated = true;
+                    loadAlarm();
+                }
+            );
+        }
     }
 
     function close () {

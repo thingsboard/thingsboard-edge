@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -182,7 +182,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         base64toString: base64toString,
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults,
-        loadImageAspect: loadImageAspect
+        loadImageAspect: loadImageAspect,
+        translateText: translateText
     }
 
     return service;
@@ -577,8 +578,33 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
     }
 
     function customTranslation(translationValue, defaultValue) {
+        if (translationValue && angular.isString(translationValue)) {
+            if (translationValue.includes("{" + types.translate.i18nPrefix)) {
+                var i18nRegExp = new RegExp('{' + types.translate.i18nPrefix + ':[^{}]+}', 'g');
+                var matches = translationValue.match(i18nRegExp);
+                var result = translationValue;
+                for (var i = 0; i < matches.length; i++) {
+                    var match = matches[i];
+                    var translationId = match.substring(6, match.length - 1);
+                    result = result.replace(match, doTranslate(translationId, match));
+                }
+                return result;
+            } else {
+                return doTranslate(translationValue, defaultValue, types.translate.customTranslationsPrefix);
+            }
+        } else {
+            return translationValue;
+        }
+    }
+
+    function doTranslate(translationValue, defaultValue, prefix) {
         var result = '';
-        var translationId = types.translate.customTranslationsPrefix + translationValue;
+        var translationId;
+        if (prefix) {
+            translationId = prefix + translationValue;
+        } else {
+            translationId = translationValue;
+        }
         var translation = $translate.instant(translationId);
         if (translation != translationId) {
             result = translation + '';
@@ -629,6 +655,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
 
         groupConfig.actionCellDescriptors = groupConfig.actionCellDescriptors || [];
         groupConfig.groupActionDescriptors = groupConfig.groupActionDescriptors || [];
+        groupConfig.headerActionDescriptors = groupConfig.headerActionDescriptors || [];
 
         groupConfig.addEnabled = groupConfig.addEnabled ||
             (() => { return true });
@@ -683,7 +710,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         if (angular.isUndefined(settings.defaultPageSize)) {
             settings.defaultPageSize = 10;
         }
-        if (entityType == types.entityType.device || entityType == types.entityType.asset) {
+        if (entityType == types.entityType.device || entityType == types.entityType.asset || entityType == types.entityType.entityView) {
             if (angular.isUndefined(settings.enableAssignment)) {
                 settings.enableAssignment = true;
             }
@@ -693,15 +720,26 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 settings.enableCredentialsManagement = true;
             }
         }
+        if (entityType == types.entityType.user) {
+            if (angular.isUndefined(settings.enableLoginAsUser)) {
+                settings.enableLoginAsUser = true;
+            }
+        }
         if (entityType == types.entityType.customer) {
             if (angular.isUndefined(settings.enableUsersManagement)) {
                 settings.enableUsersManagement = true;
+            }
+            if (angular.isUndefined(settings.enableCustomersManagement)) {
+                settings.enableCustomersManagement = true;
             }
             if (angular.isUndefined(settings.enableAssetsManagement)) {
                 settings.enableAssetsManagement = true;
             }
             if (angular.isUndefined(settings.enableDevicesManagement)) {
                 settings.enableDevicesManagement = true;
+            }
+            if (angular.isUndefined(settings.enableEntityViewsManagement)) {
+                settings.enableEntityViewsManagement = true;
             }
             if (angular.isUndefined(settings.enableDashboardsManagement)) {
                 settings.enableDashboardsManagement = true;
@@ -740,6 +778,14 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             deferred.resolve(0);
         }
         return deferred.promise;
+    }
+
+    function translateText(text) {
+        if (text.startsWith("${") && text.endsWith("}")) {
+            return $translate.instant(text.substring(2, text.length - 1))
+        } else {
+            return text;
+        }
     }
 
 }

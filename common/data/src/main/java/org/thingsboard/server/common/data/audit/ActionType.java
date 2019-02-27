@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,6 +39,7 @@ public enum ActionType {
     UPDATED(false), // log entity
     ATTRIBUTES_UPDATED(false), // log attributes/values
     ATTRIBUTES_DELETED(false), // log attributes
+    TIMESERIES_DELETED(false), // log timeseries
     RPC_CALL(false), // log method and params
     CREDENTIALS_UPDATED(false), // log new credentials
     ASSIGNED_TO_CUSTOMER(false), // log customer name
@@ -47,8 +48,16 @@ public enum ActionType {
     SUSPENDED(false), // log string id
     CREDENTIALS_READ(true), // log device id
     ATTRIBUTES_READ(true), // log attributes
+    RELATION_ADD_OR_UPDATE (false),
+    RELATION_DELETED (false),
+    RELATIONS_DELETED (false),
+    ALARM_ACK (false),
+    ALARM_CLEAR (false),
     ADDED_TO_ENTITY_GROUP(false), // log entity group name
-    REMOVED_FROM_ENTITY_GROUP(false); // log entity group name
+    REMOVED_FROM_ENTITY_GROUP(false), // log entity group name
+    REST_API_RULE_ENGINE_CALL(false), // log call to rule engine from REST API
+    MADE_PUBLIC(false), // log entity group name
+    MADE_PRIVATE(false); // log entity group name
 
     private final boolean isRead;
 

@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -36,7 +36,14 @@
 <md-button ng-click="onResendActivation({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{
     'user.resend-activation' | translate }}
 </md-button>
-<md-button ng-click="onDeleteUser({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{ 'user.delete' |
+<md-button ng-click="onLoginAsUser({event: $event})"
+           ng-if="loginAsUserEnabled"
+           ng-show="!isEdit" class="md-raised md-primary">{{
+    (isTenantAdmin() ? 'user.login-as-tenant-admin' : 'user.login-as-customer-user') | translate }}
+</md-button>
+<md-button ng-click="onDeleteUser({event: $event})"
+           ng-if="entityGroup | hasGroupEntityPermission:'delete'"
+           ng-show="!isEdit" class="md-raised md-primary">{{ 'user.delete' |
     translate }}
 </md-button>
 
@@ -67,22 +74,12 @@
         <section class="tb-default-dashboard" flex layout="column" ng-if="user.id">
             <span class="tb-default-dashboard-label" ng-class="{'tb-disabled-label': $root.loading || !isEdit}" translate>user.default-dashboard</span>
             <section flex layout="column" layout-gt-sm="row">
-                <tb-dashboard-autocomplete ng-if="isTenantAdmin()"
-                                           flex
+                <tb-dashboard-autocomplete flex
                                            ng-disabled="$root.loading || !isEdit"
                                            the-form="theForm"
                                            ng-model="user.additionalInfo.defaultDashboardId"
-                                           tenant-id="user.tenantId.id"
+                                           user-id="user.id.id"
                                            select-first-dashboard="false">
-                </tb-dashboard-autocomplete>
-                <tb-dashboard-autocomplete ng-if="isCustomerUser()"
-                                     flex
-                                     ng-disabled="$root.loading || !isEdit"
-                                     the-form="theForm"
-                                     ng-model="user.additionalInfo.defaultDashboardId"
-                                     dashboards-scope="customer"
-                                     customer-id="user.customerId.id"
-                                     select-first-dashboard="false">
                 </tb-dashboard-autocomplete>
                 <md-checkbox ng-disabled="$root.loading || !isEdit" flex aria-label="{{ 'user.always-fullscreen' | translate }}"
                              ng-model="user.additionalInfo.defaultDashboardFullscreen">{{ 'user.always-fullscreen' | translate }}

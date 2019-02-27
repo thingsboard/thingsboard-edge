@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,6 +35,7 @@ import eventHeaderStatsTemplate from './event-header-stats.tpl.html';
 import eventHeaderErrorTemplate from './event-header-error.tpl.html';
 import eventHeaderDebugConverterTemplate from './event-header-debug-converter.tpl.html';
 import eventHeaderDebugIntegrationTemplate from './event-header-debug-integration.tpl.html';
+import eventHeaderDebugRuleNodeTemplate from './event-header-debug-rulenode.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -60,6 +61,12 @@ export default function EventHeaderDirective($compile, $templateCache, types) {
                     break;
                 case types.debugEventType.debugIntegration.value:
                     template = eventHeaderDebugIntegrationTemplate;
+                    break;
+                case types.debugEventType.debugRuleNode.value:
+                    template = eventHeaderDebugRuleNodeTemplate;
+                    break;
+                case types.debugEventType.debugRuleChain.value:
+                    template = eventHeaderDebugRuleNodeTemplate;
                     break;
             }
             return $templateCache.get(template);

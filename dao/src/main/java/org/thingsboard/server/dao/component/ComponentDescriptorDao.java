@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.component;
 
 import org.thingsboard.server.common.data.id.ComponentDescriptorId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentScope;
@@ -45,18 +46,18 @@ import java.util.Optional;
  */
 public interface ComponentDescriptorDao extends Dao<ComponentDescriptor> {
 
-    Optional<ComponentDescriptor> saveIfNotExist(ComponentDescriptor component);
+    Optional<ComponentDescriptor> saveIfNotExist(TenantId tenantId, ComponentDescriptor component);
 
-    ComponentDescriptor findById(ComponentDescriptorId componentId);
+    ComponentDescriptor findById(TenantId tenantId, ComponentDescriptorId componentId);
 
-    ComponentDescriptor findByClazz(String clazz);
+    ComponentDescriptor findByClazz(TenantId tenantId, String clazz);
 
-    List<ComponentDescriptor> findByTypeAndPageLink(ComponentType type, TextPageLink pageLink);
+    List<ComponentDescriptor> findByTypeAndPageLink(TenantId tenantId, ComponentType type, TextPageLink pageLink);
 
-    List<ComponentDescriptor> findByScopeAndTypeAndPageLink(ComponentScope scope, ComponentType type, TextPageLink pageLink);
+    List<ComponentDescriptor> findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, TextPageLink pageLink);
 
-    void deleteById(ComponentDescriptorId componentId);
+    void deleteById(TenantId tenantId, ComponentDescriptorId componentId);
 
-    void deleteByClazz(String clazz);
+    void deleteByClazz(TenantId tenantId, String clazz);
 
 }

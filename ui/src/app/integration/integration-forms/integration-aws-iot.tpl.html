@@ -1,0 +1,144 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section ng-form name="awsIotIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <div layout="column" layout-gt-sm="row">
+            <md-input-container flex="60" class="md-block">
+                <label translate>integration.aws-iot-endpoint</label>
+                <input required name="host" ng-model="configuration.clientConfiguration.host">
+                <div ng-messages="awsIotIntegrationForm.host.$error">
+                    <div translate ng-message="required">integration.aws-iot-endpoint-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container flex="40" class="md-block">
+                <label translate>integration.connect-timeout</label>
+                <input type="number" step="1" min="1" max="200" required
+                       name="connectTimeoutSec" ng-model="configuration.clientConfiguration.connectTimeoutSec">
+                <div ng-messages="awsIotIntegrationForm.connectTimeoutSec.$error">
+                    <div translate ng-message="required">integration.connect-timeout-required</div>
+                    <div translate ng-message="min">integration.connect-timeout-range</div>
+                    <div translate ng-message="max">integration.connect-timeout-range</div>
+                </div>
+            </md-input-container>
+        </div>
+        <md-input-container class="md-block">
+            <label translate>integration.client-id</label>
+            <input name="clientId" ng-model="configuration.clientConfiguration.clientId">
+        </md-input-container>
+        <div class="tb-panel-title">{{ 'integration.aws-iot-credentials' | translate }}</div>
+        <section class="dropdown-section">
+            <div class="tb-container" ng-class="configuration.clientConfiguration.credentials.caCertFileName ? 'ng-valid' : 'ng-invalid'">
+                <label class="tb-label" translate>integration.ca-cert</label>
+                <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'caCert')" class="tb-file-select-container">
+                    <div class="tb-file-clear-container">
+                        <md-button ng-click="clearCertFile('caCert')" class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                            <md-tooltip md-direction="top">
+                                {{ 'action.remove' | translate }}
+                            </md-tooltip>
+                            <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                        </md-button>
+                    </div>
+                    <div class="alert tb-flow-drop" flow-drop>
+                        <label for="awsCaCertSelect" translate>integration.drop-file</label>
+                        <input class="file-input" flow-btn id="awsCaCertSelect">
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown-messages">
+                <div ng-if="!configuration.clientConfiguration.credentials.caCertFileName" class="tb-error-message" translate>integration.no-file</div>
+                <div ng-if="configuration.clientConfiguration.credentials.caCertFileName">{{configuration.clientConfiguration.credentials.caCertFileName}}</div>
+            </div>
+            <div class="tb-container" ng-class="configuration.clientConfiguration.credentials.certFileName ? 'ng-valid' : 'ng-invalid'">
+                <label class="tb-label" translate>integration.cert</label>
+                <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'Cert')" class="tb-file-select-container">
+                    <div class="tb-file-clear-container">
+                        <md-button ng-click="clearCertFile('Cert')" class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                            <md-tooltip md-direction="top">
+                                {{ 'action.remove' | translate }}
+                            </md-tooltip>
+                            <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                        </md-button>
+                    </div>
+                    <div class="alert tb-flow-drop" flow-drop>
+                        <label for="awsCertSelect" translate>integration.drop-file</label>
+                        <input class="file-input" flow-btn id="awsCertSelect">
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown-messages">
+                <div ng-if="!configuration.clientConfiguration.credentials.certFileName" class="tb-error-message" translate>integration.no-file</div>
+                <div ng-if="configuration.clientConfiguration.credentials.certFileName">{{configuration.clientConfiguration.credentials.certFileName}}</div>
+            </div>
+            <div class="tb-container" ng-class="configuration.clientConfiguration.credentials.privateKeyFileName ? 'ng-valid' : 'ng-invalid'">
+                <label class="tb-label" translate>integration.private-key</label>
+                <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'privateKey')" class="tb-file-select-container">
+                    <div class="tb-file-clear-container">
+                        <md-button ng-click="clearCertFile('privateKey')" class="tb-file-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
+                            <md-tooltip md-direction="top">
+                                {{ 'action.remove' | translate }}
+                            </md-tooltip>
+                            <md-icon aria-label="{{ 'action.remove' | translate }}" class="material-icons">close</md-icon>
+                        </md-button>
+                    </div>
+                    <div class="alert tb-flow-drop" flow-drop>
+                        <label for="awsPrivateKeySelect" translate>integration.drop-file</label>
+                        <input class="file-input" flow-btn id="awsPrivateKeySelect">
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown-messages">
+                <div ng-if="!configuration.clientConfiguration.credentials.privateKeyFileName" class="tb-error-message" translate>integration.no-file</div>
+                <div ng-if="configuration.clientConfiguration.credentials.privateKeyFileName">{{configuration.clientConfiguration.credentials.privateKeyFileName}}</div>
+            </div>
+            <md-input-container class="md-block">
+                <label translate>integration.private-key-password</label>
+                <input type="password" name="privateKeyPassword" ng-model="configuration.clientConfiguration.credentials.password">
+            </md-input-container>
+        </section>
+    </fieldset>
+    <tb-mqtt-topic-filters
+            ng-model="configuration.topicFilters"
+            is-edit="isEdit"
+            disable-mqtt-topics="false"
+    ></tb-mqtt-topic-filters>
+    <div style="height: 30px;"></div>
+    <md-input-container class="md-block">
+        <label translate>integration.downlink-topic-pattern</label>
+        <input required name="downlinkTopicPattern"
+               ng-disabled="$root.loading || !isEdit"
+               ng-model="configuration.downlinkTopicPattern">
+        <div ng-messages="awsIotIntegrationForm.downlinkTopicPattern.$error">
+            <div translate ng-message="required">integration.downlink-topic-pattern-required</div>
+        </div>
+    </md-input-container>
+</section>

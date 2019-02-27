@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,7 +30,11 @@
  */
 package org.thingsboard.server.dao.attributes;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.base.Function;
@@ -39,6 +43,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -56,7 +61,12 @@ import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ATTRIBUTES_KV_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.ATTRIBUTE_KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ATTRIBUTE_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_ID_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.LAST_UPDATE_TS_COLUMN;
 
 /**
  * @author Andrew Shvayka
@@ -79,22 +89,22 @@ public class CassandraBaseAttributesDao extends CassandraAbstractAsyncDao implem
     }
 
     @Override
-    public ListenableFuture<Optional<AttributeKvEntry>> find(EntityId entityId, String attributeType, String attributeKey) {
+    public ListenableFuture<Optional<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String attributeType, String attributeKey) {
         Select.Where select = select().from(ATTRIBUTES_KV_CF)
                 .where(eq(ENTITY_TYPE_COLUMN, entityId.getEntityType()))
                 .and(eq(ENTITY_ID_COLUMN, entityId.getId()))
                 .and(eq(ATTRIBUTE_TYPE_COLUMN, attributeType))
                 .and(eq(ATTRIBUTE_KEY_COLUMN, attributeKey));
         log.trace("Generated query [{}] for entityId {} and key {}", select, entityId, attributeKey);
-        return Futures.transform(executeAsyncRead(select), (Function<? super ResultSet, ? extends Optional<AttributeKvEntry>>) input ->
+        return Futures.transform(executeAsyncRead(tenantId, select), (Function<? super ResultSet, ? extends Optional<AttributeKvEntry>>) input ->
                         Optional.ofNullable(convertResultToAttributesKvEntry(attributeKey, input.one()))
                 , readResultsProcessingExecutor);
     }
 
     @Override
-    public ListenableFuture<List<AttributeKvEntry>> find(EntityId entityId, String attributeType, Collection<String> attributeKeys) {
+    public ListenableFuture<List<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String attributeType, Collection<String> attributeKeys) {
         List<ListenableFuture<Optional<AttributeKvEntry>>> entries = new ArrayList<>();
-        attributeKeys.forEach(attributeKey -> entries.add(find(entityId, attributeType, attributeKey)));
+        attributeKeys.forEach(attributeKey -> entries.add(find(tenantId, entityId, attributeType, attributeKey)));
         return Futures.transform(Futures.allAsList(entries), (Function<List<Optional<AttributeKvEntry>>, ? extends List<AttributeKvEntry>>) input -> {
             List<AttributeKvEntry> result = new ArrayList<>();
             input.stream().filter(opt -> opt.isPresent()).forEach(opt -> result.add(opt.get()));
@@ -104,19 +114,19 @@ public class CassandraBaseAttributesDao extends CassandraAbstractAsyncDao implem
 
 
     @Override
-    public ListenableFuture<List<AttributeKvEntry>> findAll(EntityId entityId, String attributeType) {
+    public ListenableFuture<List<AttributeKvEntry>> findAll(TenantId tenantId, EntityId entityId, String attributeType) {
         Select.Where select = select().from(ATTRIBUTES_KV_CF)
                 .where(eq(ENTITY_TYPE_COLUMN, entityId.getEntityType()))
                 .and(eq(ENTITY_ID_COLUMN, entityId.getId()))
                 .and(eq(ATTRIBUTE_TYPE_COLUMN, attributeType));
         log.trace("Generated query [{}] for entityId {} and attributeType {}", select, entityId, attributeType);
-        return Futures.transform(executeAsyncRead(select), (Function<? super ResultSet, ? extends List<AttributeKvEntry>>) input ->
+        return Futures.transform(executeAsyncRead(tenantId, select), (Function<? super ResultSet, ? extends List<AttributeKvEntry>>) input ->
                         convertResultToAttributesKvEntryList(input)
                 , readResultsProcessingExecutor);
     }
 
     @Override
-    public ListenableFuture<Void> save(EntityId entityId, String attributeType, AttributeKvEntry attribute) {
+    public ListenableFuture<Void> save(TenantId tenantId, EntityId entityId, String attributeType, AttributeKvEntry attribute) {
         BoundStatement stmt = getSaveStmt().bind();
         stmt.setString(0, entityId.getEntityType().name());
         stmt.setUUID(1, entityId.getId());
@@ -143,31 +153,31 @@ public class CassandraBaseAttributesDao extends CassandraAbstractAsyncDao implem
             stmt.setToNull(8);
         }
         log.trace("Generated save stmt [{}] for entityId {} and attributeType {} and attribute", stmt, entityId, attributeType, attribute);
-        return getFuture(executeAsyncWrite(stmt), rs -> null);
+        return getFuture(executeAsyncWrite(tenantId, stmt), rs -> null);
     }
 
     @Override
-    public ListenableFuture<List<Void>> removeAll(EntityId entityId, String attributeType, List<String> keys) {
+    public ListenableFuture<List<Void>> removeAll(TenantId tenantId, EntityId entityId, String attributeType, List<String> keys) {
         List<ListenableFuture<Void>> futures = keys
                 .stream()
-                .map(key -> delete(entityId, attributeType, key))
+                .map(key -> delete(tenantId, entityId, attributeType, key))
                 .collect(Collectors.toList());
         return Futures.allAsList(futures);
     }
 
-    private ListenableFuture<Void> delete(EntityId entityId, String attributeType, String key) {
+    private ListenableFuture<Void> delete(TenantId tenantId, EntityId entityId, String attributeType, String key) {
         Statement delete = QueryBuilder.delete().all().from(ModelConstants.ATTRIBUTES_KV_CF)
                 .where(eq(ENTITY_TYPE_COLUMN, entityId.getEntityType()))
                 .and(eq(ENTITY_ID_COLUMN, entityId.getId()))
                 .and(eq(ATTRIBUTE_TYPE_COLUMN, attributeType))
                 .and(eq(ATTRIBUTE_KEY_COLUMN, key));
         log.debug("Remove request: {}", delete.toString());
-        return getFuture(getSession().executeAsync(delete), rs -> null);
+        return getFuture(executeAsyncWrite(tenantId, delete), rs -> null);
     }
 
     private PreparedStatement getSaveStmt() {
         if (saveStmt == null) {
-            saveStmt = getSession().prepare("INSERT INTO " + ModelConstants.ATTRIBUTES_KV_CF +
+            saveStmt = prepare("INSERT INTO " + ModelConstants.ATTRIBUTES_KV_CF +
                     "(" + ENTITY_TYPE_COLUMN +
                     "," + ENTITY_ID_COLUMN +
                     "," + ATTRIBUTE_TYPE_COLUMN +

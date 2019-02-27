@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,21 +31,23 @@
 package org.thingsboard.server.actors.service;
 
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.PluginId;
-import org.thingsboard.server.common.data.id.RuleId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
+import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.common.transport.SessionMsgProcessor;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
 import org.thingsboard.server.service.cluster.rpc.RpcMsgListener;
 
-public interface ActorService extends SessionMsgProcessor, WebSocketMsgProcessor, RestMsgProcessor, RpcMsgListener, DiscoveryServiceListener {
+public interface ActorService extends SessionMsgProcessor, RpcMsgListener, DiscoveryServiceListener {
 
-    void onPluginStateChange(TenantId tenantId, PluginId pluginId, ComponentLifecycleEvent state);
+    void onEntityStateChange(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent state);
 
-    void onRuleStateChange(TenantId tenantId, RuleId ruleId, ComponentLifecycleEvent state);
+    void onMsg(SendToClusterMsg msg);
 
     void onCredentialsUpdate(TenantId tenantId, DeviceId deviceId);
 
     void onDeviceNameOrTypeUpdate(TenantId tenantId, DeviceId deviceId, String deviceName, String deviceType);
+
 }

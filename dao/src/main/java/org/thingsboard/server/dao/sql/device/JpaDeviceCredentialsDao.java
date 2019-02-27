@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceCredentialsDao;
@@ -64,12 +65,12 @@ public class JpaDeviceCredentialsDao extends JpaAbstractDao<DeviceCredentialsEnt
     }
 
     @Override
-    public DeviceCredentials findByDeviceId(UUID deviceId) {
+    public DeviceCredentials findByDeviceId(TenantId tenantId, UUID deviceId) {
         return DaoUtil.getData(deviceCredentialsRepository.findByDeviceId(UUIDConverter.fromTimeUUID(deviceId)));
     }
 
     @Override
-    public DeviceCredentials findByCredentialsId(String credentialsId) {
+    public DeviceCredentials findByCredentialsId(TenantId tenantId, String credentialsId) {
         return DaoUtil.getData(deviceCredentialsRepository.findByCredentialsId(credentialsId));
     }
 }

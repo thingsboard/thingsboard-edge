@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,6 +35,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
@@ -75,7 +76,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
     }
 
     @Override
-    public List<WidgetsBundle> findSystemWidgetsBundles(TextPageLink pageLink) {
+    public List<WidgetsBundle> findSystemWidgetsBundles(TenantId tenantId, TextPageLink pageLink) {
         return DaoUtil.convertDataList(
                 widgetsBundleRepository
                         .findSystemWidgetsBundles(

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -41,9 +41,11 @@ export default angular.module('thingsboard.directives.detailsSidenav', [])
     .name;
 
 /*@ngInject*/
-function DetailsSidenav($timeout) {
+function DetailsSidenav($timeout, $mdUtil, $q, $animate, utils) {
 
     var linker = function (scope, element, attrs) {
+
+        scope.utils = utils;
 
         if (angular.isUndefined(attrs.isReadOnly)) {
             attrs.isReadOnly = false;
@@ -55,6 +57,63 @@ function DetailsSidenav($timeout) {
 
         if (angular.isDefined(attrs.isAlwaysEdit) && attrs.isAlwaysEdit) {
             scope.isEdit = true;
+        }
+
+        var backdrop;
+        var previousContainerStyles;
+
+        if (attrs.hasOwnProperty('tbEnableBackdrop')) {
+            backdrop = $mdUtil.createBackdrop(scope, "md-sidenav-backdrop md-opaque ng-enter");
+            element.on('$destroy', function() {
+                backdrop && backdrop.remove();
+            });
+            scope.$on('$destroy', function(){
+                backdrop && backdrop.remove();
+            });
+            scope.$watch('isOpen', updateIsOpen);
+        }
+
+        function updateIsOpen(isOpen) {
+            backdrop[isOpen ? 'on' : 'off']('click', (ev)=>{
+                ev.preventDefault();
+                scope.isOpen = false;
+                scope.$apply();
+            });
+            var parent = element.parent();
+            var restorePositioning = updateContainerPositions(parent, isOpen);
+
+            return $q.all([
+                isOpen && backdrop ? $animate.enter(backdrop, parent) : backdrop ?
+                    $animate.leave(backdrop) : $q.when(true)
+            ]).then(function() {
+                restorePositioning && restorePositioning();
+            });
+        }
+
+        function updateContainerPositions(parent, willOpen) {
+            var drawerEl = element[0];
+            var scrollTop = parent[0].scrollTop;
+            if (willOpen && scrollTop) {
+                previousContainerStyles = {
+                    top: drawerEl.style.top,
+                    bottom: drawerEl.style.bottom,
+                    height: drawerEl.style.height
+                };
+                var positionStyle = {
+                    top: scrollTop + 'px',
+                    bottom: 'auto',
+                    height: parent[0].clientHeight + 'px'
+                };
+                backdrop.css(positionStyle);
+            }
+            if (!willOpen && previousContainerStyles) {
+                return function() {
+                    backdrop[0].style.top = null;
+                    backdrop[0].style.bottom = null;
+                    backdrop[0].style.height = null;
+                    previousContainerStyles = null;
+                };
+            }
         }
 
         scope.toggleDetailsEditMode = function () {

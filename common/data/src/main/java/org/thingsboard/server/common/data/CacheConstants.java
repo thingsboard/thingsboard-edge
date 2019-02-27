@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -34,5 +34,11 @@ public class CacheConstants {
     public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
     public static final String RELATIONS_CACHE = "relations";
     public static final String DEVICE_CACHE = "devices";
+    public static final String SESSIONS_CACHE = "sessions";
+    public static final String ASSET_CACHE = "assets";
     public static final String DOWNLINK_CACHE = "downlink";
+    public static final String ENTITY_VIEW_CACHE = "entityViews";
+    public static final String ROLE_CACHE = "roles";
+    public static final String USER_PERMISSIONS_CACHE = "permissions";
+    public static final String ENTITY_OWNERS_CACHE = "owners";
 }

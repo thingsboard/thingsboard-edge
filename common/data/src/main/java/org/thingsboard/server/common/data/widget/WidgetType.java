@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,14 +30,19 @@
  */
 package org.thingsboard.server.common.data.widget;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasEntityType;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 
 @EqualsAndHashCode(callSuper = true)
-public class WidgetType extends BaseData<WidgetTypeId> {
+public class WidgetType extends BaseData<WidgetTypeId> implements TenantEntity {
 
     private static final long serialVersionUID = 8388684344603660756L;
 
@@ -115,5 +120,12 @@ public class WidgetType extends BaseData<WidgetTypeId> {
         sb.append('}');
         return sb.toString();
     }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.WIDGET_TYPE;
+    }
+
 
 }

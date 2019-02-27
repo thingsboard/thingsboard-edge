@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,7 +32,6 @@ import './home.scss';
 
 import uiRouter from 'angular-ui-router';
 import ngSanitize from 'angular-sanitize';
-import FBAngular from 'angular-fullscreen';
 import 'angular-breadcrumb';
 
 import thingsboardMenu from '../services/menu.service';
@@ -43,9 +42,12 @@ import thingsboardApiUser from '../api/user.service';
 import thingsboardNoAnimate from '../components/no-animate.directive';
 import thingsboardOnFinishRender from '../components/finish-render.directive';
 import thingsboardSideMenu from '../components/side-menu.directive';
+import thingsboardNavTree from '../components/nav-tree.directive';
 import thingsboardDashboardAutocomplete from '../components/dashboard-autocomplete.directive';
 import thingsboardKvMap from '../components/kv-map.directive';
+import thingsboardJsonObjectEdit from '../components/json-object-edit.directive';
 import thingsboardJsonContent from '../components/json-content.directive';
+import thingsboardTimezoneSelect from '../components/timezone-select.directive';
 
 import thingsboardUserMenu from './user-menu.directive';
 
@@ -62,13 +64,16 @@ import thingsboardAdmin from '../admin';
 import thingsboardProfile from '../profile';
 import thingsboardAsset from '../asset';
 import thingsboardDevice from '../device';
+import thingsboardEntityView from '../entity-view';
 import thingsboardWidgetLibrary from '../widget';
 import thingsboardDashboard from '../dashboard';
-import thingsboardPlugin from '../plugin';
-import thingsboardRule from '../rule';
 import thingsboardEntityGroup from '../group';
 import thingsboardConverter from '../converter';
 import thingsboardIntegration from '../integration';
+import thingsboardRuleChain from '../rulechain';
+import thingsboardScheduler from '../scheduler';
+import thingsboardBlobEntity from '../blob-entity';
+import thingsboardRole from '../role';
 
 import thingsboardJsonForm from '../jsonform';
 
@@ -80,7 +85,6 @@ import BreadcrumbIcon from './breadcrumb-icon.filter';
 export default angular.module('thingsboard.home', [
     uiRouter,
     ngSanitize,
-    FBAngular.name,
     'ncy-angular-breadcrumb',
     thingsboardMenu,
     thingsboardHomeLinks,
@@ -97,13 +101,16 @@ export default angular.module('thingsboard.home', [
     thingsboardProfile,
     thingsboardAsset,
     thingsboardDevice,
+    thingsboardEntityView,
     thingsboardWidgetLibrary,
     thingsboardDashboard,
-    thingsboardPlugin,
-    thingsboardRule,
     thingsboardEntityGroup,
     thingsboardConverter,
     thingsboardIntegration,
+    thingsboardRuleChain,
+    thingsboardScheduler,
+    thingsboardBlobEntity,
+    thingsboardRole,
     thingsboardJsonForm,
     thingsboardApiDevice,
     thingsboardApiLogin,
@@ -111,9 +118,12 @@ export default angular.module('thingsboard.home', [
     thingsboardNoAnimate,
     thingsboardOnFinishRender,
     thingsboardSideMenu,
+    thingsboardNavTree,
     thingsboardDashboardAutocomplete,
     thingsboardKvMap,
-    thingsboardJsonContent
+    thingsboardJsonObjectEdit,
+    thingsboardJsonContent,
+    thingsboardTimezoneSelect
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

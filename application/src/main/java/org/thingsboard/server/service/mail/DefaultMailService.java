@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,23 +35,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.exception.ThingsboardErrorCode;
-import org.thingsboard.server.exception.ThingsboardException;
 
+import javax.activation.DataSource;
+import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
-import java.util.*;
+import javax.mail.util.ByteArrayDataSource;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 @Service
 @Slf4j
@@ -62,17 +74,23 @@ public class DefaultMailService implements MailService {
     public static final String TARGET_EMAIL = "targetEmail";
     public static final String UTF_8 = "UTF-8";
 
+    @Value("${actors.rule.allow_system_mail_service}")
+    private boolean allowSystemMailService;
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
     @Autowired
     private AttributesService attributesService;
 
+    @Autowired
+    private BlobEntityService blobEntityService;
+
     @Override
     public void sendEmail(TenantId tenantId, String email, String subject, String message) throws ThingsboardException {
         sendMail(tenantId, email, subject, message);
     }
-    
+
     @Override
     public void sendTestMail(TenantId tenantId, JsonNode jsonConfig, String email) throws ThingsboardException {
         JavaMailSenderImpl testMailSender = createMailSender(jsonConfig);
@@ -103,7 +121,7 @@ public class DefaultMailService implements MailService {
 
         sendMail(tenantId, email, subject, message);
     }
-    
+
     @Override
     public void sendAccountActivatedEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
 
@@ -133,7 +151,7 @@ public class DefaultMailService implements MailService {
 
         sendMail(tenantId, email, subject, message);
     }
-    
+
     @Override
     public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
 
@@ -157,9 +175,42 @@ public class DefaultMailService implements MailService {
         sendMail(mailSender, mailFrom, email, subject, message);
     }
 
-    private void sendMail(JavaMailSenderImpl mailSender, 
-            String mailFrom, String email, 
-            String subject, String message) throws ThingsboardException {
+    @Override
+    public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
+        JsonNode jsonConfig = getConfig(tenantId, "mail", allowSystemMailService);
+        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        String mailFrom = getStringValue(jsonConfig, "mailFrom");
+        try {
+            MimeMessage mailMsg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mailMsg, attachments != null && !attachments.isEmpty(), "UTF-8");
+            helper.setFrom(StringUtils.isBlank(from) ? mailFrom : from);
+            helper.setTo(to.split("\\s*,\\s*"));
+            if (!StringUtils.isBlank(cc)) {
+                helper.setCc(cc.split("\\s*,\\s*"));
+            }
+            if (!StringUtils.isBlank(bcc)) {
+                helper.setBcc(bcc.split("\\s*,\\s*"));
+            }
+            helper.setSubject(subject);
+            helper.setText(body);
+            if (attachments != null) {
+                for (BlobEntityId blobEntityId : attachments) {
+                    BlobEntity blobEntity = blobEntityService.findBlobEntityById(tenantId, blobEntityId);
+                    if (blobEntity != null) {
+                        DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
+                        helper.addAttachment(blobEntity.getName(), dataSource);
+                    }
+                }
+            }
+            mailSender.send(helper.getMimeMessage());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private void sendMail(JavaMailSenderImpl mailSender,
+                          String mailFrom, String email,
+                          String subject, String message) throws ThingsboardException {
         try {
             MimeMessage mimeMsg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, UTF_8);
@@ -187,15 +238,15 @@ public class DefaultMailService implements MailService {
         Properties javaMailProperties = new Properties();
         String protocol = getStringValue(jsonConfig, "smtpProtocol");
         javaMailProperties.put("mail.transport.protocol", protocol);
-        javaMailProperties.put("mail." + protocol + ".host", getStringValue(jsonConfig, "smtpHost"));
-        javaMailProperties.put("mail." + protocol + ".port", getStringValue(jsonConfig, "smtpPort"));
-        javaMailProperties.put("mail." + protocol + ".timeout", getStringValue(jsonConfig, "timeout"));
-        javaMailProperties.put("mail." + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(getStringValue(jsonConfig, "username"))));
+        javaMailProperties.put(MAIL_PROP + protocol + ".host", getStringValue(jsonConfig, "smtpHost"));
+        javaMailProperties.put(MAIL_PROP + protocol + ".port", getStringValue(jsonConfig, "smtpPort"));
+        javaMailProperties.put(MAIL_PROP + protocol + ".timeout", getStringValue(jsonConfig, "timeout"));
+        javaMailProperties.put(MAIL_PROP + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(getStringValue(jsonConfig, "username"))));
         String enableTls = getStringValue(jsonConfig, "enableTls");
         if (StringUtils.isEmpty(enableTls)) {
             enableTls = "false";
         }
-        javaMailProperties.put("mail." + protocol + ".starttls.enable", enableTls);
+        javaMailProperties.put(MAIL_PROP + protocol + ".starttls.enable", enableTls);
         return javaMailProperties;
     }
 
@@ -216,10 +267,14 @@ public class DefaultMailService implements MailService {
     }
 
     private JsonNode getConfig(TenantId tenantId, String key) throws ThingsboardException {
+        return getConfig(tenantId, key, true);
+    }
+
+    private JsonNode getConfig(TenantId tenantId, String key, boolean allowSystemMailService) throws ThingsboardException {
         try {
             JsonNode jsonConfig = null;
             if (tenantId != null && !tenantId.isNullUid()) {
-                String jsonString = getEntityAttributeValue(tenantId, key);
+                String jsonString = getEntityAttributeValue(tenantId, tenantId, key);
                 if (!StringUtils.isEmpty(jsonString)) {
                     try {
                         jsonConfig = objectMapper.readTree(jsonString);
@@ -234,7 +289,10 @@ public class DefaultMailService implements MailService {
                 }
             }
             if (jsonConfig == null) {
-                AdminSettings settings = adminSettingsService.findAdminSettingsByKey(key);
+                if (!allowSystemMailService) {
+                    throw new RuntimeException("Access to System Mail Service is forbidden!");
+                }
+                AdminSettings settings = adminSettingsService.findAdminSettingsByKey(tenantId, key);
                 if (settings != null) {
                     jsonConfig = settings.getJsonValue();
                 }
@@ -248,9 +306,9 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private String getEntityAttributeValue(EntityId entityId, String key) throws Exception {
+    private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+                attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();
@@ -262,7 +320,7 @@ public class DefaultMailService implements MailService {
     protected ThingsboardException handleException(Exception exception) {
         String message;
         if (exception instanceof NestedRuntimeException) {
-            message = ((NestedRuntimeException)exception).getMostSpecificCause().getMessage();
+            message = ((NestedRuntimeException) exception).getMostSpecificCause().getMessage();
         } else {
             message = exception.getMessage();
         }

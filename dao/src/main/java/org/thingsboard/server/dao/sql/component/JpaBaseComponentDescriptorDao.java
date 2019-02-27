@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.ComponentDescriptorId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentScope;
@@ -76,28 +77,28 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractSearchTextDao<Comp
     }
 
     @Override
-    public Optional<ComponentDescriptor> saveIfNotExist(ComponentDescriptor component) {
+    public Optional<ComponentDescriptor> saveIfNotExist(TenantId tenantId, ComponentDescriptor component) {
         if (component.getId() == null) {
             component.setId(new ComponentDescriptorId(UUIDs.timeBased()));
         }
         if (componentDescriptorRepository.findOne(UUIDConverter.fromTimeUUID(component.getId().getId())) == null) {
-            return Optional.of(save(component));
+            return Optional.of(save(tenantId, component));
         }
         return Optional.empty();
     }
 
     @Override
-    public ComponentDescriptor findById(ComponentDescriptorId componentId) {
-        return findById(componentId.getId());
+    public ComponentDescriptor findById(TenantId tenantId, ComponentDescriptorId componentId) {
+        return findById(tenantId, componentId.getId());
     }
 
     @Override
-    public ComponentDescriptor findByClazz(String clazz) {
+    public ComponentDescriptor findByClazz(TenantId tenantId, String clazz) {
         return DaoUtil.getData(componentDescriptorRepository.findByClazz(clazz));
     }
 
     @Override
-    public List<ComponentDescriptor> findByTypeAndPageLink(ComponentType type, TextPageLink pageLink) {
+    public List<ComponentDescriptor> findByTypeAndPageLink(TenantId tenantId, ComponentType type, TextPageLink pageLink) {
         return DaoUtil.convertDataList(componentDescriptorRepository
                 .findByType(
                         type,
@@ -107,7 +108,7 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractSearchTextDao<Comp
     }
 
     @Override
-    public List<ComponentDescriptor> findByScopeAndTypeAndPageLink(ComponentScope scope, ComponentType type, TextPageLink pageLink) {
+    public List<ComponentDescriptor> findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, TextPageLink pageLink) {
         return DaoUtil.convertDataList(componentDescriptorRepository
                 .findByScopeAndType(
                         type,
@@ -119,13 +120,13 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractSearchTextDao<Comp
 
     @Override
     @Transactional
-    public void deleteById(ComponentDescriptorId componentId) {
-        removeById(componentId.getId());
+    public void deleteById(TenantId tenantId, ComponentDescriptorId componentId) {
+        removeById(tenantId, componentId.getId());
     }
 
     @Override
     @Transactional
-    public void deleteByClazz(String clazz) {
+    public void deleteByClazz(TenantId tenantId, String clazz) {
         componentDescriptorRepository.deleteByClazz(clazz);
     }
 }

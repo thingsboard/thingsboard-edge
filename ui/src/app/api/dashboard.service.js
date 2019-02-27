@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,7 +32,7 @@ export default angular.module('thingsboard.api.dashboard', [])
     .factory('dashboardService', DashboardService).name;
 
 /*@ngInject*/
-function DashboardService($rootScope, $http, $q, $location, $filter) {
+function DashboardService($rootScope, $http, $q, $location, $filter, securityTypes) {
 
     var stDiffPromise;
 
@@ -42,21 +42,23 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
 
 
     var service = {
-        assignDashboardToCustomer: assignDashboardToCustomer,
-        getCustomerDashboards: getCustomerDashboards,
+        //assignDashboardToCustomer: assignDashboardToCustomer,
+        getDashboards: getDashboards,
         getServerTimeDiff: getServerTimeDiff,
         getDashboard: getDashboard,
         getDashboardInfo: getDashboardInfo,
         getTenantDashboardsByTenantId: getTenantDashboardsByTenantId,
         getTenantDashboards: getTenantDashboards,
+        getUserDashboards: getUserDashboards,
+        getGroupDashboards: getGroupDashboards,
         deleteDashboard: deleteDashboard,
         saveDashboard: saveDashboard,
-        unassignDashboardFromCustomer: unassignDashboardFromCustomer,
-        updateDashboardCustomers: updateDashboardCustomers,
-        addDashboardCustomers: addDashboardCustomers,
-        removeDashboardCustomers: removeDashboardCustomers,
-        makeDashboardPublic: makeDashboardPublic,
-        makeDashboardPrivate: makeDashboardPrivate,
+        //unassignDashboardFromCustomer: unassignDashboardFromCustomer,
+        //updateDashboardCustomers: updateDashboardCustomers,
+        //addDashboardCustomers: addDashboardCustomers,
+        //removeDashboardCustomers: removeDashboardCustomers,
+        //makeDashboardPublic: makeDashboardPublic,
+        //makeDashboardPrivate: makeDashboardPrivate,
         getPublicDashboardLink: getPublicDashboardLink
     }
 
@@ -102,17 +104,71 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         return deferred.promise;
     }
 
-    function getCustomerDashboards(customerId, pageLink, config) {
+    function getDashboards(dashboardIds, config) {
         var deferred = $q.defer();
-        var url = '/api/customer/' + customerId + '/dashboards?limit=' + pageLink.limit;
+        var ids = '';
+        for (var i=0;i<dashboardIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += dashboardIds[i];
+        }
+        var url = '/api/dashboards?dashboardIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = dashboardIds.indexOf(id1);
+                var index2 = dashboardIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUserDashboards(userId, operation, pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/user/dashboards?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
         if (angular.isDefined(pageLink.idOffset)) {
-            url += '&offset=' + pageLink.idOffset;
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        if (userId) {
+            url += '&userId=' + userId;
+        }
+        if (operation && securityTypes.operation[operation]) {
+            url += '&operation=' + securityTypes.operation[operation];
         }
         $http.get(url, config).then(function success(response) {
-            response.data = prepareDashboards(response.data);
-            if (pageLink.textSearch) {
-                response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
-            }
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getGroupDashboards(groupId, pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/' + groupId + '/dashboards?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -140,10 +196,10 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         return stDiffPromise;
     }
 
-    function getDashboard(dashboardId) {
+    function getDashboard(dashboardId, config) {
         var deferred = $q.defer();
         var url = '/api/dashboard/' + dashboardId;
-        $http.get(url, null).then(function success(response) {
+        $http.get(url, config).then(function success(response) {
             deferred.resolve(prepareDashboard(response.data));
         }, function fail() {
             deferred.reject();
@@ -162,9 +218,12 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         return deferred.promise;
     }
 
-    function saveDashboard(dashboard) {
+    function saveDashboard(dashboard, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/dashboard';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, cleanDashboard(dashboard)).then(function success(response) {
             deferred.resolve(prepareDashboard(response.data));
         }, function fail() {
@@ -184,7 +243,7 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
         return deferred.promise;
     }
 
-    function assignDashboardToCustomer(customerId, dashboardId) {
+    /*function assignDashboardToCustomer(customerId, dashboardId) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/dashboard/' + dashboardId;
         $http.post(url, null).then(function success(response) {
@@ -259,15 +318,15 @@ function DashboardService($rootScope, $http, $q, $location, $filter) {
             deferred.reject();
         });
         return deferred.promise;
-    }
+    }*/
 
-    function getPublicDashboardLink(dashboard) {
+    function getPublicDashboardLink(dashboard, entityGroup) {
         var url = $location.protocol() + '://' + $location.host();
         var port = $location.port();
         if (port != 80 && port != 443) {
             url += ":" + port;
         }
-        url += "/dashboards/" + dashboard.id.id + "?publicId=" + dashboard.publicCustomerId;
+        url += "/dashboard/" + dashboard.id.id + "?publicId=" + entityGroup.additionalInfo.publicCustomerId;
         return url;
     }
 

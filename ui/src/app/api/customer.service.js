@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,6 +37,8 @@ function CustomerService($http, $q, types) {
 
     var service = {
         getCustomers: getCustomers,
+        getCustomersByIds: getCustomersByIds,
+        getUserCustomers: getUserCustomers,
         getCustomer: getCustomer,
         getShortCustomerInfo: getShortCustomerInfo,
         applyAssignedCustomersInfo: applyAssignedCustomersInfo,
@@ -50,6 +52,52 @@ function CustomerService($http, $q, types) {
     function getCustomers(pageLink, config) {
         var deferred = $q.defer();
         var url = '/api/customers?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getCustomersByIds(customerIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<customerIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += customerIds[i];
+        }
+        var url = '/api/customers?customerIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = customerIds.indexOf(id1);
+                var index2 = customerIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUserCustomers(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/user/customers?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
             url += '&textSearch=' + pageLink.textSearch;
         }
@@ -160,9 +208,12 @@ function CustomerService($http, $q, types) {
         return deferred.promise;
     }
 
-    function saveCustomer(customer) {
+    function saveCustomer(customer, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/customer';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, customer).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {

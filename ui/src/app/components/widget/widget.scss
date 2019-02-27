@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,15 +31,29 @@
 .tb-widget {
   .tb-widget-error {
     display: flex;
-    justify-content: center;
     align-items: center;
-    background: rgba(255,255,255,0.5);
+    justify-content: center;
+    background: rgba(255, 255, 255, .5);
+
     span {
-       color: red;
+      color: #f00;
     }
   }
+
+  .tb-widget-no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .75);
+
+    span {
+      color: #000;
+      text-align: center;
+    }
+  }
+
   .tb-widget-loading {
-    background: rgba(255,255,255,0.15);
     z-index: 3;
+    background: rgba(255, 255, 255, .15);
   }
 }

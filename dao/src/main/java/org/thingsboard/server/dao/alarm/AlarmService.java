@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,11 +30,21 @@
  */
 package org.thingsboard.server.dao.alarm;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.alarm.*;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmId;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmQuery;
+import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
+
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Created by ashvayka on 11.05.17.
@@ -43,17 +53,21 @@ public interface AlarmService {
 
     Alarm createOrUpdateAlarm(Alarm alarm);
 
-    ListenableFuture<Boolean> ackAlarm(AlarmId alarmId, long ackTs);
+    Boolean deleteAlarm(TenantId tenantId, AlarmId alarmId);
 
-    ListenableFuture<Boolean> clearAlarm(AlarmId alarmId, long ackTs);
+    ListenableFuture<Boolean> ackAlarm(TenantId tenantId, AlarmId alarmId, long ackTs);
 
-    ListenableFuture<Alarm> findAlarmByIdAsync(AlarmId alarmId);
+    ListenableFuture<Boolean> clearAlarm(TenantId tenantId, AlarmId alarmId, JsonNode details, long ackTs);
 
-    ListenableFuture<AlarmInfo> findAlarmInfoByIdAsync(AlarmId alarmId);
+    ListenableFuture<Alarm> findAlarmByIdAsync(TenantId tenantId, AlarmId alarmId);
 
-    ListenableFuture<TimePageData<AlarmInfo>> findAlarms(AlarmQuery query);
+    ListenableFuture<AlarmInfo> findAlarmInfoByIdAsync(TenantId tenantId, AlarmId alarmId);
 
-    AlarmSeverity findHighestAlarmSeverity(EntityId entityId, AlarmSearchStatus alarmSearchStatus,
+    ListenableFuture<TimePageData<AlarmInfo>> findAlarms(TenantId tenantId, AlarmQuery query);
+
+    List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<Predicate<AlarmInfo>> filters);
+
+    AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus,
                                            AlarmStatus alarmStatus);
 
     ListenableFuture<Alarm> findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type);

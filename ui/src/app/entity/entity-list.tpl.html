@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -44,11 +44,11 @@
                 md-selected-item="selectedEntity"
                 md-search-text="entitySearchText"
                 md-items="item in fetchEntities(entitySearchText, 10)"
-                md-item-text="item.name"
+                md-item-text="utils.customTranslation(item.name, item.name)"
                 md-min-length="0"
                 placeholder="{{ 'entity.entity-list' | translate }}">
             <md-item-template>
-                <span md-highlight-text="entitySearchText" md-highlight-flags="^i">{{item.name}}</span>
+                <span md-highlight-text="entitySearchText" md-highlight-flags="^i">{{utils.customTranslation(item.name, item.name)}}</span>
             </md-item-template>
             <md-not-found>
                 <span translate translate-values='{ entity: entitySearchText }'>entity.no-entities-matching</span>
@@ -56,7 +56,7 @@
         </md-autocomplete>
         <md-chip-template>
             <span>
-                <strong>{{$chip.name}}</strong>
+                <strong>{{utils.customTranslation($chip.name, $chip.name)}}</strong>
             </span>
         </md-chip-template>
     </md-chips>

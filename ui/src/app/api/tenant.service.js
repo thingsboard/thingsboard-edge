@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -39,6 +39,7 @@ function TenantService($http, $q) {
         deleteTenant: deleteTenant,
         getTenant: getTenant,
         getTenants: getTenants,
+        getTenantsByIds: getTenantsByIds,
         saveTenant: saveTenant,
     }
 
@@ -58,6 +59,32 @@ function TenantService($http, $q) {
         }
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getTenantsByIds(tenantIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<tenantIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += tenantIds[i];
+        }
+        var url = '/api/tenants?tenantIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = tenantIds.indexOf(id1);
+                var index2 = tenantIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
         }, function fail() {
             deferred.reject();
         });

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -174,7 +174,7 @@ export default function GlobalInterceptor($rootScope, $q, $injector) {
             }
         } else if (rejection.status === 403) {
             if (!ignoreErrors) {
-                $rootScope.$broadcast('forbidden');
+                $rootScope.$broadcast('permissionDenied');
             }
         } else if (rejection.status === 0 || rejection.status === -1) {
             getToast().showError(getTranslate().instant('error.unable-to-connect'));
@@ -191,7 +191,7 @@ export default function GlobalInterceptor($rootScope, $q, $injector) {
 
         if (unhandled && !ignoreErrors) {
             if (rejection.data && !rejection.data.message) {
-                getToast().showError(rejection.data);
+                getToast().showError(prepareMessageFromData(rejection.data));
             } else if (rejection.data && rejection.data.message) {
                 getToast().showError(rejection.data.message);
             } else {
@@ -199,6 +199,24 @@ export default function GlobalInterceptor($rootScope, $q, $injector) {
             }
         }
         return $q.reject(rejection);
+    }
+
+    function prepareMessageFromData(data) {
+        if (angular.isObject(data) && data.constructor === ArrayBuffer) { //eslint-disable-line
+            var msg = String.fromCharCode.apply(null, new Uint8Array(data)); //eslint-disable-line
+            try {
+                var msgObj = angular.fromJson(msg);
+                if (msgObj.message) {
+                    return msgObj.message;
+                } else {
+                    return msg;
+                }
+            } catch (e) {
+                return msg;
+            }
+        } else {
+            return data;
+        }
     }
 
     function updateLoadingState(config, isLoading) {

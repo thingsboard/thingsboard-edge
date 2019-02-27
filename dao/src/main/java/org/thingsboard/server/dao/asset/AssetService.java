@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,13 +31,14 @@
 package org.thingsboard.server.dao.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -45,23 +46,18 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface AssetService {
 
-    Asset findAssetById(AssetId assetId);
+    Asset findAssetById(TenantId tenantId, AssetId assetId);
 
-    ListenableFuture<Asset> findAssetByIdAsync(AssetId assetId);
+    ListenableFuture<Asset> findAssetByIdAsync(TenantId tenantId, AssetId assetId);
 
-    Optional<Asset> findAssetByTenantIdAndName(TenantId tenantId, String name);
+    Asset findAssetByTenantIdAndName(TenantId tenantId, String name);
 
     Asset saveAsset(Asset asset);
 
-    Asset assignAssetToCustomer(AssetId assetId, CustomerId customerId);
-
-    Asset unassignAssetFromCustomer(AssetId assetId);
-
-    void deleteAsset(AssetId assetId);
+    void deleteAsset(TenantId tenantId, AssetId assetId);
 
     TextPageData<Asset> findAssetsByTenantId(TenantId tenantId, TextPageLink pageLink);
 
@@ -73,17 +69,17 @@ public interface AssetService {
 
     TextPageData<Asset> findAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 
+    void deleteAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
     TextPageData<Asset> findAssetsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
 
     ListenableFuture<List<Asset>> findAssetsByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<AssetId> assetIds);
 
-    void unassignCustomerAssets(TenantId tenantId, CustomerId customerId);
-
-    ListenableFuture<List<Asset>> findAssetsByQuery(AssetSearchQuery query);
+    ListenableFuture<List<Asset>> findAssetsByQuery(TenantId tenantId, AssetSearchQuery query);
 
     ListenableFuture<List<EntitySubtype>> findAssetTypesByTenantId(TenantId tenantId);
 
-    EntityView findGroupAsset(EntityGroupId entityGroupId, EntityId entityId);
+    ShortEntityView findGroupAsset(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<EntityView>> findAssetsByEntityGroupIdAndCustomerId(EntityGroupId entityGroupId, CustomerId customerId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 }

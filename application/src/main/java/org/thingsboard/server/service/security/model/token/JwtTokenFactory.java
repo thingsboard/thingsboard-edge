@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,26 +36,26 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.JwtSettings;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenFactory {
 
     private static final String SCOPES = "scopes";
+    private static final String USER_GROUP_IDS = "userGroupIds";
     private static final String USER_ID = "userId";
     private static final String FIRST_NAME = "firstName";
     private static final String LAST_NAME = "lastName";
@@ -65,10 +65,12 @@ public class JwtTokenFactory {
     private static final String CUSTOMER_ID = "customerId";
 
     private final JwtSettings settings;
+    private final UserPermissionsService userPermissionsService;
 
     @Autowired
-    public JwtTokenFactory(JwtSettings settings) {
+    public JwtTokenFactory(JwtSettings settings, UserPermissionsService userPermissionsService) {
         this.settings = settings;
+        this.userPermissionsService = userPermissionsService;
     }
 
     /**
@@ -84,7 +86,7 @@ public class JwtTokenFactory {
         UserPrincipal principal = securityUser.getUserPrincipal();
         String subject = principal.getValue();
         Claims claims = Jwts.claims().setSubject(subject);
-        claims.put(SCOPES, securityUser.getAuthorities().stream().map(s -> s.getAuthority()).collect(Collectors.toList()));
+        claims.put(SCOPES, securityUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
         claims.put(USER_ID, securityUser.getId().getId().toString());
         claims.put(FIRST_NAME, securityUser.getFirstName());
         claims.put(LAST_NAME, securityUser.getLastName());
@@ -96,7 +98,6 @@ public class JwtTokenFactory {
         if (securityUser.getCustomerId() != null) {
             claims.put(CUSTOMER_ID, securityUser.getCustomerId().getId().toString());
         }
-
         ZonedDateTime currentTime = ZonedDateTime.now();
 
         String token = Jwts.builder()
@@ -118,7 +119,6 @@ public class JwtTokenFactory {
         if (scopes == null || scopes.isEmpty()) {
             throw new IllegalArgumentException("JWT Token doesn't have any scopes");
         }
-
         SecurityUser securityUser = new SecurityUser(new UserId(UUID.fromString(claims.get(USER_ID, String.class))));
         securityUser.setEmail(subject);
         securityUser.setAuthority(Authority.parse(scopes.get(0)));
@@ -135,6 +135,12 @@ public class JwtTokenFactory {
         String customerId = claims.get(CUSTOMER_ID, String.class);
         if (customerId != null) {
             securityUser.setCustomerId(new CustomerId(UUID.fromString(customerId)));
+        }
+
+        try {
+            securityUser.setUserPermissions(userPermissionsService.getMergedPermissions(securityUser, isPublic));
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
         }
 
         return securityUser;

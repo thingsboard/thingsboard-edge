@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,7 +30,7 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import dashboardsTemplate from './dashboards.tpl.html';
+//import dashboardsTemplate from './dashboards.tpl.html';
 import dashboardTemplate from './dashboard.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -38,7 +38,7 @@ import dashboardTemplate from './dashboard.tpl.html';
 /*@ngInject*/
 export default function DashboardRoutes($stateProvider) {
     $stateProvider
-        .state('home.dashboards', {
+        /*.state('home.dashboards', {
             url: '/dashboards',
             params: {'topIndex': 0},
             module: 'private',
@@ -79,35 +79,8 @@ export default function DashboardRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.customerDashboardsTitle }}", "translate": "false"}'
             }
-        })
-        .state('home.customerGroups.customerGroup.dashboards', {
-            url: '/:customerId/dashboards',
-            params: {'topIndex': 0},
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            views: {
-                "content@home": {
-                    templateUrl: dashboardsTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $controller, entityGroup) {
-                            var ctrl = $controller('DashboardsController as vm',{$scope: $scope, $stateParams: $stateParams});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                    }
-                }
-            },
-            data: {
-                dashboardsType: 'customer',
-                searchEnabled: true,
-                pageTitle: 'customer.dashboards'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "dashboard", "label": "{{ vm.customerDashboardsTitle }}", "translate": "false"}'
-            }
-        })
-        .state('home.dashboards.dashboard', {
+        })*/
+        /*.state('home.dashboards.dashboard', {
             url: '/:dashboardId?state',
             reloadOnSearch: false,
             module: 'private',
@@ -127,8 +100,63 @@ export default function DashboardRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
             }
+        })*/
+        .state('home.dashboard', {
+            url: '/dashboards/:dashboardId?state&edit',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            permissions: {
+                resources: ["dashboard", "widgetsBundle", "widgetType"],
+                operations: ["read"]
+            },
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: null});
+                        }
+                }
+            },
+            data: {
+                widgetEditMode: false,
+                searchEnabled: false,
+                pageTitle: 'dashboard.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
+            }
         })
-        .state('home.customers.dashboards.dashboard', {
+        .state('dashboard', {
+            url: '/dashboard/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            permissions: {
+                resources: ["dashboard", "widgetsBundle", "widgetType"],
+                operations: ["read"]
+            },
+            views: {
+                "@": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: null});
+                        }
+                }
+            },
+            data: {
+                widgetEditMode: false,
+                searchEnabled: false,
+                pageTitle: 'dashboard.dashboard'
+            }
+        });
+        /*.state('home.customers.dashboards.dashboard', {
             url: '/:dashboardId?state',
             reloadOnSearch: false,
             module: 'private',
@@ -147,31 +175,6 @@ export default function DashboardRoutes($stateProvider) {
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "customer.dashboard"}'
             }
-        })
-        .state('home.customerGroups.customerGroup.dashboards.dashboard', {
-            url: '/:dashboardId?state',
-            reloadOnSearch: false,
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: dashboardTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $element, $controller, entityGroup) {
-                            var ctrl = $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                    }
-                }
-            },
-            data: {
-                searchEnabled: false,
-                pageTitle: 'customer.dashboard'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "dashboard", "label": "customer.dashboard"}'
-            }
-        });
+        })*/
+
 }

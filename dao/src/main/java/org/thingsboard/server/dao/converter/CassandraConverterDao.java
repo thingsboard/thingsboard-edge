@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,9 +31,11 @@
 package org.thingsboard.server.dao.converter;
 
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.nosql.ConverterEntity;
@@ -46,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
@@ -67,7 +70,7 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
     @Override
     public List<Converter> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find converters by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<ConverterEntity> converterEntities = findPageWithTextSearch(CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<ConverterEntity> converterEntities = findPageWithTextSearch(new TenantId(tenantId), CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Collections.singletonList(eq(CONVERTER_TENANT_ID_PROPERTY, tenantId)), pageLink);
 
         log.trace("Found converters [{}] by tenantId [{}] and pageLink [{}]", converterEntities, tenantId, pageLink);
@@ -80,8 +83,18 @@ public class CassandraConverterDao extends CassandraAbstractSearchTextDao<Conver
         Select.Where query = select.where();
         query.and(eq(CONVERTER_TENANT_ID_PROPERTY, tenantId));
         query.and(eq(CONVERTER_NAME_PROPERTY, converterName));
-        ConverterEntity converterEntity = findOneByStatement(query);
+        ConverterEntity converterEntity = findOneByStatement(new TenantId(tenantId), query);
         return Optional.ofNullable(DaoUtil.getData(converterEntity));
+    }
+
+    @Override
+    public ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> converterIds) {
+        log.debug("Try to find converters by tenantId [{}] and converter Ids [{}]", tenantId, converterIds);
+        Select select = select().from(getColumnFamilyName());
+        Select.Where query = select.where();
+        query.and(eq(CONVERTER_TENANT_ID_PROPERTY, tenantId));
+        query.and(in(ID_PROPERTY, converterIds));
+        return findListByStatementAsync(new TenantId(tenantId), query);
     }
 
 }

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -139,83 +139,6 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         .andExpect(status().isBadRequest())
         .andExpect(statusReason(containsString("Dashboard title should be specified")));
     }
-    
-    @Test
-    public void testAssignUnassignDashboardToCustomer() throws Exception {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle("My dashboard");
-        Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
-        
-        Customer customer = new Customer();
-        customer.setTitle("My customer");
-        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
-        
-        Dashboard assignedDashboard = doPost("/api/customer/" + savedCustomer.getId().getId().toString() 
-                + "/dashboard/" + savedDashboard.getId().getId().toString(), Dashboard.class);
-
-        Assert.assertTrue(assignedDashboard.getAssignedCustomers().contains(savedCustomer.toShortCustomerInfo()));
-
-        Dashboard foundDashboard = doGet("/api/dashboard/" + savedDashboard.getId().getId().toString(), Dashboard.class);
-        Assert.assertTrue(foundDashboard.getAssignedCustomers().contains(savedCustomer.toShortCustomerInfo()));
-
-        Dashboard unassignedDashboard = 
-                doDelete("/api/customer/"+savedCustomer.getId().getId().toString()+"/dashboard/" + savedDashboard.getId().getId().toString(), Dashboard.class);
-
-        Assert.assertTrue(unassignedDashboard.getAssignedCustomers() == null || unassignedDashboard.getAssignedCustomers().isEmpty());
-
-        foundDashboard = doGet("/api/dashboard/" + savedDashboard.getId().getId().toString(), Dashboard.class);
-
-        Assert.assertTrue(foundDashboard.getAssignedCustomers() == null || foundDashboard.getAssignedCustomers().isEmpty());
-    }
-    
-    @Test
-    public void testAssignDashboardToNonExistentCustomer() throws Exception {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle("My dashboard");
-        Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
-        
-        doPost("/api/customer/" + UUIDs.timeBased().toString()
-                + "/dashboard/" + savedDashboard.getId().getId().toString())
-        .andExpect(status().isNotFound());
-    }
-    
-    @Test
-    public void testAssignDashboardToCustomerFromDifferentTenant() throws Exception {
-        loginSysAdmin();
-        
-        Tenant tenant2 = new Tenant();
-        tenant2.setTitle("Different tenant");
-        Tenant savedTenant2 = doPost("/api/tenant", tenant2, Tenant.class);
-        Assert.assertNotNull(savedTenant2);
-
-        User tenantAdmin2 = new User();
-        tenantAdmin2.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin2.setTenantId(savedTenant2.getId());
-        tenantAdmin2.setEmail("tenant3@thingsboard.org");
-        tenantAdmin2.setFirstName("Joe");
-        tenantAdmin2.setLastName("Downs");
-        
-        tenantAdmin2 = createUserAndLogin(tenantAdmin2, "testPassword1");
-        
-        Customer customer = new Customer();
-        customer.setTitle("Different customer");
-        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
-
-        login(tenantAdmin.getEmail(), "testPassword1");
-        
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle("My dashboard");
-        Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
-        
-        doPost("/api/customer/" + savedCustomer.getId().getId().toString()
-                + "/dashboard/" + savedDashboard.getId().getId().toString())
-        .andExpect(status().isForbidden());
-        
-        loginSysAdmin();
-        
-        doDelete("/api/tenant/"+savedTenant2.getId().getId().toString())
-        .andExpect(status().isOk());
-    }
 
     @Test
     public void testFindTenantDashboards() throws Exception {
@@ -320,40 +243,6 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
                 new TypeReference<TextPageData<DashboardInfo>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
-    }
-    
-    @Test
-    public void testFindCustomerDashboards() throws Exception {
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer = doPost("/api/customer", customer, Customer.class);
-        CustomerId customerId = customer.getId();
-        
-        List<DashboardInfo> dashboards = new ArrayList<>();
-        for (int i=0;i<173;i++) {
-            Dashboard dashboard = new Dashboard();
-            dashboard.setTitle("Dashboard"+i);
-            dashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
-            dashboards.add(new DashboardInfo(doPost("/api/customer/" + customerId.getId().toString()
-                            + "/dashboard/" + dashboard.getId().getId().toString(), Dashboard.class)));
-        }
-        
-        List<DashboardInfo> loadedDashboards = new ArrayList<>();
-        TimePageLink pageLink = new TimePageLink(21);
-        TimePageData<DashboardInfo> pageData = null;
-        do {
-            pageData = doGetTypedWithTimePageLink("/api/customer/" + customerId.getId().toString() + "/dashboards?",
-                    new TypeReference<TimePageData<DashboardInfo>>(){}, pageLink);
-            loadedDashboards.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
-            }
-        } while (pageData.hasNext());
-        
-        Collections.sort(dashboards, idComparator);
-        Collections.sort(loadedDashboards, idComparator);
-        
-        Assert.assertEquals(dashboards, loadedDashboards);
     }
 
 }

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -37,7 +37,7 @@ import alarmRowTemplate from './alarm-row.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function AlarmRowDirective($compile, $templateCache, types, $mdDialog, $document) {
+export default function AlarmRowDirective($compile, $templateCache, types, securityTypes, userPermissionsService, $mdDialog, $document) {
 
     var linker = function (scope, element, attrs) {
 
@@ -46,6 +46,8 @@ export default function AlarmRowDirective($compile, $templateCache, types, $mdDi
 
         scope.alarm = attrs.alarm;
         scope.types = types;
+
+        var readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.alarm, securityTypes.operation.write);
 
         scope.showAlarmDetails = function($event) {
             var onShowingCallback = {
@@ -57,15 +59,16 @@ export default function AlarmRowDirective($compile, $templateCache, types, $mdDi
                 templateUrl: alarmDetailsDialogTemplate,
                 locals: {
                     alarmId: scope.alarm.id.id,
-                    allowAcknowledgment: true,
-                    allowClear: true,
+                    alarm: scope.alarm,
+                    allowAcknowledgment: !readonly,
+                    allowClear: !readonly,
                     displayDetails: true,
                     showingCallback: onShowingCallback
                 },
                 parent: angular.element($document[0].body),
                 targetEvent: $event,
                 fullscreen: true,
-                skipHide: true,
+                multiple: true,
                 onShowing: function(scope, element) {
                     onShowingCallback.onShowing(scope, element);
                 }

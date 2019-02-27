@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -35,17 +35,17 @@ import assetFieldsetTemplate from './asset-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function AssetDirective($compile, $templateCache, toast, $translate, types, assetService, customerService) {
+export default function AssetDirective($compile, $templateCache, toast, $translate, types) {
     var linker = function (scope, element) {
         var template = $templateCache.get(assetFieldsetTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.isAssignedToCustomer = false;
-        scope.isPublic = false;
-        scope.assignedCustomer = null;
+        //scope.isAssignedToCustomer = false;
+        //scope.isPublic = false;
+        //scope.assignedCustomer = null;
 
-        scope.$watch('asset', function(newVal) {
+        /*scope.$watch('asset', function(newVal) {
             if (newVal) {
                 if (scope.asset.customerId && scope.asset.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
@@ -61,7 +61,7 @@ export default function AssetDirective($compile, $templateCache, toast, $transla
                     scope.assignedCustomer = null;
                 }
             }
-        });
+        });*/
 
         scope.onAssetIdCopied = function() {
             toast.showSuccess($translate.instant('asset.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
@@ -74,9 +74,9 @@ export default function AssetDirective($compile, $templateCache, toast, $transla
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             asset: '=',
             isEdit: '=',
-            assetScope: '=',
             theForm: '=',
             onAssignToCustomer: '&',
             onMakePublic: '&',

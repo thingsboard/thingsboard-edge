@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -28,67 +28,61 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../scss/constants';
+@import "../../scss/constants";
 
-.tb-metadata-panel-group, .tb-credentials-panel-group, .tb-topic-filters-panel-group, .tb-headers-filter-panel-group {
+.tb-integration-panel-group {
   .tb-panel-title {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
     min-width: 90px;
+    user-select: none;
+
     @media (min-width: $layout-breakpoint-sm) {
       min-width: 180px;
     }
   }
+
   .tb-panel-prompt {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
-    white-space: nowrap;
     overflow: hidden;
+    font-size: 14px;
+    color: rgba(0, 0, 0, .87);
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
+
   &.disabled {
-    .tb-panel-title, .tb-panel-prompt {
-      color: rgba(0, 0, 0, 0.38);
+    .tb-panel-title,
+    .tb-panel-prompt {
+      color: rgba(0, 0, 0, .38);
     }
   }
+
   md-icon.md-expansion-panel-icon {
-    margin-right: 0px;
+    margin-right: 0;
   }
-}
 
-.tb-header-filters-panel-group {
-  padding-bottom: 15px;
-}
+  span.no-data-found {
+    position: relative;
+    display: flex;
+    height: 40px;
+    text-transform: uppercase;
 
-.tb-topic-filters-panel-group {
-  .tb-panel-prompt {
-    color: rgb(221,44,0);
+    &.disabled {
+      color: rgba(0, 0, 0, .38);
+    }
   }
 }
 
 .tb-integration-form {
   .tb-container {
-    width:100%;
+    width: 100%;
   }
+
   .dropdown-messages {
     .tb-error-message {
       padding: 5px 0 0 0;
     }
   }
-  .dropdown-section {
-  }
-}
 
-.tb-topic-filters-panel-group {
-  span.no-data-found {
-    position: relative;
-    height: 40px;
-    text-transform: uppercase;
-    display: flex;
-    &.disabled {
-      color: rgba(0,0,0,0.38);
-    }
+  .dropdown-section {
+    /* empty */
   }
 }

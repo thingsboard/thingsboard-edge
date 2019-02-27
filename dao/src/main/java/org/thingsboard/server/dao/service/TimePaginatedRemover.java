@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,9 +31,9 @@
 package org.thingsboard.server.dao.service;
 
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
-import java.sql.Time;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,13 +41,13 @@ public abstract class TimePaginatedRemover<I, D extends IdBased<?>> {
 
     private static final int DEFAULT_LIMIT = 100;
 
-    public void removeEntities(I id) {
+    public void removeEntities(TenantId tenantId, I id) {
         TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
         boolean hasNext = true;
         while (hasNext) {
-            List<D> entities = findEntities(id, pageLink);
+            List<D> entities = findEntities(tenantId, id, pageLink);
             for (D entity : entities) {
-                removeEntity(entity);
+                removeEntity(tenantId, entity);
             }
             hasNext = entities.size() == pageLink.getLimit();
             if (hasNext) {
@@ -58,8 +58,8 @@ public abstract class TimePaginatedRemover<I, D extends IdBased<?>> {
         }
     }
 
-    protected abstract List<D> findEntities(I id, TimePageLink pageLink);
+    protected abstract List<D> findEntities(TenantId tenantId, I id, TimePageLink pageLink);
 
-    protected abstract void removeEntity(D entity);
+    protected abstract void removeEntity(TenantId tenantId, D entity);
 
 }

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -59,7 +59,7 @@ export default class TbGoogleMap {
         function initGoogleMap() {
 
             tbMap.map = new google.maps.Map($containerElement[0], { // eslint-disable-line no-undef
-                scrollwheel: false,
+                scrollwheel: true,
                 mapTypeId: getGoogleMapTypeId(tbMap.defaultMapType),
                 zoom: tbMap.defaultZoomLevel || 8
             });
@@ -236,7 +236,7 @@ export default class TbGoogleMap {
     /* eslint-enable no-undef */
 
     /* eslint-disable no-undef */
-    createMarker(location, settings, onClickListener, markerArgs) {
+    createMarker(location, dsIndex, settings, onClickListener, markerArgs) {
         var marker;
         if (settings.showLabel) {
             marker = new MarkerWithLabel({
@@ -259,7 +259,7 @@ export default class TbGoogleMap {
         });
 
         if (settings.displayTooltip) {
-            this.createTooltip(marker, settings.tooltipPattern, settings.tooltipReplaceInfo, settings.autocloseTooltip, markerArgs);
+            this.createTooltip(marker, dsIndex, settings, markerArgs);
         }
 
         if (onClickListener) {
@@ -276,13 +276,13 @@ export default class TbGoogleMap {
     /* eslint-enable no-undef */
 
     /* eslint-disable no-undef */
-    createTooltip(marker, pattern, replaceInfo, autoClose, markerArgs) {
+    createTooltip(marker, dsIndex, settings, markerArgs) {
         var popup = new google.maps.InfoWindow({
             content: ''
         });
         var map = this;
         marker.addListener('click', function() {
-            if (autoClose) {
+            if (settings.autocloseTooltip) {
                 map.tooltips.forEach((tooltip) => {
                     tooltip.popup.close();
                 });
@@ -292,8 +292,8 @@ export default class TbGoogleMap {
         this.tooltips.push( {
             markerArgs: markerArgs,
             popup: popup,
-            pattern: pattern,
-            replaceInfo: replaceInfo
+            locationSettings: settings,
+            dsIndex: dsIndex
         });
     }
     /* eslint-enable no-undef */
@@ -328,6 +328,74 @@ export default class TbGoogleMap {
     removePolyline(polyline) {
         polyline.setMap(null);
     }
+
+
+	createPolygon(latLangs, settings, location,  onClickListener, markerArgs) {
+		let polygon = new google.maps.Polygon({
+			map: this.map,
+			paths: latLangs,
+			strokeColor: settings.polygonStrokeColor,
+			strokeOpacity: settings.polygonStrokeColor,
+			fillColor: settings.polygonColor,
+			fillOpacity: settings.polygonOpacity,
+			strokeWeight: settings.polygonStrokeWeight
+		});
+
+		//initialize-tooltip
+
+		let popup = new google.maps.InfoWindow({
+			content: ''
+		});
+		if (!this.tooltips) this.tooltips = [];
+		this.tooltips.push({
+			markerArgs: markerArgs,
+			popup: popup,
+			locationSettings: settings,
+			dsIndex: location.dsIndex
+		});
+
+		if (onClickListener) {
+			google.maps.event.addListener(polygon, 'click', function (event) {
+				if (settings.displayTooltip) {
+					if (!polygon.anchor) {
+						polygon.anchor = new google.maps.MVCObject();
+					}
+					polygon.anchor.set("position", event.latLng);
+					popup.open(this.map, polygon.anchor);
+				}
+				onClickListener();
+			});
+		}
+		return polygon;
+	}
+	/* eslint-disable no-undef */
+
+	removePolygon (polygon) {
+		polygon.setMap(null);
+	}
+
+	/* eslint-disable no-undef,no-unused-vars */
+	updatePolygonColor (polygon, settings, color) {
+		let options = {
+			paths: polygon.getPaths(),
+			map: this.map,
+			strokeColor: color,
+			fillColor: color,
+			strokeWeight: settings.polygonStrokeWeight
+		}
+
+	}
+	/* eslint-disable no-undef ,no-unused-vars*/
+
+
+	getPolygonLatLngs(polygon) {
+		return polygon.getPaths().getArray();
+	}
+
+	setPolygonLatLngs(polygon, latLngs) {
+		polygon.setPaths(latLngs);
+	}
+
 
     /* eslint-disable no-undef */
     fitBounds(bounds) {

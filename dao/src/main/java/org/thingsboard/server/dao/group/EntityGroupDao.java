@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,21 +31,19 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 public interface EntityGroupDao extends Dao<EntityGroup> {
-
-    EntityGroup save(EntityGroup entityGroup);
-
+    /**
+     * Find entity groups by entity group Ids.
+     *
+     * @param tenantId the tenantId
+     * @param entityGroupIds the entity group Ids
+     * @return the list of entity group objects
+     */
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
 }
-

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -63,13 +64,22 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_CUSTOMER_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_ENTITY_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_TENANT_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_BY_USER_ID_CF;
+import static org.thingsboard.server.dao.model.ModelConstants.AUDIT_LOG_COLUMN_FAMILY_NAME;
 
 @Component
 @Slf4j
@@ -148,7 +158,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
         long partition = toPartitionTs(LocalDate.now().atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli());
         BoundStatement stmt = getSaveByTenantStmt().bind();
         stmt = setSaveStmtVariables(stmt, auditLog, partition);
-        return getFuture(executeAsyncWrite(stmt), rs -> null);
+        return getFuture(executeAsyncWrite(auditLog.getTenantId(), stmt), rs -> null);
     }
 
     @Override
@@ -157,7 +167,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
 
         BoundStatement stmt = getSaveByTenantIdAndEntityIdStmt().bind();
         stmt = setSaveStmtVariables(stmt, auditLog, -1);
-        return getFuture(executeAsyncWrite(stmt), rs -> null);
+        return getFuture(executeAsyncWrite(auditLog.getTenantId(), stmt), rs -> null);
     }
 
     @Override
@@ -166,7 +176,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
 
         BoundStatement stmt = getSaveByTenantIdAndCustomerIdStmt().bind();
         stmt = setSaveStmtVariables(stmt, auditLog, -1);
-        return getFuture(executeAsyncWrite(stmt), rs -> null);
+        return getFuture(executeAsyncWrite(auditLog.getTenantId(), stmt), rs -> null);
     }
 
     @Override
@@ -175,11 +185,11 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
 
         BoundStatement stmt = getSaveByTenantIdAndUserIdStmt().bind();
         stmt = setSaveStmtVariables(stmt, auditLog, -1);
-        return getFuture(executeAsyncWrite(stmt), rs -> null);
+        return getFuture(executeAsyncWrite(auditLog.getTenantId(), stmt), rs -> null);
     }
 
     private BoundStatement setSaveStmtVariables(BoundStatement stmt, AuditLog auditLog, long partition) {
-         stmt.setUUID(0, auditLog.getId().getId())
+        stmt.setUUID(0, auditLog.getId().getId())
                 .setUUID(1, auditLog.getTenantId().getId())
                 .setUUID(2, auditLog.getCustomerId().getId())
                 .setUUID(3, auditLog.getEntityId().getId())
@@ -206,7 +216,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
         BoundStatement stmt = getPartitionInsertStmt().bind();
         stmt = stmt.setUUID(0, auditLog.getTenantId().getId())
                 .setLong(1, partition);
-        return getFuture(executeAsyncWrite(stmt), rs -> null);
+        return getFuture(executeAsyncWrite(auditLog.getTenantId(), stmt), rs -> null);
     }
 
     private PreparedStatement getSaveByTenantStmt() {
@@ -255,16 +265,16 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
             columnsList.add(ModelConstants.AUDIT_LOG_PARTITION_PROPERTY);
         }
         StringJoiner values = new StringJoiner(",");
-        for (int i=0;i<columnsList.size();i++) {
+        for (int i = 0; i < columnsList.size(); i++) {
             values.add("?");
         }
         String statementString = INSERT_INTO + cfName + " (" + String.join(",", columnsList) + ") VALUES (" + values.toString() + ")";
-        return getSession().prepare(statementString);
+        return prepare(statementString);
     }
 
     private PreparedStatement getPartitionInsertStmt() {
         if (partitionInsertStmt == null) {
-            partitionInsertStmt = getSession().prepare(INSERT_INTO + ModelConstants.AUDIT_LOG_BY_TENANT_ID_PARTITIONS_CF +
+            partitionInsertStmt = prepare(INSERT_INTO + ModelConstants.AUDIT_LOG_BY_TENANT_ID_PARTITIONS_CF +
                     "(" + ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY +
                     "," + ModelConstants.AUDIT_LOG_PARTITION_PROPERTY + ")" +
                     " VALUES(?, ?)");
@@ -280,7 +290,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
     @Override
     public List<AuditLog> findAuditLogsByTenantIdAndEntityId(UUID tenantId, EntityId entityId, TimePageLink pageLink) {
         log.trace("Try to find audit logs by tenant [{}], entity [{}] and pageLink [{}]", tenantId, entityId, pageLink);
-        List<AuditLogEntity> entities = findPageWithTimeSearch(AUDIT_LOG_BY_ENTITY_ID_CF,
+        List<AuditLogEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), AUDIT_LOG_BY_ENTITY_ID_CF,
                 Arrays.asList(eq(ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.AUDIT_LOG_ENTITY_TYPE_PROPERTY, entityId.getEntityType()),
                         eq(ModelConstants.AUDIT_LOG_ENTITY_ID_PROPERTY, entityId.getId())),
@@ -292,7 +302,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
     @Override
     public List<AuditLog> findAuditLogsByTenantIdAndCustomerId(UUID tenantId, CustomerId customerId, TimePageLink pageLink) {
         log.trace("Try to find audit logs by tenant [{}], customer [{}] and pageLink [{}]", tenantId, customerId, pageLink);
-        List<AuditLogEntity> entities = findPageWithTimeSearch(AUDIT_LOG_BY_CUSTOMER_ID_CF,
+        List<AuditLogEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), AUDIT_LOG_BY_CUSTOMER_ID_CF,
                 Arrays.asList(eq(ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.AUDIT_LOG_CUSTOMER_ID_PROPERTY, customerId.getId())),
                 pageLink);
@@ -303,7 +313,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
     @Override
     public List<AuditLog> findAuditLogsByTenantIdAndUserId(UUID tenantId, UserId userId, TimePageLink pageLink) {
         log.trace("Try to find audit logs by tenant [{}], user [{}] and pageLink [{}]", tenantId, userId, pageLink);
-        List<AuditLogEntity> entities = findPageWithTimeSearch(AUDIT_LOG_BY_USER_ID_CF,
+        List<AuditLogEntity> entities = findPageWithTimeSearch(new TenantId(tenantId), AUDIT_LOG_BY_USER_ID_CF,
                 Arrays.asList(eq(ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY, tenantId),
                         eq(ModelConstants.AUDIT_LOG_USER_ID_PROPERTY, userId.getId())),
                 pageLink);
@@ -345,7 +355,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
         if (cursor.isFull() || !cursor.hasNextPartition()) {
             return cursor.getData();
         } else {
-            cursor.addData(findPageWithTimeSearch(AUDIT_LOG_BY_TENANT_ID_CF,
+            cursor.addData(findPageWithTimeSearch(new TenantId(cursor.getTenantId()), AUDIT_LOG_BY_TENANT_ID_CF,
                     Arrays.asList(eq(ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY, cursor.getTenantId()),
                             eq(ModelConstants.AUDIT_LOG_PARTITION_PROPERTY, cursor.getNextPartition())),
                     cursor.getPageLink()));
@@ -358,7 +368,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
                 .where(eq(ModelConstants.AUDIT_LOG_TENANT_ID_PROPERTY, tenantId));
         select.and(QueryBuilder.gte(ModelConstants.PARTITION_COLUMN, minPartition));
         select.and(QueryBuilder.lte(ModelConstants.PARTITION_COLUMN, maxPartition));
-        return getSession().execute(select);
+        return executeRead(new TenantId(tenantId), select);
     }
 
 }

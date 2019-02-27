@@ -1,0 +1,406 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.dao.entityview;
+
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.tenant.TenantDao;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.CacheConstants.ENTITY_VIEW_CACHE;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
+import static org.thingsboard.server.dao.service.Validator.*;
+
+/**
+ * Created by Victor Basanets on 8/28/2017.
+ */
+@Service
+@Slf4j
+public class EntityViewServiceImpl extends AbstractEntityService implements EntityViewService {
+
+    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
+    public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
+    public static final String INCORRECT_ENTITY_VIEW_ID = "Incorrect entityViewId ";
+
+    @Autowired
+    private EntityViewDao entityViewDao;
+
+    @Autowired
+    private TenantDao tenantDao;
+
+    @Autowired
+    private CustomerDao customerDao;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.entityId}"),
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.name}"),
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
+    @Override
+    public EntityView saveEntityView(EntityView entityView) {
+        log.trace("Executing save entity view [{}]", entityView);
+        entityViewValidator.validate(entityView, EntityView::getTenantId);
+        EntityView savedEntityView = entityViewDao.save(entityView.getTenantId(), entityView);
+        if (entityView.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
+        }
+        return savedEntityView;
+    }
+
+    @Cacheable(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
+    @Override
+    public EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId) {
+        log.trace("Executing findEntityViewById [{}]", entityViewId);
+        validateId(entityViewId, INCORRECT_ENTITY_VIEW_ID + entityViewId);
+        return entityViewDao.findById(tenantId, entityViewId.getId());
+    }
+
+    @Cacheable(cacheNames = ENTITY_VIEW_CACHE, key = "{#tenantId, #name}")
+    @Override
+    public EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name) {
+        log.trace("Executing findEntityViewByTenantIdAndName [{}][{}]", tenantId, name);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        Optional<EntityView> entityViewOpt = entityViewDao.findEntityViewByTenantIdAndName(tenantId.getId(), name);
+        return entityViewOpt.orElse(null);
+    }
+
+    @Override
+    public TextPageData<EntityView> findEntityViewByTenantId(TenantId tenantId, TextPageLink pageLink) {
+        log.trace("Executing findEntityViewsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantId(tenantId.getId(), pageLink);
+        return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
+    public TextPageData<EntityView> findEntityViewByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type) {
+        log.trace("Executing findEntityViewByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        validateString(type, "Incorrect type " + type);
+        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
+        return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds) {
+        log.trace("Executing findEntityViewsByTenantIdAndIdsAsync, tenantId [{}], entityViewIds [{}]", tenantId, entityViewIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(entityViewIds, "Incorrect entityViewIds " + entityViewIds);
+        return entityViewDao.findEntityViewsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(entityViewIds));
+    }
+
+    @Override
+    public TextPageData<EntityView> findEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId,
+                                                                           TextPageLink pageLink) {
+        log.trace("Executing findEntityViewByTenantIdAndCustomerId, tenantId [{}], customerId [{}]," +
+                " pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(),
+                customerId.getId(), pageLink);
+        return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
+    public TextPageData<EntityView> findEntityViewsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, TextPageLink pageLink, String type) {
+        log.trace("Executing findEntityViewsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}]," +
+                " pageLink [{}], type [{}]", tenantId, customerId, pageLink, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        validateString(type, "Incorrect type " + type);
+        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId.getId(),
+                customerId.getId(), type, pageLink);
+        return new TextPageData<>(entityViews, pageLink);
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByQuery(TenantId tenantId, EntityViewSearchQuery query) {
+        ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());
+        ListenableFuture<List<EntityView>> entityViews = Futures.transformAsync(relations, r -> {
+            EntitySearchDirection direction = query.toEntitySearchQuery().getParameters().getDirection();
+            List<ListenableFuture<EntityView>> futures = new ArrayList<>();
+            for (EntityRelation relation : r) {
+                EntityId entityId = direction == EntitySearchDirection.FROM ? relation.getTo() : relation.getFrom();
+                if (entityId.getEntityType() == EntityType.ENTITY_VIEW) {
+                    futures.add(findEntityViewByIdAsync(tenantId, new EntityViewId(entityId.getId())));
+                }
+            }
+            return Futures.successfulAsList(futures);
+        });
+
+        entityViews = Futures.transform(entityViews, new Function<List<EntityView>, List<EntityView>>() {
+            @Nullable
+            @Override
+            public List<EntityView> apply(@Nullable List<EntityView> entityViewList) {
+                return entityViewList == null ? Collections.emptyList() : entityViewList.stream().filter(entityView -> query.getEntityViewTypes().contains(entityView.getType())).collect(Collectors.toList());
+            }
+        });
+
+        return entityViews;
+    }
+
+    @Override
+    public ListenableFuture<EntityView> findEntityViewByIdAsync(TenantId tenantId, EntityViewId entityViewId) {
+        log.trace("Executing findEntityViewById [{}]", entityViewId);
+        validateId(entityViewId, INCORRECT_ENTITY_VIEW_ID + entityViewId);
+        return entityViewDao.findByIdAsync(tenantId, entityViewId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(TenantId tenantId, EntityId entityId) {
+        log.trace("Executing findEntityViewsByTenantIdAndEntityIdAsync, tenantId [{}], entityId [{}]", tenantId, entityId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(entityId.getId(), "Incorrect entityId" + entityId);
+
+        List<Object> tenantIdAndEntityId = new ArrayList<>();
+        tenantIdAndEntityId.add(tenantId);
+        tenantIdAndEntityId.add(entityId);
+
+        Cache cache = cacheManager.getCache(ENTITY_VIEW_CACHE);
+        List<EntityView> fromCache = cache.get(tenantIdAndEntityId, List.class);
+        if (fromCache != null) {
+            return Futures.immediateFuture(fromCache);
+        } else {
+            ListenableFuture<List<EntityView>> entityViewsFuture = entityViewDao.findEntityViewsByTenantIdAndEntityIdAsync(tenantId.getId(), entityId.getId());
+            Futures.addCallback(entityViewsFuture,
+                    new FutureCallback<List<EntityView>>() {
+                        @Override
+                        public void onSuccess(@Nullable List<EntityView> result) {
+                            cache.putIfAbsent(tenantIdAndEntityId, result);
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+                            log.error("Error while finding entity views by tenantId and entityId", t);
+                        }
+                    });
+            return entityViewsFuture;
+        }
+    }
+
+    @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
+    @Override
+    public void deleteEntityView(TenantId tenantId, EntityViewId entityViewId) {
+        log.trace("Executing deleteEntityView [{}]", entityViewId);
+        validateId(entityViewId, INCORRECT_ENTITY_VIEW_ID + entityViewId);
+        deleteEntityRelations(tenantId, entityViewId);
+        EntityView entityView = entityViewDao.findById(tenantId, entityViewId.getId());
+        cacheManager.getCache(ENTITY_VIEW_CACHE).evict(Arrays.asList(entityView.getTenantId(), entityView.getEntityId()));
+        cacheManager.getCache(ENTITY_VIEW_CACHE).evict(Arrays.asList(entityView.getTenantId(), entityView.getName()));
+        entityViewDao.removeById(tenantId, entityViewId.getId());
+    }
+
+    @Override
+    public void deleteEntityViewsByTenantId(TenantId tenantId) {
+        log.trace("Executing deleteEntityViewsByTenantId, tenantId [{}]", tenantId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        tenantEntityViewsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteEntityViewsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerEntityViewsRemover.removeEntities(tenantId, customerId);
+    }
+
+    @Override
+    public ListenableFuture<List<EntitySubtype>> findEntityViewTypesByTenantId(TenantId tenantId) {
+        log.trace("Executing findEntityViewTypesByTenantId, tenantId [{}]", tenantId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        ListenableFuture<List<EntitySubtype>> tenantEntityViewTypes = entityViewDao.findTenantEntityViewTypesAsync(tenantId.getId());
+        return Futures.transform(tenantEntityViewTypes,
+                entityViewTypes -> {
+                    entityViewTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    return entityViewTypes;
+                });
+    }
+
+    @Override
+    public ShortEntityView findGroupEntityView(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupEntityView, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (entityViewEntityId) -> new EntityViewId(entityViewEntityId.getId()),
+                (entityViewId) -> findEntityViewById(tenantId, entityViewId),
+                new EntityViewViewFunction());
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<ShortEntityView>> findEntityViewsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findEntityViewsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new EntityViewId(entityId.getId()),
+                (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds),
+                new EntityViewViewFunction());
+    }
+
+    class EntityViewViewFunction implements BiFunction<EntityView, List<EntityField>, ShortEntityView> {
+
+        @Override
+        public ShortEntityView apply(EntityView entityView, List<EntityField> entityFields) {
+            ShortEntityView shortEntityView = new ShortEntityView(entityView.getId());
+            shortEntityView.put(EntityField.NAME.name().toLowerCase(), entityView.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TYPE:
+                        shortEntityView.put(key, entityView.getType());
+                        break;
+                }
+            }
+            return shortEntityView;
+        }
+    }
+
+    private DataValidator<EntityView> entityViewValidator =
+            new DataValidator<EntityView>() {
+
+                @Override
+                protected void validateCreate(TenantId tenantId, EntityView entityView) {
+                    entityViewDao.findEntityViewByTenantIdAndName(entityView.getTenantId().getId(), entityView.getName())
+                            .ifPresent(e -> {
+                                throw new DataValidationException("Entity view with such name already exists!");
+                            });
+                }
+
+                @Override
+                protected void validateUpdate(TenantId tenantId, EntityView entityView) {
+                    entityViewDao.findEntityViewByTenantIdAndName(entityView.getTenantId().getId(), entityView.getName())
+                            .ifPresent(e -> {
+                                if (!e.getUuidId().equals(entityView.getUuidId())) {
+                                    throw new DataValidationException("Entity view with such name already exists!");
+                                }
+                            });
+                }
+
+                @Override
+                protected void validateDataImpl(TenantId tenantId, EntityView entityView) {
+                    if (StringUtils.isEmpty(entityView.getType())) {
+                        throw new DataValidationException("Entity View type should be specified!");
+                    }
+                    if (StringUtils.isEmpty(entityView.getName())) {
+                        throw new DataValidationException("Entity view name should be specified!");
+                    }
+                    if (entityView.getTenantId() == null) {
+                        throw new DataValidationException("Entity view should be assigned to tenant!");
+                    } else {
+                        Tenant tenant = tenantDao.findById(tenantId, entityView.getTenantId().getId());
+                        if (tenant == null) {
+                            throw new DataValidationException("Entity view is referencing to non-existent tenant!");
+                        }
+                    }
+                    if (entityView.getCustomerId() == null) {
+                        entityView.setCustomerId(new CustomerId(NULL_UUID));
+                    } else if (!entityView.getCustomerId().getId().equals(NULL_UUID)) {
+                        Customer customer = customerDao.findById(tenantId, entityView.getCustomerId().getId());
+                        if (customer == null) {
+                            throw new DataValidationException("Can't assign entity view to non-existent customer!");
+                        }
+                        if (!customer.getTenantId().getId().equals(entityView.getTenantId().getId())) {
+                            throw new DataValidationException("Can't assign entity view to customer from different tenant!");
+                        }
+                    }
+                }
+            };
+
+    private PaginatedRemover<TenantId, EntityView> tenantEntityViewsRemover = new PaginatedRemover<TenantId, EntityView>() {
+        @Override
+        protected List<EntityView> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+            return entityViewDao.findEntityViewsByTenantId(id.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, EntityView entity) {
+            deleteEntityView(tenantId, new EntityViewId(entity.getUuidId()));
+        }
+    };
+
+    private PaginatedRemover<CustomerId, EntityView> customerEntityViewsRemover = new PaginatedRemover<CustomerId, EntityView>() {
+        @Override
+        protected List<EntityView> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
+            return entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, EntityView entity) {
+            deleteEntityView(tenantId, new EntityViewId(entity.getUuidId()));
+        }
+    };
+}

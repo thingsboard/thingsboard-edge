@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -32,13 +32,22 @@ package org.thingsboard.server.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.exception.ThingsboardException;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 import java.util.List;
 
@@ -53,7 +62,7 @@ public class WidgetTypeController extends BaseController {
         checkParameter("widgetTypeId", strWidgetTypeId);
         try {
             WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));
-            return checkWidgetTypeId(widgetTypeId, false);
+            return checkWidgetTypeId(widgetTypeId, Operation.READ);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -65,10 +74,16 @@ public class WidgetTypeController extends BaseController {
     public WidgetType saveWidgetType(@RequestBody WidgetType widgetType) throws ThingsboardException {
         try {
             if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                widgetType.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+                widgetType.setTenantId(TenantId.SYS_TENANT_ID);
             } else {
                 widgetType.setTenantId(getCurrentUser().getTenantId());
             }
+
+            Operation operation = widgetType.getId() == null ? Operation.CREATE : Operation.WRITE;
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, operation,
+                    widgetType.getId(), widgetType);
+
             return checkNotNull(widgetTypeService.saveWidgetType(widgetType));
         } catch (Exception e) {
             throw handleException(e);
@@ -82,23 +97,24 @@ public class WidgetTypeController extends BaseController {
         checkParameter("widgetTypeId", strWidgetTypeId);
         try {
             WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));
-            checkWidgetTypeId(widgetTypeId, true);
-            widgetTypeService.deleteWidgetType(widgetTypeId);
+            checkWidgetTypeId(widgetTypeId, Operation.DELETE);
+            widgetTypeService.deleteWidgetType(getCurrentUser().getTenantId(), widgetTypeId);
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/widgetTypes", params = { "isSystem", "bundleAlias"}, method = RequestMethod.GET)
     @ResponseBody
     public List<WidgetType> getBundleWidgetTypes(
             @RequestParam boolean isSystem,
             @RequestParam String bundleAlias) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ);
             TenantId tenantId;
             if (isSystem) {
-                tenantId = new TenantId(ModelConstants.NULL_UUID);
+                tenantId = TenantId.SYS_TENANT_ID;
             } else {
                 tenantId = getCurrentUser().getTenantId();
             }
@@ -123,7 +139,8 @@ public class WidgetTypeController extends BaseController {
                 tenantId = getCurrentUser().getTenantId();
             }
             WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdBundleAliasAndAlias(tenantId, bundleAlias, alias);
-            checkWidgetType(widgetType, false);
+            checkNotNull(widgetType);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType);
             return widgetType;
         } catch (Exception e) {
             throw handleException(e);

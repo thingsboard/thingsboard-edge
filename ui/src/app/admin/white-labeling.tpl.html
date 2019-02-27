@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -43,7 +43,11 @@
         <span style="min-height: 5px;" flex="" ng-show="!$root.loading"></span>
         <md-card-content>
             <form name="vm.whiteLabelForm" ng-submit="vm.save()" tb-confirm-on-exit="vm.onFormExit()" confirm-form="vm.whiteLabelForm">
-                <fieldset ng-disabled="$root.loading">
+                <fieldset ng-disabled="$root.loading || vm.readonly">
+                    <md-input-container flex class="md-block" ng-show="vm.isLoginWl && !vm.isSysAdmin">
+                        <label translate>white-labeling.domain-name</label>
+                        <input ng-if="vm.isLoginWl && !vm.isSysAdmin" ng-required="true" ng-model="vm.whiteLabelingParams.domainName">
+                    </md-input-container>
                     <md-input-container flex class="md-block">
                         <label translate>white-labeling.app-title</label>
                         <input ng-model="vm.whiteLabelingParams.appTitle">
@@ -56,7 +60,7 @@
                                 <div ng-show="!vm.whiteLabelingParams.favicon.url" translate>white-labeling.no-favicon-image</div>
                                 <img ng-show="vm.whiteLabelingParams.favicon.url" class="tb-image-preview" src="{{vm.whiteLabelingParams.favicon.url}}" />
                             </div>
-                            <div class="tb-image-clear-container">
+                            <div class="tb-image-clear-container" ng-if="!vm.readonly">
                                 <md-button ng-click="vm.clearFaviconImage()"
                                            class="tb-image-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
                                     <md-tooltip md-direction="top">
@@ -67,12 +71,12 @@
                                     </md-icon>
                                 </md-button>
                             </div>
-                            <div class="alert tb-flow-drop" flow-drop>
+                            <div class="alert tb-flow-drop" flow-drop ng-if="!vm.readonly">
                                 <label for="faviconSelect" translate>white-labeling.drop-favicon-image</label>
                                 <input class="file-input" flow-btn flow-attrs="{accept:'image/x-icon, image/gif, image/png, image/vnd.microsoft.icon'}" id="faviconSelect">
                             </div>
                         </div>
-                        <div class="tb-hint" style="padding-top: 10px;" translate
+                        <div class="tb-hint" ng-if="!vm.readonly" style="padding-top: 10px;" translate
                              translate-values="{kbSize: vm.maxFaviconSizeKb}">white-labeling.favicon-description</div>
                     </div>
                     <div class="tb-container">
@@ -83,7 +87,7 @@
                                 <div ng-show="!vm.whiteLabelingParams.logoImageUrl" translate>white-labeling.no-logo-image</div>
                                 <img ng-show="vm.whiteLabelingParams.logoImageUrl" class="tb-image-preview" src="{{vm.whiteLabelingParams.logoImageUrl}}" />
                             </div>
-                            <div class="tb-image-clear-container">
+                            <div class="tb-image-clear-container" ng-if="!vm.readonly">
                                 <md-button ng-click="vm.clearLogoImage()"
                                            class="tb-image-clear-btn md-icon-button md-primary" aria-label="{{ 'action.remove' | translate }}">
                                     <md-tooltip md-direction="top">
@@ -94,22 +98,29 @@
                                     </md-icon>
                                 </md-button>
                             </div>
-                            <div class="alert tb-flow-drop" flow-drop>
+                            <div class="alert tb-flow-drop" flow-drop ng-if="!vm.readonly">
                                 <label for="logoSelect" translate>white-labeling.drop-logo-image</label>
                                 <input class="file-input" flow-btn flow-attrs="{accept:'image/*'}" id="logoSelect">
                             </div>
                         </div>
-                        <div class="tb-hint" style="padding-top: 10px;" translate
+                        <div class="tb-hint" ng-if="!vm.readonly" style="padding-top: 10px;" translate
                              translate-values="{kbSize: vm.maxLogoSizeKb}">white-labeling.logo-description</div>
                     </div>
                     <md-input-container flex class="md-block">
                         <label translate>white-labeling.logo-height</label>
                         <input type="number" step="1" min="1" ng-model="vm.whiteLabelingParams.logoImageHeight">
                     </md-input-container>
+                    <md-checkbox ng-if="!vm.isLoginWl && vm.isSysAdmin" ng-disabled="$root.loading"
+                                 aria-label="{{ 'white-labeling.enable-help-links' | translate }}" ng-model="vm.whiteLabelingParams.enableHelpLinks">{{ 'white-labeling.enable-help-links' | translate }}</md-checkbox>
+                    <md-input-container flex class="md-block" ng-if="!vm.isLoginWl && vm.isSysAdmin && vm.whiteLabelingParams.enableHelpLinks">
+                        <label translate>white-labeling.help-link-base-url</label>
+                        <input ng-model="vm.whiteLabelingParams.helpLinkBaseUrl">
+                    </md-input-container>
                     <div layout="row">
                         <md-input-container flex class="md-block">
                             <label translate>white-labeling.primary-palette</label>
                             <md-select aria-label="{{ 'white-labeling.primary-palette' | translate }}"
+                                       ng-disabled="vm.readonly"
                                        style="font-weight: 500;"
                                        ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.primaryPalette)"
                                        ng-model="vm.whiteLabelingParams.paletteSettings.primaryPalette.type"
@@ -122,7 +133,7 @@
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <div layout="column" layout-align="center">
+                        <div layout="column" layout-align="center" ng-if="!vm.readonly">
                             <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.primaryPalette.type" ng-click="vm.editPrimaryPalette($event)"
                                        class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
                         </div>
@@ -131,6 +142,7 @@
                         <md-input-container flex class="md-block">
                             <label translate>white-labeling.accent-palette</label>
                             <md-select aria-label="{{ 'white-labeling.accent-palette' | translate }}"
+                                       ng-disabled="vm.readonly"
                                        style="font-weight: 500;"
                                        ng-style="vm.paletteStyle(vm.whiteLabelingParams.paletteSettings.accentPalette)"
                                        ng-model="vm.whiteLabelingParams.paletteSettings.accentPalette.type"
@@ -143,27 +155,38 @@
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <div layout="column" layout-align="center">
+                        <div layout="column" layout-align="center" ng-if="!vm.readonly">
                             <md-button ng-disabled="!vm.whiteLabelingParams.paletteSettings.accentPalette.type" ng-click="vm.editAccentPalette($event)"
                                        class="md-raised md-primary">{{ 'white-labeling.customize-palette' | translate }}</md-button>
                         </div>
                     </div>
-                    <md-checkbox ng-if="vm.isLoginWl" ng-disabled="$root.loading"
+                    <md-checkbox ng-if="vm.isLoginWl" ng-disabled="$root.loading || vm.readonly"
                                  aria-label="{{ 'white-labeling.dark-foreground' | translate }}" ng-model="vm.whiteLabelingParams.darkForeground">{{ 'white-labeling.dark-foreground' | translate }}</md-checkbox>
-                    <div ng-if="vm.isLoginWl" flex md-color-picker
-                         ng-required="false"
-                         ng-model="vm.whiteLabelingParams.pageBackgroundColor"
-                         label="{{ 'white-labeling.page-background-color' | translate }}"
-                         icon="format_color_fill"
-                         default="#999"
-                         md-color-clear-button="true"
-                         open-on-input="true"
-                         md-color-generic-palette="false"
-                         md-color-history="false">
+                    <div layout="row" ng-if="vm.isLoginWl" >
+                        <div flex md-color-picker
+                             ng-style="{pointerEvents: vm.readonly ? 'none' : 'all'}"
+                             ng-required="false"
+                             ng-model="vm.whiteLabelingParams.pageBackgroundColor"
+                             label="{{ 'white-labeling.page-background-color' | translate }}"
+                             icon="format_color_fill"
+                             md-color-clear-button="false"
+                             open-on-input="{{!vm.readonly}}"
+                             md-color-generic-palette="false"
+                             md-color-history="false">
+                        </div>
+                        <md-button class="md-icon-button" ng-if="!vm.readonly" ng-disabled="$root.loading" aria-label="{{ 'action.delete' | translate }}"
+                                   ng-click="vm.whiteLabelingParams.pageBackgroundColor = ''; vm.whiteLabelForm.$setDirty();">
+                            <md-tooltip md-direction="top">
+                                {{ 'action.delete' | translate }}
+                            </md-tooltip>
+                            <md-icon aria-label="{{ 'action.delete' | translate }}" class="material-icons">
+                                close
+                            </md-icon>
+                        </md-button>
                     </div>
                     <div layout="row" layout-align="end center" width="100%" layout-wrap>
-                        <md-button ng-if="!vm.isLoginWl" ng-disabled="$root.loading || vm.whiteLabelForm.$invalid" ng-click="vm.preview()" class="md-raised">{{'white-labeling.preview' | translate}}</md-button>
-                        <md-button ng-disabled="$root.loading || vm.whiteLabelForm.$invalid || !vm.whiteLabelForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
+                        <md-button ng-if="!vm.isLoginWl && !vm.readonly" ng-disabled="$root.loading || vm.whiteLabelForm.$invalid" ng-click="vm.preview()" class="md-raised">{{'white-labeling.preview' | translate}}</md-button>
+                        <md-button ng-if="!vm.readonly" ng-disabled="$root.loading || vm.whiteLabelForm.$invalid || !vm.whiteLabelForm.$dirty" type="submit" class="md-raised md-primary">{{'action.save' | translate}}</md-button>
                     </div>
                 </fieldset>
             </form>

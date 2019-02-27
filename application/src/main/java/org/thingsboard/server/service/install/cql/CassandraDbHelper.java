@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -30,7 +30,16 @@
  */
 package org.thingsboard.server.service.install.cql;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.TableMetadata;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -40,7 +49,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.CSV_DUMP_FORMAT;
 
@@ -170,6 +183,8 @@ public class CassandraDbHelper {
                     str = new Double(row.getDouble(index)).toString();
                 } else if (type == DataType.cint()) {
                     str = new Integer(row.getInt(index)).toString();
+                } else if (type == DataType.bigint()) {
+                    str = new Long(row.getLong(index)).toString();
                 } else if (type == DataType.uuid()) {
                     str = row.getUUID(index).toString();
                 } else if (type == DataType.timeuuid()) {
@@ -216,6 +231,8 @@ public class CassandraDbHelper {
             boundStatement.setDouble(column, Double.valueOf(value));
         } else if (type == DataType.cint()) {
             boundStatement.setInt(column, Integer.valueOf(value));
+        } else if (type == DataType.bigint()) {
+            boundStatement.setLong(column, Long.valueOf(value));
         } else if (type == DataType.uuid()) {
             boundStatement.setUUID(column, UUID.fromString(value));
         } else if (type == DataType.timeuuid()) {

@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -41,7 +41,6 @@
 		   <section flex layout='column' layout-align="center" style="padding-left: 4px;">
 			   <md-chips flex ng-if="widgetType != types.widgetType.alarm.value"
 						 id="timeseries_datakey_chips"
-						 ng-required="true"
 						 ng-model="timeseriesDataKeys" md-autocomplete-snap
 						 md-transform-chip="transformTimeseriesDataKeyChip($chip)"
 						 md-require-match="false">
@@ -75,7 +74,7 @@
 							<div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
 								<div class="tb-color-result" ng-style="{background: $chip.color}"></div>
 							</div>
-							<div layout="row" flex>
+							<div layout="row">
 							  <div class="tb-chip-label">
 							  	{{$chip.label}}
 							  </div>
@@ -93,7 +92,6 @@
 			   </md-chips>
 			   <md-chips flex ng-if="widgetType === types.widgetType.latest.value"
                          id="attribute_datakey_chips"
-                         ng-required="true"
                          ng-model="attributeDataKeys" md-autocomplete-snap
                          md-transform-chip="transformAttributeDataKeyChip($chip)"
                          md-require-match="false">
@@ -127,7 +125,7 @@
 							  <div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
 								  <div class="tb-color-result" ng-style="{background: $chip.color}"></div>
 							  </div>
-							  <div layout="row" flex>
+							  <div layout="row">
 								  <div class="tb-chip-label">
 									  {{$chip.label}}
 								  </div>
@@ -179,7 +177,7 @@
 						   <div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
 							   <div class="tb-color-result" ng-style="{background: $chip.color}"></div>
 						   </div>
-						   <div layout="row" flex>
+						   <div layout="row">
 							   <div class="tb-chip-label">
 								   {{$chip.label}}
 							   </div>

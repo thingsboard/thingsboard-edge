@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -33,14 +33,14 @@
 <section layout="column" layout-align="start start">
 	<section layout="row" layout-align="start start">
 	    <mdp-date-picker ng-model="startDate" mdp-placeholder="{{ 'datetime.date-from' | translate }}"
-	       	mdp-max-date="maxStartDate"></mdp-date-picker>
+	       	></mdp-date-picker>
 	    <mdp-time-picker ng-model="startDate" mdp-placeholder="{{ 'datetime.time-from' | translate }}"
-	    	mdp-max-date="maxStartDate" mdp-auto-switch="true"></mdp-time-picker>   	
+	    	mdp-auto-switch="true"></mdp-time-picker>
     </section>
 	<section layout="row" layout-align="start start">
 	    <mdp-date-picker ng-model="endDate" mdp-placeholder="{{ 'datetime.date-to' | translate }}"
-	       	mdp-min-date="minEndDate" mdp-max-date="maxEndDate"></mdp-date-picker>
+	       	></mdp-date-picker>
 	    <mdp-time-picker ng-model="endDate" mdp-placeholder="{{ 'datetime.time-to' | translate }}"
-	    	mdp-min-date="minEndDate" mdp-max-date="maxEndDate" mdp-auto-switch="true"></mdp-time-picker>   	
+	    	mdp-auto-switch="true"></mdp-time-picker>
     </section>
 </section>

@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -40,17 +40,17 @@ import java.util.List;
 
 public interface WidgetsBundleService {
 
-    WidgetsBundle findWidgetsBundleById(WidgetsBundleId widgetsBundleId);
+    WidgetsBundle findWidgetsBundleById(TenantId tenantId, WidgetsBundleId widgetsBundleId);
 
     WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle);
 
-    void deleteWidgetsBundle(WidgetsBundleId widgetsBundleId);
+    void deleteWidgetsBundle(TenantId tenantId, WidgetsBundleId widgetsBundleId);
 
     WidgetsBundle findWidgetsBundleByTenantIdAndAlias(TenantId tenantId, String alias);
 
-    TextPageData<WidgetsBundle> findSystemWidgetsBundlesByPageLink(TextPageLink pageLink);
+    TextPageData<WidgetsBundle> findSystemWidgetsBundlesByPageLink(TenantId tenantId, TextPageLink pageLink);
 
-    List<WidgetsBundle> findSystemWidgetsBundles();
+    List<WidgetsBundle> findSystemWidgetsBundles(TenantId tenantId);
 
     TextPageData<WidgetsBundle> findTenantWidgetsBundlesByTenantId(TenantId tenantId, TextPageLink pageLink);
 

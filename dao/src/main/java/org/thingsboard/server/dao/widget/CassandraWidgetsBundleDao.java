@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.widget;
 import com.datastax.driver.core.querybuilder.Select;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
@@ -44,8 +46,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGETS_BUNDLE_ALIAS_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGETS_BUNDLE_BY_TENANT_AND_ALIAS_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGETS_BUNDLE_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.WIDGETS_BUNDLE_TENANT_ID_PROPERTY;
 
 @Component
 @Slf4j
@@ -70,16 +79,16 @@ public class CassandraWidgetsBundleDao extends CassandraAbstractSearchTextDao<Wi
                 .and(eq(WIDGETS_BUNDLE_TENANT_ID_PROPERTY, tenantId))
                 .and(eq(WIDGETS_BUNDLE_ALIAS_PROPERTY, alias));
         log.trace("Execute query {}", query);
-        WidgetsBundleEntity widgetsBundleEntity = findOneByStatement(query);
+        WidgetsBundleEntity widgetsBundleEntity = findOneByStatement(new TenantId(tenantId), query);
         log.trace("Found widgets bundle [{}] by tenantId [{}] and alias [{}]",
                 widgetsBundleEntity, tenantId, alias);
         return DaoUtil.getData(widgetsBundleEntity);
     }
 
     @Override
-    public List<WidgetsBundle> findSystemWidgetsBundles(TextPageLink pageLink) {
+    public List<WidgetsBundle> findSystemWidgetsBundles(TenantId tenantId, TextPageLink pageLink) {
         log.debug("Try to find system widgets bundles by pageLink [{}]", pageLink);
-        List<WidgetsBundleEntity> widgetsBundlesEntities = findPageWithTextSearch(WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<WidgetsBundleEntity> widgetsBundlesEntities = findPageWithTextSearch(tenantId, WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(WIDGETS_BUNDLE_TENANT_ID_PROPERTY, NULL_UUID)),
                 pageLink);
         log.trace("Found system widgets bundles [{}] by pageLink [{}]", widgetsBundlesEntities, pageLink);
@@ -89,7 +98,7 @@ public class CassandraWidgetsBundleDao extends CassandraAbstractSearchTextDao<Wi
     @Override
     public List<WidgetsBundle> findTenantWidgetsBundlesByTenantId(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find tenant widgets bundles by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<WidgetsBundleEntity> widgetsBundlesEntities = findPageWithTextSearch(WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<WidgetsBundleEntity> widgetsBundlesEntities = findPageWithTextSearch(new TenantId(tenantId), WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(WIDGETS_BUNDLE_TENANT_ID_PROPERTY, tenantId)),
                 pageLink);
         log.trace("Found tenant widgets bundles [{}] by tenantId [{}] and pageLink [{}]", widgetsBundlesEntities, tenantId, pageLink);
@@ -99,7 +108,7 @@ public class CassandraWidgetsBundleDao extends CassandraAbstractSearchTextDao<Wi
     @Override
     public List<WidgetsBundle> findAllTenantWidgetsBundlesByTenantId(UUID tenantId, TextPageLink pageLink) {
         log.debug("Try to find all tenant widgets bundles by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
-        List<WidgetsBundleEntity> widgetsBundlesEntities = findPageWithTextSearch(WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+        List<WidgetsBundleEntity> widgetsBundlesEntities = findPageWithTextSearch(new TenantId(tenantId), WIDGETS_BUNDLE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(in(WIDGETS_BUNDLE_TENANT_ID_PROPERTY, Arrays.asList(NULL_UUID, tenantId))),
                 pageLink);
         log.trace("Found all tenant widgets bundles [{}] by tenantId [{}] and pageLink [{}]", widgetsBundlesEntities, tenantId, pageLink);

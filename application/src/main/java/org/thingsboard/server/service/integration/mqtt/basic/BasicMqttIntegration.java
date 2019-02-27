@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -31,28 +31,29 @@
 package org.thingsboard.server.service.integration.mqtt.basic;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.service.converter.DownLinkMetaData;
+import org.thingsboard.mqtt.MqttClientCallback;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownlinkData;
+import org.thingsboard.server.service.converter.IntegrationMetaData;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
 import org.thingsboard.server.service.integration.mqtt.AbstractMqttIntegration;
 import org.thingsboard.server.service.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.service.integration.mqtt.MqttTopicFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -67,16 +68,36 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(ctx, new BasicMqttIntegrationMsg(topic, data)));
+        subscribeToTopics();
+        this.downlinkTopicPattern = getDownlinkTopicPattern();
+        this.mqttClient.setCallback(new MqttClientCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+                log.info("[{}][{}] MQTT Integration lost connection to the target broker", configuration.getId(), configuration.getName());
+            }
 
+            @Override
+            public void onSuccessfulReconnect() {
+                log.info("[{}][{}] MQTT Integration successfully reconnected to the target broker", configuration.getId(), configuration.getName());
+                try {
+                    subscribeToTopics();
+                } catch (IOException e) {
+                    log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
+                }
+            }
+        });
+    }
+
+    private void subscribeToTopics() throws java.io.IOException {
         List<MqttTopicFilter> topics = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("topicFilters")),
                 new TypeReference<List<MqttTopicFilter>>() {
                 });
 
         for (MqttTopicFilter topicFilter : topics) {
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
-                    process(params.getContext(), new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
+                    process(ctx, new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
-        this.downlinkTopicPattern = getDownlinkTopicPattern();
     }
 
     protected String getDownlinkTopicPattern() {
@@ -104,7 +125,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     }
 
     @Override
-    protected boolean doProcessDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception {
+    protected boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<DownlinkData>> topicToDataMap = convertDownLinkMsg(context, msg);
         for (Map.Entry<String, List<DownlinkData>> topicEntry : topicToDataMap.entrySet()) {
             for (DownlinkData data : topicEntry.getValue()) {
@@ -116,10 +137,10 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         return !topicToDataMap.isEmpty();
     }
 
-    protected Map<String, List<DownlinkData>> convertDownLinkMsg(IntegrationContext context, DownLinkMsg msg) throws Exception {
+    private Map<String, List<DownlinkData>> convertDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<DownlinkData>> topicToDataMap = new HashMap<>();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new DownLinkMetaData(mdMap));
+        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
         for (DownlinkData data : result) {
             if (!data.isEmpty()) {
                 String downlinkTopic = compileDownlinkTopic(data.getMetadata());
@@ -129,11 +150,11 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         return topicToDataMap;
     }
 
-    private String compileDownlinkTopic(Map<String,String> md) {
+    private String compileDownlinkTopic(Map<String, String> md) {
         if (md != null) {
             String result = downlinkTopicPattern;
-            for (Map.Entry<String,String> mdEntry : md.entrySet()) {
-                String key = "${"+mdEntry.getKey()+"}";
+            for (Map.Entry<String, String> mdEntry : md.entrySet()) {
+                String key = "${" + mdEntry.getKey() + "}";
                 result = result.replace(key, mdEntry.getValue());
             }
             return result;

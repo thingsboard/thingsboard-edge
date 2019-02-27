@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -92,10 +92,10 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         savedWidgetType.setName("New Widget Type");
 
         widgetTypeService.saveWidgetType(savedWidgetType);
-        WidgetType foundWidgetType = widgetTypeService.findWidgetTypeById(savedWidgetType.getId());
+        WidgetType foundWidgetType = widgetTypeService.findWidgetTypeById(tenantId, savedWidgetType.getId());
         Assert.assertEquals(foundWidgetType.getName(), savedWidgetType.getName());
 
-        widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+        widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
     }
 
     @Test(expected = DataValidationException.class)
@@ -112,7 +112,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         try {
             widgetTypeService.saveWidgetType(widgetType);
         } finally {
-            widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+            widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
         }
     }
 
@@ -140,7 +140,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         try {
             widgetTypeService.saveWidgetType(widgetType);
         } finally {
-            widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+            widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
         }
     }
 
@@ -159,7 +159,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         try {
             widgetTypeService.saveWidgetType(widgetType);
         } finally {
-            widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+            widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
         }
     }
 
@@ -190,7 +190,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         try {
             widgetTypeService.saveWidgetType(savedWidgetType);
         } finally {
-            widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+            widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
         }
     }
 
@@ -211,7 +211,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         try {
             widgetTypeService.saveWidgetType(savedWidgetType);
         } finally {
-            widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+            widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
         }
     }
 
@@ -232,7 +232,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         try {
             widgetTypeService.saveWidgetType(savedWidgetType);
         } finally {
-            widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+            widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
         }
     }
 
@@ -249,11 +249,11 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(new ObjectMapper().readValue("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetType savedWidgetType = widgetTypeService.saveWidgetType(widgetType);
-        WidgetType foundWidgetType = widgetTypeService.findWidgetTypeById(savedWidgetType.getId());
+        WidgetType foundWidgetType = widgetTypeService.findWidgetTypeById(tenantId, savedWidgetType.getId());
         Assert.assertNotNull(foundWidgetType);
         Assert.assertEquals(savedWidgetType, foundWidgetType);
 
-        widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+        widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
     }
 
     @Test
@@ -273,7 +273,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         Assert.assertNotNull(foundWidgetType);
         Assert.assertEquals(savedWidgetType, foundWidgetType);
 
-        widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+        widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
     }
 
     @Test
@@ -289,13 +289,13 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(new ObjectMapper().readValue("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetType savedWidgetType = widgetTypeService.saveWidgetType(widgetType);
-        WidgetType foundWidgetType = widgetTypeService.findWidgetTypeById(savedWidgetType.getId());
+        WidgetType foundWidgetType = widgetTypeService.findWidgetTypeById(tenantId, savedWidgetType.getId());
         Assert.assertNotNull(foundWidgetType);
-        widgetTypeService.deleteWidgetType(savedWidgetType.getId());
-        foundWidgetType = widgetTypeService.findWidgetTypeById(savedWidgetType.getId());
+        widgetTypeService.deleteWidgetType(tenantId, savedWidgetType.getId());
+        foundWidgetType = widgetTypeService.findWidgetTypeById(tenantId, savedWidgetType.getId());
         Assert.assertNull(foundWidgetType);
 
-        widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+        widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
     }
 
     @Test
@@ -328,7 +328,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
 
         Assert.assertTrue(loadedWidgetTypes.isEmpty());
 
-        widgetsBundleService.deleteWidgetsBundle(savedWidgetsBundle.getId());
+        widgetsBundleService.deleteWidgetsBundle(tenantId, savedWidgetsBundle.getId());
     }
 
 }

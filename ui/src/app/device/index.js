@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -36,8 +36,8 @@ import thingsboardApiCustomer from '../api/customer.service';
 
 import DeviceRoutes from './device.routes';
 import {DeviceController, DeviceCardController} from './device.controller';
-import AssignDeviceToCustomerController from './assign-to-customer.controller';
-import AddDevicesToCustomerController from './add-devices-to-customer.controller';
+//import AssignDeviceToCustomerController from './assign-to-customer.controller';
+//import AddDevicesToCustomerController from './add-devices-to-customer.controller';
 import ManageDeviceCredentialsController from './device-credentials.controller';
 import DeviceDirective from './device.directive';
 import DeviceGroupConfig from './device-group.config';
@@ -52,8 +52,8 @@ export default angular.module('thingsboard.device', [
     .config(DeviceRoutes)
     .controller('DeviceController', DeviceController)
     .controller('DeviceCardController', DeviceCardController)
-    .controller('AssignDeviceToCustomerController', AssignDeviceToCustomerController)
-    .controller('AddDevicesToCustomerController', AddDevicesToCustomerController)
+    //.controller('AssignDeviceToCustomerController', AssignDeviceToCustomerController)
+    //.controller('AddDevicesToCustomerController', AddDevicesToCustomerController)
     .controller('ManageDeviceCredentialsController', ManageDeviceCredentialsController)
     .directive('tbDevice', DeviceDirective)
     .factory('deviceGroupConfig', DeviceGroupConfig)

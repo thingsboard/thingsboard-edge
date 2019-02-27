@@ -1,13 +1,13 @@
 <!--
 
-    Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
-    the property of Thingsboard OÜ and its suppliers,
+    the property of ThingsBoard, Inc. and its suppliers,
     if any.  The intellectual and technical concepts contained
-    herein are proprietary to Thingsboard OÜ
+    herein are proprietary to ThingsBoard, Inc.
     and its suppliers and may be covered by U.S. and Foreign Patents,
     patents in process, and are protected by trade secret or copyright law.
 
@@ -31,7 +31,7 @@
 
 -->
 <tb-grid grid-configuration="vm.converterGridConfig">
-    <details-buttons tb-help="'converters'" help-container-id="help-container">
+    <details-buttons tb-help="vm.helpLinkIdForConverter()" help-container-id="help-container">
         <div id="help-container"></div>
     </details-buttons>
     <md-tabs ng-class="{'tb-headless': vm.grid.detailsConfig.isDetailsEditMode}"
@@ -43,16 +43,18 @@
                          on-export-converter="vm.exportConverter(event, vm.grid.detailsConfig.currentItem)"
                          on-delete-converter="vm.grid.deleteItem(event, vm.grid.detailsConfig.currentItem)"></tb-converter>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && ('converter' | hasGenericPermission:'readAttributes')" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.attributes' | translate }}">
             <tb-attribute-table flex
+                                readonly="!('converter' | hasGenericPermission:'writeAttributes')"
                                 entity-id="vm.grid.operatingItem().id.id"
                                 entity-type="{{vm.types.entityType.converter}}"
                                 entity-name="vm.grid.operatingItem().name"
                                 default-attribute-scope="{{vm.types.attributesScope.server.value}}">
             </tb-attribute-table>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && ('converter' | hasGenericPermission:'readTelemetry')" md-on-select="vm.grid.triggerResize()" label="{{ 'attribute.latest-telemetry' | translate }}">
             <tb-attribute-table flex
+                                readonly="!('converter' | hasGenericPermission:'writeTelemetry')"
                                 entity-id="vm.grid.operatingItem().id.id"
                                 entity-type="{{vm.types.entityType.converter}}"
                                 entity-name="vm.grid.operatingItem().name"
@@ -60,7 +62,7 @@
                                 disable-attribute-scope-selection="true">
             </tb-attribute-table>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && ('alarm' | hasGenericPermission:'read')" md-on-select="vm.grid.triggerResize()" label="{{ 'alarm.alarms' | translate }}">
             <tb-alarm-table flex entity-type="vm.types.entityType.converter"
                             entity-id="vm.grid.operatingItem().id.id">
             </tb-alarm-table>
@@ -75,11 +77,12 @@
         </md-tab>
         <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode" md-on-select="vm.grid.triggerResize()" label="{{ 'relation.relations' | translate }}">
             <tb-relation-table flex
+                               readonly="!('converter' | hasGenericPermission:'write')"
                                entity-id="vm.grid.operatingItem().id.id"
                                entity-type="{{vm.types.entityType.converter}}">
             </tb-relation-table>
         </md-tab>
-        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && vm.grid.isTenantAdmin()" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
+        <md-tab ng-if="!vm.grid.detailsConfig.isDetailsEditMode && ('auditLog' | hasGenericPermission:'read')" md-on-select="vm.grid.triggerResize()" label="{{ 'audit-log.audit-logs' | translate }}">
             <tb-audit-log-table flex entity-type="vm.types.entityType.converter"
                                 entity-id="vm.grid.operatingItem().id.id"
                                 audit-log-mode="{{vm.types.auditLogMode.entity}}">

@@ -1,12 +1,12 @@
 /*
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -48,7 +48,15 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
         scope.types = types;
         scope.aliasFilterTypes = entityService.getAliasFilterTypesByEntityTypes(scope.allowedEntityTypes);
 
-        scope.entityGroupTypes = [types.entityType.device, types.entityType.asset, types.entityType.customer].filter((entityType) =>
+        var groupTypes = [ types.entityType.customer,
+            types.entityType.asset,
+            types.entityType.device,
+            types.entityType.user,
+            types.entityType.entityView,
+            types.entityType.dashboard
+        ];
+
+        scope.entityGroupTypes = groupTypes.filter((entityType) =>
             scope.allowedEntityTypes ? scope.allowedEntityTypes.indexOf(entityType) > -1 : true
         );
 
@@ -104,9 +112,14 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     filter.deviceType = null;
                     filter.deviceNameFilter = '';
                     break;
+                case types.aliasFilterType.entityViewType.value:
+                    filter.entityViewType = null;
+                    filter.entityViewNameFilter = '';
+                    break;
                 case types.aliasFilterType.relationsQuery.value:
                 case types.aliasFilterType.assetSearchQuery.value:
                 case types.aliasFilterType.deviceSearchQuery.value:
+                case types.aliasFilterType.entityViewSearchQuery.value:
                     filter.rootStateEntity = false;
                     filter.stateEntityParamName = null;
                     filter.defaultStateEntity = null;
@@ -121,6 +134,9 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     } else if (filter.type === types.aliasFilterType.deviceSearchQuery.value) {
                         filter.relationType = null;
                         filter.deviceTypes = [];
+                    } else if (filter.type === types.aliasFilterType.entityViewSearchQuery.value) {
+                        filter.relationType = null;
+                        filter.entityViewTypes = [];
                     }
                     break;
             }

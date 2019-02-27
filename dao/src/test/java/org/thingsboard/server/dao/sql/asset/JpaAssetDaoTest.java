@@ -1,12 +1,12 @@
 /**
- * Thingsboard OÜ ("COMPANY") CONFIDENTIAL
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2018 Thingsboard OÜ. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
- * the property of Thingsboard OÜ and its suppliers,
+ * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Thingsboard OÜ
+ * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  *
@@ -50,7 +50,9 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
@@ -72,7 +74,7 @@ public class JpaAssetDaoTest extends AbstractJpaDaoTest {
             UUID customerId = i % 2 == 0 ? customerId1 : customerId2;
             saveAsset(assetId, tenantId, customerId, "ASSET_" + i, "TYPE_1");
         }
-        assertEquals(60, assetDao.find().size());
+        assertEquals(60, assetDao.find(new TenantId(tenantId1)).size());
 
         TextPageLink pageLink1 = new TextPageLink(20, "ASSET_");
         List<Asset> assets1 = assetDao.findAssetsByTenantId(tenantId1, pageLink1);
@@ -229,6 +231,6 @@ public class JpaAssetDaoTest extends AbstractJpaDaoTest {
         asset.setCustomerId(new CustomerId(customerId));
         asset.setName(name);
         asset.setType(type);
-        assetDao.save(asset);
+        assetDao.save(new TenantId(tenantId), asset);
     }
 }
