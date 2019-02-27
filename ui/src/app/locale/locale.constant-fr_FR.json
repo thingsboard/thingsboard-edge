@@ -4,8 +4,8 @@
         "access-forbidden-text": "Vous n'avez pas accès à cet emplacement! <br/> Essayez de vous connecter avec un autre utilisateur si vous souhaitez toujours accéder à cet emplacement.",
         "refresh-token-expired": "La session a expiré",
         "refresh-token-failed": "Impossible de rafraîchir la session",
-        "unauthorized": "non autorisé",
-        "unauthorized-access": "accès non autorisé",
+        "unauthorized": "Non autorisé",
+        "unauthorized-access": "Accès non autorisé",
         "unauthorized-access-text": "Vous devez vous connecter pour avoir accès à cette ressource!"
     },
     "action": {

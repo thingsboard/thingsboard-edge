@@ -148,4 +148,14 @@ public class EntityRelation implements Serializable {
         result = 31 * result + (typeGroup != null ? typeGroup.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "EntityRelation{" +
+                "from=" + from +
+                ", to=" + to +
+                ", type='" + type + '\'' +
+                ", typeGroup=" + typeGroup +
+                '}';
+    }
 }

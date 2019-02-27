@@ -261,9 +261,24 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             }
             return Futures.successfulAsList(futures);
         });
+
+        try {
+            int i = 0;
+            List<EntityRelation> relationList = relations.get();
+            for (Asset asset : assets.get()) {
+                if (asset == null) {
+                    log.warn("FAILED to find asset for relation: {}", relationList.get(i));
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            log.warn("Exception: ", e);
+        }
+
         assets = Futures.transform(assets, assetList ->
             assetList == null ? Collections.emptyList() : assetList.stream().filter(asset -> query.getAssetTypes().contains(asset.getType())).collect(Collectors.toList())
         );
+
         return assets;
     }
 
