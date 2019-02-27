@@ -80,7 +80,7 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
                 return $translate.instant('user.delete-user-text');
             },
             deleteEntitiesTitle: (count) => {
-                return $translate.instant('user.delete-user-title', {count: count}, 'messageformat');
+                return $translate.instant('user.delete-users-title', {count: count}, 'messageformat');
             },
             deleteEntitiesContent: (/*count*/) => {
                 return $translate.instant('user.delete-users-text');
