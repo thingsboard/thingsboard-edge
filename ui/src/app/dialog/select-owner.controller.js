@@ -28,12 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import SelectEntityGroupController from './select-entity-group.controller';
-import SelectOwnerController from './select-owner.controller';
-import Dialogs from './dialogs.service';
+import './select-owner.scss';
 
-export default angular.module('thingsboard.dialogs', [])
-    .controller('SelectEntityGroupController', SelectEntityGroupController)
-    .controller('SelectOwnerController', SelectOwnerController)
-    .factory('tbDialogs', Dialogs)
-    .name;
+/*@ngInject*/
+export default function SelectOwnerController($rootScope, $scope, $mdDialog, entityGroupService, securityTypes,
+                                                    selectOwnerTitle, confirmSelectTitle, placeholderText,
+                                                    notFoundText, requiredText, onOwnerSelected, excludeOwnerIds) {
+
+    var vm = this;
+
+    vm.selectOwnerTitle = selectOwnerTitle;
+    vm.confirmSelectTitle = confirmSelectTitle;
+    vm.placeholderText = placeholderText;
+    vm.notFoundText = notFoundText;
+    vm.requiredText = requiredText;
+    vm.onOwnerSelected = onOwnerSelected;
+    vm.excludeOwnerIds = excludeOwnerIds;
+
+    vm.selectOwner = selectOwner;
+    vm.cancel = cancel;
+
+    function cancel() {
+        $mdDialog.cancel();
+    }
+
+    function selectOwner() {
+        $scope.theForm.$setPristine();
+        if (vm.onOwnerSelected) {
+            vm.onOwnerSelected(vm.targetOwnerId).then(
+                () => {
+                    $mdDialog.hide();
+                },
+                () => {
+                    $scope.theForm.$setDirty();
+                }
+            );
+        } else {
+            $mdDialog.hide(vm.targetOwnerId);
+        }
+    }
+}

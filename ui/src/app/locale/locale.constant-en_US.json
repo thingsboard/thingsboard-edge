@@ -1034,6 +1034,12 @@
             "on-action-button-click": "On details button click",
             "disabled": "Disabled"
         },
+        "change-owner": "Change owner",
+        "select-target-owner": "Select target owner",
+        "no-owners-matching": "No owners matching '{{owner}}' were found.",
+        "target-owner-required": "Target owner is required.",
+        "confirm-change-owner-title": "Are you sure you want to change owner for { count, plural, 1 {1 selected entity} other {# selected entities} }?",
+        "confirm-change-owner-text": "Be careful, after the confirmation all selected entities will be removed from the current owner and will be placed to group 'All' of the target owner.",
         "add-to-group": "Add to group",
         "move-to-group": "Move to group",
         "select-entity-group": "Select entity group",
@@ -1915,6 +1921,7 @@
                 "READ_TELEMETRY": "Read Telemetry",
                 "WRITE_TELEMETRY": "Write Telemetry",
                 "IMPERSONATE": "Impersonate",
+                "CHANGE_OWNER": "Change owner",
                 "ADD_TO_GROUP": "Add to Group",
                 "REMOVE_FROM_GROUP": "Remove from Group"
             }

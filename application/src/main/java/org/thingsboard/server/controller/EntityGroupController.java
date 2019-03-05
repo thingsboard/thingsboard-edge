@@ -232,6 +232,32 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/all/{ownerType}/{ownerId}/{groupType}", method = RequestMethod.GET)
+    @ResponseBody
+    public EntityGroupInfo getEntityGroupAllByOwnerAndType(
+            @PathVariable("ownerType") String strOwnerType,
+            @PathVariable("ownerId") String strOwnerId,
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
+        try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            checkEntityId(ownerId, Operation.READ);
+            Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), ownerId,
+                    groupType, EntityGroup.GROUP_ALL_NAME).get();
+            if (entityGroup.isPresent()) {
+                accessControlService.checkEntityGroupPermission(getCurrentUser(), Operation.READ, entityGroup.get());
+                return toEntityGroupInfo(entityGroup.get());
+            } else {
+                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     private List<EntityGroupInfo> toEntityGroupsInfo(List<EntityGroup> entityGroups) throws ThingsboardException {
         List<EntityGroupInfo> entityGroupsInfo = new ArrayList<>(entityGroups.size());
         for (EntityGroup entityGroup : entityGroups) {
@@ -477,7 +503,8 @@ public class EntityGroupController extends BaseController {
                 for (EntityId ownerId : ownerIds) {
                     customerIds.add(new CustomerId(ownerId.getId()));
                 }
-                owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get());
+                owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
+                        .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
             }
             owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
             if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {

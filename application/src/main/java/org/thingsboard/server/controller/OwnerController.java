@@ -88,7 +88,7 @@ public class OwnerController extends BaseController {
         TenantId targetOwnerId = new TenantId(UUID.fromString(ownerIdStr));
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         if (!getCurrentUser().getTenantId().equals(targetOwnerId)) {
-            throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.AUTHENTICATION);
+            throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         try {
             checkEntityId(entityId, Operation.CHANGE_OWNER);
@@ -117,7 +117,7 @@ public class OwnerController extends BaseController {
         if (!targetOwnerOwners.contains(currentUserOwnerId)) {
             // Customer/Tenant Changes Owner from Customer to Sub-Customer - OK.
             // Sub-Customer Changes Owner from Sub-Customer to Customer - NOT OK.
-            throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.AUTHENTICATION);
+            throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         try {
             changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
@@ -146,9 +146,15 @@ public class OwnerController extends BaseController {
                             entityViewService::saveEntityView);
                     break;
                 case CUSTOMER:
-                    changeEntityOwner(tenantId, targetOwnerId, new CustomerId(entityId.getId()),
-                            checkCustomerId(new CustomerId(entityId.getId()), Operation.CHANGE_OWNER),
-                            customerService::saveCustomer);
+                    Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), entityId);
+                    if (!ownerIds.contains(targetOwnerId)) {
+                        changeEntityOwner(tenantId, targetOwnerId, new CustomerId(entityId.getId()),
+                                checkCustomerId(new CustomerId(entityId.getId()), Operation.CHANGE_OWNER),
+                                customerService::saveCustomer);
+                    } else {
+                        // Making Sub-Customer as a Parent Customer - NOT OK.
+                        throw new ThingsboardException("Owner of the Customer can't be changed to its Sub-Customer!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                    }
                     break;
                 case USER:
                     UserId userId = new UserId(entityId.getId());

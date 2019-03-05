@@ -35,6 +35,7 @@ import deviceCredentialsTemplate from './../device/device-credentials.tpl.html';
 //import assignAssetsToCustomerTemplate from './../asset/assign-to-customer.tpl.html';
 //import assignEntityViewsToCustomerTemplate from './../entity-view/assign-to-customer.tpl.html';
 import selectEntityGroupTemplate from './select-entity-group.tpl.html';
+import selectOwnerTemplate from './select-owner.tpl.html';
 import progressTemplate from './progress.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -60,6 +61,7 @@ export default function Dialogs($q, $translate, $mdDialog, $document, entityGrou
         makeEntityGroupPublic: makeEntityGroupPublic,
         makeEntityGroupPrivate: makeEntityGroupPrivate,
         selectEntityGroup: selectEntityGroup,
+        selectOwner: selectOwner,
         confirm: confirm,
         progress: progress
     }
@@ -450,6 +452,36 @@ export default function Dialogs($q, $translate, $mdDialog, $document, entityGrou
         return deferred.promise;
     }
 
+    function selectOwner($event, selectOwnerTitle,
+                               confirmSelectTitle, placeholderText, notFoundText, requiredText, onOwnerSelected, excludeOwnerIds) {
+        var deferred = $q.defer();
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: 'SelectOwnerController',
+            controllerAs: 'vm',
+            templateUrl: selectOwnerTemplate,
+            locals: {
+                selectOwnerTitle: selectOwnerTitle,
+                confirmSelectTitle: confirmSelectTitle,
+                placeholderText: placeholderText,
+                notFoundText: notFoundText,
+                requiredText: requiredText,
+                onOwnerSelected: onOwnerSelected,
+                excludeOwnerIds: excludeOwnerIds
+            },
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            targetEvent: $event
+        }).then((targetOwnerId) => {
+            deferred.resolve(targetOwnerId);
+        }, () => {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
     function confirm($event, title, content, label) {
         if ($event) {
             $event.stopPropagation();
@@ -461,6 +493,10 @@ export default function Dialogs($q, $translate, $mdDialog, $document, entityGrou
             .ariaLabel(label)
             .cancel($translate.instant('action.no'))
             .ok($translate.instant('action.yes'));
+
+        confirm._options.multiple = true;
+        confirm._options.fullscreen = true;
+
         return $mdDialog.show(confirm);
     }
 

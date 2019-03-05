@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,12 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import SelectEntityGroupController from './select-entity-group.controller';
-import SelectOwnerController from './select-owner.controller';
-import Dialogs from './dialogs.service';
-
-export default angular.module('thingsboard.dialogs', [])
-    .controller('SelectEntityGroupController', SelectEntityGroupController)
-    .controller('SelectOwnerController', SelectOwnerController)
-    .factory('tbDialogs', Dialogs)
-    .name;
+.tb-select-owner-dialog {
+  /* empty */
+}
