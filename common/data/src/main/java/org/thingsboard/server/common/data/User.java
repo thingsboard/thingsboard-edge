@@ -92,6 +92,15 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements H
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
+    @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
     public String getEmail() {
         return email;
     }

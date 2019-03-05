@@ -88,6 +88,15 @@ public class Customer extends ContactBased<CustomerId> implements HasName, Tenan
         return parentCustomerId != null && !parentCustomerId.isNullUid() ? parentCustomerId : tenantId;
     }
 
+    @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.parentCustomerId = new CustomerId(entityId.getId());
+        } else {
+            this.parentCustomerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
     @JsonIgnore
     public boolean isSubCustomer() {
         return parentCustomerId != null && !parentCustomerId.isNullUid();

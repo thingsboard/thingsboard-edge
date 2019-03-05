@@ -87,6 +87,15 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
     }
 
     @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
+    @Override
     public String getName() {
         return name;
     }

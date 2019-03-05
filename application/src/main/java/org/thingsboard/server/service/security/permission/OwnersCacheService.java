@@ -48,7 +48,7 @@ public interface OwnersCacheService {
 
     Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);
 
-    void clearOwners(EntityGroupId entityGroupId);
+    void clearOwners(EntityId entityId);
 
     Set<EntityId> getChildOwners(TenantId tenantId, EntityId parentOwnerId);
 

@@ -38,4 +38,6 @@ public interface HasOwnerId {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     EntityId getOwnerId();
 
+    void setOwnerId(EntityId entityId);
+
 }

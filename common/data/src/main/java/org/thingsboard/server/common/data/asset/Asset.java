@@ -87,6 +87,15 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     }
 
     @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
+    @Override
     public String getName() {
         return name;
     }
