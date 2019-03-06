@@ -50,13 +50,29 @@ export default function OwnerAutocompleteDirective($compile, $templateCache, $q,
         scope.utils = utils;
 
         scope.fetchOwners = function(searchText) {
-            var pageLink = {limit: 50, textSearch: searchText};
+            var limit = 50;
+            if (scope.excludeOwnerIds && scope.excludeOwnerIds.length) {
+                limit += scope.excludeOwnerIds.length;
+            }
+            var pageLink = {limit: limit, textSearch: searchText};
             var deferred = $q.defer();
 
             var promise = entityGroupService.getOwners(pageLink, {ignoreLoading: true});
 
             promise.then(function success(result) {
-                deferred.resolve(result.data);
+                var owners = result.data;
+                if (scope.excludeOwnerIds && scope.excludeOwnerIds.length) {
+                    scope.excludeOwnerIds.forEach((excludeId) => {
+                        var toExclude = $filter('filter')(owners, {id: {id: excludeId}}, true);
+                        if (toExclude && toExclude.length) {
+                            var index = owners.indexOf(toExclude[0]);
+                            if (index > -1) {
+                                owners.splice(index, 1);
+                            }
+                        }
+                    });
+                }
+                deferred.resolve(owners);
             }, function fail() {
                 deferred.reject();
             });
@@ -111,6 +127,7 @@ export default function OwnerAutocompleteDirective($compile, $templateCache, $q,
             theForm: '=?',
             tbRequired: '=?',
             disabled:'=ngDisabled',
+            excludeOwnerIds: '=?',
             placeholderText: '@',
             notFoundText: '@',
             requiredText: '@'

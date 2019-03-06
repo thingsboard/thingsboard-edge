@@ -44,6 +44,7 @@ public enum ActionType {
     CREDENTIALS_UPDATED(false), // log new credentials
     ASSIGNED_TO_CUSTOMER(false), // log customer name
     UNASSIGNED_FROM_CUSTOMER(false), // log customer name
+    CHANGE_OWNER(false), // log customer name
     ACTIVATED(false), // log string id
     SUSPENDED(false), // log string id
     CREDENTIALS_READ(true), // log device id

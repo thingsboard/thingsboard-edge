@@ -29,9 +29,11 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import SelectEntityGroupController from './select-entity-group.controller';
+import SelectOwnerController from './select-owner.controller';
 import Dialogs from './dialogs.service';
 
 export default angular.module('thingsboard.dialogs', [])
     .controller('SelectEntityGroupController', SelectEntityGroupController)
+    .controller('SelectOwnerController', SelectOwnerController)
     .factory('tbDialogs', Dialogs)
     .name;

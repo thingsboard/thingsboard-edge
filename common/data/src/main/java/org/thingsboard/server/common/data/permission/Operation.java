@@ -38,11 +38,11 @@ import java.util.Set;
 
 public enum Operation {
     ALL(true), CREATE(true, true, true), READ(true), WRITE(true, false, true), DELETE(true, true, true), RPC_CALL(true),
-    READ_CREDENTIALS(true), WRITE_CREDENTIALS(true), READ_ATTRIBUTES(true), WRITE_ATTRIBUTES(true, false, true), READ_TELEMETRY(true), WRITE_TELEMETRY(true, false, true), ADD_TO_GROUP(), REMOVE_FROM_GROUP(),
-    IMPERSONATE;
+    READ_CREDENTIALS(true), WRITE_CREDENTIALS(true), READ_ATTRIBUTES(true), WRITE_ATTRIBUTES(true, false, true), READ_TELEMETRY(true), WRITE_TELEMETRY(true, false, true),
+    ADD_TO_GROUP, REMOVE_FROM_GROUP, CHANGE_OWNER, IMPERSONATE;
 
     public static Set<Operation> defaultEntityOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
-            CREATE, DELETE, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY));
+            CREATE, DELETE, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY, CHANGE_OWNER));
 
     public static Set<Operation> defaultEntityGroupOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE,
             CREATE, DELETE, READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY, ADD_TO_GROUP, REMOVE_FROM_GROUP));

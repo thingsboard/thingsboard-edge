@@ -258,6 +258,10 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.put("unassignedCustomerId", strCustomerId);
                 actionData.put("unassignedCustomerName", strCustomerName);
                 break;
+            case CHANGE_OWNER:
+                String strNewOwnerId = extractParameter(String.class, 0, additionalInfo);
+                actionData.put("targetOwnerId", strNewOwnerId);
+                break;
             case ADDED_TO_ENTITY_GROUP:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
                 String strEntityGroupId = extractParameter(String.class, 1, additionalInfo);

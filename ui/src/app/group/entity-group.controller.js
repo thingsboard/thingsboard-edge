@@ -235,6 +235,22 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 
         vm.groupActionDescriptors = angular.copy(vm.entityGroupConfig.groupActionDescriptors);
 
+        if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.changeOwner, vm.entityGroup) &&
+            userPermissionsService.isOwnedGroup(vm.entityGroup)) {
+            vm.groupActionDescriptors.push(
+                {
+                    name: $translate.instant('entity-group.change-owner'),
+                    icon: 'assignment_ind',
+                    isEnabled: () => {
+                        return true;
+                    },
+                    onAction: ($event, entities) => {
+                        changeEntitiesOwner($event, entities);
+                    }
+                }
+            );
+        }
+
         if (userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.addToGroup, vm.entityGroup) &&
             userPermissionsService.isOwnedGroup(vm.entityGroup) &&
             userPermissionsService.hasGenericEntityGroupPermission(securityTypes.operation.read, vm.entityGroup)) {
@@ -910,6 +926,125 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                 });
             },
             function () {}
+        );
+    }
+
+    function changeEntitiesOwner($event, entities) {
+        var removeEntityIds = [];
+
+        var ignoreErrors = entities.length > 1;
+
+        var onOwnerSelected = (targetOwnerId) => {
+
+            var deferred = $q.defer();
+
+            tbDialogs.confirm($event, $translate.instant('entity-group.confirm-change-owner-title', {count: entities.length}, 'messageformat'),
+                $translate.instant('entity-group.confirm-change-owner-text'),
+                $translate.instant('entity-group.change-owner')).then(
+                () => {
+
+                    var isHierarchyCustomerView = vm.entityGroup.type === types.entityType.customer &&
+                        $stateParams.hierarchyView &&
+                        $stateParams.hierarchyCallbacks.refreshCustomerGroups;
+
+                    var tasks = [];
+                    var refreshEntityGroupIds = [];
+                    if (isHierarchyCustomerView) {
+                        entities.forEach((entity) => {
+                            var groupIdsDeferred = $q.defer();
+                            entityGroupService.getEntityGroupIdsForEntityId(entity.id.entityType, entity.id.id, true).then(
+                                (entityGroupIds) => {
+                                    entityGroupIds.forEach((entityGroupId) => {
+                                        var id = entityGroupId.id;
+                                        if (refreshEntityGroupIds.indexOf(id) === -1) {
+                                            refreshEntityGroupIds.push(id);
+                                        }
+                                    });
+                                    groupIdsDeferred.resolve();
+                                },
+                                () => {
+                                    groupIdsDeferred.resolve();
+                                }
+                            );
+                            tasks.push(groupIdsDeferred.promise);
+                        });
+                    }
+
+                    var promise;
+                    if (tasks.length) {
+                        promise = $q.all(tasks);
+                    } else {
+                        promise = $q.when();
+                    }
+
+                    promise.then(
+                        () => {
+                            var tasks = [];
+                            entities.forEach((entity) => {
+                                var changeOwnerDeferred = $q.defer();
+                                entityGroupService.changeEntityOwner(targetOwnerId, entity.id, ignoreErrors).then(
+                                    () => {
+                                        removeEntityIds.push(entity.id.id);
+                                        changeOwnerDeferred.resolve();
+                                    },
+                                    () => {
+                                        ignoreErrors ? changeOwnerDeferred.resolve() : changeOwnerDeferred.reject();
+                                    }
+                                );
+                                tasks.push(changeOwnerDeferred.promise);
+                            });
+
+                            function onChangeOwnerCompleted(deferred) {
+                                if (isHierarchyCustomerView) {
+                                    entityGroupService.getEntityGroupAllByOwnerId(targetOwnerId.entityType, targetOwnerId.id, vm.entityGroup.type, true)
+                                        .then(
+                                            (entityGroup) => {
+                                                refreshEntityGroupIds.push(entityGroup.id.id);
+                                                $stateParams.hierarchyCallbacks.refreshCustomerGroups(refreshEntityGroupIds);
+                                                deferred.resolve();
+                                            },
+                                            () => {
+                                                $stateParams.hierarchyCallbacks.refreshCustomerGroups(refreshEntityGroupIds);
+                                                deferred.resolve();
+                                            });
+                                } else {
+                                    deferred.resolve();
+                                }
+                            }
+
+                            $q.all(tasks).then(
+                                () => {
+                                    onChangeOwnerCompleted(deferred);
+                                },
+                                () => {
+                                    ignoreErrors ? onChangeOwnerCompleted(deferred) : deferred.reject();
+                                }
+                            );
+                        },
+                        () => {
+                            deferred.resolve();
+                        }
+                    );
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+            return deferred.promise;
+        };
+
+        var ownerId = userPermissionsService.getUserOwnerId();
+        if (vm.customerId) {
+            ownerId = {
+                id: vm.customerId,
+                entityType: types.entityType.customer
+            }
+        }
+        tbDialogs.selectOwner($event, 'entity-group.change-owner', 'entity-group.change-owner',
+            'entity-group.select-target-owner',
+            'entity-group.no-owners-matching',
+            'entity-group.target-owner-required', onOwnerSelected, [ownerId.id]).then(
+            () => { onEntitiesDeleted(removeEntityIds); }
         );
     }
 

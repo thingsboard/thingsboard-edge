@@ -88,7 +88,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     private Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, Function<EntityId, HasOwnerId> fetchHasOwnerId) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        String cacheKey = ENTITY_OWNERS_CACHE + "_" + entityId.getId().toString();
+        String cacheKey = getCacheKey(entityId);
         byte[] data = cache.get(cacheKey, byte[].class);
         Set<EntityId> result = null;
         if (data != null && data.length > 0) {
@@ -105,6 +105,10 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
             cache.put(cacheKey, toBytes(result));
         }
         return result;
+    }
+
+    private String getCacheKey(EntityId entityId) {
+        return ENTITY_OWNERS_CACHE + "_" + entityId.getId().toString();
     }
 
     private void fetchOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) {
@@ -133,9 +137,9 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
-    public void clearOwners(EntityGroupId entityGroupId) {
+    public void clearOwners(EntityId entityId) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        cache.evict(ENTITY_OWNERS_CACHE + "_" + entityGroupId.getId().toString());
+        cache.evict(getCacheKey(entityId));
     }
 
     @Override

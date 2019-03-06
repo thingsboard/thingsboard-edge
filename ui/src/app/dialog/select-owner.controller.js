@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,28 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.permission;
+import './select-owner.scss';
 
-import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+/*@ngInject*/
+export default function SelectOwnerController($rootScope, $scope, $mdDialog, entityGroupService, securityTypes,
+                                                    selectOwnerTitle, confirmSelectTitle, placeholderText,
+                                                    notFoundText, requiredText, onOwnerSelected, excludeOwnerIds) {
 
-import java.util.List;
-import java.util.Set;
+    var vm = this;
 
+    vm.selectOwnerTitle = selectOwnerTitle;
+    vm.confirmSelectTitle = confirmSelectTitle;
+    vm.placeholderText = placeholderText;
+    vm.notFoundText = notFoundText;
+    vm.requiredText = requiredText;
+    vm.onOwnerSelected = onOwnerSelected;
+    vm.excludeOwnerIds = excludeOwnerIds;
 
-public interface OwnersCacheService {
+    vm.selectOwner = selectOwner;
+    vm.cancel = cancel;
 
-    Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId);
+    function cancel() {
+        $mdDialog.cancel();
+    }
 
-    Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId);
-
-    Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);
-
-    void clearOwners(EntityId entityId);
-
-    Set<EntityId> getChildOwners(TenantId tenantId, EntityId parentOwnerId);
-
+    function selectOwner() {
+        $scope.theForm.$setPristine();
+        if (vm.onOwnerSelected) {
+            vm.onOwnerSelected(vm.targetOwnerId).then(
+                () => {
+                    $mdDialog.hide();
+                },
+                () => {
+                    $scope.theForm.$setDirty();
+                }
+            );
+        } else {
+            $mdDialog.hide(vm.targetOwnerId);
+        }
+    }
 }

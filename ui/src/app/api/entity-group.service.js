@@ -43,11 +43,14 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         makeEntityGroupPublic: makeEntityGroupPublic,
         makeEntityGroupPrivate: makeEntityGroupPrivate,
         getEntityGroups: getEntityGroups,
+        getEntityGroupIdsForEntityId: getEntityGroupIdsForEntityId,
         getEntityGroupsByIds: getEntityGroupsByIds,
         getEntityGroupsByOwnerId: getEntityGroupsByOwnerId,
+        getEntityGroupAllByOwnerId: getEntityGroupAllByOwnerId,
         getEntityGroupsByPageLink: getEntityGroupsByPageLink,
         addEntityToEntityGroup: addEntityToEntityGroup,
         addEntitiesToEntityGroup: addEntitiesToEntityGroup,
+        changeEntityOwner: changeEntityOwner,
         removeEntityFromEntityGroup: removeEntityFromEntityGroup,
         removeEntitiesFromEntityGroup: removeEntitiesFromEntityGroup,
         getEntityGroupEntity: getEntityGroupEntity,
@@ -164,6 +167,21 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         return deferred.promise;
     }
 
+    function getEntityGroupIdsForEntityId(entityType, entityId, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroups/' + entityType + '/' + entityId;
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
     function getEntityGroupsByIds(entityGroupIds, config) {
         var deferred = $q.defer();
         var ids = '';
@@ -205,6 +223,21 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         return deferred.promise;
     }
 
+    function getEntityGroupAllByOwnerId(ownerType, ownerId, groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/all/' + ownerType + '/' + ownerId + '/' + groupType;
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
     function getEntityGroupsByPageLink(pageLink, groupType, ignoreErrors, config) {
         var deferred = $q.defer();
         getEntityGroups(groupType, ignoreErrors, config).then(
@@ -234,6 +267,17 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         var url = '/api/entityGroup/' + entityGroupId + '/addEntities';
         $http.post(url, entityIds).then(function success(response) {
             deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function changeEntityOwner(ownerId, entityId, ignoreErrors) {
+        var deferred = $q.defer();
+        var url = '/api/owner/' + ownerId.entityType + '/' + ownerId.id + '/' + entityId.entityType + '/' + entityId.id;
+        $http.post(url, null, { ignoreErrors: ignoreErrors }).then(function success() {
+            deferred.resolve();
         }, function fail() {
             deferred.reject();
         });

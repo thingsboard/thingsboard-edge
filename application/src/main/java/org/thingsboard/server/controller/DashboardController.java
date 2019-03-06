@@ -164,18 +164,15 @@ public class DashboardController extends BaseController {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
             dashboardService.deleteDashboard(getCurrentUser().getTenantId(), dashboardId);
-
             logEntityAction(dashboardId, dashboard,
                     null,
                     ActionType.DELETED, null, strDashboardId);
 
         } catch (Exception e) {
-
             logEntityAction(emptyId(EntityType.DASHBOARD),
                     null,
                     null,
                     ActionType.DELETED, e, strDashboardId);
-
             throw handleException(e);
         }
     }

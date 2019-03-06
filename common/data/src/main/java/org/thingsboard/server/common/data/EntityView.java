@@ -99,6 +99,15 @@ public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
     }
 
     @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
+    @Override
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.ENTITY_VIEW;
