@@ -80,6 +80,9 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         PUBLIC_USER_PERMISSIONS.put(Resource.WIDGET_TYPE, Arrays.asList(
                 Operation.READ
         ));
+        PUBLIC_USER_PERMISSIONS.put(Resource.ALARM, Arrays.asList(
+                Operation.READ
+        ));
     }
 
     public static final List<Operation> PUBLIC_USER_ENTITY_GROUP_PERMISSIONS =
