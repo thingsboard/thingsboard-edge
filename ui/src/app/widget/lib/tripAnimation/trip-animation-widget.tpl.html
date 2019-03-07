@@ -1,0 +1,68 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="heat-map-widget tracking-widget" layout="column" layout-align="center start">
+    <div ng-show="vm.ctx.settings.showLabel">
+        {{vm.trips[vm.activeTripIndex].settings.labelText}}
+    </div>
+    <div class="heat-map-control-panel" lang="row" layout-align="center start">
+        <md-slider-container>
+            <md-slider ng-model="vm.index" min="{{vm.minTime}}" max="{{vm.maxTime}}" ng-change="vm.recalculateTrips()"></md-slider>
+            <md-button aria-label="Play" ng-click="vm.playMove(true)" ng-disabled="vm.isPlaying">
+                <ng-md-icon icon="play_circle_outline"></ng-md-icon>
+            </md-button>
+            <md-select ng-model="vm.speed" aria-label="Speed selector">
+                <md-option ng-value="speed" flex="1" ng-repeat="speed in vm.speeds track by $index">{{ speed}}
+                </md-option>
+            </md-select>
+            <md-button aria-label="Stop playing" ng-click="vm.stopPlay()">
+                <ng-md-icon icon="pause_circle_outline"></ng-md-icon>
+            </md-button>
+            <div class="panel-timer">{{vm.trips[0].timeRange[vm.index].ts | date:'medium'}}
+            </div>
+        </md-slider-container>
+    </div>
+    <div class="heat-map-container" layout="column">
+        <div flex id='heat-map'></div>
+        <div class="heat-map-info-panel" layout="row">
+            <md-button aria-label="tooltip" ng-show="vm.staticSettings.displayTooltip" ng-click="vm.showHideTooltip()">
+                <ng-md-icon icon="info"></ng-md-icon>
+            </md-button>
+            <!--<md-button aria-label="settings" ng-click="vm.openHideSettings()">-->
+                <!--<ng-md-icon icon="settings_applications"></ng-md-icon>-->
+            <!--</md-button>-->
+        </div>
+        <div class="heat-map-tooltip" class="heat-map-title" layout="column" ng-class="!vm.staticSettings.showTooltip ? 'heat-map-tooltip-hidden':''" ng-bind-html="vm.trips[vm.activeTripIndex].settings.tooltipText"
+        ng-style="{'background-color': vm.staticSettings.tooltipColor, 'opacity': vm.staticSettings.tooltipOpacity, 'color': vm.staticSettings.tooltipFontColor}">
+        </div>
+    </div>
+</div>

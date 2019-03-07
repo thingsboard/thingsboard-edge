@@ -33,11 +33,7 @@ package org.thingsboard.server.dao;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.dao.model.ToData;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class DaoUtil {
 
@@ -61,6 +57,14 @@ public abstract class DaoUtil {
         T object = null;
         if (data != null) {
             object = data.toData();
+        }
+        return object;
+    }
+
+    public static <T> T getData(Optional<? extends ToData<T>> data) {
+        T object = null;
+        if (data.isPresent()) {
+            object = data.get().toData();
         }
         return object;
     }

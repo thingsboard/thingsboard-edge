@@ -61,5 +61,4 @@ public class DefaultDeviceSessionCacheService implements DeviceSessionCacheServi
         log.debug("[{}] Pushing session data to cache: {}", deviceId, sessions);
         return sessions;
     }
-
 }

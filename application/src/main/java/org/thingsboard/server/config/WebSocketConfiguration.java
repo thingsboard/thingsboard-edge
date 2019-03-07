@@ -73,7 +73,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
                     @Override
                     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
-                            Map<String, Object> attributes) throws Exception {
+                                                   Map<String, Object> attributes) throws Exception {
                         SecurityUser user = null;
                         try {
                             user = getCurrentUser();
@@ -88,7 +88,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
                     @Override
                     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
-                            Exception exception) {
+                                               Exception exception) {
                         //Do nothing
                     }
                 });

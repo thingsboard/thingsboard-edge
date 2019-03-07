@@ -32,6 +32,7 @@ package org.thingsboard.server.service.install;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.thingsboard.server.dao.cassandra.CassandraInstallCluster;
 import org.thingsboard.server.service.install.cql.CQLStatementsParser;
 
@@ -45,6 +46,7 @@ public abstract class CassandraAbstractDatabaseSchemaService implements Database
     private static final String CASSANDRA_DIR = "cassandra";
 
     @Autowired
+    @Qualifier("CassandraInstallCluster")
     private CassandraInstallCluster cluster;
 
     @Autowired

@@ -128,7 +128,7 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
 
     @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
-        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findOne(new TsKvCompositeKey(entityId.getEntityType(), entityId.getId().toString(), key, ts))));
+        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TsKvCompositeKey(entityId.getEntityType(), entityId.getId().toString(), key, ts))));
     }
 
     public ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
@@ -304,10 +304,10 @@ public class JpaTimeseriesDao extends JpaAbstractDaoListeningExecutorService imp
                         entityId.getEntityType(),
                         fromTimeUUID(entityId.getId()),
                         key);
-        TsKvLatestEntity entry = tsKvLatestRepository.findOne(compositeKey);
+        Optional<TsKvLatestEntity> entry = tsKvLatestRepository.findById(compositeKey);
         TsKvEntry result;
-        if (entry != null) {
-            result = DaoUtil.getData(entry);
+        if (entry.isPresent()) {
+            result = DaoUtil.getData(entry.get());
         } else {
             result = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry(key, null));
         }

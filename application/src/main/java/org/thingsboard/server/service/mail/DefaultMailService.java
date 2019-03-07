@@ -56,7 +56,6 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
 import javax.activation.DataSource;
-import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.util.Arrays;

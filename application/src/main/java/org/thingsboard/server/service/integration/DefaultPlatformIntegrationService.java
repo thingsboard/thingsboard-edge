@@ -45,6 +45,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
@@ -67,6 +68,7 @@ import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
@@ -218,6 +220,15 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public void validateIntegrationConfiguration(Integration integration) {
+        if (StringUtils.isEmpty(integration.getName())) {
+            throw new DataValidationException("Integration name should be specified!");
+        }
+        if (integration.getType() == null) {
+            throw new DataValidationException("Integration type should be specified!");
+        }
+        if (StringUtils.isEmpty(integration.getRoutingKey())) {
+            throw new DataValidationException("Integration routing key should be specified!");
+        }
         ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
         platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
     }
