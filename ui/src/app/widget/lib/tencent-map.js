@@ -302,7 +302,7 @@ export default class TbTencentMap {
 			popup.open();
 			popup.setPosition(marker);
 		});
-		this.tooltips.push({
+		map.tooltips.push({
 			markerArgs: markerArgs,
 			popup: popup,
 			locationSettings: settings,
@@ -368,6 +368,11 @@ export default class TbTencentMap {
 
 		if (onClickListener) {
 			qq.maps.event.addListener(polygon, 'click', function (event) {
+				if (settings.autocloseTooltip) {
+					map.tooltips.forEach((tooltip) => {
+						tooltip.popup.close();
+					});
+				}
 				if (settings.displayTooltip) {
 					popup.setMap(this.map);
 					popup.setPosition(event.latLng);
