@@ -168,6 +168,10 @@ md-content {
   background-color: $gray;
 }
 
+.md-autocomplete-suggestions-container.md-default-theme li:not(:hover) {
+  background-color: #fff;
+}
+
 md-card {
   background-color: #fff;
 
