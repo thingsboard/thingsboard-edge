@@ -31,7 +31,8 @@
 
 -->
 <md-button 
-	ui-sref-active-eq="tb-active" ui-sref="{{section.state}}">
-	<md-icon ng-show="section.icon != null" aria-label="{{section.icon}}" class="material-icons">{{section.icon}}</md-icon>
+	ui-sref-active-eq="tb-active" ui-sref="{{section.state}}" class="md-button-link">
+    <img ng-if="section.iconUrl" ng-src="{{section.iconUrl}}"/>
+	<md-icon ng-if="!section.iconUrl && section.icon" aria-label="{{section.icon}}" class="material-icons">{{section.icon}}</md-icon>
 	{{section.ignoreTranslate ? utils.customTranslation(section.name, section.name) : ( section.name | translate) }}
 </md-button>

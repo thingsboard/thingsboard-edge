@@ -28,95 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "~compass-sass-mixins/lib/animate";
+package org.thingsboard.server.dao.menu;
 
-.tb-invisible {
-  display: none !important;
-}
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 
-.tb-primary-toolbar {
-  h1 {
-    font-size: 24px !important;
-    font-weight: 400 !important;
-  }
-}
+public interface CustomMenuService {
 
-.tb-breadcrumb {
-  font-size: 18px !important;
-  font-weight: 400 !important;
+    CustomMenu getSystemCustomMenu(TenantId tenantId);
 
-  h1,
-  a,
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+    CustomMenu getTenantCustomMenu(TenantId tenantId);
 
-  a {
-    border: none;
-    opacity: .75;
+    CustomMenu getCustomerCustomMenu(TenantId tenantId, CustomerId customerId);
 
-    transition: opacity .35s;
-  }
+    CustomMenu getMergedTenantCustomMenu(TenantId tenantId);
 
-  a:hover,
-  a:focus {
-    text-decoration: none !important;
-    border: none;
-    opacity: 1;
-  }
+    CustomMenu getMergedCustomerCustomMenu(TenantId tenantId, CustomerId customerId);
 
-  .divider {
-    padding: 0 30px;
-  }
+    CustomMenu saveSystemCustomMenu(CustomMenu customMenu);
 
-  img {
-    display: inline-block;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
-    min-height: 24px;
-    margin-bottom: -5px;
-    color: rgb(255, 255, 255);
-    fill: rgb(255, 255, 255);
-  }
-}
+    CustomMenu saveTenantCustomMenu(TenantId tenantId, CustomMenu customMenu);
 
-md-sidenav.tb-site-sidenav {
-  width: 250px;
-}
+    CustomMenu saveCustomerCustomMenu(TenantId tenantId, CustomerId customerId, CustomMenu customMenu);
 
-.tb-logo-title {
-  width: auto;
-  margin: auto;
-}
-
-.tb-nav-header {
-  z-index: 2;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.tb-nav-header-toolbar {
-  z-index: 2;
-  flex-shrink: 0;
-  white-space: nowrap;
-  border-bottom: 1px solid rgba(0, 0, 0, .12);
-
-  .md-toolbar-tools {
-    flex-basis: auto;
-  }
-}
-
-.tb-side-menu-toolbar {
-  overflow-y: auto;
-}
-
-.tb-entity-subtype-search {
-  margin-top: 15px;
-}
-
-.tb-entity-search {
-  margin-top: 34px;
 }

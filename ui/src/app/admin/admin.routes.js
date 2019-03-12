@@ -34,6 +34,7 @@ import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.ht
 import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
 import whiteLabelingTemplate from './white-labeling.tpl.html';
 import customTranslationTemplate from './custom-translation.tpl.html';
+import customMenuTemplate from './custom-menu.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -144,6 +145,24 @@ export default function AdminRoutes($stateProvider) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "language", "label": "custom-translation.custom-translation"}'
+            }
+        })
+        .state('home.settings.customMenu', {
+            url: '/customMenu',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: customMenuTemplate,
+                    controllerAs: 'vm',
+                    controller: 'CustomMenuController'
+                }
+            },
+            data: {
+                pageTitle: 'custom-menu.custom-menu'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "list", "label": "custom-menu.custom-menu"}'
             }
         });
 }

@@ -140,6 +140,7 @@ import thingsboardApiSchedulerEvent from './api/scheduler-event.service';
 import thingsboardApiReport from './api/report.service';
 import thingsboardApiBlobEntity from './api/blob-entity.service';
 import thingsboardApiCustomTranslation from './api/custom-translation.service';
+import thingsboardApiCustomMenu from './api/custom-menu.service';
 import thingsboardApiRole from './api/role.service';
 import thingsboardApiUserPermissions from './api/user-permissions.service';
 
@@ -210,6 +211,7 @@ angular.module('thingsboard', [
     thingsboardApiReport,
     thingsboardApiBlobEntity,
     thingsboardApiCustomTranslation,
+    thingsboardApiCustomMenu,
     thingsboardApiRole,
     thingsboardApiUserPermissions,
     uiRouter])

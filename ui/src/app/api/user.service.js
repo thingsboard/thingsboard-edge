@@ -37,7 +37,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService,
+function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService, customMenuService,
                      userPermissionsService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
@@ -454,6 +454,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         var promises = [];
         promises.push(loadIsUserTokenAccessEnabled());
         promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
+        promises.push(customMenuService.loadCustomMenu());
         promises.push(timeService.loadMaxDatapointsLimit());
         if (currentUser && (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER')) {
             promises.push(checkIsWhiteLabelingAllowed());

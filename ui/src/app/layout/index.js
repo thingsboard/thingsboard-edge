@@ -74,13 +74,14 @@ import thingsboardRuleChain from '../rulechain';
 import thingsboardScheduler from '../scheduler';
 import thingsboardBlobEntity from '../blob-entity';
 import thingsboardRole from '../role';
+import thingsboardIFrame from '../iframe';
 
 import thingsboardJsonForm from '../jsonform';
 
 import HomeRoutes from './home.routes';
 import HomeController from './home.controller';
 import BreadcrumbLabel from './breadcrumb-label.filter';
-import BreadcrumbIcon from './breadcrumb-icon.filter';
+import {BreadcrumbIcon, BreadcrumbIconUrl} from './breadcrumb-icon.filter';
 
 export default angular.module('thingsboard.home', [
     uiRouter,
@@ -111,6 +112,7 @@ export default angular.module('thingsboard.home', [
     thingsboardScheduler,
     thingsboardBlobEntity,
     thingsboardRole,
+    thingsboardIFrame,
     thingsboardJsonForm,
     thingsboardApiDevice,
     thingsboardApiLogin,
@@ -129,4 +131,5 @@ export default angular.module('thingsboard.home', [
     .controller('HomeController', HomeController)
     .filter('breadcrumbLabel', BreadcrumbLabel)
     .filter('breadcrumbIcon', BreadcrumbIcon)
+    .filter('breadcrumbIconUrl', BreadcrumbIconUrl)
     .name;

@@ -28,95 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "~compass-sass-mixins/lib/animate";
 
-.tb-invisible {
-  display: none !important;
-}
+package org.thingsboard.server.common.data.menu;
 
-.tb-primary-toolbar {
-  h1 {
-    font-size: 24px !important;
-    font-weight: 400 !important;
-  }
-}
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-.tb-breadcrumb {
-  font-size: 18px !important;
-  font-weight: 400 !important;
+import java.util.ArrayList;
+import java.util.List;
 
-  h1,
-  a,
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+@Data
+@EqualsAndHashCode
+public class CustomMenuItem {
 
-  a {
-    border: none;
-    opacity: .75;
+    private String name;
+    private String iconUrl;
+    private String materialIcon;
+    private String iframeUrl;
+    private boolean setAccessToken;
+    private List<CustomMenuItem> childMenuItems = new ArrayList<>();
 
-    transition: opacity .35s;
-  }
-
-  a:hover,
-  a:focus {
-    text-decoration: none !important;
-    border: none;
-    opacity: 1;
-  }
-
-  .divider {
-    padding: 0 30px;
-  }
-
-  img {
-    display: inline-block;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
-    min-height: 24px;
-    margin-bottom: -5px;
-    color: rgb(255, 255, 255);
-    fill: rgb(255, 255, 255);
-  }
-}
-
-md-sidenav.tb-site-sidenav {
-  width: 250px;
-}
-
-.tb-logo-title {
-  width: auto;
-  margin: auto;
-}
-
-.tb-nav-header {
-  z-index: 2;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.tb-nav-header-toolbar {
-  z-index: 2;
-  flex-shrink: 0;
-  white-space: nowrap;
-  border-bottom: 1px solid rgba(0, 0, 0, .12);
-
-  .md-toolbar-tools {
-    flex-basis: auto;
-  }
-}
-
-.tb-side-menu-toolbar {
-  overflow-y: auto;
-}
-
-.tb-entity-subtype-search {
-  margin-top: 15px;
-}
-
-.tb-entity-search {
-  margin-top: 34px;
 }

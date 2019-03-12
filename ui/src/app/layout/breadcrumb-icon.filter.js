@@ -28,12 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-export default function BreadcrumbIcon() {
-    return function (bLabel) {
+
+/*@ngInject*/
+export function BreadcrumbIcon(menu) {
+    var breadcrumbIcon = function (bLabel) {
         var labelObj = angular.fromJson(bLabel);
-        if (angular.isDefined(labelObj.icon)) {
+        if (labelObj.custom || labelObj.customChild) {
+            var section = labelObj.custom ? menu.getCurrentCustomSection() : menu.getCurrentCustomChildSection();
+            if (section && section.icon) {
+                return section.icon;
+            } else {
+                return null;
+            }
+        } else if (angular.isDefined(labelObj.icon)) {
             return labelObj.icon;
         }
         return null;
     };
+
+    breadcrumbIcon.$stateful = true;
+
+    return breadcrumbIcon;
+}
+
+/*@ngInject*/
+export function BreadcrumbIconUrl(menu) {
+    var breadcrumbIconUrl = function (bLabel) {
+        var labelObj = angular.fromJson(bLabel);
+        if (labelObj.custom || labelObj.customChild) {
+            var section = labelObj.custom ? menu.getCurrentCustomSection() : menu.getCurrentCustomChildSection();
+            if (section && section.iconUrl) {
+                return section.iconUrl;
+            } else {
+                return null;
+            }
+        } else if (angular.isDefined(labelObj.iconUrl)) {
+            return labelObj.iconUrl;
+        }
+        return null;
+    };
+
+    breadcrumbIconUrl.$stateful = true;
+
+    return breadcrumbIconUrl;
 }

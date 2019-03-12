@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function BreadcrumbLabel($translate, utils) {
+export default function BreadcrumbLabel($translate, utils, menu) {
     var labels = {};
 
     var breadcrumbLabel = function (bLabel) {
@@ -39,20 +39,30 @@ export default function BreadcrumbLabel($translate, utils) {
         if (labelObj) {
             var translate = !(labelObj.translate && labelObj.translate === 'false');
             var key = translate ? $translate.use() : 'orig';
-            if (!labels[labelObj.label]) {
-                labels[labelObj.label] = {};
+            var label = labelObj.label;
+            var section;
+            if (labelObj.custom) {
+                section = menu.getCurrentCustomSection();
+            } else if (labelObj.customChild) {
+                section = menu.getCurrentCustomChildSection();
             }
-            if (!labels[labelObj.label][key]) {
-                labels[labelObj.label][key] = labelObj.label;
+            if (section && section.name) {
+                label = section.name;
+            }
+            if (!labels[label]) {
+                labels[label] = {};
+            }
+            if (!labels[label][key]) {
+                labels[label][key] = label;
                 if (translate) {
-                    $translate([labelObj.label]).then(
+                    $translate([label]).then(
                         function (translations) {
-                            labels[labelObj.label][key] = translations[labelObj.label];
+                            labels[label][key] = translations[label];
                         }
                     )
                 }
             }
-            return utils.customTranslation(labels[labelObj.label][key], labels[labelObj.label][key]);
+            return utils.customTranslation(labels[label][key], labels[label][key]);
         } else {
             return '';
         }

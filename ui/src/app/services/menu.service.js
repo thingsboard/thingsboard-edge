@@ -35,7 +35,7 @@ export default angular.module('thingsboard.menu', [thingsboardApiUser])
     .name;
 
 /*@ngInject*/
-function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPermissionsService, entityGroupService) {
+function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPermissionsService, entityGroupService, customMenuService) {
 
     var authority = '';
     var sections = [];
@@ -44,6 +44,9 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     var menuReadyTasks = [];
 
     var entityGroupSections = [];
+
+    var currentCustomSection = null;
+    var currentCustomChildSection = null;
 
     var customerGroups = {
         name: 'entity-group.customer-groups',
@@ -121,7 +124,9 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
         getHomeSections: getHomeSections,
         getSections: getSections,
         sectionHeight: sectionHeight,
-        sectionActive: sectionActive
+        sectionActive: sectionActive,
+        getCurrentCustomSection: getCurrentCustomSection,
+        getCurrentCustomChildSection: getCurrentCustomChildSection
     };
 
     if (userService.isUserLoaded() === true) {
@@ -130,6 +135,10 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     service.authenticatedHandle = $rootScope.$on('authenticated', function () {
         buildMenu();
+    });
+
+    service.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
+        updateCurrentCustomSection(params);
     });
 
     return service;
@@ -193,7 +202,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         name: 'admin.system-settings',
                         type: 'toggle',
                         state: 'home.settings',
-                        height: '200px',
+                        height: '240px',
                         icon: 'settings',
                         pages: [
                             {
@@ -225,6 +234,12 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                 type: 'link',
                                 state: 'home.settings.customTranslation',
                                 icon: 'language'
+                            },
+                            {
+                                name: 'custom-menu.custom-menu',
+                                type: 'link',
+                                state: 'home.settings.customMenu',
+                                icon: 'list'
                             }
                         ]
                     }];
@@ -286,6 +301,16 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'custom-translation.custom-translation',
                                     icon: 'language',
                                     state: 'home.settings.customTranslation'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'custom-menu.custom-menu',
+                            places: [
+                                {
+                                    name: 'custom-menu.custom-menu',
+                                    icon: 'list',
+                                    state: 'home.settings.customMenu'
                                 }
                             ]
                         }];
@@ -399,7 +424,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'white-labeling.white-labeling',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '200px',
+                            height: '240px',
                             icon: 'format_paint',
                             pages: [
                                 {
@@ -419,6 +444,12 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     type: 'link',
                                     state: 'home.settings.customTranslation',
                                     icon: 'language'
+                                },
+                                {
+                                    name: 'custom-menu.custom-menu',
+                                    type: 'link',
+                                    state: 'home.settings.customMenu',
+                                    icon: 'list'
                                 },
                                 {
                                     name: 'white-labeling.white-labeling',
@@ -672,6 +703,19 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             ]
                         }
                     );
+
+                    homeSections.push(
+                        {
+                            name: 'custom-menu.custom-menu',
+                            places: [
+                                {
+                                    name: 'custom-menu.custom-menu',
+                                    icon: 'list',
+                                    state: 'home.settings.customMenu'
+                                }
+                            ]
+                        }
+                    );
                 }
 
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.auditLog)) {
@@ -759,7 +803,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'white-labeling.white-labeling',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '120px',
+                            height: '160px',
                             icon: 'format_paint',
                             pages: [
                                 {
@@ -767,6 +811,12 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     type: 'link',
                                     state: 'home.settings.customTranslation',
                                     icon: 'language'
+                                },
+                                {
+                                    name: 'custom-menu.custom-menu',
+                                    type: 'link',
+                                    state: 'home.settings.customMenu',
+                                    icon: 'list'
                                 },
                                 {
                                     name: 'white-labeling.white-labeling',
@@ -952,6 +1002,18 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             ]
                         }
                     );
+                    homeSections.push(
+                        {
+                            name: 'custom-menu.custom-menu',
+                            places: [
+                                {
+                                    name: 'custom-menu.custom-menu',
+                                    icon: 'list',
+                                    state: 'home.settings.customMenu'
+                                }
+                            ]
+                        }
+                    );
                 }
                 
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.auditLog)) {
@@ -974,6 +1036,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             if (authority === 'TENANT_ADMIN' || authority === 'CUSTOMER_USER') {
                 initGroups();
             }
+            initCustomMenu();
             onMenuReady();
         }
     }
@@ -1010,6 +1073,79 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 updateGroups();
             });
         }
+    }
+
+    function initCustomMenu() {
+        if (!service['customMenuChangeHandle']) {
+            service['customMenuChangeHandle'] = $rootScope.$on('customMenuChanged', function () {
+                updateCustomMenu();
+            });
+        }
+        updateCustomMenu();
+    }
+
+    function updateCustomMenu() {
+        for(var i = sections.length -1; i >= 0 ; i--){
+            if(sections[i].isCustom){
+                sections.splice(i, 1);
+            }
+        }
+        var customMenu = customMenuService.getCustomMenu();
+        if (customMenu && customMenu.length) {
+            var stateIds = {};
+            for (i=0;i<customMenu.length;i++) {
+                var customMenuItem = customMenu[i];
+                var stateId = getCustomMenuStateId(customMenuItem.name, stateIds);
+                var customMenuSection = {
+                    isCustom: true,
+                    stateId: stateId,
+                    name: customMenuItem.name,
+                    state: 'home.iframeView({stateId: \''+stateId+'\', iframeUrl: \''+customMenuItem.iframeUrl + '\', setAccessToken: '+customMenuItem.setAccessToken+'})',
+                    icon: customMenuItem.materialIcon,
+                    iconUrl: customMenuItem.iconUrl
+                };
+                if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
+                    customMenuSection.type = 'toggle';
+                    var pages = [];
+                    var childStateIds = {};
+                    for (var c=0;c<customMenuItem.childMenuItems.length;c++) {
+                        var customMenuChildItem = customMenuItem.childMenuItems[c];
+                        var childStateId = getCustomMenuStateId(customMenuChildItem.name, stateIds);
+                        var customMenuChildSection = {
+                            isCustom: true,
+                            stateId: childStateId,
+                            name: customMenuChildItem.name,
+                            type: 'link',
+                            state: 'home.iframeView.child({stateId: \''+stateId+'\', iframeUrl: \''+customMenuItem.iframeUrl + '\', setAccessToken: '+customMenuItem.setAccessToken+', ' +
+                                   'childStateId: \''+childStateId+'\', childIframeUrl: \''+customMenuChildItem.iframeUrl + '\', childSetAccessToken: '+customMenuChildItem.setAccessToken+'})',
+                            icon: customMenuChildItem.materialIcon,
+                            iconUrl: customMenuChildItem.iconUrl
+                        };
+                        pages.push(customMenuChildSection);
+                        childStateIds[childStateId] = true;
+                    }
+                    customMenuSection.pages = pages;
+                    customMenuSection.childStateIds = childStateIds;
+                    customMenuSection.height = (40 * customMenuItem.childMenuItems.length) + 'px';
+                } else {
+                    customMenuSection.type = 'link';
+                }
+                sections.push(customMenuSection);
+            }
+        }
+        updateCurrentCustomSection($state.params);
+    }
+
+    function getCustomMenuStateId(name, stateIds) {
+        var origName = (' ' + name).slice(1);
+        var stateId = origName;
+        var inc = 1;
+        while (stateIds[stateId]) {
+            stateId = origName + inc;
+            inc++;
+        }
+        stateIds[stateId] = true;
+        return stateId;
     }
 
     function updateGroups() {
@@ -1061,7 +1197,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     }
 
     function sectionHeight(section) {
-        if ($state.includes(section.state)) {
+        if (stateIncludes(section)) {
             return section.height;
         } else {
             return '0px';
@@ -1069,7 +1205,72 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     }
 
     function sectionActive(section) {
-        return $state.includes(section.state);
+        return stateIncludes(section);
+    }
+
+    function stateIncludes(section) {
+        if (section.isCustom) {
+            if ($state.params) {
+                if ($state.params.childStateId) {
+                    return section.stateId === $state.params.childStateId || (section.childStateIds && section.childStateIds[$state.params.childStateId]);
+                } else if ($state.params.stateId) {
+                    return section.stateId === $state.params.stateId;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return $state.includes(section.state);
+        }
+    }
+
+    function getCurrentCustomSection() {
+        return currentCustomSection;
+    }
+
+    function getCurrentCustomChildSection() {
+        return currentCustomChildSection;
+    }
+
+    function updateCurrentCustomSection(params) {
+        currentCustomSection = detectCurrentCustomSection(params);
+        currentCustomChildSection = detectCurrentCustomChildSection(params);
+    }
+
+    function detectCurrentCustomSection(params) {
+        if (params && params.stateId) {
+            var stateId = params.stateId;
+            for (var i=0;i<sections.length;i++) {
+                var section = sections[i];
+                if (section.isCustom) {
+                    if (section.stateId === stateId) {
+                        return section;
+                    }
+                }
+            }
+        }
+    }
+
+    function detectCurrentCustomChildSection(params) {
+        if (params && params.childStateId) {
+            var stateId = params.childStateId;
+            for (var i=0;i<sections.length;i++) {
+                var section = sections[i];
+                if (section.isCustom) {
+                    if (section.pages && section.pages.length) {
+                        for (var c=0;c<section.pages.length;c++) {
+                            var childSection = section.pages[c];
+                            if (childSection.stateId === stateId) {
+                                return childSection;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 }

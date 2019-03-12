@@ -509,6 +509,10 @@
         "open-nav-tree": "Open navigation tree",
         "return-to-top-level": "Return to top level"
     },
+    "custom-menu": {
+        "custom-menu": "Custom Menu",
+        "custom-menu-hint": "Define custom menu JSON below. This JSON contains list of custom menu items."
+    },
     "custom-translation": {
         "custom-translation": "Custom Translation",
         "translation-map": "Translation map",

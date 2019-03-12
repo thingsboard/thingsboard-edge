@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,95 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "~compass-sass-mixins/lib/animate";
+/* eslint-disable import/no-unresolved, import/default */
 
-.tb-invisible {
-  display: none !important;
-}
+import iframeViewTemplate from './iframe-view.tpl.html';
 
-.tb-primary-toolbar {
-  h1 {
-    font-size: 24px !important;
-    font-weight: 400 !important;
-  }
-}
+/* eslint-enable import/no-unresolved, import/default */
 
-.tb-breadcrumb {
-  font-size: 18px !important;
-  font-weight: 400 !important;
+/*@ngInject*/
+export default function IFrameRoutes($stateProvider) {
+    $stateProvider
+        .state('home.iframeView', {
+            url: '/iframeView?stateId&iframeUrl&setAccessToken',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: iframeViewTemplate,
+                    controllerAs: 'vm',
+                    controller: 'IFrameViewController'
+                }
+            },
+            data: {
+                pageTitle: 'custom-menu.custom-menu'
+            },
+            ncyBreadcrumb: {
+                label: '{"custom": true, "icon": "", "label": ""}'
+            }
+        })
+        .state('home.iframeView.child', {
+            url: '/child?childStateId&childIframeUrl&childSetAccessToken',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: iframeViewTemplate,
+                    controllerAs: 'vm',
+                    controller: 'IFrameViewController'
+                }
+            },
+            data: {
+                pageTitle: 'custom-menu.custom-menu'
+            },
+            ncyBreadcrumb: {
+                label: '{"customChild": true, "icon": "", "label": ""}'
+            }
+        });
 
-  h1,
-  a,
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  a {
-    border: none;
-    opacity: .75;
-
-    transition: opacity .35s;
-  }
-
-  a:hover,
-  a:focus {
-    text-decoration: none !important;
-    border: none;
-    opacity: 1;
-  }
-
-  .divider {
-    padding: 0 30px;
-  }
-
-  img {
-    display: inline-block;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
-    min-height: 24px;
-    margin-bottom: -5px;
-    color: rgb(255, 255, 255);
-    fill: rgb(255, 255, 255);
-  }
-}
-
-md-sidenav.tb-site-sidenav {
-  width: 250px;
-}
-
-.tb-logo-title {
-  width: auto;
-  margin: auto;
-}
-
-.tb-nav-header {
-  z-index: 2;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.tb-nav-header-toolbar {
-  z-index: 2;
-  flex-shrink: 0;
-  white-space: nowrap;
-  border-bottom: 1px solid rgba(0, 0, 0, .12);
-
-  .md-toolbar-tools {
-    flex-basis: auto;
-  }
-}
-
-.tb-side-menu-toolbar {
-  overflow-y: auto;
-}
-
-.tb-entity-subtype-search {
-  margin-top: 15px;
-}
-
-.tb-entity-search {
-  margin-top: 34px;
 }
