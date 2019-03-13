@@ -493,23 +493,25 @@ public class EntityGroupController extends BaseController {
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             List<ContactBased<?>> owners = new ArrayList<>();
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
-                accessControlService.checkPermission(getCurrentUser(), Resource.TENANT, Operation.READ);
-                owners.add(tenantService.findTenantById(getCurrentUser().getTenantId()));
-            }
-            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
-            Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
-            if (!ownerIds.isEmpty()) {
-                List<CustomerId> customerIds = new ArrayList<>();
-                for (EntityId ownerId : ownerIds) {
-                    customerIds.add(new CustomerId(ownerId.getId()));
+                if (accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ)) {
+                    owners.add(tenantService.findTenantById(getCurrentUser().getTenantId()));
                 }
-                owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
-                        .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
             }
-            owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-            if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {
-                int toRemove = owners.size() - pageLink.getLimit();
-                owners.subList(owners.size() - toRemove, owners.size()).clear();
+            if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
+                Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
+                if (!ownerIds.isEmpty()) {
+                    List<CustomerId> customerIds = new ArrayList<>();
+                    for (EntityId ownerId : ownerIds) {
+                        customerIds.add(new CustomerId(ownerId.getId()));
+                    }
+                    owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
+                            .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
+                }
+                owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
+                if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {
+                    int toRemove = owners.size() - pageLink.getLimit();
+                    owners.subList(owners.size() - toRemove, owners.size()).clear();
+                }
             }
             return new TextPageData<>(owners, pageLink);
         } catch (Exception e) {
