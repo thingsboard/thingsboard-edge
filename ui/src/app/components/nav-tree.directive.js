@@ -48,7 +48,10 @@ function NavTree() {
         bindToController: {
             loadNodes: '=',
             editCallbacks: '=',
-            onNodeSelected: '&'
+            enableSearch: '@?',
+            onNodeSelected: '&',
+            onNodesInserted: '&',
+            searchCallback: '&?'
         },
         controller: NavTreeController,
         controllerAs: 'vm',
@@ -69,21 +72,40 @@ function NavTreeController($scope, $element, types) {
     });
 
     function initTree() {
+        var config = {
+            core: {
+                multiple: false,
+                check_callback: true,
+                themes: { name: 'proton', responsive: true },
+                data: vm.loadNodes
+            }
+        };
+
+        if (vm.enableSearch) {
+            config.plugins = ["search"];
+            config.search = {
+                case_sensitive: false,
+                show_only_matches: true,
+                show_only_matches_children: false,
+                search_leaves_only: false
+            };
+            if (vm.searchCallback) {
+                config.search.search_callback = (searchText, node) => vm.searchCallback({searchText: searchText, node: node});
+            }
+        }
+
         vm.treeElement = angular.element('.tb-nav-tree-container', $element)
-            .jstree(
-                {
-                    core: {
-                        multiple: false,
-                        check_callback: true,
-                        themes: { name: 'proton', responsive: true },
-                        data: vm.loadNodes
-                    }
-                }
-            );
+            .jstree(config);
 
         vm.treeElement.on("changed.jstree", function (e, data) {
             if (vm.onNodeSelected) {
-                vm.onNodeSelected({node: data.instance.get_selected(true)[0]});
+                vm.onNodeSelected({node: data.instance.get_selected(true)[0], event: e});
+            }
+        });
+
+        vm.treeElement.on("model.jstree", function (e, data) {
+            if (vm.onNodesInserted) {
+                vm.onNodesInserted({nodes: data.nodes, parent: data.parent});
             }
         });
 
@@ -163,6 +185,36 @@ function NavTreeController($scope, $element, types) {
                 if (node) {
                     vm.treeElement.jstree('delete_node', node);
                 }
+            };
+            vm.editCallbacks.disableNode = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    vm.treeElement.jstree('disable_node', node);
+                }
+            };
+            vm.editCallbacks.enableNode = (id) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    vm.treeElement.jstree('enable_node', node);
+                }
+            };
+            vm.editCallbacks.setNodeHasChildren = (id, hasChildren) => {
+                var node = vm.treeElement.jstree('get_node', id);
+                if (node) {
+                    if (!node.children || !node.children.length) {
+                        node.children = hasChildren;
+                        node.state.loaded = !hasChildren;
+                        node.state.opened = false;
+                        vm.treeElement.jstree('_node_changed', node.id);
+                        vm.treeElement.jstree('redraw');
+                    }
+                }
+            };
+            vm.editCallbacks.search = (searchText) => {
+                vm.treeElement.jstree('search', searchText);
+            };
+            vm.editCallbacks.clearSearch = () => {
+                vm.treeElement.jstree('clear_search');
             };
         }
     }

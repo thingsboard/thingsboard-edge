@@ -28,6 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+.fullscreen-form-field {
+  .json-form-ace-editor {
+    height: calc(100% - 60px);
+  }
+}
+
 .json-form-ace-editor {
   position: relative;
   height: 100%;
