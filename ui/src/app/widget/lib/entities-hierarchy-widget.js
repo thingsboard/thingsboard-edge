@@ -56,7 +56,7 @@ function EntitiesHierarchyWidget() {
 }
 
 /*@ngInject*/
-function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast, types, entityService, entityRelationService /*$filter, $mdMedia, $mdPanel, $document, $translate, $timeout, utils, types*/) {
+function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast, types, entityService, entityGroupService, entityRelationService /*$filter, $mdMedia, $mdPanel, $document, $translate, $timeout, utils, types*/) {
     var vm = this;
 
     vm.showData = true;
@@ -426,7 +426,13 @@ function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast
             }
             deferred.resolve(entity);
         } else {
-            entityService.getEntity(datasource.entityType, datasource.entityId, {ignoreLoading: true}).then(
+            var getEntityPromise;
+            if (datasource.entityType === types.entityType.entityGroup) {
+                getEntityPromise = entityGroupService.getEntityGroup(datasource.entityId, true, {ignoreLoading: true});
+            } else {
+                getEntityPromise = entityService.getEntity(datasource.entityType, datasource.entityId, {ignoreLoading: true});
+            }
+            getEntityPromise.then(
                 (entity) => {
                     deferred.resolve(entity);
                 },
@@ -449,20 +455,30 @@ function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast
 
     function defaultNodeRelationQueryFunction(nodeCtx) {
         var entity = nodeCtx.entity;
+        var entityType = entity.id.entityType;
+        var relationTypeGroup = "COMMON";
+        var filters = [
+            {
+                relationType: "Contains",
+                entityTypes: []
+            }
+        ];
+        if (entityType === types.entityType.entityGroup) {
+            relationTypeGroup = "FROM_ENTITY_GROUP";
+        } else if (entityType === types.entityType.tenant || entityType === types.entityType.customer) {
+            relationTypeGroup = "TO_ENTITY_GROUP";
+            filters = [];
+        }
+
         var query = {
             parameters: {
                 rootId: entity.id.id,
                 rootType: entity.id.entityType,
                 direction: types.entitySearchDirection.from,
-                relationTypeGroup: "COMMON",
+                relationTypeGroup: relationTypeGroup,
                 maxLevel: 1
             },
-            filters: [
-                {
-                    relationType: "Contains",
-                    entityTypes: []
-                }
-            ]
+            filters: filters
         };
         return query;
     }
@@ -495,39 +511,50 @@ function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast
         var materialIcon = 'insert_drive_file';
         var entity = nodeCtx.entity;
         if (entity && entity.id && entity.id.entityType) {
-            switch (entity.id.entityType) {
-                case 'function':
-                    materialIcon = 'functions';
-                    break;
-                case types.entityType.device:
-                    materialIcon = 'devices_other';
-                    break;
-                case types.entityType.asset:
-                    materialIcon = 'domain';
-                    break;
-                case types.entityType.tenant:
-                    materialIcon = 'supervisor_account';
-                    break;
-                case types.entityType.customer:
-                    materialIcon = 'supervisor_account';
-                    break;
-                case types.entityType.user:
-                    materialIcon = 'account_circle';
-                    break;
-                case types.entityType.dashboard:
-                    materialIcon = 'dashboards';
-                    break;
-                case types.entityType.alarm:
-                    materialIcon = 'notifications_active';
-                    break;
-                case types.entityType.entityView:
-                    materialIcon = 'view_quilt';
-                    break;
+            var entityType = entity.id.entityType;
+            if (entityType === types.entityType.entityGroup) {
+                materialIcon = materialIconByEntityType(entity.type);
+            } else {
+                materialIcon = materialIconByEntityType(entityType);
             }
         }
         return {
             materialIcon: materialIcon
         };
+    }
+
+    function materialIconByEntityType(entityType) {
+        var materialIcon = 'insert_drive_file';
+        switch (entityType) {
+            case 'function':
+                materialIcon = 'functions';
+                break;
+            case types.entityType.device:
+                materialIcon = 'devices_other';
+                break;
+            case types.entityType.asset:
+                materialIcon = 'domain';
+                break;
+            case types.entityType.tenant:
+                materialIcon = 'supervisor_account';
+                break;
+            case types.entityType.customer:
+                materialIcon = 'supervisor_account';
+                break;
+            case types.entityType.user:
+                materialIcon = 'account_circle';
+                break;
+            case types.entityType.dashboard:
+                materialIcon = 'dashboards';
+                break;
+            case types.entityType.alarm:
+                materialIcon = 'notifications_active';
+                break;
+            case types.entityType.entityView:
+                materialIcon = 'view_quilt';
+                break;
+        }
+        return materialIcon;
     }
 
     function defaultNodeOpenedFunction(nodeCtx) {
@@ -537,7 +564,12 @@ function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast
     function defaultSortFunction(nodeCtx1, nodeCtx2) {
         var result = nodeCtx1.entity.id.entityType.localeCompare(nodeCtx2.entity.id.entityType);
         if (result === 0) {
-            result = nodeCtx1.entity.name.localeCompare(nodeCtx2.entity.name);
+            if (nodeCtx1.entity.id.entityType === types.entityType.entityGroup) {
+                result = nodeCtx1.entity.type.localeCompare(nodeCtx2.entity.type);
+            }
+            if (result === 0) {
+                result = nodeCtx1.entity.name.localeCompare(nodeCtx2.entity.name);
+            }
         }
         return result;
     }

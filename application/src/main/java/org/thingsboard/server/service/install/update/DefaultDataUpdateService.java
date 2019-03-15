@@ -578,22 +578,22 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
             }
-            if (isSystem) {
-                String helpLinkBaseUrl = "https://thingsboard.io";
-                if (storedWl.has("helpLinkBaseUrl")) {
-                    JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
-                    if (helpLinkBaseUrlJson.isTextual()) {
-                        if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
-                            helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
-                        }
+        }
+        if (isSystem) {
+            String helpLinkBaseUrl = "https://thingsboard.io";
+            if (storedWl != null && storedWl.has("helpLinkBaseUrl")) {
+                JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
+                if (helpLinkBaseUrlJson.isTextual()) {
+                    if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
+                        helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
                     }
                 }
-                whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
-                if (!storedWl.has("enableHelpLinks")) {
-                    whiteLabelingParams.setEnableHelpLinks(true);
-                } else {
-                    whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
-                }
+            }
+            whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
+            if (storedWl != null && storedWl.has("enableHelpLinks")) {
+                whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
+            } else {
+                whiteLabelingParams.setEnableHelpLinks(true);
             }
         }
         return whiteLabelingParams;

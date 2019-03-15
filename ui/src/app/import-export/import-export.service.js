@@ -641,7 +641,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         return dashboard;
     }
 
-    function importDashboard($event, entityGroupId) {
+    function importDashboard($event, customerId, entityGroupId) {
         var deferred = $q.defer();
         openImportDialog($event, 'dashboard.import', 'dashboard.dashboard-file').then(
             function success(dashboard) {
@@ -650,6 +650,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                     deferred.reject();
                 } else {
                     dashboard = dashboardUtils.validateAndUpdateDashboard(dashboard);
+                    dashboard.customerId = customerId;
                     var entityAliases = dashboard.configuration.entityAliases;
                     if (entityAliases) {
                         var aliasIds = Object.keys( entityAliases );

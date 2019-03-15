@@ -171,6 +171,7 @@ export default angular.module('thingsboard.help', [])
                 whiteLabeling: helpBaseUrl +  "/docs/user-guide/white-labeling",
                 entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
                 customTranslation: helpBaseUrl +  "/docs/user-guide/custom-translation",
+                customMenu: helpBaseUrl +  "/docs/user-guide/custom-menu",
                 roles: helpBaseUrl + "/docs/user-guide/ui/roles"
             },
             getRuleNodeLink: function(ruleNode) {
