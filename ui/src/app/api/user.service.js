@@ -385,6 +385,9 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
 
         if (!currentUser) {
             var locationSearch = $location.search();
+            if (locationSearch.reportView) {
+                reportService.loadReportParams(locationSearch);
+            }
             if (locationSearch.publicId) {
                 loginService.publicLogin(locationSearch.publicId).then(function success(response) {
                     var token = response.data.token;
@@ -410,9 +413,6 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
                     } else {
                         store.remove('refresh_token');
                         store.remove('refresh_token_expiration');
-                    }
-                    if (locationSearch.reportView) {
-                        reportService.loadReportParams(locationSearch);
                     }
                 } catch (e) {
                     deferred.reject();
