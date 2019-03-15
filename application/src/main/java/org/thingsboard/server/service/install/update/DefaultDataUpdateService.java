@@ -245,13 +245,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     }
                                     break;
                                 case ASSET:
-                                    new AssetsGroupAllUpdater(assetService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new AssetsGroupAllUpdater(assetService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DEVICE:
-                                    new DevicesGroupAllUpdater(deviceService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new DevicesGroupAllUpdater(deviceService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case ENTITY_VIEW:
-                                    new EntityViewGroupAllUpdater(entityViewService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new EntityViewGroupAllUpdater(entityViewService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DASHBOARD:
                                     new DashboardsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());

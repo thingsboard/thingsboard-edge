@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 
@@ -41,8 +42,10 @@ class DevicesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<DeviceId, De
 
     private final DeviceService deviceService;
 
-    public DevicesGroupAllUpdater(DeviceService deviceService, EntityGroupService entityGroupService, EntityGroup groupAll, boolean fetchAllTenantEntities) {
-        super(entityGroupService,
+    public DevicesGroupAllUpdater(DeviceService deviceService, CustomerService customerService,
+                                  EntityGroupService entityGroupService, EntityGroup groupAll, boolean fetchAllTenantEntities) {
+        super(customerService,
+                entityGroupService,
                 groupAll,
                 fetchAllTenantEntities,
                 (tenantId, pageLink) -> deviceService.findDevicesByTenantId(tenantId, pageLink),
