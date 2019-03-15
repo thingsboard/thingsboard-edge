@@ -43,10 +43,10 @@ exports.genDashboardReport = function(req, res, browser) {
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }
-        var url = baseUrl;
-        url += "dashboard/"+body.dashboardId;
+        var dashboardUrl = baseUrl;
+        dashboardUrl += "dashboard/"+body.dashboardId;
+        var url = dashboardUrl;
         var token = body.token;
-        var expiration = body.expiration;
         var name = body.name;
         var timewindow = null;
         var type = 'pdf'; // 'jpeg', 'png';
@@ -58,21 +58,27 @@ exports.genDashboardReport = function(req, res, browser) {
                 type = reportParams.type;
             }
             var urlParams = [];
+            urlParams.push("reportView=true");
+            urlParams.push("accessToken="+token);
+
             if (reportParams.state && reportParams.state.length) {
                 urlParams.push("state="+reportParams.state);
             }
             if (reportParams.publicId && reportParams.publicId.length) {
                 urlParams.push("publicId="+reportParams.publicId);
             }
-            if (urlParams.length) {
-                url += "?" + urlParams.join('&');
-            }
-
             if (reportParams.timewindow) {
                 timewindow = reportParams.timewindow;
+                var timewindowStr = JSON.stringify(timewindow);
+                urlParams.push("reportTimewindow="+encodeURIComponent(timewindowStr));
             }
             if (typeof reportParams.tzOffset === 'number') {
                 tzOffset = reportParams.tzOffset;
+                urlParams.push("tzOffset="+encodeURIComponent(tzOffset));
+            }
+
+            if (urlParams.length) {
+                url += "?" + urlParams.join('&');
             }
         }
 
@@ -91,8 +97,8 @@ exports.genDashboardReport = function(req, res, browser) {
             res.status(400).end();
             return;
         }
-        logger.info('Generating dashboard report: %s', url);
-        generateDashboardReport(browser, baseUrl, url, type, timewindow, tzOffset, token, expiration).then(
+        logger.info('Generating dashboard report: %s', dashboardUrl);
+        generateDashboardReport(browser, url, type).then(
             (reportBuffer) => {
                 res.attachment(name + ext);
                 res.contentType(contentType);
@@ -111,7 +117,7 @@ exports.genDashboardReport = function(req, res, browser) {
     }
 };
 
-async function generateDashboardReport(browser, baseUrl, url, type, timewindow, tzOffset, token, expiration) {
+async function generateDashboardReport(browser, url, type) {
     var page = await browser.newPage();
     page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
     //page.on('console', msg => logger.info('PAGE LOG: %s', msg.text()));
@@ -126,32 +132,6 @@ async function generateDashboardReport(browser, baseUrl, url, type, timewindow, 
 
         await page.emulateMedia('screen');
 
-        const homeLoadResponse = await page.goto(baseUrl+'home', {waitUntil: 'networkidle2'});
-        if (homeLoadResponse._status >= 400) {
-            throw new Error("Home page load returned error status: " + homeLoadResponse._status);
-        }
-
-        var toEval =
-            `var prefix = 'tbReportStore.';\n` +
-            `sessionStorage.setItem(prefix+'jwt_token', '\"${token}\"');\n` +
-            `sessionStorage.setItem(prefix+'jwt_token_expiration', ${expiration});\n` +
-            `sessionStorage.setItem(prefix+'report_view', 'true');\n`;
-
-        if (timewindow) {
-            var timewindowStr = JSON.stringify(timewindow);
-            toEval += `var timewindow = ${timewindowStr};\n`;
-            toEval += `sessionStorage.setItem(prefix+'report_timewindow', JSON.stringify(timewindow));\n`;
-        } else {
-            toEval += `sessionStorage.removeItem(prefix+'report_timewindow');\n`;
-        }
-        if (typeof tzOffset === 'number') {
-            toEval += `sessionStorage.setItem(prefix+'report_tz_offset', ${tzOffset});\n`;
-        } else {
-            toEval += `sessionStorage.removeItem(prefix+'report_tz_offset');\n`;
-        }
-
-        await page.evaluate(toEval);
-
         const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
         if (dashboardLoadResponse._status < 400) {
             await page.waitFor(dashboardLoadWaitTime);
@@ -159,7 +139,7 @@ async function generateDashboardReport(browser, baseUrl, url, type, timewindow, 
             throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse._status);
         }
 
-        toEval = "var height = 0;\n" +
+        var toEval = "var height = 0;\n" +
             "     var gridsterChild = document.getElementById('gridster-child');\n" +
             "     if (gridsterChild) {\n" +
             "         height = Number(document.getElementById('gridster-child').offsetHeight);\n" +

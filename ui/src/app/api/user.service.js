@@ -38,7 +38,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
 
 /*@ngInject*/
 function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService, customMenuService,
-                     userPermissionsService, toast, store, reportStore, jwtHelper, $translate, $state, $location) {
+                     userPermissionsService, toast, store, reportService, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -181,11 +181,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
     }
 
     function _storeGet(key) {
-        if ($rootScope.reportView) {
-            return reportStore.get(key);
-        } else {
-            return store.get(key);
-        }
+        return store.get(key);
     }
 
     function validateJwtToken(doRefresh) {
@@ -414,6 +410,9 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
                     } else {
                         store.remove('refresh_token');
                         store.remove('refresh_token_expiration');
+                    }
+                    if (locationSearch.reportView) {
+                        reportService.loadReportParams(locationSearch);
                     }
                 } catch (e) {
                     deferred.reject();
