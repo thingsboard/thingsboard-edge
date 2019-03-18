@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -48,7 +47,6 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -57,17 +55,13 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/api")
 public class OwnerController extends BaseController {
 
-    public static final String OWNER_TYPE = "ownerType";
     public static final String OWNER_ID = "ownerId";
     public static final String ENTITY_TYPE = "entityType";
     public static final String ENTITY_ID = "entityId";
@@ -126,71 +120,34 @@ public class OwnerController extends BaseController {
         }
     }
 
-    // INVALIDATE CACHES
     private void changeOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
         try {
             switch (entityId.getEntityType()) {
                 case DEVICE:
-                    changeEntityOwner(tenantId, targetOwnerId, new DeviceId(entityId.getId()),
-                            checkDeviceId(new DeviceId(entityId.getId()), Operation.CHANGE_OWNER),
-                            deviceService::saveDevice);
+                    ownersCacheService.changeDeviceOwner(tenantId, targetOwnerId, checkDeviceId(new DeviceId(entityId.getId()), Operation.CHANGE_OWNER));
                     break;
                 case ASSET:
-                    changeEntityOwner(tenantId, targetOwnerId, new AssetId(entityId.getId()),
-                            checkAssetId(new AssetId(entityId.getId()), Operation.CHANGE_OWNER),
-                            assetService::saveAsset);
+                    ownersCacheService.changeAssetOwner(tenantId, targetOwnerId, checkAssetId(new AssetId(entityId.getId()), Operation.CHANGE_OWNER));
                     break;
                 case ENTITY_VIEW:
-                    changeEntityOwner(tenantId, targetOwnerId, new EntityViewId(entityId.getId()),
-                            checkEntityViewId(new EntityViewId(entityId.getId()), Operation.CHANGE_OWNER),
-                            entityViewService::saveEntityView);
+                    ownersCacheService.changeEntityViewOwner(tenantId, targetOwnerId, checkEntityViewId(new EntityViewId(entityId.getId()), Operation.CHANGE_OWNER));
                     break;
                 case CUSTOMER:
-                    Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), entityId);
-                    if (!ownerIds.contains(targetOwnerId)) {
-                        changeEntityOwner(tenantId, targetOwnerId, new CustomerId(entityId.getId()),
-                                checkCustomerId(new CustomerId(entityId.getId()), Operation.CHANGE_OWNER),
-                                customerService::saveCustomer);
-                    } else {
-                        // Making Sub-Customer as a Parent Customer - NOT OK.
-                        throw new ThingsboardException("Owner of the Customer can't be changed to its Sub-Customer!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-                    }
+                    ownersCacheService.changeCustomerOwner(tenantId, targetOwnerId, checkCustomerId(new CustomerId(entityId.getId()), Operation.CHANGE_OWNER));
                     break;
                 case USER:
-                    UserId userId = new UserId(entityId.getId());
                     User user = checkUserId(new UserId(entityId.getId()), Operation.CHANGE_OWNER);
-                    userPermissionsService.onUserUpdatedOrRemoved(user);
-                    changeEntityOwner(tenantId, targetOwnerId, userId, user, userService::saveUser);
+                    ownersCacheService.changeUserOwner(tenantId, targetOwnerId, user);
                     break;
                 case DASHBOARD:
-                    changeEntityOwner(tenantId, targetOwnerId, new DashboardId(entityId.getId()),
-                            checkDashboardId(new DashboardId(entityId.getId()), Operation.CHANGE_OWNER),
-                            dashboardService::saveDashboard);
+                    ownersCacheService.changeDashboardOwner(tenantId, targetOwnerId, checkDashboardId(new DashboardId(entityId.getId()), Operation.CHANGE_OWNER));
                     break;
             }
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ThingsboardException e) {
             logEntityAction(entityId, null,
                     null, ActionType.ASSIGNED_TO_CUSTOMER, e);
             throw handleException(e);
         }
-    }
-
-    private <T extends HasOwnerId> void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, T entity, Consumer<T> saveFunction)
-            throws ThingsboardException, ExecutionException, InterruptedException {
-        if (entity.getOwnerId().equals(targetOwnerId)) {
-            throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
-
-        List<EntityGroupId> entityGroupList = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
-        for (EntityGroupId entityGroupId : entityGroupList) {
-            entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, entityId);
-        }
-
-        entityGroupService.addEntityToEntityGroupAll(tenantId, targetOwnerId, entityId);
-
-        entity.setOwnerId(targetOwnerId);
-        saveFunction.accept(entity);
-        ownersCacheService.clearOwners(entityId);
     }
 
 }

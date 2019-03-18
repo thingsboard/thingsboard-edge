@@ -96,6 +96,7 @@ import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -274,6 +275,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private RuleEngineCallService ruleEngineCallService;
+
+    @Autowired
+    @Getter
+    private OwnersCacheService ownersCacheService;
 
     @Lazy
     @Autowired

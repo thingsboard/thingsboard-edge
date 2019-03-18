@@ -97,12 +97,7 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
     }
 
     private ListenableFuture<Void> processEntityGroupAction(TbContext ctx, TbMsg msg) {
-        EntityType originatorType = msg.getOriginator().getEntityType();
-        if (originatorType != EntityType.CUSTOMER && originatorType != EntityType.ASSET && originatorType != EntityType.DEVICE && originatorType != EntityType.ENTITY_VIEW && originatorType != EntityType.DASHBOARD) {
-             throw new RuntimeException("Unsupported originator type '" + originatorType +
-                    "'! Only 'CUSTOMER', 'USER', 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.");
-        }
-        EntityId ownerId = getOwnerId(ctx, msg, originatorType);
+        EntityId ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator());
         ListenableFuture<EntityGroupId> entityGroupIdFeature = getEntityGroup(ctx, msg, ownerId);
         return Futures.transform(entityGroupIdFeature, entityGroupId -> {
                     doProcessEntityGroupAction(ctx, msg, entityGroupId);
@@ -111,32 +106,9 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
         );
     }
 
-    private EntityId getOwnerId(TbContext ctx, TbMsg msg, EntityType originatorType) {
-        switch (originatorType) {
-            case DEVICE:
-                Device device = ctx.getDeviceService().findDeviceById(ctx.getTenantId(),  new DeviceId(msg.getOriginator().getId()));
-                return device.getOwnerId();
-            case ASSET:
-                Asset asset = ctx.getAssetService().findAssetById(ctx.getTenantId(),  new AssetId(msg.getOriginator().getId()));
-                return asset.getOwnerId();
-            case CUSTOMER:
-                Customer customer = ctx.getCustomerService().findCustomerById(ctx.getTenantId(),  new CustomerId(msg.getOriginator().getId()));
-                return customer.getOwnerId();
-            case ENTITY_VIEW:
-                EntityView entityView = ctx.getEntityViewService().findEntityViewById(ctx.getTenantId(),  new EntityViewId(msg.getOriginator().getId()));
-                return entityView.getOwnerId();
-            case DASHBOARD:
-                Dashboard dashboard = ctx.getDashboardService().findDashboardById(ctx.getTenantId(),  new DashboardId(msg.getOriginator().getId()));
-                return dashboard.getOwnerId();
-            default:
-                User user = ctx.getUserService().findUserById(ctx.getTenantId(), new UserId(msg.getOriginator().getId()));
-                return user.getOwnerId();
-        }
-    }
-
     protected abstract void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId);
 
-    protected ListenableFuture<EntityGroupId> getEntityGroup(TbContext ctx, TbMsg msg, EntityId ownerId) {
+    private ListenableFuture<EntityGroupId> getEntityGroup(TbContext ctx, TbMsg msg, EntityId ownerId) {
         String groupName = TbNodeUtils.processPattern(this.config.getGroupNamePattern(), msg.getMetaData());
         GroupKey key = new GroupKey(msg.getOriginator().getEntityType(), groupName, ownerId);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {

@@ -48,7 +48,14 @@ import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -367,6 +374,51 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public EntityId getOwner(TenantId tenantId, EntityId entityId) {
+        return null;
+    }
+
+    @Override
+    public void clearOwners(EntityId entityId) {
+
+    }
+
+    @Override
+    public Set<EntityId> getChildOwners(TenantId tenantId, EntityId parentOwnerId) {
+        return null;
+    }
+
+    @Override
+    public void changeDashboardOwner(TenantId tenantId, EntityId targetOwnerId, Dashboard entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeDashboardOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeUserOwner(TenantId tenantId, EntityId targetOwnerId, User entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeUserOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeCustomerOwner(TenantId tenantId, EntityId targetOwnerId, Customer entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeCustomerOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeEntityViewOwner(TenantId tenantId, EntityId targetOwnerId, EntityView entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeEntityViewOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeAssetOwner(TenantId tenantId, EntityId targetOwnerId, Asset entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeAssetOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeDeviceOwner(TenantId tenantId, EntityId targetOwnerId, Device entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeDeviceOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
     public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
         boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
         UUID requestUUID;
@@ -386,7 +438,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
             @Override
             public void onSuccess(@Nullable Void aVoid) {
                 if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID,null, null);
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
                     mainCtx.getDeviceRpcService().processResponseToServerSideRPCRequestFromRuleEngine(mainCtx.getRoutingService().getCurrentServer(), response);
                 }
                 callback.onSuccess(aVoid);
