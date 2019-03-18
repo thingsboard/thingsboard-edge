@@ -375,17 +375,17 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public EntityId getOwner(TenantId tenantId, EntityId entityId) {
-        return null;
+        return mainCtx.getOwnersCacheService().getOwner(tenantId, entityId);
     }
 
     @Override
     public void clearOwners(EntityId entityId) {
-
+        mainCtx.getOwnersCacheService().clearOwners(entityId);
     }
 
     @Override
     public Set<EntityId> getChildOwners(TenantId tenantId, EntityId parentOwnerId) {
-        return null;
+        return mainCtx.getOwnersCacheService().getChildOwners(tenantId, parentOwnerId);
     }
 
     @Override
