@@ -92,7 +92,11 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
 
         groupConfig.onImportDashboard = (event)  => {
             var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
-            importExport.importDashboard(event, entityGroupId).then(
+            var customerId = null;
+            if (entityGroup.ownerId.entityType === types.entityType.customer) {
+                customerId = entityGroup.ownerId;
+            }
+            importExport.importDashboard(event, customerId, entityGroupId).then(
                 function() {
                     groupConfig.onEntityAdded();
                 }

@@ -245,13 +245,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     }
                                     break;
                                 case ASSET:
-                                    new AssetsGroupAllUpdater(assetService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new AssetsGroupAllUpdater(assetService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DEVICE:
-                                    new DevicesGroupAllUpdater(deviceService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new DevicesGroupAllUpdater(deviceService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case ENTITY_VIEW:
-                                    new EntityViewGroupAllUpdater(entityViewService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    new EntityViewGroupAllUpdater(entityViewService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DASHBOARD:
                                     new DashboardsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
@@ -578,22 +578,22 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
             }
-            if (isSystem) {
-                String helpLinkBaseUrl = "https://thingsboard.io";
-                if (storedWl.has("helpLinkBaseUrl")) {
-                    JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
-                    if (helpLinkBaseUrlJson.isTextual()) {
-                        if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
-                            helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
-                        }
+        }
+        if (isSystem) {
+            String helpLinkBaseUrl = "https://thingsboard.io";
+            if (storedWl != null && storedWl.has("helpLinkBaseUrl")) {
+                JsonNode helpLinkBaseUrlJson = storedWl.get("helpLinkBaseUrl");
+                if (helpLinkBaseUrlJson.isTextual()) {
+                    if (!StringUtils.isEmpty(helpLinkBaseUrlJson.asText())) {
+                        helpLinkBaseUrl = helpLinkBaseUrlJson.asText();
                     }
                 }
-                whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
-                if (!storedWl.has("enableHelpLinks")) {
-                    whiteLabelingParams.setEnableHelpLinks(true);
-                } else {
-                    whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
-                }
+            }
+            whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
+            if (storedWl != null && storedWl.has("enableHelpLinks")) {
+                whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
+            } else {
+                whiteLabelingParams.setEnableHelpLinks(true);
             }
         }
         return whiteLabelingParams;

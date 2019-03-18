@@ -32,6 +32,7 @@ package org.thingsboard.server.service.install.update;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -40,12 +41,10 @@ import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,6 +54,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
         & TenantEntity & HasCustomerId> extends PaginatedUpdater<TenantId,D> {
 
     protected final EntityGroup groupAll;
+    private final CustomerService customerService;
     private final EntityGroupService entityGroupService;
     private final boolean fetchAllTenantEntities;
     private final BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction;
@@ -62,15 +62,17 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
     private final Function<EntityId, I> toIdFunction;
     private final Function<D, EntityId> getEntityIdFunction;
 
-    private Map<CustomerId, EntityGroupId> customersGroupMap = new HashMap<>();
+    private Map<CustomerId, Optional<EntityGroupId>> customersGroupMap = new HashMap<>();
 
-    public EntityGroupAllPaginatedUpdater(EntityGroupService entityGroupService,
+    public EntityGroupAllPaginatedUpdater(CustomerService customerService,
+                                          EntityGroupService entityGroupService,
                                           EntityGroup groupAll,
                                           boolean fetchAllTenantEntities,
                                           BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction,
                                           BiFunction<TenantId, List<I>, ListenableFuture<List<D>>> idsToEntitiesAsyncFunction,
                                           Function<EntityId, I> toIdFunction,
                                           Function<D, EntityId> getEntityIdFunction) {
+        this.customerService = customerService;
         this.entityGroupService = entityGroupService;
         this.groupAll = groupAll;
         this.fetchAllTenantEntities = fetchAllTenantEntities;
@@ -106,12 +108,21 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
         EntityId entityId = getEntityIdFunction.apply(entity);
         entityGroupService.addEntityToEntityGroupAll(TenantId.SYS_TENANT_ID, entity.getTenantId(), entityId);
         if (entity.getCustomerId() != null && !entity.getCustomerId().isNullUid()) {
-            EntityGroupId customerEntityGroupId = customersGroupMap.computeIfAbsent(
-                    entity.getCustomerId(), customerId ->
-                            entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
-                                    customerId, entity.getEntityType()).getId()
+            Optional<EntityGroupId> customerEntityGroupId = customersGroupMap.computeIfAbsent(
+                    entity.getCustomerId(), customerId -> {
+                        Customer customer = customerService.findCustomerById(entity.getTenantId(), customerId);
+                        if (customer != null) {
+                            EntityGroupId entityGroupId = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(entity.getTenantId(),
+                                    customerId, entity.getEntityType()).getId();
+                            return Optional.of(entityGroupId);
+                        } else {
+                            return Optional.empty();
+                        }
+                    }
             );
-            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerEntityGroupId, entityId);
+            if (customerEntityGroupId.isPresent()) {
+                entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerEntityGroupId.get(), entityId);
+            }
             unassignFromCustomer(entity);
         }
     }

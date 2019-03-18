@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 
@@ -41,8 +42,10 @@ class EntityViewGroupAllUpdater extends EntityGroupAllPaginatedUpdater<EntityVie
 
     private final EntityViewService entityViewService;
 
-    public EntityViewGroupAllUpdater(EntityViewService entityViewService, EntityGroupService entityGroupService, EntityGroup groupAll, boolean fetchAllTenantEntities) {
-        super(entityGroupService,
+    public EntityViewGroupAllUpdater(EntityViewService entityViewService, CustomerService customerService,
+                                     EntityGroupService entityGroupService, EntityGroup groupAll, boolean fetchAllTenantEntities) {
+        super(customerService,
+                entityGroupService,
                 groupAll,
                 fetchAllTenantEntities,
                 (tenantId, pageLink) -> entityViewService.findEntityViewByTenantId(tenantId, pageLink),
