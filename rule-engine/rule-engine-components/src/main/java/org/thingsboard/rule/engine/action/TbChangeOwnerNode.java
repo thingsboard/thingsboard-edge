@@ -44,20 +44,9 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -66,6 +55,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
 
 @Slf4j
@@ -73,11 +63,15 @@ import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
         type = ComponentType.ACTION,
         name = "change owner",
         configClazz = TbChangeOwnerNodeConfiguration.class,
-        nodeDescription = "",
-        nodeDetails = "",
+        nodeDescription = "Changes Owner of the Originator entity to the selected Owner by type (Tenant, Customer)." +
+                "If selected Owner type - <b>Customer:</b></br>" +
+                "Rule node finds target Owner by owner name pattern and then change the owner of the originator entity.</br>" +
+                "Rule node can create new Owner if it doesn't exist and selected checkbox 'Create new owner if not exists'.",
+        nodeDetails = "If an entity already belongs to this owner or entity owner is successfully changed - " +
+                "Message sent via <b>Success</b> chain, otherwise, <b>Failure</b> chain will be used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeChangeOwnerConfig",
-        icon = "perm_identity"
+        icon = "assignment_ind"
 )
 public class TbChangeOwnerNode implements TbNode {
 
@@ -102,14 +96,15 @@ public class TbChangeOwnerNode implements TbNode {
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+    }
 
     private void processChangeOwner(TbContext ctx, TbMsg msg) {
         ListenableFuture<EntityId> ownerIdListenableFuture = getNewOwner(ctx, msg);
         withCallback(ownerIdListenableFuture, ownerId -> {
             try {
                 doProcessChangeOwner(ctx, msg, ownerId);
-                ctx.tellNext(msg, "Success");
+                ctx.tellNext(msg, SUCCESS);
             } catch (ThingsboardException e) {
                 ctx.tellFailure(msg, e);
             }
@@ -131,34 +126,7 @@ public class TbChangeOwnerNode implements TbNode {
 
     private void doProcessChangeOwner(TbContext ctx, TbMsg msg, EntityId ownerId) throws ThingsboardException {
         if (!ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator()).equals(ownerId)) {
-            switch (msg.getOriginator().getEntityType()) {
-                case DEVICE:
-                    Device device = ctx.getDeviceService().findDeviceById(ctx.getTenantId(), new DeviceId(msg.getOriginator().getId()));
-                    ctx.getPeContext().changeDeviceOwner(ctx.getTenantId(), ownerId, device);
-                    break;
-                case ASSET:
-                    Asset asset = ctx.getAssetService().findAssetById(ctx.getTenantId(), new AssetId(msg.getOriginator().getId()));
-                    ctx.getPeContext().changeAssetOwner(ctx.getTenantId(), ownerId, asset);
-                    break;
-                case CUSTOMER:
-                    Customer customer = ctx.getCustomerService().findCustomerById(ctx.getTenantId(), new CustomerId(msg.getOriginator().getId()));
-                    ctx.getPeContext().changeCustomerOwner(ctx.getTenantId(), ownerId, customer);
-                    break;
-                case USER:
-                    User user = ctx.getUserService().findUserById(ctx.getTenantId(), new UserId(msg.getOriginator().getId()));
-                    ctx.getPeContext().changeUserOwner(ctx.getTenantId(), ownerId, user);
-                    break;
-                case DASHBOARD:
-                    Dashboard dashboard = ctx.getDashboardService().findDashboardById(ctx.getTenantId(), new DashboardId(msg.getOriginator().getId()));
-                    ctx.getPeContext().changeDashboardOwner(ctx.getTenantId(), ownerId, dashboard);
-                    break;
-                case ENTITY_VIEW:
-                    EntityView entityView = ctx.getEntityViewService().findEntityViewById(ctx.getTenantId(), new EntityViewId(msg.getOriginator().getId()));
-                    ctx.getPeContext().changeEntityViewOwner(ctx.getTenantId(), ownerId, entityView);
-                    break;
-                default:
-                    break;
-            }
+            ctx.getPeContext().changeEntityOwner(ctx.getTenantId(), ownerId, msg.getOriginator(), msg.getOriginator().getEntityType());
         }
     }
 

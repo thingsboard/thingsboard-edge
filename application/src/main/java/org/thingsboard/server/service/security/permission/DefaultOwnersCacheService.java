@@ -216,20 +216,46 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, deviceService::saveDevice);
     }
 
+    @Override
+    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException {
+        switch (entityType) {
+            case DEVICE:
+                changeDeviceOwner(tenantId, targetOwnerId, getDeviceById(tenantId, entityId));
+                break;
+            case ASSET:
+                changeAssetOwner(tenantId, targetOwnerId, getAssetById(tenantId, entityId));
+                break;
+            case CUSTOMER:
+                changeCustomerOwner(tenantId, targetOwnerId, getCustomerById(tenantId, entityId));
+                break;
+            case USER:
+                changeUserOwner(tenantId, targetOwnerId, getUserById(tenantId, entityId));
+                break;
+            case DASHBOARD:
+                changeDashboardOwner(tenantId, targetOwnerId, getDashboardById(tenantId, entityId));
+                break;
+            case ENTITY_VIEW:
+                changeEntityViewOwner(tenantId, targetOwnerId, getEntityViewById(tenantId, entityId));
+                break;
+            default:
+                throw new RuntimeException("EntityType does not support ownership: " + entityId.getEntityType());
+        }
+    }
+
     private EntityId fetchOwnerId(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
             case DEVICE:
-                return getOwnerId(deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())));
+                return getOwnerId(getDeviceById(tenantId, entityId));
             case ASSET:
-                return getOwnerId(assetService.findAssetById(tenantId, new AssetId(entityId.getId())));
+                return getOwnerId(getAssetById(tenantId, entityId));
             case CUSTOMER:
-                return getOwnerId(customerService.findCustomerById(tenantId, new CustomerId(entityId.getId())));
+                return getOwnerId(getCustomerById(tenantId, entityId));
             case ENTITY_VIEW:
-                return getOwnerId(entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())));
+                return getOwnerId(getEntityViewById(tenantId, entityId));
             case DASHBOARD:
-                return getOwnerId(dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())));
+                return getOwnerId(getDashboardById(tenantId, entityId));
             case USER:
-                return getOwnerId(userService.findUserById(tenantId, new UserId(entityId.getId())));
+                return getOwnerId(getUserById(tenantId, entityId));
             case ENTITY_GROUP:
                 return getOwnerId(entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
             case ROLE:
@@ -240,6 +266,30 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                 // Maybe return tenantId here?
                 throw new RuntimeException("EntityType does not support ownership: " + entityId.getEntityType());
         }
+    }
+
+    private Device getDeviceById(TenantId tenantId, EntityId entityId) {
+        return deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+    }
+
+    private Asset getAssetById(TenantId tenantId, EntityId entityId) {
+        return assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+    }
+
+    private Customer getCustomerById(TenantId tenantId, EntityId entityId) {
+        return customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
+    }
+
+    private User getUserById(TenantId tenantId, EntityId entityId) {
+        return userService.findUserById(tenantId, new UserId(entityId.getId()));
+    }
+
+    private Dashboard getDashboardById(TenantId tenantId, EntityId entityId) {
+        return dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+    }
+
+    private EntityView getEntityViewById(TenantId tenantId, EntityId entityId) {
+        return entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
     }
 
     private EntityId getOwnerId(HasOwnerId entity) {
@@ -279,7 +329,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private void fetchOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) {
         result.add(entityId);
         if (entityId.getEntityType() == EntityType.CUSTOMER) {
-            Customer customer = customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
+            Customer customer = getCustomerById(tenantId, entityId);
             fetchOwners(tenantId, customer.getOwnerId(), result);
         }
     }

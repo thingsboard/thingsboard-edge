@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -416,6 +417,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void changeDeviceOwner(TenantId tenantId, EntityId targetOwnerId, Device entity) throws ThingsboardException {
         mainCtx.getOwnersCacheService().changeDeviceOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeEntityOwner(tenantId, targetOwnerId, entityId, entityType);
     }
 
     @Override
