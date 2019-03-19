@@ -355,6 +355,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         @Override
         protected void updateGroupEntity(Customer customer, EntityGroup groupAll) {
+            if (customer.getId() == null || customer.getId().isNullUid()) {
+                log.warn("Customer has invalid id [{}]", customer.getId());
+                log.warn("[{}]", customer);
+                return;
+            }
             if (customer.isSubCustomer()) {
                 return;
             }

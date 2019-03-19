@@ -764,7 +764,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 throw new DataValidationException("Entity group name should be specified!");
             }
             if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
-                throw new DataValidationException("Entity group ownerId be specified!");
+                throw new DataValidationException("Entity group ownerId should be specified!");
             }
         }
     }
