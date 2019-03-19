@@ -32,12 +32,10 @@ package org.thingsboard.rule.engine.action;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
 public class TbChangeOwnerNodeConfiguration implements NodeConfiguration<TbChangeOwnerNodeConfiguration> {
 
-    //private EntityId tenantId;
     private String ownerNamePattern;
     private String ownerType;
 
