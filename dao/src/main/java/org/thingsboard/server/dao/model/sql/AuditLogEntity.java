@@ -155,7 +155,7 @@ public class AuditLogEntity extends BaseSqlEntity<AuditLog> implements BaseEntit
             auditLog.setEntityId(EntityIdFactory.getByTypeAndId(entityType.name(), toUUID(entityId).toString()));
         }
         if (userId != null) {
-            auditLog.setUserId(new UserId(toUUID(entityId)));
+            auditLog.setUserId(new UserId(toUUID(userId)));
         }
         auditLog.setEntityName(this.entityName);
         auditLog.setUserName(this.userName);
