@@ -238,7 +238,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                 changeEntityViewOwner(tenantId, targetOwnerId, getEntityViewById(tenantId, entityId));
                 break;
             default:
-                throw new RuntimeException("EntityType does not support ownership: " + entityId.getEntityType());
+                throw new RuntimeException("EntityType does not support owner change: " + entityId.getEntityType());
         }
     }
 
