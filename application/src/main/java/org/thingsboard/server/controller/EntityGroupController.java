@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
@@ -552,7 +553,7 @@ public class EntityGroupController extends BaseController {
             groupPermission.setEntityGroupType(entityGroup.getType());
 
             JsonNode additionalInfo = entityGroup.getAdditionalInfo();
-            if (additionalInfo == null) {
+            if (additionalInfo == null || additionalInfo instanceof NullNode) {
                 additionalInfo = mapper.createObjectNode();
             }
             ((ObjectNode)additionalInfo).put("isPublic", true);
