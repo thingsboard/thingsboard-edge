@@ -106,13 +106,13 @@
                                         <label translate class="tb-small">scheduler.repeat-every</label>
                                         <span style="height: 16px;"></span>
                                         <div layout="column" layout-gt-sm="row">
-                                            <md-input-container class="md-block" flex="30">
+                                            <md-input-container class="md-block" flex="50">
                                                 <input required name="value" type="number" step="any" min="0" ng-model="vm.timerRepeat.repeatInterval">
                                                 <div ng-messages="theForm.name.$error">
                                                     <div translate ng-message="required">scheduler.time-interval-required</div>
                                                 </div>
                                             </md-input-container>
-                                            <md-input-container class="md-block" flex>
+                                            <md-input-container class="md-block" flex="50">
                                                 <md-select required name="timeUnit" ng-model="vm.timerRepeat.timeUnit">
                                                     <md-option ng-repeat="timeUnit in vm.timeUnits" ng-value="timeUnit.value">
                                                         {{ timeUnit.name | translate }}
