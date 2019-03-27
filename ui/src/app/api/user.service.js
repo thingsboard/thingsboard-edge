@@ -38,7 +38,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
 
 /*@ngInject*/
 function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService, customMenuService,
-                     userPermissionsService, toast, store, reportService, jwtHelper, $translate, $state, $location) {
+                     customTranslationService, userPermissionsService, toast, store, reportService, jwtHelper, $translate, $state, $location) {
     var currentUser = null,
         currentUserDetails = null,
         lastPublicDashboardId = null,
@@ -339,20 +339,19 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
                 } else if (currentUser) {
                     currentUser.authority = "ANONYMOUS";
                 }
-                var sysParamsPromise = loadSystemParams();
                 if (currentUser.isPublic) {
                     $rootScope.forceFullscreen = true;
-                    sysParamsPromise.then(
+                    loadSystemParams().then(
                         () => { fetchAllowedDashboardIds(); },
                         () => { deferred.reject(); }
                     );
                 } else if (currentUser.userId) {
                     getUser(currentUser.userId, true).then(
                         function success(user) {
-                            sysParamsPromise.then(
+                            currentUserDetails = user;
+                            updateUserLang();
+                            loadSystemParams().then(
                                 () => {
-                                    currentUserDetails = user;
-                                    updateUserLang();
                                     $rootScope.forceFullscreen = false;
                                     if (userForceFullscreen()) {
                                         $rootScope.forceFullscreen = true;
@@ -478,6 +477,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
             promises.push(checkIsWhiteLabelingAllowed());
         }
         promises.push(userPermissionsService.loadPermissionsInfo());
+        promises.push(customTranslationService.updateCustomTranslations());
         return $q.all(promises);
     }
 

@@ -205,11 +205,15 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         });
 
         $rootScope.globalTranslateOnReadyListener = $rootScope.$on('$translateReady', function () {
-            customTranslationService.updateCustomTranslations();
+            if (userService.isUserLoaded() === true && userService.isAuthenticated()) {
+                customTranslationService.updateCustomTranslations();
+            }
         });
 
         $rootScope.globalTranslateOnChangeListener = $rootScope.$on('$translateChangeEnd', function () {
-            customTranslationService.updateCustomTranslations();
+            if (userService.isUserLoaded() === true && userService.isAuthenticated()) {
+                customTranslationService.updateCustomTranslations();
+            }
         });
     }
 

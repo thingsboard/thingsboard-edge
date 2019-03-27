@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.customTranslation', [])
     .name;
 
 /*@ngInject*/
-function CustomTranslationService($rootScope, $q, $http, $translateProvider, $translate, userService) {
+function CustomTranslationService($rootScope, $q, $http, $translateProvider, $translate) {
 
     var service = {
         updateCustomTranslations: updateCustomTranslations,
@@ -43,6 +43,7 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider, $tr
     };
 
     service.translationMap = null;
+    service.updateTranslationTasks = [];
 
     return service;
 
@@ -60,50 +61,51 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider, $tr
     }
 
     function updateCustomTranslations(forceUpdate) {
-        if (userService.isUserLoaded() === true) {
-            if (userService.isAuthenticated()) {
-                if (service.translateLoadPromise) {
-                    return;
-                }
-                service.translateLoadPromise = (service.translationMap && !forceUpdate) ? $q.when({ translationMap: service.translationMap }) : loadCustomTranslation();
-                service.translateLoadPromise.then(
-                    (response) => {
-                        service.translateLoadPromise = null;
-                        service.translationMap = response.translationMap;
-                        var langKey = $translate.use();
-                        var translationMap;
-                        if (response.translationMap[langKey]) {
-                            try {
-                                translationMap = angular.fromJson(response.translationMap[langKey]);
-                            } catch (e) {
-                                //
-                            }
-                        }
-                        if (forceUpdate) {
-                            var targetLocale = PUBLIC_PATH + 'locale/locale.constant-'+langKey+'.json'; //eslint-disable-line
-                            $http.get(targetLocale, null).then(function success(response) {
-                                var localeJson = response.data;
-                                $translateProvider.translations(langKey, localeJson);
-                                $translateProvider.translations(langKey, translationMap);
-                            });
-                        } else {
-                            $translateProvider.translations(langKey, translationMap);
-                        }
-                    },
-                    () => {
-                        service.translateLoadPromise = null;
-                    }
-                )
-            }
-        } else {
-            if (!service.userLoadedHandle) {
-                service.userLoadedHandle = $rootScope.$on('userLoaded', function () {
-                    service.userLoadedHandle();
-                    service.userLoadedHandle = null;
-                    updateCustomTranslations();
-                });
-            }
+        let deferred = $q.defer();
+        if (service.translateLoadPromise) {
+            service.updateTranslationTasks.push(deferred);
+            return deferred.promise;
         }
+        service.translateLoadPromise = (service.translationMap && !forceUpdate) ? $q.when({ translationMap: service.translationMap }) : loadCustomTranslation();
+        service.translateLoadPromise.then(
+            (response) => {
+                service.translationMap = response.translationMap;
+                var langKey = $translate.use();
+                var translationMap;
+                if (response.translationMap[langKey]) {
+                    try {
+                        translationMap = angular.fromJson(response.translationMap[langKey]);
+                    } catch (e) {
+                        //
+                    }
+                }
+                if (forceUpdate) {
+                    var targetLocale = PUBLIC_PATH + 'locale/locale.constant-'+langKey+'.json'; //eslint-disable-line
+                    $http.get(targetLocale, null).then(function success(response) {
+                        var localeJson = response.data;
+                        $translateProvider.translations(langKey, localeJson);
+                        $translateProvider.translations(langKey, translationMap);
+                    });
+                } else {
+                    $translateProvider.translations(langKey, translationMap);
+                }
+                service.translateLoadPromise = null;
+                deferred.resolve();
+                for (let i=0;i<service.updateTranslationTasks.length;i++) {
+                    service.updateTranslationTasks[i].resolve();
+                }
+                service.updateTranslationTasks = [];
+            },
+            () => {
+                service.translateLoadPromise = null;
+                deferred.reject();
+                for (let i=0;i<service.updateTranslationTasks.length;i++) {
+                    service.updateTranslationTasks[i].reject();
+                }
+                service.updateTranslationTasks = [];
+            }
+        )
+        return deferred.promise;
     }
 
     function getCurrentCustomTranslation() {
@@ -122,8 +124,14 @@ function CustomTranslationService($rootScope, $q, $http, $translateProvider, $tr
         var url = '/api/customTranslation/customTranslation';
         $http.post(url, customTranslation).then(
             () => {
-                updateCustomTranslations(true);
-                deferred.resolve();
+                updateCustomTranslations(true).then(
+                    () => {
+                        deferred.resolve();
+                    },
+                    () => {
+                        deferred.reject();
+                    }
+                );
             },
             () => {
                 deferred.reject();
