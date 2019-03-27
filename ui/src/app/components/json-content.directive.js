@@ -31,6 +31,7 @@
 import './json-content.scss';
 
 import 'brace/ext/language_tools';
+import 'brace/ext/searchbox';
 import 'brace/mode/json';
 import 'brace/mode/text';
 import 'brace/snippets/json';

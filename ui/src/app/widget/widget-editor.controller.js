@@ -31,6 +31,7 @@
 import $ from 'jquery';
 import ace from 'brace';
 import 'brace/ext/language_tools';
+import 'brace/ext/searchbox';
 import 'brace/mode/javascript';
 import 'brace/mode/html';
 import 'brace/mode/css';

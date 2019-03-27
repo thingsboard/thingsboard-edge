@@ -32,6 +32,7 @@ import './js-func.scss';
 
 import ace from 'brace';
 import 'brace/ext/language_tools';
+import 'brace/ext/searchbox';
 import $ from 'jquery';
 import thingsboardToast from '../services/toast';
 import thingsboardUtils from '../common/utils.service';

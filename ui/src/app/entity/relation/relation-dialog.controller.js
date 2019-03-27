@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import 'brace/ext/language_tools';
+import 'brace/ext/searchbox';
 import 'brace/mode/json';
 import 'brace/theme/github';
 import beautify from 'js-beautify';
