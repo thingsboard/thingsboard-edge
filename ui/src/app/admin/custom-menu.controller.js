@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function CustomMenuController($scope, $translate, utils, toast, types, securityTypes, userPermissionsService, customMenuService) {
+export default function CustomMenuController($scope, $q, $translate, utils, toast, types, securityTypes, userPermissionsService, customMenuService) {
 
     var vm = this;
 
@@ -40,49 +40,58 @@ export default function CustomMenuController($scope, $translate, utils, toast, t
     vm.save = save;
 
     vm.menuPlaceholder =
-        '******* Example of custom menu ******** \n\n' +
+        '******* Example of custom menu ******** \n*\n' +
+        '* menuItems - array of custom menu items\n' +
+        '* disabledMenuItems - array of ThingsBoard menu items to be disabled, available menu items names:\n*\n' +
+        '* "home", "tenants", "widget_library", "mail_server", "mail_templates", "white_labeling", "login_white_labeling",\n' +
+        '* "custom_translation", "custom_menu", "rule_chains", "converters", "integrations", "roles", "customers_hierarchy",\n' +
+        '* "user_groups", "customer_groups", "asset_groups", "device_groups", "entity_view_groups",\n' +
+        '* "dashboard_groups", "scheduler", "audit_log"\n\n' +
         angular.toJson(
-            [
-                {
-                    "name":"My Custom Menu",
-                    "iconUrl":null,
-                    "materialIcon":"menu",
-                    "iframeUrl":"https://thingsboard.io",
-                    "setAccessToken":false,
-                    "childMenuItems":[
+            {
+                disabledMenuItems: ['home'],
+                menuItems: [
+                    {
+                        "name":"My Custom Menu",
+                        "iconUrl":null,
+                        "materialIcon":"menu",
+                        "iframeUrl":"https://thingsboard.io",
+                        "setAccessToken":false,
+                        "childMenuItems":[
 
-                    ]
-                },
-                {
-                    "name":"My Custom Menu 2",
-                    "iconUrl":null,
-                    "materialIcon":"menu",
-                    "iframeUrl":"https://thingsboard.io",
-                    "setAccessToken":false,
-                    "childMenuItems":[
-                        {
-                            "name":"My Child Menu 1",
-                            "iconUrl":null,
-                            "materialIcon":"menu",
-                            "iframeUrl":"https://thingsboard.io",
-                            "setAccessToken":false,
-                            "childMenuItems":[
+                        ]
+                    },
+                    {
+                        "name":"My Custom Menu 2",
+                        "iconUrl":null,
+                        "materialIcon":"menu",
+                        "iframeUrl":"https://thingsboard.io",
+                        "setAccessToken":false,
+                        "childMenuItems":[
+                            {
+                                "name":"My Child Menu 1",
+                                "iconUrl":null,
+                                "materialIcon":"menu",
+                                "iframeUrl":"https://thingsboard.io",
+                                "setAccessToken":false,
+                                "childMenuItems":[
 
-                            ]
-                        },
-                        {
-                            "name":"My Child Menu 2",
-                            "iconUrl":null,
-                            "materialIcon":"menu",
-                            "iframeUrl":"https://thingsboard.io",
-                            "setAccessToken":false,
-                            "childMenuItems":[
+                                ]
+                            },
+                            {
+                                "name":"My Child Menu 2",
+                                "iconUrl":null,
+                                "materialIcon":"menu",
+                                "iframeUrl":"https://thingsboard.io",
+                                "setAccessToken":false,
+                                "childMenuItems":[
 
-                            ]
-                        }
-                    ]
-                }
-            ], 2
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }, 2
         );
 
     vm.showError = function (error) {
@@ -93,12 +102,18 @@ export default function CustomMenuController($scope, $translate, utils, toast, t
     getCurrentCustomMenu();
 
     function getCurrentCustomMenu() {
+        var deferred = $q.defer();
         var loadPromise = customMenuService.getCurrentCustomMenu();
         loadPromise.then(
-            function success(customMenu) {
+            (customMenu) => {
                 vm.customMenu = customMenu;
                 vm.customMenuJson = vm.customMenu ? angular.toJson(vm.customMenu, true) : null;
+                deferred.resolve();
+            },
+            () => {
+                deferred.reject();
             });
+        return deferred.promise;
     }
 
     function parse() {
@@ -128,7 +143,9 @@ export default function CustomMenuController($scope, $translate, utils, toast, t
             var savePromise = customMenuService.saveCustomMenu(vm.customMenu);
             savePromise.then(
                 function success() {
-                    vm.customMenuForm.$setPristine();
+                    getCurrentCustomMenu().then(() => {
+                        vm.customMenuForm.$setPristine();
+                    });
                 });
         }
     }

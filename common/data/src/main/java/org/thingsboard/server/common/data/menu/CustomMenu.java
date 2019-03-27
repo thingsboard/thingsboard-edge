@@ -38,7 +38,10 @@ import java.util.ArrayList;
 
 @Data
 @EqualsAndHashCode
-public class CustomMenu extends ArrayList<CustomMenuItem> {
+public class CustomMenu {
 
+    private ArrayList<String> disabledMenuItems = new ArrayList<>();
+
+    private ArrayList<CustomMenuItem> menuItems = new ArrayList<>();
 
 }

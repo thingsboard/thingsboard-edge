@@ -31,7 +31,7 @@
 
 -->
 <ul flex layout="column" layout-align="start stretch" class="tb-side-menu">
-   	  <li ng-repeat="section in sections" class="parent-list-item" 
+   	  <li ng-if="showSection(section)" ng-repeat="section in sections" class="parent-list-item"
 	      				ng-class="{'parentActive' : isOpen(section)}"> 
 			<tb-menu-link section="section"></tb-menu-link>
       </li>

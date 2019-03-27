@@ -52,6 +52,18 @@ function SideMenu($compile, $templateCache, menu) {
 
         element.html(template);
 
+        scope.showSection = function(section) {
+            if (section && !section.disabled) {
+                if (section.type === 'toggle') {
+                    return section.pages.filter((page) => !page.disabled).length > 0;
+                } else {
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        };
+
         menu.getSections().then((sections) => {
             scope.sections = sections;
         });

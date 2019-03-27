@@ -36,6 +36,8 @@ export default function HomeLinksController($scope, $mdMedia, menu) {
     var vm = this;
 
     vm.sectionColspan = sectionColspan;
+    vm.sectionPlaces = sectionPlaces;
+    vm.showSection = showSection;
 
     $scope.$watch(function() { return $mdMedia('lg'); }, function() {
         updateColumnCount();
@@ -63,10 +65,23 @@ export default function HomeLinksController($scope, $mdMedia, menu) {
 
     function sectionColspan(section) {
         var colspan = vm.cols;
-        if (section && section.places && section.places.length <= colspan) {
-            colspan = section.places.length;
+        var places = sectionPlaces(section);
+        if (places && places.length <= colspan) {
+            colspan = places.length;
         }
         return colspan;
+    }
+
+    function sectionPlaces(section) {
+        if (section && section.places) {
+            return section.places.filter((place) => !place.disabled);
+        } else {
+            return [];
+        }
+    }
+
+    function showSection(section) {
+        return section && sectionPlaces(section).length > 0;
     }
 
 }

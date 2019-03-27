@@ -33,7 +33,7 @@ import UrlHandler from './url.handler';
 
 /*@ngInject*/
 export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
-                               whiteLabelingService, loginService, userService, customTranslationService, $translate) {
+                               whiteLabelingService, loginService, userService, menu, customTranslationService, $translate) {
 
     $window.Flow = Flow;
     var frame = null;
@@ -159,6 +159,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             } else {
                                 redirect = to.redirectTo;
                             }
+                            redirect = menu.getRedirectState(to.name, redirect);
                             $state.go(redirect, params);
                         } else if (to.name === 'home.dashboard' && $rootScope.forceFullscreen) {
                             evt.preventDefault();
