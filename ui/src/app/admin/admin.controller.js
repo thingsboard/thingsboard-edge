@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import './mail-template-settings.scss';
+import './settings-card.scss';
 
 /*@ngInject*/
 export default function AdminController(adminService, userService, toast, $scope, $rootScope, $state, $translate,
