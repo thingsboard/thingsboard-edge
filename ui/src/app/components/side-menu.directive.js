@@ -54,7 +54,7 @@ function SideMenu($compile, $templateCache, menu) {
 
         scope.showSection = function(section) {
             if (section && !section.disabled) {
-                if (section.type === 'toggle') {
+                if (section.type === 'toggle' && !section.groupType) {
                     return section.pages.filter((page) => !page.disabled).length > 0;
                 } else {
                     return true;
