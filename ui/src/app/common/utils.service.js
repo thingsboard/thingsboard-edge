@@ -557,6 +557,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 label = label.split(variable).join(datasource.entityName);
             } else if (variableName === 'aliasName') {
                 label = label.split(variable).join(datasource.aliasName);
+            } else if (variableName === 'entityDescription') {
+                label = label.split(variable).join(datasource.entityDescription);
             }
             match = varsRegex.exec(pattern);
         }
