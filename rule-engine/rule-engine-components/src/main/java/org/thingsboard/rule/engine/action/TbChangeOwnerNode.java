@@ -113,13 +113,14 @@ public class TbChangeOwnerNode implements TbNode {
 
     private ListenableFuture<EntityId> getNewOwner(TbContext ctx, TbMsg msg) {
         String ownerName;
-        if(!config.getOwnerType().equals(String.valueOf(EntityType.TENANT))) {
+        EntityType entityType = EntityType.valueOf(this.config.getOwnerType());
+        if(entityType.equals(EntityType.CUSTOMER)) {
             ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg.getMetaData());
         } else {
             //Maybe set tenant name?
             ownerName = null;
         }
-        OwnerKey key = new OwnerKey(EntityType.valueOf(this.config.getOwnerType()), ownerName);
+        OwnerKey key = new OwnerKey(entityType, ownerName);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             EntityId newOwnerId = ownerIdCache.get(key);
             if (newOwnerId == null) {
