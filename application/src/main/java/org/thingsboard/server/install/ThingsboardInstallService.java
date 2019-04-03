@@ -148,6 +148,7 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("scheduling");
                         systemDataLoaderService.deleteSystemWidgetBundle("files");
                         systemDataLoaderService.deleteSystemWidgetBundle("input_widgets");
+                        systemDataLoaderService.deleteSystemWidgetBundle("date");
 
                         systemDataLoaderService.loadSystemWidgets();
                         break;

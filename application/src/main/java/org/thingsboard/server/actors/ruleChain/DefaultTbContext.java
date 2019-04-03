@@ -73,6 +73,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -80,6 +81,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -459,6 +461,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 callback.onFailure(throwable);
             }
         });
+    }
+
+    @Override
+    public CassandraCluster getCassandraCluster() {
+        return mainCtx.getCassandraCluster();
+    }
+
+    @Override
+    public CassandraBufferedRateExecutor getCassandraBufferedRateExecutor() {
+        return mainCtx.getCassandraBufferedRateExecutor();
     }
 
 }

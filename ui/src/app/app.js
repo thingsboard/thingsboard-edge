@@ -45,6 +45,7 @@ import 'angular-translate-storage-cookie';
 import 'angular-translate-handler-log';
 import 'angular-translate-interpolation-messageformat';
 import 'md-color-picker';
+import 'md-date-range-picker';
 import mdPickers from 'mdPickers';
 import ngSanitize from 'angular-sanitize';
 import FBAngular from 'angular-fullscreen';
@@ -101,6 +102,7 @@ import 'angular-hotkeys/build/hotkeys.min.css';
 import 'angular-carousel/dist/angular-carousel.min.css';
 import 'angular-material-expansion-panel/dist/md-expansion-panel.min.css';
 import 'ngFlowchart/dist/flowchart.css';
+import 'md-date-range-picker/src/md-date-range-picker.css';
 import '../scss/main.scss';
 
 import thingsboardThirdpartyFix from './common/thirdparty-fix';
@@ -155,6 +157,7 @@ angular.module('thingsboard', [
     angularSocialshare,
     'pascalprecht.translate',
     'mdColorPicker',
+    'ngMaterialDateRangePicker',
     mdPickers,
     ngSanitize,
     FBAngular.name,
