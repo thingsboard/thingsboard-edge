@@ -42,6 +42,17 @@
            ng-if="makePrivateEnabled"
            ng-show="!isEdit"
            class="md-raised md-primary">{{ 'entity-group.make-private' | translate }}</md-button>
+
+<div ng-if="entityGroup.type == types.entityType.device" layout="row">
+    <md-button ngclipboard data-clipboard-action="copy"
+               ngclipboard-success="onDeviceGroupIdCopied(e)"
+               data-clipboard-text="{{entityGroup.id.id}}" ng-show="!isEdit"
+               class="md-raised">
+        <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
+        <span translate>entity-group.copyId</span>
+    </md-button>
+</div>
+
 <md-content class="md-padding" layout="column">
     <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
          ng-show="!isEdit && isPublic">

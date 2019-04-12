@@ -35,12 +35,13 @@ import entityGroupFieldsetTemplate from './entity-group-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityGroupDirective($compile, $templateCache, securityTypes, userPermissionsService) {
+export default function EntityGroupDirective($compile, $templateCache, toast, $translate, securityTypes, types, userPermissionsService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(entityGroupFieldsetTemplate);
         element.html(template);
 
         scope.isPublic = false;
+        scope.types = types;
 
         scope.$watch('entityGroup', function(newVal) {
             if (newVal) {
@@ -60,8 +61,12 @@ export default function EntityGroupDirective($compile, $templateCache, securityT
             }
         });
 
+        scope.onDeviceGroupIdCopied = function () {
+            toast.showSuccess($translate.instant('entity-group.idCopiedMessage'), 750, angular.element(element).closest("md-tab-content"), 'bottom left');
+        };
+
         $compile(element.contents())(scope);
-    }
+    };
     return {
         restrict: "E",
         link: linker,
