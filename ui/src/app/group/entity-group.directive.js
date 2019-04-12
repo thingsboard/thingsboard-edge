@@ -35,13 +35,12 @@ import entityGroupFieldsetTemplate from './entity-group-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EntityGroupDirective($compile, $templateCache, toast, $translate, securityTypes, types, userPermissionsService) {
+export default function EntityGroupDirective($compile, $templateCache, toast, $translate, securityTypes, userPermissionsService) {
     var linker = function (scope, element) {
         var template = $templateCache.get(entityGroupFieldsetTemplate);
         element.html(template);
 
         scope.isPublic = false;
-        scope.types = types;
 
         scope.$watch('entityGroup', function(newVal) {
             if (newVal) {
