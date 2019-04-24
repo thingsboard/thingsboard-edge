@@ -176,7 +176,7 @@ public class TbCreateRelationNode extends TbAbstractRelationActionNode<TbCreateR
             } else {
                 return Futures.immediateFuture(true);
             }
-        });
+        }, ctx.getDbCallbackExecutor());
     }
 
     private ListenableFuture<Boolean> processAsset(TbContext ctx, EntityContainer entityContainer, SearchDirectionIds sdId) {
