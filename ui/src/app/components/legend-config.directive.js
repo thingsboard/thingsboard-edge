@@ -117,6 +117,7 @@ function LegendConfig($compile, $templateCache, types, $mdPanel, $document) {
         scope.updateView = function () {
             var value = {};
             var model = scope.model;
+            value.direction = model.direction;
             value.position = model.position;
             value.showMin = model.showMin;
             value.showMax = model.showMax;
@@ -132,6 +133,7 @@ function LegendConfig($compile, $templateCache, types, $mdPanel, $document) {
                     scope.model = {};
                 }
                 var model = scope.model;
+                model.direction = value.direction || types.direction.column.value;
                 model.position = value.position || types.position.bottom.value;
                 model.showMin = angular.isDefined(value.showMin) ? value.showMin : false;
                 model.showMax = angular.isDefined(value.showMax) ? value.showMax : false;
@@ -139,6 +141,7 @@ function LegendConfig($compile, $templateCache, types, $mdPanel, $document) {
                 model.showTotal = angular.isDefined(value.showTotal) ? value.showTotal : false;
             } else {
                 scope.model = {
+                    direction: types.direction.column.value,
                     position: types.position.bottom.value,
                     showMin: false,
                     showMax: false,

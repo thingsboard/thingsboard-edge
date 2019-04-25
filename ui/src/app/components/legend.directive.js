@@ -58,6 +58,8 @@ function Legend($compile, $templateCache, types, utils) {
         scope.isHorizontal = scope.legendConfig.position === types.position.bottom.value ||
             scope.legendConfig.position === types.position.top.value;
 
+        scope.isRowDirection = scope.legendConfig.direction === types.direction.row.value;
+
         scope.toggleHideData = function(index) {
             scope.legendData.keys[index].dataKey.hidden = !scope.legendData.keys[index].dataKey.hidden;
         }
