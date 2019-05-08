@@ -46,10 +46,26 @@ import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
-import org.eclipse.milo.opcua.stack.core.types.builtin.*;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
+import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.*;
-import org.eclipse.milo.opcua.stack.core.types.structured.*;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseDirection;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseResultMask;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import org.eclipse.milo.opcua.stack.core.types.structured.BrowseDescription;
+import org.eclipse.milo.opcua.stack.core.types.structured.BrowseResult;
+import org.eclipse.milo.opcua.stack.core.types.structured.CallMethodRequest;
+import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
+import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
+import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
+import org.eclipse.milo.opcua.stack.core.types.structured.WriteValue;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -65,7 +81,14 @@ import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -74,6 +97,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -117,6 +141,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
         this.devices = new ConcurrentHashMap<>();
         this.devicesByTags = new ConcurrentHashMap<>();
+        opcUaServerConfiguration.getMapping().forEach(DeviceMapping::initMappingPatterns);
         this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toConcurrentMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
         scheduleReconnect = true;
         connected = true;
@@ -132,6 +157,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     mapper.writeValueAsString(configuration.get("clientConfiguration")),
                     OpcUaServerConfiguration.class);
         } catch (IOException e) {
+            log.error(e.getMessage(), e);
             throw new IllegalArgumentException("Invalid OPC-UA Integration Configuration structure!");
         }
         if (!allowLocalNetworkHosts && isLocalNetworkHost(opcUaServerConfiguration.getHost())) {
@@ -175,7 +201,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
-                log.debug("[{}] Processing uplink data: {}", this.configuration.getName(), data);
+                log.trace("[{}] Processing uplink data: {}", this.configuration.getName(), data);
                 processUplinkData(context, data);
             }
         }
@@ -335,7 +361,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (client != null) {
             try {
                 client.disconnect().get(10, TimeUnit.SECONDS);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.warn("Error: ", e);
             }
             client = null;
@@ -376,11 +402,62 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
     }
 
+    private boolean scanForChildren(OpcUaNode opcUaNode, DeviceMapping deviceMapping) {
+        if (opcUaNode.getFqn().equals("")) {
+            return true;
+        }
+        if (deviceMapping.getMappingType() == DeviceMappingType.FQN) {
+            String[] opcUaFqnLevels = opcUaNode.getFqn().split("\\.");
+            for (int i = 0; i < opcUaFqnLevels.length; i++) {
+                if (deviceMapping.getMappingPathPatterns().size() > i) {
+                    Pattern pattern = deviceMapping.getMappingPathPatterns().get(i);
+                    if (!pattern.matcher(opcUaFqnLevels[i]).matches()) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean scanById(OpcUaNode node, Map.Entry<Pattern, DeviceMapping> mappingEntry) {
+        if (mappingEntry.getValue().getNamespace() != null) {
+            return node.getNodeId().getNamespaceIndex().intValue() == mappingEntry.getValue().getNamespace().intValue()
+                    && mappingEntry.getKey().matcher(node.getNodeId().getIdentifier().toString()).matches();
+        } else {
+            return mappingEntry.getKey().matcher(node.getNodeId().getIdentifier().toString()).matches();
+        }
+    }
+
+    private boolean scanByFqn(OpcUaNode node, Map.Entry<Pattern, DeviceMapping> mappingEntry) {
+        return mappingEntry.getKey().matcher(node.getFqn()).matches();
+    }
+
+    private BiFunction<OpcUaNode, Map.Entry<Pattern, DeviceMapping>, Boolean> getMatchingFunction(DeviceMappingType mappingType) {
+        switch (mappingType) {
+            case ID:
+                return this::scanById;
+            case FQN:
+                return this::scanByFqn;
+            default:
+                throw new IllegalArgumentException("unknown DeviceMappingType: " + mappingType);
+        }
+    }
+
+
     private void scanForDevices(OpcUaNode node) {
-        log.trace("[{}] Scanning node: {}", this.configuration.getName(), node);
-        List<DeviceMapping> matchedMappings = mappings.entrySet().stream()
-                .filter(mappingEntry -> mappingEntry.getKey().matcher(getMatchingValue(node, mappingEntry.getValue().getMappingType())).matches())
-                .map(Map.Entry::getValue).collect(Collectors.toList());
+        log.debug("[{}] Scanning node: {}", this.configuration.getName(), node);
+        List<DeviceMapping> matchedMappings = new ArrayList<>();
+        boolean scanChildren = false;
+        for (Map.Entry<Pattern, DeviceMapping> mappingEntry : mappings.entrySet()) {
+            if (getMatchingFunction(mappingEntry.getValue().getMappingType()).apply(node, mappingEntry)) {
+                matchedMappings.add(mappingEntry.getValue());
+            } else {
+                scanChildren = scanChildren || scanForChildren(node, mappingEntry.getValue());
+            }
+        }
 
         matchedMappings.forEach(m -> {
             try {
@@ -392,41 +469,33 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 scheduleScan();
             }
         });
-
-        try {
-            if (client == null) {
-                initClient(opcUaServerConfiguration);
-                scheduleReconnect = false;
-            }
-            BrowseResult browseResult = client.browse(getBrowseDescription(node.getNodeId())).get();
-            List<ReferenceDescription> references = toList(browseResult.getReferences());
-            for (ReferenceDescription rd : references) {
-                if (rd.getNodeId().isLocal()) {
-                    NodeId childNodeId = rd.getNodeId().local().get();
-                    OpcUaNode childNode = new OpcUaNode(node, childNodeId, rd.getBrowseName().getName());
-                    scanForDevices(childNode);
-                } else {
-                    log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
+        if (scanChildren) {
+            try {
+                if (client == null) {
+                    initClient(opcUaServerConfiguration);
+                    scheduleReconnect = false;
+                }
+                BrowseResult browseResult = client.browse(getBrowseDescription(node.getNodeId())).get();
+                List<ReferenceDescription> references = toList(browseResult.getReferences());
+                for (ReferenceDescription rd : references) {
+                    if (rd.getNodeId().isLocal()) {
+                        NodeId childNodeId = rd.getNodeId().local().get();
+                        OpcUaNode childNode = new OpcUaNode(node, childNodeId, rd.getBrowseName().getName());
+                        scanForDevices(childNode);
+                    } else {
+                        log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
+                    }
+                }
+            } catch (Exception e) {
+                if (connected) {
+                    log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), node, e.getMessage(), e);
+                    sendConnectionFailedMessageToRuleEngine();
+                    scheduleReconnect = true;
+                    scheduleScan();
                 }
             }
-        } catch (Exception e) {
-            if (connected) {
-                log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), node, e.getMessage(), e);
-                sendConnectionFailedMessageToRuleEngine();
-                scheduleReconnect = true;
-                scheduleScan();
-            }
-        }
-    }
-
-    private String getMatchingValue(OpcUaNode node, DeviceMappingType mappingType) {
-        switch (mappingType) {
-            case ID:
-                return node.getNodeId().getIdentifier().toString();
-            case FQN:
-                return node.getFqn();
-            default:
-                throw new IllegalArgumentException("unknown DeviceMappingType: " + mappingType);
+        } else {
+            log.debug("[{}] Skip scanning children for node: {}", this.configuration.getName(), node);
         }
     }
 
@@ -557,10 +626,11 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 } else {
                     name = rd.getBrowseName().getName();
                 }
+                log.debug("[{}] Found tag: [{}].[{}]", this.configuration.getName(), nodeId, name);
                 if (tags.contains(name)) {
                     values.put(name, childId);
                 }
-                // recursively browse to children
+                // recursively browse children
                 values.putAll(lookupTags(childId, deviceNodeName, tags));
             }
         } catch (Exception e) {

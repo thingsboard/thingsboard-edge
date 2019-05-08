@@ -1581,6 +1581,7 @@
         "opc-ua-mapping-type-required":"Mapping type is required",
         "opc-ua-device-node-pattern":"Device Node Pattern",
         "opc-ua-device-node-pattern-required":"Device Node Pattern is required",
+        "opc-ua-namespace":"Namespace",
         "opc-ua-add-map": "Add mapping element",
         "subscription-tags": "Subscription tags",
         "remove-subscription-tag": "Remove subscription tag",

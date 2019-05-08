@@ -270,20 +270,17 @@
                                     <md-card>
                                         <md-card-content>
                                             <div flex layout="row">
-                                                <md-input-container flex="50" class="md-block">
-                                                    <label translate>integration.opc-ua-device-node-pattern</label>
-                                                    <input placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
-                                                           ng-disabled="$root.loading || !isEdit" ng-required="true"
-                                                           name="deviceNodePattern_{{mapIndex}}"
-                                                           ng-model="map.deviceNodePattern"
+                                                <md-input-container flex="50" class="md-block" ng-if="map.mappingType == types.opcUaMappingType.ID">
+                                                    <label translate>integration.opc-ua-namespace</label>
+                                                    <input placeholder="{{ 'integration.opc-ua-namespace' | translate }}"
+                                                           type="number"
+                                                           min="0"
+                                                           ng-disabled="$root.loading || !isEdit"
+                                                           name="namespace_{{mapIndex}}"
+                                                           ng-model="map.namespace"
                                                     >
-                                                    <div ng-messages="opcUaIntegrationForm['deviceNodePattern_' + mapIndex].$error">
-                                                        <div translate
-                                                             ng-message="required"
-                                                        >integration.opc-ua-device-node-pattern-required</div>
-                                                    </div>
                                                 </md-input-container>
-                                                <md-input-container flex="50" class="md-block">
+                                                <md-input-container flex class="md-block">
                                                     <label translate>integration.opc-ua-mapping-type</label>
                                                     <md-select placeholder="{{ 'integration.opc-ua-mapping-type' | translate }}"
                                                                ng-disabled="$root.loading || !isEdit" ng-required="true"
@@ -296,6 +293,21 @@
                                                         <div translate
                                                              ng-message="required"
                                                         >integration.opc-ua-mapping-type-required</div>
+                                                    </div>
+                                                </md-input-container>
+                                            </div>
+                                            <div flex layout="row">
+                                                <md-input-container flex class="md-block">
+                                                    <label translate>integration.opc-ua-device-node-pattern</label>
+                                                    <input placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
+                                                           ng-disabled="$root.loading || !isEdit" ng-required="true"
+                                                           name="deviceNodePattern_{{mapIndex}}"
+                                                           ng-model="map.deviceNodePattern"
+                                                    >
+                                                    <div ng-messages="opcUaIntegrationForm['deviceNodePattern_' + mapIndex].$error">
+                                                        <div translate
+                                                             ng-message="required"
+                                                        >integration.opc-ua-device-node-pattern-required</div>
                                                     </div>
                                                 </md-input-container>
                                             </div>
