@@ -176,6 +176,15 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
+    public WhiteLabelingParams getMergedParentCustomerWhiteLabelingParams(TenantId tenantId, CustomerId parentCustomerId, CustomerId customerId, String logoImageChecksum, String faviconChecksum){
+        WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, parentCustomerId);
+        result.merge(getCustomerWhiteLabelingParams(tenantId, customerId).merge(getSystemWhiteLabelingParams(tenantId)));
+        result.prepareImages(logoImageChecksum, faviconChecksum);
+
+        return result;
+    }
+
+    @Override
     public WhiteLabelingParams saveSystemWhiteLabelingParams(WhiteLabelingParams whiteLabelingParams) {
         whiteLabelingParams = prepareChecksums(whiteLabelingParams);
         AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, WHITE_LABEL_PARAMS);
@@ -406,6 +415,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         log.error("Unsupported entity type [{}]!", entityId.getEntityType().name());
         throw new IncorrectParameterException("Unsupported entity type [" + entityId.getEntityType().name() + "]!");
     }
+
 
     @Override
     public boolean isCustomerWhiteLabelingAllowed(TenantId tenantId) {

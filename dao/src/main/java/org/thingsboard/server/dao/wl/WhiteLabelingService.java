@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.wl;
 
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -51,6 +53,8 @@ public interface WhiteLabelingService {
     WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum);
 
     WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
+
+    WhiteLabelingParams getMergedParentCustomerWhiteLabelingParams(TenantId tenantId, CustomerId parentCustomerId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
 
     LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId);
 

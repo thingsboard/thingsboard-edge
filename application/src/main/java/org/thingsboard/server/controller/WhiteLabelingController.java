@@ -34,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
@@ -45,6 +47,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -68,7 +71,15 @@ public class WhiteLabelingController extends BaseController {
                 whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(getCurrentUser().getTenantId(),
                         logoImageChecksum, faviconChecksum);
             } else if (authority == Authority.CUSTOMER_USER) {
-                whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(getCurrentUser().getTenantId(),
+                CustomerId customerId = new CustomerId(getCurrentUser().getCustomerId().getId());
+                Customer customer = checkCustomerId(customerId, Operation.READ);
+                if(customer.getParentCustomerId() != null)
+                {
+                    whiteLabelingParams = whiteLabelingService.getMergedParentCustomerWhiteLabelingParams(getCurrentUser().getTenantId(),
+                            customer.getParentCustomerId(), getCurrentUser().getCustomerId(), logoImageChecksum, faviconChecksum);
+                }
+                else
+                    whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(getCurrentUser().getTenantId(),
                         getCurrentUser().getCustomerId(), logoImageChecksum, faviconChecksum);
             }
             return whiteLabelingParams;
