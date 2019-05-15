@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.dao.wl;
 
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
+
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
