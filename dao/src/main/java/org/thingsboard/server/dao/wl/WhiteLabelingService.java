@@ -54,8 +54,6 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
 
-    WhiteLabelingParams getMergedParentCustomerWhiteLabelingParams(TenantId tenantId, CustomerId parentCustomerId, CustomerId customerId, String logoImageChecksum, String faviconChecksum);
-
     LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId);
 
     LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId);
