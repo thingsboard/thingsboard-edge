@@ -71,14 +71,6 @@ public class WhiteLabelingController extends BaseController {
                 whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(getCurrentUser().getTenantId(),
                         logoImageChecksum, faviconChecksum);
             } else if (authority == Authority.CUSTOMER_USER) {
-                CustomerId customerId = new CustomerId(getCurrentUser().getCustomerId().getId());
-                Customer customer = checkCustomerId(customerId, Operation.READ);
-                if(customer.getParentCustomerId() != null)
-                {
-                    whiteLabelingParams = whiteLabelingService.getMergedParentCustomerWhiteLabelingParams(getCurrentUser().getTenantId(),
-                            customer.getParentCustomerId(), getCurrentUser().getCustomerId(), logoImageChecksum, faviconChecksum);
-                }
-                else
                     whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(getCurrentUser().getTenantId(),
                         getCurrentUser().getCustomerId(), logoImageChecksum, faviconChecksum);
             }
