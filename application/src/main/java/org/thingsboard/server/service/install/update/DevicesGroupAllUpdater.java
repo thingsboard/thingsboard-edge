@@ -48,8 +48,8 @@ class DevicesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<DeviceId, De
                 entityGroupService,
                 groupAll,
                 fetchAllTenantEntities,
-                (tenantId, pageLink) -> deviceService.findDevicesByTenantId(tenantId, pageLink),
-                (tenantId, deviceIds) -> deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds),
+                deviceService::findDevicesByTenantId,
+                deviceService::findDevicesByTenantIdAndIdsAsync,
                 entityId -> new DeviceId(entityId.getId()),
                 device -> device.getId());
         this.deviceService = deviceService;

@@ -86,6 +86,9 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
 
     private ListenableFuture<Void> processEntityGroupAction(TbContext ctx, TbMsg msg) {
         EntityId ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator());
+        if(ownerId ==  null) {
+            ownerId = ctx.getTenantId();
+        }
         ListenableFuture<EntityGroupId> entityGroupIdFeature = getEntityGroup(ctx, msg, ownerId);
         return Futures.transform(entityGroupIdFeature, entityGroupId -> {
                     doProcessEntityGroupAction(ctx, msg, entityGroupId);
