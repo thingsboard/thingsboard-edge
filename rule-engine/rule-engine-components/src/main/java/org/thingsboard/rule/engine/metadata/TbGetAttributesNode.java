@@ -40,6 +40,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.msg.TbMsg;
 
 /**
  * Created by ashvayka on 19.01.18.
@@ -63,7 +64,8 @@ public class TbGetAttributesNode extends TbAbstractGetAttributesNode<TbGetAttrib
     }
 
     @Override
-    protected ListenableFuture<EntityId> findEntityIdAsync(TbContext ctx, EntityId originator) {
-        return Futures.immediateFuture(originator);
+    protected ListenableFuture<EntityId> findEntityIdAsync(TbContext ctx, TbMsg msg) {
+        return Futures.immediateFuture(msg.getOriginator());
     }
+
 }

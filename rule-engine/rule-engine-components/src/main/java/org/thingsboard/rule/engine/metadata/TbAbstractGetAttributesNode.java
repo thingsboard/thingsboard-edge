@@ -66,7 +66,7 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
     public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
         try {
             withCallback(
-                    findEntityIdAsync(ctx, msg.getOriginator()),
+                    findEntityIdAsync(ctx, msg),
                     entityId -> safePutAttributes(ctx, msg, entityId),
                     t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
         } catch (Throwable th) {
@@ -127,5 +127,5 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
 
     }
 
-    protected abstract ListenableFuture<T> findEntityIdAsync(TbContext ctx, EntityId originator);
+    protected abstract ListenableFuture<T> findEntityIdAsync(TbContext ctx, TbMsg msg);
 }
