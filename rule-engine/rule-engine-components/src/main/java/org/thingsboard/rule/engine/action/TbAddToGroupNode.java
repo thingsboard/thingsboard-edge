@@ -35,7 +35,6 @@ import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -48,7 +47,7 @@ import org.thingsboard.server.common.msg.TbMsg;
         configClazz = TbAddToGroupConfiguration.class,
         nodeDescription = "Adds Message Originator Entity to Entity Group",
         nodeDetails = "Finds target Entity Group by group name pattern and then adds Originator Entity to this group. " +
-                "Will create new Entity Group if it doesn't exists and 'Create new group if not exists' is set to true.",
+                      "Will create new Entity Group if it doesn't exists and 'Create new group if not exists' is set to true.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeAddToGroupConfig",
         icon = "add_circle"
@@ -67,31 +66,6 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
 
     @Override
     protected void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {
-        if (config.isRemoveFromCurrentGroups()) {
-            removeFromCurrentGroups(ctx, msg, entityGroupId);
-        }
-        addEntityToGroup(ctx, msg, entityGroupId);
-    }
-
-    private void removeFromCurrentGroups(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {
-        DonAsynchron.withCallback(ctx.getPeContext().getEntityGroupService()
-                .findEntityGroupsForEntity(ctx.getTenantId(), msg.getOriginator()), entityGroupIds -> {
-            if (!entityGroupIds.isEmpty()) {
-                for (EntityGroupId groupId : entityGroupIds) {
-                    if (!groupId.equals(entityGroupId)) {
-                        ctx.getPeContext().getEntityGroupService()
-                                .removeEntityFromEntityGroup(ctx.getTenantId(), groupId, msg.getOriginator());
-                    }
-                }
-            }
-        }, throwable -> {
-            throw new RuntimeException(throwable);
-        });
-    }
-
-    private void addEntityToGroup(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {
         ctx.getPeContext().getEntityGroupService().addEntityToEntityGroup(ctx.getTenantId(), entityGroupId, msg.getOriginator());
     }
 }
-
-
