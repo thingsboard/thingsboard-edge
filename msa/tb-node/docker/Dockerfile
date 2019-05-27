@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM openjdk:8-jdk
+FROM thingsboard/openjdk8
 
 COPY start-tb-node.sh ${pkg.name}.deb /tmp/
 
