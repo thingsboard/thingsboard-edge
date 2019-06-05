@@ -307,6 +307,10 @@
             <groupId>io.springfox.ui</groupId>
             <artifactId>springfox-swagger-ui-rfc6570</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sqs</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

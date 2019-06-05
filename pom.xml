@@ -109,6 +109,7 @@
         <fst.version>2.57</fst.version>
         <antlr.version>2.7.7</antlr.version>
         <snakeyaml.version>1.23</snakeyaml.version>
+        <amazonaws.sqs.version>1.11.562</amazonaws.sqs.version>
     </properties>
 
     <modules>
@@ -898,6 +899,11 @@
                 <groupId>org.locationtech.jts</groupId>
                 <artifactId>jts-core</artifactId>
                 <version>${jts.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-sqs</artifactId>
+                <version>${amazonaws.sqs.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

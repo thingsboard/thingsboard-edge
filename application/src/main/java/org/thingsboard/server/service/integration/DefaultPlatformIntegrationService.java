@@ -82,6 +82,7 @@ import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
 import org.thingsboard.server.service.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
+import org.thingsboard.server.service.integration.aws.sqs.BasicSqsIntegration;
 import org.thingsboard.server.service.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
@@ -616,6 +617,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new BasicMqttIntegration();
             case AWS_IOT:
                 return new AwsIotIntegration();
+            case AWS_SQS:
+                return new BasicSqsIntegration();
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
             case TTN:
