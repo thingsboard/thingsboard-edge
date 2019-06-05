@@ -202,6 +202,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newDevice.setType(entitykey.getType());
                         newDevice.setTenantId(ctx.getTenantId());
                         Device savedDevice = deviceService.saveDevice(newDevice);
+                        savedDevice.setOwnerId(getOwnerId(savedDevice.getId()));
                         targetEntity.setEntityId(savedDevice.getId());
                     }
                     break;
@@ -216,6 +217,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newAsset.setType(entitykey.getType());
                         newAsset.setTenantId(ctx.getTenantId());
                         Asset savedAsset = assetService.saveAsset(newAsset);
+                        savedAsset.setOwnerId(getOwnerId(savedAsset.getId()));
                         targetEntity.setEntityId(savedAsset.getId());
                     }
                     break;
@@ -229,6 +231,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newCustomer.setTitle(entitykey.getEntityName());
                         newCustomer.setTenantId(ctx.getTenantId());
                         Customer savedCustomer = customerService.saveCustomer(newCustomer);
+                        savedCustomer.setOwnerId(getOwnerId(savedCustomer.getId()));
                         targetEntity.setEntityId(savedCustomer.getId());
                     }
                     break;
@@ -255,6 +258,10 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     return targetEntity;
             }
             return targetEntity;
+        }
+
+        private EntityId getOwnerId(EntityId entityId) {
+            return ctx.getPeContext().getOwner(ctx.getTenantId(), entityId);
         }
     }
 

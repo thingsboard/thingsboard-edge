@@ -80,7 +80,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         final Alarm msgAlarm;
 
         if (!config.isUseMessageAlarmData()) {
-            alarmType = config.getAlarmType();
+            alarmType = TbNodeUtils.processPattern(this.config.getAlarmType(), msg.getMetaData());
             msgAlarm = null;
         } else {
             try {
@@ -153,7 +153,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 .status(AlarmStatus.ACTIVE_UNACK)
                 .severity(config.getSeverity())
                 .propagate(config.isPropagate())
-                .type(config.getAlarmType())
+                .type(TbNodeUtils.processPattern(this.config.getAlarmType(), msg.getMetaData()))
                 //todo-vp: alarm date should be taken from Message or current Time should be used?
 //                .startTs(System.currentTimeMillis())
 //                .endTs(System.currentTimeMillis())

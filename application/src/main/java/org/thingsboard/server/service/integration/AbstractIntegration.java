@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,10 +41,14 @@ import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
+import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
@@ -184,26 +190,49 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (device == null) {
             deviceCreationLock.lock();
             try {
-                device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
-                if (device == null) {
-                    device = new Device();
-                    device.setName(data.getDeviceName());
-                    device.setType(data.getDeviceType());
-                    device.setTenantId(configuration.getTenantId());
-                    device = context.getDeviceService().saveDevice(device);
-                    EntityRelation relation = new EntityRelation();
-                    relation.setFrom(configuration.getId());
-                    relation.setTo(device.getId());
-                    relation.setTypeGroup(RelationTypeGroup.COMMON);
-                    relation.setType(EntityRelation.INTEGRATION_TYPE);
-                    context.getRelationService().saveRelation(configuration.getTenantId(), relation);
-                    context.getActorService().onDeviceAdded(device);
-                }
+                return processGetOrCreateDevice(context, data);
             } finally {
                 deviceCreationLock.unlock();
             }
         }
         return device;
+    }
+
+    private Device processGetOrCreateDevice(IntegrationContext context, UplinkData data) {
+        Device device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+        if (device == null) {
+            device = new Device();
+            device.setName(data.getDeviceName());
+            device.setType(data.getDeviceType());
+            device.setTenantId(configuration.getTenantId());
+            device = context.getDeviceService().saveDevice(device);
+            EntityRelation relation = new EntityRelation();
+            relation.setFrom(configuration.getId());
+            relation.setTo(device.getId());
+            relation.setTypeGroup(RelationTypeGroup.COMMON);
+            relation.setType(EntityRelation.INTEGRATION_TYPE);
+            context.getRelationService().saveRelation(configuration.getTenantId(), relation);
+            context.getActorService().onDeviceAdded(device);
+            try {
+                ObjectNode entityNode = mapper.valueToTree(device);
+                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
+                context.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            } catch (JsonProcessingException | IllegalArgumentException e) {
+                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+            }
+        }
+        return device;
+    }
+
+    private TbMsgMetaData actionTbMsgMetaData(Device device) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("integrationId", configuration.getId().toString());
+        metaData.putValue("integrationName", configuration.getName());
+        CustomerId customerId = device.getCustomerId();
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
     }
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {

@@ -1090,7 +1090,9 @@
         "make-public-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' public?",
         "make-public-entity-group-text": "After the confirmation the entity group and all its entities will be made public and accessible by others.",
         "make-private-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' private?",
-        "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others."
+        "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others.",
+        "copyId": "Copy entity group Id",
+        "idCopiedMessage": "Entity group Id has been copied to clipboard"
     },
     "entity-view": {
         "entity-view": "Entity View",
