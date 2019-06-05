@@ -139,7 +139,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     @Override
     public EntityId getOwner(TenantId tenantId, EntityId entityId) {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        String cacheKey = getOwnersCacheKey(entityId);
+        String cacheKey = getOwnerCacheKey(entityId);
         byte[] data = cache.get(cacheKey, byte[].class);
         EntityId ownerId = null;
         if (data != null && data.length > 0) {
