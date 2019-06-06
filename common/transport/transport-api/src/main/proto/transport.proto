@@ -109,6 +109,13 @@ message PostAttributeMsg {
   repeated KeyValueProto kv = 1;
 }
 
+message IntegrationUplinkMsg {
+  string deviceName = 1;
+  string deviceType = 2;
+  PostTelemetryMsg postTelemetryMsg = 3;
+  PostAttributeMsg postAttributesMsg = 4;
+}
+
 message GetAttributeRequestMsg {
   int32 requestId = 1;
   repeated string clientAttributeNames = 2;

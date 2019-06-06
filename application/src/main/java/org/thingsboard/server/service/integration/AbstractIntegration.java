@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.datastax.driver.core.utils.UUIDs;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,16 +37,9 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
@@ -67,8 +58,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -82,8 +71,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
-
-    private ReentrantLock deviceCreationLock = new ReentrantLock();
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -144,6 +131,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     }
 
+    protected void processUplinkData(IntegrationContext context, UplinkData data) {
+        context.processUplinkData(TransportProtos.IntegrationUplinkMsg.newBuilder()
+                .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType())
+                .setPostTelemetryMsg(data.getTelemetry()).setPostAttributesMsg(data.getAttributesUpdate()).build(), null);
+    }
+
     protected static boolean isLocalNetworkHost(String host) {
         try {
             InetAddress address = InetAddress.getByName(host);
@@ -157,92 +150,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return false;
     }
 
-    protected Device processUplinkData(IntegrationContext context, UplinkData data) {
-        Device device = getOrCreateDevice(context, data);
-
-        UUID sessionId = UUID.randomUUID();
-        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
-                .setSessionIdMSB(sessionId.getMostSignificantBits())
-                .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                .build();
-
-        if (data.getTelemetry() != null) {
-            context.getIntegrationService().process(sessionInfo, data.getTelemetry(), null);
-        }
-
-        if (data.getAttributesUpdate() != null) {
-            context.getIntegrationService().process(sessionInfo, data.getAttributesUpdate(), null);
-        }
-
-        if (data.getAttributesRequest() != null) {
-            context.getIntegrationService().process(sessionInfo, data.getAttributesRequest(), null);
-        }
-
-        return device;
-    }
-
-    private Device getOrCreateDevice(IntegrationContext context, UplinkData data) {
-        Device device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
-        if (device == null) {
-            deviceCreationLock.lock();
-            try {
-                return processGetOrCreateDevice(context, data);
-            } finally {
-                deviceCreationLock.unlock();
-            }
-        }
-        return device;
-    }
-
-    private Device processGetOrCreateDevice(IntegrationContext context, UplinkData data) {
-        Device device = context.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
-        if (device == null) {
-            device = new Device();
-            device.setName(data.getDeviceName());
-            device.setType(data.getDeviceType());
-            device.setTenantId(configuration.getTenantId());
-            device = context.getDeviceService().saveDevice(device);
-            EntityRelation relation = new EntityRelation();
-            relation.setFrom(configuration.getId());
-            relation.setTo(device.getId());
-            relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.INTEGRATION_TYPE);
-            context.getRelationService().saveRelation(configuration.getTenantId(), relation);
-            context.getActorService().onDeviceAdded(device);
-            try {
-                ObjectNode entityNode = mapper.valueToTree(device);
-                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-                context.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
-            } catch (JsonProcessingException | IllegalArgumentException e) {
-                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
-            }
-        }
-        return device;
-    }
-
-    private TbMsgMetaData actionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", configuration.getId().toString());
-        metaData.putValue("integrationName", configuration.getName());
-        CustomerId customerId = device.getCustomerId();
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
-        Event event = new Event();
-        event.setTenantId(configuration.getTenantId());
-        event.setEntityId(configuration.getId());
-        event.setType(DataConstants.DEBUG_INTEGRATION);
-
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getDiscoveryService().getCurrentServer().getServerAddress().toString())
+                .put("server", context.getServerAddress().toString())
                 .put("type", type)
                 .put("messageType", messageType)
                 .put("message", message)
@@ -252,8 +162,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             node = node.put("error", toString(exception));
         }
 
-        event.setBody(node);
-        context.getEventService().save(event);
+        context.saveEvent(DataConstants.DEBUG_INTEGRATION, node);
     }
 
     private String toString(Exception e) {

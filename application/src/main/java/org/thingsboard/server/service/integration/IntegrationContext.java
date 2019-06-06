@@ -30,68 +30,42 @@
  */
 package org.thingsboard.server.service.integration;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.actors.service.ActorService;
-import org.thingsboard.server.common.transport.SessionMsgProcessor;
-import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
-import org.thingsboard.server.service.integration.downlink.DownlinkService;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
+import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 
 /**
  * Created by ashvayka on 05.12.17.
  */
-@Component
-@Data
-public class IntegrationContext {
+public interface IntegrationContext {
 
-    private volatile boolean isClosed = false;
+    ServerAddress getServerAddress();
 
-    @EventListener
-    public void handleContextClosed (ContextClosedEvent event) {
-        isClosed = true;
-    }
+    ConverterContext getConverterContext();
 
-    @Lazy
-    @Autowired
-    private PlatformIntegrationService integrationService;
+    void processUplinkData(TransportProtos.IntegrationUplinkMsg uplinkData, TransportServiceCallback<Void> callback);
 
-    @Lazy
-    @Autowired
-    private SessionMsgProcessor sessionMsgProcessor;
+    /**
+     * Dispatch custom message to the rule engine.
+     * Note that msg originator is verified to be either tenantId or integrationId or any device/asset that belongs to the corresponding tenant.
+     * @param msg - custom message to dispatch
+     */
+    void processCustomMsg(TbMsg msg);
 
-    @Lazy
-    @Autowired
-    private DeviceService deviceService;
+    DownLinkMsg getDownlinkMsg(String deviceName);
 
-    @Lazy
-    @Autowired
-    private RelationService relationService;
+    DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg);
 
-    @Lazy
-    @Autowired
-    private EventService eventService;
+    void removeDownlinkMsg(String deviceName);
 
-    @Lazy
-    @Autowired
-    private DiscoveryService discoveryService;
+    void saveEvent(String type, JsonNode body);
 
-    @Lazy
-    @Autowired
-    private ActorService actorService;
-
-    @Lazy
-    @Autowired
-    private ConverterContext converterContext;
-
-    @Lazy
-    @Autowired
-    private DownlinkService downlinkService;
-
+    //TODO @ashvayka: Implement
+    boolean isClosed();
 }

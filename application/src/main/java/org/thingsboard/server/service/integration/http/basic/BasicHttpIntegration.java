@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -36,6 +36,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.service.converter.DownlinkData;
 import org.thingsboard.server.service.converter.IntegrationMetaData;
@@ -76,7 +77,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     @Override
     protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
-            Map<Device, UplinkData> result = processUplinkData(context, msg);
+            Map<String, UplinkData> result = processUplinkData(context, msg);
             if (result.isEmpty()) {
                 return fromStatus(HttpStatus.NO_CONTENT);
             } else {
@@ -91,15 +92,15 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg) {
         logDownlink(context, "Downlink: " + msg.getTbMsg().getType(), msg);
         if (downlinkConverter != null) {
-            context.getDownlinkService().put(msg);
+            context.putDownlinkMsg(msg);
         }
     }
 
-    private ResponseEntity processDownLinkData(IntegrationContext context, Map<Device, UplinkData> uplinkData, HttpIntegrationMsg msg) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, Map<String, UplinkData> uplinkData, HttpIntegrationMsg msg) throws Exception {
         if (downlinkConverter != null) {
             List<TbMsg> tbMsgs = new ArrayList<>();
-            for (Device device : uplinkData.keySet()) {
-                DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
+            for (String deviceName : uplinkData.keySet()) {
+                DownLinkMsg pending = context.getDownlinkMsg(deviceName);
                 if (pending != null && !pending.isEmpty()) {
                     tbMsgs.addAll(pending.getMsgs());
                 }
@@ -113,8 +114,8 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
 
             List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), tbMsgs, new IntegrationMetaData(mdMap));
 
-            for (Device device : uplinkData.keySet()) {
-                context.getDownlinkService().remove(configuration.getId(), device.getId());
+            for (String deviceName : uplinkData.keySet()) {
+                context.removeDownlinkMsg(deviceName);
             }
 
             if (result.size() == 1 && !result.get(0).isEmpty()) {
@@ -175,7 +176,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         return responseHeaders;
     }
 
-    protected Map<Device, UplinkData> processUplinkData(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected Map<String, UplinkData> processUplinkData(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         byte[] data = mapper.writeValueAsBytes(msg.getMsg());
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         msg.getRequestHeaders().forEach(
@@ -186,9 +187,10 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
 
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
-            Map<Device, UplinkData> result = new HashMap<>();
+            Map<String, UplinkData> result = new HashMap<>();
             for (UplinkData uplinkData : uplinkDataList) {
-                result.put(processUplinkData(context, uplinkData), uplinkData);
+                processUplinkData(context, uplinkData);
+                result.put(uplinkData.getDeviceName(), uplinkData);
                 log.info("[{}] Processing uplink data", uplinkData);
             }
             return result;

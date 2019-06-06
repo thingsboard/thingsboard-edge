@@ -323,7 +323,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         tbMsgMetaData.putValue("port", Integer.toString(opcUaServerConfiguration.getPort()));
         TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), messageType, this.configuration.getId(), tbMsgMetaData, TbMsgDataType.JSON, "{}", null, null, 0L);
 
-        integrationContext.getActorService().onMsg(new SendToClusterMsg(this.configuration.getId(), new ServiceToRuleEngineMsg(this.configuration.getTenantId(), tbMsg)));
+        integrationContext.processCustomMsg(tbMsg);
     }
 
     @Override

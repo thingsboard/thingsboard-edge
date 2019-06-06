@@ -62,13 +62,13 @@ public class SigFoxIntegration extends BasicHttpIntegration {
     @Override
     protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
-            Map<Device, UplinkData> result = processUplinkData(context, msg);
+            Map<String, UplinkData> result = processUplinkData(context, msg);
             if (result.isEmpty()) {
                 return fromStatus(HttpStatus.NO_CONTENT);
             } else if (result.size() > 1) {
                 return fromStatus(HttpStatus.BAD_REQUEST);
             } else {
-                Entry<Device, UplinkData> entry = result.entrySet().stream().findFirst().get();
+                Entry<String, UplinkData> entry = result.entrySet().stream().findFirst().get();
                 String deviceIdAttributeName = metadataTemplate.getKvMap().getOrDefault("SigFoxDeviceIdAttributeName", "device");
                 String sigFoxDeviceId = msg.getMsg().get(deviceIdAttributeName).asText();
                 return processDownLinkData(context, entry.getKey(), msg, sigFoxDeviceId);
@@ -78,9 +78,9 @@ public class SigFoxIntegration extends BasicHttpIntegration {
         }
     }
 
-    private ResponseEntity processDownLinkData(IntegrationContext context, Device device, HttpIntegrationMsg msg, String sigFoxDeviceId) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, String deviceName, HttpIntegrationMsg msg, String sigFoxDeviceId) throws Exception {
         if (downlinkConverter != null) {
-            DownLinkMsg pending = context.getDownlinkService().get(configuration.getId(), device.getId());
+            DownLinkMsg pending = context.getDownlinkMsg(deviceName);
             if (pending != null && !pending.isEmpty()) {
                 Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
                 msg.getRequestHeaders().forEach(
@@ -89,7 +89,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                         }
                 );
                 List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pending.getMsgs(), new IntegrationMetaData(mdMap));
-                context.getDownlinkService().remove(configuration.getId(), device.getId());
+                context.removeDownlinkMsg(deviceName);
                 if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);
                     ObjectNode json = mapper.createObjectNode();

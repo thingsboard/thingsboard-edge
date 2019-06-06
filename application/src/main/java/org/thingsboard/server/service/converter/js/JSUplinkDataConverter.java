@@ -40,18 +40,18 @@ import org.thingsboard.server.service.script.JsInvokeService;
  */
 public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
-    private final JsInvokeService sandboxService;
+    private final JsInvokeService jsInvokeService;
     private JSUplinkEvaluator evaluator;
 
-    public JSUplinkDataConverter(JsInvokeService sandboxService) {
-        this.sandboxService = sandboxService;
+    public JSUplinkDataConverter(JsInvokeService jsInvokeService) {
+        this.jsInvokeService = jsInvokeService;
     }
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
         String decoder = configuration.getConfiguration().get("decoder").asText();
-        this.evaluator = new JSUplinkEvaluator(sandboxService,  configuration.getId(), decoder);
+        this.evaluator = new JSUplinkEvaluator(jsInvokeService,  configuration.getId(), decoder);
     }
 
     @Override

@@ -45,6 +45,5 @@ public class UplinkData {
     private final String deviceType;
     private final TransportProtos.PostTelemetryMsg telemetry;
     private final TransportProtos.PostAttributeMsg attributesUpdate;
-    private final TransportProtos.GetAttributeRequestMsg attributesRequest;
 
 }

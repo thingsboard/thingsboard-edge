@@ -30,31 +30,16 @@
  */
 package org.thingsboard.server.service.integration;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 /**
  * Created by ashvayka on 05.12.17.
  */
-@Component
-@Data
-public class ConverterContext {
+public interface ConverterContext {
 
-    @Lazy
-    @Autowired
-    private EventService eventService;
+    ServerAddress getServerAddress();
 
-    @Lazy
-    @Autowired
-    private DiscoveryService discoveryService;
-
-    @Lazy
-    @Autowired
-    private AttributesService attributesService;
+    void saveEvent(String type, JsonNode body);
 
 }

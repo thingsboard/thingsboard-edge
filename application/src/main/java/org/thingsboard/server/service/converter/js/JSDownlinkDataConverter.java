@@ -42,18 +42,18 @@ import org.thingsboard.server.service.script.JsInvokeService;
  */
 public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
-    private final JsInvokeService sandboxService;
+    private final JsInvokeService jsInvokeService;
     private JSDownlinkEvaluator evaluator;
 
-    public JSDownlinkDataConverter(JsInvokeService sandboxService) {
-        this.sandboxService = sandboxService;
+    public JSDownlinkDataConverter(JsInvokeService jsInvokeService) {
+        this.jsInvokeService = jsInvokeService;
     }
 
     @Override
     public void init(Converter configuration) {
         super.init(configuration);
         String encoder = configuration.getConfiguration().get("encoder").asText();
-        this.evaluator = new JSDownlinkEvaluator(sandboxService, configuration.getId(), encoder);
+        this.evaluator = new JSDownlinkEvaluator(jsInvokeService, configuration.getId(), encoder);
     }
 
     @Override

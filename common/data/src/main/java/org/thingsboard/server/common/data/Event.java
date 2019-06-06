@@ -46,6 +46,7 @@ public class Event extends BaseData<EventId> {
     private String type;
     private String uid;
     private EntityId entityId;
+    //TODO @dlandiak: fix sending over network similar to SearchTextBasedWithAdditionalInfo
     private transient JsonNode body;
 
     public Event() {

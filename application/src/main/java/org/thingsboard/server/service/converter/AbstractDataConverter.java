@@ -86,7 +86,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         event.setType(DataConstants.DEBUG_CONVERTER);
 
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getDiscoveryService().getCurrentServer().getServerAddress().toString())
+                .put("server", context.getServerAddress().toString())
                 .put("type", type)
                 .put("inMessageType", inMessageType)
                 .put("in", convertToString(inMessageType, inMessage))
@@ -99,6 +99,6 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         }
 
         event.setBody(node);
-        context.getEventService().save(event);
+        context.saveEvent(event);
     }
 }
