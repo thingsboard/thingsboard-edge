@@ -49,6 +49,7 @@ public class TbGetDeviceAttrNodeConfiguration extends TbGetAttributesNodeConfigu
         configuration.setSharedAttributeNames(Collections.emptyList());
         configuration.setServerAttributeNames(Collections.emptyList());
         configuration.setLatestTsKeyNames(Collections.emptyList());
+        configuration.setTellFailureIfAbsent(true);
 
         DeviceRelationsQuery deviceRelationsQuery = new DeviceRelationsQuery();
         deviceRelationsQuery.setDirection(EntitySearchDirection.FROM);

@@ -32,6 +32,9 @@ package org.thingsboard.server.actors.ruleChain;
 
 import akka.actor.ActorRef;
 import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import org.springframework.util.StringUtils;
@@ -56,6 +59,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -67,9 +71,11 @@ import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
+import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -78,10 +84,10 @@ import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -106,6 +112,8 @@ import java.util.function.Consumer;
  * Created by ashvayka on 19.03.18.
  */
 class DefaultTbContext implements TbContext, TbPeContext {
+
+    public final static ObjectMapper mapper = new ObjectMapper();
 
     private final ActorSystemContext mainCtx;
     private final RuleNodeCtx nodeCtx;
@@ -188,6 +196,48 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public TbMsg transformMsg(TbMsg origMsg, String type, EntityId originator, TbMsgMetaData metaData, String data) {
         return new TbMsg(origMsg.getId(), type, originator, metaData.copy(), origMsg.getDataType(), data, origMsg.getTransactionData(), origMsg.getRuleChainId(), origMsg.getRuleNodeId(), mainCtx.getQueuePartitionId());
     }
+
+    @Override
+    public void sendTbMsgToRuleEngine(TbMsg msg) {
+        mainCtx.getActorService().onMsg(new SendToClusterMsg(msg.getOriginator(), new ServiceToRuleEngineMsg(getTenantId(), msg)));
+    }
+
+    public TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(customer);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process customer created msg: " + e);
+        }
+    }
+
+    public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(device);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process device created msg: " + e);
+        }
+    }
+
+    public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(asset);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, asset.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process asset created msg: " + e);
+        }
+    }
+
+    public TbMsg alarmCreatedMsg(Alarm alarm, RuleNodeId ruleNodeId) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(alarm);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, alarm.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process alarm created msg: " + e);
+        }
+    }
+
 
     @Override
     public RuleNodeId getSelfId() {
@@ -472,6 +522,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public CassandraBufferedRateExecutor getCassandraBufferedRateExecutor() {
         return mainCtx.getCassandraBufferedRateExecutor();
+    }
+
+    private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("ruleNodeId", ruleNodeId.toString());
+        return metaData;
     }
 
 }
