@@ -28,24 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
+import org.thingsboard.server.common.data.kv.DataType;
 
 @Data
-public class OpcUaServerConfiguration {
+@AllArgsConstructor
+public class DataTypeMapping {
 
-    private String applicationName;
-    private String applicationUri;
-    private String host;
-    private int port;
-    private int scanPeriodInSeconds;
-    private int timeoutInMillis;
-    private String security;
-    private IdentityProviderConfiguration identity;
-    private KeystoreConfiguration keystore;
-    private List<DeviceMapping> mapping;
+    private DataType dataType;
+
+    @JsonCreator
+    public static DataTypeMapping forValue(String value) {
+        return new DataTypeMapping(DataType.valueOf(value.toUpperCase()));
+    }
 
 }

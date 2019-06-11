@@ -28,21 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
-
-import lombok.Data;
+package org.thingsboard.integration.opcua;
 
 /**
- * Created by ashvayka on 16.01.17.
+ * Created by Valerii Sosliuk on 5/1/2018.
  */
-@Data
-public class KeystoreConfiguration {
-
-    private String type;
-    private String location;
-    private String fileContent;
-    private String password;
-    private String alias;
-    private String keyPassword;
-
+public enum DeviceMappingType {
+    
+    ID,
+    FQN
 }

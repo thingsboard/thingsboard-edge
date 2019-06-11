@@ -28,24 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.azure;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
+import lombok.Data;
 
-/**
- * Created by ashvayka on 16.01.17.
- */
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = AnonymousIdentityProviderConfiguration.class, name = "anonymous"),
-        @JsonSubTypes.Type(value = UsernameIdentityProviderConfiguration.class, name = "username")})
-public interface IdentityProviderConfiguration {
+@Data
+public class AzureEventHubClientConfiguration {
 
-    IdentityProvider toProvider();
+    private String namespaceName;
+    private String eventHubName;
+    private String sasKeyName;
+    private String sasKey;
+    private String iotHubName;
+
+    private int connectTimeoutSec;
 
 }

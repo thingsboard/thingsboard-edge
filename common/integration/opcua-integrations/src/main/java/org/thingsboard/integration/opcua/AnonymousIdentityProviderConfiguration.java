@@ -28,38 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
-
-import java.util.Map;
+import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
+import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 
 /**
- * Created by Valerii Sosliuk on 3/17/2018.
+ * Created by ashvayka on 16.01.17.
  */
 @Data
-@ToString(exclude = "payload")
-public class OpcUaIntegrationMsg {
+public class AnonymousIdentityProviderConfiguration implements IdentityProviderConfiguration {
 
-    private Map<String,String> deviceMetadata;
-    private JsonNode json;
-    private byte[] payload;
-
-    OpcUaIntegrationMsg(JsonNode json, Map<String,String> deviceMetadata) {
-        this.json = json;
-        this.payload = json.toString().getBytes();
-        this.deviceMetadata = deviceMetadata;
-    }
-
-    JsonNode toJson() {
-        return json;
-    }
-
-    byte[] getPayload() {
-        return payload;
+    @Override
+    public IdentityProvider toProvider() {
+        return new AnonymousProvider();
     }
 }

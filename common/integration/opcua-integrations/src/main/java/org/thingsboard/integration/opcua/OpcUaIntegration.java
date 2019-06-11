@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,6 +52,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseDirection;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseResultMask;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -66,6 +67,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.WriteValue;
+import org.eclipse.milo.opcua.stack.core.util.ConversionUtil;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -271,7 +273,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     .setApplicationUri(configuration.getApplicationUri())
                     .setEndpoint(endpoint)
                     .setIdentityProvider(identityProvider)
-                    .setRequestTimeout(uint(configuration.getTimeoutInMillis()));
+                    .setRequestTimeout(Unsigned.uint(configuration.getTimeoutInMillis()));
 
             if (securityPolicy != SecurityPolicy.None) {
                 CertificateInfo certificate = OpcUaConfigurationTools.loadCertificate(configuration.getKeystore());
@@ -471,7 +473,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     scheduleReconnect = false;
                 }
                 BrowseResult browseResult = client.browse(getBrowseDescription(node.getNodeId())).get();
-                List<ReferenceDescription> references = toList(browseResult.getReferences());
+                List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
                 for (ReferenceDescription rd : references) {
                     if (rd.getNodeId().isLocal()) {
                         NodeId childNodeId = rd.getNodeId().local().get();
@@ -550,13 +552,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     kv.getValue(),
                     AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE);
             // important: client handle must be unique per item
-            UInteger clientHandle = uint(clientHandles.getAndIncrement());
+            UInteger clientHandle = Unsigned.uint(clientHandles.getAndIncrement());
 
             MonitoringParameters parameters = new MonitoringParameters(
                     clientHandle,
                     1000.0,     // sampling interval
                     null,       // filter, null means use default
-                    uint(10),   // queue size
+                    Unsigned.uint(10),   // queue size
                     true        // discard oldest
             );
 
@@ -605,7 +607,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         Map<String, NodeId> values = new HashMap<>();
         try {
             BrowseResult browseResult = client.browse(getBrowseDescription(nodeId)).get(5, TimeUnit.SECONDS);
-            List<ReferenceDescription> references = toList(browseResult.getReferences());
+            List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
 
             for (ReferenceDescription rd : references) {
                 NodeId childId;
@@ -642,8 +644,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 BrowseDirection.Forward,
                 Identifiers.References,
                 true,
-                uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()),
-                uint(BrowseResultMask.All.getValue())
+                Unsigned.uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()),
+                Unsigned.uint(BrowseResultMask.All.getValue())
         );
     }
 

@@ -28,20 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
-import lombok.Data;
-import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 
 /**
  * Created by ashvayka on 16.01.17.
  */
-@Data
-public class AnonymousIdentityProviderConfiguration implements IdentityProviderConfiguration {
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AnonymousIdentityProviderConfiguration.class, name = "anonymous"),
+        @JsonSubTypes.Type(value = UsernameIdentityProviderConfiguration.class, name = "username")})
+public interface IdentityProviderConfiguration {
 
-    @Override
-    public IdentityProvider toProvider() {
-        return new AnonymousProvider();
-    }
+    IdentityProvider toProvider();
+
 }

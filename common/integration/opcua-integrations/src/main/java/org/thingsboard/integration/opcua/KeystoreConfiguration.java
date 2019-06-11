@@ -28,23 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
 import lombok.Data;
-import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
-import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 
 /**
  * Created by ashvayka on 16.01.17.
  */
 @Data
-public class UsernameIdentityProviderConfiguration implements IdentityProviderConfiguration {
+public class KeystoreConfiguration {
 
-    private final String username;
-    private final String password;
+    private String type;
+    private String location;
+    private String fileContent;
+    private String password;
+    private String alias;
+    private String keyPassword;
 
-    @Override
-    public IdentityProvider toProvider() {
-        return new UsernameProvider(username, password);
-    }
 }

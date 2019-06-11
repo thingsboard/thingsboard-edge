@@ -28,13 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
-/**
- * Created by Valerii Sosliuk on 5/1/2018.
- */
-public enum DeviceMappingType {
-    
-    ID,
-    FQN
+public class OpcUaIntegrationException extends Exception {
+    public OpcUaIntegrationException(String s, Exception e) {
+        super(s);
+    }
 }

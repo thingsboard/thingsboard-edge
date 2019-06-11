@@ -28,37 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
-import lombok.ToString;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.springframework.util.StringUtils;
 
-/**
- * Created by Valerii Sosliuk on 4/27/2018.
- */
+import java.util.List;
+
 @Data
-@ToString(exclude = "parent")
-public class OpcUaNode {
+public class OpcUaServerConfiguration {
 
-    private final NodeId nodeId;
-    private final OpcUaNode parent;
-    private final String name;
-    private final String fqn;
-
-    public OpcUaNode(NodeId nodeId, String name) {
-        this(null, nodeId, name);
-    }
-
-    public OpcUaNode(OpcUaNode parent, NodeId nodeId, String name) {
-        this.parent = parent;
-        this.nodeId = nodeId;
-        this.name = name;
-        this.fqn = ((parent != null && !StringUtils.isEmpty(parent.getFqn())) ? parent.getFqn() + "." : "") + name;
-    }
+    private String applicationName;
+    private String applicationUri;
+    private String host;
+    private int port;
+    private int scanPeriodInSeconds;
+    private int timeoutInMillis;
+    private String security;
+    private IdentityProviderConfiguration identity;
+    private KeystoreConfiguration keystore;
+    private List<DeviceMapping> mapping;
 
 }

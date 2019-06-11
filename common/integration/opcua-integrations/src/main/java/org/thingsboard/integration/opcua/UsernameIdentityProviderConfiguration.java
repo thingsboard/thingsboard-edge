@@ -28,22 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.server.common.data.kv.DataType;
+import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
+import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 
+/**
+ * Created by ashvayka on 16.01.17.
+ */
 @Data
-@AllArgsConstructor
-public class DataTypeMapping {
+public class UsernameIdentityProviderConfiguration implements IdentityProviderConfiguration {
 
-    private DataType dataType;
+    private final String username;
+    private final String password;
 
-    @JsonCreator
-    public static DataTypeMapping forValue(String value) {
-        return new DataTypeMapping(DataType.valueOf(value.toUpperCase()));
+    @Override
+    public IdentityProvider toProvider() {
+        return new UsernameProvider(username, password);
     }
-
 }

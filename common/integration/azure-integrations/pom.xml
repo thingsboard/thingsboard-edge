@@ -34,27 +34,43 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.thingsboard</groupId>
+        <groupId>org.thingsboard.common</groupId>
         <version>2.3.1PE-SNAPSHOT</version>
-        <artifactId>common</artifactId>
+        <artifactId>integration</artifactId>
     </parent>
-    <groupId>org.thingsboard.common</groupId>
-    <artifactId>integration</artifactId>
-    <packaging>pom</packaging>
+    <groupId>org.thingsboard.common.integration</groupId>
+    <artifactId>azure-integrations</artifactId>
+    <packaging>jar</packaging>
 
-    <name>Thingsboard PE Integration Commons</name>
+    <name>Thingsboard Server Azure Integrations</name>
     <url>https://thingsboard.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.dir>${basedir}/../..</main.dir>
+        <main.dir>${basedir}/../../..</main.dir>
     </properties>
-    <modules>
-        <module>integration-api</module>
-        <module>http-integrations</module>
-        <module>mqtt-integrations</module>
-        <module>azure-integrations</module>
-        <module>opcua-integrations</module>
-    </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>js-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-eventhubs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure.sdk.iot</groupId>
+            <artifactId>iot-service-client</artifactId>
+        </dependency>
+    </dependencies>
 </project>

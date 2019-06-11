@@ -28,10 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.opcua;
 
-public class OpcUaIntegrationException extends Exception {
-    public OpcUaIntegrationException(String s, Exception e) {
-        super(s);
+import lombok.Data;
+import lombok.ToString;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.springframework.util.StringUtils;
+
+/**
+ * Created by Valerii Sosliuk on 4/27/2018.
+ */
+@Data
+@ToString(exclude = "parent")
+public class OpcUaNode {
+
+    private final NodeId nodeId;
+    private final OpcUaNode parent;
+    private final String name;
+    private final String fqn;
+
+    public OpcUaNode(NodeId nodeId, String name) {
+        this(null, nodeId, name);
     }
+
+    public OpcUaNode(OpcUaNode parent, NodeId nodeId, String name) {
+        this.parent = parent;
+        this.nodeId = nodeId;
+        this.name = name;
+        this.fqn = ((parent != null && !StringUtils.isEmpty(parent.getFqn())) ? parent.getFqn() + "." : "") + name;
+    }
+
 }

@@ -400,6 +400,16 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>azure-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>opcua-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.rule-engine</groupId>
                 <artifactId>rule-engine-components</artifactId>
                 <version>${project.version}</version>

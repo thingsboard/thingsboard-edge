@@ -28,20 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.opcua;
+package org.thingsboard.integration.azure;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.microsoft.azure.eventhubs.EventData;
 import lombok.Data;
 
-import java.security.KeyPair;
-import java.security.cert.X509Certificate;
+import java.io.IOException;
+import java.util.Map;
 
-/**
- * Created by Valerii Sosliuk on 3/22/2018.
- */
 @Data
-public class CertificateInfo {
+public class AzureEventHubIntegrationMsg {
 
-    private final X509Certificate certificate;
-    private final KeyPair keyPair;
+    private static ObjectMapper mapper = new ObjectMapper();
+
+    private final EventData eventData;
+
+    public AzureEventHubIntegrationMsg(EventData eventData) {
+        this.eventData = eventData;
+    }
+
+    public byte[] getPayload() {
+        return this.eventData.getBytes();
+    }
+
+    public Map<String, Object> getSystemProperties() {
+        return this.eventData.getSystemProperties();
+    }
+
+    public JsonNode toJson() {
+        ObjectNode json = mapper.createObjectNode();
+        EventData.SystemProperties properties = this.eventData.getSystemProperties();
+        ObjectNode sysPropsJson = mapper.createObjectNode();
+        properties.forEach(
+                (key, val) -> {
+                    if (val != null) {
+                        sysPropsJson.put(key, val.toString());
+                    }
+                }
+        );
+        json.set("systemProperties", sysPropsJson);
+        JsonNode payloadJson = null;
+        try {
+            payloadJson = mapper.readTree(this.eventData.getBytes());
+        } catch (IOException e) {
+        }
+        if (payloadJson != null) {
+            json.set("payload", payloadJson);
+        } else {
+            json.put("payload", this.eventData.getBytes());
+        }
+        return json;
+    }
 
 }
