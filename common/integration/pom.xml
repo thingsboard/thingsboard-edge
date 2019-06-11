@@ -51,7 +51,6 @@
     </properties>
     <modules>
         <module>integration-api</module>
-        <module>mqtt</module>
     </modules>
 
 </project>

@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -67,6 +66,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected final ObjectMapper mapper = new ObjectMapper();
     protected Integration configuration;
+    protected IntegrationContext context;
     protected TBUplinkDataConverter uplinkConverter;
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
@@ -75,6 +75,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         this.configuration = params.getConfiguration();
+        this.context = params.getContext();
         this.uplinkConverter = params.getUplinkConverter();
         this.downlinkConverter = params.getDownlinkConverter();
         Map<String, String> mdMap = new HashMap<>();
@@ -116,7 +117,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg) {
+    public void onDownlinkMsg(IntegrationDownlinkMsg msg) {
 
     }
 
@@ -173,7 +174,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
-            return this.uplinkConverter.convertUplink(context.getConverterContext(), data, md);
+            return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md);
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);

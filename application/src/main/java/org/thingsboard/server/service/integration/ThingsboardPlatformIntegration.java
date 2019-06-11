@@ -49,9 +49,9 @@ public interface ThingsboardPlatformIntegration<T> {
 
     void destroy();
 
-    void process(IntegrationContext context, T msg);
+    void process(T msg);
 
-    void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg msg);
+    void onDownlinkMsg(IntegrationDownlinkMsg msg);
 
     IntegrationStatistics popStatistics();
 

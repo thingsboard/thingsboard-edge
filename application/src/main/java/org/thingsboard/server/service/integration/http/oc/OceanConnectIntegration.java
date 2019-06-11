@@ -47,7 +47,7 @@ import java.util.List;
 public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
     @Override
-    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
 
         if (!msg.getMsg().has("deviceId")) {
             return fromStatus(HttpStatus.BAD_REQUEST);

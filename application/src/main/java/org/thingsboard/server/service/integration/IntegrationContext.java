@@ -47,7 +47,9 @@ public interface IntegrationContext {
 
     ServerAddress getServerAddress();
 
-    ConverterContext getConverterContext();
+    ConverterContext getUplinkConverterContext();
+
+    ConverterContext getDownlinkConverterContext();
 
     void processUplinkData(TransportProtos.IntegrationUplinkMsg uplinkData, TransportServiceCallback<Void> callback);
 

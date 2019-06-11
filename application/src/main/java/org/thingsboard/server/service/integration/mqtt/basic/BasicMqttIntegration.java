@@ -68,7 +68,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(ctx, new BasicMqttIntegrationMsg(topic, data)));
+        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
         subscribeToTopics();
         this.downlinkTopicPattern = getDownlinkTopicPattern();
         this.mqttClient.setCallback(new MqttClientCallback() {
@@ -96,7 +96,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
 
         for (MqttTopicFilter topicFilter : topics) {
             mqttClient.on(topicFilter.getFilter(), (topic, data) ->
-                    process(ctx, new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
+                    process(new BasicMqttIntegrationMsg(topic, data)), MqttQoS.valueOf(topicFilter.getQos()));
         }
     }
 
@@ -140,7 +140,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     private Map<String, List<DownlinkData>> convertDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<DownlinkData>> topicToDataMap = new HashMap<>();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
+        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
         for (DownlinkData data : result) {
             if (!data.isEmpty()) {
                 String downlinkTopic = compileDownlinkTopic(data.getMetadata());

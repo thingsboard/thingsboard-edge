@@ -141,7 +141,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                     Iterable<EventData> events = this.receiver.receiveSync(10);
                     if (events != null) {
                         for (EventData event : events) {
-                            process(context, new AzureEventHubIntegrationMsg(event));
+                            process(new AzureEventHubIntegrationMsg(event));
                         }
                     }
                 } catch (EventHubException e) {
@@ -152,7 +152,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void process(IntegrationContext context, AzureEventHubIntegrationMsg msg) {
+    public void process(AzureEventHubIntegrationMsg msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -176,7 +176,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -234,7 +234,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private Map<String, List<Message>> convertDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, List<Message>> deviceIdToMessage = new HashMap<>();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
+        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
         for (DownlinkData data : result) {
             if (!data.isEmpty()) {
                 String deviceId = data.getMetadata().get("deviceId");

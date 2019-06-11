@@ -47,7 +47,7 @@ import java.util.List;
 public class TMobileIotCdpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
 
     @Override
-    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
 
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
         if (uplinkDataList != null) {

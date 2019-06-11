@@ -101,7 +101,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     @Override
-    protected ResponseEntity doProcess(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(ThingParkIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg);
             if (uplinkDataList != null) {
@@ -117,7 +117,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -131,7 +131,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         Exception exception;
         try {
             List<DownlinkData> result = downlinkConverter.convertDownLink(
-                    context.getConverterContext(),
+                    context.getDownlinkConverterContext(),
                     Collections.singletonList(msg),
                     new IntegrationMetaData(mdMap));
             if (!result.isEmpty()) {

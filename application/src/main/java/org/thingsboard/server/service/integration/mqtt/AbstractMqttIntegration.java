@@ -107,7 +107,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
-    public void process(IntegrationContext context, T msg) {
+    public void process(T msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -131,7 +131,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {

@@ -60,7 +60,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
     }
 
     @Override
-    protected ResponseEntity doProcess(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
             Map<String, UplinkData> result = processUplinkData(context, msg);
             if (result.isEmpty()) {
@@ -88,7 +88,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                             mdMap.put("header:" + header, value);
                         }
                 );
-                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), pending.getMsgs(), new IntegrationMetaData(mdMap));
+                List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), pending.getMsgs(), new IntegrationMetaData(mdMap));
                 context.removeDownlinkMsg(deviceName);
                 if (result.size() == 1 && !result.get(0).isEmpty()) {
                     DownlinkData downlink = result.get(0);

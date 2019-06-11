@@ -80,11 +80,6 @@ public abstract class AbstractDataConverter implements TBDataConverter {
 
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                               String outMessageType, byte[] outMessage, String metadata, Exception exception) {
-        Event event = new Event();
-        event.setTenantId(configuration.getTenantId());
-        event.setEntityId(configuration.getId());
-        event.setType(DataConstants.DEBUG_CONVERTER);
-
         ObjectNode node = mapper.createObjectNode()
                 .put("server", context.getServerAddress().toString())
                 .put("type", type)
@@ -97,8 +92,6 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         if (exception != null) {
             node = node.put("error", toString(exception));
         }
-
-        event.setBody(node);
-        context.saveEvent(event);
+        context.saveEvent(DataConstants.DEBUG_CONVERTER, node);
     }
 }

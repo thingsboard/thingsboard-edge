@@ -113,7 +113,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private OpcUaServerConfiguration opcUaServerConfiguration;
 
-    private IntegrationContext integrationContext;
     private OpcUaClient client;
     private UaSubscription subscription;
     private Map<NodeId, OpcUaDevice> devices;
@@ -125,10 +124,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     // This variable describes the tsate of integration, whether it has to run or shut down, not the state of the opc-ua client
     private volatile boolean connected = false;
     private volatile boolean scheduleReconnect = false;
-
-    public OpcUaIntegration(IntegrationContext integrationContext) {
-        this.integrationContext = integrationContext;
-    }
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -172,7 +167,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     @Override
-    public void process(IntegrationContext context, OpcUaIntegrationMsg msg) {
+    public void process(OpcUaIntegrationMsg msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -208,7 +203,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink) {
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -236,7 +231,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             return false;
         }
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
+        List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
         List<WriteValue> writeValues = prepareWriteValues(result);
         List<CallMethodRequest> callMethods = prepareCallMethods(result);
 
@@ -323,7 +318,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         tbMsgMetaData.putValue("port", Integer.toString(opcUaServerConfiguration.getPort()));
         TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), messageType, this.configuration.getId(), tbMsgMetaData, TbMsgDataType.JSON, "{}", null, null, 0L);
 
-        integrationContext.processCustomMsg(tbMsg);
+        if (context != null) {
+            context.processCustomMsg(tbMsg);
+        }
     }
 
     @Override
@@ -542,7 +539,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private void onDeviceDataUpdate(OpcUaDevice device, NodeId affectedTagId) {
         OpcUaIntegrationMsg message = device.prepareMsg(affectedTagId);
-        process(integrationContext, message);
+        if (context != null) {
+            process(message);
+        }
     }
 
     private void subscribeToTags(Map<String, NodeId> newTags) throws InterruptedException, ExecutionException, TimeoutException {
@@ -588,7 +587,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private void onSubscriptionValue(UaMonitoredItem item, DataValue dataValue) {
         try {
-            if (!integrationContext.isClosed()) {
+            if (context != null && !context.isClosed()) {
                 log.debug("[{}] Subscription value received: item={}, value={}", this.configuration.getName(),
                         item.getReadValueId().getNodeId(), dataValue.getValue());
                 NodeId tagId = item.getReadValueId().getNodeId();

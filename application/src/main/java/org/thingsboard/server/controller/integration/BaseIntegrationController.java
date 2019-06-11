@@ -48,11 +48,8 @@ public class BaseIntegrationController extends BaseController {
     @Autowired
     protected PlatformIntegrationService integrationService;
 
-    @Autowired
-    protected IntegrationContext context;
-
     protected <T> void process(ThingsboardPlatformIntegration<T> integration, T msg) {
-        integration.process(context, msg);
+        integration.process(msg);
     }
 
 }

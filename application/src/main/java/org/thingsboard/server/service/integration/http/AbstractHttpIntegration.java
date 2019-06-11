@@ -43,11 +43,11 @@ import org.thingsboard.server.service.integration.IntegrationContext;
 public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> extends AbstractIntegration<T> {
 
     @Override
-    public void process(IntegrationContext context, T msg) {
+    public void process(T msg) {
         String status = "OK";
         Exception exception = null;
         try {
-            ResponseEntity httpResponse = doProcess(context, msg);
+            ResponseEntity httpResponse = doProcess(msg);
             if (!httpResponse.getStatusCode().is2xxSuccessful()) {
                 status = httpResponse.getStatusCode().name();
             }
@@ -71,7 +71,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
     }
 
-    protected abstract ResponseEntity doProcess(IntegrationContext context, T msg) throws Exception;
+    protected abstract ResponseEntity doProcess(T msg) throws Exception;
 
     protected static ResponseEntity fromStatus(HttpStatus status) {
         return new ResponseEntity<>(status);
