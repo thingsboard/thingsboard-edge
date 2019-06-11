@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.integration;
 
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -42,6 +44,10 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.integration.downlink.DownlinkService;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Data
@@ -87,4 +93,16 @@ public class IntegrationContextComponent {
     @Lazy
     @Autowired
     private ConverterContextComponent converterContextComponent;
+
+    private EventLoopGroup eventLoopGroup;
+
+    @PostConstruct
+    public void init() {
+        eventLoopGroup = new NioEventLoopGroup();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);
+    }
 }

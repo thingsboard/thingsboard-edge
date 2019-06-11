@@ -32,16 +32,14 @@ package org.thingsboard.server.service.integration;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
-import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
-
-import java.util.Optional;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 /**
  * Created by ashvayka on 02.12.17.

@@ -69,7 +69,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;

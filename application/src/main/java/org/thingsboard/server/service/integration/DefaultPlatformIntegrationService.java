@@ -36,8 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +45,14 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
+import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
+import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
+import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
@@ -80,21 +86,17 @@ import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.converter.TBDownlinkDataConverter;
-import org.thingsboard.server.service.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.integration.azure.AzureEventHubIntegration;
-import org.thingsboard.server.service.integration.http.basic.BasicHttpIntegration;
-import org.thingsboard.server.service.integration.http.oc.OceanConnectIntegration;
-import org.thingsboard.server.service.integration.http.sigfox.SigFoxIntegration;
-import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegration;
-import org.thingsboard.server.service.integration.http.tmobile.TMobileIotCdpIntegration;
-import org.thingsboard.server.service.integration.mqtt.aws.AwsIotIntegration;
-import org.thingsboard.server.service.integration.mqtt.basic.BasicMqttIntegration;
-import org.thingsboard.server.service.integration.mqtt.ibm.IbmWatsonIotIntegration;
-import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
+import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.oc.OceanConnectIntegration;
+import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
+import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
+import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
-import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
@@ -111,8 +113,6 @@ import java.util.concurrent.*;
 @Slf4j
 @Service
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
-
-    public static EventLoopGroup EVENT_LOOP_GROUP;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -194,7 +194,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @PostConstruct
     public void init() {
-        EVENT_LOOP_GROUP = new NioEventLoopGroup();
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -212,7 +211,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             statisticsExecutorService.shutdown();
         }
         integrationsByIdMap.values().forEach(v -> v.getFirst().destroy());
-        EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
         integrationsByIdMap.clear();
         integrationsByRoutingKeyMap.clear();
         refreshExecutorService.shutdownNow();

@@ -32,13 +32,16 @@ package org.thingsboard.server.service.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.converter.TBDataConverter;
+import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
-import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
-import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
+import org.thingsboard.js.api.JsInvokeService;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;

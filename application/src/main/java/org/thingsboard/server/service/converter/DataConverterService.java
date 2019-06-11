@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.service.converter;
 
+import org.thingsboard.integration.api.converter.TBDataConverter;
+import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;

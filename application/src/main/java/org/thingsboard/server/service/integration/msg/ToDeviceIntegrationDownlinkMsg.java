@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.msg;
 
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.id.DeviceId;
 
 /**

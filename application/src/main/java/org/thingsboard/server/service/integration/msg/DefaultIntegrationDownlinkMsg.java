@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration.msg;
 
 import lombok.Data;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;

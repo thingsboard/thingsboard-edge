@@ -47,7 +47,7 @@ import org.thingsboard.server.gen.cluster.ClusterRpcServiceGrpc;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
-import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;

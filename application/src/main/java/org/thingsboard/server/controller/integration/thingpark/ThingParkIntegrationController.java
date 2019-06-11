@@ -41,13 +41,11 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.integration.BaseIntegrationController;
-import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
-import org.thingsboard.server.service.integration.http.HttpIntegrationMsg;
-import org.thingsboard.server.service.integration.http.thingpark.ThingParkIntegrationMsg;
-import org.thingsboard.server.service.integration.http.thingpark.ThingParkRequestParameters;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.http.thingpark.ThingParkIntegrationMsg;
+import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
 
 import java.util.Map;
-import java.util.Optional;
 
 
 @RestController

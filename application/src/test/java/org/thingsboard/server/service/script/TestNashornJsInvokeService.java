@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.script;
 
+import org.thingsboard.js.api.AbstractNashornJsInvokeService;
+
 public class TestNashornJsInvokeService extends AbstractNashornJsInvokeService {
 
     private boolean useJsSandbox;

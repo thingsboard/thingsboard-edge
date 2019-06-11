@@ -72,6 +72,22 @@
             <artifactId>rule-engine-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>js-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>http-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>mqtt-integrations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.rule-engine</groupId>
             <artifactId>rule-engine-components</artifactId>
         </dependency>
@@ -298,10 +314,6 @@
         <dependency>
             <groupId>com.microsoft.azure.sdk.iot</groupId>
             <artifactId>iot-service-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.javadelight</groupId>
-            <artifactId>delight-nashorn-sandbox</artifactId>
         </dependency>
         <dependency>
             <groupId>io.springfox.ui</groupId>

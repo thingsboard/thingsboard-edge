@@ -380,6 +380,26 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common.js</groupId>
+                <artifactId>js-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>integration-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>http-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>mqtt-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.rule-engine</groupId>
                 <artifactId>rule-engine-components</artifactId>
                 <version>${project.version}</version>
@@ -407,12 +427,12 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.transport</groupId>
-                <artifactId>mqtt</artifactId>
+                <artifactId>http</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.transport</groupId>
-                <artifactId>http</artifactId>
+                <artifactId>mqtt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

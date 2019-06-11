@@ -31,12 +31,12 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
         <version>2.3.1PE-SNAPSHOT</version>
-        <artifactId>transport</artifactId>
+        <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.common.integration</groupId>
     <artifactId>integration-api</artifactId>
@@ -54,6 +54,14 @@
         <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>data</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>js-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.transport</groupId>
+            <artifactId>transport-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
@@ -99,6 +107,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
@@ -106,19 +119,19 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.xolstice.maven.plugins</groupId>
-                <artifactId>protobuf-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

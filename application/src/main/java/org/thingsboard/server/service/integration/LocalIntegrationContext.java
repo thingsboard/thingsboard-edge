@@ -35,13 +35,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
-import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.integration.api.converter.ConverterContext;
+import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
@@ -55,14 +53,9 @@ import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
-import org.thingsboard.server.service.integration.downlink.DownLinkMsg;
-import org.thingsboard.server.service.integration.downlink.DownlinkService;
-import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.DownLinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -201,10 +194,13 @@ public class LocalIntegrationContext implements IntegrationContext {
         return metaData;
     }
 
-
     @Override
     public ServerAddress getServerAddress() {
         return ctx.getDiscoveryService().getCurrentServer().getServerAddress();
     }
 
+    @Override
+    public EventLoopGroup getEventLoopGroup() {
+        return ctx.getEventLoopGroup();
+    }
 }

@@ -52,9 +52,9 @@
         <module>data</module>
         <module>message</module>
         <module>queue</module>
+        <module>js</module>
         <module>transport</module>
         <module>integration</module>
-        <!--module>js-eval</module-->
     </modules>
 
 </project>

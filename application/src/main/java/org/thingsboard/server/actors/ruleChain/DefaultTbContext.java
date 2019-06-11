@@ -90,7 +90,7 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.service.script.JsScriptType;
+import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
