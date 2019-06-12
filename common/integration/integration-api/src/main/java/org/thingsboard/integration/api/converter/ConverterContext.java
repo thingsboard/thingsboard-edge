@@ -31,6 +31,8 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 /**
@@ -40,15 +42,14 @@ public interface ConverterContext {
 
     /**
      * Returns current server address that is used mostly for logging.
+     *
      * @return server address
      */
     ServerAddress getServerAddress();
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the converter
-     * TODO: make async
-     *
-     * */
-    void saveEvent(String type, JsonNode body);
+     */
+    void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback);
 
 }

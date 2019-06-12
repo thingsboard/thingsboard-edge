@@ -32,7 +32,9 @@ package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
+import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -51,12 +53,12 @@ public class LocalConverterContext implements ConverterContext {
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body) {
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
         Event event = new Event();
         event.setTenantId(tenantId);
         event.setEntityId(converterId);
         event.setType(type);
         event.setBody(body);
-        ctx.getEventService().save(event);
+        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), callback::onSuccess, callback::onError);
     }
 }

@@ -30,24 +30,31 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EventId;
 import org.thingsboard.server.common.data.id.TenantId;
+
+import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
 
 /**
  * @author Andrew Shvayka
  */
 @Data
+@Slf4j
 public class Event extends BaseData<EventId> {
 
     private TenantId tenantId;
     private String type;
     private String uid;
     private EntityId entityId;
-    //TODO @dlandiak: fix sending over network similar to SearchTextBasedWithAdditionalInfo
     private transient JsonNode body;
+    @JsonIgnore
+    private byte[] bodyBytes;
 
     public Event() {
         super();
@@ -59,6 +66,14 @@ public class Event extends BaseData<EventId> {
 
     public Event(Event event) {
         super(event);
+        this.setBody(event.getBody());
     }
 
+    public JsonNode getBody() {
+        return getJson(() -> body, () -> bodyBytes);
+    }
+
+    public void setBody(JsonNode body) {
+        setJson(body, json -> this.body = json, bytes -> this.bodyBytes = bytes);
+    }
 }

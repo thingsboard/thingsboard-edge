@@ -30,11 +30,12 @@
  */
 package org.thingsboard.integration.api;
 
-import io.netty.channel.EventLoopGroup;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.channel.EventLoopGroup;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -46,18 +47,21 @@ public interface IntegrationContext {
 
     /**
      * Returns current server address that is used mostly for logging.
+     *
      * @return server address
      */
     ServerAddress getServerAddress();
 
     /**
      * Returns context of execution for uplink data converter
+     *
      * @return
      */
     ConverterContext getUplinkConverterContext();
 
     /**
      * Returns context of execution for downlink data converter
+     *
      * @return
      */
     ConverterContext getDownlinkConverterContext();
@@ -65,6 +69,7 @@ public interface IntegrationContext {
     /**
      * Processes the uplink data and executes callback with result. The uplink data is pushed to queue for delivery.
      * Callback is executed when uplink data is queued successfully.
+     *
      * @return
      */
     void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
@@ -72,19 +77,19 @@ public interface IntegrationContext {
     /**
      * Dispatch custom message to the rule engine.
      * Note that msg originator is verified to be either tenantId or integrationId or any device/asset that belongs to the corresponding tenant.
+     *
      * @param msg - custom message to dispatch
      */
     void processCustomMsg(TbMsg msg);
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
-     * TODO: make async
-     *
-     * */
-    void saveEvent(String type, JsonNode body);
+     */
+    void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback);
 
     /**
      * Provides Netty Event loop group to be used by integrations in order to avoid creating separate threads per integration.
+     *
      * @return event loop group
      */
     EventLoopGroup getEventLoopGroup();

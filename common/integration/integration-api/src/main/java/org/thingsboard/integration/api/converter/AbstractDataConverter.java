@@ -34,7 +34,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 
 import java.io.PrintWriter;
@@ -77,7 +79,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     }
 
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
-                              String outMessageType, byte[] outMessage, String metadata, Exception exception) {
+                                String outMessageType, byte[] outMessage, String metadata, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
                 .put("server", context.getServerAddress().toString())
                 .put("type", type)
@@ -90,6 +92,20 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         if (exception != null) {
             node = node.put("error", toString(exception));
         }
-        context.saveEvent(DataConstants.DEBUG_CONVERTER, node);
+        context.saveEvent(DataConstants.DEBUG_CONVERTER, node, new DebugEventCallback());
+    }
+
+    private static class DebugEventCallback implements IntegrationCallback<Event> {
+        @Override
+        public void onSuccess(Event event) {
+            if (log.isDebugEnabled()) {
+                log.debug("Event has been saved successfully![{}]", event);
+            }
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            log.error("Failed to save the debug event!", e);
+        }
     }
 }

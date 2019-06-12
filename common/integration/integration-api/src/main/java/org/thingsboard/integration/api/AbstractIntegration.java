@@ -36,21 +36,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.IntegrationStatistics;
-import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.data.DownlinkData;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.UplinkData;
+import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.integration.api.data.DownlinkData;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.integration.api.data.UplinkData;
-import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -168,7 +164,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             node = node.put("error", toString(exception));
         }
 
-        context.saveEvent(DataConstants.DEBUG_INTEGRATION, node);
+        context.saveEvent(DataConstants.DEBUG_INTEGRATION, node, new DebugEventCallback());
     }
 
     private String toString(Exception e) {
@@ -238,6 +234,20 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
+        }
+    }
+
+    private static class DebugEventCallback implements IntegrationCallback<Event> {
+        @Override
+        public void onSuccess(Event event) {
+            if (log.isDebugEnabled()) {
+                log.debug("Event has been saved successfully![{}]", event);
+            }
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            log.error("Failed to save the debug event!", e);
         }
     }
 

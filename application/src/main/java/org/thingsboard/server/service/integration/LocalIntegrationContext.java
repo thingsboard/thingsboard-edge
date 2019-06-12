@@ -39,8 +39,11 @@ import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.converter.ConverterContext;
+import org.thingsboard.integration.api.data.DownLinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
@@ -53,11 +56,8 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.integration.api.data.DownLinkMsg;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -119,8 +119,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        //TODO: implement
-        return null;
+        return ctx.getDownlinkService().put(msg);
     }
 
     @Override
@@ -132,13 +131,13 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body) {
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
         Event event = new Event();
         event.setTenantId(configuration.getTenantId());
         event.setEntityId(configuration.getId());
         event.setType(type);
         event.setBody(body);
-        ctx.getEventService().save(event);
+        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), callback::onSuccess, callback::onError);
     }
 
     @Override
