@@ -33,6 +33,15 @@ package org.thingsboard.server.transport.coap.adaptors;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.thingsboard.server.common.transport.adaptor.AdaptorException;
+import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
 
@@ -41,22 +50,22 @@ import java.util.Optional;
 
 public interface CoapTransportAdaptor {
 
-    TransportProtos.PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound) throws AdaptorException;
+    PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound) throws AdaptorException;
 
-    TransportProtos.PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound) throws AdaptorException;
+    PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound) throws AdaptorException;
 
-    TransportProtos.GetAttributeRequestMsg convertToGetAttributes(UUID sessionId, Request inbound) throws AdaptorException;
+    GetAttributeRequestMsg convertToGetAttributes(UUID sessionId, Request inbound) throws AdaptorException;
 
-    TransportProtos.ToDeviceRpcResponseMsg convertToDeviceRpcResponse(UUID sessionId, Request inbound) throws AdaptorException;
+    ToDeviceRpcResponseMsg convertToDeviceRpcResponse(UUID sessionId, Request inbound) throws AdaptorException;
 
-    TransportProtos.ToServerRpcRequestMsg convertToServerRpcRequest(UUID sessionId, Request inbound) throws AdaptorException;
+    ToServerRpcRequestMsg convertToServerRpcRequest(UUID sessionId, Request inbound) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.GetAttributeResponseMsg responseMsg) throws AdaptorException;
+    Response convertToPublish(CoapTransportResource.CoapSessionListener session, GetAttributeResponseMsg responseMsg) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.AttributeUpdateNotificationMsg notificationMsg) throws AdaptorException;
+    Response convertToPublish(CoapTransportResource.CoapSessionListener session, AttributeUpdateNotificationMsg notificationMsg) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.ToDeviceRpcRequestMsg rpcRequest) throws AdaptorException;
+    Response convertToPublish(CoapTransportResource.CoapSessionListener session, ToDeviceRpcRequestMsg rpcRequest) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener coapSessionListener, TransportProtos.ToServerRpcResponseMsg msg) throws AdaptorException;
+    Response convertToPublish(CoapTransportResource.CoapSessionListener coapSessionListener, ToServerRpcResponseMsg msg) throws AdaptorException;
 
 }

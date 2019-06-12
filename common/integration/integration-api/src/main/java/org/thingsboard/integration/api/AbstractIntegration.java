@@ -43,6 +43,7 @@ import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -137,7 +138,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
-        context.processUplinkData(TransportProtos.IntegrationUplinkMsg.newBuilder()
+        context.processUplinkData(DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType())
                 .setPostTelemetryMsg(data.getTelemetry()).setPostAttributesMsg(data.getAttributesUpdate()).build(), null);
     }

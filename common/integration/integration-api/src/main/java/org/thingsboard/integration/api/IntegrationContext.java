@@ -37,8 +37,7 @@ import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -68,7 +67,7 @@ public interface IntegrationContext {
      * Callback is executed when uplink data is queued successfully.
      * @return
      */
-    void processUplinkData(TransportProtos.IntegrationUplinkMsg uplinkData, TransportServiceCallback<Void> callback);
+    void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 
     /**
      * Dispatch custom message to the rule engine.
@@ -98,6 +97,5 @@ public interface IntegrationContext {
 
     //TODO @ashvayka: Implement
     boolean isClosed();
-
 
 }

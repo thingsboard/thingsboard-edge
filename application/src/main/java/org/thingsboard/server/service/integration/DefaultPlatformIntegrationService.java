@@ -45,6 +45,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -80,7 +81,12 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportToDeviceActorMsg;
 import org.thingsboard.server.kafka.TbNodeIdProvider;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
@@ -449,27 +455,27 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.PostTelemetryMsg msg, TransportServiceCallback<Void> callback) {
+    public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
-            forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostTelemetry(msg).build(), callback);
+            forwardToDeviceActor(TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostTelemetry(msg).build(), callback);
         }
     }
 
     @Override
-    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.PostAttributeMsg msg, TransportServiceCallback<Void> callback) {
+    public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
-            forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostAttributes(msg).build(), callback);
+            forwardToDeviceActor(TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostAttributes(msg).build(), callback);
         }
     }
 
     @Override
-    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.GetAttributeRequestMsg msg, TransportServiceCallback<Void> callback) {
+    public void process(SessionInfoProto sessionInfo, GetAttributeRequestMsg msg, IntegrationCallback<Void> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
-            forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setGetAttributes(msg).build(), callback);
+            forwardToDeviceActor(TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setGetAttributes(msg).build(), callback);
         }
     }
 
-    private void forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg toDeviceActorMsg, TransportServiceCallback<Void> callback) {
+    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, IntegrationCallback<Void> callback) {
         TransportToDeviceActorMsgWrapper wrapper = new TransportToDeviceActorMsgWrapper(toDeviceActorMsg);
         Optional<ServerAddress> address = routingService.resolveById(wrapper.getDeviceId());
         if (address.isPresent()) {
@@ -482,7 +488,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private boolean checkLimits(TransportProtos.SessionInfoProto sessionInfo, Object msg, TransportServiceCallback<Void> callback) {
+    private boolean checkLimits(SessionInfoProto sessionInfo, Object msg, IntegrationCallback<Void> callback) {
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
         }
@@ -514,7 +520,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return true;
     }
 
-    private UUID toId(TransportProtos.SessionInfoProto sessionInfo) {
+    private UUID toId(SessionInfoProto sessionInfo) {
         return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
     }
 

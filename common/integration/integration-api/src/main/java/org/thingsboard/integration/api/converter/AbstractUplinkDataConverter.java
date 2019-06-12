@@ -40,7 +40,8 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.transport.adaptor.JsonConverter;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -104,11 +105,11 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return builder.build();
     }
 
-    private TransportProtos.PostTelemetryMsg parseTelemetry(JsonElement src) {
+    private PostTelemetryMsg parseTelemetry(JsonElement src) {
         return JsonConverter.convertToTelemetryProto(src);
     }
 
-    private TransportProtos.PostAttributeMsg parseAttributesUpdate(JsonElement src) {
+    private PostAttributeMsg parseAttributesUpdate(JsonElement src) {
         return JsonConverter.convertToAttributesProto(src);
     }
 

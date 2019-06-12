@@ -31,7 +31,7 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
@@ -39,23 +39,47 @@
         <artifactId>common</artifactId>
     </parent>
     <groupId>org.thingsboard.common</groupId>
-    <artifactId>integration</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>proto</artifactId>
+    <packaging>jar</packaging>
 
-    <name>Thingsboard PE Integration Commons</name>
+    <name>Thingsboard Server Common Protobuf and gRPC structures</name>
     <url>https://thingsboard.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
     </properties>
-    <modules>
-        <module>integration-api</module>
-        <module>http-integrations</module>
-        <module>mqtt-integrations</module>
-        <module>azure-integrations</module>
-        <module>opcua-integrations</module>
-        <module>remote-integration-api</module>
-    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

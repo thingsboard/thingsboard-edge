@@ -39,10 +39,10 @@
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.common.integration</groupId>
-    <artifactId>integration-api</artifactId>
+    <artifactId>remote-integration-api</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard Server Common Integration components</name>
+    <name>Thingsboard Server Remote Integration wrapper</name>
     <url>https://thingsboard.io</url>
 
     <properties>
@@ -52,20 +52,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>data</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.js</groupId>
-            <artifactId>js-api</artifactId>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>integration-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common.transport</groupId>
             <artifactId>transport-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>proto</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>

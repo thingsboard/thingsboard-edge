@@ -50,6 +50,7 @@
     </properties>
     <modules>
         <module>data</module>
+        <module>proto</module>
         <module>message</module>
         <module>queue</module>
         <module>js</module>

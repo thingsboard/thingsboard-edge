@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.server.common.data.DataConstants;
@@ -53,7 +54,8 @@ import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
@@ -78,11 +80,11 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void processUplinkData(TransportProtos.IntegrationUplinkMsg data, TransportServiceCallback<Void> callback) {
+    public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
         Device device = getOrCreateDevice(data);
 
         UUID sessionId = UUID.randomUUID();
-        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+        SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
                 .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
@@ -144,7 +146,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         return false;
     }
 
-    private Device getOrCreateDevice(TransportProtos.IntegrationUplinkMsg data) {
+    private Device getOrCreateDevice(DeviceUplinkDataProto data) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
         if (device == null) {
             deviceCreationLock.lock();
@@ -157,7 +159,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         return device;
     }
 
-    private Device processGetOrCreateDevice(TransportProtos.IntegrationUplinkMsg data) {
+    private Device processGetOrCreateDevice(DeviceUplinkDataProto data) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
         if (device == null) {
             device = new Device();

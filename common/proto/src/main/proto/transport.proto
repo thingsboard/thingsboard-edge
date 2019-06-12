@@ -31,6 +31,7 @@
 syntax = "proto3";
 package transport;
 
+option java_multiple_files = true;
 option java_package = "org.thingsboard.server.gen.transport";
 option java_outer_classname = "TransportProtos";
 
@@ -107,13 +108,6 @@ message PostTelemetryMsg {
 
 message PostAttributeMsg {
   repeated KeyValueProto kv = 1;
-}
-
-message IntegrationUplinkMsg {
-  string deviceName = 1;
-  string deviceType = 2;
-  PostTelemetryMsg postTelemetryMsg = 3;
-  PostAttributeMsg postAttributesMsg = 4;
 }
 
 message GetAttributeRequestMsg {

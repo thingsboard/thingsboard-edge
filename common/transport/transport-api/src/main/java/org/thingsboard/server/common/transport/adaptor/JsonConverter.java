@@ -48,15 +48,17 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.msg.kv.AttributesKVMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.KeyValueProto;
-import org.thingsboard.server.gen.transport.TransportProtos.KeyValueType;
-import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TsKvListProto;
-import org.thingsboard.server.gen.transport.TransportProtos.TsKvProto;
+import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.KeyValueProto;
+import org.thingsboard.server.gen.transport.KeyValueType;
+import org.thingsboard.server.gen.transport.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TsKvListProto;
+import org.thingsboard.server.gen.transport.TsKvProto;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -108,7 +110,7 @@ public class JsonConverter {
         }
     }
 
-    public static JsonElement toJson(TransportProtos.ToDeviceRpcRequestMsg msg, boolean includeRequestId) {
+    public static JsonElement toJson(ToDeviceRpcRequestMsg msg, boolean includeRequestId) {
         JsonObject result = new JsonObject();
         if (includeRequestId) {
             result.addProperty("id", msg.getRequestId());
@@ -196,9 +198,9 @@ public class JsonConverter {
         }
     }
 
-    public static TransportProtos.ToServerRpcRequestMsg convertToServerRpcRequest(JsonElement json, int requestId) throws JsonSyntaxException {
+    public static ToServerRpcRequestMsg convertToServerRpcRequest(JsonElement json, int requestId) throws JsonSyntaxException {
         JsonObject object = json.getAsJsonObject();
-        return TransportProtos.ToServerRpcRequestMsg.newBuilder().setRequestId(requestId).setMethodName(object.get("method").getAsString()).setParams(GSON.toJson(object.get("params"))).build();
+        return ToServerRpcRequestMsg.newBuilder().setRequestId(requestId).setMethodName(object.get("method").getAsString()).setParams(GSON.toJson(object.get("params"))).build();
     }
 
     private static void parseNumericValue(List<KvEntry> result, Entry<String, JsonElement> valueEntry, JsonPrimitive value) {
@@ -272,7 +274,7 @@ public class JsonConverter {
         return result;
     }
 
-    public static JsonObject getJsonObjectForGateway(String deviceName, TransportProtos.GetAttributeResponseMsg responseMsg) {
+    public static JsonObject getJsonObjectForGateway(String deviceName, GetAttributeResponseMsg responseMsg) {
         JsonObject result = new JsonObject();
         result.addProperty("id", responseMsg.getRequestId());
         result.addProperty(DEVICE_PROPERTY, deviceName);
@@ -292,7 +294,7 @@ public class JsonConverter {
         return result;
     }
 
-    private static void addValues(JsonObject result, List<TransportProtos.TsKvProto> kvList) {
+    private static void addValues(JsonObject result, List<TsKvProto> kvList) {
         if (kvList.size() == 1) {
             addValueToJson(result, "value", kvList.get(0).getKv());
         } else {
@@ -307,7 +309,7 @@ public class JsonConverter {
         }
     }
 
-    private static void addValueToJson(JsonObject json, String name, TransportProtos.KeyValueProto entry) {
+    private static void addValueToJson(JsonObject json, String name, KeyValueProto entry) {
         switch (entry.getType()) {
             case BOOLEAN_V:
                 json.addProperty(name, entry.getBoolV());
@@ -374,7 +376,7 @@ public class JsonConverter {
         };
     }
 
-    public static JsonElement toJson(TransportProtos.ToServerRpcResponseMsg msg) {
+    public static JsonElement toJson(ToServerRpcResponseMsg msg) {
         if (StringUtils.isEmpty(msg.getError())) {
             return new JsonParser().parse(msg.getPayload());
         } else {
@@ -390,7 +392,7 @@ public class JsonConverter {
         return error;
     }
 
-    public static JsonElement toGatewayJson(String deviceName, TransportProtos.ToDeviceRpcRequestMsg rpcRequest) {
+    public static JsonElement toGatewayJson(String deviceName, ToDeviceRpcRequestMsg rpcRequest) {
         JsonObject result = new JsonObject();
         result.addProperty(DEVICE_PROPERTY, deviceName);
         result.add("data", JsonConverter.toJson(rpcRequest, true));

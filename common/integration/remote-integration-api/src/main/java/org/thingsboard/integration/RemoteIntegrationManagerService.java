@@ -28,17 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.service;
+package org.thingsboard.integration;
 
-import org.thingsboard.server.gen.transport.ToRuleEngineMsg;
-import org.thingsboard.server.kafka.TbKafkaEncoder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
-/**
- * Created by ashvayka on 05.10.18.
- */
-public class ToRuleEngineMsgEncoder implements TbKafkaEncoder<ToRuleEngineMsg> {
-    @Override
-    public byte[] encode(ToRuleEngineMsg value) {
-        return value.toByteArray();
-    }
+@Service("RemoteIntegrationManagerService")
+@Slf4j
+public class RemoteIntegrationManagerService {
+
+
+
 }
