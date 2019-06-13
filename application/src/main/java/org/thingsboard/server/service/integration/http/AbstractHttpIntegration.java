@@ -51,13 +51,17 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
             if (!httpResponse.getStatusCode().is2xxSuccessful()) {
                 status = httpResponse.getStatusCode().name();
             }
-            msg.getCallback().setResult(httpResponse);
+            try {
+                msg.getCallback().setResult(httpResponse);
+            } catch (Exception e) {
+                log.error("Failed to send response from integration to original HTTP request", e);
+            }
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
-            msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
             exception = e;
             status = "ERROR";
+            msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
         }
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
