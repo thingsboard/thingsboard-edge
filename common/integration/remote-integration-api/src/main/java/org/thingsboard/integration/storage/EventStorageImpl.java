@@ -30,6 +30,9 @@
  */
 package org.thingsboard.integration.storage;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +63,6 @@ import java.util.stream.Stream;
 @Component
 @Slf4j
 @Data
-// TODO: 6/13/19 implement state storage
 public class EventStorageImpl implements EventStorage {
 
     @Value("${integrations.remote.data_folder_path}")
@@ -72,9 +74,11 @@ public class EventStorageImpl implements EventStorage {
     @Value("${integrations.remote.max_file_count}")
     private int maxFileCount;
     @Value("${integrations.remote.read_interval}")
-    private long readInterval;
+    private long readInterval; // TODO: 6/14/19 has not been used
     @Value("${integrations.remote.max_read_records_count}")
     private int maxReadRecordsCount;
+
+    public static final ObjectMapper mapper = new ObjectMapper();
 
     private final ReentrantLock readLock = new ReentrantLock();
     private final ReentrantLock writeLock = new ReentrantLock();
@@ -82,9 +86,12 @@ public class EventStorageImpl implements EventStorage {
     private ExecutorService readExecutor;
     private ExecutorService writeExecutor;
     private ScheduledExecutorService scheduler;
-    private List<File> files;
-    private long currentFileWriteSize;
+
+    private List<File> dataFiles;
+    private File stateFile;
+    private long currentFileRecordsCount;
     private int currentLineToRead;
+    private File currentReadFile;
 
     @PostConstruct
     public void init() {
@@ -92,7 +99,8 @@ public class EventStorageImpl implements EventStorage {
         writeExecutor = Executors.newCachedThreadPool(); // TODO: 6/13/19 use?
         scheduler = Executors.newSingleThreadScheduledExecutor(); // TODO: 6/13/19 use?
         initDataFolderIfNotExist();
-        files = initDataFiles();
+        dataFiles = initDataFiles();
+        stateFile = getOrCreateStateFileIfNotExist();
     }
 
     @PreDestroy
@@ -108,26 +116,27 @@ public class EventStorageImpl implements EventStorage {
         }
     }
 
-    // TODO: 6/13/19 validate logic
+    // TODO: 6/14/19 use executor? how to use it with lock?
     @Override
     public void write(UplinkMsg msg) {
         writeLock.lock();
         try {
-            File lastFile = files.get(files.size() - 1);
+            int index = dataFiles.size() - 1;
+            File lastFile = dataFiles.get(index);
             long recordsCount = getNumberOfRecordsInFile(lastFile);
             if (isFileFull(recordsCount)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Records count: [{}] exceeds the allowed value![{}]", recordsCount, maxRecordsPerFile);
                 }
-                lastFile = createNewFile();
-                files.add(lastFile);
-                currentFileWriteSize = 0;
+                lastFile = createNewDataFile();
+                dataFiles.add(index + 1, lastFile);
+                currentFileRecordsCount = 0;
             }
             String encoded = Base64.getEncoder().encodeToString(msg.toByteArray());
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastFile, true))) {
                 writer.write(encoded);
-                currentFileWriteSize++;
-                if (currentFileWriteSize % maxRecordsBetweenFsync == 0) {
+                currentFileRecordsCount++;
+                if (currentFileRecordsCount % maxRecordsBetweenFsync == 0) {
                     writer.flush();
                 }
             } catch (IOException e) {
@@ -138,19 +147,32 @@ public class EventStorageImpl implements EventStorage {
         }
     }
 
-    // TODO: 6/13/19 validate logic
+    // TODO: 6/14/19 use executor? how to use it with lock?
     @Override
     public List<UplinkMsg> readCurrentBatch() {
         readLock.lock();
         try {
             List<UplinkMsg> uplinkMsgs = new ArrayList<>();
 
+            if (currentReadFile == null) {
+                JsonNode stateDataNode = fetchInfoFromStateFile();
+                if (stateDataNode != null) {
+                    currentLineToRead = stateDataNode.get("position").asInt();
+                    for (File file : dataFiles) {
+                        if (file.getName().equals(stateDataNode.get("currentFileName").asText())) {
+                            currentReadFile = file;
+                        }
+                    }
+                }
+            }
+
             int currentFileIdx = 0;
             int recordsToRead = maxReadRecordsCount;
-
             while (recordsToRead > 0) {
-                File currentFile = files.get(currentFileIdx);
-                try (BufferedReader br = Files.newBufferedReader(currentFile.toPath())) {
+                if (currentReadFile == null) {
+                    currentReadFile = dataFiles.get(currentFileIdx);
+                }
+                try (BufferedReader br = Files.newBufferedReader(currentReadFile.toPath())) {
                     String line;
                     while ((line = br.readLine()) != null) {
                         if (currentLineToRead != 0) {
@@ -158,6 +180,7 @@ public class EventStorageImpl implements EventStorage {
                             continue;
                         }
                         if (recordsToRead == 0) {
+                            writeInfoToStateFile();
                             break;
                         }
                         uplinkMsgs.add(UplinkMsg.parseFrom(Base64.getDecoder().decode(line)));
@@ -166,11 +189,12 @@ public class EventStorageImpl implements EventStorage {
                     }
                     if (line == null) {
                         currentLineToRead = 0;
+                        currentFileIdx++;
+                        currentReadFile = dataFiles.get(currentFileIdx);
                     }
                 } catch (IOException e) {
                     log.warn("Failed to ...!");
                 }
-                currentFileIdx++;
             }
             return uplinkMsgs;
         } finally {
@@ -178,13 +202,19 @@ public class EventStorageImpl implements EventStorage {
         }
     }
 
+    // TODO: 6/14/19 validate logic & rename method if needed
     @Override
     public void discardCurrentBatch() {
-        int currentFileIdx = 0;
-        File currentFile = files.get(currentFileIdx);
-
-        // TODO: 6/13/19 implement
-
+        for (File file : dataFiles) {
+            if (file.getName().equals(currentReadFile.getName())) {
+                break;
+            } else {
+                boolean isFileDeleted = deleteFile(file);
+                if (isFileDeleted && log.isDebugEnabled()) {
+                    log.debug("File has been removed![{}]", file.getName());
+                }
+            }
+        }
     }
 
     private void initDataFolderIfNotExist() {
@@ -206,7 +236,7 @@ public class EventStorageImpl implements EventStorage {
                     .map(Path::toFile).collect(Collectors.toList());
             Collections.sort(files);
             if (files.size() == 0) {
-                files.add(createNewFile());
+                files.add(createNewDataFile());
             }
             return files;
         } catch (IOException e) {
@@ -214,33 +244,65 @@ public class EventStorageImpl implements EventStorage {
         }
     }
 
-    private File createNewFile() {
-        int filesCount = files.size();
+    private File getOrCreateStateFileIfNotExist() {
+        return createFile("/state_", "file");
+    }
+
+    private File createNewDataFile() {
+        int filesCount = dataFiles.size();
         if (filesCount == maxFileCount) {
             log.error("Files count: [{}] exceeds the allowed value![{}]", filesCount, maxFileCount);
             throw new RuntimeException("Files count exceeds the allowed value!");
         }
-        Path newFilePath = Paths.get(dataFolderPath + "/data_" + Long.toString(System.currentTimeMillis()) + ".txt");
+        return createFile("/data_", Long.toString(System.currentTimeMillis()));
+    }
+
+    private File createFile(String prefix, String fileName) {
+        Path filePath = Paths.get(dataFolderPath + prefix + fileName + ".txt");
         try {
-            return Files.createFile(newFilePath).toFile();
+            return Files.createFile(filePath).toFile();
         } catch (IOException e) {
             throw new RuntimeException("Failed to create a new file!", e);
         }
     }
 
     private long getNumberOfRecordsInFile(File file) {
-        if (currentFileWriteSize == 0) {
+        if (currentFileRecordsCount == 0) {
             try {
-                currentFileWriteSize = Files.lines(Paths.get(file.toURI())).count();
+                currentFileRecordsCount = Files.lines(Paths.get(file.toURI())).count();
             } catch (IOException e) {
                 log.error("...");
             }
         }
-        return currentFileWriteSize;
+        return currentFileRecordsCount;
     }
 
     private boolean isFileFull(long currentFileSize) {
         return currentFileSize >= maxRecordsPerFile;
+    }
+
+    private JsonNode fetchInfoFromStateFile() {
+        try (BufferedReader br = Files.newBufferedReader(stateFile.toPath())) {
+            String line = br.readLine();
+            if (line != null) {
+                return mapper.readTree(line);
+            }
+        } catch (IOException e) {
+            log.warn("Failed to read state file!", e);
+        }
+        return null;
+    }
+
+    private void writeInfoToStateFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(stateFile))) {
+            ObjectNode stateFileNode = mapper.createObjectNode();
+            stateFileNode.put("position", currentLineToRead);
+            stateFileNode.put("currentFileName", currentReadFile.getName());
+            writer.write(mapper.writeValueAsString(stateFileNode));
+            writer.flush(); // TODO: 6/14/19 ???
+        } catch (IOException e) {
+            log.warn("Failed to...!");
+        }
     }
 
     private boolean deleteFile(File file) {
