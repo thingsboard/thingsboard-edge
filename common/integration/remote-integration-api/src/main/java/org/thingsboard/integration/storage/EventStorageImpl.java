@@ -135,6 +135,7 @@ public class EventStorageImpl implements EventStorage {
             String encoded = Base64.getEncoder().encodeToString(msg.toByteArray());
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastFile, true))) {
                 writer.write(encoded);
+                writer.newLine();
                 currentFileRecordsCount++;
                 if (currentFileRecordsCount % maxRecordsBetweenFsync == 0) {
                     writer.flush();
