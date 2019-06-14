@@ -262,6 +262,9 @@ integrations:
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
+  aws:
+    sqs:
+      max_buffer_size: "${INTEGRATIONS_AWS_SQS_MAX_BUFFER_SIZE:100000}"
 
 # Reports parameters
 reports:

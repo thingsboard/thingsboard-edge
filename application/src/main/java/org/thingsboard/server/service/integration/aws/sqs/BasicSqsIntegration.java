@@ -41,14 +41,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
 import org.thingsboard.server.service.integration.AbstractIntegration;
 import org.thingsboard.server.service.integration.IntegrationContext;
 import org.thingsboard.server.service.integration.TbIntegrationInitParams;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -59,27 +63,33 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
 
-    private SqsIntegrationConfiguration sqsConfiguration;
-    private AmazonSQS sqs;
-    private ScheduledExecutorService executor;
-
     private IntegrationContext context;
+    private SqsIntegrationConfiguration sqsConfiguration;
+    private ArrayBlockingQueue<Message> messageBuffer;
+    private AmazonSQS sqs;
+    private ScheduledExecutorService scheduledExecutor;
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private Integer maxBufferSize;
 
-    @Override
+    public BasicSqsIntegration(Integer maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         this.context = params.getContext();
         this.sqsConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("sqsConfiguration")),
                 SqsIntegrationConfiguration.class);
-        executor = Executors.newSingleThreadScheduledExecutor();
-        BasicAWSCredentials awsCreds = new BasicAWSCredentials(sqsConfiguration.getAccessKeyId(), sqsConfiguration.getSecretAccessKey());
+        messageBuffer = new ArrayBlockingQueue<>(maxBufferSize, true);
 
+        BasicAWSCredentials awsCreds = new BasicAWSCredentials(sqsConfiguration.getAccessKeyId(), sqsConfiguration.getSecretAccessKey());
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
         sqs = AmazonSQSClientBuilder.standard().withRegion(sqsConfiguration.getRegion())
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds)).build();
-        executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+        scheduledExecutor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+        scheduledExecutor.schedule(new BufferedMessageReader(), sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
     }
 
     private void pollMessages() {
@@ -88,31 +98,30 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
             sqsRequest.setQueueUrl(sqsConfiguration.getQueueUrl());
             sqsRequest.setMaxNumberOfMessages(10);
             List<Message> messages = sqs.receiveMessage(sqsRequest).getMessages();
-            for (Message message : messages) {
-                try {
-                    SqsIntegrationMsg sqsMsg = toSqsIntegrationMsg(message);
-                    process(context, sqsMsg);
-                } finally {
-                    sqs.deleteMessage(sqsConfiguration.getQueueUrl(), message.getReceiptHandle());
+            if (!CollectionUtils.isEmpty(messages) || messageBuffer.size() < maxBufferSize - messages.size()) {
+                for (Message message : messages) {
+                    messageBuffer.put(message);
                 }
+                scheduledExecutor.submit(this::pollMessages);
+            } else {
+                scheduledExecutor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+            scheduledExecutor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }
-        executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
     }
-
 
     private SqsIntegrationMsg toSqsIntegrationMsg(Message message) throws IOException {
         String unescaped = StringEscapeUtils.unescapeJson(message.getBody());
         unescaped = StringUtils.removeStart(unescaped, "\"");
         unescaped = StringUtils.removeEnd(unescaped, "\"");
         JsonNode node = mapper.readTree(unescaped);
-        // TODO: vsosliuk add metadata
         SqsIntegrationMsg sqsMsg = new SqsIntegrationMsg(node, metadataTemplate.getKvMap());
         return sqsMsg;
     }
+
 
     @Override
     public void process(IntegrationContext context, SqsIntegrationMsg message) {
@@ -121,7 +130,7 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
-                    log.info("[{}] Processing uplink data", data);
+                    log.debug("[{}] Processing uplink data", data);
                 }
             }
             if (configuration.isDebugMode()) {
@@ -130,6 +139,26 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+        }
+    }
+
+    private class BufferedMessageReader implements Runnable {
+
+        @Override
+        public void run() {
+            while (messageBuffer.size() > 0) {
+                Message message = messageBuffer.poll();
+                if (message != null) {
+                    try {
+                        SqsIntegrationMsg sqsMessage = toSqsIntegrationMsg(message);
+                        process(context, sqsMessage);
+                        sqs.deleteMessage(sqsConfiguration.getQueueUrl(), message.getReceiptHandle());
+                    } catch (IOException e) {
+                        log.error("Failed to process message: " + message + ". Reason: " + e.getMessage(), e);
+                    }
+                }
+            }
+            scheduledExecutor.schedule(this, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }
     }
 }
