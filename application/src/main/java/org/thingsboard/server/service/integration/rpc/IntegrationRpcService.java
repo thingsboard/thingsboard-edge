@@ -28,17 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.server.service.integration.rpc;
 
-import lombok.Data;
+import io.grpc.stub.StreamObserver;
+import org.thingsboard.server.gen.integration.ConnectRequestMsg;
+import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 
-import java.io.File;
-import java.util.List;
+public interface IntegrationRpcService {
 
-@Data
-class EventStorageFiles {
-
-    private final File stateFile;
-    private final List<File> dataFiles;
+    void connect(ConnectRequestMsg requestMsg, StreamObserver<ConnectResponseMsg> responseObserver);
 
 }

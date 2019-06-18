@@ -268,6 +268,8 @@ integrations:
     max_records_per_file: "${INTEGRATIONS_REMOTE_MAX_RECORDS_PER_FILE:1000000}"
     max_records_between_fsync: "${INTEGRATIONS_REMOTE_MAX_RECORDS_BETWEEN_FSYNC:100}"
     max_read_records_count: "${INTEGRATIONS_REMOTE_MAX_READ_RECORDS_COUNT:100}"
+    rpc:
+      port: "${INTEGRATIONS_REMOTE_RPC_PORT:50051}"
 
 # Reports parameters
 reports:
