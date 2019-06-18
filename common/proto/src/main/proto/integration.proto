@@ -51,9 +51,8 @@ service IntegrationTransport {
  * Data Structures;
  */
 message ConnectRequestMsg {
-  int64 integrationIdMSB = 1; //todo: was [string integrationId = 1;]
-  int64 integrationIdLSB = 2;
-  string integrationSecret = 3;
+  string integrationId = 1;
+  string integrationSecret = 2;
 }
 
 enum ConnectResponseCode {

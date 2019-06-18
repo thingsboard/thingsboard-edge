@@ -30,24 +30,27 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
@@ -56,6 +59,9 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     @Value("${integrations.remote.rpc.port}")
     private int rpcPort;
 
+    @Autowired
+    private PlatformIntegrationService platformIntegrationService;
+
     private Server server;
 
     @PostConstruct
@@ -63,7 +69,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
         log.info("Initializing RPC service!");
         server = ServerBuilder
                 .forPort(rpcPort)
-                .useTransportSecurity(new File("certChainFile.pem"), new File("privateKeyFile.pem")) // TODO: 6/18/19 improve
+//                .useTransportSecurity(new File("certChainFile.pem"), new File("privateKeyFile.pem")) // TODO: 6/18/19 improve
                 .addService(this)
                 .build();
         log.info("Going to start RPC server using port: {}", rpcPort);
@@ -90,12 +96,27 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     }
 
     private ConnectResponseMsg validateConnect(ConnectRequestMsg request) {
-        IntegrationId integrationId = new IntegrationId(new UUID(request.getIntegrationIdMSB(), request.getIntegrationIdLSB()));
-        String secret = request.getIntegrationSecret();
+        ListenableFuture<ThingsboardPlatformIntegration> future = platformIntegrationService.getIntegrationByRoutingKey(request.getIntegrationId());
+        try {
+            Integration integration = future.get().getConfiguration();
 
-        return ConnectResponseMsg.newBuilder()
-                .setResponseCode(ConnectResponseCode.ACCEPTED)
-                .setErrorMsg("")
-                .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
+            if (integration.isRemote() && integration.getSecret().equals(request.getIntegrationSecret())) {
+                return ConnectResponseMsg.newBuilder()
+                        .setResponseCode(ConnectResponseCode.ACCEPTED)
+                        .setErrorMsg("")
+                        .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
+            }
+
+            return ConnectResponseMsg.newBuilder()
+                    .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
+                    .setErrorMsg("Failed to validate the integration!")
+                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn("Failed to find the integration![{}]", request.getIntegrationId(), e);
+            return ConnectResponseMsg.newBuilder()
+                    .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
+                    .setErrorMsg("Failed to find the integration!")
+                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
+        }
     }
 }
