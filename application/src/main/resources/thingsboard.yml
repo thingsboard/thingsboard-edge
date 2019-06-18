@@ -263,11 +263,10 @@ integrations:
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   remote:
-    data_folder_path: "${INTEGRATIONS_REMOTE_DATA_FOLDER_PATH:/home/dima/Documents/work/RemoteIntegrations}"
+    data_folder_path: "${INTEGRATIONS_REMOTE_DATA_FOLDER_PATH:}"
+    max_file_count: "${INTEGRATIONS_REMOTE_MAX_FILE_COUNT:1000}"
     max_records_per_file: "${INTEGRATIONS_REMOTE_MAX_RECORDS_PER_FILE:1000000}"
     max_records_between_fsync: "${INTEGRATIONS_REMOTE_MAX_RECORDS_BETWEEN_FSYNC:100}"
-    max_file_count: "${INTEGRATIONS_REMOTE_MAX_FILE_COUNT:1000000}"
-    read_interval: "${INTEGRATIONS_REMOTE_READ_INTERVAL:5}"
     max_read_records_count: "${INTEGRATIONS_REMOTE_MAX_READ_RECORDS_COUNT:100}"
 
 # Reports parameters
