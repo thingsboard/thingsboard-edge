@@ -46,8 +46,9 @@
           	 </div>
           </md-toolbar>
       </header>
-	  <md-toolbar flex class="tb-side-menu-toolbar" role="navigation">
+	  <md-toolbar flex class="tb-side-menu-toolbar" role="navigation" layout-align="space-between">
 		  <tb-side-menu></tb-side-menu>
+		  <section ng-if="vm.showVersion" translate translate-values='{name: vm.platformName, verion: vm.platformVersion}'>white-labeling.version-mask</section>
 	  </md-toolbar>
   </md-sidenav>
 
