@@ -2399,16 +2399,7 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "help-link-base-url": "Help links base url",
-        "enable-help-links": "Enable help links",
-        "show-platform-name-version": "Show platform name and version",
-        "platform-name": "Platform Name",
-        "platform-version": "Platform version",
-        "version-mask": "{{name}} v.{{verion}}",
-        "position":{
-            "label": "Platform name and version position",
-            "under-logo": "Under the logo",
-            "bottom": "Bottom of the login form"
-        }
+        "enable-help-links": "Enable help links"
     },
     "widgets": {
         "date-range-navigator": {

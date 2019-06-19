@@ -39,22 +39,11 @@ md-card.tb-login-card {
 
   md-card-title {
     img.tb-login-logo {
-      height: 40px;
+      height: 50px;
     }
   }
 
   md-card-content {
-    margin-top: -40px;
-  }
-
-  .version {
-    margin: 5px 15px 0 0;
-    font-size: .75em;
-    text-align: right;
-
-    &.center{
-      margin: 10px 0 0;
-      text-align: center;
-    }
+    margin-top: -50px;
   }
 }
