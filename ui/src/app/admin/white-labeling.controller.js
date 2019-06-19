@@ -58,6 +58,16 @@ export default function WhiteLabelingController($state, userService, $scope, $md
     vm.primaryPalettes = [];
     vm.accentPalettes = [];
 
+    vm.thingsboardVersion = THINGSBOARD_VERSION; //eslint-disable-line
+
+    vm.showPosition=[{
+        name: "white-labeling.position.under-logo",
+        value: false
+    },{
+        name: "white-labeling.position.bottom",
+        value: true
+    }];
+
     var palettes = [];
     for (var paletteKey in $mdTheming.PALETTES) {
         if (!paletteKey.startsWith('tb-') && !paletteKey.startsWith('custom-')) {
@@ -128,6 +138,12 @@ export default function WhiteLabelingController($state, userService, $scope, $md
                 vm.whiteLabelingParams = whiteLabelingParams;
                 if (!vm.whiteLabelingParams.paletteSettings) {
                     vm.whiteLabelingParams.paletteSettings = {};
+                }
+                if(vm.whiteLabelingParams.platformName === null){
+                    vm.whiteLabelingParams.platformName = "ThingsBoard";
+                }
+                if(vm.whiteLabelingParams.platformVersion === null){
+                    vm.whiteLabelingParams.platformVersion = THINGSBOARD_VERSION; //eslint-disable-line
                 }
                 updateCustomPalette('primaryPalette', vm.primaryPalettes);
                 updateCustomPalette('accentPalette', vm.accentPalettes);
@@ -224,8 +240,17 @@ export default function WhiteLabelingController($state, userService, $scope, $md
     }
 
     function save() {
-        var savePromise = vm.isLoginWl ? whiteLabelingService.saveLoginWhiteLabelParams(vm.whiteLabelingParams) :
-                        whiteLabelingService.saveWhiteLabelParams(vm.whiteLabelingParams);
+        let whiteLabelingParams = angular.copy(vm.whiteLabelingParams);
+        if(whiteLabelingParams.platformName === "ThingsBoard"){
+            whiteLabelingParams.platformName = null;
+        }
+        /* eslint-disable */
+        if(whiteLabelingParams.platformVersion === THINGSBOARD_VERSION){
+            whiteLabelingParams.platformVersion = null;
+        }
+        /* eslint-enable */
+        var savePromise = vm.isLoginWl ? whiteLabelingService.saveLoginWhiteLabelParams(whiteLabelingParams) :
+                        whiteLabelingService.saveWhiteLabelParams(whiteLabelingParams);
         savePromise.then(() => {
             vm.whiteLabelForm.$setPristine();
             if (vm.isLoginWl) {
