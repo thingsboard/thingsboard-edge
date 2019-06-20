@@ -37,11 +37,13 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.service.converter.UplinkData;
 import org.thingsboard.server.service.converter.UplinkMetaData;
@@ -65,15 +67,8 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
 
     private IntegrationContext context;
     private SqsIntegrationConfiguration sqsConfiguration;
-    private ArrayBlockingQueue<Message> messageBuffer;
     private AmazonSQS sqs;
-    private ScheduledExecutorService scheduledExecutor;
-
-    private Integer maxBufferSize;
-
-    public BasicSqsIntegration(Integer maxBufferSize) {
-        this.maxBufferSize = maxBufferSize;
-    }
+    private ScheduledExecutorService executor;
 
     @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -82,14 +77,11 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
         this.sqsConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("sqsConfiguration")),
                 SqsIntegrationConfiguration.class);
-        messageBuffer = new ArrayBlockingQueue<>(maxBufferSize, true);
-
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(sqsConfiguration.getAccessKeyId(), sqsConfiguration.getSecretAccessKey());
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        executor = Executors.newScheduledThreadPool(8);
         sqs = AmazonSQSClientBuilder.standard().withRegion(sqsConfiguration.getRegion())
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds)).build();
-        scheduledExecutor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
-        scheduledExecutor.schedule(new BufferedMessageReader(), sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+        executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
     }
 
     private void pollMessages() {
@@ -98,18 +90,25 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
             sqsRequest.setQueueUrl(sqsConfiguration.getQueueUrl());
             sqsRequest.setMaxNumberOfMessages(10);
             List<Message> messages = sqs.receiveMessage(sqsRequest).getMessages();
-            if (!CollectionUtils.isEmpty(messages) || messageBuffer.size() < maxBufferSize - messages.size()) {
+            if (!CollectionUtils.isEmpty(messages)) {
                 for (Message message : messages) {
-                    messageBuffer.put(message);
+                    try {
+                        SqsIntegrationMsg sqsMessage = toSqsIntegrationMsg(message);
+                        process(context, sqsMessage);
+                    } catch (IOException e) {
+                        log.error("Failed to process message: " + message + ". Reason: " + e.getMessage(), e);
+                    } finally {
+                        sqs.deleteMessage(sqsConfiguration.getQueueUrl(), message.getReceiptHandle());
+                    }
                 }
-                scheduledExecutor.submit(this::pollMessages);
+                executor.submit(this::pollMessages);
             } else {
-                scheduledExecutor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+                executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
-            scheduledExecutor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+            executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }
     }
 
@@ -139,26 +138,6 @@ public class BasicSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
-        }
-    }
-
-    private class BufferedMessageReader implements Runnable {
-
-        @Override
-        public void run() {
-            while (messageBuffer.size() > 0) {
-                Message message = messageBuffer.poll();
-                if (message != null) {
-                    try {
-                        SqsIntegrationMsg sqsMessage = toSqsIntegrationMsg(message);
-                        process(context, sqsMessage);
-                        sqs.deleteMessage(sqsConfiguration.getQueueUrl(), message.getReceiptHandle());
-                    } catch (IOException e) {
-                        log.error("Failed to process message: " + message + ". Reason: " + e.getMessage(), e);
-                    }
-                }
-            }
-            scheduledExecutor.schedule(this, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }
     }
 }

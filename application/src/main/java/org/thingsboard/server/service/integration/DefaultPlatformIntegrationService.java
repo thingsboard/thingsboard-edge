@@ -181,9 +181,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
-    @Value("${integrations.aws.sqs.max_buffer_size:100000}")
-    private Integer maxBufferSize;
-
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService reinitExecutorService;
     private ListeningExecutorService refreshExecutorService;
@@ -621,7 +618,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case AWS_IOT:
                 return new AwsIotIntegration();
             case AWS_SQS:
-                return new BasicSqsIntegration(maxBufferSize);
+                return new BasicSqsIntegration();
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
             case TTN:
