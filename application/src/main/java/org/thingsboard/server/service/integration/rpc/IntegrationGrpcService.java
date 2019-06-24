@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -38,38 +39,60 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.rule.engine.api.util.DonAsynchron;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
+import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
 public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
 
+    public static final ObjectMapper mapper = new ObjectMapper();
+
     @Value("${integrations.remote.rpc.port}")
     private int rpcPort;
+    @Value("${integrations.remote.rpc.cert}")
+    private String certFileResource;
+    @Value("${integrations.remote.rpc.privateKey}")
+    private String privateKeyResource;
 
     @Autowired
     private PlatformIntegrationService platformIntegrationService;
+    @Autowired
+    private ConverterService converterService;
 
     private Server server;
 
     @PostConstruct
     public void init() {
         log.info("Initializing RPC service!");
+        File certFile;
+        File privateKeyFile;
+        /*try {
+            certFile = new File(Resources.getResource(certFileResource).toURI());
+            privateKeyFile = new File(Resources.getResource(privateKeyResource).toURI());
+        } catch (Exception e) {
+            log.error("Unable to set up SSL context. Reason: " + e.getMessage(), e);
+            throw new RuntimeException("Unable to set up SSL context!", e);
+        }*/
         server = ServerBuilder
                 .forPort(rpcPort)
-//                .useTransportSecurity(new File("certChainFile.pem"), new File("privateKeyFile.pem")) // TODO: 6/18/19 improve
+//                .useTransportSecurity(certFile, privateKeyFile)
                 .addService(this)
                 .build();
         log.info("Going to start RPC server using port: {}", rpcPort);
@@ -91,32 +114,73 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Override
     public void connect(ConnectRequestMsg request, StreamObserver<ConnectResponseMsg> responseObserver) {
-        responseObserver.onNext(validateConnect(request));
+        responseObserver.onNext((ConnectResponseMsg) validateConnect(request).getResult());
         responseObserver.onCompleted();
     }
 
-    private ConnectResponseMsg validateConnect(ConnectRequestMsg request) {
-        ListenableFuture<ThingsboardPlatformIntegration> future = platformIntegrationService.getIntegrationByRoutingKey(request.getIntegrationId());
-        try {
-            Integration integration = future.get().getConfiguration();
-
+    private DeferredResult<ConnectResponseMsg> validateConnect(ConnectRequestMsg request) {
+        DeferredResult<ConnectResponseMsg> deferredResult = new DeferredResult<>();
+        ListenableFuture<ThingsboardPlatformIntegration> future = platformIntegrationService.getIntegrationByRoutingKey(request.getIntegrationRoutingKey());
+        DonAsynchron.withCallback(future, platformIntegration -> {
+            Integration integration = platformIntegration.getConfiguration();
             if (integration.isRemote() && integration.getSecret().equals(request.getIntegrationSecret())) {
-                return ConnectResponseMsg.newBuilder()
-                        .setResponseCode(ConnectResponseCode.ACCEPTED)
-                        .setErrorMsg("")
-                        .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
-            }
+                try {
+                    Converter defaultConverter = converterService.findConverterById(integration.getTenantId(),
+                            integration.getDefaultConverterId());
+                    ConverterConfigurationProto defaultConverterProto = ConverterConfigurationProto.newBuilder()
+                            .setConverterIdMSB(integration.getDefaultConverterId().getId().getMostSignificantBits())
+                            .setConverterIdLSB(integration.getDefaultConverterId().getId().getLeastSignificantBits())
+                            .setConfiguration(mapper.writeValueAsString(defaultConverter.getConfiguration()))
+                            .setAdditionalInfo(mapper.writeValueAsString(defaultConverter.getAdditionalInfo()))
+                            .build();
 
-            return ConnectResponseMsg.newBuilder()
+                    ConverterConfigurationProto downLinkConverterProto = ConverterConfigurationProto.newBuilder().getDefaultInstanceForType();
+                    if (integration.getDownlinkConverterId() != null) {
+                        Converter downlinkConverter = converterService.findConverterById(integration.getTenantId(),
+                                integration.getDownlinkConverterId());
+                        downLinkConverterProto = ConverterConfigurationProto.newBuilder()
+                                .setConverterIdMSB(integration.getDownlinkConverterId().getId().getMostSignificantBits())
+                                .setConverterIdLSB(integration.getDownlinkConverterId().getId().getLeastSignificantBits())
+                                .setConfiguration(mapper.writeValueAsString(downlinkConverter.getConfiguration()))
+                                .setAdditionalInfo(mapper.writeValueAsString(downlinkConverter.getAdditionalInfo()))
+                                .build();
+                    }
+
+                    IntegrationConfigurationProto proto = IntegrationConfigurationProto.newBuilder()
+                            .setTenantIdMSB(integration.getTenantId().getId().getMostSignificantBits())
+                            .setTenantIdLSB(integration.getTenantId().getId().getLeastSignificantBits())
+                            .setUplinkConverter(defaultConverterProto)
+                            .setDownlinkConverter(downLinkConverterProto)
+                            .setName(integration.getName())
+                            .setRoutingKey(integration.getRoutingKey())
+                            .setType(integration.getType().toString())
+                            .setDebugMode(integration.isDebugMode())
+                            .setConfiguration(mapper.writeValueAsString(integration.getConfiguration()))
+                            .setAdditionalInfo(mapper.writeValueAsString(integration.getAdditionalInfo()))
+                            .build();
+
+                    deferredResult.setResult(ConnectResponseMsg.newBuilder()
+                            .setResponseCode(ConnectResponseCode.ACCEPTED)
+                            .setErrorMsg("")
+                            .setConfiguration(proto).build());
+                } catch (Exception e) {
+                    deferredResult.setResult(ConnectResponseMsg.newBuilder()
+                            .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
+                            .setErrorMsg("Failed to construct integration configuration proto!")
+                            .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build());
+                }
+            }
+            deferredResult.setResult(ConnectResponseMsg.newBuilder()
                     .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
                     .setErrorMsg("Failed to validate the integration!")
-                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Failed to find the integration![{}]", request.getIntegrationId(), e);
-            return ConnectResponseMsg.newBuilder()
+                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build());
+        }, throwable -> {
+            log.warn("Failed to find the integration![{}]", request.getIntegrationRoutingKey(), throwable);
+            deferredResult.setResult(ConnectResponseMsg.newBuilder()
                     .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
                     .setErrorMsg("Failed to find the integration!")
-                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
-        }
+                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build());
+        });
+        return deferredResult;
     }
 }

@@ -270,6 +270,8 @@ integrations:
     max_read_records_count: "${INTEGRATIONS_REMOTE_MAX_READ_RECORDS_COUNT:100}"
     rpc:
       port: "${INTEGRATIONS_REMOTE_RPC_PORT:50051}"
+      cert: "${INTEGRATIONS_REMOTE_RPC_CERT:certChainFile.pem}"
+      privateKey: "${INTEGRATIONS_REMOTE_RPC_CERT:privateKeyFile.pem}"
 
 # Reports parameters
 reports:

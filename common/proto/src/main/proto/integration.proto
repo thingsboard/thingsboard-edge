@@ -51,7 +51,7 @@ service IntegrationTransport {
  * Data Structures;
  */
 message ConnectRequestMsg {
-  string integrationId = 1;
+  string integrationRoutingKey = 1;
   string integrationSecret = 2;
 }
 
@@ -93,13 +93,29 @@ message TbEventProto {
 }
 
 message IntegrationConfigurationProto {
-  //TODO
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  ConverterConfigurationProto uplinkConverter = 3;
+  ConverterConfigurationProto downlinkConverter = 4;
+  string name = 5;
+  string routingKey = 6;
+  string type = 7;
+  bool debugMode = 8;
+  string configuration = 9;
+  string additionalInfo = 10;
 }
 
 message UplinkProcessingResultProto {
   int32 uplinkMsgId = 1;
   bool success = 2;
   string errorMsg = 3;
+}
+
+message ConverterConfigurationProto {
+  int64 converterIdMSB = 1;
+  int64 converterIdLSB = 2;
+  string configuration = 3;
+  string additionalInfo = 4;
 }
 
 /**

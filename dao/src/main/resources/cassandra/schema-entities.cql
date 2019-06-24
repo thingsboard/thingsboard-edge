@@ -318,6 +318,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.integration (
     id timeuuid,
     tenant_id timeuuid,
     name text,
+    secret text,
     converter_id timeuuid,
     downlink_converter_id timeuuid,
     type text,
@@ -325,6 +326,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.integration (
     search_text text,
     configuration text,
     debug_mode boolean,
+    is_remote boolean,
     additional_info text,
     PRIMARY KEY (id, tenant_id)
 );

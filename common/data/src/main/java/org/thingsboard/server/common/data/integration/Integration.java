@@ -57,7 +57,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private IntegrationType type;
     private boolean debugMode;
     private boolean isRemote;
-    private String secret;
+    private String secret;// TODO: 6/24/19 add db upgrade logic
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
 
