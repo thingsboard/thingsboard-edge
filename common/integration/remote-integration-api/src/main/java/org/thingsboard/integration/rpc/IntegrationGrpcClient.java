@@ -1,0 +1,111 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.integration.rpc;
+
+import io.grpc.ManagedChannel;
+import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.gen.integration.ConnectRequestMsg;
+import org.thingsboard.server.gen.integration.ConnectResponseCode;
+import org.thingsboard.server.gen.integration.ConnectResponseMsg;
+import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.concurrent.TimeUnit;
+
+@Service
+@Slf4j
+public class IntegrationGrpcClient implements IntegrationRpcClient {
+
+    @Value("${rpc.client.host}")
+    private String rpcHost;
+    @Value("${rpc.client.port}")
+    private int rpcPort;
+    @Value("${rpc.client.port}")
+    private int timeoutSecs;
+    @Value("${rpc.client.cert}")
+    private String certResource;
+
+    private ManagedChannel channel;
+    private IntegrationTransportGrpc.IntegrationTransportStub stub;
+
+    @PostConstruct
+    public void init() {
+        try {
+            channel = NettyChannelBuilder
+                    .forAddress(rpcHost, rpcPort)
+//                    .sslContext(GrpcSslContexts.forClient().trustManager(new File(Resources.getResource(certResource).toURI())).build())
+                    .usePlaintext()
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to initialize channel!", e);
+            throw new RuntimeException(e);
+        }
+        stub = IntegrationTransportGrpc.newStub(channel);
+    }
+
+    @PreDestroy
+    public void destroy() throws InterruptedException {
+        channel.shutdown().awaitTermination(timeoutSecs, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void connect(ConnectRequestMsg requestMsg) {
+        log.info("Sending a connect request to the TB![{}]", requestMsg);
+        StreamObserver<ConnectResponseMsg> responseObserver = new StreamObserver<ConnectResponseMsg>() {
+            @Override
+            public void onNext(ConnectResponseMsg value) {
+                if (value.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {
+
+                    log.info("{}", value.getConfiguration());
+
+                } else {
+                    log.error("Failed to establish the connection! Code: {}. Error message: {}.", value.getResponseCode(), value.getErrorMsg());
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.error("Failed to establish the connection!", t);
+            }
+
+            @Override
+            public void onCompleted() {
+                log.info("Integration connection completed successfully!");
+            }
+        };
+        stub.connect(requestMsg, responseObserver);
+    }
+}

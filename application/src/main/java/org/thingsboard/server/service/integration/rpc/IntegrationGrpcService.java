@@ -64,11 +64,11 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     public static final ObjectMapper mapper = new ObjectMapper();
 
-    @Value("${integrations.remote.rpc.port}")
+    @Value("${integrations.remote.rpc.service.port}")
     private int rpcPort;
-    @Value("${integrations.remote.rpc.cert}")
+    @Value("${integrations.remote.rpc.service.cert}")
     private String certFileResource;
-    @Value("${integrations.remote.rpc.privateKey}")
+    @Value("${integrations.remote.rpc.service.privateKey}")
     private String privateKeyResource;
 
     @Autowired
