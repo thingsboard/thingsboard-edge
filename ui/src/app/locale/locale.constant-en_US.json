@@ -1591,7 +1591,13 @@
         "add-subscription-tag-prompt": "Please add subscription tag",
         "key": "Key",
         "path": "Path",
-        "required": "Required"
+        "required": "Required",
+        "integration-key": "Integration key",
+        "copy-integration-key": "Copy integration key",
+        "integration-key-copied-message": "Integration key has been copied to clipboard",
+        "integration-secret": "Integration secret",
+        "copy-integration-secret": "Copy integration secret",
+        "integration-secret-copied-message": "Integration secret has been copied to clipboard"
     },
     "item": {
         "selected": "Selected"
