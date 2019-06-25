@@ -44,12 +44,12 @@ import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 @AllArgsConstructor
 public class TbIntegrationInitParams {
 
-    private IntegrationContext context;
+    private final IntegrationContext context;
 
-    private Integration configuration;
+    private final Integration configuration;
 
-    private TBUplinkDataConverter uplinkConverter;
+    private final TBUplinkDataConverter uplinkConverter;
 
-    private TBDownlinkDataConverter downlinkConverter;
+    private final TBDownlinkDataConverter downlinkConverter;
 
 }
