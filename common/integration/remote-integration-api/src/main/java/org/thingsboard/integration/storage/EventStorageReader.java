@@ -60,7 +60,10 @@ public class EventStorageReader {
     private BufferedWriter bufferedWriter;
 
     private File currentReadFile;
-    private int currentLineToRead;
+    private File previousReadFile;
+
+    private int startReadingFromLine;
+    private int lastReadLine;
 
     public EventStorageReader(List<File> dataFiles, File stateFile, int maxReadRecordsCount) {
         this.dataFiles = dataFiles;
@@ -86,21 +89,17 @@ public class EventStorageReader {
         }
     }
 
-    // TODO: 6/18/19 validate & improve method
     public List<UplinkMsg> read() {
-        List<UplinkMsg> uplinkMsgs = new ArrayList<>();
-
-        if (currentReadFile == null) {
-            JsonNode stateDataNode = fetchInfoFromStateFile();
-            if (stateDataNode != null) {
-                currentLineToRead = stateDataNode.get("position").asInt();
-                for (File file : dataFiles) {
-                    if (file.getName().equals(stateDataNode.get("currentFileName").asText())) {
-                        currentReadFile = file;
-                    }
-                }
-            }
+        if (startReadingFromLine != lastReadLine) {
+            log.error("The previous batch must be discarded first!");
+            currentReadFile = previousReadFile;
+            lastReadLine = startReadingFromLine;
         }
+        List<UplinkMsg> uplinkMsgs = new ArrayList<>();
+        if (currentReadFile == null) {
+            readStateFile();
+        }
+        int linesToSkip = startReadingFromLine;
 
         int currentFileIdx = 0;
         int recordsToRead = maxReadRecordsCount;
@@ -111,28 +110,26 @@ public class EventStorageReader {
             try (BufferedReader bufferedReader = getOrInitBufferedReader(currentReadFile)) {
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
-                    if (currentLineToRead != 0) {
-                        currentLineToRead--;
+                    if (linesToSkip != 0) {
+                        linesToSkip--;
                         continue;
                     }
                     if (recordsToRead == 0) {
-                        writeInfoToStateFile();
                         break;
                     }
-
                     try {
                         uplinkMsgs.add(UplinkMsg.parseFrom(Base64.getDecoder().decode(line)));
+                        lastReadLine++;
+                        recordsToRead--;
                     } catch (Exception e) {
-
+                        log.warn("Could not parse line [{}] to uplink message!", line, e);
+                        lastReadLine++;
                     }
-
-
-                    currentLineToRead++;
-                    recordsToRead--;
                 }
                 if (line == null) {
-                    currentLineToRead = 0;
+                    lastReadLine = 0;
                     currentFileIdx++;
+                    previousReadFile = currentReadFile;
                     currentReadFile = dataFiles.get(currentFileIdx);
                 }
             } catch (IOException e) {
@@ -140,6 +137,23 @@ public class EventStorageReader {
             }
         }
         return uplinkMsgs;
+    }
+
+    private void readStateFile() {
+        JsonNode stateDataNode = fetchInfoFromStateFile();
+        if (stateDataNode != null) {
+            startReadingFromLine = stateDataNode.get("position").asInt();
+            for (File file : dataFiles) {
+                if (file.getName().equals(stateDataNode.get("currentFileName").asText())) {
+                    currentReadFile = file;
+                    break;
+                } else {
+                    if (file.delete()) {
+                        dataFiles.remove(file);
+                    }
+                }
+            }
+        }
     }
 
     private JsonNode fetchInfoFromStateFile() {
@@ -154,10 +168,18 @@ public class EventStorageReader {
         return null;
     }
 
+    public void discardBatch() {
+        startReadingFromLine = lastReadLine;
+        if (previousReadFile != currentReadFile && previousReadFile.delete()) {
+            dataFiles.remove(previousReadFile);
+        }
+        writeInfoToStateFile();
+    }
+
     private void writeInfoToStateFile() {
         try (BufferedWriter writer = getBufferedWriter()) {
             ObjectNode stateFileNode = mapper.createObjectNode();
-            stateFileNode.put("position", currentLineToRead);
+            stateFileNode.put("position", startReadingFromLine);
             stateFileNode.put("currentFileName", currentReadFile.getName());
             writer.write(mapper.writeValueAsString(stateFileNode));
             writer.flush();

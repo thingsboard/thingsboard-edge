@@ -50,14 +50,16 @@ public class EventStorageWriter {
 
     private String dataFolderPath;
     private List<File> dataFiles;
+    private int maxFileCount;
     private int maxRecordsPerFile;
     private int maxRecordsBetweenFsync;
     private BufferedWriter bufferedWriter;
     private long currentFileRecordsCount;
 
-    public EventStorageWriter(String dataFolderPath, List<File> dataFiles, int maxRecordsPerFile, int maxRecordsBetweenFsync) {
+    public EventStorageWriter(String dataFolderPath, List<File> dataFiles, int maxFileCount, int maxRecordsPerFile, int maxRecordsBetweenFsync) {
         this.dataFolderPath = dataFolderPath;
         this.dataFiles = dataFiles;
+        this.maxFileCount = maxFileCount;
         this.maxRecordsPerFile = maxRecordsPerFile;
         this.maxRecordsBetweenFsync = maxRecordsBetweenFsync;
         this.bufferedWriter = getOrInitBufferedWriter(dataFiles.get(dataFiles.size() - 1));
@@ -77,15 +79,20 @@ public class EventStorageWriter {
     }
 
     public void write(UplinkMsg msg) {
-        int index = dataFiles.size() - 1;
-        File lastFile = dataFiles.get(index);
+        File lastFile = dataFiles.get(dataFiles.size() - 1);
         long recordsCount = getNumberOfRecordsInFile(lastFile);
         if (isFileFull(recordsCount)) {
             if (log.isDebugEnabled()) {
                 log.debug("Records count: [{}] exceeds the allowed value![{}]", recordsCount, maxRecordsPerFile);
             }
             lastFile = createDataFile(Long.toString(System.currentTimeMillis()));
-            dataFiles.add(index + 1, lastFile);
+            if (dataFiles.size() == maxFileCount) {
+                File firstFile = dataFiles.get(0);
+                if (firstFile.delete()) {
+                    dataFiles.remove(0);
+                }
+            }
+            dataFiles.add(lastFile);
             currentFileRecordsCount = 0;
             bufferedWriter = null;
         }

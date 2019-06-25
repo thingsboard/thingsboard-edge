@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,22 +73,14 @@ public class EventStorageImpl implements EventStorage {
     private EventStorageWriter storageWriter;
     private EventStorageReader storageReader;
 
-    private long currentFileRecordsCount;
-    private int currentLineToRead;
-    private File currentReadFile;
-
     @PostConstruct
     public void init() {
         initDataFolderIfNotExist();
         EventStorageFiles eventStorageFiles = initDataFiles();
         dataFiles = eventStorageFiles.getDataFiles();
         stateFile = eventStorageFiles.getStateFile();
-        storageWriter = new EventStorageWriter(dataFolderPath, dataFiles, maxRecordsPerFile, maxRecordsBetweenFsync);
+        storageWriter = new EventStorageWriter(dataFolderPath, dataFiles, maxFileCount, maxRecordsPerFile, maxRecordsBetweenFsync);
         storageReader = new EventStorageReader(dataFiles, stateFile, maxReadRecordsCount);
-    }
-
-    @PreDestroy
-    public void stop() {
     }
 
     @Override
@@ -112,19 +103,14 @@ public class EventStorageImpl implements EventStorage {
         }
     }
 
-    // TODO: 6/14/19 implement
     @Override
     public void discardCurrentBatch() {
-        /*for (File file : dataFiles) {
-            if (file.getName().equals(currentReadFile.getName())) {
-                break;
-            } else {
-                boolean isFileDeleted = deleteFile(file);
-                if (isFileDeleted && log.isDebugEnabled()) {
-                    log.debug("File has been removed![{}]", file.getName());
-                }
-            }
-        }*/
+        readLock.lock();
+        try {
+            storageReader.discardBatch();
+        } finally {
+            readLock.unlock();
+        }
     }
 
     private void initDataFolderIfNotExist() {
@@ -173,9 +159,5 @@ public class EventStorageImpl implements EventStorage {
         } catch (IOException e) {
             throw new RuntimeException("Failed to create a new file!", e);
         }
-    }
-
-    private boolean deleteFile(File file) {
-        return file.delete();
     }
 }
