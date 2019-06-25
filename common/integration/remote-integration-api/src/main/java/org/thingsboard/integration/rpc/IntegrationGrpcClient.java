@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -39,11 +39,13 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
+import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -61,8 +63,8 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private ManagedChannel channel;
     private IntegrationTransportGrpc.IntegrationTransportStub stub;
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
         try {
             channel = NettyChannelBuilder
                     .forAddress(rpcHost, rpcPort)
@@ -74,38 +76,40 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
             throw new RuntimeException(e);
         }
         stub = IntegrationTransportGrpc.newStub(channel);
-    }
-
-    @PreDestroy
-    public void destroy() throws InterruptedException {
-        channel.shutdown().awaitTermination(timeoutSecs, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void connect(ConnectRequestMsg requestMsg) {
-        log.info("Sending a connect request to the TB![{}]", requestMsg);
+        log.info("[{}] Sending a connect request to the TB!", integrationKey);
         StreamObserver<ConnectResponseMsg> responseObserver = new StreamObserver<ConnectResponseMsg>() {
             @Override
             public void onNext(ConnectResponseMsg value) {
                 if (value.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {
-
-                    log.info("{}", value.getConfiguration());
-
+                    log.info("[{}]: {}", integrationKey, value.getConfiguration());
+                    onSuccess.accept(value.getConfiguration());
                 } else {
-                    log.error("Failed to establish the connection! Code: {}. Error message: {}.", value.getResponseCode(), value.getErrorMsg());
+                    log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", integrationKey, value.getResponseCode(), value.getErrorMsg());
+                    //TODO: custom exception type
+                    onError.accept(new RuntimeException(value.getResponseCode().name()));
                 }
             }
 
             @Override
             public void onError(Throwable t) {
-                log.error("Failed to establish the connection!", t);
+                log.error("[{}] Failed to establish the connection!", integrationKey, t);
+                onError.accept(new RuntimeException(t));
             }
+
 
             @Override
             public void onCompleted() {
-                log.info("Integration connection completed successfully!");
+                log.info("[{}] Integration connection completed successfully!", integrationKey);
             }
         };
-        stub.connect(requestMsg, responseObserver);
+        stub.connect(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build(), responseObserver);
     }
+
+    @Override
+    public void disconnect() throws InterruptedException {
+        if (channel != null) {
+            channel.shutdown().awaitTermination(timeoutSecs, TimeUnit.SECONDS);
+        }
+    }
+
 }
