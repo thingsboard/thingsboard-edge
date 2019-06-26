@@ -119,7 +119,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private ConnectResponseMsg validateConnect(ConnectRequestMsg request) {
         ListenableFuture<ThingsboardPlatformIntegration> future = platformIntegrationService.getIntegrationByRoutingKey(request.getIntegrationRoutingKey());
         try {
-            Integration configuration = future.get().getConfiguration(); // TODO: 6/26/19 check null
+            Integration configuration = future.get().getConfiguration();
             if (configuration.isRemote() && configuration.getSecret().equals(request.getIntegrationSecret())) {
                 Converter defaultConverter = converterService.findConverterById(configuration.getTenantId(),
                         configuration.getDefaultConverterId());
@@ -176,7 +176,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
             log.error("[{}] Failed to process the connection of integration!", request.getIntegrationRoutingKey(), e);
             return ConnectResponseMsg.newBuilder()
                     .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
-                    .setErrorMsg("Failed to process the connection of integration!")
+                    .setErrorMsg("Failed to process the connection of integration! " + e.getMessage())
                     .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
         }
     }

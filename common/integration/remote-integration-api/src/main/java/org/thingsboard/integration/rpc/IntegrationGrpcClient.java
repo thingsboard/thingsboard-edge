@@ -99,7 +99,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
             @Override
             public void onCompleted() {
-                log.info("[{}] Integration connection completed successfully!", integrationKey);
+                log.debug("[{}] Integration connection finished!", integrationKey);
             }
         };
         stub.connect(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build(), responseObserver);
