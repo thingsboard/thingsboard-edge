@@ -36,10 +36,10 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:727c62bcd4ff405db91c7d6eac2d7e51}"
-  secret: "${INTEGRATION_SECRET:nhi4l6h1o5iomzvz9xr0}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:}"
+  secret: "${INTEGRATION_SECRET:}"
   remote:
-    data_folder_path: "${INTEGRATION_REMOTE_DATA_FOLDER_PATH:/home/dima/Documents/data}"
+    data_folder_path: "${INTEGRATION_REMOTE_DATA_FOLDER_PATH:}"
     max_file_count: "${INTEGRATION_REMOTE_MAX_FILE_COUNT:1000}"
     max_records_per_file: "${INTEGRATION_REMOTE_MAX_RECORDS_PER_FILE:1000000}"
     max_records_between_fsync: "${INTEGRATION_REMOTE_MAX_RECORDS_BETWEEN_FSYNC:100}"

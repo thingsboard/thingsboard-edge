@@ -92,8 +92,7 @@ public class EventStorageReader {
     public List<UplinkMsg> read() {
         if (startReadingFromLine != lastReadLine) {
             log.error("The previous batch must be discarded first!");
-            currentReadFile = previousReadFile;
-            lastReadLine = startReadingFromLine;
+            throw new RuntimeException("The previous batch must be discarded first!");
         }
         List<UplinkMsg> uplinkMsgs = new ArrayList<>();
         if (currentReadFile == null) {

@@ -43,8 +43,6 @@ import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -62,7 +60,6 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private String certResource;
 
     private ManagedChannel channel;
-    private IntegrationTransportGrpc.IntegrationTransportStub stub;
 
     @Override
     public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
@@ -76,7 +73,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
             log.error("Failed to initialize channel!", e);
             throw new RuntimeException(e);
         }
-        stub = IntegrationTransportGrpc.newStub(channel);
+        IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", integrationKey);
         StreamObserver<ConnectResponseMsg> responseObserver = new StreamObserver<ConnectResponseMsg>() {
             @Override
