@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -36,6 +36,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.exception.IntegrationConnectionException;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -51,13 +52,13 @@ import java.util.function.Consumer;
 @Slf4j
 public class IntegrationGrpcClient implements IntegrationRpcClient {
 
-    @Value("${rpc.client.host}")
+    @Value("${rpc.host}")
     private String rpcHost;
-    @Value("${rpc.client.port}")
+    @Value("${rpc.port}")
     private int rpcPort;
-    @Value("${rpc.client.port}")
+    @Value("${rpc.timeout}")
     private int timeoutSecs;
-    @Value("${rpc.client.cert}")
+    @Value("${rpc.cert}")
     private String certResource;
 
     private ManagedChannel channel;
@@ -85,8 +86,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                     onSuccess.accept(value.getConfiguration());
                 } else {
                     log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", integrationKey, value.getResponseCode(), value.getErrorMsg());
-                    //TODO: custom exception type
-                    onError.accept(new RuntimeException(value.getResponseCode().name()));
+                    onError.accept(new IntegrationConnectionException("Failed to establish the connection! Response code: " + value.getResponseCode().name()));
                 }
             }
 

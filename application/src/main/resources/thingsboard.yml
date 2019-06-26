@@ -262,23 +262,10 @@ integrations:
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
-  remote:
-    data_folder_path: "${INTEGRATIONS_REMOTE_DATA_FOLDER_PATH:}"
-    max_file_count: "${INTEGRATIONS_REMOTE_MAX_FILE_COUNT:1000}"
-    max_records_per_file: "${INTEGRATIONS_REMOTE_MAX_RECORDS_PER_FILE:1000000}"
-    max_records_between_fsync: "${INTEGRATIONS_REMOTE_MAX_RECORDS_BETWEEN_FSYNC:100}"
-    max_read_records_count: "${INTEGRATIONS_REMOTE_MAX_READ_RECORDS_COUNT:100}"
-    rpc:
-      service:
-        port: "${INTEGRATIONS_REMOTE_RPC_SERVICE_PORT:50051}"
-        cert: "${INTEGRATIONS_REMOTE_RPC_SERVICE_CERT:certChainFile.pem}"
-        privateKey: "${INTEGRATIONS_REMOTE_RPC_SERVICE_PRIVATE_KEY:privateKeyFile.pem}"
-      client:
-        host: "${INTEGRATIONS_REMOTE_RPC_CLIENT_HOST:localhost}"
-        port: "${INTEGRATIONS_REMOTE_RPC_CLIENT_PORT:50051}"
-        timeout: "${INTEGRATIONS_REMOTE_RPC_CLIENT_TIMEOUT:5}" # Timeout in seconds for channel termination
-        cert: "${INTEGRATIONS_REMOTE_RPC_CLIENT_CERT:roots.pem}"
-
+  rpc:
+    port: "${INTEGRATIONS_RPC_PORT:50051}"
+    cert: "${INTEGRATIONS_RPC_CERT:certChainFile.pem}"
+    privateKey: "${INTEGRATIONS_RPC_PRIVATE_KEY:privateKeyFile.pem}"
 
 # Reports parameters
 reports:

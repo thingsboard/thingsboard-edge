@@ -28,7 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.remote;
+package org.thingsboard.integration.exception;
 
-public interface RemoteIntegrationService {
+public class IntegrationConnectionException extends RuntimeException {
+
+    private static final long serialVersionUID = -4372729481230555723L;
+
+    public IntegrationConnectionException(String message) {
+        super(message);
+    }
+
+    public IntegrationConnectionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

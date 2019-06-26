@@ -112,12 +112,14 @@ message UplinkProcessingResultProto {
 }
 
 message ConverterConfigurationProto {
-  int64 converterIdMSB = 1;
-  int64 converterIdLSB = 2;
-  string name = 3;
-  bool debugMode = 4;
-  string configuration = 5;
-  string additionalInfo = 6;
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 converterIdMSB = 3;
+  int64 converterIdLSB = 4;
+  string name = 5;
+  bool debugMode = 6;
+  string configuration = 7;
+  string additionalInfo = 8;
 }
 
 /**

@@ -42,26 +42,25 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @Slf4j
 @Data
 public class EventStorageImpl implements EventStorage {
 
-    @Value("${integrations.remote.data_folder_path}")
+    @Value("${integration.remote.data_folder_path}")
     private String dataFolderPath;
-    @Value("${integrations.remote.max_file_count}")
+    @Value("${integration.remote.max_file_count}")
     private int maxFileCount;
-    @Value("${integrations.remote.max_records_per_file}")
+    @Value("${integration.remote.max_records_per_file}")
     private int maxRecordsPerFile;
-    @Value("${integrations.remote.max_records_between_fsync}")
+    @Value("${integration.remote.max_records_between_fsync}")
     private int maxRecordsBetweenFsync;
-    @Value("${integrations.remote.max_read_records_count}")
+    @Value("${integration.remote.max_read_records_count}")
     private int maxReadRecordsCount;
 
     private final ReentrantLock readLock = new ReentrantLock();
@@ -125,26 +124,30 @@ public class EventStorageImpl implements EventStorage {
     }
 
     private EventStorageFiles initDataFiles() {
-        try (Stream<Path> paths = Files.walk(Paths.get(dataFolderPath))) {
-            List<File> dataFiles = paths
-                    .filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().startsWith("data_"))
-                    .map(Path::toFile).collect(Collectors.toList());
+        List<File> dataFiles = new ArrayList<>();
+        File stateFile = null;
+
+        File dir = new File(dataFolderPath);
+        if (dir.isDirectory()) {
+            for (File file : dir.listFiles()) {
+                if (file.getName().startsWith("data_")) {
+                    dataFiles.add(file);
+                } else if (file.getName().startsWith("state_")) {
+                    stateFile = file;
+                }
+            }
             Collections.sort(dataFiles);
             if (dataFiles.size() == 0) {
                 dataFiles.add(createNewDataFile());
             }
 
-            File stateFile = paths
-                    .filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().startsWith("state_"))
-                    .map(Path::toFile).findFirst().orElse(null);
             if (stateFile == null) {
                 stateFile = createFile("/state_", "file");
             }
             return new EventStorageFiles(stateFile, dataFiles);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not fetch files from the directory!", e);
+        } else {
+            log.error("[{}] The specified path is not referred to the directory!", dataFolderPath);
+            throw new RuntimeException("The specified path is not referred to the directory! " + dataFolderPath);
         }
     }
 

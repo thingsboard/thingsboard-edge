@@ -53,45 +53,6 @@
                 <div translate ng-message="required">integration.name-required</div>
             </div>
         </md-input-container>
-        <md-switch ng-disabled="$root.loading || !isEdit" aria-label="{{ 'execute remotly' | translate }}"
-                     ng-model="integration.remote">{{ 'Execute remotly' | translate }}
-        </md-switch>
-        <md-card ng-show="integration.remote">
-            <md-card-content>
-                <md-card-title-text>
-                    <div layout="row">
-                        <md-input-container class="md-block" flex>
-                            <label translate>integration.integration-key</label>
-                            <input ng-model="integration.routingKey" disabled>
-                        </md-input-container>
-                        <md-button class="md-icon-button" style="margin-top: 14px;"
-                                   ngclipboard
-                                   data-clipboard-text="{{ integration.routingKey }}"
-                                   ngclipboard-success="onIntegrationInfoCopied('key')">
-                            <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
-                            <md-tooltip md-direction="top">
-                                {{ 'integration.copy-integration-key' | translate }}
-                            </md-tooltip>
-                        </md-button>
-                    </div>
-                    <div layout="row">
-                        <md-input-container class="md-block" flex>
-                            <label translate>integration.integration-secret</label>
-                            <input ng-model="integration.secret" disabled>
-                        </md-input-container>
-                        <md-button class="md-icon-button" style="margin-top: 14px;"
-                                   ngclipboard
-                                   data-clipboard-text="{{ integration.secret }}"
-                                   ngclipboard-success="onIntegrationInfoCopied('secret')">
-                            <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
-                            <md-tooltip md-direction="top">
-                                {{ 'integration.copy-integration-secret' | translate }}
-                            </md-tooltip>
-                        </md-button>
-                    </div>
-                </md-card-title-text>
-            </md-card-content>
-        </md-card>
         <md-input-container class="md-block">
             <label translate>integration.type</label>
             <md-select name="type" aria-label="{{ 'integration.type' | translate }}" ng-disabled="$root.loading || !isEdit"
@@ -126,7 +87,46 @@
                                    label-text="'integration.downlink-converter'"
                                    use-full-entity-id="true">
         </tb-converter-autocomplete>
+        <md-switch ng-disabled="$root.loading || !isEdit" aria-label="{{ 'execute remotly' | translate }}"
+                   ng-model="integration.remote">{{ 'Execute remotly' | translate }}
+        </md-switch>
     </fieldset>
+    <md-card ng-show="integration.remote">
+        <md-card-content>
+            <md-card-title-text>
+                <div layout="row">
+                    <md-input-container class="md-block" flex>
+                        <label translate>integration.integration-key</label>
+                        <input ng-model="integration.routingKey" disabled>
+                    </md-input-container>
+                    <md-button class="md-icon-button" style="margin-top: 14px;"
+                               ngclipboard
+                               data-clipboard-text="{{ integration.routingKey }}"
+                               ngclipboard-success="onIntegrationInfoCopied('key')">
+                        <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
+                        <md-tooltip md-direction="top">
+                            {{ 'integration.copy-integration-key' | translate }}
+                        </md-tooltip>
+                    </md-button>
+                </div>
+                <div layout="row">
+                    <md-input-container class="md-block" flex>
+                        <label translate>integration.integration-secret</label>
+                        <input ng-model="integration.secret" disabled>
+                    </md-input-container>
+                    <md-button class="md-icon-button" style="margin-top: 14px;"
+                               ngclipboard
+                               data-clipboard-text="{{ integration.secret }}"
+                               ngclipboard-success="onIntegrationInfoCopied('secret')">
+                        <md-icon md-svg-icon="mdi:clipboard-arrow-left"></md-icon>
+                        <md-tooltip md-direction="top">
+                            {{ 'integration.copy-integration-secret' | translate }}
+                        </md-tooltip>
+                    </md-button>
+                </div>
+            </md-card-title-text>
+        </md-card-content>
+    </md-card>
     <tb-integration-http
             ng-if="types.integrationType[integration.type].http"
             is-edit="isEdit"

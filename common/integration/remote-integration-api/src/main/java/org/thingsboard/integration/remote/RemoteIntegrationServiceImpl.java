@@ -30,5 +30,8 @@
  */
 package org.thingsboard.integration.remote;
 
-public interface RemoteIntegrationService {
+import org.springframework.stereotype.Service;
+
+@Service
+public class RemoteIntegrationServiceImpl implements RemoteIntegrationService {
 }
