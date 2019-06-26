@@ -217,7 +217,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = deviceService.saveDevice(entity, entityGroupId);
                 break;
             case types.entityType.asset:
-                promise = assetService.saveAsset(entity, true, config, entityGroupId);
+                promise = assetService.saveAsset(entity, false, config, entityGroupId);
                 break;
             case types.entityType.entityView:
                 promise = entityViewService.saveEntityView(entity, entityGroupId);

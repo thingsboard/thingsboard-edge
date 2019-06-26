@@ -171,8 +171,9 @@ export default class TbMapWidgetV2 {
 
 		this.locationSettings.showLabel = this.ctx.settings.showLabel !== false;
 		this.locationSettings.displayTooltip = this.ctx.settings.showTooltip !== false;
+		this.locationSettings.displayTooltipAction = this.ctx.settings.showTooltipAction && this.ctx.settings.showTooltipAction.length ? this.ctx.settings.showTooltipAction : "click";
 		this.locationSettings.autocloseTooltip = this.ctx.settings.autocloseTooltip !== false;
-		this.locationSettings.showPolygon = this.ctx.settings.showPolygon !== false;
+		this.locationSettings.showPolygon = this.ctx.settings.showPolygon === true;
 		this.locationSettings.labelColor = this.ctx.widgetConfig.color || '#000000';
 		this.locationSettings.label = this.ctx.settings.label || "${entityName}";
 		this.locationSettings.color = this.ctx.settings.color ? tinycolor(this.ctx.settings.color).toHexString() : "#FE7569";
@@ -993,6 +994,11 @@ const commonMapSettingsSchema =
 					"type": "boolean",
 					"default": true
 				},
+				"showTooltipAction": {
+					"title": "Action for displaying the tooltip",
+					"type": "string",
+					"default": "click"
+				},
 				"autocloseTooltip": {
 					"title": "Auto-close tooltips",
 					"type": "boolean",
@@ -1110,6 +1116,21 @@ const commonMapSettingsSchema =
 				"type": "javascript"
 			},
 			"showTooltip",
+			{
+				"key": "showTooltipAction",
+				"type": "rc-select",
+				"multiple": false,
+				"items": [
+					{
+						"value": "click",
+						"label": "Show tooltip on click (Default)"
+					},
+					{
+						"value": "hover",
+						"label": "Show tooltip on hover"
+					}
+				]
+			},
 			"autocloseTooltip",
 			{
 				"key": "tooltipPattern",
@@ -1250,6 +1271,11 @@ const imageMapSettingsSchema =
 					"type": "boolean",
 					"default": true
 				},
+				"showTooltipAction": {
+					"title": "Action for displaying the tooltip",
+					"type": "string",
+					"default": "click"
+				},
 				"autocloseTooltip": {
 					"title": "Auto-close tooltips",
 					"type": "boolean",
@@ -1344,6 +1370,21 @@ const imageMapSettingsSchema =
 				"type": "javascript"
 			},
 			"showTooltip",
+			{
+				"key": "showTooltipAction",
+				"type": "rc-select",
+				"multiple": false,
+				"items": [
+					{
+						"value": "click",
+						"label": "Show tooltip on click (Default)"
+					},
+					{
+						"value": "hover",
+						"label": "Show tooltip on hover"
+					}
+				]
+			},
 			"autocloseTooltip",
 			{
 				"key": "tooltipPattern",

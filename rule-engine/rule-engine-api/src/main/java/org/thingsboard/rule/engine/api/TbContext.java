@@ -31,6 +31,10 @@
 package org.thingsboard.rule.engine.api;
 
 import io.netty.channel.EventLoopGroup;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -74,9 +78,19 @@ public interface TbContext {
 
     void updateSelf(RuleNode self);
 
+    void sendTbMsgToRuleEngine(TbMsg msg);
+
     TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, String data);
 
     TbMsg transformMsg(TbMsg origMsg, String type, EntityId originator, TbMsgMetaData metaData, String data);
+
+    TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId);
+
+    TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId);
+
+    TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId);
+
+    TbMsg alarmCreatedMsg(Alarm alarm, RuleNodeId ruleNodeId);
 
     RuleNodeId getSelfId();
 
