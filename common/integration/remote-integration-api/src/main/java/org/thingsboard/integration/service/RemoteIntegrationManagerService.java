@@ -56,6 +56,7 @@ import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -87,6 +88,11 @@ public class RemoteIntegrationManagerService {
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::scheduleReconnect);
     }
 
+    @PreDestroy
+    public void destroy() throws InterruptedException {
+        rpcClient.disconnect();
+    }
+
     private void onConfigurationUpdate(IntegrationConfigurationProto integrationConfigurationProto) {
         if (integration != null) {
             integration.destroy();
@@ -95,7 +101,7 @@ public class RemoteIntegrationManagerService {
             Integration configuration = createConfig(integrationConfigurationProto);
             integration = create(integrationConfigurationProto.getType());
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(integrationService, configuration),
+                    new RemoteIntegrationContext(integrationService, rpcClient, configuration),
                     configuration,
                     createUplinkConverter(integrationConfigurationProto.getUplinkConverter()),
                     createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter()));

@@ -40,4 +40,6 @@ public interface IntegrationRpcClient {
 
     void disconnect() throws InterruptedException;
 
+    void handleMsgs();
+
 }

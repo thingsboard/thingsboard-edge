@@ -33,9 +33,13 @@ package org.thingsboard.server.service.integration.rpc;
 import io.grpc.stub.StreamObserver;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
+import org.thingsboard.server.gen.integration.DownlinkMsg;
+import org.thingsboard.server.gen.integration.UplinkMsg;
 
 public interface IntegrationRpcService {
 
     void connect(ConnectRequestMsg requestMsg, StreamObserver<ConnectResponseMsg> responseObserver);
+
+    StreamObserver<UplinkMsg> handleMsgs(StreamObserver<DownlinkMsg> responseObserver);
 
 }

@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -47,14 +48,20 @@ import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -114,6 +121,79 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     public void connect(ConnectRequestMsg request, StreamObserver<ConnectResponseMsg> responseObserver) {
         responseObserver.onNext(validateConnect(request));
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public StreamObserver<UplinkMsg> handleMsgs(final StreamObserver<DownlinkMsg> responseObserver) {
+        return new StreamObserver<UplinkMsg>() {
+            @Override
+            public void onNext(UplinkMsg value) {
+
+
+
+
+                List<DeviceUplinkDataProto> deviceDataList = value.getDeviceDataList();
+
+
+                for (DeviceUplinkDataProto proto : deviceDataList) {
+
+
+
+
+
+                }
+
+
+                Device device = getOrCreateDevice();
+
+                UUID sessionId = UUID.randomUUID();
+                SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
+                        .setSessionIdMSB(sessionId.getMostSignificantBits())
+                        .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                        .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                        .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                        .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                        .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                        .build();
+
+                if (value.get()) {
+                    ctx.getIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
+                }
+
+                if (data.hasPostAttributesMsg()) {
+                    ctx.getIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
+                }
+
+
+
+                platformIntegrationService.process(, , null);
+
+                responseObserver.onNext();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.error("Handling of the messages was cancelled!", t);
+            }
+
+            @Override
+            public void onCompleted() {
+                responseObserver.onCompleted();
+            }
+        };
+    }
+
+    private Device getOrCreateDevice(DeviceUplinkDataProto data) {
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+        if (device == null) {
+            deviceCreationLock.lock();
+            try {
+                return processGetOrCreateDevice(data);
+            } finally {
+                deviceCreationLock.unlock();
+            }
+        }
+        return device;
     }
 
     private ConnectResponseMsg validateConnect(ConnectRequestMsg request) {

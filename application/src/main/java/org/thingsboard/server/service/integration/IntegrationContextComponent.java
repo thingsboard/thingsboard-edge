@@ -68,12 +68,10 @@ public class IntegrationContextComponent {
     @Autowired
     private DeviceService deviceService;
 
-    //createRelation
     @Lazy
     @Autowired
     private RelationService relationService;
 
-    //persistDebug
     @Lazy
     @Autowired
     private EventService eventService;

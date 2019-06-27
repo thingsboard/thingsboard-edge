@@ -31,37 +31,12 @@
 package org.thingsboard.integration.remote;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.netty.channel.EventLoopGroup;
-import lombok.Data;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.integration.api.data.DownLinkMsg;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 
-//TODO: we will implement together.
-@Data
-public class RemoteIntegrationContext implements IntegrationContext {
-
-    protected final RemoteIntegrationService service;
-    protected final IntegrationRpcClient rpcClient;
-    protected final Integration configuration;
-    protected final ConverterContext uplinkConverterContext;
-    protected final ConverterContext downlinkConverterContext;
-
-    public RemoteIntegrationContext(RemoteIntegrationService service, IntegrationRpcClient rpcClient, Integration configuration) {
-        this.service = service;
-        this.rpcClient = rpcClient;
-        this.configuration = configuration;
-        this.uplinkConverterContext = new RemoteConverterContext();
-        this.downlinkConverterContext = new RemoteConverterContext();
-    }
+public class RemoteConverterContext implements ConverterContext {
 
     @Override
     public ServerAddress getServerAddress() {
@@ -69,42 +44,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-
-    }
-
-    @Override
-    public void processCustomMsg(TbMsg msg) {
-
-    }
-
-    @Override
     public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
 
-    }
-
-    @Override
-    public EventLoopGroup getEventLoopGroup() {
-        return null;
-    }
-
-    @Override
-    public DownLinkMsg getDownlinkMsg(String deviceName) {
-        return null;
-    }
-
-    @Override
-    public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        return null;
-    }
-
-    @Override
-    public void removeDownlinkMsg(String deviceName) {
-
-    }
-
-    @Override
-    public boolean isClosed() {
-        return false;
     }
 }

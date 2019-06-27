@@ -34,15 +34,20 @@ import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.exception.IntegrationConnectionException;
+import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
+import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.UplinkMsg;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -59,7 +64,11 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     @Value("${rpc.cert}")
     private String certResource;
 
+    @Autowired
+    private EventStorage eventStorage;
+
     private ManagedChannel channel;
+    private IntegrationTransportGrpc.IntegrationTransportStub stub;
 
     @Override
     public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
@@ -73,7 +82,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
             log.error("Failed to initialize channel!", e);
             throw new RuntimeException(e);
         }
-        IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
+        stub = IntegrationTransportGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", integrationKey);
         StreamObserver<ConnectResponseMsg> responseObserver = new StreamObserver<ConnectResponseMsg>() {
             @Override
@@ -107,6 +116,40 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
         if (channel != null) {
             channel.shutdown().awaitTermination(timeoutSecs, TimeUnit.SECONDS);
         }
+    }
+
+    @Override
+    public void handleMsgs() {
+
+
+        List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
+
+        StreamObserver<UplinkMsg> requestObserver = stub.handleMsgs(new StreamObserver<DownlinkMsg>() {
+            @Override
+            public void onNext(DownlinkMsg value) {
+
+            }
+
+            @Override
+            public void onError(Throwable t) {
+
+            }
+
+            @Override
+            public void onCompleted() {
+                eventStorage.discardCurrentBatch();
+            }
+        });
+
+        try {
+            for (UplinkMsg uplinkMsg : uplinkMsgList) {
+                requestObserver.onNext(uplinkMsg);
+            }
+        } catch (Exception e) {
+            requestObserver.onError(e);
+        }
+
+        requestObserver.onCompleted();
     }
 
 }
