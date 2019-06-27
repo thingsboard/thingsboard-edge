@@ -417,7 +417,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
             Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
             CustomerId parentCustomerId = customer.getParentCustomerId();
-            if (parentCustomerId != null) {
+            if (parentCustomerId != null && parentCustomerId.getId() != EntityId.NULL_UUID) {
                 if (isWhiteLabelingAllowed(tenantId, parentCustomerId)) {
                     return isWhiteLabelingAllowed(tenantId, customer.getCustomerId());
                 } else {
