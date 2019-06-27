@@ -90,6 +90,7 @@ export default function HomeController(types, loginService, userService, deviceS
 
     $scope.$on('whiteLabelingChanged', () => {
         loadLogo();
+        loadVersion();
     });
 
     vm.isGtSm = $mdMedia('gt-sm');
@@ -112,10 +113,17 @@ export default function HomeController(types, loginService, userService, deviceS
     });
 
     loadLogo();
+    loadVersion();
 
     function loadLogo() {
         vm.logoSvg = whiteLabelingService.logoImageUrl();
         vm.logoHeight = whiteLabelingService.logoImageHeight();
+    }
+
+    function loadVersion() {
+        vm.showVersion = whiteLabelingService.isShowVersion();
+        vm.platformName = whiteLabelingService.getPlatformName();
+        vm.platformVersion = whiteLabelingService.getPlatformVersion();
     }
 
     function watchEntitySubtype(enableWatch) {
