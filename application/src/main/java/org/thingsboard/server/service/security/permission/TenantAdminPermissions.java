@@ -88,6 +88,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
         put(Resource.AUDIT_LOG, genericPermissionChecker);
+        put(Resource.SELF_REGISTRATION, genericPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -98,7 +99,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         }
 
         @Override
-        public  boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }

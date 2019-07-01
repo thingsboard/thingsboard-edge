@@ -98,7 +98,9 @@
             "activation": "Account activation message",
             "account-activated": "Account activated message",
             "reset-password": "Reset password message",
-            "password-was-reset": "Password was reset message"
+            "password-was-reset": "Password was reset message",
+            "user-activated": "User activated message",
+            "user-registered": "User registered message"
         },
         "mail-subject": "Mail Subject",
         "mail-body": "Mail body"
@@ -1645,7 +1647,34 @@
         "new-password": "New password",
         "new-password-again": "New password again",
         "password-link-sent-message": "Password reset link was successfully sent!",
-        "email": "Email"
+        "email": "Email",
+        "no-account": "Do not have an account?",
+        "create-account": "Create an account"
+    },
+    "signup": {
+        "firstname": "First name",
+        "lastname": "Last name",
+        "email": "Email",
+        "signup": "Sign up",
+        "create-password": "Create a password",
+        "repeat-password": "Repeat your password",
+        "have-account": "Already have an account?",
+        "signin": "Sign in",
+        "no-captcha-message": "You must confirm that you are not a robot",
+        "password-length-message": "Your password must be at least 6 characters long",
+        "email-verification": "Email verification",
+        "email-verification-message": "An email with verification details was sent to the specified email address.</br>Please follow instructions provided in the email in order to complete your sign up procedure.</br>Note: if you haven't seen the email for a while, please check your 'spam' folder or try to resend email by clicking 'Resend' button.",
+        "account-activation-title": "Account activation",
+        "account-activated": "Account successfully activated!",
+        "account-activated-text": "Congratulations!</br>Your account has been activated.</br>Now you can login to your ThingsBoard space.",
+        "resend": "Resend",
+        "inactive-user-exists-title": "Inactive user already exists",
+        "inactive-user-exists-text": "There is already registered user with unverified email address.</br>Click 'Resend' button if you wish to resend verification email.",
+        "activating-account": "Activating account...",
+        "activating-account-text": "Your account is currently activating. Please wait...",
+        "accept-privacy-policy": "Accept Privacy Policy",
+        "accept": "Accept",
+        "privacy-policy": "Privacy Policy"
     },
     "position": {
         "top": "Top",
@@ -2367,6 +2396,16 @@
         "widget-type-file": "Widget type file",
         "invalid-widget-type-file-error": "Unable to import widget type: Invalid widget type data structure."
     },
+    "self-registration": {
+        "self-registration": "Self Registration",
+        "self-registration-url": "Self Registration URL",
+        "captcha-site-key": "reCAPTCHA site key",
+        "captcha-secret-key": "reCAPTCHA secret key",
+        "notification-email": "Notification email",
+        "privacy-policy-text": "Privacy policy text",
+        "text-message-page": "Text Message for signup page"
+
+    },
     "white-labeling": {
         "white-labeling": "White Labeling",
         "login-white-labeling": "Login White Labeling",
@@ -2400,6 +2439,7 @@
         "domain-name": "Domain name",
         "help-link-base-url": "Help links base url",
         "enable-help-links": "Enable help links",
+        "error-verification-url": "A domain name shouldn't contain symbols '/' and ':'. Example: thingsboard.io",
         "show-platform-name-version": "Show platform name and version",
         "platform-name": "Platform Name",
         "platform-version": "Platform version",

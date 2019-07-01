@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
@@ -133,6 +134,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     @Override
     public void loadMailTemplates() throws Exception {
         installScripts.loadMailTemplates();
+    }
+
+    @Override
+    public void updateMailTemplates(JsonNode value) throws Exception {
+        installScripts.updateMailTemplates(value);
     }
 
     @Override

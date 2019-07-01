@@ -128,7 +128,7 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
         });
 
         scope.$watch('entitySubtype', function () {
-            if (scope.entity && scope.entity.type != scope.entitySubtype) {
+            if (scope.entity && angular.isDefined(scope.entity.type) && scope.entity.type != scope.entitySubtype) {
                 scope.entity = null;
                 scope.updateView();
             }
@@ -238,6 +238,7 @@ export default function EntityAutocomplete($compile, $templateCache, $q, $filter
                     scope.entityText = 'role.role';
                     scope.noEntitiesMatchingText = 'role.no-roles-matching';
                     scope.entityRequiredText = 'role.role-required';
+                    scope.theForm.$setPristine();
                     break;
             }
             if (scope.labelText && scope.labelText.length) {

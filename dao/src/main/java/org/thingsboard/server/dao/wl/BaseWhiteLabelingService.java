@@ -152,7 +152,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             result = getEntityLoginWhiteLabelParams(tenantId, entityId);
             if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
                 Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
-                if (customer != null && customer.getParentCustomerId() != null) {
+                if (customer.isSubCustomer()) {
                     result.merge(getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
                 }
             }
@@ -169,7 +169,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         LoginWhiteLabelingParams entityLoginWhiteLabelParams = getEntityLoginWhiteLabelParams(tenantId, customerId);
         childCustomerWLLParams.merge(entityLoginWhiteLabelParams);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
-        if (customer.getParentCustomerId() != null) {
+        if (customer.isSubCustomer()) {
             return getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), childCustomerWLLParams);
         } else {
             return childCustomerWLLParams;
@@ -188,7 +188,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum) {
         WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
-        if (customer.getParentCustomerId() != null) {
+        if (customer.isSubCustomer()) {
             result.merge(getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
         }
         result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams(tenantId));
@@ -199,9 +199,9 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) {
         WhiteLabelingParams entityWhiteLabelParams = getEntityWhiteLabelParams(tenantId, customerId);
         childCustomerWLParams.merge(entityWhiteLabelParams);
-        Customer customerById = customerService.findCustomerById(tenantId, customerId);
-        if (customerById.getParentCustomerId() != null) {
-            return getMergedCustomerHierarchyWhileLabelingParams(tenantId, customerById.getParentCustomerId(), childCustomerWLParams);
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            return getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), childCustomerWLParams);
         } else {
             return childCustomerWLParams;
         }
@@ -416,9 +416,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     public boolean isWhiteLabelingAllowed(TenantId tenantId, EntityId entityId) {
         if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
             Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
-            CustomerId parentCustomerId = customer.getParentCustomerId();
-            if (parentCustomerId != null && parentCustomerId.getId() != EntityId.NULL_UUID) {
-                if (isWhiteLabelingAllowed(tenantId, parentCustomerId)) {
+            if (customer.isSubCustomer()) {
+                if (isWhiteLabelingAllowed(tenantId, customer.getParentCustomerId())) {
                     return isWhiteLabelingAllowed(tenantId, customer.getCustomerId());
                 } else {
                     return false;
@@ -484,7 +483,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
     }
 
-    private void saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attibuteKey) {
+    private void saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
         String json;
         try {
             json = objectMapper.writeValueAsString(whiteLabelingParams);
@@ -492,7 +491,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             log.error("Unable to convert White Labeling Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert White Labeling Params to JSON!");
         }
-        saveEntityAttribute(tenantId, entityId, attibuteKey, json);
+        saveEntityAttribute(tenantId, entityId, attributeKey, json);
     }
 
     private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String key, String value) {

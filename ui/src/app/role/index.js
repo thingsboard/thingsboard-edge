@@ -36,8 +36,10 @@ import thingsboardApiRole from '../api/role.service';
 import RoleRoutes from './role.routes';
 import {RoleController, RoleCardController} from './role.controller';
 import GroupPermissionDialogController from './group-permission-dialog.controller';
+import RegistrationPermissionDialogController from './registration-permission-dialog.controller';
 import RoleDirective from './role.directive';
 import GroupPermissions from './group-permissions.directive';
+import RegistrationPermissions from './registration-permissions';
 import ResourceTypeAutocompleteDirective from './resource-type-autocomplete.directive';
 import PermissionListDirective from './permission-list.directive';
 import OperationTypeListDirective from './operation-type-list.directive';
@@ -53,11 +55,13 @@ export default angular.module('thingsboard.role', [
     .controller('RoleController', RoleController)
     .controller('RoleCardController', RoleCardController)
     .controller('GroupPermissionDialogController', GroupPermissionDialogController)
+    .controller('RegistrationPermissionDialogController', RegistrationPermissionDialogController)
     .directive('tbRole', RoleDirective)
     .directive('tbGroupPermissions', GroupPermissions)
     .directive('tbResourceTypeAutocomplete', ResourceTypeAutocompleteDirective)
     .directive('tbPermissionList', PermissionListDirective)
     .directive('tbOperationTypeList', OperationTypeListDirective)
+    .directive('tbRegistrationPermissions', RegistrationPermissions)
     .filter('hasGenericPermission', HasGenericPermission)
     .filter('hasEntityGroupPermission', HasEntityGroupPermission)
     .filter('hasGroupEntityPermission', HasGroupEntityPermission)

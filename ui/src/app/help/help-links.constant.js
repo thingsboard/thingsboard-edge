@@ -172,7 +172,8 @@ export default angular.module('thingsboard.help', [])
                 entityGroups: helpBaseUrl +  "/docs/user-guide/groups",
                 customTranslation: helpBaseUrl +  "/docs/user-guide/custom-translation",
                 customMenu: helpBaseUrl +  "/docs/user-guide/custom-menu",
-                roles: helpBaseUrl + "/docs/user-guide/ui/roles"
+                roles: helpBaseUrl + "/docs/user-guide/ui/roles",
+                selfRegistration: helpBaseUrl + "/docs/user-guide/self-registration",
             },
             getRuleNodeLink: function(ruleNode) {
                 if (ruleNode && ruleNode.component) {

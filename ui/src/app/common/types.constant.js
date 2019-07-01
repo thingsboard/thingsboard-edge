@@ -1179,6 +1179,14 @@ export default angular.module('thingsboard.types', [])
                 passwordWasReset: {
                     value: "passwordWasReset",
                     name: "admin.mail-template.password-was-reset"
+                },
+                userActivated: {
+                    value: "userActivated",
+                    name: "admin.mail-template.user-activated"
+                },
+                userRegistered: {
+                    value: "userRegistered",
+                    name: "admin.mail-template.user-registered"
                 }
             },
             widgetType: {

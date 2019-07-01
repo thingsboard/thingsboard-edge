@@ -41,7 +41,7 @@ function TenantService($http, $q) {
         getTenants: getTenants,
         getTenantsByIds: getTenantsByIds,
         saveTenant: saveTenant,
-    }
+    };
 
     return service;
 

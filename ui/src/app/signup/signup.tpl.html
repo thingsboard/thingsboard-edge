@@ -1,0 +1,101 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<md-content class="tb-demo-content" layout="row" layout-align="center center" flex ng-style="{backgroundColor: loginPageBackgroundColor}">
+    <md-card md-theme="{{currentLoginTheme}}" class="tb-signup-block">
+        <md-card-title>
+            <div layout="column" layout-align="center center" style="width: 100%">
+                <img ng-src="{{loginLogo}}" aria-label="logo" ng-style="{height: loginLogoHeight+'px'}" class="tb-login-logo"/>
+                <span class="tb-signup-message" ng-bind-html="vm.signupParams.signUpTextMessage"></span>
+            </div>
+        </md-card-title>
+        <md-progress-linear class="md-warn" style="z-index: 10; max-height: 0px; width: 100%;" md-mode="indeterminate" ng-show="loading"></md-progress-linear>
+        <md-card-content>
+            <form class="tb-signup-form" ng-submit="vm.signUp()">
+                <fieldset ng-disabled="loading">
+                    <div flex layout="column">
+                        <div layout="column" id="toast-parent">
+                            <div layout="column" layout-gt-sm="row">
+                                <md-input-container flex class="md-block no-margin-bottom">
+                                    <label translate>signup.firstname</label>
+                                    <input required id="firstname-input" autofocus ng-model="vm.signupRequest.firstName"/>
+                                </md-input-container>
+                                <md-input-container flex class="md-block no-margin-bottom">
+                                    <label translate>signup.lastname</label>
+                                    <input required id="lastname-input" ng-model="vm.signupRequest.lastName"/>
+                                </md-input-container>
+                            </div>
+                            <md-input-container class="md-block no-margin-bottom">
+                                <label translate>signup.email</label>
+                                <md-icon aria-label="{{ 'signup.email' | translate }}" class="material-icons">
+                                    email
+                                </md-icon>
+                                <input required id="email-input" type="email" ng-model="vm.signupRequest.email"/>
+                            </md-input-container>
+                            <md-input-container class="md-block no-margin-bottom">
+                                <label translate>signup.create-password</label>
+                                <md-icon aria-label="{{ 'signup.create-password' | translate }}" class="material-icons">
+                                    lock
+                                </md-icon>
+                                <input required id="password-input" type="password" ng-model="vm.signupRequest.password"/>
+                            </md-input-container>
+                            <md-input-container class="md-block no-margin-bottom">
+                                <label translate>signup.repeat-password</label>
+                                <md-icon aria-label="{{ 'signup.repeat-password' | translate }}" class="material-icons">
+                                    lock
+                                </md-icon>
+                                <input required id="password-check-input" type="password" ng-model="vm.passwordCheck"/>
+                            </md-input-container>
+                            <div class="tb-recaptcha" layout="column">
+                                <div vc-recaptcha
+                                     key="vm.signupParams.captchaSiteKey"
+                                     ng-model="vm.signupRequest.recaptchaResponse">
+                                </div>
+                            </div>
+                            <md-checkbox aria-label="{{ 'signup.accept-privacy-policy' | translate}}"
+                                         ng-model="vm.acceptPrivacyPolicy" class="tb-accept-privacy-policy">
+                                <div>
+                                    {{ 'signup.accept' | translate}} <span class="privacy-policy" ng-click="vm.openPrivacyPolicy($event)" translate>signup.privacy-policy</span>
+                                </div>
+                            </md-checkbox>
+                        </div>
+                        <div layout="column" style="padding-top: 15px;">
+                            <md-button ng-disabled="loading" class="md-accent md-raised" type="submit">{{ 'signup.signup' | translate }}</md-button>
+                            <md-button ng-disabled="loading" ng-click="vm.login()">{{ 'signup.have-account' | translate }}</md-button>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </md-card-content>
+    </md-card>
+</md-content>
+<div ng-include="footerTemplate"></div>

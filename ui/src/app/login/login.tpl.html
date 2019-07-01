@@ -63,6 +63,11 @@
                         </div>
                     </div>
                     <md-button class="md-raised" type="submit">{{ 'login.login' | translate }}</md-button>
+                    <div ng-if="$root.signUpParams.activate" translate style="padding: 10px 0; text-align: center">login.no-account</div>
+                    <md-button ng-if="$root.signUpParams.activate" ng-disabled="$root.loading"
+                               class="md-raised" ng-click="vm.signUp()">
+                        {{ 'login.create-account' | translate }}
+                    </md-button>
                 </div>
                 <section class="version" ng-if="loginShowNameVersion && showNameBottom" translate translate-values='{name: platformName, verion: platformVersion}'>white-labeling.version-mask</section>
             </form>

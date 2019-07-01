@@ -142,9 +142,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
 
+                //for 2.4.0
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {
                     systemDataLoaderService.loadMailTemplates();
+                } else {
+                    systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getJsonValue());
                 }
 
                 //White Labeling updates

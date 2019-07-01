@@ -32,7 +32,7 @@ import Flow from '@flowjs/ng-flow/dist/ng-flow-standalone.min';
 import UrlHandler from './url.handler';
 
 /*@ngInject*/
-export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $log, $state, $mdDialog, $filter,
+export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $state, $mdDialog, $filter, $q, selfRegistrationService,
                                whiteLabelingService, loginService, userService, menu, customTranslationService, $translate) {
 
     $window.Flow = Flow;
@@ -242,7 +242,12 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
     }
 
     function gotoPublicModule(name, params) {
-        whiteLabelingService.loadLoginWhiteLabelingParams().then(
+        let tasks = [];
+        tasks.push(whiteLabelingService.loadLoginWhiteLabelingParams());
+        if (name === "login") {
+            tasks.push(selfRegistrationService.loadSelfRegistrationParams());
+        }
+        $q.all(tasks).then(
             () => {
                 skipStateChange = true;
                 $state.go(name, params);

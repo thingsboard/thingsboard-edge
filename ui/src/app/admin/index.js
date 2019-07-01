@@ -40,6 +40,8 @@ import AdminController from './admin.controller';
 import WhiteLabelingController from './white-labeling.controller';
 import CustomTranslationController from './custom-translation.controller';
 import CustomMenuController from './custom-menu.controller';
+import SelfRegistrationController from './self-registration';
+
 
 export default angular.module('thingsboard.admin', [
     uiRouter,
@@ -54,4 +56,5 @@ export default angular.module('thingsboard.admin', [
     .controller('WhiteLabelingController', WhiteLabelingController)
     .controller('CustomTranslationController', CustomTranslationController)
     .controller('CustomMenuController', CustomMenuController)
+    .controller('SelfRegistrationController', SelfRegistrationController)
     .name;

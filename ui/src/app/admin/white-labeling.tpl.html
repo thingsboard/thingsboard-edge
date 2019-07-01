@@ -46,7 +46,13 @@
                 <fieldset ng-disabled="$root.loading || vm.readonly">
                     <md-input-container flex class="md-block" ng-show="vm.isLoginWl && !vm.isSysAdmin">
                         <label translate>white-labeling.domain-name</label>
-                        <input ng-if="vm.isLoginWl && !vm.isSysAdmin" ng-required="true" ng-model="vm.whiteLabelingParams.domainName">
+                        <input ng-if="vm.isLoginWl && !vm.isSysAdmin" ng-required="true" pattern="((?![:/]).)*$"
+                               ng-model="vm.whiteLabelingParams.domainName" name="domainName">
+                        <div ng-messages="vm.whiteLabelForm.domainName.$error" role="alert">
+                            <div ng-message-exp="['pattern']">
+                                {{"white-labeling.error-verification-url" | translate}}
+                            </div>
+                        </div>
                     </md-input-container>
                     <md-input-container flex class="md-block">
                         <label translate>white-labeling.app-title</label>

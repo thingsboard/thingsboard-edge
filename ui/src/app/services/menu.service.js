@@ -518,6 +518,13 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     state: 'home.settings.loginWhiteLabel',
                                     icon: 'format_paint',
                                     disabled: disabledItems.indexOf('login_white_labeling') > -1
+                                },
+                                {
+                                    name: 'self-registration.self-registration',
+                                    type: 'link',
+                                    state: 'home.settings.selfRegistration',
+                                    icon: 'group_add',
+                                    disabled: disabledItems.indexOf('self_registration') > -1
                                 }
                             ]
                         }
