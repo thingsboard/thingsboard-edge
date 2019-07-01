@@ -182,8 +182,16 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                 }
                 break;
             case "2.3.1":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.0", SCHEMA_UPDATE_SQL);
+                    loadSql(schemaUpdateFile, conn);
+                    log.info("Schema updated.");
+                }
+                break;
+            case "2.4.0":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.3.1pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {

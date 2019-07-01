@@ -41,7 +41,6 @@ div.tb-widget {
 
   .tb-widget-title {
     max-height: 60px;
-
     padding-top: 5px;
     padding-left: 5px;
     overflow: hidden;
@@ -50,14 +49,23 @@ div.tb-widget {
       font-size: 14px;
       opacity: .85;
     }
+
+    .title{
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .tb-widget-actions {
-    position: absolute;
-    top: 8px;
-    right: 8px;
     z-index: 19;
     margin: 0;
+
+    &-absolute{
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
 
     .md-button.md-icon-button {
       width: 32px;

@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import "../../scss/constants.scss";
+
 $previewSize: 100px !default;
 
 .tb-file-select-container {
@@ -54,4 +56,22 @@ $previewSize: 100px !default;
   position: absolute !important;
   top: 50%;
   transform: translate(0%, -50%) !important;
+}
+
+.tb-table-select{
+  md-input-container{
+    margin: 0;
+
+    .md-errors-spacer{
+      min-height: 0;
+    }
+  }
+}
+
+.md-stepper-indicator-wrapper{
+  background-color: transparent;
+}
+
+.tb-import-progress{
+  margin: 7px 0;
 }

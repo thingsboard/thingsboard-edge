@@ -137,7 +137,8 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         actionsApi: {
             actionDescriptorsBySourceId: actionDescriptorsBySourceId,
             getActionDescriptors: getActionDescriptors,
-            handleWidgetAction: handleWidgetAction
+            handleWidgetAction: handleWidgetAction,
+            elementClick: elementClick
         },
         stateController: stateController,
         exportWidgetData: exportWidgetData,
@@ -303,6 +304,9 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
         options.useDashboardTimewindow = angular.isDefined(widget.config.useDashboardTimewindow)
             ? widget.config.useDashboardTimewindow : true;
 
+        options.displayTimewindow = angular.isDefined(widget.config.displayTimewindow)
+            ? widget.config.displayTimewindow : !options.useDashboardTimewindow;
+
         options.timeWindowConfig = options.useDashboardTimewindow ? vm.dashboardTimewindow : widget.config.timewindow;
         options.legendConfig = null;
 
@@ -441,6 +445,24 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
             result = [];
         }
         return result;
+    }
+
+    function elementClick(event) {
+        event.stopPropagation();
+        var e = event.target || event.srcElement;
+        if (e.id) {
+            var descriptors = getActionDescriptors('elementClick');
+            if (descriptors.length) {
+                for (var i = 0; i < descriptors.length; i++) {
+                    if (descriptors[i].name == e.id) {
+                        var entityInfo = getActiveEntityInfo();
+                        var entityId = entityInfo ? entityInfo.entityId : null;
+                        var entityName = entityInfo ? entityInfo.entityName : null;
+                        handleWidgetAction(event, descriptors[i], entityId, entityName);
+                    }
+                }
+            }
+        }
     }
 
     function updateEntityParams(params, targetEntityParamName, targetEntityId, entityName) {

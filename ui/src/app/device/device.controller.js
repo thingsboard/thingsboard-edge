@@ -30,9 +30,9 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import addDeviceTemplate from './add-device.tpl.html';
+/*import addDeviceTemplate from './add-device.tpl.html';
 import deviceCard from './device-card.tpl.html';
-import addDevicesToCustomerTemplate from './add-devices-to-customer.tpl.html';
+import addDevicesToCustomerTemplate from './add-devices-to-customer.tpl.html';*/
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -43,7 +43,7 @@ export function DeviceCardController(types) {
 
     vm.types = types;
 
-    vm.isAssignedToCustomer = function() {
+  /*  vm.isAssignedToCustomer = function() {
         if (vm.item && vm.item.customerId && vm.parentCtl.devicesScope === 'tenant' &&
             vm.item.customerId.id != vm.types.id.nullUid && !vm.item.assignedCustomer.isPublic) {
             return true;
@@ -56,19 +56,42 @@ export function DeviceCardController(types) {
             return true;
         }
         return false;
-    }
+    }*/
 }
 
 
 /*@ngInject*/
-export function DeviceController($rootScope, tbDialogs, userService, deviceService, customerService, $state, $stateParams,
-                                 $document, $mdDialog, $q, $translate, types, utils) {
+export function DeviceController(/*$rootScope, tbDialogs, userService, deviceService, customerService, $state, $stateParams,
+                                 $document, $mdDialog, $q, $translate, types, utils, importExport*/) {
 
-    var customerId = $stateParams.customerId;
+/*    var customerId = $stateParams.customerId;
 
     var deviceActionsList = [];
 
     var deviceGroupActionsList = [];
+
+    var deviceAddItemActionsList = [
+        {
+            onAction: function ($event) {
+                vm.grid.addItem($event);
+            },
+            name: function() { return $translate.instant('action.add') },
+            details: function() { return $translate.instant('device.add-device-text') },
+            icon: "insert_drive_file"
+        },
+        {
+            onAction: function ($event) {
+                importExport.importEntities($event, types.entityType.device).then(
+                    function() {
+                        vm.grid.refreshList();
+                    }
+                );
+            },
+            name: function() { return $translate.instant('action.import') },
+            details: function() { return $translate.instant('device.import') },
+            icon: "file_upload"
+        }
+    ];
 
     var vm = this;
 
@@ -91,12 +114,12 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
 
         actionsList: deviceActionsList,
         groupActionsList: deviceGroupActionsList,
+        addItemActions: deviceAddItemActionsList,
 
         onGridInited: gridInited,
 
         addItemTemplateUrl: addDeviceTemplate,
 
-        addItemText: function() { return $translate.instant('device.add-device-text') },
         noItemsText: function() { return $translate.instant('device.no-devices-text') },
         itemDetailsText: function() { return $translate.instant('device.device-details') },
         isDetailsReadOnly: isCustomerUser,
@@ -259,7 +282,7 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
             fetchDevicesFunction = function (pageLink, deviceType) {
                 return deviceService.getCustomerDevices(customerId, pageLink, true, null, deviceType);
             };
-            deleteDeviceFunction = function (/*deviceId*/) {
+            deleteDeviceFunction = function (deviceId) {
                 return $q.when();//deviceService.unassignDeviceFromCustomer(deviceId);
             };
             refreshDevicesParamsFunction = function () {
@@ -327,7 +350,6 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
                     icon: "add"
                 };
 
-
             } else if (vm.devicesScope === 'customer_user') {
                 deviceActionsList.push(
                     {
@@ -342,6 +364,8 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
 
                 vm.deviceGridConfig.addItemAction = {};
             }
+            vm.deviceGridConfig.addItemActions = [];
+
         }
 
         vm.deviceGridConfig.refreshParamsFunc = refreshDevicesParamsFunction;
@@ -408,12 +432,12 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
         return vm.devicesScope === 'customer_user';
     }
 
-    function assignToCustomer(/*$event, deviceIds*/) {
-        /*tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
+    function assignToCustomer($event, deviceIds) {
+        tbDialogs.assignDevicesToCustomer($event, deviceIds).then(
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
     function addDevicesToCustomer($event) {
@@ -460,16 +484,16 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
         assignToCustomer($event, deviceIds);
     }
 
-    function unassignFromCustomer(/*$event, device, isPublic*/) {
-        /*tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
+    function unassignFromCustomer($event, device, isPublic) {
+        tbDialogs.unassignDeviceFromCustomer($event, device, isPublic).then(
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
-    function unassignDevicesFromCustomer(/*$event, items*/) {
-       /* var deviceIds = [];
+    function unassignDevicesFromCustomer($event, items) {
+       var deviceIds = [];
         for (var id in items.selections) {
             deviceIds.push(id);
         }
@@ -477,18 +501,19 @@ export function DeviceController($rootScope, tbDialogs, userService, deviceServi
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
-    function makePublic(/*$event, device*/) {
-        /*tbDialogs.makeDevicePublic($event, device).then(
+    function makePublic($event, device) {
+        tbDialogs.makeDevicePublic($event, device).then(
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
     function manageCredentials($event, device) {
         tbDialogs.manageDeviceCredentials($event, device, isCustomerUser());
     }
+    */
 }

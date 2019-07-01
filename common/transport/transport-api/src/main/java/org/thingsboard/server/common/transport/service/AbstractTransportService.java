@@ -143,6 +143,12 @@ public abstract class AbstractTransportService implements TransportService {
     }
 
     @Override
+    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ClaimDeviceMsg msg,
+                        TransportServiceCallback<Void> callback) {
+        registerClaimingInfo(sessionInfo, msg, callback);
+    }
+
+    @Override
     public void reportActivity(TransportProtos.SessionInfoProto sessionInfo) {
         reportActivityInternal(sessionInfo);
     }
@@ -162,6 +168,8 @@ public abstract class AbstractTransportService implements TransportService {
     protected abstract void doProcess(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ToDeviceRpcResponseMsg msg, TransportServiceCallback<Void> callback);
 
     protected abstract void doProcess(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ToServerRpcRequestMsg msg, TransportServiceCallback<Void> callback);
+
+    protected abstract void registerClaimingInfo(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ClaimDeviceMsg msg, TransportServiceCallback<Void> callback);
 
     private SessionMetaData reportActivityInternal(TransportProtos.SessionInfoProto sessionInfo) {
         UUID sessionId = toId(sessionInfo);
@@ -193,15 +201,24 @@ public abstract class AbstractTransportService implements TransportService {
 
     @Override
     public void registerSyncSession(TransportProtos.SessionInfoProto sessionInfo, SessionMsgListener listener, long timeout) {
-        sessions.putIfAbsent(toId(sessionInfo), new SessionMetaData(sessionInfo, TransportProtos.SessionType.SYNC, listener));
-        schedulerExecutor.schedule(() -> {
+        SessionMetaData currentSession = new SessionMetaData(sessionInfo, TransportProtos.SessionType.SYNC, listener);
+        sessions.putIfAbsent(toId(sessionInfo), currentSession);
+
+        ScheduledFuture executorFuture = schedulerExecutor.schedule(() -> {
             listener.onRemoteSessionCloseCommand(TransportProtos.SessionCloseNotificationProto.getDefaultInstance());
             deregisterSession(sessionInfo);
         }, timeout, TimeUnit.MILLISECONDS);
+
+        currentSession.setScheduledFuture(executorFuture);
     }
 
     @Override
     public void deregisterSession(TransportProtos.SessionInfoProto sessionInfo) {
+        SessionMetaData currentSession = sessions.get(toId(sessionInfo));
+        if (currentSession.hasScheduledFuture()) {
+            log.debug("Stopping scheduler to avoid resending response if request has been ack.");
+            currentSession.getScheduledFuture().cancel(false);
+        }
         sessions.remove(toId(sessionInfo));
     }
 

@@ -68,6 +68,9 @@ public final class DeviceEntity extends BaseSqlEntity<Device> implements SearchT
     @Column(name = ModelConstants.DEVICE_NAME_PROPERTY)
     private String name;
 
+    @Column(name = ModelConstants.DEVICE_LABEL_PROPERTY)
+    private String label;
+
     @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
     private String searchText;
 
@@ -91,6 +94,7 @@ public final class DeviceEntity extends BaseSqlEntity<Device> implements SearchT
         }
         this.name = device.getName();
         this.type = device.getType();
+        this.label = device.getLabel();
         this.additionalInfo = device.getAdditionalInfo();
     }
 
@@ -116,6 +120,7 @@ public final class DeviceEntity extends BaseSqlEntity<Device> implements SearchT
         }
         device.setName(name);
         device.setType(type);
+        device.setLabel(label);
         device.setAdditionalInfo(additionalInfo);
         return device;
     }

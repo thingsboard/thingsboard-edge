@@ -30,9 +30,9 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import addAssetTemplate from './add-asset.tpl.html';
+/* import addAssetTemplate from './add-asset.tpl.html';
 import assetCard from './asset-card.tpl.html';
-import addAssetsToCustomerTemplate from './add-assets-to-customer.tpl.html';
+import addAssetsToCustomerTemplate from './add-assets-to-customer.tpl.html'; */
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -42,7 +42,7 @@ export function AssetCardController(types) {
     var vm = this;
 
     vm.types = types;
-
+/*
     vm.isAssignedToCustomer = function() {
         if (vm.item && vm.item.customerId && vm.parentCtl.assetsScope === 'tenant' &&
             vm.item.customerId.id != vm.types.id.nullUid && !vm.item.assignedCustomer.isPublic) {
@@ -56,19 +56,42 @@ export function AssetCardController(types) {
             return true;
         }
         return false;
-    }
+    }*/
 }
 
 
 /*@ngInject*/
-export function AssetController($rootScope, tbDialogs, userService, assetService, customerService, $state, $stateParams,
-                                $document, $mdDialog, $q, $translate, types, utils) {
+export function AssetController(/*$rootScope, tbDialogs, userService, assetService, customerService, $state, $stateParams,
+                                $document, $mdDialog, $q, $translate, types, utils, importExport*/) {
 
-    var customerId = $stateParams.customerId;
+/*    var customerId = $stateParams.customerId;
 
     var assetActionsList = [];
 
     var assetGroupActionsList = [];
+
+    var assetAddItemActionsList = [
+        {
+            onAction: function ($event) {
+                vm.grid.addItem($event);
+            },
+            name: function() { return $translate.instant('action.add') },
+            details: function() { return $translate.instant('asset.add-asset-text') },
+            icon: "insert_drive_file"
+        },
+        {
+            onAction: function ($event) {
+                importExport.importEntities($event, types.entityType.asset).then(
+                    function() {
+                        vm.grid.refreshList();
+                    }
+                );
+            },
+            name: function() { return $translate.instant('action.import') },
+            details: function() { return $translate.instant('asset.import') },
+            icon: "file_upload"
+        }
+    ];
 
     var vm = this;
 
@@ -91,6 +114,7 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
 
         actionsList: assetActionsList,
         groupActionsList: assetGroupActionsList,
+        addItemActions: assetAddItemActionsList,
 
         onGridInited: gridInited,
 
@@ -247,7 +271,7 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             fetchAssetsFunction = function (pageLink, assetType) {
                 return assetService.getCustomerAssets(customerId, pageLink, true, null, assetType);
             };
-            deleteAssetFunction = function (/*assetId*/) {
+            deleteAssetFunction = function (assetId) {
                 return $q.when();//assetService.unassignAssetFromCustomer(assetId);
             };
             refreshAssetsParamsFunction = function () {
@@ -308,6 +332,8 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             } else if (vm.assetsScope === 'customer_user') {
                 vm.assetGridConfig.addItemAction = {};
             }
+            vm.assetGridConfig.addItemActions = [];
+
         }
 
         vm.assetGridConfig.refreshParamsFunc = refreshAssetsParamsFunction;
@@ -374,12 +400,12 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
         return vm.assetsScope === 'customer_user';
     }
 
-    function assignToCustomer(/*$event, assetIds*/) {
-        /*tbDialogs.assignAssetsToCustomer($event, assetIds).then(
+    function assignToCustomer($event, assetIds) {
+        tbDialogs.assignAssetsToCustomer($event, assetIds).then(
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
     function addAssetsToCustomer($event) {
@@ -426,16 +452,16 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
         assignToCustomer($event, assetIds);
     }
 
-    function unassignFromCustomer(/*$event, asset, isPublic*/) {
-        /*tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
+    function unassignFromCustomer($event, asset, isPublic) {
+        tbDialogs.unassignAssetFromCustomer($event, asset, isPublic).then(
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
-    function unassignAssetsFromCustomer(/*$event, items*/) {
-       /* var assetIds = [];
+    function unassignAssetsFromCustomer($event, items) {
+       var assetIds = [];
         for (var id in items.selections) {
             assetIds.push(id);
         }
@@ -443,14 +469,14 @@ export function AssetController($rootScope, tbDialogs, userService, assetService
             () => {
                 vm.grid.refreshList();
             }
-        );*/
+        );
     }
 
-    function makePublic(/*$event, asset*/) {
-        /*tbDialogs.makeAssetPublic($event, asset).then(
+    function makePublic($event, asset) {
+        tbDialogs.makeAssetPublic($event, asset).then(
             () => {
                 vm.grid.refreshList();
             }
-        );*/
-    }
+        );
+    }*/
 }

@@ -37,7 +37,6 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
 
 import java.util.UUID;
-import java.util.Optional;
 
 public interface CoapTransportAdaptor {
 
@@ -50,6 +49,8 @@ public interface CoapTransportAdaptor {
     TransportProtos.ToDeviceRpcResponseMsg convertToDeviceRpcResponse(UUID sessionId, Request inbound) throws AdaptorException;
 
     TransportProtos.ToServerRpcRequestMsg convertToServerRpcRequest(UUID sessionId, Request inbound) throws AdaptorException;
+
+    TransportProtos.ClaimDeviceMsg convertToClaimDevice(UUID sessionId, Request inbound, TransportProtos.SessionInfoProto sessionInfo) throws AdaptorException;
 
     Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.GetAttributeResponseMsg responseMsg) throws AdaptorException;
 

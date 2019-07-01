@@ -88,6 +88,8 @@ import 'moment-timezone';
 import 'jstree/dist/jstree.min';
 
 //import 'jstree/dist/themes/default/style.min.css';
+import 'material-steppers/dist/material-steppers';
+import 'material-steppers/dist/material-steppers.css';
 import 'jstree-bootstrap-theme/dist/themes/proton/style.min.css';
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -182,6 +184,7 @@ angular.module('thingsboard', [
     'flow',
     'flowchart',
     'ui.calendar',
+    'mdSteppers',
     thingsboardThirdpartyFix,
     thingsboardTranslateHandler,
     thingsboardSignUp,

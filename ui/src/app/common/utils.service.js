@@ -135,18 +135,6 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
     ];
 
     var defaultAlarmDataKeys = [];
-    for (var i=0;i<defaultAlarmFields.length;i++) {
-        var name = defaultAlarmFields[i];
-        var dataKey = {
-            name: name,
-            type: types.dataKeyType.alarm,
-            label: $translate.instant(types.alarmFields[name].name)+'',
-            color: getMaterialColor(i),
-            settings: {},
-            _hash: Math.random()
-        };
-        defaultAlarmDataKeys.push(dataKey);
-    }
 
     var imageAspectMap = {};
 
@@ -334,7 +322,25 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         return angular.toJson(getDefaultDatasource(dataKeySchema));
     }
 
+    function initDefaultAlarmDataKeys() {
+        for (var i=0;i<defaultAlarmFields.length;i++) {
+            var name = defaultAlarmFields[i];
+            var dataKey = {
+                name: name,
+                type: types.dataKeyType.alarm,
+                label: $translate.instant(types.alarmFields[name].name)+'',
+                color: getMaterialColor(i),
+                settings: {},
+                _hash: Math.random()
+            };
+            defaultAlarmDataKeys.push(dataKey);
+        }
+    }
+
     function getDefaultAlarmDataKeys() {
+        if (!defaultAlarmDataKeys.length) {
+            initDefaultAlarmDataKeys();
+        }
         return angular.copy(defaultAlarmDataKeys);
     }
 
@@ -555,6 +561,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 label = label.split(variable).join(datasource.entityName);
             } else if (variableName === 'deviceName') {
                 label = label.split(variable).join(datasource.entityName);
+            } else if (variableName === 'entityLabel') {
+                label = label.split(variable).join(datasource.entityLabel);
             } else if (variableName === 'aliasName') {
                 label = label.split(variable).join(datasource.aliasName);
             } else if (variableName === 'entityDescription') {

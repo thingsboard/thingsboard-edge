@@ -980,7 +980,9 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             }
         }
         if (trip && vm.activeTripIndex !== trip.dSIndex) vm.activeTripIndex = trip.dSIndex;
-        vm.mainTooltip = vm.trips[vm.activeTripIndex].settings.tooltipText;
+        if (vm.trips.length) {
+            vm.mainTooltip = vm.trips[vm.activeTripIndex].settings.tooltipText;
+        }
     }
 
     function showHidePointTooltip(text, index) {
