@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 
 import java.io.PrintWriter;
@@ -95,11 +94,12 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         context.saveEvent(DataConstants.DEBUG_CONVERTER, node, new DebugEventCallback());
     }
 
-    private static class DebugEventCallback implements IntegrationCallback<Event> {
+    private static class DebugEventCallback implements IntegrationCallback<Void> {
+
         @Override
-        public void onSuccess(Event event) {
+        public void onSuccess(Void msg) {
             if (log.isDebugEnabled()) {
-                log.debug("Event has been saved successfully![{}]", event);
+                log.debug("Event has been saved successfully!");
             }
         }
 

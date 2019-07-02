@@ -237,11 +237,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    private static class DebugEventCallback implements IntegrationCallback<Event> {
+    private static class DebugEventCallback implements IntegrationCallback<Void> {
         @Override
-        public void onSuccess(Event event) {
+        public void onSuccess(Void msg) {
             if (log.isDebugEnabled()) {
-                log.debug("Event has been saved successfully![{}]", event);
+                log.debug("Event has been saved successfully!");
             }
         }
 

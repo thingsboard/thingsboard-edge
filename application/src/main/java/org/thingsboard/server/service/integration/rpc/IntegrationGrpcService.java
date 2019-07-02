@@ -30,8 +30,12 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.protobuf.ByteString;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -40,10 +44,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
+import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -52,7 +69,9 @@ import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
@@ -60,13 +79,16 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
-public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
+public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase {
 
+    private static final ReentrantLock deviceCreationLock = new ReentrantLock();
     public static final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${integrations.rpc.port}")
@@ -80,6 +102,14 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private PlatformIntegrationService platformIntegrationService;
     @Autowired
     private ConverterService converterService;
+    @Autowired
+    private ActorService actorService;
+    @Autowired
+    private EventService eventService;
+    @Autowired
+    private DeviceService deviceService;
+    @Autowired
+    private RelationService relationService;
 
     private Server server;
 
@@ -124,27 +154,16 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     }
 
     @Override
-    public StreamObserver<UplinkMsg> handleMsgs(final StreamObserver<DownlinkMsg> responseObserver) {
-        return new StreamObserver<UplinkMsg>() {
-            @Override
-            public void onNext(UplinkMsg value) {
+    public void sendUplinkMsg(UplinkMsg msg, StreamObserver<UplinkResponseMsg> responseObserver) {
+        responseObserver.onNext(processMsg(msg));
+        responseObserver.onCompleted();
+    }
 
-
-
-
-                List<DeviceUplinkDataProto> deviceDataList = value.getDeviceDataList();
-
-
-                for (DeviceUplinkDataProto proto : deviceDataList) {
-
-
-
-
-
-                }
-
-
-                Device device = getOrCreateDevice();
+    private UplinkResponseMsg processMsg(UplinkMsg msg) {
+        if (msg.getDeviceDataCount() > 0) {
+            List<DeviceUplinkDataProto> deviceDataList = msg.getDeviceDataList();
+            for (DeviceUplinkDataProto data : deviceDataList) {
+                Device device = getOrCreateDevice(data);
 
                 UUID sessionId = UUID.randomUUID();
                 SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
@@ -156,35 +175,42 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                         .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
                         .build();
 
-                if (value.get()) {
-                    ctx.getIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
+                if (data.hasPostTelemetryMsg()) {
+                    platformIntegrationService.process(sessionInfo, data.getPostTelemetryMsg(), null);
                 }
 
                 if (data.hasPostAttributesMsg()) {
-                    ctx.getIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
+                    platformIntegrationService.process(sessionInfo, data.getPostAttributesMsg(), null);
                 }
-
-
-
-                platformIntegrationService.process(, , null);
-
-                responseObserver.onNext();
             }
+        }
 
-            @Override
-            public void onError(Throwable t) {
-                log.error("Handling of the messages was cancelled!", t);
+        if (msg.getEventsDataCount() > 0) {
+            for (TbEventProto proto : msg.getEventsDataList()) {
+                try {
+                    eventService.save(mapper.readValue(proto.getData(), Event.class));
+                } catch (IOException e) {
+                    log.warn("[{}] Failed to read string value to Event!", proto.getData(), e);
+                    // TODO: 7/2/19 return error?
+                }
             }
+        }
 
-            @Override
-            public void onCompleted() {
-                responseObserver.onCompleted();
+        if (msg.getTbMsgCount() > 0) {
+            for (ByteString tbMsgByteString : msg.getTbMsgList()) {
+                TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
+                actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(null, tbMsg))); // TODO: 7/2/19 tenantId?
             }
-        };
+        }
+
+        return UplinkResponseMsg.newBuilder()
+                .setSuccess(true)
+                .setErrorMsg("")
+                .build();
     }
 
     private Device getOrCreateDevice(DeviceUplinkDataProto data) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+        Device device = deviceService.findDeviceByTenantIdAndName(null, data.getDeviceName()); // TODO: 7/2/19 tenantId?
         if (device == null) {
             deviceCreationLock.lock();
             try {
@@ -194,6 +220,43 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
             }
         }
         return device;
+    }
+
+    private Device processGetOrCreateDevice(DeviceUplinkDataProto data) {
+        Device device = deviceService.findDeviceByTenantIdAndName(null, data.getDeviceName());
+        if (device == null) {
+            device = new Device();
+            device.setName(data.getDeviceName());
+            device.setType(data.getDeviceType());
+            device.setTenantId(null);
+            device = deviceService.saveDevice(device);
+            EntityRelation relation = new EntityRelation();
+            relation.setFrom(null);
+            relation.setTo(device.getId());
+            relation.setTypeGroup(RelationTypeGroup.COMMON);
+            relation.setType(EntityRelation.INTEGRATION_TYPE);
+            relationService.saveRelation(null, relation);
+            actorService.onDeviceAdded(device);
+            try {
+                ObjectNode entityNode = mapper.valueToTree(device);
+                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
+                actorService.onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(null, msg)));
+            } catch (JsonProcessingException | IllegalArgumentException e) {
+                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+            }
+        }
+        return device;
+    }
+
+    private TbMsgMetaData actionTbMsgMetaData(Device device) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("integrationId", null);
+        metaData.putValue("integrationName", null);
+        CustomerId customerId = device.getCustomerId();
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
     }
 
     private ConnectResponseMsg validateConnect(ConnectRequestMsg request) {

@@ -319,7 +319,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), messageType, this.configuration.getId(), tbMsgMetaData, TbMsgDataType.JSON, "{}", null, null, 0L);
 
         if (context != null) {
-            context.processCustomMsg(tbMsg);
+            context.processCustomMsg(tbMsg, null);
         }
     }
 

@@ -65,7 +65,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @Data
 @Slf4j
 public class LocalIntegrationContext implements IntegrationContext {
+
     private static final ReentrantLock deviceCreationLock = new ReentrantLock();
+
     protected final IntegrationContextComponent ctx;
     protected final Integration configuration;
     protected final ConverterContext uplinkConverterContext;
@@ -103,8 +105,21 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void processCustomMsg(TbMsg tbMsg) {
-        ctx.getActorService().onMsg(new SendToClusterMsg(this.configuration.getId(), new ServiceToRuleEngineMsg(this.configuration.getTenantId(), tbMsg)));
+    public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
+        ctx.getActorService().onMsg(new SendToClusterMsg(this.configuration.getId(), new ServiceToRuleEngineMsg(this.configuration.getTenantId(), msg)));
+        if (callback != null) {
+            callback.onSuccess(null);
+        }
+    }
+
+    @Override
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+        Event event = new Event();
+        event.setTenantId(configuration.getTenantId());
+        event.setEntityId(configuration.getId());
+        event.setType(type);
+        event.setBody(body);
+        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 
     @Override
@@ -128,16 +143,6 @@ public class LocalIntegrationContext implements IntegrationContext {
         if (device != null) {
             ctx.getDownlinkService().remove(configuration.getId(), device.getId());
         }
-    }
-
-    @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
-        Event event = new Event();
-        event.setTenantId(configuration.getTenantId());
-        event.setEntityId(configuration.getId());
-        event.setType(type);
-        event.setBody(body);
-        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), callback::onSuccess, callback::onError);
     }
 
     @Override

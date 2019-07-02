@@ -45,13 +45,17 @@ service IntegrationTransport {
 
   rpc sendUplinkMsg(UplinkMsg) returns (UplinkResponseMsg) {}
 
-  rpc handleDownlinks() returns (stream DownlinkMsg) {}
+  rpc handleDownlinks(EmptyMsg) returns (stream DownlinkMsg) {}
 
 }
 
 /**
  * Data Structures;
  */
+message EmptyMsg {
+
+}
+
 message ConnectRequestMsg {
   string integrationRoutingKey = 1;
   string integrationSecret = 2;

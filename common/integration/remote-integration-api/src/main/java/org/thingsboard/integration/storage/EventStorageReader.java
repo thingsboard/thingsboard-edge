@@ -129,7 +129,12 @@ public class EventStorageReader {
                     lastReadLine = 0;
                     currentFileIdx++;
                     previousReadFile = currentReadFile;
-                    currentReadFile = dataFiles.get(currentFileIdx);
+                    try {
+                        currentReadFile = dataFiles.get(currentFileIdx);
+                    } catch (IndexOutOfBoundsException e) {
+                        log.warn("The are no more files to read!");
+                        break;
+                    }
                 }
             } catch (IOException e) {
                 log.warn("Failed to read file![{}]", currentReadFile.getName(), e);

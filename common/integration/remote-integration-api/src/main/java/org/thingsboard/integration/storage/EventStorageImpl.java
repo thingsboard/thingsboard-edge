@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import javax.annotation.PostConstruct;
@@ -83,10 +84,10 @@ public class EventStorageImpl implements EventStorage {
     }
 
     @Override
-    public void write(UplinkMsg msg) {
+    public void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
         writeLock.lock();
         try {
-            storageWriter.write(msg);
+            storageWriter.write(msg, callback);
         } finally {
             writeLock.unlock();
         }

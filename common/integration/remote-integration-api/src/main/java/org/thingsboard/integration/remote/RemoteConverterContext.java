@@ -30,8 +30,11 @@
  */
 package org.thingsboard.integration.remote;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.storage.EventStorage;
@@ -39,26 +42,59 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.msg.cluster.ServerType;
+import org.thingsboard.server.gen.integration.TbEventProto;
+import org.thingsboard.server.gen.integration.TbEventSource;
+import org.thingsboard.server.gen.integration.UplinkMsg;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
+@Slf4j
 public class RemoteConverterContext implements ConverterContext {
+
     private final EventStorage eventStorage;
     private final TenantId tenantId;
     private final ConverterId converterId;
+    private final boolean isUplink;
+    private final ObjectMapper mapper;
+    private final String clientId;
+    private final int port;
 
+    private AtomicInteger index = new AtomicInteger(0);
 
     @Override
     public ServerAddress getServerAddress() {
-        return null;
+        return new ServerAddress(clientId, port, ServerType.CORE);
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
         Event event = new Event();
         event.setTenantId(tenantId);
         event.setEntityId(converterId);
         event.setType(type);
         event.setBody(body);
-        eventStorage.write(,callback);
+
+        TbEventSource source;
+        if (isUplink) {
+            source = TbEventSource.UPLINK_CONVERTER;
+        } else {
+            source = TbEventSource.DOWNLINK_CONVERTER;
+        }
+
+        String eventData = "";
+        try {
+            eventData = mapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            log.warn("[{}] Failed to convert event!", event, e);
+        }
+
+        eventStorage.write(UplinkMsg.newBuilder().setEventsData(index.getAndIncrement(), TbEventProto.newBuilder()
+                .setSource(source)
+                .setType("type") // TODO: 7/2/19 what type?
+                .setData(eventData)
+                .build()
+        ).build(), callback);
     }
 }

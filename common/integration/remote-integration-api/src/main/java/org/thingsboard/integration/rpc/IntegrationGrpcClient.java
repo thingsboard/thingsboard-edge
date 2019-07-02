@@ -46,6 +46,7 @@ import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +70,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     private ManagedChannel channel;
     private IntegrationTransportGrpc.IntegrationTransportStub stub;
+    private StreamObserver<UplinkResponseMsg> responseObserver;
 
     @Override
     public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
@@ -105,7 +107,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
             @Override
             public void onCompleted() {
-                log.debug("[{}] Integration connection finished!", integrationKey);
+                log.info("[{}] Integration connection finished!", integrationKey);
             }
         };
         stub.connect(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build(), responseObserver);
@@ -120,37 +122,41 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     @Override
     public void handleMsgs() {
-
-
         List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
-
-        //TODO: remove to the variable to avoid initialization
-        StreamObserver<UplinkMsg> requestObserver = stub.handleMsgs(new StreamObserver<DownlinkMsg>() {
-            @Override
-            public void onNext(DownlinkMsg value) {
-
-            }
-
-            @Override
-            public void onError(Throwable t) {
-
-            }
-
-            @Override
-            public void onCompleted() {
-                eventStorage.discardCurrentBatch();
-            }
-        });
-
-        try {
-            for (UplinkMsg uplinkMsg : uplinkMsgList) {
-                requestObserver.onNext(uplinkMsg);
-            }
-        } catch (Exception e) {
-            requestObserver.onError(e);
+        int msgCount = uplinkMsgList.size();
+        for (UplinkMsg msg : uplinkMsgList) {
+            msgCount--;
+            stub.sendUplinkMsg(msg, getResponseObserver(msg, msgCount));
         }
+    }
 
-        requestObserver.onCompleted();
+    private StreamObserver<UplinkResponseMsg> getResponseObserver(UplinkMsg msg, int msgCount) {
+        if (responseObserver == null) {
+            responseObserver = new StreamObserver<UplinkResponseMsg>() {
+                @Override
+                public void onNext(UplinkResponseMsg uplinkResponseMsg) {
+                    if (uplinkResponseMsg.getSuccess()) {
+                        log.debug("[{}] The message has been delivered successfully!", msg);
+                    } else {
+                        log.warn("[{}] Failed to deliver or process message! {}", msg, uplinkResponseMsg.getErrorMsg());
+                    }
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    log.error("[{}] Failed to deliver or process message!", msg, throwable);
+                }
+
+                @Override
+                public void onCompleted() {
+                    log.info("[{}] The message has been processed successfully!", msg);
+                    if (msgCount == 0) {
+                        eventStorage.discardCurrentBatch();
+                    }
+                }
+            };
+        }
+        return responseObserver;
     }
 
 }

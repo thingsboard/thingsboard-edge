@@ -32,6 +32,7 @@ package org.thingsboard.integration.storage;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import java.io.BufferedWriter;
@@ -78,14 +79,20 @@ public class EventStorageWriter {
         }
     }
 
-    public void write(UplinkMsg msg) {
+    public void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
         File lastFile = dataFiles.get(dataFiles.size() - 1);
         long recordsCount = getNumberOfRecordsInFile(lastFile);
         if (isFileFull(recordsCount)) {
             if (log.isDebugEnabled()) {
                 log.debug("Records count: [{}] exceeds the allowed value![{}]", recordsCount, maxRecordsPerFile);
             }
-            lastFile = createDataFile(Long.toString(System.currentTimeMillis()));
+            try {
+                lastFile = createDataFile(Long.toString(System.currentTimeMillis()));
+            } catch (IOException e) {
+                log.error("Failed to create a new file!", e);
+                callback.onError(e);
+                return;
+            }
             if (dataFiles.size() == maxFileCount) {
                 File firstFile = dataFiles.get(0);
                 if (firstFile.delete()) {
@@ -107,16 +114,12 @@ public class EventStorageWriter {
         } catch (IOException e) {
             log.warn("Failed to update data file![{}]", lastFile.getName(), e);
         }
+        callback.onSuccess(null);
     }
 
-    private File createDataFile(String fileName) {
+    private File createDataFile(String fileName) throws IOException {
         Path filePath = Paths.get(dataFolderPath + "/data_" + fileName + ".txt");
-        try {
-            return Files.createFile(filePath).toFile();
-        } catch (IOException e) {
-            log.error("Failed to create a new file!", e);
-            throw new RuntimeException("Failed to create a new file!", e);
-        }
+        return Files.createFile(filePath).toFile();
     }
 
     private long getNumberOfRecordsInFile(File file) {

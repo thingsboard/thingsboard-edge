@@ -30,6 +30,8 @@
  */
 package org.thingsboard.integration.api;
 
+import org.thingsboard.server.common.data.Event;
+
 public interface IntegrationCallback<T> {
 
     void onSuccess(T msg);

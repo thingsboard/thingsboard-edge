@@ -53,12 +53,12 @@ public class LocalConverterContext implements ConverterContext {
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
         Event event = new Event();
         event.setTenantId(tenantId);
         event.setEntityId(converterId);
         event.setType(type);
         event.setBody(body);
-        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), callback::onSuccess, callback::onError);
+        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 }

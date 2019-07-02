@@ -45,6 +45,7 @@ import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.remote.RemoteIntegrationService;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
+import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -59,12 +60,22 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+// TODO: 7/2/19 integration statistics?
 @Service("RemoteIntegrationManagerService")
 @Slf4j
 public class RemoteIntegrationManagerService {
 
     public static final ObjectMapper mapper = new ObjectMapper();
+
+    @Value("${rpc.client_id}")
+    private String clientId;
+
+    @Value("${server.port}")
+    private int port;
 
     @Value("${integration.routingKey}")
     private String routingKey;
@@ -76,36 +87,49 @@ public class RemoteIntegrationManagerService {
     private IntegrationRpcClient rpcClient;
 
     @Autowired
+    private EventStorage eventStorage;
+
+    @Autowired
     private JsInvokeService jsInvokeService;
 
     @Autowired
     private RemoteIntegrationService integrationService;
 
     private ThingsboardPlatformIntegration integration;
+    private ExecutorService executor;
+    private Future future;
 
     @PostConstruct
     public void init() {
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::scheduleReconnect);
+        executor = Executors.newSingleThreadExecutor();
     }
 
     @PreDestroy
     public void destroy() throws InterruptedException {
         rpcClient.disconnect();
+        if (executor != null) {
+            executor.shutdownNow();
+        }
     }
 
     private void onConfigurationUpdate(IntegrationConfigurationProto integrationConfigurationProto) {
         if (integration != null) {
             integration.destroy();
         }
+        if (future != null) {
+            future.cancel(true);
+        }
         try {
             Integration configuration = createConfig(integrationConfigurationProto);
             integration = create(integrationConfigurationProto.getType());
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(integrationService, rpcClient, configuration),
+                    new RemoteIntegrationContext(integrationService, eventStorage, configuration, clientId, port),
                     configuration,
                     createUplinkConverter(integrationConfigurationProto.getUplinkConverter()),
                     createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter()));
             integration.init(params);
+            future = processHandleMessages();
         } catch (Exception e) {
             log.warn("Failed to initialize platform integration!", e);
         }
@@ -113,40 +137,28 @@ public class RemoteIntegrationManagerService {
 
     private TBUplinkDataConverter createUplinkConverter(ConverterConfigurationProto uplinkConverter) throws IOException {
         TBUplinkDataConverter uplinkDataConverter = new JSUplinkDataConverter(jsInvokeService);
-
-        TenantId tenantId = new TenantId(new UUID(uplinkConverter.getTenantIdMSB(), uplinkConverter.getTenantIdLSB()));
-
-        Converter converter = new Converter();
-        converter.setTenantId(tenantId);
-        converter.setName(uplinkConverter.getName());
-        converter.setType(ConverterType.UPLINK);
-        converter.setDebugMode(uplinkConverter.getDebugMode());
-        converter.setConfiguration(mapper.readTree(uplinkConverter.getConfiguration()));
-        converter.setAdditionalInfo(mapper.readTree(uplinkConverter.getAdditionalInfo()));
-
-        uplinkDataConverter.init(converter);
-
+        uplinkDataConverter.init(constructConverter(uplinkConverter, ConverterType.UPLINK));
         return uplinkDataConverter;
     }
 
     private TBDownlinkDataConverter createDownlinkConverter(ConverterConfigurationProto downLinkConverter) throws IOException {
         if (!StringUtils.isEmpty(downLinkConverter.getConfiguration())) {
             TBDownlinkDataConverter downlinkDataConverter = new JSDownlinkDataConverter(jsInvokeService);
-
-            TenantId tenantId = new TenantId(new UUID(downLinkConverter.getTenantIdMSB(), downLinkConverter.getTenantIdLSB()));
-
-            Converter converter = new Converter();
-            converter.setTenantId(tenantId);
-            converter.setName(downLinkConverter.getName());
-            converter.setType(ConverterType.DOWNLINK);
-            converter.setDebugMode(downLinkConverter.getDebugMode());
-            converter.setConfiguration(mapper.readTree(downLinkConverter.getConfiguration()));
-            converter.setAdditionalInfo(mapper.readTree(downLinkConverter.getAdditionalInfo()));
-
-            downlinkDataConverter.init(converter);
+            downlinkDataConverter.init(constructConverter(downLinkConverter, ConverterType.DOWNLINK));
             return downlinkDataConverter;
         }
         return null;
+    }
+
+    private Converter constructConverter(ConverterConfigurationProto converterProto, ConverterType converterType) throws IOException {
+        Converter converter = new Converter();
+        converter.setTenantId(new TenantId(new UUID(converterProto.getTenantIdMSB(), converterProto.getTenantIdLSB())));
+        converter.setName(converterProto.getName());
+        converter.setType(converterType);
+        converter.setDebugMode(converterProto.getDebugMode());
+        converter.setConfiguration(mapper.readTree(converterProto.getConfiguration()));
+        converter.setAdditionalInfo(mapper.readTree(converterProto.getAdditionalInfo()));
+        return converter;
     }
 
     private Integration createConfig(IntegrationConfigurationProto integrationConfigurationProto) throws IOException {
@@ -176,12 +188,30 @@ public class RemoteIntegrationManagerService {
         //TODO
     }
 
-    //TODO: launch a thread to continiously execute rpcClient.handleMsgs();
-
     private ThingsboardPlatformIntegration create(String type) throws Exception {
         switch (IntegrationType.valueOf(type)) {
             case HTTP:
                 return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
+            case SIGFOX:
+                return newInstance("org.thingsboard.integration.http.sigfox.SigFoxIntegration");
+            case OCEANCONNECT:
+                return newInstance("org.thingsboard.integration.http.oc.OceanConnectIntegration");
+            case THINGPARK:
+                return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegration");
+            case TMOBILE_IOT_CDP:
+                return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
+            case MQTT:
+                return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
+            case AWS_IOT:
+                return newInstance("org.thingsboard.integration.mqtt.aws.AwsIotIntegration");
+            case IBM_WATSON_IOT:
+                return newInstance("org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration");
+            case TTN:
+                return newInstance("org.thingsboard.integration.mqtt.ttn.TtnIntegration");
+            case AZURE_EVENT_HUB:
+                return newInstance("org.thingsboard.integration.azure.AzureEventHubIntegration");
+            case OPC_UA:
+                return newInstance("org.thingsboard.integration.opcua.OpcUaIntegration");
             default:
                 throw new RuntimeException("Not Implemented!");
         }
@@ -189,5 +219,17 @@ public class RemoteIntegrationManagerService {
 
     private ThingsboardPlatformIntegration newInstance(String clazz) throws Exception {
         return (ThingsboardPlatformIntegration) Class.forName(clazz).newInstance();
+    }
+
+    private Future processHandleMessages() {
+        return executor.submit(() -> {
+            while (true) {
+                try {
+                    rpcClient.handleMsgs();
+                } catch (Exception e) {
+                    log.warn("Failed to process messages handling!", e);
+                }
+            }
+        });
     }
 }
