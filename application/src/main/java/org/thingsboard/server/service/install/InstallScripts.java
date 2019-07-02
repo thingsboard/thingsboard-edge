@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -252,8 +253,9 @@ public class InstallScripts {
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
     }
 
-    public void updateMailTemplates(JsonNode value) throws Exception {
+    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
         AdminSettings mailTemplateSettings = new AdminSettings();
+        mailTemplateSettings.setId(adminSettingsId);
         mailTemplateSettings.setKey("mailTemplates");
         JsonNode mailTemplatesJson = readMailTemplates();
 

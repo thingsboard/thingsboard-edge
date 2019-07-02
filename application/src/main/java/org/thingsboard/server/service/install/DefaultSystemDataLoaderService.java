@@ -41,6 +41,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
@@ -137,8 +138,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     }
 
     @Override
-    public void updateMailTemplates(JsonNode value) throws Exception {
-        installScripts.updateMailTemplates(value);
+    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
+        installScripts.updateMailTemplates(adminSettingsId, value);
     }
 
     @Override

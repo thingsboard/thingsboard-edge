@@ -147,7 +147,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 if (mailTemplateSettings == null) {
                     systemDataLoaderService.loadMailTemplates();
                 } else {
-                    systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getJsonValue());
+                    systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getId(), mailTemplateSettings.getJsonValue());
                 }
 
                 //White Labeling updates
