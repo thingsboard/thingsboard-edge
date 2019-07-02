@@ -38,6 +38,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.transport.SessionMsgProcessor;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -93,5 +94,9 @@ public class IntegrationContext {
     @Lazy
     @Autowired
     private DownlinkService downlinkService;
+
+    @Lazy
+    @Autowired
+    private CustomerService customerService;
 
 }

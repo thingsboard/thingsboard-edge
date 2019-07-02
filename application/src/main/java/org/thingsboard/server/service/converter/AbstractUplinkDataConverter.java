@@ -92,6 +92,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.deviceName(src.get("deviceName").getAsString());
         builder.deviceType(src.get("deviceType").getAsString());
+        if (src.has("customerName")) {
+            builder.customerName(src.get("customerName").getAsString());
+        }
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }

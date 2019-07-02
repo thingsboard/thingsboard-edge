@@ -36,8 +36,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
@@ -67,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -205,6 +210,19 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             device.setName(data.getDeviceName());
             device.setType(data.getDeviceType());
             device.setTenantId(configuration.getTenantId());
+            if (!StringUtils.isEmpty(data.getCustomerName())) {
+                Customer customer;
+                Optional<Customer> customerOptional = context.getCustomerService().findCustomerByTenantIdAndTitle(configuration.getTenantId(), data.getCustomerName());
+                if (customerOptional.isPresent() && !customerOptional.get().getId().isNullUid()) {
+                    customer = customerOptional.get();
+                } else {
+                    customer = new Customer();
+                    customer.setTitle(data.getCustomerName());
+                    customer.setTenantId(configuration.getTenantId());
+                    customer = context.getCustomerService().saveCustomer(customer);
+                }
+                device.setCustomerId(customer.getId());
+            }
             device = context.getDeviceService().saveDevice(device);
             EntityRelation relation = new EntityRelation();
             relation.setFrom(configuration.getId());
@@ -325,5 +343,4 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             }
         }
     }
-
 }
