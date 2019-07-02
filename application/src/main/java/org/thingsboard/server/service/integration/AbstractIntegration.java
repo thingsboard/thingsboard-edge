@@ -213,7 +213,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             if (!StringUtils.isEmpty(data.getCustomerName())) {
                 Customer customer;
                 Optional<Customer> customerOptional = context.getCustomerService().findCustomerByTenantIdAndTitle(configuration.getTenantId(), data.getCustomerName());
-                if (customerOptional.isPresent() && !customerOptional.get().getId().isNullUid()) {
+                if (customerOptional.isPresent()) {
                     customer = customerOptional.get();
                 } else {
                     customer = new Customer();
