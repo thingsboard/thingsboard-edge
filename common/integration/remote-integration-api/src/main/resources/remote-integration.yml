@@ -50,6 +50,7 @@ rpc:
   port: "${RPC_PORT:50051}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
   cert: "${RPC_CERT:roots.pem}"
+  client_id: "${RPC_CLIENT_ID:remote}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}" # local/remote

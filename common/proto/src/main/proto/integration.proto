@@ -43,7 +43,9 @@ service IntegrationTransport {
 
   rpc Connect(ConnectRequestMsg) returns (ConnectResponseMsg) {}
 
-  rpc handleMsgs(stream UplinkMsg) returns (stream DownlinkMsg) {}
+  rpc sendUplinkMsg(UplinkMsg) returns (UplinkResponseMsg) {}
+
+  rpc handleDownlinks() returns (stream DownlinkMsg) {}
 
 }
 
@@ -131,6 +133,11 @@ message UplinkMsg {
   repeated DeviceUplinkDataProto deviceData = 2;
   repeated TbEventProto eventsData = 3;
   repeated bytes tbMsg = 4;
+}
+
+message UplinkResponseMsg {
+  bool success = 1;
+  string errorMsg = 2;
 }
 
 message DownlinkMsg {

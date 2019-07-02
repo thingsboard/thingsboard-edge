@@ -30,13 +30,14 @@
  */
 package org.thingsboard.integration.storage;
 
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import java.util.List;
 
 public interface EventStorage {
 
-    void write(UplinkMsg msg);
+    void write(UplinkMsg msg, IntegrationCallback<Void> callback);
 
     List<UplinkMsg> readCurrentBatch();
 

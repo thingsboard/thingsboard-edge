@@ -39,48 +39,59 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
+import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.UplinkMsg;
 
 //TODO: we will implement together.
 @Data
 public class RemoteIntegrationContext implements IntegrationContext {
 
     protected final RemoteIntegrationService service;
-    protected final IntegrationRpcClient rpcClient;
+    protected final EventStorage eventStorage;
     protected final Integration configuration;
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
 
-    public RemoteIntegrationContext(RemoteIntegrationService service, IntegrationRpcClient rpcClient, Integration configuration) {
+    public RemoteIntegrationContext(RemoteIntegrationService service, EventStorage eventStorage, Integration configuration) {
         this.service = service;
-        this.rpcClient = rpcClient;
+        this.eventStorage = eventStorage;
         this.configuration = configuration;
-        this.uplinkConverterContext = new RemoteConverterContext();
-        this.downlinkConverterContext = new RemoteConverterContext();
+        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, configuration.getTenantId(), configuration.getDefaultConverterId());
+        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, configuration.getTenantId(), configuration.getDownlinkConverterId());
     }
 
     @Override
     public ServerAddress getServerAddress() {
+        //allow to put address in remote-integration.yml (configurable parameter)
         return null;
     }
 
     @Override
-    public void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-
+    public void processUplinkData(DeviceUplinkDataProto msg, IntegrationCallback<Void> callback) {
+        //TODO: populate messageId, etc
+        eventStorage.write(UplinkMsg.newBuilder().setDeviceData(0, msg).build(), callback);
     }
 
     @Override
-    public void processCustomMsg(TbMsg msg) {
-
+    public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
+        //TODO: populate messageId, etc
+        eventStorage.write(UplinkMsg.newBuilder().setTbMsg(0, TbMsg.toBytes(msg)).build(), callback);
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
-
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+        Event event = new Event();
+        event.setTenantId(configuration.getTenantId());
+        event.setEntityId(configuration.getId());
+        event.setType(type);
+        event.setBody(body);
+        //TODO: populate messageId, etc
+        eventStorage.write(UplinkMsg.newBuilder().setEventsData()).build(), callback);
     }
 
     @Override

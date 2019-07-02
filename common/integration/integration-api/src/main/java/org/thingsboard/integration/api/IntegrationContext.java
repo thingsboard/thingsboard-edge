@@ -80,12 +80,12 @@ public interface IntegrationContext {
      *
      * @param msg - custom message to dispatch
      */
-    void processCustomMsg(TbMsg msg);
+    void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback);
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
      */
-    void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback);
+    void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback);
 
     /**
      * Provides Netty Event loop group to be used by integrations in order to avoid creating separate threads per integration.

@@ -124,6 +124,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
         List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
 
+        //TODO: remove to the variable to avoid initialization
         StreamObserver<UplinkMsg> requestObserver = stub.handleMsgs(new StreamObserver<DownlinkMsg>() {
             @Override
             public void onNext(DownlinkMsg value) {

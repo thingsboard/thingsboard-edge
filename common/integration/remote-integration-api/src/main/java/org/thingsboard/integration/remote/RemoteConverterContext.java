@@ -31,12 +31,21 @@
 package org.thingsboard.integration.remote;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
+import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
+@Data
 public class RemoteConverterContext implements ConverterContext {
+    private final EventStorage eventStorage;
+    private final TenantId tenantId;
+    private final ConverterId converterId;
+
 
     @Override
     public ServerAddress getServerAddress() {
@@ -45,6 +54,11 @@ public class RemoteConverterContext implements ConverterContext {
 
     @Override
     public void saveEvent(String type, JsonNode body, IntegrationCallback<Event> callback) {
-
+        Event event = new Event();
+        event.setTenantId(tenantId);
+        event.setEntityId(converterId);
+        event.setType(type);
+        event.setBody(body);
+        eventStorage.write(,callback);
     }
 }

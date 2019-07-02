@@ -176,6 +176,8 @@ public class RemoteIntegrationManagerService {
         //TODO
     }
 
+    //TODO: launch a thread to continiously execute rpcClient.handleMsgs();
+
     private ThingsboardPlatformIntegration create(String type) throws Exception {
         switch (IntegrationType.valueOf(type)) {
             case HTTP:

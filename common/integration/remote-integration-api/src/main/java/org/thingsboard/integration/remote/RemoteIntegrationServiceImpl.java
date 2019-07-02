@@ -30,8 +30,15 @@
  */
 package org.thingsboard.integration.remote;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.storage.EventStorage;
 
 @Service
 public class RemoteIntegrationServiceImpl implements RemoteIntegrationService {
+
+    @Autowired
+    private EventStorage eventStorage;
+
+
 }
