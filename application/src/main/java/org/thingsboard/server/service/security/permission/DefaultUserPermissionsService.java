@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -237,17 +238,17 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         Map<EntityGroupId, MergedGroupPermissionInfo> groupSpecificPermissions = new HashMap<>();
         for (GroupPermission groupPermission : groupPermissions) {
-            if (groupPermission.getEntityGroupId() == null) {
-                addGenericRolePermissions(tenantId, genericPermissions, groupPermission);
+            Role role = roleService.findRoleById(tenantId, groupPermission.getRoleId());
+            if (role.getType() == RoleType.GENERIC) {
+                addGenericRolePermissions(role, genericPermissions, groupPermission);
             } else {
-                addGroupSpecificRolePermissions(tenantId, groupSpecificPermissions, groupPermission);
+                addGroupSpecificRolePermissions(role, groupSpecificPermissions, groupPermission);
             }
         }
         return new MergedUserPermissions(genericPermissions, groupSpecificPermissions);
     }
 
-    private void addGenericRolePermissions(TenantId tenantId, Map<Resource, Set<Operation>> target, GroupPermission groupPermission) {
-        Role role = roleService.findRoleById(tenantId, groupPermission.getRoleId());
+    private void addGenericRolePermissions(Role role, Map<Resource, Set<Operation>> target, GroupPermission groupPermission) {
         Map<Resource, List<Operation>> rolePermissions = new HashMap<>();
         for (Resource resource : Resource.values()) {
             if (role.getPermissions().has(resource.name())) {
@@ -259,8 +260,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         rolePermissions.forEach(((resource, operations) -> target.computeIfAbsent(resource, r -> new HashSet<>()).addAll(operations)));
     }
 
-    private void addGroupSpecificRolePermissions(TenantId tenantId, Map<EntityGroupId, MergedGroupPermissionInfo> target, GroupPermission groupPermission) {
-        Role role = roleService.findRoleById(tenantId, groupPermission.getRoleId());
+    private void addGroupSpecificRolePermissions(Role role, Map<EntityGroupId, MergedGroupPermissionInfo> target, GroupPermission groupPermission) {
         List<Operation> roleOperations = new ArrayList<>();
         role.getPermissions().forEach(node -> roleOperations.add(Operation.valueOf(node.asText())));
         target.computeIfAbsent(groupPermission.getEntityGroupId(), id -> new MergedGroupPermissionInfo(groupPermission.getEntityGroupType(), new HashSet<>())).getOperations().addAll(roleOperations);

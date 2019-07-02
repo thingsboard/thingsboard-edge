@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 
 import java.util.List;
 import java.util.UUID;
@@ -86,11 +87,14 @@ public class GroupPermissionController extends BaseController {
                 permissionDenied();
             }
 
-            checkRoleId(groupPermission.getRoleId(), Operation.READ);
+            Role role = checkRoleId(groupPermission.getRoleId(), Operation.READ);
             if (groupPermission.getUserGroupId() != null && !groupPermission.getUserGroupId().isNullUid()) {
                 checkEntityGroupId(groupPermission.getUserGroupId(), Operation.WRITE);
             }
             if (groupPermission.getEntityGroupId() != null && !groupPermission.getEntityGroupId().isNullUid()) {
+                if (role.getType() == RoleType.GENERIC) {
+                    throw new IllegalArgumentException("Can't assign Generic Role to entity group!");
+                }
                 checkEntityGroupId(groupPermission.getEntityGroupId(), Operation.WRITE);
             }
 
