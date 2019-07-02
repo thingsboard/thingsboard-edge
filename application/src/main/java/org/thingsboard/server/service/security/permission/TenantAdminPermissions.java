@@ -88,7 +88,6 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
         put(Resource.AUDIT_LOG, genericPermissionChecker);
-        put(Resource.SELF_REGISTRATION, genericPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {

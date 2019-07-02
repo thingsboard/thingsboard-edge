@@ -63,8 +63,7 @@ public enum Resource {
     ROLE(EntityType.ROLE),
     GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
     WHITE_LABELING(),
-    AUDIT_LOG(),
-    SELF_REGISTRATION();
+    AUDIT_LOG();
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -121,7 +120,6 @@ public enum Resource {
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
         operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
         operationsByResource.put(Resource.AUDIT_LOG, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
-        operationsByResource.put(Resource.SELF_REGISTRATION, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -163,8 +161,7 @@ public enum Resource {
                 Resource.ENTITY_VIEW_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
-                Resource.AUDIT_LOG,
-                Resource.SELF_REGISTRATION)));
+                Resource.AUDIT_LOG)));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,

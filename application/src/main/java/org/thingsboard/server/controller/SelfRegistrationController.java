@@ -135,7 +135,7 @@ public class SelfRegistrationController extends BaseController {
     }
 
     private void checkSelfRegistrationPermissions(Operation operation) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.SELF_REGISTRATION, operation);
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, operation);
     }
 
 }
