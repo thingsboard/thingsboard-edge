@@ -2000,6 +2000,7 @@
                 "WRITE_ATTRIBUTES": "Write Attributes",
                 "READ_TELEMETRY": "Read Telemetry",
                 "WRITE_TELEMETRY": "Write Telemetry",
+                "CLAIM_DEVICES": "Claim devices",
                 "IMPERSONATE": "Impersonate",
                 "CHANGE_OWNER": "Change owner",
                 "ADD_TO_GROUP": "Add to Group",
