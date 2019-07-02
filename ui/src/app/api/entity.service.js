@@ -1429,13 +1429,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function saveEntityParameters(entityType, entityGroupId, entityParameters, update, config) {
+    function saveEntityParameters(customerId, entityType, entityGroupId, entityParameters, update, config) {
         config = config || {};
         const deferred = $q.defer();
         let statisticalInfo = {};
         let newEntity = {
             name: entityParameters.name,
-            type: entityParameters.type
+            type: entityParameters.type,
+            customerId: customerId
         };
         let promise;
         switch (entityType) {

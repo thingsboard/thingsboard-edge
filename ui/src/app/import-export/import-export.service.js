@@ -704,12 +704,12 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         )
     }
 
-    function importEntities($event, entityType, entityGroupId) {
+    function importEntities($event, customerId, entityType, entityGroupId) {
         var deferred = $q.defer();
 
         switch (entityType) {
             case types.entityType.device:
-                openImportDialogCSV($event, entityType, entityGroupId,'device.import', 'device.device-file').then(
+                openImportDialogCSV($event, customerId, entityType, entityGroupId,'device.import', 'device.device-file').then(
                     function success() {
                         deferred.resolve();
                     },
@@ -719,7 +719,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
                 );
                 return deferred.promise;
             case types.entityType.asset:
-                openImportDialogCSV($event, entityType, entityGroupId, 'asset.import', 'asset.asset-file').then(
+                openImportDialogCSV($event, customerId, entityType, entityGroupId, 'asset.import', 'asset.asset-file').then(
                     function success() {
                         deferred.resolve();
                     },
@@ -967,7 +967,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         return $q.all(promises);
     }
     
-    function createMultiEntity(arrayData, entityType, entityGroupId, updateData, config) {
+    function createMultiEntity(arrayData, customerId, entityType, entityGroupId, updateData, config) {
         let partSize = 100;
         partSize = arrayData.length > partSize ? partSize : arrayData.length;
         let allPromise = [];
@@ -975,7 +975,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         let deferred = $q.defer();
 
         for(let i = 0; i < partSize; i++){
-            const promise = entityService.saveEntityParameters(entityType, entityGroupId, arrayData[i], updateData, config);
+            const promise = entityService.saveEntityParameters(customerId, entityType, entityGroupId, arrayData[i], updateData, config);
             allPromise.push(promise);
         }
 
@@ -985,7 +985,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             }
             arrayData.splice(0, partSize);
             if(arrayData.length > 0){
-                deferred.resolve(createMultiEntity(arrayData, entityType, entityGroupId, updateData, config).then(function (response) {
+                deferred.resolve(createMultiEntity(arrayData, customerId, entityType, entityGroupId, updateData, config).then(function (response) {
                     return sumObject(statisticalInfo, response);
                 }));
             } else {
@@ -1122,7 +1122,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         }
     }
 
-    function openImportDialogCSV($event, entityType, entityGroupId, importTitle, importFileLabel) {
+    function openImportDialogCSV($event, customerId, entityType, entityGroupId, importTitle, importFileLabel) {
         var deferred = $q.defer();
         $mdDialog.show({
             controller: 'ImportDialogCSVController',
@@ -1131,6 +1131,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             locals: {
                 importTitle: importTitle,
                 importFileLabel: importFileLabel,
+                customerId: customerId,
                 entityType: entityType,
                 entityGroupId: entityGroupId
             },

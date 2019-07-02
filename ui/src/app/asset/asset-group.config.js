@@ -29,7 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types, userService, assetService) {
+export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types, securityTypes,
+                                         userPermissionsService, userService, importExport, assetService) {
 
     var service = {
         createConfig: createConfig
@@ -80,58 +81,36 @@ export default function AssetGroupConfig($q, $translate, tbDialogs, utils, types
             }
         };
 
-       /* groupConfig.onAssignToCustomer = (event, entity) => {
-            tbDialogs.assignAssetsToCustomer(event, [entity.id.id]).then(
-                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
-            );
-        };
-
-        groupConfig.onUnassignFromCustomer = (event, entity, isPublic) => {
-            tbDialogs.unassignAssetFromCustomer(event, entity, isPublic).then(
-                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
-            );
-        };
-
-        groupConfig.onMakePublic = (event, entity) => {
-            tbDialogs.makeAssetPublic(event, entity).then(
-                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
-            );
-        };*/
-
-      /*  groupConfig.groupActionDescriptors = [
-            {
-                name: $translate.instant('asset.assign-assets'),
-                icon: "assignment_ind",
-                isEnabled: () => {
-                    return settings.enableAssignment;
-                },
-                onAction: (event, entities) => {
-                    var assetIds = [];
-                    entities.forEach((entity) => {
-                        assetIds.push(entity.id.id);
-                    });
-                    tbDialogs.assignAssetsToCustomer(event, assetIds).then(
-                        () => { groupConfig.onEntitiesUpdated(assetIds, true); }
-                    );
-                },
-            },
-            {
-                name: $translate.instant('asset.unassign-assets'),
-                icon: "assignment_return",
-                isEnabled: () => {
-                    return settings.enableAssignment;
-                },
-                onAction: (event, entities) => {
-                    var assetIds = [];
-                    entities.forEach((entity) => {
-                        assetIds.push(entity.id.id);
-                    });
-                    tbDialogs.unassignAssetsFromCustomer(event, assetIds).then(
-                        () => { groupConfig.onEntitiesUpdated(assetIds, true); }
-                    );
-                },
+        groupConfig.onImportAssets = (event)  => {
+            var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
+            var customerId = null;
+            if (entityGroup.ownerId.entityType === types.entityType.customer) {
+                customerId = entityGroup.ownerId;
             }
-        ];*/
+            importExport.importEntities(event, customerId, types.entityType.asset, entityGroupId).then(
+                function() {
+                    groupConfig.onEntityAdded();
+                }
+            );
+        };
+
+        groupConfig.headerActionDescriptors = [
+        ];
+
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, entityGroup)) {
+            groupConfig.headerActionDescriptors.push(
+                {
+                    name: $translate.instant('asset.import'),
+                    icon: 'file_upload',
+                    isEnabled: () => {
+                        return groupConfig.addEnabled();
+                    },
+                    onAction: ($event) => {
+                        groupConfig.onImportAssets($event);
+                    }
+                }
+            );
+        }
 
         utils.groupConfigDefaults(groupConfig);
 

@@ -31,7 +31,8 @@
 import './import-dialog.scss';
 
 /*@ngInject*/
-export default function ImportDialogCsvController($scope, $mdDialog, toast, importTitle, importFileLabel, entityType, entityGroupId, importExport, types, $mdStepper, $timeout) {
+export default function ImportDialogCsvController($scope, $mdDialog, toast, importTitle, importFileLabel,
+                                                  customerId, entityType, entityGroupId, importExport, types, $mdStepper, $timeout) {
 
     var vm = this;
 
@@ -49,6 +50,7 @@ export default function ImportDialogCsvController($scope, $mdDialog, toast, impo
 
     vm.importTitle = importTitle;
     vm.importFileLabel = importFileLabel;
+    vm.customerId = customerId;
     vm.entityType = entityType;
     vm.entityGroupId = entityGroupId;
 
@@ -186,7 +188,7 @@ export default function ImportDialogCsvController($scope, $mdDialog, toast, impo
             sentDataLength++;
             vm.progressCreate = Math.round((sentDataLength / importData.rows.length) * 100);
         });
-        importExport.createMultiEntity(entitiesData, vm.entityType, vm.entityGroupId, vm.importParameters.isUpdate, config).then(function (response) {
+        importExport.createMultiEntity(entitiesData, vm.customerId, vm.entityType, vm.entityGroupId, vm.importParameters.isUpdate, config).then(function (response) {
             vm.statistical = response;
             vm.isImportData = false;
             $mdStepper('import-stepper').next();
