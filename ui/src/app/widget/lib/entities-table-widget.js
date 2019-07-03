@@ -407,7 +407,7 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $mdP
     );
 
     function getEntityValue(entity, key) {
-        return getDescendantProp(entity, key.name);
+        return getDescendantProp(entity, key.label);
     }
 
     function customDataExport() {
@@ -443,9 +443,9 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $mdP
                     var keyData = data[index].data;
                     if (keyData && keyData.length && keyData[0].length > 1) {
                         var value = keyData[0][1];
-                        entity[dataKey.name] = value;
+                        entity[dataKey.label] = value;
                     } else {
-                        entity[dataKey.name] = '';
+                        entity[dataKey.label] = '';
                     }
                 }
             }
@@ -608,7 +608,7 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $mdP
             }
             for (d = 0; d < vm.dataKeys.length; d++) {
                 dataKey = vm.dataKeys[d];
-                entity[dataKey.name] = '';
+                entity[dataKey.label] = '';
             }
             vm.allEntities.push(entity);
         }
