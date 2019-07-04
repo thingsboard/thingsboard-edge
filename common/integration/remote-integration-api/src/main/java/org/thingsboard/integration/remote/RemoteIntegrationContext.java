@@ -69,7 +69,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
 
-    private AtomicInteger index = new AtomicInteger(0); // TODO: 7/2/19 is used correctly?
+    private AtomicInteger uplinkMsgId = new AtomicInteger(0); // TODO: 7/2/19 is used correctly?
 
     public RemoteIntegrationContext(RemoteIntegrationService service, EventStorage eventStorage, Integration configuration, String clientId, int port) {
         this.service = service;
@@ -88,12 +88,12 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().setDeviceData(index.getAndIncrement(), msg).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().setDeviceData(uplinkMsgId.getAndIncrement(), msg).build(), callback);
     }
 
     @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().setTbMsg(index.getAndIncrement(), ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().setTbMsg(uplinkMsgId.getAndIncrement(), ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
             log.warn("[{}] Failed to convert event!", event, e);
         }
         eventStorage.write(UplinkMsg.newBuilder()
-                .setEventsData(index.getAndIncrement(), TbEventProto.newBuilder()
+                .setEventsData(uplinkMsgId.getAndIncrement(), TbEventProto.newBuilder()
                         .setSource(TbEventSource.INTEGRATION)
                         .setType("type")
                         .setData(eventData)

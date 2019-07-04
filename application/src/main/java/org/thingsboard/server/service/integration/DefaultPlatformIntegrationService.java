@@ -34,7 +34,11 @@ import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,11 +54,20 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
+import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.oc.OceanConnectIntegration;
+import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
+import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
+import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
+import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
@@ -75,7 +88,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -85,7 +97,6 @@ import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportToDeviceActorMsg;
 import org.thingsboard.server.kafka.TbNodeIdProvider;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
@@ -93,25 +104,25 @@ import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
-import org.thingsboard.integration.http.basic.BasicHttpIntegration;
-import org.thingsboard.integration.http.oc.OceanConnectIntegration;
-import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
-import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
-import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -246,6 +257,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
             return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
         }
+        if (configuration.isRemote()) {
+            return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+        }
         return refreshExecutorService.submit(() -> getOrCreateThingsboardPlatformIntegration(configuration, forceReinit));
     }
 
@@ -254,6 +268,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration configuration) {
         if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
             return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+        }
+        if (configuration.isRemote()) {
+            return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
         }
         return refreshExecutorService.submit(() -> {
             Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());
@@ -307,6 +324,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             if (configuration.isPresent()) {
                 if (configuration.get().getType().isSingleton() && clusterRoutingService.resolveById(configuration.get().getId()).isPresent()) {
                     return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+                }
+                if (configuration.get().isRemote()) {
+                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
                 }
                 return Futures.immediateFailedFuture(new ThingsboardException("Integration is not present in routing key map!", ThingsboardErrorCode.GENERAL));
             } else {
@@ -540,7 +560,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             for (Integration integration : allIntegrations) {
                 try {
                     //Initialize the integration that belongs to current node only
-                    if (!integration.getType().isSingleton() || (integration.getType().isSingleton() && !clusterRoutingService.resolveById(integration.getId()).isPresent())) {
+                    if (!integration.getType().isSingleton() || (integration.getType().isSingleton() && !clusterRoutingService.resolveById(integration.getId()).isPresent()) ||
+                            !integration.isRemote()) {
                         futures.add(createIntegration(integration));
                     }
                 } catch (Exception e) {
@@ -548,7 +569,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 }
             }
             Futures.successfulAsList(futures).get();
-            log.info("{} Integrations refreshed", allIntegrations.size());
+            log.info("{} Integrations refreshed", futures.size());
         } catch (Throwable th) {
             log.error("Could not init integrations", th);
         }

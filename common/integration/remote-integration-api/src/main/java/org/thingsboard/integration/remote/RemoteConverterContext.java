@@ -61,7 +61,7 @@ public class RemoteConverterContext implements ConverterContext {
     private final String clientId;
     private final int port;
 
-    private AtomicInteger index = new AtomicInteger(0);
+    private AtomicInteger uplinkMsgId = new AtomicInteger(0);
 
     @Override
     public ServerAddress getServerAddress() {
@@ -90,7 +90,7 @@ public class RemoteConverterContext implements ConverterContext {
             log.warn("[{}] Failed to convert event!", event, e);
         }
 
-        eventStorage.write(UplinkMsg.newBuilder().setEventsData(index.getAndIncrement(), TbEventProto.newBuilder()
+        eventStorage.write(UplinkMsg.newBuilder().setEventsData(uplinkMsgId.getAndIncrement(), TbEventProto.newBuilder()
                 .setSource(source)
                 .setType("type") // TODO: 7/2/19 what type?
                 .setData(eventData)

@@ -34,7 +34,6 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -43,13 +42,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -60,13 +59,13 @@ import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.TbEventProto;
@@ -79,8 +78,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -100,6 +99,8 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Autowired
     private PlatformIntegrationService platformIntegrationService;
+    @Autowired
+    private IntegrationService integrationService;
     @Autowired
     private ConverterService converterService;
     @Autowired
@@ -149,8 +150,13 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Override
     public void connect(ConnectRequestMsg request, StreamObserver<ConnectResponseMsg> responseObserver) {
-        responseObserver.onNext(validateConnect(request));
-        responseObserver.onCompleted();
+        try {
+            responseObserver.onNext(validateConnect(request));
+            responseObserver.onCompleted();
+        } catch (JsonProcessingException e) {
+            log.error("[{}] Failed to process the connection of integration!", request.getIntegrationRoutingKey(), e);
+            responseObserver.onError(e);
+        }
     }
 
     @Override
@@ -259,10 +265,10 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
         return metaData;
     }
 
-    private ConnectResponseMsg validateConnect(ConnectRequestMsg request) {
-        ListenableFuture<ThingsboardPlatformIntegration> future = platformIntegrationService.getIntegrationByRoutingKey(request.getIntegrationRoutingKey());
-        try {
-            Integration configuration = future.get().getConfiguration();
+    private ConnectResponseMsg validateConnect(ConnectRequestMsg request) throws JsonProcessingException {
+        Optional<Integration> optional = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, request.getIntegrationRoutingKey());
+        if (optional.isPresent()) {
+            Integration configuration = optional.get();
             if (configuration.isRemote() && configuration.getSecret().equals(request.getIntegrationSecret())) {
                 Converter defaultConverter = converterService.findConverterById(configuration.getTenantId(),
                         configuration.getDefaultConverterId());
@@ -305,7 +311,6 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                         .setConfiguration(mapper.writeValueAsString(configuration.getConfiguration()))
                         .setAdditionalInfo(mapper.writeValueAsString(configuration.getAdditionalInfo()))
                         .build();
-
                 return ConnectResponseMsg.newBuilder()
                         .setResponseCode(ConnectResponseCode.ACCEPTED)
                         .setErrorMsg("")
@@ -315,11 +320,10 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                     .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
                     .setErrorMsg("Failed to validate the integration!")
                     .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
-        } catch (Exception e) {
-            log.error("[{}] Failed to process the connection of integration!", request.getIntegrationRoutingKey(), e);
+        } else {
             return ConnectResponseMsg.newBuilder()
-                    .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
-                    .setErrorMsg("Failed to process the connection of integration! " + e.getMessage())
+                    .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
+                    .setErrorMsg("Failed to find the integration! Routing key: " + request.getIntegrationRoutingKey())
                     .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
         }
     }

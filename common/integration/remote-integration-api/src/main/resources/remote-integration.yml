@@ -38,6 +38,7 @@ server:
 integration:
   routingKey: "${INTEGRATION_ROUTING_KEY:}"
   secret: "${INTEGRATION_SECRET:}"
+  allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   remote:
     data_folder_path: "${INTEGRATION_REMOTE_DATA_FOLDER_PATH:}"
     max_file_count: "${INTEGRATION_REMOTE_MAX_FILE_COUNT:1000}"

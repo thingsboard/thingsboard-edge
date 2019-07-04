@@ -123,7 +123,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     @Override
     public void handleMsgs() {
         List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
-        int msgCount = uplinkMsgList.size();
+        int msgCount = uplinkMsgList.size(); // TODO: 7/4/19 use CountDownLatch?
         for (UplinkMsg msg : uplinkMsgList) {
             msgCount--;
             stub.sendUplinkMsg(msg, getResponseObserver(msg, msgCount));

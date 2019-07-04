@@ -62,7 +62,6 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 // TODO: 7/2/19 integration statistics?
 @Service("RemoteIntegrationManagerService")
@@ -83,6 +82,9 @@ public class RemoteIntegrationManagerService {
     @Value("${integration.secret}")
     private String routingSecret;
 
+    @Value("${integrations.allow_local_network_hosts:true}")
+    private boolean allowLocalNetworkHosts;
+
     @Autowired
     private IntegrationRpcClient rpcClient;
 
@@ -97,7 +99,7 @@ public class RemoteIntegrationManagerService {
 
     private ThingsboardPlatformIntegration integration;
     private ExecutorService executor;
-    private Future future;
+    private boolean initialized;
 
     @PostConstruct
     public void init() {
@@ -117,19 +119,20 @@ public class RemoteIntegrationManagerService {
         if (integration != null) {
             integration.destroy();
         }
-        if (future != null) {
-            future.cancel(true);
-        }
         try {
             Integration configuration = createConfig(integrationConfigurationProto);
             integration = create(integrationConfigurationProto.getType());
+            integration.validateConfiguration(configuration, allowLocalNetworkHosts); // TODO: 7/3/19 allowLocalNetworkHosts?
             TbIntegrationInitParams params = new TbIntegrationInitParams(
                     new RemoteIntegrationContext(integrationService, eventStorage, configuration, clientId, port),
                     configuration,
                     createUplinkConverter(integrationConfigurationProto.getUplinkConverter()),
                     createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter()));
             integration.init(params);
-            future = processHandleMessages();
+            if (!initialized) {
+                processHandleMessages();
+                initialized = true;
+            }
         } catch (Exception e) {
             log.warn("Failed to initialize platform integration!", e);
         }
@@ -221,8 +224,8 @@ public class RemoteIntegrationManagerService {
         return (ThingsboardPlatformIntegration) Class.forName(clazz).newInstance();
     }
 
-    private Future processHandleMessages() {
-        return executor.submit(() -> {
+    private void processHandleMessages() {
+        executor.submit(() -> {
             while (true) {
                 try {
                     rpcClient.handleMsgs();
