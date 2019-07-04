@@ -560,8 +560,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             for (Integration integration : allIntegrations) {
                 try {
                     //Initialize the integration that belongs to current node only
-                    if (!integration.getType().isSingleton() || (integration.getType().isSingleton() && !clusterRoutingService.resolveById(integration.getId()).isPresent()) ||
-                            !integration.isRemote()) {
+                    if ((!integration.getType().isSingleton() || (integration.getType().isSingleton() && !clusterRoutingService.resolveById(integration.getId()).isPresent()))
+                            && !integration.isRemote()) {
                         futures.add(createIntegration(integration));
                     }
                 } catch (Exception e) {
