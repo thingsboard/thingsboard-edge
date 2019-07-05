@@ -36,8 +36,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
@@ -220,6 +218,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                     customer.setTitle(data.getCustomerName());
                     customer.setTenantId(configuration.getTenantId());
                     customer = context.getCustomerService().saveCustomer(customer);
+                    pushCustomerCreatedEventToRuleEngine(context, customer);
                 }
                 device.setCustomerId(customer.getId());
             }
@@ -231,25 +230,48 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             relation.setType(EntityRelation.INTEGRATION_TYPE);
             context.getRelationService().saveRelation(configuration.getTenantId(), relation);
             context.getActorService().onDeviceAdded(device);
-            try {
-                ObjectNode entityNode = mapper.valueToTree(device);
-                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-                context.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
-            } catch (JsonProcessingException | IllegalArgumentException e) {
-                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
-            }
+            pushDeviceCreatedEventToRuleEngine(context, device);
         }
         return device;
     }
 
-    private TbMsgMetaData actionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", configuration.getId().toString());
-        metaData.putValue("integrationName", configuration.getName());
+    private void pushDeviceCreatedEventToRuleEngine(IntegrationContext context, Device device) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(device);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
+            context.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
+    private void pushCustomerCreatedEventToRuleEngine(IntegrationContext context, Customer customer) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(customer);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
+            context.getActorService().onMsg(new SendToClusterMsg(customer.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
+    private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
+        TbMsgMetaData metaData = getTbMsgMetaData();
         CustomerId customerId = device.getCustomerId();
         if (customerId != null && !customerId.isNullUid()) {
             metaData.putValue("customerId", customerId.toString());
         }
+        return metaData;
+    }
+
+    private TbMsgMetaData customerActionTbMsgMetaData() {
+        return getTbMsgMetaData();
+    }
+
+    private TbMsgMetaData getTbMsgMetaData() {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("integrationId", configuration.getId().toString());
+        metaData.putValue("integrationName", configuration.getName());
         return metaData;
     }
 
