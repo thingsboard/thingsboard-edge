@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -68,6 +69,8 @@ import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.RequestMsg;
+import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
@@ -78,14 +81,15 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
-public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase {
+public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
 
     private static final ReentrantLock deviceCreationLock = new ReentrantLock();
     public static final ObjectMapper mapper = new ObjectMapper();
@@ -111,6 +115,8 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private DeviceService deviceService;
     @Autowired
     private RelationService relationService;
+
+    private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
 
     private Server server;
 
@@ -149,126 +155,16 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     }
 
     @Override
-    public void connect(ConnectRequestMsg request, StreamObserver<ConnectResponseMsg> responseObserver) {
-        try {
-            responseObserver.onNext(validateConnect(request));
-            responseObserver.onCompleted();
-        } catch (JsonProcessingException e) {
-            log.error("[{}] Failed to process the connection of integration!", request.getIntegrationRoutingKey(), e);
-            responseObserver.onError(e);
-        }
+    public StreamObserver<RequestMsg> handleMsgs(StreamObserver<ResponseMsg> responseObserver) {
+        return sessions.computeIfAbsent(responseObserver, r -> new IntegrationGrpcSession(this, responseObserver)).getInputStream();
     }
 
     @Override
-    public void sendUplinkMsg(UplinkMsg msg, StreamObserver<UplinkResponseMsg> responseObserver) {
-        responseObserver.onNext(processMsg(msg));
-        responseObserver.onCompleted();
-    }
-
-    private UplinkResponseMsg processMsg(UplinkMsg msg) {
-        if (msg.getDeviceDataCount() > 0) {
-            List<DeviceUplinkDataProto> deviceDataList = msg.getDeviceDataList();
-            for (DeviceUplinkDataProto data : deviceDataList) {
-                Device device = getOrCreateDevice(data);
-
-                UUID sessionId = UUID.randomUUID();
-                SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
-                        .setSessionIdMSB(sessionId.getMostSignificantBits())
-                        .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                        .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                        .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                        .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                        .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                        .build();
-
-                if (data.hasPostTelemetryMsg()) {
-                    platformIntegrationService.process(sessionInfo, data.getPostTelemetryMsg(), null);
-                }
-
-                if (data.hasPostAttributesMsg()) {
-                    platformIntegrationService.process(sessionInfo, data.getPostAttributesMsg(), null);
-                }
-            }
-        }
-
-        if (msg.getEventsDataCount() > 0) {
-            for (TbEventProto proto : msg.getEventsDataList()) {
-                try {
-                    eventService.save(mapper.readValue(proto.getData(), Event.class));
-                } catch (IOException e) {
-                    log.warn("[{}] Failed to read string value to Event!", proto.getData(), e);
-                    // TODO: 7/2/19 return error?
-                }
-            }
-        }
-
-        if (msg.getTbMsgCount() > 0) {
-            for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
-                actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(null, tbMsg))); // TODO: 7/2/19 tenantId?
-            }
-        }
-
-        return UplinkResponseMsg.newBuilder()
-                .setSuccess(true)
-                .setErrorMsg("")
-                .build();
-    }
-
-    private Device getOrCreateDevice(DeviceUplinkDataProto data) {
-        Device device = deviceService.findDeviceByTenantIdAndName(null, data.getDeviceName()); // TODO: 7/2/19 tenantId?
-        if (device == null) {
-            deviceCreationLock.lock();
-            try {
-                return processGetOrCreateDevice(data);
-            } finally {
-                deviceCreationLock.unlock();
-            }
-        }
-        return device;
-    }
-
-    private Device processGetOrCreateDevice(DeviceUplinkDataProto data) {
-        Device device = deviceService.findDeviceByTenantIdAndName(null, data.getDeviceName());
-        if (device == null) {
-            device = new Device();
-            device.setName(data.getDeviceName());
-            device.setType(data.getDeviceType());
-            device.setTenantId(null);
-            device = deviceService.saveDevice(device);
-            EntityRelation relation = new EntityRelation();
-            relation.setFrom(null);
-            relation.setTo(device.getId());
-            relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.INTEGRATION_TYPE);
-            relationService.saveRelation(null, relation);
-            actorService.onDeviceAdded(device);
-            try {
-                ObjectNode entityNode = mapper.valueToTree(device);
-                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-                actorService.onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(null, msg)));
-            } catch (JsonProcessingException | IllegalArgumentException e) {
-                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
-            }
-        }
-        return device;
-    }
-
-    private TbMsgMetaData actionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", null);
-        metaData.putValue("integrationName", null);
-        CustomerId customerId = device.getCustomerId();
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
-    private ConnectResponseMsg validateConnect(ConnectRequestMsg request) throws JsonProcessingException {
+    public ConnectResponseMsg validateConnect(ConnectRequestMsg request, IntegrationGrpcSession session) throws JsonProcessingException {
         Optional<Integration> optional = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, request.getIntegrationRoutingKey());
         if (optional.isPresent()) {
             Integration configuration = optional.get();
+            session.setIntegration(configuration);
             if (configuration.isRemote() && configuration.getSecret().equals(request.getIntegrationSecret())) {
                 Converter defaultConverter = converterService.findConverterById(configuration.getTenantId(),
                         configuration.getDefaultConverterId());
@@ -320,11 +216,110 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                     .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
                     .setErrorMsg("Failed to validate the integration!")
                     .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
-        } else {
-            return ConnectResponseMsg.newBuilder()
-                    .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
-                    .setErrorMsg("Failed to find the integration! Routing key: " + request.getIntegrationRoutingKey())
-                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
         }
+        return ConnectResponseMsg.newBuilder()
+                .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
+                .setErrorMsg("Failed to find the integration! Routing key: " + request.getIntegrationRoutingKey())
+                .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
+    }
+
+    @Override
+    public UplinkResponseMsg processUplinkMsg(TenantId tenantId, IntegrationId integrationId, UplinkMsg msg) {
+        if (msg.getDeviceDataCount() > 0) {
+            for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
+                Device device = getOrCreateDevice(tenantId, integrationId, data);
+
+                UUID sessionId = UUID.randomUUID();
+                SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
+                        .setSessionIdMSB(sessionId.getMostSignificantBits())
+                        .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                        .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                        .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                        .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                        .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                        .build();
+
+                if (data.hasPostTelemetryMsg()) {
+                    platformIntegrationService.process(sessionInfo, data.getPostTelemetryMsg(), null);
+                }
+
+                if (data.hasPostAttributesMsg()) {
+                    platformIntegrationService.process(sessionInfo, data.getPostAttributesMsg(), null);
+                }
+            }
+        }
+
+        if (msg.getEventsDataCount() > 0) {
+            for (TbEventProto proto : msg.getEventsDataList()) {
+                try {
+                    eventService.save(mapper.readValue(proto.getData(), Event.class));
+                } catch (IOException e) {
+                    log.warn("[{}] Failed to read string value to Event!", proto.getData(), e);
+                    // TODO: 7/2/19 return error?
+                }
+            }
+        }
+
+        if (msg.getTbMsgCount() > 0) {
+            for (ByteString tbMsgByteString : msg.getTbMsgList()) {
+                TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
+                actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+            }
+        }
+
+        return UplinkResponseMsg.newBuilder()
+                .setSuccess(true)
+                .setErrorMsg("")
+                .build();
+    }
+
+    private Device getOrCreateDevice(TenantId tenantId, IntegrationId integrationId, DeviceUplinkDataProto data) {
+        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
+        if (device == null) {
+            deviceCreationLock.lock();
+            try {
+                return processGetOrCreateDevice(tenantId, integrationId, data);
+            } finally {
+                deviceCreationLock.unlock();
+            }
+        }
+        return device;
+    }
+
+    private Device processGetOrCreateDevice(TenantId tenantId, IntegrationId integrationId, DeviceUplinkDataProto data) {
+        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
+        if (device == null) {
+            device = new Device();
+            device.setName(data.getDeviceName());
+            device.setType(data.getDeviceType());
+            device.setTenantId(tenantId);
+            device = deviceService.saveDevice(device);
+            EntityRelation relation = new EntityRelation();
+            relation.setFrom(integrationId);
+            relation.setTo(device.getId());
+            relation.setTypeGroup(RelationTypeGroup.COMMON);
+            relation.setType(EntityRelation.INTEGRATION_TYPE);
+            relationService.saveRelation(tenantId, relation);
+            actorService.onDeviceAdded(device);
+            try {
+                ObjectNode entityNode = mapper.valueToTree(device);
+                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
+                actorService.onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(tenantId, msg)));
+            } catch (JsonProcessingException | IllegalArgumentException e) {
+                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+            }
+        }
+        return device;
+    }
+
+    private TbMsgMetaData actionTbMsgMetaData(Device device) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("integrationId", null);
+        metaData.putValue("integrationName", null);
+        CustomerId customerId = device.getCustomerId();
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
     }
 }

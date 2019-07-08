@@ -41,19 +41,29 @@ package integration;
 // Interface exported by the ThingsBoard Integration Transport.
 service IntegrationTransport {
 
-  rpc Connect(ConnectRequestMsg) returns (ConnectResponseMsg) {}
-
-  rpc sendUplinkMsg(UplinkMsg) returns (UplinkResponseMsg) {}
-
-  rpc handleDownlinks(EmptyMsg) returns (stream DownlinkMsg) {}
+  rpc handleMsgs(stream RequestMsg) returns (stream ResponseMsg) {}
 
 }
 
 /**
  * Data Structures;
  */
-message EmptyMsg {
+message RequestMsg {
+  MessageType messageType = 1;
+  ConnectRequestMsg connectRequestMsg = 2;
+  UplinkMsg uplinkMsg = 3;
 
+}
+
+message ResponseMsg {
+  ConnectResponseMsg connectResponseMsg = 1;
+  UplinkResponseMsg uplinkResponseMsg = 2;
+  DownlinkMsg downlinkMsg = 3;
+}
+
+enum MessageType {
+  CONNECT_RPC_MESSAGE = 0;
+  UPLINK_RPC_MESSAGE = 1;
 }
 
 message ConnectRequestMsg {

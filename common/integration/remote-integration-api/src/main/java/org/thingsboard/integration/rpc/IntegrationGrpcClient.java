@@ -42,9 +42,11 @@ import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
-import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.MessageType;
+import org.thingsboard.server.gen.integration.RequestMsg;
+import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
@@ -69,8 +71,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private EventStorage eventStorage;
 
     private ManagedChannel channel;
-    private IntegrationTransportGrpc.IntegrationTransportStub stub;
-    private StreamObserver<UplinkResponseMsg> responseObserver;
+    private StreamObserver<RequestMsg> inputStream;
 
     @Override
     public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
@@ -84,33 +85,51 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
             log.error("Failed to initialize channel!", e);
             throw new RuntimeException(e);
         }
-        stub = IntegrationTransportGrpc.newStub(channel);
+        IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", integrationKey);
-        StreamObserver<ConnectResponseMsg> responseObserver = new StreamObserver<ConnectResponseMsg>() {
+        this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onSuccess, onError));
+        this.inputStream.onNext(RequestMsg.newBuilder()
+                .setMessageType(MessageType.CONNECT_RPC_MESSAGE)
+                .setConnectRequestMsg(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build())
+                .build());
+    }
+
+    private StreamObserver<ResponseMsg> initOutputStream(String integrationKey, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
+        return new StreamObserver<ResponseMsg>() {
             @Override
-            public void onNext(ConnectResponseMsg value) {
-                if (value.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {
-                    log.info("[{}]: {}", integrationKey, value.getConfiguration());
-                    onSuccess.accept(value.getConfiguration());
-                } else {
-                    log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", integrationKey, value.getResponseCode(), value.getErrorMsg());
-                    onError.accept(new IntegrationConnectionException("Failed to establish the connection! Response code: " + value.getResponseCode().name()));
+            public void onNext(ResponseMsg responseMsg) {
+                if (responseMsg.hasConnectResponseMsg()) {
+                    ConnectResponseMsg connectResponseMsg = responseMsg.getConnectResponseMsg();
+                    if (connectResponseMsg.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {
+                        log.info("[{}]: {}", integrationKey, connectResponseMsg.getConfiguration());
+                        onSuccess.accept(connectResponseMsg.getConfiguration());
+                    } else {
+                        log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", integrationKey, connectResponseMsg.getResponseCode(), connectResponseMsg.getErrorMsg());
+                        onError.accept(new IntegrationConnectionException("Failed to establish the connection! Response code: " + connectResponseMsg.getResponseCode().name()));
+                    }
+                } else if (responseMsg.hasUplinkResponseMsg()) {
+                    UplinkResponseMsg msg = responseMsg.getUplinkResponseMsg();
+                    if (msg.getSuccess()) {
+                        log.debug("[{}] Msg has been processed successfully! {}", integrationKey, msg);
+                    } else {
+                        log.error("[{}] Msg processing failed! Error msg: {}", integrationKey, msg.getErrorMsg());
+                    }
                 }
             }
 
             @Override
             public void onError(Throwable t) {
-                log.error("[{}] Failed to establish the connection!", integrationKey, t);
-                onError.accept(new RuntimeException(t));
+                if (t.getClass().isInstance(IntegrationConnectionException.class)) {
+                    log.error("[{}] Failed to establish the connection!", integrationKey, t);
+                    onError.accept(new RuntimeException(t));
+                }
             }
-
 
             @Override
             public void onCompleted() {
-                log.info("[{}] Integration connection finished!", integrationKey);
+                log.debug("[{}] The rpc session was completed!", integrationKey);
             }
         };
-        stub.connect(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build(), responseObserver);
     }
 
     @Override
@@ -122,41 +141,34 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     @Override
     public void handleMsgs() {
+        /*this.inputStream.onNext(RequestMsg.newBuilder()
+                .setMessageType(MessageType.UPLINK_RPC_MESSAGE)
+                .setUplinkMsg(UplinkMsg.newBuilder()
+                        .setUplinkMsgId(0)
+                        .addDeviceData(DeviceUplinkDataProto.newBuilder()
+                                .setDeviceName("test")
+                                .setDeviceType("test")
+                                .setPostTelemetryMsg(PostTelemetryMsg.newBuilder()
+                                        .addTsKvList(TsKvListProto.newBuilder()
+                                                .setTs(System.currentTimeMillis())
+                                                .addKv(KeyValueProto.newBuilder()
+                                                        .setKey("key")
+                                                        .setType(KeyValueType.STRING_V)
+                                                        .setStringV("value1")
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .build())
+                        .build())
+                .build());*/
+        // TODO: 7/4/19 use CountDownLatch?
         List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
-        int msgCount = uplinkMsgList.size(); // TODO: 7/4/19 use CountDownLatch?
         for (UplinkMsg msg : uplinkMsgList) {
-            msgCount--;
-            stub.sendUplinkMsg(msg, getResponseObserver(msg, msgCount));
+            this.inputStream.onNext(RequestMsg.newBuilder()
+                    .setMessageType(MessageType.UPLINK_RPC_MESSAGE)
+                    .setUplinkMsg(msg)
+                    .build());
         }
-    }
-
-    private StreamObserver<UplinkResponseMsg> getResponseObserver(UplinkMsg msg, int msgCount) {
-        if (responseObserver == null) {
-            responseObserver = new StreamObserver<UplinkResponseMsg>() {
-                @Override
-                public void onNext(UplinkResponseMsg uplinkResponseMsg) {
-                    if (uplinkResponseMsg.getSuccess()) {
-                        log.debug("[{}] The message has been delivered successfully!", msg);
-                    } else {
-                        log.warn("[{}] Failed to deliver or process message! {}", msg, uplinkResponseMsg.getErrorMsg());
-                    }
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    log.error("[{}] Failed to deliver or process message!", msg, throwable);
-                }
-
-                @Override
-                public void onCompleted() {
-                    log.info("[{}] The message has been processed successfully!", msg);
-                    if (msgCount == 0) {
-                        eventStorage.discardCurrentBatch();
-                    }
-                }
-            };
-        }
-        return responseObserver;
     }
 
 }
