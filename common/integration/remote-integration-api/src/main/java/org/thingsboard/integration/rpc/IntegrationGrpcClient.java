@@ -51,6 +51,7 @@ import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -72,6 +73,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     private ManagedChannel channel;
     private StreamObserver<RequestMsg> inputStream;
+    private CountDownLatch latch;
 
     @Override
     public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
@@ -114,15 +116,16 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                     } else {
                         log.error("[{}] Msg processing failed! Error msg: {}", integrationKey, msg.getErrorMsg());
                     }
+                    latch.countDown();
                 }
             }
 
             @Override
             public void onError(Throwable t) {
-                if (t.getClass().isInstance(IntegrationConnectionException.class)) {
-                    log.error("[{}] Failed to establish the connection!", integrationKey, t);
-                    onError.accept(new RuntimeException(t));
-                }
+                onError.accept(new RuntimeException(t));
+                /*if (latch != null) {
+                    latch.countDown();
+                }*/
             }
 
             @Override
@@ -134,13 +137,14 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     @Override
     public void disconnect() throws InterruptedException {
+        inputStream.onCompleted();
         if (channel != null) {
             channel.shutdown().awaitTermination(timeoutSecs, TimeUnit.SECONDS);
         }
     }
 
     @Override
-    public void handleMsgs() {
+    public void handleMsgs() throws InterruptedException {
         /*this.inputStream.onNext(RequestMsg.newBuilder()
                 .setMessageType(MessageType.UPLINK_RPC_MESSAGE)
                 .setUplinkMsg(UplinkMsg.newBuilder()
@@ -161,14 +165,15 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                                 .build())
                         .build())
                 .build());*/
-        // TODO: 7/4/19 use CountDownLatch?
         List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
+        latch = new CountDownLatch(uplinkMsgList.size());
         for (UplinkMsg msg : uplinkMsgList) {
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMessageType(MessageType.UPLINK_RPC_MESSAGE)
                     .setUplinkMsg(msg)
                     .build());
         }
+        latch.await();
     }
 
 }

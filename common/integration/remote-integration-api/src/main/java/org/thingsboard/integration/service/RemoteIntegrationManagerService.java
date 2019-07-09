@@ -31,6 +31,7 @@
 package org.thingsboard.integration.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +44,6 @@ import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
-import org.thingsboard.integration.remote.RemoteIntegrationService;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.js.api.JsInvokeService;
@@ -62,10 +62,14 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 // TODO: 7/2/19 integration statistics?
 @Service("RemoteIntegrationManagerService")
 @Slf4j
+@Data
 public class RemoteIntegrationManagerService {
 
     public static final ObjectMapper mapper = new ObjectMapper();
@@ -85,6 +89,9 @@ public class RemoteIntegrationManagerService {
     @Value("${integrations.allow_local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
+    @Value("${executors.reconnect_timeout}")
+    private long reconnectTimeoutMs;
+
     @Autowired
     private IntegrationRpcClient rpcClient;
 
@@ -94,17 +101,17 @@ public class RemoteIntegrationManagerService {
     @Autowired
     private JsInvokeService jsInvokeService;
 
-    @Autowired
-    private RemoteIntegrationService integrationService;
-
     private ThingsboardPlatformIntegration integration;
     private ExecutorService executor;
+    private ScheduledExecutorService reconnectScheduler;
+    private ScheduledFuture<?> scheduledFuture;
     private boolean initialized;
 
     @PostConstruct
     public void init() {
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
+        reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     @PreDestroy
@@ -113,18 +120,23 @@ public class RemoteIntegrationManagerService {
         if (executor != null) {
             executor.shutdownNow();
         }
+        if (reconnectScheduler != null) {
+            reconnectScheduler.shutdownNow();
+        }
     }
 
     private void onConfigurationUpdate(IntegrationConfigurationProto integrationConfigurationProto) {
         if (integration != null) {
             integration.destroy();
         }
+        //cancel reconnect scheduler
+        scheduledFuture = null;
         try {
             Integration configuration = createConfig(integrationConfigurationProto);
             integration = create(integrationConfigurationProto.getType());
             integration.validateConfiguration(configuration, allowLocalNetworkHosts); // TODO: 7/3/19 allowLocalNetworkHosts?
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(integrationService, eventStorage, configuration, clientId, port),
+                    new RemoteIntegrationContext(eventStorage, configuration, clientId, port),
                     configuration,
                     createUplinkConverter(integrationConfigurationProto.getUplinkConverter()),
                     createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter()));
@@ -139,14 +151,14 @@ public class RemoteIntegrationManagerService {
     }
 
     private TBUplinkDataConverter createUplinkConverter(ConverterConfigurationProto uplinkConverter) throws IOException {
-        TBUplinkDataConverter uplinkDataConverter = new JSUplinkDataConverter(jsInvokeService);
+        JSUplinkDataConverter uplinkDataConverter = new JSUplinkDataConverter(jsInvokeService);
         uplinkDataConverter.init(constructConverter(uplinkConverter, ConverterType.UPLINK));
         return uplinkDataConverter;
     }
 
     private TBDownlinkDataConverter createDownlinkConverter(ConverterConfigurationProto downLinkConverter) throws IOException {
         if (!StringUtils.isEmpty(downLinkConverter.getConfiguration())) {
-            TBDownlinkDataConverter downlinkDataConverter = new JSDownlinkDataConverter(jsInvokeService);
+            JSDownlinkDataConverter downlinkDataConverter = new JSDownlinkDataConverter(jsInvokeService);
             downlinkDataConverter.init(constructConverter(downLinkConverter, ConverterType.DOWNLINK));
             return downlinkDataConverter;
         }
@@ -188,7 +200,12 @@ public class RemoteIntegrationManagerService {
     }
 
     private void scheduleReconnect(Exception e) {
-        //TODO
+        if (scheduledFuture == null) {
+            scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
+                log.info("Trying to reconnect due to the error: {}!", e.getMessage());
+                rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::scheduleReconnect);
+            }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+        }
     }
 
     private ThingsboardPlatformIntegration create(String type) throws Exception {

@@ -69,10 +69,9 @@ public class EventStorageWriter {
     public BufferedWriter getOrInitBufferedWriter(File file) {
         try {
             if (bufferedWriter == null) {
-                return new BufferedWriter(new FileWriter(file, true));
-            } else {
-                return bufferedWriter;
+                bufferedWriter = new BufferedWriter(new FileWriter(file, true));
             }
+            return bufferedWriter;
         } catch (IOException e) {
             log.error("Failed to initialize buffered writer!", e);
             throw new RuntimeException("Failed to initialize buffered writer!", e);
@@ -90,7 +89,9 @@ public class EventStorageWriter {
                 lastFile = createDataFile(Long.toString(System.currentTimeMillis()));
             } catch (IOException e) {
                 log.error("Failed to create a new file!", e);
-                callback.onError(e);
+                if (callback != null) {
+                    callback.onError(e);
+                }
                 return;
             }
             if (dataFiles.size() == maxFileCount) {
@@ -101,10 +102,20 @@ public class EventStorageWriter {
             }
             dataFiles.add(lastFile);
             currentFileRecordsCount = 0;
+            try {
+                bufferedWriter.close();
+            } catch (IOException e) {
+                log.warn("Failed to close buffered writer!", e);
+                if (callback != null) {
+                    callback.onError(e);
+                }
+                return;
+            }
             bufferedWriter = null;
         }
         String encoded = Base64.getEncoder().encodeToString(msg.toByteArray());
-        try (BufferedWriter writer = getOrInitBufferedWriter(lastFile)) {
+        try {
+            BufferedWriter writer = getOrInitBufferedWriter(lastFile);
             writer.write(encoded);
             writer.newLine();
             currentFileRecordsCount++;
@@ -113,8 +124,14 @@ public class EventStorageWriter {
             }
         } catch (IOException e) {
             log.warn("Failed to update data file![{}]", lastFile.getName(), e);
+            if (callback != null) {
+                callback.onError(e);
+            }
+            return;
         }
-        callback.onSuccess(null);
+        if (callback != null) {
+            callback.onSuccess(null);
+        }
     }
 
     private File createDataFile(String fileName) throws IOException {

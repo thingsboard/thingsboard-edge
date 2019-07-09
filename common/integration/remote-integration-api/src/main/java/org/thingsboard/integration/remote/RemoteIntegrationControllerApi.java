@@ -28,20 +28,61 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.integration;
+package org.thingsboard.integration.remote;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.http.controller.IntegrationControllerApi;
+import org.thingsboard.integration.service.RemoteIntegrationManagerService;
 
-/**
- * Created by ashvayka on 18.12.17.
- */
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @Component
-public class BaseIntegrationController {
+@Data
+public class RemoteIntegrationControllerApi implements IntegrationControllerApi {
+
+    private ListeningExecutorService service;
+
+    @Value("${executors.thread_pool_size}")
+    private int executorThreadPoolSize;
 
     @Autowired
-    protected IntegrationControllerApi api;
+    private RemoteIntegrationManagerService managerService;
 
+    @PostConstruct
+    public void init() {
+        this.service = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(executorThreadPoolSize));
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (this.service != null) {
+            this.service.shutdown();
+        }
+    }
+
+    @Override
+    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String routingKey) {
+        return Futures.immediateFuture(managerService.getIntegration());
+    }
+
+    @Override
+    public <T> void process(ThingsboardPlatformIntegration<T> integration, T msg) {
+        integration.process(msg);
+    }
+
+    @Override
+    public Executor getCallbackExecutor() {
+        return service;
+    }
 }

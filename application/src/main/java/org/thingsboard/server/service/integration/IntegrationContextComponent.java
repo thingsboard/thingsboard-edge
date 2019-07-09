@@ -39,8 +39,10 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.integration.downlink.DownlinkService;
@@ -62,7 +64,15 @@ public class IntegrationContextComponent {
 
     @Lazy
     @Autowired
-    private PlatformIntegrationService integrationService;
+    private PlatformIntegrationService platformIntegrationService;
+
+    @Lazy
+    @Autowired
+    private IntegrationService integrationService;
+
+    @Lazy
+    @Autowired
+    private ConverterService converterService;
 
     @Lazy
     @Autowired

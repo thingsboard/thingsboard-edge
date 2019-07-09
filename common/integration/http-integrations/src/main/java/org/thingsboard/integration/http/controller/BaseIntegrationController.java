@@ -28,17 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.remote;
+package org.thingsboard.integration.http.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.thingsboard.integration.storage.EventStorage;
+import org.springframework.stereotype.Component;
 
-@Service
-public class RemoteIntegrationServiceImpl implements RemoteIntegrationService {
+/**
+ * Created by ashvayka on 18.12.17.
+ */
+@Component
+public class BaseIntegrationController {
 
-    @Autowired
-    private EventStorage eventStorage;
-
+    @Autowired(required = false)
+    protected IntegrationControllerApi api;
 
 }

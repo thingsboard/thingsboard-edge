@@ -28,32 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.integration.sigfox;
-
+package org.thingsboard.integration.http.controller.tmobile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.rule.engine.api.util.DonAsynchron;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.controller.integration.BaseIntegrationController;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.http.HttpIntegrationMsg;
+import org.thingsboard.integration.http.controller.BaseIntegrationController;
+import org.thingsboard.rule.engine.api.util.DonAsynchron;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;
 
-
 @RestController
-@RequestMapping("/api/v1/integrations/sigfox")
+@RequestMapping("/api/v1/integrations/tmobile_iot_cdp")
 @Slf4j
-public class SigFoxIntegrationController extends BaseIntegrationController {
+public class TMobileIotCdpIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}")
+    @RequestMapping(value = "/{routingKey}", consumes = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void processCheck(
+            @PathVariable("routingKey") String routingKey,
+            @RequestHeader(required = false) Map<String, String> requestHeaders
+    ) {
+        log.debug("[{}] Received validation request: {}", routingKey, requestHeaders);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = "/{routingKey}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
@@ -63,22 +77,22 @@ public class SigFoxIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = integrationService.getIntegrationByRoutingKey(routingKey);
+        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
             if (integration == null) {
                 result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
                 return;
             }
-            if (integration.getConfiguration().getType() != IntegrationType.SIGFOX) {
+            if (integration.getConfiguration().getType() != IntegrationType.TMOBILE_IOT_CDP) {
                 result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
                 return;
             }
-            process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, callbackExecutorService);
+        }, api.getCallbackExecutor());
 
         return result;
     }

@@ -61,7 +61,6 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    protected final RemoteIntegrationService service;
     protected final EventStorage eventStorage;
     protected final Integration configuration;
     protected final String clientId;
@@ -71,8 +70,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     private AtomicInteger uplinkMsgId = new AtomicInteger(0); // TODO: 7/2/19 is used correctly?
 
-    public RemoteIntegrationContext(RemoteIntegrationService service, EventStorage eventStorage, Integration configuration, String clientId, int port) {
-        this.service = service;
+    public RemoteIntegrationContext(EventStorage eventStorage, Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
@@ -88,12 +86,12 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().setDeviceData(uplinkMsgId.getAndIncrement(), msg).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().addDeviceData(msg).build(), callback);
     }
 
     @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().setTbMsg(uplinkMsgId.getAndIncrement(), ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
     }
 
     @Override
@@ -111,7 +109,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
             log.warn("[{}] Failed to convert event!", event, e);
         }
         eventStorage.write(UplinkMsg.newBuilder()
-                .setEventsData(uplinkMsgId.getAndIncrement(), TbEventProto.newBuilder()
+                .addEventsData(TbEventProto.newBuilder()
                         .setSource(TbEventSource.INTEGRATION)
                         .setType("type")
                         .setData(eventData)

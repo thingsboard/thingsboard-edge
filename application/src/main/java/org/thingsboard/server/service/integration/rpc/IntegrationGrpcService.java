@@ -42,12 +42,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -57,11 +57,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
-import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -75,7 +70,7 @@ import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -94,6 +89,8 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private static final ReentrantLock deviceCreationLock = new ReentrantLock();
     public static final ObjectMapper mapper = new ObjectMapper();
 
+    private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
+
     @Value("${integrations.rpc.port}")
     private int rpcPort;
     @Value("${integrations.rpc.cert}")
@@ -102,21 +99,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private String privateKeyResource;
 
     @Autowired
-    private PlatformIntegrationService platformIntegrationService;
-    @Autowired
-    private IntegrationService integrationService;
-    @Autowired
-    private ConverterService converterService;
-    @Autowired
-    private ActorService actorService;
-    @Autowired
-    private EventService eventService;
-    @Autowired
-    private DeviceService deviceService;
-    @Autowired
-    private RelationService relationService;
-
-    private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
+    private IntegrationContextComponent ctx;
 
     private Server server;
 
@@ -156,66 +139,74 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Override
     public StreamObserver<RequestMsg> handleMsgs(StreamObserver<ResponseMsg> responseObserver) {
-        return sessions.computeIfAbsent(responseObserver, r -> new IntegrationGrpcSession(this, responseObserver)).getInputStream();
+        return sessions.computeIfAbsent(responseObserver, r -> new IntegrationGrpcSession(this, responseObserver, sessions)).getInputStream();
     }
 
     @Override
-    public ConnectResponseMsg validateConnect(ConnectRequestMsg request, IntegrationGrpcSession session) throws JsonProcessingException {
-        Optional<Integration> optional = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, request.getIntegrationRoutingKey());
+    public ConnectResponseMsg validateConnect(ConnectRequestMsg request, IntegrationGrpcSession session) {
+        Optional<Integration> optional = ctx.getIntegrationService().findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, request.getIntegrationRoutingKey());
         if (optional.isPresent()) {
             Integration configuration = optional.get();
             session.setIntegration(configuration);
-            if (configuration.isRemote() && configuration.getSecret().equals(request.getIntegrationSecret())) {
-                Converter defaultConverter = converterService.findConverterById(configuration.getTenantId(),
-                        configuration.getDefaultConverterId());
-                ConverterConfigurationProto defaultConverterProto = ConverterConfigurationProto.newBuilder()
-                        .setTenantIdMSB(defaultConverter.getTenantId().getId().getMostSignificantBits())
-                        .setTenantIdLSB(defaultConverter.getTenantId().getId().getLeastSignificantBits())
-                        .setConverterIdMSB(defaultConverter.getId().getId().getMostSignificantBits())
-                        .setConverterIdLSB(defaultConverter.getId().getId().getLeastSignificantBits())
-                        .setName(defaultConverter.getName())
-                        .setDebugMode(defaultConverter.isDebugMode())
-                        .setConfiguration(mapper.writeValueAsString(defaultConverter.getConfiguration()))
-                        .setAdditionalInfo(mapper.writeValueAsString(defaultConverter.getAdditionalInfo()))
-                        .build();
-
-                ConverterConfigurationProto downLinkConverterProto = ConverterConfigurationProto.newBuilder().getDefaultInstanceForType();
-                if (configuration.getDownlinkConverterId() != null) {
-                    Converter downlinkConverter = converterService.findConverterById(configuration.getTenantId(),
-                            configuration.getDownlinkConverterId());
-                    downLinkConverterProto = ConverterConfigurationProto.newBuilder()
-                            .setTenantIdMSB(downlinkConverter.getTenantId().getId().getMostSignificantBits())
-                            .setTenantIdLSB(downlinkConverter.getTenantId().getId().getLeastSignificantBits())
-                            .setConverterIdMSB(downlinkConverter.getId().getId().getMostSignificantBits())
-                            .setConverterIdLSB(downlinkConverter.getId().getId().getLeastSignificantBits())
-                            .setName(downlinkConverter.getName())
-                            .setDebugMode(downlinkConverter.isDebugMode())
-                            .setConfiguration(mapper.writeValueAsString(downlinkConverter.getConfiguration()))
-                            .setAdditionalInfo(mapper.writeValueAsString(downlinkConverter.getAdditionalInfo()))
+            try {
+                if (configuration.isRemote() && configuration.getSecret().equals(request.getIntegrationSecret())) {
+                    Converter defaultConverter = ctx.getConverterService().findConverterById(configuration.getTenantId(),
+                            configuration.getDefaultConverterId());
+                    ConverterConfigurationProto defaultConverterProto = ConverterConfigurationProto.newBuilder()
+                            .setTenantIdMSB(defaultConverter.getTenantId().getId().getMostSignificantBits())
+                            .setTenantIdLSB(defaultConverter.getTenantId().getId().getLeastSignificantBits())
+                            .setConverterIdMSB(defaultConverter.getId().getId().getMostSignificantBits())
+                            .setConverterIdLSB(defaultConverter.getId().getId().getLeastSignificantBits())
+                            .setName(defaultConverter.getName())
+                            .setDebugMode(defaultConverter.isDebugMode())
+                            .setConfiguration(mapper.writeValueAsString(defaultConverter.getConfiguration()))
+                            .setAdditionalInfo(mapper.writeValueAsString(defaultConverter.getAdditionalInfo()))
                             .build();
-                }
 
-                IntegrationConfigurationProto proto = IntegrationConfigurationProto.newBuilder()
-                        .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
-                        .setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits())
-                        .setUplinkConverter(defaultConverterProto)
-                        .setDownlinkConverter(downLinkConverterProto)
-                        .setName(configuration.getName())
-                        .setRoutingKey(configuration.getRoutingKey())
-                        .setType(configuration.getType().toString())
-                        .setDebugMode(configuration.isDebugMode())
-                        .setConfiguration(mapper.writeValueAsString(configuration.getConfiguration()))
-                        .setAdditionalInfo(mapper.writeValueAsString(configuration.getAdditionalInfo()))
-                        .build();
+                    ConverterConfigurationProto downLinkConverterProto = ConverterConfigurationProto.newBuilder().getDefaultInstanceForType();
+                    if (configuration.getDownlinkConverterId() != null) {
+                        Converter downlinkConverter = ctx.getConverterService().findConverterById(configuration.getTenantId(),
+                                configuration.getDownlinkConverterId());
+                        downLinkConverterProto = ConverterConfigurationProto.newBuilder()
+                                .setTenantIdMSB(downlinkConverter.getTenantId().getId().getMostSignificantBits())
+                                .setTenantIdLSB(downlinkConverter.getTenantId().getId().getLeastSignificantBits())
+                                .setConverterIdMSB(downlinkConverter.getId().getId().getMostSignificantBits())
+                                .setConverterIdLSB(downlinkConverter.getId().getId().getLeastSignificantBits())
+                                .setName(downlinkConverter.getName())
+                                .setDebugMode(downlinkConverter.isDebugMode())
+                                .setConfiguration(mapper.writeValueAsString(downlinkConverter.getConfiguration()))
+                                .setAdditionalInfo(mapper.writeValueAsString(downlinkConverter.getAdditionalInfo()))
+                                .build();
+                    }
+
+                    IntegrationConfigurationProto proto = IntegrationConfigurationProto.newBuilder()
+                            .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
+                            .setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits())
+                            .setUplinkConverter(defaultConverterProto)
+                            .setDownlinkConverter(downLinkConverterProto)
+                            .setName(configuration.getName())
+                            .setRoutingKey(configuration.getRoutingKey())
+                            .setType(configuration.getType().toString())
+                            .setDebugMode(configuration.isDebugMode())
+                            .setConfiguration(mapper.writeValueAsString(configuration.getConfiguration()))
+                            .setAdditionalInfo(mapper.writeValueAsString(configuration.getAdditionalInfo()))
+                            .build();
+                    return ConnectResponseMsg.newBuilder()
+                            .setResponseCode(ConnectResponseCode.ACCEPTED)
+                            .setErrorMsg("")
+                            .setConfiguration(proto).build();
+                }
                 return ConnectResponseMsg.newBuilder()
-                        .setResponseCode(ConnectResponseCode.ACCEPTED)
-                        .setErrorMsg("")
-                        .setConfiguration(proto).build();
+                        .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
+                        .setErrorMsg("Failed to validate the integration!")
+                        .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
+            } catch (Exception e) {
+                log.error("[{}] Failed to process integration connection!", request.getIntegrationRoutingKey(), e);
+                return ConnectResponseMsg.newBuilder()
+                        .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
+                        .setErrorMsg("Failed to process integration connection!")
+                        .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
             }
-            return ConnectResponseMsg.newBuilder()
-                    .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
-                    .setErrorMsg("Failed to validate the integration!")
-                    .setConfiguration(IntegrationConfigurationProto.newBuilder().getDefaultInstanceForType()).build();
         }
         return ConnectResponseMsg.newBuilder()
                 .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
@@ -240,11 +231,11 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                         .build();
 
                 if (data.hasPostTelemetryMsg()) {
-                    platformIntegrationService.process(sessionInfo, data.getPostTelemetryMsg(), null);
+                    ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
                 }
 
                 if (data.hasPostAttributesMsg()) {
-                    platformIntegrationService.process(sessionInfo, data.getPostAttributesMsg(), null);
+                    ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), null);
                 }
             }
         }
@@ -252,10 +243,9 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
         if (msg.getEventsDataCount() > 0) {
             for (TbEventProto proto : msg.getEventsDataList()) {
                 try {
-                    eventService.save(mapper.readValue(proto.getData(), Event.class));
+                    ctx.getEventService().save(mapper.readValue(proto.getData(), Event.class));
                 } catch (IOException e) {
-                    log.warn("[{}] Failed to read string value to Event!", proto.getData(), e);
-                    // TODO: 7/2/19 return error?
+                    log.warn("[{}] Failed to save event!", proto.getData(), e);
                 }
             }
         }
@@ -263,7 +253,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
         if (msg.getTbMsgCount() > 0) {
             for (ByteString tbMsgByteString : msg.getTbMsgList()) {
                 TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
-                actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+                ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
             }
         }
 
@@ -274,7 +264,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     }
 
     private Device getOrCreateDevice(TenantId tenantId, IntegrationId integrationId, DeviceUplinkDataProto data) {
-        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
         if (device == null) {
             deviceCreationLock.lock();
             try {
@@ -287,29 +277,37 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     }
 
     private Device processGetOrCreateDevice(TenantId tenantId, IntegrationId integrationId, DeviceUplinkDataProto data) {
-        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
         if (device == null) {
-            device = new Device();
-            device.setName(data.getDeviceName());
-            device.setType(data.getDeviceType());
-            device.setTenantId(tenantId);
-            device = deviceService.saveDevice(device);
-            EntityRelation relation = new EntityRelation();
-            relation.setFrom(integrationId);
-            relation.setTo(device.getId());
-            relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.INTEGRATION_TYPE);
-            relationService.saveRelation(tenantId, relation);
-            actorService.onDeviceAdded(device);
+            device = createDevice(tenantId, data);
+            createRelation(tenantId, integrationId, device.getId());
+            ctx.getActorService().onDeviceAdded(device);
             try {
                 ObjectNode entityNode = mapper.valueToTree(device);
                 TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-                actorService.onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(tenantId, msg)));
+                ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(tenantId, msg)));
             } catch (JsonProcessingException | IllegalArgumentException e) {
                 log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
             }
         }
         return device;
+    }
+
+    private Device createDevice(TenantId tenantId, DeviceUplinkDataProto data) {
+        Device device = new Device();
+        device.setName(data.getDeviceName());
+        device.setType(data.getDeviceType());
+        device.setTenantId(tenantId);
+        return ctx.getDeviceService().saveDevice(device);
+    }
+
+    private void createRelation(TenantId tenantId, IntegrationId integrationId, DeviceId deviceid) {
+        EntityRelation relation = new EntityRelation();
+        relation.setFrom(integrationId);
+        relation.setTo(deviceid);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.INTEGRATION_TYPE);
+        ctx.getRelationService().saveRelation(tenantId, relation);
     }
 
     private TbMsgMetaData actionTbMsgMetaData(Device device) {

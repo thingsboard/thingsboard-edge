@@ -69,5 +69,9 @@
             <artifactId>netty-all</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.thingsboard.rule-engine</groupId>
+            <artifactId>rule-engine-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -96,11 +96,11 @@ public class LocalIntegrationContext implements IntegrationContext {
                 .build();
 
         if (data.hasPostTelemetryMsg()) {
-            ctx.getIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
+            ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
         }
 
         if (data.hasPostAttributesMsg()) {
-            ctx.getIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
+            ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
         }
     }
 

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +41,7 @@ import org.thingsboard.server.gen.integration.RequestMsg;
 import org.thingsboard.server.gen.integration.ResponseMsg;
 
 import java.io.Closeable;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -50,6 +50,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private final UUID sessionId;
     private final IntegrationGrpcService rpcService;
+    private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions;
 
     private TenantId tenantId;
     private Integration integration;
@@ -57,10 +58,11 @@ public final class IntegrationGrpcSession implements Closeable {
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
 
-    public IntegrationGrpcSession(IntegrationGrpcService rpcService, StreamObserver<ResponseMsg> outputStream) {
+    public IntegrationGrpcSession(IntegrationGrpcService rpcService, StreamObserver<ResponseMsg> outputStream, Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions) {
         this.sessionId = UUID.randomUUID();
         this.rpcService = rpcService;
         this.outputStream = outputStream;
+        this.sessions = sessions;
         initInputStream();
     }
 
@@ -69,14 +71,7 @@ public final class IntegrationGrpcSession implements Closeable {
             @Override
             public void onNext(RequestMsg requestMsg) {
                 if (!connected && requestMsg.getMessageType().equals(MessageType.CONNECT_RPC_MESSAGE)) {
-                    ConnectResponseMsg responseMsg;
-                    try {
-                        responseMsg = rpcService.validateConnect(requestMsg.getConnectRequestMsg(), IntegrationGrpcSession.this);
-                    } catch (JsonProcessingException e) {
-                        log.error("[{}] Failed to process integration connection!", requestMsg.getConnectRequestMsg().getIntegrationRoutingKey(), e);
-                        outputStream.onError(new RuntimeException("Failed to process integration connection!", e));
-                        return;
-                    }
+                    ConnectResponseMsg responseMsg = rpcService.validateConnect(requestMsg.getConnectRequestMsg(), IntegrationGrpcSession.this);
                     tenantId = new TenantId(new UUID(responseMsg.getConfiguration().getTenantIdMSB(), responseMsg.getConfiguration().getTenantIdLSB()));
 
                     outputStream.onNext(ResponseMsg.newBuilder()
@@ -95,14 +90,13 @@ public final class IntegrationGrpcSession implements Closeable {
 
             @Override
             public void onError(Throwable t) {
-                log.error("Failed to deliver an uplink message!", t);
-                // TODO: 7/8/19
+                log.error("Failed to deliver message from client!", t);
             }
 
             @Override
             public void onCompleted() {
+                sessions.remove(outputStream);
                 outputStream.onCompleted();
-                // TODO: 7/8/19
             }
         };
     }

@@ -90,7 +90,7 @@ public class RemoteConverterContext implements ConverterContext {
             log.warn("[{}] Failed to convert event!", event, e);
         }
 
-        eventStorage.write(UplinkMsg.newBuilder().setEventsData(uplinkMsgId.getAndIncrement(), TbEventProto.newBuilder()
+        eventStorage.write(UplinkMsg.newBuilder().addEventsData(TbEventProto.newBuilder()
                 .setSource(source)
                 .setType("type") // TODO: 7/2/19 what type?
                 .setData(eventData)
