@@ -67,7 +67,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = integrationService.getIntegrationByRoutingKey(routingKey);
+        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
             if (integration == null) {
@@ -78,14 +78,15 @@ public class HttpIntegrationController extends BaseIntegrationController {
                 result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
                 return;
             }
-            process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, callbackExecutorService);
+        }, api.getCallbackExecutor());
 
         return result;
     }
+
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
@@ -96,7 +97,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received status check request", routingKey);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = integrationService.getIntegrationByRoutingKey(routingKey);
+        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
             if (integration == null) {
@@ -110,14 +111,14 @@ public class HttpIntegrationController extends BaseIntegrationController {
             if (requestParams.size() > 0) {
                 ObjectNode msg = mapper.createObjectNode();
                 requestParams.forEach(msg::put);
-                process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+                api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
             } else {
                 result.setResult(new ResponseEntity<>(HttpStatus.OK));
             }
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, callbackExecutorService);
+        }, api.getCallbackExecutor());
 
         return result;
     }

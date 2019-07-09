@@ -30,25 +30,18 @@
  */
 package org.thingsboard.server.controller.integration;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.controller.BaseController;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 
 /**
  * Created by ashvayka on 18.12.17.
  */
-public class BaseIntegrationController extends BaseController {
+@Component
+public class BaseIntegrationController {
 
     @Autowired
-    protected DbCallbackExecutorService callbackExecutorService;
-
-    @Autowired
-    protected PlatformIntegrationService integrationService;
-
-    protected <T> void process(ThingsboardPlatformIntegration<T> integration, T msg) {
-        integration.process(msg);
-    }
+    protected IntegrationControllerApi api;
 
 }
