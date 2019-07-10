@@ -33,8 +33,9 @@ package org.thingsboard.server.service.integration.rpc;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.MessageType;
 import org.thingsboard.server.gen.integration.RequestMsg;
@@ -53,7 +54,9 @@ public final class IntegrationGrpcSession implements Closeable {
     private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions;
 
     private TenantId tenantId;
-    private Integration integration;
+    private IntegrationId integrationId;
+    private ConverterId uplinkConverterId;
+    private ConverterId downlinkConverterId;
     private StreamObserver<RequestMsg> inputStream;
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
@@ -82,7 +85,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 if (connected) {
                     if (requestMsg.getMessageType().equals(MessageType.UPLINK_RPC_MESSAGE) && requestMsg.hasUplinkMsg()) {
                         outputStream.onNext(ResponseMsg.newBuilder()
-                                .setUplinkResponseMsg(rpcService.processUplinkMsg(tenantId, integration.getId(), requestMsg.getUplinkMsg()))
+                                .setUplinkResponseMsg(rpcService.processUplinkMsg(tenantId, integrationId, uplinkConverterId, downlinkConverterId, requestMsg.getUplinkMsg()))
                                 .build());
                     }
                 }

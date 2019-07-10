@@ -43,7 +43,6 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
@@ -52,8 +51,6 @@ import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
 @Slf4j
@@ -68,15 +65,13 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
 
-    private AtomicInteger uplinkMsgId = new AtomicInteger(0); // TODO: 7/2/19 is used correctly?
-
     public RemoteIntegrationContext(EventStorage eventStorage, Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;
-        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, configuration.getTenantId(), configuration.getDefaultConverterId(), true, mapper, clientId, port);
-        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, configuration.getTenantId(), configuration.getDownlinkConverterId(), false, mapper, clientId, port);
+        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, mapper, clientId, port);
+        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
     }
 
     @Override
@@ -96,22 +91,16 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-        Event event = new Event();
-        event.setTenantId(configuration.getTenantId());
-        event.setEntityId(configuration.getId());
-        event.setType(type);
-        event.setBody(body);
-
         String eventData = "";
         try {
-            eventData = mapper.writeValueAsString(event);
+            eventData = mapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event!", event, e);
+            log.warn("[{}] Failed to convert event body!", body, e);
         }
         eventStorage.write(UplinkMsg.newBuilder()
                 .addEventsData(TbEventProto.newBuilder()
                         .setSource(TbEventSource.INTEGRATION)
-                        .setType("type")
+                        .setType(type)
                         .setData(eventData)
                         .build())
                 .build(), callback);

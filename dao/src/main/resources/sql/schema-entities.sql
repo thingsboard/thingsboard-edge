@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS converter (
     additional_info varchar,
     configuration varchar(10000000),
     debug_mode boolean,
+    is_remote boolean,
     name varchar(255),
     search_text varchar(255),
     tenant_id varchar(31),

@@ -164,4 +164,10 @@ public class EventStorageImpl implements EventStorage {
             throw new RuntimeException("Failed to create a new file!", e);
         }
     }
+
+    @Data
+    private class EventStorageFiles {
+        private final File stateFile;
+        private final List<File> dataFiles;
+    }
 }

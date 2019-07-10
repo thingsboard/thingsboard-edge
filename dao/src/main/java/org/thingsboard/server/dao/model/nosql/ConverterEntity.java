@@ -48,7 +48,16 @@ import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_ADDITIONAL_INFO_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_CONFIGURATION_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_REMOTE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Table(name = CONVERTER_COLUMN_FAMILY_NAME)
 @EqualsAndHashCode
@@ -68,6 +77,9 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
 
     @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
     private boolean debugMode;
+
+    @Column(name = CONVERTER_IS_REMOTE_PROPERTY)
+    private boolean isRemote;
 
     @Column(name = CONVERTER_NAME_PROPERTY)
     private String name;
@@ -95,6 +107,7 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         this.name = converter.getName();
         this.type = converter.getType();
         this.debugMode = converter.isDebugMode();
+        this.isRemote = converter.isRemote();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
@@ -179,6 +192,7 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         converter.setName(name);
         converter.setType(type);
         converter.setDebugMode(debugMode);
+        converter.setRemote(isRemote);
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         return converter;

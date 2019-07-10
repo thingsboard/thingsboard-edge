@@ -87,8 +87,8 @@
                                    label-text="'integration.downlink-converter'"
                                    use-full-entity-id="true">
         </tb-converter-autocomplete>
-        <md-switch ng-disabled="$root.loading || !isEdit" aria-label="{{ 'execute remotly' | translate }}"
-                   ng-model="integration.remote">{{ 'Execute remotly' | translate }}
+        <md-switch ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.execute-remotely' | translate }}"
+                   ng-model="integration.remote">{{ 'integration.execute-remotely' | translate }}
         </md-switch>
     </fieldset>
     <md-card ng-show="integration.remote">

@@ -427,7 +427,8 @@
         "type": "Type",
         "type-required": "Type is required.",
         "type-uplink": "Uplink",
-        "type-downlink": "Downlink"
+        "type-downlink": "Downlink",
+        "execute-remotely": "Execute remotely"
     },
     "content-type": {
         "json": "Json",
@@ -1597,7 +1598,8 @@
         "integration-key-copied-message": "Integration key has been copied to clipboard",
         "integration-secret": "Integration secret",
         "copy-integration-secret": "Copy integration secret",
-        "integration-secret-copied-message": "Integration secret has been copied to clipboard"
+        "integration-secret-copied-message": "Integration secret has been copied to clipboard",
+        "execute-remotely": "Execute remotely"
     },
     "item": {
         "selected": "Selected"

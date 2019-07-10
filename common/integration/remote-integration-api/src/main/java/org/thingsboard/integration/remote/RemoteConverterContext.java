@@ -38,30 +38,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Data
 @Slf4j
 public class RemoteConverterContext implements ConverterContext {
 
     private final EventStorage eventStorage;
-    private final TenantId tenantId;
-    private final ConverterId converterId;
     private final boolean isUplink;
     private final ObjectMapper mapper;
     private final String clientId;
     private final int port;
-
-    private AtomicInteger uplinkMsgId = new AtomicInteger(0);
 
     @Override
     public ServerAddress getServerAddress() {
@@ -70,31 +61,24 @@ public class RemoteConverterContext implements ConverterContext {
 
     @Override
     public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-        Event event = new Event();
-        event.setTenantId(tenantId);
-        event.setEntityId(converterId);
-        event.setType(type);
-        event.setBody(body);
-
         TbEventSource source;
         if (isUplink) {
             source = TbEventSource.UPLINK_CONVERTER;
         } else {
             source = TbEventSource.DOWNLINK_CONVERTER;
         }
-
         String eventData = "";
         try {
-            eventData = mapper.writeValueAsString(event);
+            eventData = mapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event!", event, e);
+            log.warn("[{}] Failed to convert event body!", body, e);
         }
-
-        eventStorage.write(UplinkMsg.newBuilder().addEventsData(TbEventProto.newBuilder()
-                .setSource(source)
-                .setType("type") // TODO: 7/2/19 what type?
-                .setData(eventData)
-                .build()
-        ).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder()
+                .addEventsData(TbEventProto.newBuilder()
+                        .setSource(source)
+                        .setType(type)
+                        .setData(eventData)
+                        .build()
+                ).build(), callback);
     }
 }

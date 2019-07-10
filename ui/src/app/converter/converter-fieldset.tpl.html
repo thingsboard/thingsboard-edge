@@ -73,6 +73,11 @@
                          ng-model="converter.debugMode">{{ 'converter.debug-mode' | translate }}
             </md-checkbox>
         </md-input-container>
+        <md-input-container class="md-block">
+            <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'converter.execute-remotely' | translate }}"
+                         ng-model="converter.remote">{{ 'converter.execute-remotely' | translate }}
+            </md-checkbox>
+        </md-input-container>
         <section layout="column" ng-if="converter.type === types.converterType.UPLINK.value">
             <label translate class="tb-title no-padding">converter.decoder</label>
             <tb-js-func ng-model="converter.configuration.decoder"

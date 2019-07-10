@@ -31,8 +31,11 @@
 package org.thingsboard.server.service.integration.rpc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.UplinkMsg;
@@ -40,8 +43,12 @@ import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
 public interface IntegrationRpcService {
 
+    void updateIntegration(Integration integration);
+
+    void updateConverter(Converter converter);
+
     ConnectResponseMsg validateConnect(ConnectRequestMsg request, IntegrationGrpcSession session) throws JsonProcessingException;
 
-    UplinkResponseMsg processUplinkMsg(TenantId tenantId, IntegrationId integrationId, UplinkMsg request);
+    UplinkResponseMsg processUplinkMsg(TenantId tenantId, IntegrationId integrationId, ConverterId defaultConverterId, ConverterId downlinkConverterId, UplinkMsg request);
 
 }

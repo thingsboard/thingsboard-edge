@@ -358,6 +358,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.converter (
     search_text text,
     configuration text,
     debug_mode boolean,
+    is_remote boolean,
     additional_info text,
     PRIMARY KEY (id, tenant_id)
 );

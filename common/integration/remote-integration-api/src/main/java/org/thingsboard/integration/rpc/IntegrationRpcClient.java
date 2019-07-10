@@ -30,13 +30,14 @@
  */
 package org.thingsboard.integration.rpc;
 
+import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 
 import java.util.function.Consumer;
 
 public interface IntegrationRpcClient {
 
-    void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError);
+    void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<Exception> onError);
 
     void disconnect() throws InterruptedException;
 

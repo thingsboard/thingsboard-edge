@@ -36,9 +36,6 @@ import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.util.UUID;
 
 public class ModelConstants {
@@ -233,6 +230,7 @@ public class ModelConstants {
     public static final String CONVERTER_NAME_PROPERTY = "name";
     public static final String CONVERTER_TYPE_PROPERTY = "type";
     public static final String CONVERTER_DEBUG_MODE_PROPERTY = "debug_mode";
+    public static final String CONVERTER_IS_REMOTE_PROPERTY = "is_remote";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
@@ -251,7 +249,7 @@ public class ModelConstants {
     public static final String INTEGRATION_ROUTING_KEY_PROPERTY = "routing_key";
     public static final String INTEGRATION_TYPE_PROPERTY = "type";
     public static final String INTEGRATION_DEBUG_MODE_PROPERTY = "debug_mode";
-    public static final String INTEGRATION_IS_REMOTE_PROPERTY = "is_remote";
+    public static final String INTEGRATION_IS_REMOTE_PROPERTY = CONVERTER_IS_REMOTE_PROPERTY;
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 

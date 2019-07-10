@@ -106,6 +106,7 @@ import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
@@ -172,6 +173,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private TelemetrySubscriptionService telemetrySubscriptionService;
+
+    @Autowired
+    private IntegrationRpcService integrationRpcService;
 
     @Value("${transport.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -270,7 +274,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
         }
         if (configuration.isRemote()) {
-            return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+            integrationRpcService.updateIntegration(configuration);
+            return Futures.immediateFuture(null);
         }
         return refreshExecutorService.submit(() -> {
             Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());

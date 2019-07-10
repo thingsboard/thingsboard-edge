@@ -34,9 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -51,6 +49,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private String name;
     private ConverterType type;
     private boolean debugMode;
+    private boolean isRemote;// TODO: 7/10/19 add db upgrade logic
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
 
@@ -68,6 +67,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.name = converter.getName();
         this.type = converter.getType();
         this.debugMode = converter.isDebugMode();
+        this.isRemote = converter.isRemote();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
@@ -105,6 +105,14 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.debugMode = debugMode;
     }
 
+    public boolean isRemote() {
+        return isRemote;
+    }
+
+    public void setRemote(boolean remote) {
+        isRemote = remote;
+    }
+
     public JsonNode getConfiguration() {
         return configuration;
     }
@@ -137,6 +145,8 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         builder.append(type);
         builder.append(", debugMode=");
         builder.append(debugMode);
+        builder.append(", isRemote=");
+        builder.append(isRemote);
         builder.append(", configuration=");
         builder.append(configuration);
         builder.append(", additionalInfo=");

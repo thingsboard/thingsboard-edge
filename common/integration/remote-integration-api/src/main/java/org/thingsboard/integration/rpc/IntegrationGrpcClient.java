@@ -42,6 +42,7 @@ import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
+import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.MessageType;
@@ -76,7 +77,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private CountDownLatch latch;
 
     @Override
-    public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
+    public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<Exception> onError) {
         try {
             channel = NettyChannelBuilder
                     .forAddress(rpcHost, rpcPort)
@@ -89,22 +90,22 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
         }
         IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", integrationKey);
-        this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onSuccess, onError));
+        this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onIntegrationUpdate, onConverterUpdate, onError));
         this.inputStream.onNext(RequestMsg.newBuilder()
                 .setMessageType(MessageType.CONNECT_RPC_MESSAGE)
                 .setConnectRequestMsg(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build())
                 .build());
     }
 
-    private StreamObserver<ResponseMsg> initOutputStream(String integrationKey, Consumer<IntegrationConfigurationProto> onSuccess, Consumer<Exception> onError) {
+    private StreamObserver<ResponseMsg> initOutputStream(String integrationKey, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<Exception> onError) {
         return new StreamObserver<ResponseMsg>() {
             @Override
             public void onNext(ResponseMsg responseMsg) {
                 if (responseMsg.hasConnectResponseMsg()) {
                     ConnectResponseMsg connectResponseMsg = responseMsg.getConnectResponseMsg();
                     if (connectResponseMsg.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {
-                        log.info("[{}]: {}", integrationKey, connectResponseMsg.getConfiguration());
-                        onSuccess.accept(connectResponseMsg.getConfiguration());
+                        log.info("[{}] Configuration received: {}", integrationKey, connectResponseMsg.getConfiguration());
+                        onIntegrationUpdate.accept(connectResponseMsg.getConfiguration());
                     } else {
                         log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", integrationKey, connectResponseMsg.getResponseCode(), connectResponseMsg.getErrorMsg());
                         onError.accept(new IntegrationConnectionException("Failed to establish the connection! Response code: " + connectResponseMsg.getResponseCode().name()));
@@ -117,6 +118,12 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                         log.error("[{}] Msg processing failed! Error msg: {}", integrationKey, msg.getErrorMsg());
                     }
                     latch.countDown();
+                } else if (responseMsg.hasIntegrationUpdateMsg()) {
+                    log.info("[{}] Configuration updated: {}", integrationKey, responseMsg.getIntegrationUpdateMsg().getConfiguration());
+                    onIntegrationUpdate.accept(responseMsg.getIntegrationUpdateMsg().getConfiguration());
+                } else if (responseMsg.hasConverterUpdateMsg()) {
+                    log.info("[{}] Converter configuration updated: {}", integrationKey, responseMsg.getConverterUpdateMsg().getConfiguration());
+                    onConverterUpdate.accept(responseMsg.getConverterUpdateMsg().getConfiguration());
                 }
             }
 
@@ -130,7 +137,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
             @Override
             public void onCompleted() {
-                log.debug("[{}] The rpc session was completed!", integrationKey);
+                log.debug("[{}] The rpc session was closed!", integrationKey);
             }
         };
     }
