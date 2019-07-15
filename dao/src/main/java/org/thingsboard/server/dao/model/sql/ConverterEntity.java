@@ -54,7 +54,6 @@ import javax.persistence.Table;
 
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_REMOTE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
@@ -79,9 +78,6 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
 
     @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
     private boolean debugMode;
-
-    @Column(name = CONVERTER_IS_REMOTE_PROPERTY)
-    private boolean isRemote;
 
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
@@ -108,7 +104,6 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         this.name = converter.getName();
         this.type = converter.getType();
         this.debugMode = converter.isDebugMode();
-        this.isRemote = converter.isRemote();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
     }
@@ -137,7 +132,6 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         converter.setName(name);
         converter.setType(type);
         converter.setDebugMode(debugMode);
-        converter.setRemote(isRemote);
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         return converter;

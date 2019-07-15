@@ -40,6 +40,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.InvalidProtocolBufferException;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -130,6 +131,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
+@Data
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
     private final ObjectMapper mapper = new ObjectMapper();

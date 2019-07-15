@@ -38,6 +38,7 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,6 +82,12 @@ public class EventStorageImpl implements EventStorage {
         stateFile = eventStorageFiles.getStateFile();
         storageWriter = new EventStorageWriter(dataFolderPath, dataFiles, maxFileCount, maxRecordsPerFile, maxRecordsBetweenFsync);
         storageReader = new EventStorageReader(dataFiles, stateFile, maxReadRecordsCount);
+    }
+
+    @PreDestroy
+    public void destroy() throws IOException {
+        storageReader.destroy();
+        storageWriter.destroy();
     }
 
     @Override

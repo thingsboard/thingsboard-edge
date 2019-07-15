@@ -32,6 +32,7 @@ package org.thingsboard.server.service.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
@@ -41,10 +42,14 @@ import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -62,7 +67,10 @@ public class DefaultDataConverterService implements DataConverterService {
     private JsInvokeService jsSandbox;
 
     @Autowired
-    private IntegrationRpcService integrationRpcService;
+    private IntegrationRpcService rpcService;
+
+    @Autowired
+    private IntegrationService integrationService;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
@@ -74,18 +82,19 @@ public class DefaultDataConverterService implements DataConverterService {
     @Override
     public TBDataConverter createConverter(Converter converter) {
         // TODO: This still may cause converter to initialize multiple times, even if one converter will be in the map. Need to improve this later.
-        if (converter.isRemote()) {
-            return null;
-        }
         return convertersByIdMap.computeIfAbsent(converter.getId(), c -> initConverter(converter));
     }
 
     @Override
     public TBDataConverter updateConverter(Converter configuration) {
-        if (configuration.isRemote()) {
-            integrationRpcService.updateConverter(configuration);
-            return null;
+        List<Integration> allIntegrations = integrationService.findAllIntegrations(TenantId.SYS_TENANT_ID);
+        for (Integration integration : allIntegrations) {
+            if (integration.isRemote() && (integration.getDefaultConverterId().getId().equals(configuration.getId().getId()) ||
+                    integration.getDownlinkConverterId().getId().equals(configuration.getId().getId()))) {
+                rpcService.updateConverter(configuration);
+            }
         }
+
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);

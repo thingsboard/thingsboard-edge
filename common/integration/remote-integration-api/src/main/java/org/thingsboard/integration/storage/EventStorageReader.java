@@ -70,7 +70,7 @@ public class EventStorageReader {
         this.stateFile = stateFile;
         this.maxReadRecordsCount = maxReadRecordsCount;
         try {
-            this.bufferedWriter = new BufferedWriter(new FileWriter(stateFile));
+            this.bufferedWriter = new BufferedWriter(new FileWriter(stateFile, false));
         } catch (IOException e) {
             log.error("Failed to initialize buffered writer for state file!", e);
         }
@@ -79,10 +79,9 @@ public class EventStorageReader {
     public BufferedReader getOrInitBufferedReader(File file) {
         try {
             if (bufferedReader == null) {
-                return Files.newBufferedReader(file.toPath());
-            } else {
-                return bufferedReader;
+                bufferedReader = Files.newBufferedReader(file.toPath());
             }
+            return bufferedReader;
         } catch (IOException e) {
             log.error("Failed to initialize buffered reader!", e);
             throw new RuntimeException("Failed to initialize buffered reader!", e);
@@ -106,9 +105,10 @@ public class EventStorageReader {
             if (currentReadFile == null) {
                 currentReadFile = dataFiles.get(currentFileIdx);
             }
-            try (BufferedReader bufferedReader = getOrInitBufferedReader(currentReadFile)) {
+            try {
+                BufferedReader reader = getOrInitBufferedReader(currentReadFile);
                 String line;
-                while ((line = bufferedReader.readLine()) != null) {
+                while ((line = reader.readLine()) != null) {
                     if (linesToSkip != 0) {
                         linesToSkip--;
                         continue;
@@ -128,6 +128,10 @@ public class EventStorageReader {
                 if (line == null) {
                     lastReadLine = 0;
                     currentFileIdx++;
+                    if (bufferedReader != null) {
+                        bufferedReader.close();
+                    }
+                    bufferedReader = null;
                     previousReadFile = currentReadFile;
                     try {
                         currentReadFile = dataFiles.get(currentFileIdx);
@@ -181,7 +185,8 @@ public class EventStorageReader {
     }
 
     private void writeInfoToStateFile() {
-        try (BufferedWriter writer = getBufferedWriter()) {
+        try {
+            BufferedWriter writer = getBufferedWriter();
             ObjectNode stateFileNode = mapper.createObjectNode();
             stateFileNode.put("position", startReadingFromLine);
             stateFileNode.put("currentFileName", currentReadFile.getName());
@@ -189,6 +194,15 @@ public class EventStorageReader {
             writer.flush();
         } catch (IOException e) {
             log.warn("Failed to update state file!", e);
+        }
+    }
+
+    public void destroy() throws IOException {
+        if (bufferedReader != null) {
+            bufferedReader.close();
+        }
+        if (bufferedWriter != null) {
+            bufferedWriter.close();
         }
     }
 }

@@ -222,7 +222,6 @@ public class RemoteIntegrationManagerService {
         converter.setTenantId(new TenantId(new UUID(converterProto.getTenantIdMSB(), converterProto.getTenantIdLSB())));
         converter.setName(converterProto.getName());
         converter.setType(converterType);
-        converter.setRemote(true);
         converter.setDebugMode(converterProto.getDebugMode());
         converter.setConfiguration(mapper.readTree(converterProto.getConfiguration()));
         converter.setAdditionalInfo(mapper.readTree(converterProto.getAdditionalInfo()));

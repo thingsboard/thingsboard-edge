@@ -427,8 +427,7 @@
         "type": "Type",
         "type-required": "Type is required.",
         "type-uplink": "Uplink",
-        "type-downlink": "Downlink",
-        "execute-remotely": "Execute remotely"
+        "type-downlink": "Downlink"
     },
     "content-type": {
         "json": "Json",

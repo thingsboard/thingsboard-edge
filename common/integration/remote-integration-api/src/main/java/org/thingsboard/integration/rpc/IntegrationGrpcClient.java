@@ -130,9 +130,6 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
             @Override
             public void onError(Throwable t) {
                 onError.accept(new RuntimeException(t));
-                /*if (latch != null) {
-                    latch.countDown();
-                }*/
             }
 
             @Override
@@ -152,26 +149,6 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     @Override
     public void handleMsgs() throws InterruptedException {
-        /*this.inputStream.onNext(RequestMsg.newBuilder()
-                .setMessageType(MessageType.UPLINK_RPC_MESSAGE)
-                .setUplinkMsg(UplinkMsg.newBuilder()
-                        .setUplinkMsgId(0)
-                        .addDeviceData(DeviceUplinkDataProto.newBuilder()
-                                .setDeviceName("test")
-                                .setDeviceType("test")
-                                .setPostTelemetryMsg(PostTelemetryMsg.newBuilder()
-                                        .addTsKvList(TsKvListProto.newBuilder()
-                                                .setTs(System.currentTimeMillis())
-                                                .addKv(KeyValueProto.newBuilder()
-                                                        .setKey("key")
-                                                        .setType(KeyValueType.STRING_V)
-                                                        .setStringV("value1")
-                                                        .build())
-                                                .build())
-                                        .build())
-                                .build())
-                        .build())
-                .build());*/
         List<UplinkMsg> uplinkMsgList = eventStorage.readCurrentBatch();
         latch = new CountDownLatch(uplinkMsgList.size());
         for (UplinkMsg msg : uplinkMsgList) {
@@ -181,6 +158,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                     .build());
         }
         latch.await();
+        eventStorage.discardCurrentBatch();
     }
 
 }

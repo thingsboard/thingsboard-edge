@@ -103,7 +103,9 @@ public class EventStorageWriter {
             dataFiles.add(lastFile);
             currentFileRecordsCount = 0;
             try {
-                bufferedWriter.close();
+                if (bufferedWriter != null) {
+                    bufferedWriter.close();
+                }
             } catch (IOException e) {
                 log.warn("Failed to close buffered writer!", e);
                 if (callback != null) {
@@ -152,6 +154,12 @@ public class EventStorageWriter {
 
     private boolean isFileFull(long currentFileSize) {
         return currentFileSize >= maxRecordsPerFile;
+    }
+
+    public void destroy() throws IOException {
+        if (bufferedWriter != null) {
+            bufferedWriter.close();
+        }
     }
 
 }
