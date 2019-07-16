@@ -52,7 +52,6 @@ message RequestMsg {
   MessageType messageType = 1;
   ConnectRequestMsg connectRequestMsg = 2;
   UplinkMsg uplinkMsg = 3;
-
 }
 
 message ResponseMsg {

@@ -158,7 +158,12 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                     .build());
         }
         latch.await();
-        eventStorage.discardCurrentBatch();
+        if(!uplinkMsgList.isEmpty()){
+            eventStorage.discardCurrentBatch();
+        } else {
+            eventStorage.sleep();
+        }
+
     }
 
 }

@@ -43,4 +43,5 @@ public interface EventStorage {
 
     void discardCurrentBatch();
 
+    void sleep();
 }

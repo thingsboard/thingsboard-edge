@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -43,50 +43,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.List;
 
 @Data
 @Slf4j
-public class EventStorageWriter {
+class EventStorageWriter {
 
-    private String dataFolderPath;
-    private List<File> dataFiles;
-    private int maxFileCount;
-    private int maxRecordsPerFile;
-    private int maxRecordsBetweenFsync;
-    private BufferedWriter bufferedWriter;
+    private EventStorageFiles files;
+    private FileEventStorageSettings settings;
+
+    private File currentFile;
     private long currentFileRecordsCount;
+    private BufferedWriter bufferedWriter;
+    private boolean newRecordAfterFlush;
 
-    public EventStorageWriter(String dataFolderPath, List<File> dataFiles, int maxFileCount, int maxRecordsPerFile, int maxRecordsBetweenFsync) {
-        this.dataFolderPath = dataFolderPath;
-        this.dataFiles = dataFiles;
-        this.maxFileCount = maxFileCount;
-        this.maxRecordsPerFile = maxRecordsPerFile;
-        this.maxRecordsBetweenFsync = maxRecordsBetweenFsync;
-        this.bufferedWriter = getOrInitBufferedWriter(dataFiles.get(dataFiles.size() - 1));
+    EventStorageWriter(EventStorageFiles files, FileEventStorageSettings settings) {
+        this.files = files;
+        this.settings = settings;
+
+        currentFile = files.getDataFiles().get(files.getDataFiles().size() - 1);
+        currentFileRecordsCount = getNumberOfRecordsInFile(currentFile);
     }
 
-    public BufferedWriter getOrInitBufferedWriter(File file) {
-        try {
-            if (bufferedWriter == null) {
-                bufferedWriter = new BufferedWriter(new FileWriter(file, true));
-            }
-            return bufferedWriter;
-        } catch (IOException e) {
-            log.error("Failed to initialize buffered writer!", e);
-            throw new RuntimeException("Failed to initialize buffered writer!", e);
-        }
-    }
-
-    public void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
-        File lastFile = dataFiles.get(dataFiles.size() - 1);
-        long recordsCount = getNumberOfRecordsInFile(lastFile);
-        if (isFileFull(recordsCount)) {
+    void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
+        newRecordAfterFlush = true;
+        if (isFileFull(currentFileRecordsCount)) {
             if (log.isDebugEnabled()) {
-                log.debug("Records count: [{}] exceeds the allowed value![{}]", recordsCount, maxRecordsPerFile);
+                log.debug("File [{}] is full with [{}] records", currentFile.getName(), currentFileRecordsCount);
             }
             try {
-                lastFile = createDataFile(Long.toString(System.currentTimeMillis()));
+                currentFile = createDataFile(Long.toString(System.currentTimeMillis()));
             } catch (IOException e) {
                 log.error("Failed to create a new file!", e);
                 if (callback != null) {
@@ -94,13 +79,14 @@ public class EventStorageWriter {
                 }
                 return;
             }
-            if (dataFiles.size() == maxFileCount) {
-                File firstFile = dataFiles.get(0);
+            if (files.getDataFiles().size() == settings.getMaxFileCount()) {
+                File firstFile = files.getDataFiles().get(0);
                 if (firstFile.delete()) {
-                    dataFiles.remove(0);
+                    files.getDataFiles().remove(0);
                 }
+                log.info("Cleanup old data file: {}!", firstFile.getName());
             }
-            dataFiles.add(lastFile);
+            files.getDataFiles().add(currentFile);
             currentFileRecordsCount = 0;
             try {
                 if (bufferedWriter != null) {
@@ -117,15 +103,16 @@ public class EventStorageWriter {
         }
         String encoded = Base64.getEncoder().encodeToString(msg.toByteArray());
         try {
-            BufferedWriter writer = getOrInitBufferedWriter(lastFile);
+            BufferedWriter writer = getOrInitBufferedWriter(currentFile);
             writer.write(encoded);
             writer.newLine();
             currentFileRecordsCount++;
-            if (currentFileRecordsCount % maxRecordsBetweenFsync == 0) {
+            if (currentFileRecordsCount % settings.getMaxRecordsBetweenFsync() == 0) {
                 writer.flush();
+                newRecordAfterFlush = false;
             }
         } catch (IOException e) {
-            log.warn("Failed to update data file![{}]", lastFile.getName(), e);
+            log.warn("Failed to update data file![{}]", currentFile.getName(), e);
             if (callback != null) {
                 callback.onError(e);
             }
@@ -136,9 +123,33 @@ public class EventStorageWriter {
         }
     }
 
+    void flushIfNeeded() {
+        if (newRecordAfterFlush) {
+            if (bufferedWriter != null) {
+                try {
+                    bufferedWriter.flush();
+                    newRecordAfterFlush = false;
+                } catch (IOException e) {
+                    log.warn("Failed to update data file![{}]", currentFile.getName(), e);
+                }
+            }
+        }
+    }
+
+    private BufferedWriter getOrInitBufferedWriter(File file) {
+        try {
+            if (bufferedWriter == null) {
+                bufferedWriter = new BufferedWriter(new FileWriter(file, true));
+            }
+            return bufferedWriter;
+        } catch (IOException e) {
+            log.error("Failed to initialize buffered writer!", e);
+            throw new RuntimeException("Failed to initialize buffered writer!", e);
+        }
+    }
+
     private File createDataFile(String fileName) throws IOException {
-        Path filePath = Paths.get(dataFolderPath + "/data_" + fileName + ".txt");
-        return Files.createFile(filePath).toFile();
+        return Files.createFile(Paths.get(settings.getDataFolderPath() + "/data_" + fileName + ".txt")).toFile();
     }
 
     private long getNumberOfRecordsInFile(File file) {
@@ -153,13 +164,12 @@ public class EventStorageWriter {
     }
 
     private boolean isFileFull(long currentFileSize) {
-        return currentFileSize >= maxRecordsPerFile;
+        return currentFileSize >= settings.getMaxRecordsPerFile();
     }
 
-    public void destroy() throws IOException {
+    void destroy() throws IOException {
         if (bufferedWriter != null) {
             bufferedWriter.close();
         }
     }
-
 }

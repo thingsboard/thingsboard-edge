@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -42,44 +42,123 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 @Data
 @Slf4j
-public class EventStorageReader {
+class EventStorageReader {
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static final ObjectMapper mapper = new ObjectMapper();
+    private EventStorageFiles files;
+    private FileEventStorageSettings settings;
 
-    private List<File> dataFiles;
-    private File stateFile;
-    private int maxReadRecordsCount;
     private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
 
-    private File currentReadFile;
-    private File previousReadFile;
+    private EventStorageReaderPointer currentPos;
+    private EventStorageReaderPointer newPos;
+    private List<UplinkMsg> currentBatch;
 
-    private int startReadingFromLine;
-    private int lastReadLine;
+    EventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
+        this.files = files;
+        this.settings = settings;
+        this.currentPos = readStateFile();
+        this.newPos = currentPos.copy();
+    }
 
-    public EventStorageReader(List<File> dataFiles, File stateFile, int maxReadRecordsCount) {
-        this.dataFiles = dataFiles;
-        this.stateFile = stateFile;
-        this.maxReadRecordsCount = maxReadRecordsCount;
-        try {
-            this.bufferedWriter = new BufferedWriter(new FileWriter(stateFile, false));
-        } catch (IOException e) {
-            log.error("Failed to initialize buffered writer for state file!", e);
+    List<UplinkMsg> read() {
+        if (!currentPos.equals(newPos) && currentBatch != null) {
+            log.debug("The previous batch was not discarded!");
+            return currentBatch;
+        }
+        currentBatch = new ArrayList<>();
+        int recordsToRead = settings.getMaxReadRecordsCount();
+        while (recordsToRead > 0) {
+            try {
+                int currentLineInFile = newPos.getLine();
+                BufferedReader reader = getOrInitBufferedReader(newPos);
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    try {
+                        currentBatch.add(UplinkMsg.parseFrom(Base64.getDecoder().decode(line)));
+                        recordsToRead--;
+                    } catch (Exception e) {
+                        log.warn("Could not parse line [{}] to uplink message!", line, e);
+                    } finally {
+                        currentLineInFile++;
+                    }
+
+                    newPos.setLine(currentLineInFile);
+                    if (recordsToRead == 0) {
+                        break;
+                    }
+                }
+
+                if (currentLineInFile == settings.getMaxRecordsPerFile()) {
+                    File nextFile = getNextFile(files, newPos);
+                    if (nextFile != null) {
+                        if (bufferedReader != null) {
+                            bufferedReader.close();
+                        }
+                        bufferedReader = null;
+                        newPos = new EventStorageReaderPointer(nextFile, 0);
+                    } else {
+                        // No more records to read for now
+                        break;
+                    }
+                } else {
+                    // No more records to read for now
+                    break;
+                }
+            } catch (IOException e) {
+                log.warn("[{}] Failed to read file!", newPos.getFile().getName(), e);
+                break;
+            }
+        }
+        return currentBatch;
+    }
+
+    public void discardBatch() {
+        currentPos = newPos;
+        writeInfoToStateFile(currentPos);
+    }
+
+    private File getNextFile(EventStorageFiles files, EventStorageReaderPointer newPos) {
+        boolean found = false;
+        for (File file : files.getDataFiles()) {
+            if (found) {
+                return file;
+            }
+            if (file.getName().equals(newPos.getFile().getName())) {
+                found = true;
+            }
+        }
+        if(found) {
+            return null;
+        } else {
+            return files.getDataFiles().get(0);
         }
     }
 
-    public BufferedReader getOrInitBufferedReader(File file) {
+    private BufferedReader getOrInitBufferedReader(EventStorageReaderPointer pointer) {
         try {
             if (bufferedReader == null) {
-                bufferedReader = Files.newBufferedReader(file.toPath());
+                bufferedReader = Files.newBufferedReader(pointer.getFile().toPath());
+            }
+            int linesToSkip = pointer.getLine();
+            if (linesToSkip > 0) {
+                while (bufferedReader.readLine() != null) {
+                    if (linesToSkip != 0) {
+                        linesToSkip--;
+                    } else {
+                        break;
+                    }
+                }
             }
             return bufferedReader;
         } catch (IOException e) {
@@ -88,121 +167,47 @@ public class EventStorageReader {
         }
     }
 
-    public List<UplinkMsg> read() {
-        if (startReadingFromLine != lastReadLine) {
-            log.error("The previous batch must be discarded first!");
-            throw new RuntimeException("The previous batch must be discarded first!");
-        }
-        List<UplinkMsg> uplinkMsgs = new ArrayList<>();
-        if (currentReadFile == null) {
-            readStateFile();
-        }
-        int linesToSkip = startReadingFromLine;
-
-        int currentFileIdx = 0;
-        int recordsToRead = maxReadRecordsCount;
-        while (recordsToRead > 0) {
-            if (currentReadFile == null) {
-                currentReadFile = dataFiles.get(currentFileIdx);
-            }
-            try {
-                BufferedReader reader = getOrInitBufferedReader(currentReadFile);
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (linesToSkip != 0) {
-                        linesToSkip--;
-                        continue;
-                    }
-                    if (recordsToRead == 0) {
-                        break;
-                    }
-                    try {
-                        uplinkMsgs.add(UplinkMsg.parseFrom(Base64.getDecoder().decode(line)));
-                        lastReadLine++;
-                        recordsToRead--;
-                    } catch (Exception e) {
-                        log.warn("Could not parse line [{}] to uplink message!", line, e);
-                        lastReadLine++;
-                    }
-                }
-                if (line == null) {
-                    lastReadLine = 0;
-                    currentFileIdx++;
-                    if (bufferedReader != null) {
-                        bufferedReader.close();
-                    }
-                    bufferedReader = null;
-                    previousReadFile = currentReadFile;
-                    try {
-                        currentReadFile = dataFiles.get(currentFileIdx);
-                    } catch (IndexOutOfBoundsException e) {
-                        log.warn("The are no more files to read!");
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                log.warn("Failed to read file![{}]", currentReadFile.getName(), e);
-            }
-        }
-        return uplinkMsgs;
-    }
-
-    private void readStateFile() {
-        JsonNode stateDataNode = fetchInfoFromStateFile();
-        if (stateDataNode != null) {
-            startReadingFromLine = stateDataNode.get("position").asInt();
-            for (File file : dataFiles) {
-                if (file.getName().equals(stateDataNode.get("currentFileName").asText())) {
-                    currentReadFile = file;
-                    break;
-                } else {
-                    if (file.delete()) {
-                        dataFiles.remove(file);
-                    }
-                }
-            }
-        }
-    }
-
-    private JsonNode fetchInfoFromStateFile() {
-        try (BufferedReader br = Files.newBufferedReader(stateFile.toPath())) {
-            String line = br.readLine();
-            if (line != null) {
-                return mapper.readTree(line);
-            }
+    private EventStorageReaderPointer readStateFile() {
+        JsonNode stateDataNode = null;
+        try (BufferedReader br = Files.newBufferedReader(files.getStateFile().toPath())) {
+            stateDataNode = mapper.readTree(br);
         } catch (IOException e) {
             log.warn("Failed to fetch info from state file!", e);
         }
-        return null;
-    }
 
-    public void discardBatch() {
-        startReadingFromLine = lastReadLine;
-        if (previousReadFile != currentReadFile && previousReadFile.delete()) {
-            dataFiles.remove(previousReadFile);
+        File readerFile = null;
+        int readerPos = 0;
+        if (stateDataNode != null) {
+            readerPos = stateDataNode.get("position").asInt();
+            for (File file : files.getDataFiles()) {
+                if (file.getName().equals(stateDataNode.get("file").asText())) {
+                    readerFile = file;
+                    break;
+                }
+            }
         }
-        writeInfoToStateFile();
+        if (readerFile == null) {
+            readerFile = files.getDataFiles().get(0);
+            readerPos = 0;
+        }
+        log.info("Initializing from state file: [{}:{}]", readerFile.getAbsolutePath(), readerPos);
+        return new EventStorageReaderPointer(readerFile, readerPos);
     }
 
-    private void writeInfoToStateFile() {
+    private void writeInfoToStateFile(EventStorageReaderPointer pointer) {
         try {
-            BufferedWriter writer = getBufferedWriter();
             ObjectNode stateFileNode = mapper.createObjectNode();
-            stateFileNode.put("position", startReadingFromLine);
-            stateFileNode.put("currentFileName", currentReadFile.getName());
-            writer.write(mapper.writeValueAsString(stateFileNode));
-            writer.flush();
+            stateFileNode.put("position", pointer.getLine());
+            stateFileNode.put("file", pointer.getFile().getName());
+            Files.write(Paths.get(files.getStateFile().toURI()), mapper.writeValueAsString(stateFileNode).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.warn("Failed to update state file!", e);
         }
     }
 
-    public void destroy() throws IOException {
+    void destroy() throws IOException {
         if (bufferedReader != null) {
             bufferedReader.close();
-        }
-        if (bufferedWriter != null) {
-            bufferedWriter.close();
         }
     }
 }
