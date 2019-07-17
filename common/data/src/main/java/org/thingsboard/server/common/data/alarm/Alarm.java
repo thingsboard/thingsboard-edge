@@ -98,6 +98,6 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
     @Override
     @JsonIgnore
     public EntityType getEntityType() {
-        return EntityType.ASSET;
+        return EntityType.ALARM;
     }
 }
