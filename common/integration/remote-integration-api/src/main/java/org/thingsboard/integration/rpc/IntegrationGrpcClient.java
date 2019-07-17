@@ -163,7 +163,5 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
         } else {
             eventStorage.sleep();
         }
-
     }
-
 }

@@ -35,6 +35,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -102,6 +104,9 @@ public class RemoteIntegrationManagerService {
     @Autowired
     private JsInvokeService jsInvokeService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     private ThingsboardPlatformIntegration integration;
 
     private TBUplinkDataConverter uplinkDataConverter;
@@ -165,7 +170,7 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, configuration, clientId, port),
+                    new RemoteIntegrationContext(eventStorage, cacheManager, configuration, clientId, port),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);
@@ -284,6 +289,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.azure.AzureEventHubIntegration");
             case OPC_UA:
                 return newInstance("org.thingsboard.integration.opcua.OpcUaIntegration");
+            case OPHARDT_OSDMP:
+                return newInstance("org.thingsboard.integration.http.ophardt.OphardtIntegration");
             default:
                 throw new RuntimeException("Not Implemented!");
         }

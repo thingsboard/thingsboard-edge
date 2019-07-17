@@ -28,15 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.integration.http.ophardt;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
-import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Data
-public class EventStorageFiles {
-    private final File stateFile;
-    private final CopyOnWriteArrayList<File> dataFiles;
+public class EventProcessingData {
+
+    private final UUID uuid;
+    private final JsonNode node;
+    private final OphardtData event;
+    private final List<OphardtData> sensors;
+    private final long eventTs;
+    private final String deviceName;
+
 }

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.api;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -43,10 +44,10 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -139,6 +140,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                 .setPostTelemetryMsg(data.getTelemetry()).setPostAttributesMsg(data.getAttributesUpdate()).build(), null);
     }
 
+    protected void processEntityViewCreation(IntegrationContext context, UplinkData data) {
+        context.processEntityViewCreation(EntityViewDataProto.newBuilder()
+                .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType()).build(), null);
+    }
+
     protected static boolean isLocalNetworkHost(String host) {
         try {
             InetAddress address = InetAddress.getByName(host);
@@ -164,7 +170,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             node = node.put("error", toString(exception));
         }
 
-        context.saveEvent(DataConstants.DEBUG_INTEGRATION, node, new DebugEventCallback());
+        context.saveEvent(DataConstants.DEBUG_INTEGRATION, UUIDs.timeBased().toString(), node, new DebugEventCallback());
     }
 
     private String toString(Exception e) {

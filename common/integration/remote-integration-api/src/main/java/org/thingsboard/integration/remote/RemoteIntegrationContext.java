@@ -37,6 +37,8 @@ import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
@@ -48,25 +50,32 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Slf4j
 public class RemoteIntegrationContext implements IntegrationContext {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static final String REMOTE_INTEGRATION_CACHE = "remoteIntegration";
 
     protected final EventStorage eventStorage;
+    protected final CacheManager cacheManager;
     protected final Integration configuration;
     protected final String clientId;
     protected final int port;
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, Integration configuration, String clientId, int port) {
+    public RemoteIntegrationContext(EventStorage eventStorage, CacheManager cacheManager, Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
+        this.cacheManager = cacheManager;
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;
@@ -85,12 +94,17 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
+    public void processEntityViewCreation(EntityViewDataProto msg, IntegrationCallback<Void> callback) {
+        eventStorage.write(UplinkMsg.newBuilder().addEntityViewData(msg).build(), callback);
+    }
+
+    @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
         eventStorage.write(UplinkMsg.newBuilder().addTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         String eventData = "";
         try {
             eventData = mapper.writeValueAsString(body);
@@ -101,9 +115,66 @@ public class RemoteIntegrationContext implements IntegrationContext {
                 .addEventsData(TbEventProto.newBuilder()
                         .setSource(TbEventSource.INTEGRATION)
                         .setType(type)
+                        .setUid(uid)
                         .setData(eventData)
                         .build())
                 .build(), callback);
+    }
+
+    @Override
+    public long findDeviceAttributeValue(String deviceName, String scope, String key) {
+        Cache cache = cacheManager.getCache(REMOTE_INTEGRATION_CACHE);
+
+        List<Object> cacheKey = new ArrayList<>();
+        cacheKey.add("attr_");
+        cacheKey.add(deviceName);
+        cacheKey.add(scope);
+        cacheKey.add(key);
+
+        Long value = cache.get(cacheKey, Long.class);
+        if (value != null) {
+            return value;
+        }
+        return 0L;
+    }
+
+    @Override
+    public void saveDeviceAttributeValueInCache(String deviceName, String scope, String key, long value) {
+        Cache cache = cacheManager.getCache(REMOTE_INTEGRATION_CACHE);
+
+        List<Object> cacheKey = new ArrayList<>();
+        cacheKey.add("attr_");
+        cacheKey.add(deviceName);
+        cacheKey.add(scope);
+        cacheKey.add(key);
+
+        cache.put(cacheKey, value);
+    }
+
+    @Override
+    public String findEventUid(String deviceName, String type, String uid) {
+        Cache cache = cacheManager.getCache(REMOTE_INTEGRATION_CACHE);
+
+        List<Object> cacheKey = new ArrayList<>();
+        cacheKey.add("event_");
+        cacheKey.add(deviceName);
+        cacheKey.add(type);
+        cacheKey.add(uid);
+
+        return cache.get(cacheKey, String.class);
+    }
+
+    @Override
+    public void saveEventUidInCache(String deviceName, String type, String uid) {
+        Cache cache = cacheManager.getCache(REMOTE_INTEGRATION_CACHE);
+
+        List<Object> cacheKey = new ArrayList<>();
+        cacheKey.add("event_");
+        cacheKey.add(deviceName);
+        cacheKey.add(type);
+        cacheKey.add(uid);
+
+        cache.put(cacheKey, "");
     }
 
     @Override

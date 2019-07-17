@@ -36,21 +36,30 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:1c25e5b489977c24ecf42f0d0300ac1d}"
-  secret: "${INTEGRATION_SECRET:dzc2wdwl5d2y1irybr6r}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:b4fba447d654cf7fdfdb30552767dad0}"
+  secret: "${INTEGRATION_SECRET:pxy48d7minlxdfue1lbk}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
 
 storage:
   data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
-  max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:3}"
-  max_records_per_file: "${INTEGRATION_STORAGE_MAX_RECORDS_PER_FILE:3}"
-  max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:2}"
-  max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:10}"
+  max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:100}"
+  max_records_per_file: "${INTEGRATION_STORAGE_MAX_RECORDS_PER_FILE:30}"
+  max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:10}"
+  max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:50}"
   no_read_records_sleep: "${INTEGRATION_STORAGE_NO_READ_RECORDS_SLEEP:1000}"
 
 executors:
   thread_pool_size: "${EXECUTORS_SIZE:1}"
   reconnect_timeout: "${EXECUTORS_RECONNECT_TIMEOUT:3000}" # in milliseconds
+
+redis:
+  # standalone or cluster
+  connection:
+    type: standalone
+    host: "${REDIS_HOST:localhost}"
+    port: "${REDIS_PORT:6379}"
+    db: "${REDIS_DB:0}"
+    password: "${REDIS_PASSWORD:}"
 
 rpc:
   host: "${PRC_HOST:localhost}"
@@ -60,7 +69,7 @@ rpc:
   client_id: "${RPC_CLIENT_ID:remote}"
 
 js:
-  evaluator: "${JS_EVALUATOR:local}" # local/remote
+  evaluator: "${JS_EVALUATOR:local}"
   # Built-in JVM JavaScript environment properties
   local:
     # Use Sandboxed (secured) JVM JavaScript environment

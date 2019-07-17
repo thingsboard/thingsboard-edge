@@ -438,7 +438,12 @@ export default angular.module('thingsboard.types', [])
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
-                }
+                },
+                "OPHARDT_OSDMP": {
+                    name: "integration.type-ophardt-osdmp",
+                    value: "OPHARDT_OSDMP",
+                    http: true
+                },
             },
             componentType: {
                 enrichment: "ENRICHMENT",
@@ -827,6 +832,10 @@ export default angular.module('thingsboard.types', [])
                 stats: {
                     value: "STATS",
                     name: "event.type-stats"
+                },
+                rawData: {
+                    value: "RAW_DATA",
+                    name: "event.type-rw-event"
                 }
             },
             debugEventType: {

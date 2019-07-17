@@ -343,7 +343,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
     }
 
     private void handlePostAttributesRequest(ActorContext context, SessionInfoProto sessionInfo, PostAttributeMsg postAttributes) {
-        JsonObject json = getJsonObject(postAttributes.getKvList());
+        JsonObject json = getJsonObject(postAttributes.getKvList(), null);
         TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), deviceId, defaultMetaData.copy(),
                 TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
         pushToRuleEngine(context, tbMsg);
@@ -351,9 +351,9 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
 
     private void handlePostTelemetryRequest(ActorContext context, SessionInfoProto sessionInfo, PostTelemetryMsg postTelemetry) {
         for (TsKvListProto tsKv : postTelemetry.getTsKvListList()) {
-            JsonObject json = getJsonObject(tsKv.getKvList());
             TbMsgMetaData metaData = defaultMetaData.copy();
             metaData.putValue("ts", tsKv.getTs() + "");
+            JsonObject json = getJsonObject(tsKv.getKvList(), metaData);
             TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), deviceId, metaData, TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
             pushToRuleEngine(context, tbMsg);
         }
@@ -567,9 +567,13 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         this.defaultMetaData.putValue("deviceType", deviceType);
     }
 
-    private JsonObject getJsonObject(List<KeyValueProto> tsKv) {
+    private JsonObject getJsonObject(List<KeyValueProto> tsKv, TbMsgMetaData metaData) {
         JsonObject json = new JsonObject();
         for (KeyValueProto kv : tsKv) {
+            if (kv.getKey().equals("ophardtLastEventTs")) {
+                metaData.putValue("lateEvent", kv.getStringV());
+                continue;
+            }
             switch (kv.getType()) {
                 case BOOLEAN_V:
                     json.addProperty(kv.getKey(), kv.getBoolV());

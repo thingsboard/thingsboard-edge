@@ -61,6 +61,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
+import org.thingsboard.integration.http.ophardt.OphardtIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
@@ -656,6 +657,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AzureEventHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
+            case OPHARDT_OSDMP:
+                return new OphardtIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }

@@ -28,14 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cache;
+package org.thingsboard.integration.cache;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.ConverterRegistry;
@@ -48,10 +46,9 @@ import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.id.EntityId;
 
 @Configuration
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis", matchIfMissing = false)
 @EnableCaching
 @Data
-public class TBRedisCacheConfiguration {
+public class IntegrationRedisCacheConfiguration {
 
     @Value("${redis.connection.host}")
     private String host;
@@ -82,11 +79,6 @@ public class TBRedisCacheConfiguration {
         registerDefaultConverters(redisConversionService);
         RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().withConversionService(redisConversionService);
         return RedisCacheManager.builder(cf).cacheDefaults(configuration).build();
-    }
-
-    @Bean
-    public KeyGenerator previousDeviceCredentialsId() {
-        return new PreviousDeviceCredentialsIdKeyGenerator();
     }
 
     private static void registerDefaultConverters(ConverterRegistry registry) {

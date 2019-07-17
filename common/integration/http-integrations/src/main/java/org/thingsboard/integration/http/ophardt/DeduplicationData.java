@@ -28,15 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.integration.http.ophardt;
 
 import lombok.Data;
 
-import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 @Data
-public class EventStorageFiles {
-    private final File stateFile;
-    private final CopyOnWriteArrayList<File> dataFiles;
+public class DeduplicationData {
+
+    private String deviceId;
+    private String deviceType;
+    private long eventId;
+    private long eventTime;
+    private String eventType;
+    private long eventValue;
+
 }

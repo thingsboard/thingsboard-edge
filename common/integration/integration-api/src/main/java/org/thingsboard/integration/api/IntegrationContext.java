@@ -35,10 +35,10 @@ import io.netty.channel.EventLoopGroup;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -74,6 +74,8 @@ public interface IntegrationContext {
      */
     void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 
+    void processEntityViewCreation(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback);
+
     /**
      * Dispatch custom message to the rule engine.
      * Note that msg originator is verified to be either tenantId or integrationId or any device/asset that belongs to the corresponding tenant.
@@ -85,7 +87,15 @@ public interface IntegrationContext {
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
      */
-    void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback);
+    void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
+
+    long findDeviceAttributeValue(String deviceName, String scope, String key);
+
+    void saveDeviceAttributeValueInCache(String deviceName, String scope, String key, long value);
+
+    String findEventUid(String deviceName, String type, String uid);
+
+    void saveEventUidInCache(String deviceName, String type, String uid);
 
     /**
      * Provides Netty Event loop group to be used by integrations in order to avoid creating separate threads per integration.

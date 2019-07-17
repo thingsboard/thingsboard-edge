@@ -46,9 +46,13 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -57,16 +61,21 @@ import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
 
+import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Data
 @Slf4j
 public class LocalIntegrationContext implements IntegrationContext {
 
-    private static final ReentrantLock deviceCreationLock = new ReentrantLock();
+    private static final String DEVICE_VIEW_NAME_ENDING = "_View";
+    private static final ReentrantLock entityCreationLock = new ReentrantLock();
 
     protected final IntegrationContextComponent ctx;
     protected final Integration configuration;
@@ -83,7 +92,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Device device = getOrCreateDevice(data);
+        Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType());
 
         UUID sessionId = UUID.randomUUID();
         SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
@@ -105,6 +114,11 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
+    public void processEntityViewCreation(EntityViewDataProto data, IntegrationCallback<Void> callback) {
+        createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType()));
+    }
+
+    @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
         ctx.getActorService().onMsg(new SendToClusterMsg(this.configuration.getId(), new ServiceToRuleEngineMsg(this.configuration.getTenantId(), msg)));
         if (callback != null) {
@@ -113,13 +127,50 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         Event event = new Event();
         event.setTenantId(configuration.getTenantId());
         event.setEntityId(configuration.getId());
         event.setType(type);
+        event.setUid(uid);
         event.setBody(body);
         DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
+    }
+
+    @Override
+    public void saveDeviceAttributeValueInCache(String deviceName, String scope, String key, long value) {
+    }
+
+    @Override
+    public void saveEventUidInCache(String deviceName, String type, String uid) {
+    }
+
+    @Override
+    public long findDeviceAttributeValue(String deviceName, String scope, String key) {
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            try {
+                Optional<AttributeKvEntry> optional = ctx.getAttributesService().find(configuration.getTenantId(), device.getId(), scope, key).get();
+                if (optional.isPresent()) {
+                    return optional.get().getLongValue().orElse(0L);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                log.warn("[{}] Failed to fetch device attribute!", device.getId(), e);
+            }
+        }
+        return 0L;
+    }
+
+    @Override
+    public String findEventUid(String deviceName, String type, String uid) {
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            Optional<Event> optionalEvent = ctx.getEventService().findEvent(configuration.getTenantId(), device.getId(), type, uid);
+            if (optionalEvent.isPresent()) {
+                return optionalEvent.get().getUid();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -150,33 +201,28 @@ public class LocalIntegrationContext implements IntegrationContext {
         return false;
     }
 
-    private Device getOrCreateDevice(DeviceUplinkDataProto data) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+    private Device getOrCreateDevice(String deviceName, String deviceType) {
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device == null) {
-            deviceCreationLock.lock();
+            entityCreationLock.lock();
             try {
-                return processGetOrCreateDevice(data);
+                return processGetOrCreateDevice(deviceName, deviceType);
             } finally {
-                deviceCreationLock.unlock();
+                entityCreationLock.unlock();
             }
         }
         return device;
     }
 
-    private Device processGetOrCreateDevice(DeviceUplinkDataProto data) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), data.getDeviceName());
+    private Device processGetOrCreateDevice(String deviceName, String deviceType) {
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device == null) {
             device = new Device();
-            device.setName(data.getDeviceName());
-            device.setType(data.getDeviceType());
+            device.setName(deviceName);
+            device.setType(deviceType);
             device.setTenantId(configuration.getTenantId());
             device = ctx.getDeviceService().saveDevice(device);
-            EntityRelation relation = new EntityRelation();
-            relation.setFrom(configuration.getId());
-            relation.setTo(device.getId());
-            relation.setTypeGroup(RelationTypeGroup.COMMON);
-            relation.setType(EntityRelation.INTEGRATION_TYPE);
-            ctx.getRelationService().saveRelation(configuration.getTenantId(), relation);
+            createRelationFromIntegration(device.getId());
             ctx.getActorService().onDeviceAdded(device);
             try {
                 ObjectNode entityNode = mapper.valueToTree(device);
@@ -187,6 +233,42 @@ public class LocalIntegrationContext implements IntegrationContext {
             }
         }
         return device;
+    }
+
+    private void createEntityViewForDeviceIfAbsent(Device device) {
+        String entityViewName = device.getName() + DEVICE_VIEW_NAME_ENDING;
+        EntityView entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
+        if (entityView == null) {
+            entityCreationLock.lock();
+            try {
+                entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
+                if (entityView == null) {
+                    entityView = new EntityView();
+                    entityView.setName(entityViewName);
+                    entityView.setType("deviceView");
+                    entityView.setTenantId(configuration.getTenantId());
+                    entityView.setEntityId(device.getId());
+
+                    TelemetryEntityView telemetryEntityView = new TelemetryEntityView();
+                    telemetryEntityView.setTimeseries(Collections.singletonList("FILLINGLEVEL"));
+                    entityView.setKeys(telemetryEntityView);
+
+                    entityView = ctx.getEntityViewService().saveEntityView(entityView);
+                    createRelationFromIntegration(entityView.getId());
+                }
+            } finally {
+                entityCreationLock.unlock();
+            }
+        }
+    }
+
+    private void createRelationFromIntegration(EntityId entityId) {
+        EntityRelation relation = new EntityRelation();
+        relation.setFrom(configuration.getId());
+        relation.setTo(entityId);
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        relation.setType(EntityRelation.INTEGRATION_TYPE);
+        ctx.getRelationService().saveRelation(configuration.getTenantId(), relation);
     }
 
     private TbMsgMetaData actionTbMsgMetaData(Device device) {

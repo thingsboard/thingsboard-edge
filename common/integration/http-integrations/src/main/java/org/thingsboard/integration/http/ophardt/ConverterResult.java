@@ -28,15 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.integration.http.ophardt;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import org.thingsboard.integration.api.data.UplinkData;
 
-import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
-public class EventStorageFiles {
-    private final File stateFile;
-    private final CopyOnWriteArrayList<File> dataFiles;
+public class ConverterResult {
+
+    private UplinkData uplinkData;
+    private Map<UUID, JsonNode> eventsMap;
+
 }

@@ -99,6 +99,11 @@ message DeviceUplinkDataProto {
   transport.PostAttributeMsg postAttributesMsg = 4;
 }
 
+message EntityViewDataProto {
+  string deviceName = 1;
+  string deviceType = 2;
+}
+
 message DeviceDownlinkDataProto {
   string deviceName = 1;
   string deviceType = 2;
@@ -114,7 +119,8 @@ enum TbEventSource {
 message TbEventProto {
   TbEventSource source = 1;
   string type = 2;
-  string data = 3;
+  string uid = 3;
+  string data = 4;
 }
 
 message IntegrationConfigurationProto {
@@ -154,8 +160,9 @@ message ConverterConfigurationProto {
 message UplinkMsg {
   int32 uplinkMsgId = 1;
   repeated DeviceUplinkDataProto deviceData = 2;
-  repeated TbEventProto eventsData = 3;
-  repeated bytes tbMsg = 4;
+  repeated EntityViewDataProto entityViewData = 3;
+  repeated TbEventProto eventsData = 4;
+  repeated bytes tbMsg = 5;
 }
 
 message UplinkResponseMsg {

@@ -28,15 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.integration.http.ophardt;
 
-import lombok.Data;
+public enum SensorTypes {
 
-import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
+    IR_0(0),
+    IR_1(1),
+    IR_2(2),
+    IR_3(3),
+    IR_4(4),
+    IR_5(5),
+    IR_6(6),
+    IR_7(7),
+    TOF(48),
+    REED(64),
+    BATTERY_VOLTAGE(112),
+    POT(160);
 
-@Data
-public class EventStorageFiles {
-    private final File stateFile;
-    private final CopyOnWriteArrayList<File> dataFiles;
+    long value;
+
+    public long getValue() {
+        return value;
+    }
+
+    SensorTypes(long value) {
+        this.value = value;
+    }
+
+    public static String getSensorTypeByValue(long value) {
+        for (SensorTypes sensorType : SensorTypes.values()) {
+            if (sensorType.getValue() == value) {
+                return sensorType.name();
+            }
+        }
+        throw new RuntimeException("Invalid value for sensor type!");
+    }
+
 }
