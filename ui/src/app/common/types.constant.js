@@ -35,6 +35,7 @@ export default angular.module('thingsboard.types', [])
                 general: 2,
                 authentication: 10,
                 jwtTokenExpired: 11,
+                credentialsExpired: 15,
                 permissionDenied: 20,
                 invalidArguments: 30,
                 badRequestParams: 31,
@@ -242,6 +243,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "MADE_PRIVATE": {
                     name: "audit-log.type-made-private"
+                },
+                "LOGIN": {
+                    name: "audit-log.type-login"
+                },
+                "LOGOUT": {
+                    name: "audit-log.type-logout"
                 }
             },
             auditLogActionStatus: {

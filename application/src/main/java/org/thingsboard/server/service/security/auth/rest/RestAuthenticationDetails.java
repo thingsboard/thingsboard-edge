@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,34 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import ngMaterial from 'angular-material';
-import ngMessages from 'angular-messages';
-import thingsboardApiAdmin from '../api/admin.service';
-import thingsboardConfirmOnExit from '../components/confirm-on-exit.directive';
-import thingsboardToast from '../services/toast';
+package org.thingsboard.server.service.security.auth.rest;
 
-import AdminRoutes from './admin.routes';
-import AdminController from './admin.controller';
-import SecuritySettingsController from './security-settings.controller';
-import WhiteLabelingController from './white-labeling.controller';
-import CustomTranslationController from './custom-translation.controller';
-import CustomMenuController from './custom-menu.controller';
-import SelfRegistrationController from './self-registration';
+import lombok.Data;
+import ua_parser.Client;
+import ua_parser.Parser;
 
-export default angular.module('thingsboard.admin', [
-    uiRouter,
-    ngMaterial,
-    ngMessages,
-    thingsboardApiAdmin,
-    thingsboardConfirmOnExit,
-    thingsboardToast
-])
-    .config(AdminRoutes)
-    .controller('AdminController', AdminController)
-    .controller('SecuritySettingsController', SecuritySettingsController)
-    .controller('WhiteLabelingController', WhiteLabelingController)
-    .controller('CustomTranslationController', CustomTranslationController)
-    .controller('CustomMenuController', CustomMenuController)
-    .controller('SelfRegistrationController', SelfRegistrationController)
-    .name;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.Serializable;
+
+@Data
+public class RestAuthenticationDetails implements Serializable {
+
+    private final String clientAddress;
+    private final Client userAgent;
+
+    public RestAuthenticationDetails(HttpServletRequest request) {
+        this.clientAddress = getClientIP(request);
+        this.userAgent = getUserAgent(request);
+    }
+
+    private static String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
+    }
+
+    private static Client getUserAgent(HttpServletRequest request) {
+        try {
+            Parser uaParser = new Parser();
+            return uaParser.parse(request.getHeader("User-Agent"));
+        } catch (IOException e) {
+            return new Client(null, null, null);
+        }
+    }
+}

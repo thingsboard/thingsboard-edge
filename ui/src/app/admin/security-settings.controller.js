@@ -28,34 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import ngMaterial from 'angular-material';
-import ngMessages from 'angular-messages';
-import thingsboardApiAdmin from '../api/admin.service';
-import thingsboardConfirmOnExit from '../components/confirm-on-exit.directive';
-import thingsboardToast from '../services/toast';
+import './settings-card.scss';
 
-import AdminRoutes from './admin.routes';
-import AdminController from './admin.controller';
-import SecuritySettingsController from './security-settings.controller';
-import WhiteLabelingController from './white-labeling.controller';
-import CustomTranslationController from './custom-translation.controller';
-import CustomMenuController from './custom-menu.controller';
-import SelfRegistrationController from './self-registration';
+/*@ngInject*/
+export default function SecuritySettingsController(adminService, $mdExpansionPanel) {
 
-export default angular.module('thingsboard.admin', [
-    uiRouter,
-    ngMaterial,
-    ngMessages,
-    thingsboardApiAdmin,
-    thingsboardConfirmOnExit,
-    thingsboardToast
-])
-    .config(AdminRoutes)
-    .controller('AdminController', AdminController)
-    .controller('SecuritySettingsController', SecuritySettingsController)
-    .controller('WhiteLabelingController', WhiteLabelingController)
-    .controller('CustomTranslationController', CustomTranslationController)
-    .controller('CustomMenuController', CustomMenuController)
-    .controller('SelfRegistrationController', SelfRegistrationController)
-    .name;
+    var vm = this;
+    vm.$mdExpansionPanel = $mdExpansionPanel;
+
+    vm.save = save;
+
+    loadSettings();
+
+    function loadSettings() {
+        adminService.getSecuritySettings().then(function success(securitySettings) {
+            vm.securitySettings = securitySettings;
+        });
+    }
+
+    function save() {
+        adminService.saveSecuritySettings(vm.securitySettings).then(function success(securitySettings) {
+            vm.securitySettings = securitySettings;
+            vm.settingsForm.$setPristine();
+        });
+    }
+
+}

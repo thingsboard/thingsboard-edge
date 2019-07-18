@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,34 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import uiRouter from 'angular-ui-router';
-import ngMaterial from 'angular-material';
-import ngMessages from 'angular-messages';
-import thingsboardApiAdmin from '../api/admin.service';
-import thingsboardConfirmOnExit from '../components/confirm-on-exit.directive';
-import thingsboardToast from '../services/toast';
+package org.thingsboard.server.service.security.exception;
 
-import AdminRoutes from './admin.routes';
-import AdminController from './admin.controller';
-import SecuritySettingsController from './security-settings.controller';
-import WhiteLabelingController from './white-labeling.controller';
-import CustomTranslationController from './custom-translation.controller';
-import CustomMenuController from './custom-menu.controller';
-import SelfRegistrationController from './self-registration';
+import org.springframework.security.authentication.CredentialsExpiredException;
 
-export default angular.module('thingsboard.admin', [
-    uiRouter,
-    ngMaterial,
-    ngMessages,
-    thingsboardApiAdmin,
-    thingsboardConfirmOnExit,
-    thingsboardToast
-])
-    .config(AdminRoutes)
-    .controller('AdminController', AdminController)
-    .controller('SecuritySettingsController', SecuritySettingsController)
-    .controller('WhiteLabelingController', WhiteLabelingController)
-    .controller('CustomTranslationController', CustomTranslationController)
-    .controller('CustomMenuController', CustomMenuController)
-    .controller('SelfRegistrationController', SelfRegistrationController)
-    .name;
+public class UserPasswordExpiredException extends CredentialsExpiredException {
+
+    private final String resetToken;
+
+    public UserPasswordExpiredException(String msg, String resetToken) {
+        super(msg);
+        this.resetToken = resetToken;
+    }
+
+    public String getResetToken() {
+        return resetToken;
+    }
+
+}
