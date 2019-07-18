@@ -104,7 +104,7 @@ public class OphardtIntegration extends AbstractIntegration<HttpIntegrationMsg> 
 
         processUplinkData(context, builder.build());
         String uuidString = generateUUID(mostSigBits).toString();
-        context.saveEvent(DataConstants.RAW_DATA, uuidString, createEventBody(uuidString, rawData), new IntegrationDebugEventCallback());
+        context.saveRawDataEvent(rawData.get("submitterUUID").asText(), DataConstants.RAW_DATA, uuidString, createEventBody(uuidString, rawData), new IntegrationDebugEventCallback());
 
         ConverterResult result;
         try {
@@ -122,7 +122,7 @@ public class OphardtIntegration extends AbstractIntegration<HttpIntegrationMsg> 
             processEntityViewCreation(context, uplinkData);
             for (Map.Entry<UUID, JsonNode> entry : result.getEventsMap().entrySet()) {
                 context.saveEventUidInCache(uplinkData.getDeviceName(), DataConstants.RAW_DATA, entry.getKey().toString());
-                context.saveEvent(DataConstants.RAW_DATA, entry.getKey().toString(), createEventBody(entry.getKey().toString(), entry.getValue()), new IntegrationDebugEventCallback());
+                context.saveRawDataEvent(uplinkData.getDeviceName(), DataConstants.RAW_DATA, entry.getKey().toString(), createEventBody(entry.getKey().toString(), entry.getValue()), new IntegrationDebugEventCallback());
             }
         }
         callback.setResult(fromStatus(uuidString, HttpStatus.OK));

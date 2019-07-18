@@ -89,6 +89,8 @@ public interface IntegrationContext {
      */
     void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
 
+    void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
+
     long findDeviceAttributeValue(String deviceName, String scope, String key);
 
     void saveDeviceAttributeValueInCache(String deviceName, String scope, String key, long value);

@@ -114,6 +114,7 @@ enum TbEventSource {
   INTEGRATION = 0;
   UPLINK_CONVERTER = 1;
   DOWNLINK_CONVERTER = 2;
+  DEVICE = 3;
 }
 
 message TbEventProto {
@@ -121,6 +122,7 @@ message TbEventProto {
   string type = 2;
   string uid = 3;
   string data = 4;
+  string deviceName = 5;
 }
 
 message IntegrationConfigurationProto {
