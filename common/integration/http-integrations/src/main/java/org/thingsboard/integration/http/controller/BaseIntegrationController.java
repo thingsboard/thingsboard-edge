@@ -32,6 +32,7 @@ package org.thingsboard.integration.http.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.integration.api.IntegrationControllerApi;
 
 /**
  * Created by ashvayka on 18.12.17.

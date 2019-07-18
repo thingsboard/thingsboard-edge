@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.http.controller.IntegrationControllerApi;
+import org.thingsboard.integration.api.IntegrationControllerApi;
 import org.thingsboard.integration.service.RemoteIntegrationManagerService;
 
 import javax.annotation.PostConstruct;

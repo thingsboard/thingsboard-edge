@@ -118,6 +118,7 @@
         <module>rule-engine-pe</module>
         <module>dao</module>
         <module>transport</module>
+        <module>integration</module>
         <module>ui</module>
         <module>tools</module>
         <module>application</module>
@@ -412,6 +413,11 @@
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>opcua-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>remote-integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
