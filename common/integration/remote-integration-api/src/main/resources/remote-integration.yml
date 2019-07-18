@@ -36,8 +36,8 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:b4fba447d654cf7fdfdb30552767dad0}"
-  secret: "${INTEGRATION_SECRET:pxy48d7minlxdfue1lbk}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:e93dec5676a1102c75cbb5b83addbd80}"
+  secret: "${INTEGRATION_SECRET:z9i9df9ryj7clfgfarh8}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
 
 storage:

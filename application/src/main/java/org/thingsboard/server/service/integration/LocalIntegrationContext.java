@@ -128,13 +128,15 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        Event event = new Event();
-        event.setTenantId(configuration.getTenantId());
-        event.setEntityId(configuration.getId());
-        event.setType(type);
-        event.setUid(uid);
-        event.setBody(body);
-        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
+        saveEvent(configuration.getId(), type, uid, body, callback);
+    }
+
+    @Override
+    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            saveEvent(device.getId(), type, uid, body, callback);
+        }
     }
 
     @Override
@@ -199,6 +201,16 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public boolean isClosed() {
         return false;
+    }
+
+    private void saveEvent(EntityId entityId, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        Event event = new Event();
+        event.setTenantId(configuration.getTenantId());
+        event.setEntityId(entityId);
+        event.setType(type);
+        event.setUid(uid);
+        event.setBody(body);
+        DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 
     private Device getOrCreateDevice(String deviceName, String deviceType) {

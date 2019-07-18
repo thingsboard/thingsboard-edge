@@ -105,20 +105,12 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        String eventData = "";
-        try {
-            eventData = mapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event body!", body, e);
-        }
-        eventStorage.write(UplinkMsg.newBuilder()
-                .addEventsData(TbEventProto.newBuilder()
-                        .setSource(TbEventSource.INTEGRATION)
-                        .setType(type)
-                        .setUid(uid)
-                        .setData(eventData)
-                        .build())
-                .build(), callback);
+        saveEvent(TbEventSource.INTEGRATION, "", type, uid, body, callback);
+    }
+
+    @Override
+    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        saveEvent(TbEventSource.DEVICE, deviceName, type, uid, body, callback);
     }
 
     @Override
@@ -200,5 +192,23 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public boolean isClosed() {
         return false;
+    }
+
+    private void saveEvent(TbEventSource tbEventSource, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        String eventData = "";
+        try {
+            eventData = mapper.writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+            log.warn("[{}] Failed to convert event body!", body, e);
+        }
+        eventStorage.write(UplinkMsg.newBuilder()
+                .addEventsData(TbEventProto.newBuilder()
+                        .setSource(tbEventSource)
+                        .setType(type)
+                        .setUid(uid)
+                        .setData(eventData)
+                        .setDeviceName(deviceName)
+                        .build())
+                .build(), callback);
     }
 }

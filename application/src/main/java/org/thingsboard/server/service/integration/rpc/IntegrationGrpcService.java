@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -285,6 +284,12 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                         break;
                     case DOWNLINK_CONVERTER:
                         saveDebugEvent(tenantId, downlinkConverterId, proto);
+                        break;
+                    case DEVICE:
+                        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(tenantId, proto.getDeviceName());
+                        if (device != null) {
+                            saveDebugEvent(tenantId, device.getId(), proto);
+                        }
                         break;
                 }
             }
