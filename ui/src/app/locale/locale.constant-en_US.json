@@ -1233,7 +1233,8 @@
         "success": "Success",
         "failed": "Failed",
         "messages-processed": "Messages processed",
-        "errors-occurred": "Errors occurred"
+        "errors-occurred": "Errors occurred",
+        "uuid": "UUID"
     },
     "extension": {
         "extensions": "Extensions",
