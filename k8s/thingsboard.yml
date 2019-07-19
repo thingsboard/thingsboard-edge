@@ -250,7 +250,7 @@ spec:
       containers:
       - name: server
         imagePullPolicy: Always
-        image: thingsboard/tb-pe-tb-node:latest
+        image: thingsboard/tb-pe-node:latest
         ports:
         - containerPort: 8080
           name: http
