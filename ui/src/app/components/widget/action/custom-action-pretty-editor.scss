@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,47 +28,84 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const SPECIAL_CHARS_REGEXP = /([:\-_]+(.))/g;
-const MOZ_HACK_REGEXP = /^moz([A-Z])/;
-const PREFIX_REGEXP = /^((?:x|data)[:\-_])/i;
+.tb-custom-action-pretty {
+  box-sizing: border-box;
+  padding: 8px;
+  background-color: #fff;
 
-var tbEventDirectives = {};
-
-angular.forEach(
-    'click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave contextmenu keydown keyup keypress submit focus blur copy cut paste'.split(' '),
-    function(eventName) {
-        var directiveName = directiveNormalize('tb-' + eventName);
-        tbEventDirectives[directiveName] = ['$parse', '$rootScope', function($parse) {
-            return {
-                restrict: 'A',
-                compile: function($element, attr) {
-                    var fn = $parse(attr[directiveName], /* interceptorFn */ null, /* expensiveChecks */ true);
-                    return function ngEventHandler(scope, element) {
-                        element.on(eventName, function(event) {
-                            var callback = function() {
-                                fn(scope, {$event:event});
-                            };
-                            callback();
-                        });
-                    };
-                }
-            };
-        }];
+  .tb-fullscreen-panel {
+    .tb-custom-action-editor-container {
+      height: calc(100% - 40px);
     }
-);
 
-export default angular.module('thingsboard.directives.event', [])
-    .directive(tbEventDirectives)
-    .name;
+    #right-panel {
+      padding-top: 8px;
+      padding-left: 3px;
+    }
 
-function camelCase(name) {
-    return name.
-    replace(SPECIAL_CHARS_REGEXP, function(_, separator, letter, offset) {
-        return offset ? letter.toUpperCase() : letter;
-    }).
-    replace(MOZ_HACK_REGEXP, 'Moz$1');
-}
+    tb-js-func .tb-js-func-panel {
+      box-sizing: border-box;
+    }
 
-function directiveNormalize(name) {
-    return camelCase(name.replace(PREFIX_REGEXP, ''));
+    md-tabs-content-wrapper,
+    md-tab-content {
+      height: 100%;
+    }
+  }
+
+  .html-panel,
+  .css-panel {
+    width: 100%;
+    min-width: 200px;
+    height: 100%;
+    min-height: 200px;
+  }
+
+  .tb-split {
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .tb-content {
+    border: 1px solid #c0c0c0;
+  }
+
+  .gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+  }
+
+  .gutter.gutter-horizontal {
+    cursor: col-resize;
+    background-image: url("../../../../../node_modules/split.js/grips/vertical.png");
+  }
+
+  .tb-split.tb-split-horizontal,
+  .gutter.gutter-horizontal {
+    float: left;
+    height: 100%;
+  }
+
+  .tb-action-expand-button {
+    position: absolute;
+    right: 14px;
+    z-index: 1;
+
+    &.tb-fullscreen-editor {
+      position: relative;
+      right: 0;
+    }
+
+    .md-button {
+      min-width: auto;
+    }
+  }
+
+  .tb-custom-action-editor {
+    &.tb-fullscreen-editor {
+      height: 100%;
+    }
+  }
 }

@@ -45,7 +45,7 @@ export default angular.module('thingsboard.utils', [thingsboardTypes])
     .factory('utils', Utils)
     .name;
 
-const varsRegex = /\$\{([^\}]*)\}/g;
+const varsRegex = /\$\{([^}]*)\}/g;
 
 /*@ngInject*/
 function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $translate, $q, $timeout, types) {
@@ -371,7 +371,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
     function isDescriptorSchemaNotEmpty(descriptor) {
         if (descriptor && descriptor.schema && descriptor.schema.properties) {
             for(var prop in descriptor.schema.properties) {
-                if (descriptor.schema.properties.hasOwnProperty(prop)) {
+                if (Object.prototype.hasOwnProperty.call(descriptor.schema.properties, prop)) {
                     return true;
                 }
             }

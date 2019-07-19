@@ -96,7 +96,7 @@ export default class TbMapWidget {
             this.polylines = [];
         }
         this.locationsSettings = [];
-        this.varsRegex = /\$\{([^\}]*)\}/g;
+        this.varsRegex = /\$\{([^}]*)\}/g;
 
         var settings = ctx.settings;
 

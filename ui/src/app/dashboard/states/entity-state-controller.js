@@ -194,6 +194,9 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
 
     function resolveEntity(params) {
         var deferred = $q.defer();
+        if (params && params.targetEntityParamName) {
+            params = params[params.targetEntityParamName];
+        }
         if (params && params.entityId && params.entityId.id && params.entityId.entityType) {
             if (params.entityName && params.entityName.length) {
                 deferred.resolve(params.entityName);
@@ -366,7 +369,7 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
 
     function isEmpty(map) {
         for(var key in map) {
-            return !map.hasOwnProperty(key);
+            return !Object.prototype.hasOwnProperty.call(map, key);
         }
         return true;
     }

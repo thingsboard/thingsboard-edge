@@ -32,12 +32,15 @@ import $ from 'jquery';
 import 'javascript-detect-element-resize/detect-element-resize';
 import Subscription from '../../api/subscription';
 
+import 'oclazyload';
+import cssjs from '../../../vendor/css.js/css';
+
 /* eslint-disable angular/angularelement */
 
 /*@ngInject*/
-export default function WidgetController($scope, $state, $timeout, $window, $element, $q, $log, $injector, $filter, $compile, tbRaf, types, utils, timeService,
+export default function WidgetController($scope, $state, $timeout, $window, $ocLazyLoad, $element, $q, $log, $injector, $filter, $compile, tbRaf, types, utils, timeService,
                                          datasourceService, importExport, alarmService, entityService, dashboardService, deviceService, visibleRect, isEdit, isMobile, dashboardTimewindow,
-                                         dashboardTimewindowApi, dashboard, widget, aliasController, stateController, widgetInfo, widgetType) {
+                                         dashboardTimewindowApi, dashboard, widget, aliasController, stateController, widgetInfo, widgetType, toast) {
 
     var vm = this;
 
@@ -52,6 +55,12 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
     $scope.executingRpcRequest = false;
 
     vm.dashboardTimewindow = dashboardTimewindow;
+
+    $window.lazyLoad = $ocLazyLoad;
+    $window.cssjs = cssjs;
+
+    var cssParser = new cssjs();
+    cssParser.testMode = false;
 
     var gridsterItemInited = false;
     var subscriptionInited = false;
@@ -473,6 +482,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                 if (!targetEntityParams) {
                     targetEntityParams = {};
                     params[targetEntityParamName] = targetEntityParams;
+					params.targetEntityParamName = targetEntityParamName;
                 }
             } else {
                 targetEntityParams = params;
@@ -539,7 +549,93 @@ export default function WidgetController($scope, $state, $timeout, $window, $ele
                     }
                 }
                 break;
+            case types.widgetActionTypes.customPretty.value:
+                var customPrettyFunction = descriptor.customFunction;
+                var customHtml = descriptor.customHtml;
+                var customCss = descriptor.customCss;
+                var customResources = descriptor.customResources;
+                var actionNamespace = 'custom-action-pretty-'+descriptor.name.toLowerCase();
+                var htmlTemplate = '';
+                if (angular.isDefined(customHtml) && customHtml.length > 0) {
+                    htmlTemplate = customHtml;
+                }
+                loadCustomActionResources(actionNamespace, customCss, customResources).then(
+                    function success() {
+                        if (angular.isDefined(customPrettyFunction) && customPrettyFunction.length > 0) {
+                            try {
+                                if (!additionalParams) {
+                                    additionalParams = {};
+                                }
+                                var customActionPrettyFunction = new Function('$event', 'widgetContext', 'entityId', 'entityName', 'htmlTemplate', 'additionalParams', customPrettyFunction);
+                                customActionPrettyFunction($event, widgetContext, entityId, entityName, htmlTemplate, additionalParams);
+                            } catch (e) {
+                                //
+                            }
+                        }
+                    },
+                    function fail(errorMessages) {
+                        processResourcesLoadErrors(errorMessages);
+                    }
+                );
+                break;
         }
+    }
+
+    function loadCustomActionResources(actionNamespace, customCss, customResources) {
+        var deferred = $q.defer();
+
+        if (angular.isDefined(customCss) && customCss.length > 0) {
+            cssParser.cssPreviewNamespace = actionNamespace;
+            cssParser.createStyleElement(actionNamespace, customCss, 'nonamespace');
+        }
+
+        function loadNextOrComplete(i) {
+            i++;
+            if (i < customResources.length) {
+                loadNext(i);
+            } else {
+                if (errors.length > 0) {
+                    deferred.reject(errors);
+                } else {
+                    deferred.resolve();
+                }
+            }
+        }
+
+        function loadNext(i) {
+             var resourceUrl = customResources[i].url;
+            if (resourceUrl && resourceUrl.length > 0) {
+                $ocLazyLoad.load(resourceUrl).then(
+                    function success () {
+                        loadNextOrComplete(i);
+                    },
+                    function fail() {
+                        errors.push('Failed to load custom action resource: \'' + resourceUrl + '\'');
+                        loadNextOrComplete(i);
+                    }
+                );
+            } else {
+                loadNextOrComplete(i);
+            }
+        }
+
+        if (angular.isDefined(customResources) && customResources.length > 0) {
+            var errors = [];
+            loadNext(0);
+        } else {
+            deferred.resolve();
+        }
+
+        return deferred.promise;
+    }
+
+    function processResourcesLoadErrors(errorMessages) {
+        var messageToShow = '';
+        for (var e in errorMessages) {
+            var error = errorMessages[e];
+            messageToShow += '<div>' + error + '</div>';
+        }
+        toast.showError(messageToShow);
     }
 
     function exportWidgetData(widgetExportType) {
