@@ -290,7 +290,7 @@ public class RemoteIntegrationManagerService {
             case OPC_UA:
                 return newInstance("org.thingsboard.integration.opcua.OpcUaIntegration");
             case OPHARDT_OSDMP:
-                return newInstance("org.thingsboard.integration.http.ophardt.OphardtIntegration");
+                return newInstance("org.thingsboard.integration.ophardt.basic.OphardtIntegration");
             default:
                 throw new RuntimeException("Not Implemented!");
         }

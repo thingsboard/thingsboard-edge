@@ -28,37 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt;
 
-public enum DeviceTypes {
+import lombok.Data;
 
-    NSU(1),
-    HSU(2),
-    KX_SAO(3),
-    TRU(4),
-    FBU(5),
-    VCU(6),
-    WECO(7),
-    IMP_TT(8),
-    CWS_PARADISE_DRY_SLIM(9),
-    HAU(16);
+@Data
+public class OphardtData {
 
-    long value;
+    private String type;
+    private Long value;
 
-    public long getValue() {
-        return value;
-    }
-
-    DeviceTypes(long value) {
-        this.value = value;
-    }
-
-    public static String getDeviceTypeByValue(long value) {
-        for (DeviceTypes deviceType : DeviceTypes.values()) {
-            if (deviceType.getValue() == value) {
-                return deviceType.name();
-            }
-        }
-        throw new RuntimeException("Invalid value for device type!");
-    }
 }

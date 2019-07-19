@@ -28,19 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import org.thingsboard.integration.api.data.UplinkData;
-
-import java.util.Map;
-import java.util.UUID;
 
 @Data
-public class ConverterResult {
+public class DeduplicationData {
 
-    private UplinkData uplinkData;
-    private Map<UUID, JsonNode> eventsMap;
+    private String deviceId;
+    private String deviceType;
+    private long eventId;
+    private long eventTime;
+    private String eventType;
+    private long eventValue;
 
 }

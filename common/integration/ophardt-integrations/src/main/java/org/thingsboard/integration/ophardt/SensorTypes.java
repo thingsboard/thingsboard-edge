@@ -28,42 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt;
 
-public enum EventTypes {
+public enum SensorTypes {
 
-    ACTIVATION(1),
-    MAINVOLTAGE(2),
-    BATTERYSTATECRITICAL(3),
-    BATTERYSTATEGOOD(4),
-    BATTERYSTATEUNKNOWN(5),
-    BATTERYSTATEWEAK(6),
-    BOTTLEIN(7),
-    BOTTLEOUT(8),
-    DEVICECLOSED(9),
-    DEVICEOPENED(10),
-    DEVICELOCKED(11),
-    DEVICEUNLOCKED(12),
-    DOORCLOSED(13),
-    DOOROPENED(14),
-    EMPTY(15),
-    FILLINGLEVEL(16),
-    FULL(17),
-    INUSE(18),
-    IR_ARRAY_MEASUREMENT(19),
-    LIDOPEN(20),
-    LIDCLOSED(21),
-    MEASUREMENTERROR(22),
-    PAPERIN(23),
-    PAPEROUT(24),
-    RESET(25),
-    SENSORERROR(26),
-    UNKNOWN(27),
-    WASTELEVEL(28),
-    FORMAT(29),
-    WATCHDOG(30),
-    NEW_SYSTEM_TIME(31),
-    SYSTEM_ERROR(32);
+    IR_0(0),
+    IR_1(1),
+    IR_2(2),
+    IR_3(3),
+    IR_4(4),
+    IR_5(5),
+    IR_6(6),
+    IR_7(7),
+    TOF(48),
+    REED(64),
+    BATTERY_VOLTAGE(112),
+    POT(160);
 
     long value;
 
@@ -71,17 +51,17 @@ public enum EventTypes {
         return value;
     }
 
-    EventTypes(long value) {
+    SensorTypes(long value) {
         this.value = value;
     }
 
-    public static String getEventTypeByValue(long value) {
-        for (EventTypes eventType : EventTypes.values()) {
-            if (eventType.getValue() == value) {
-                return eventType.name();
+    public static String getSensorTypeByValue(long value) {
+        for (SensorTypes sensorType : SensorTypes.values()) {
+            if (sensorType.getValue() == value) {
+                return sensorType.name();
             }
         }
-        throw new RuntimeException("Invalid value for event type!");
+        throw new RuntimeException("Invalid value for sensor type!");
     }
 
 }

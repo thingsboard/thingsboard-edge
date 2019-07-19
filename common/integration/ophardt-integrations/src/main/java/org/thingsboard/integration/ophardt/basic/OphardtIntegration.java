@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt.basic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,6 +42,8 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.HttpIntegrationMsg;
+import org.thingsboard.integration.ophardt.ConverterResult;
+import org.thingsboard.integration.ophardt.converter.OphardtConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
@@ -57,7 +59,7 @@ public class OphardtIntegration extends AbstractIntegration<HttpIntegrationMsg> 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        converter = new OphardtConverter(configuration.getTenantId());
+        converter = new OphardtConverter();
     }
 
     @Override

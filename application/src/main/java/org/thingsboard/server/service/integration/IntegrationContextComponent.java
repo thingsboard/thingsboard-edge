@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.thingsboard.integration.ophardt.OphardtConfiguration;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -111,6 +112,10 @@ public class IntegrationContextComponent {
     @Lazy
     @Autowired
     private ConverterContextComponent converterContextComponent;
+
+    @Lazy
+    @Autowired
+    private OphardtConfiguration ophardtConfiguration;
 
     private EventLoopGroup eventLoopGroup;
 

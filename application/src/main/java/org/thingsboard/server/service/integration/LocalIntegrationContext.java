@@ -262,7 +262,7 @@ public class LocalIntegrationContext implements IntegrationContext {
                     entityView.setEntityId(device.getId());
 
                     TelemetryEntityView telemetryEntityView = new TelemetryEntityView();
-                    telemetryEntityView.setTimeseries(Collections.singletonList("FILLINGLEVEL"));
+                    telemetryEntityView.setTimeseries(ctx.getOphardtConfiguration().getKeys());
                     entityView.setKeys(telemetryEntityView);
 
                     entityView = ctx.getEntityViewService().saveEntityView(entityView);

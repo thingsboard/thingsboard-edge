@@ -28,13 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt;
 
-public enum ErrorCodes {
+public enum DeviceTypes {
 
-    MotorError(256),
-    MotorErrorBlocked(257),
-    UpdateError(513);
+    NSU(1),
+    HSU(2),
+    KX_SAO(3),
+    TRU(4),
+    FBU(5),
+    VCU(6),
+    WECO(7),
+    IMP_TT(8),
+    CWS_PARADISE_DRY_SLIM(9),
+    HAU(16);
 
     long value;
 
@@ -42,17 +49,16 @@ public enum ErrorCodes {
         return value;
     }
 
-    ErrorCodes(long value) {
+    DeviceTypes(long value) {
         this.value = value;
     }
 
-    public static String getErrorCodeByValue(long value) {
-        for (ErrorCodes errorCode : ErrorCodes.values()) {
-            if (errorCode.getValue() == value) {
-                return errorCode.name();
+    public static String getDeviceTypeByValue(long value) {
+        for (DeviceTypes deviceType : DeviceTypes.values()) {
+            if (deviceType.getValue() == value) {
+                return deviceType.name();
             }
         }
-        throw new RuntimeException();
+        throw new RuntimeException("Invalid value for device type!");
     }
-
 }

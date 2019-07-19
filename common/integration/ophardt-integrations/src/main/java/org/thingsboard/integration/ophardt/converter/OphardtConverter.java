@@ -28,15 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.data.UplinkData;
+import org.thingsboard.integration.ophardt.ConverterResult;
+import org.thingsboard.integration.ophardt.DeduplicationData;
+import org.thingsboard.integration.ophardt.DeviceTypes;
+import org.thingsboard.integration.ophardt.ErrorCodes;
+import org.thingsboard.integration.ophardt.EventProcessingData;
+import org.thingsboard.integration.ophardt.EventTypes;
+import org.thingsboard.integration.ophardt.OphardtData;
+import org.thingsboard.integration.ophardt.SensorTypes;
+import org.thingsboard.integration.ophardt.UUIDVersion5;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.transport.KeyValueProto;
 import org.thingsboard.server.gen.transport.KeyValueType;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
@@ -52,7 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
-class OphardtConverter {
+public class OphardtConverter {
 
     private static final String RAW_DATA_UUID = "__rawDataUUID";
     private static final String UNDERSCORE_SYMBOLS = "__";
@@ -65,7 +73,6 @@ class OphardtConverter {
     private static final long TS_FOR_2010_01_01 = 1262304000000L;
     private static final int FIVE_MINUTES = 5 * 60 * 1000;
 
-    private final TenantId tenantId;
     private final ConcurrentMap<String, Long> tsCorrectionPartsMap;
     private final ConcurrentMap<String, Long> lastCorrectedEventTsPerDeviceMap;
 
@@ -73,13 +80,12 @@ class OphardtConverter {
     private long lastEventTsFromMsg;
     private long lastValidEventTsBeforeReset;
 
-    OphardtConverter(TenantId tenantId) {
-        this.tenantId = tenantId;
+    public OphardtConverter() {
         this.tsCorrectionPartsMap = new ConcurrentHashMap<>();
         this.lastCorrectedEventTsPerDeviceMap = new ConcurrentHashMap<>();
     }
 
-    ConverterResult convert(IntegrationContext context, JsonNode rawData, String uuidString) {
+    public ConverterResult convert(IntegrationContext context, JsonNode rawData, String uuidString) {
         ConverterResult converterResult = new ConverterResult();
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();

@@ -28,40 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.ophardt;
+package org.thingsboard.integration.ophardt;
 
-public enum SensorTypes {
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+import org.thingsboard.integration.api.data.UplinkData;
 
-    IR_0(0),
-    IR_1(1),
-    IR_2(2),
-    IR_3(3),
-    IR_4(4),
-    IR_5(5),
-    IR_6(6),
-    IR_7(7),
-    TOF(48),
-    REED(64),
-    BATTERY_VOLTAGE(112),
-    POT(160);
+import java.util.Map;
+import java.util.UUID;
 
-    long value;
+@Data
+public class ConverterResult {
 
-    public long getValue() {
-        return value;
-    }
-
-    SensorTypes(long value) {
-        this.value = value;
-    }
-
-    public static String getSensorTypeByValue(long value) {
-        for (SensorTypes sensorType : SensorTypes.values()) {
-            if (sensorType.getValue() == value) {
-                return sensorType.name();
-            }
-        }
-        throw new RuntimeException("Invalid value for sensor type!");
-    }
+    private UplinkData uplinkData;
+    private Map<UUID, JsonNode> eventsMap;
 
 }
