@@ -73,7 +73,7 @@ public class OphardtIntegrationController extends BaseIntegrationController {
                 result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
                 return;
             }
-            if (integration.getConfiguration().getType() != IntegrationType.OPHARDT_OSDMP) {
+            if (integration.getConfiguration().getType() != IntegrationType.CUSTOM) {
                 result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
                 return;
             }
