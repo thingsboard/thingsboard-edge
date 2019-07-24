@@ -445,6 +445,14 @@ export default angular.module('thingsboard.types', [])
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
+                },
+                "UDP": {
+                    name: "integration.type-udp",
+                    value: "UDP"
+                },
+                "TCP": {
+                    name: "integration.type-tcp",
+                    value: "TCP"
                 }
             },
             componentType: {
@@ -941,6 +949,20 @@ export default angular.module('thingsboard.types', [])
                 Basic256: "Basic256",
                 Basic256Sha256: "Basic256Sha256",
                 None: "None"
+            },
+            handlerConfigurationTypes: {
+                text:  {
+                    value: "TEXT",
+                    name: "extension.text"
+                },
+                hex: {
+                    value: "HEX",
+                    name: "extension.hex"
+                },
+                binary: {
+                    value: "BINARY",
+                    name: "extension.binary"
+                }
             },
             identityType: {
                 anonymous: "extension.anonymous",

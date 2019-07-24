@@ -33,6 +33,8 @@ import {IntegrationController, IntegrationCardController} from './integration.co
 import IntegrationDirective from './integration.directive';
 import IntegrationHttpDirective from './integration-forms/integration-http.directive';
 import IntegrationMqttDirective from './integration-forms/integration-mqtt.directive';
+import IntegrationUdpDirective from './integration-forms/integration-tcpip.directive';
+import IntegrationTcpDirective from './integration-forms/integration-tcpip.directive';
 import IntegrationOpcUaDirective from './integration-forms/integration-opc-ua.directive';
 import IntegrationAwsIotDirective from './integration-forms/integration-aws-iot.directive';
 import IntegrationIbmWatsonIotDirective from './integration-forms/integration-ibm-watson-iot.directive';
@@ -48,6 +50,8 @@ export default angular.module('thingsboard.integration', [])
     .directive('tbIntegration', IntegrationDirective)
     .directive('tbIntegrationHttp', IntegrationHttpDirective)
     .directive('tbIntegrationMqtt', IntegrationMqttDirective)
+    .directive('tbIntegrationUdp', IntegrationUdpDirective)
+    .directive('tbIntegrationTcp', IntegrationTcpDirective)
     .directive('tbIntegrationOpcUa', IntegrationOpcUaDirective)
     .directive('tbIntegrationAwsIot', IntegrationAwsIotDirective)
     .directive('tbIntegrationIbmWatsonIot', IntegrationIbmWatsonIotDirective)
