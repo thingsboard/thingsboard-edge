@@ -39,41 +39,40 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
-import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
-import org.thingsboard.server.gen.transport.SubscriptionInfoProto;
-import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.*;
 import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayRequestMsg;
 import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayResponseMsg;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.SessionEventMsg;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
+import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.SubscriptionInfoProto;
+import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.gen.transport.ToRuleEngineMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
 import org.thingsboard.server.gen.transport.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportApiResponseMsg;
-import org.thingsboard.server.gen.transport.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceX509CertRequestMsg;
-import org.thingsboard.server.kafka.*;
+import org.thingsboard.server.kafka.AsyncCallbackTemplate;
+import org.thingsboard.server.kafka.TBKafkaAdmin;
+import org.thingsboard.server.kafka.TBKafkaConsumerTemplate;
+import org.thingsboard.server.kafka.TBKafkaProducerTemplate;
+import org.thingsboard.server.kafka.TbKafkaRequestTemplate;
+import org.thingsboard.server.kafka.TbKafkaSettings;
+import org.thingsboard.server.kafka.TbNodeIdProvider;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.Duration;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -323,6 +322,15 @@ public class RemoteTransportService extends AbstractTransportService {
         ToRuleEngineMsg toRuleEngineMsg = ToRuleEngineMsg.newBuilder().setToDeviceActorMsg(
                 TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo)
                         .setToServerRPCCallRequest(msg).build()
+        ).build();
+        send(sessionInfo, toRuleEngineMsg, callback);
+    }
+
+    @Override
+    protected void registerClaimingInfo(SessionInfoProto sessionInfo, ClaimDeviceMsg msg, TransportServiceCallback<Void> callback) {
+        ToRuleEngineMsg toRuleEngineMsg = ToRuleEngineMsg.newBuilder().setToDeviceActorMsg(
+                TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo)
+                        .setClaimDevice(msg).build()
         ).build();
         send(sessionInfo, toRuleEngineMsg, callback);
     }

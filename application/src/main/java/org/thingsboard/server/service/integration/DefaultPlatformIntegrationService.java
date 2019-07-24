@@ -69,7 +69,6 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
-import org.thingsboard.integration.ophardt.basic.OphardtIntegration;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
@@ -657,8 +656,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AzureEventHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
-            case OPHARDT_OSDMP:
-                return new OphardtIntegration();
+//            case OPHARDT_OSDMP:
+//                return new OphardtIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }

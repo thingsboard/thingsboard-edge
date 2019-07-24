@@ -175,6 +175,9 @@ public class CustomerUserPermissions extends AbstractPermissions {
                     }
                 }
             } else {
+                if (operation == Operation.CLAIM_DEVICES) {
+                    return user.getUserPermissions().hasGenericPermission(resource, operation);
+                }
                 if (entity.getEntityType() == EntityType.CUSTOMER && user.getCustomerId().equals(entityId) ||
                         ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId) entity)).contains(user.getOwnerId())) {
                     // This entity does have groups, so we are checking generic level permissions and then group specific permissions

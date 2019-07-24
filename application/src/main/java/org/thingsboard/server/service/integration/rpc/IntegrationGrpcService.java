@@ -245,6 +245,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     public UplinkResponseMsg processUplinkMsg(TenantId tenantId, IntegrationId integrationId, ConverterId defaultConverterId, ConverterId downlinkConverterId, UplinkMsg msg) {
         if (msg.getDeviceDataCount() > 0) {
             for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
+                //TODO: @dlandiak - add customer name + events on customer/device creation.
                 Device device = getOrCreateDevice(tenantId, integrationId, data.getDeviceName(), data.getDeviceType());
 
                 UUID sessionId = UUID.randomUUID();
@@ -403,7 +404,6 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                     entityView.setEntityId(device.getId());
 
                     TelemetryEntityView telemetryEntityView = new TelemetryEntityView();
-                    telemetryEntityView.setTimeseries(ctx.getOphardtConfiguration().getKeys());
                     entityView.setKeys(telemetryEntityView);
 
                     entityView = ctx.getEntityViewService().saveEntityView(entityView);

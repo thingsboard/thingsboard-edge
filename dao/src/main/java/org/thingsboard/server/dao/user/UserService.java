@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -69,6 +70,10 @@ public interface UserService {
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
 	UserCredentials requestPasswordReset(TenantId tenantId, String email);
+
+    UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId);
+
+    UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
 	void deleteUser(TenantId tenantId, UserId userId);
 	

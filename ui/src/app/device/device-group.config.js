@@ -29,7 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, types, securityTypes, userPermissionsService, userService, deviceService) {
+export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, types, securityTypes,
+                                          userPermissionsService, userService, importExport, deviceService) {
 
     var service = {
         createConfig: createConfig
@@ -87,23 +88,18 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, type
             tbDialogs.manageDeviceCredentials(event, entity, isReadOnly);
         };
 
-        /*groupConfig.onAssignToCustomer = (event, entity) => {
-            tbDialogs.assignDevicesToCustomer(event, [entity.id.id]).then(
-                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
+        groupConfig.onImportDevices = (event)  => {
+            var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
+            var customerId = null;
+            if (entityGroup.ownerId.entityType === types.entityType.customer) {
+                customerId = entityGroup.ownerId;
+            }
+            importExport.importEntities(event, customerId, types.entityType.device, entityGroupId).then(
+                function() {
+                    groupConfig.onEntityAdded();
+                }
             );
         };
-
-        groupConfig.onUnassignFromCustomer = (event, entity, isPublic) => {
-            tbDialogs.unassignDeviceFromCustomer(event, entity, isPublic).then(
-                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
-            );
-        };
-
-        groupConfig.onMakePublic = (event, entity) => {
-            tbDialogs.makeDevicePublic(event, entity).then(
-                () => { groupConfig.onEntityUpdated(entity.id.id, true); }
-            );
-        };*/
 
         if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.readCredentials, entityGroup) &&
             !userPermissionsService.hasGroupEntityPermission(securityTypes.operation.writeCredentials, entityGroup)) {
@@ -136,40 +132,23 @@ export default function DeviceGroupConfig($q, $translate, tbDialogs, utils, type
             ];
         }
 
-/*        groupConfig.groupActionDescriptors = [
-            {
-                name: $translate.instant('device.assign-devices'),
-                icon: "assignment_ind",
-                isEnabled: () => {
-                    return settings.enableAssignment;
-                },
-                onAction: (event, entities) => {
-                    var deviceIds = [];
-                    entities.forEach((entity) => {
-                        deviceIds.push(entity.id.id);
-                    });
-                    tbDialogs.assignDevicesToCustomer(event, deviceIds).then(
-                        () => { groupConfig.onEntitiesUpdated(deviceIds, true); }
-                    );
-                },
-            },
-            {
-                name: $translate.instant('device.unassign-devices'),
-                icon: "assignment_return",
-                isEnabled: () => {
-                    return settings.enableAssignment;
-                },
-                onAction: (event, entities) => {
-                    var deviceIds = [];
-                    entities.forEach((entity) => {
-                        deviceIds.push(entity.id.id);
-                    });
-                    tbDialogs.unassignDevicesFromCustomer(event, deviceIds).then(
-                        () => { groupConfig.onEntitiesUpdated(deviceIds, true); }
-                    );
-                },
-            }
-        ];*/
+        groupConfig.headerActionDescriptors = [
+        ];
+
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, entityGroup)) {
+            groupConfig.headerActionDescriptors.push(
+                {
+                    name: $translate.instant('device.import'),
+                    icon: 'file_upload',
+                    isEnabled: () => {
+                        return groupConfig.addEnabled();
+                    },
+                    onAction: ($event) => {
+                        groupConfig.onImportDevices($event);
+                    }
+                }
+            );
+        }
 
         utils.groupConfigDefaults(groupConfig);
 

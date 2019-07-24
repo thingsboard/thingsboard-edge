@@ -95,13 +95,17 @@ message ConnectResponseMsg {
 message DeviceUplinkDataProto {
   string deviceName = 1;
   string deviceType = 2;
-  transport.PostTelemetryMsg postTelemetryMsg = 3;
-  transport.PostAttributeMsg postAttributesMsg = 4;
+  string customerName = 3;
+  transport.PostTelemetryMsg postTelemetryMsg = 4;
+  transport.PostAttributeMsg postAttributesMsg = 5;
 }
 
 message EntityViewDataProto {
   string deviceName = 1;
   string deviceType = 2;
+  string viewName = 3;
+  string viewType = 4;
+  repeated string telemetryKeys = 5;
 }
 
 message DeviceDownlinkDataProto {

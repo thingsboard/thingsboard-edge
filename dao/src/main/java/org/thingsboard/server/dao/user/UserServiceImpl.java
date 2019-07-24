@@ -201,6 +201,24 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         return saveUserCredentials(tenantId, userCredentials);
     }
 
+    @Override
+    public UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId) {
+        UserCredentials userCredentials = userCredentialsDao.findById(tenantId, userCredentialsId.getId());
+        if (!userCredentials.isEnabled()) {
+            throw new IncorrectParameterException("Unable to reset password for inactive user");
+        }
+        userCredentials.setResetToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
+        return saveUserCredentials(tenantId, userCredentials);
+    }
+
+    @Override
+    public UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
+        log.trace("Executing replaceUserCredentials [{}]", userCredentials);
+        userCredentialsValidator.validate(userCredentials, data -> tenantId);
+        userCredentialsDao.removeById(tenantId, userCredentials.getUuidId());
+        userCredentials.setId(null);
+        return userCredentialsDao.save(tenantId, userCredentials);
+    }
 
     @Override
     public void deleteUser(TenantId tenantId, UserId userId) {

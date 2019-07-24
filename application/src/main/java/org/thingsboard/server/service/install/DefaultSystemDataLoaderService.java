@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
@@ -133,6 +135,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     @Override
     public void loadMailTemplates() throws Exception {
         installScripts.loadMailTemplates();
+    }
+
+    @Override
+    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
+        installScripts.updateMailTemplates(adminSettingsId, value);
     }
 
     @Override

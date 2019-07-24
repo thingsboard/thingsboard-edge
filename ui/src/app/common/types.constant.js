@@ -35,6 +35,7 @@ export default angular.module('thingsboard.types', [])
                 general: 2,
                 authentication: 10,
                 jwtTokenExpired: 11,
+                credentialsExpired: 15,
                 permissionDenied: 20,
                 invalidArguments: 30,
                 badRequestParams: 31,
@@ -242,6 +243,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "MADE_PRIVATE": {
                     name: "audit-log.type-made-private"
+                },
+                "LOGIN": {
+                    name: "audit-log.type-login"
+                },
+                "LOGOUT": {
+                    name: "audit-log.type-logout"
                 }
             },
             auditLogActionStatus: {
@@ -628,6 +635,40 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ENTITY_VIEW": {
                     helpId: 'entityViews'
+                }
+            },
+            importEntityColumnType: {
+                name: {
+                    name: 'import.column-type.name',
+                    value: 'name'
+                },
+                type: {
+                    name: 'import.column-type.type',
+                    value: 'type'
+                },
+                clientAttribute: {
+                    name: 'import.column-type.client-attribute',
+                    value: 'CLIENT_ATTRIBUTE'
+                },
+                sharedAttribute: {
+                    name: 'import.column-type.shared-attribute',
+                    value: 'SHARED_ATTRIBUTE'
+                },
+                serverAttribute: {
+                    name: 'import.column-type.server-attribute',
+                    value: 'SERVER_ATTRIBUTE'
+                },
+                timeseries: {
+                    name: 'import.column-type.timeseries',
+                    value: 'TIMESERIES'
+                },
+                entityField: {
+                    name: 'import.column-type.entity-field',
+                    value: 'ENTITY_FIELD'
+                },
+                accessToken: {
+                    name: 'import.column-type.access-token',
+                    value: 'ACCESS_TOKEN'
                 }
             },
             aliasEntityType: {
@@ -1188,6 +1229,14 @@ export default angular.module('thingsboard.types', [])
                 passwordWasReset: {
                     value: "passwordWasReset",
                     name: "admin.mail-template.password-was-reset"
+                },
+                userActivated: {
+                    value: "userActivated",
+                    name: "admin.mail-template.user-activated"
+                },
+                userRegistered: {
+                    value: "userRegistered",
+                    name: "admin.mail-template.user-registered"
                 }
             },
             widgetType: {
@@ -1265,6 +1314,10 @@ export default angular.module('thingsboard.types', [])
                 custom: {
                     name: 'widget-action.custom',
                     value: 'custom'
+                },
+                customPretty: {
+                    name: 'widget-action.custom-pretty',
+                    value: 'customPretty'
                 }
             },
             entityGroupActionTypes: {

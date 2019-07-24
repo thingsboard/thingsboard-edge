@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function LoginController($scope, toast, loginService, userService/*, $rootScope, $log, $translate*/) {
+export default function LoginController($state, $scope, toast, loginService, userService, types/*, $rootScope, $log, $translate*/) {
     var vm = this;
 
     vm.user = {
@@ -37,6 +37,7 @@ export default function LoginController($scope, toast, loginService, userService
         password: ''
     };
 
+    vm.signUp = signUp;
     vm.login = login;
 
     function doLogin() {
@@ -44,7 +45,7 @@ export default function LoginController($scope, toast, loginService, userService
             var token = response.data.token;
             var refreshToken = response.data.refreshToken;
             userService.setUserFromJwtToken(token, refreshToken, true);
-        }, function fail(/*response*/) {
+        }, function fail(response) {
             /*if (response && response.data && response.data.message) {
                 toast.showError(response.data.message);
             } else if (response && response.statusText) {
@@ -52,7 +53,16 @@ export default function LoginController($scope, toast, loginService, userService
             } else {
                 toast.showError($translate.instant('error.unknown-error'));
             }*/
+            if (response && response.data && response.data.errorCode) {
+                if (response.data.errorCode === types.serverErrorCode.credentialsExpired) {
+                    $state.go('login.resetExpiredPassword', {resetToken: response.data.resetToken});
+                }
+            }
         });
+    }
+
+    function signUp() {
+        $state.go('signup');
     }
 
     function login() {

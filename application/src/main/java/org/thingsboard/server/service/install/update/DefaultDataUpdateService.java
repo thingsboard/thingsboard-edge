@@ -137,14 +137,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.4.0 to 2.0.0 ...");
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
-            case "2.3.1":
-                log.info("Updating data from version 2.3.1 to 2.3.1PE ...");
+            case "2.4.0":
+                log.info("Updating data from version 2.4.0 to 2.4.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
 
+                //for 2.4.0
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {
                     systemDataLoaderService.loadMailTemplates();
+                } else {
+                    systemDataLoaderService.updateMailTemplates(mailTemplateSettings.getId(), mailTemplateSettings.getJsonValue());
                 }
 
                 //White Labeling updates

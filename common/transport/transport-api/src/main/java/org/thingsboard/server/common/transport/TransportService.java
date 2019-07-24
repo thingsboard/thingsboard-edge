@@ -45,6 +45,8 @@ import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg
 import org.thingsboard.server.gen.transport.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceX509CertRequestMsg;
 import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
+
 
 /**
  * Created by ashvayka on 04.10.18.
@@ -79,6 +81,8 @@ public interface TransportService {
     void process(SessionInfoProto sessionInfo, ToServerRpcRequestMsg msg, TransportServiceCallback<Void> callback);
 
     void process(SessionInfoProto sessionInfo, SubscriptionInfoProto msg, TransportServiceCallback<Void> callback);
+
+    void process(SessionInfoProto sessionInfo, ClaimDeviceMsg msg, TransportServiceCallback<Void> callback);
 
     void registerAsyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener);
 

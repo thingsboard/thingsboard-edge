@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 
@@ -94,6 +94,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.deviceName(src.get("deviceName").getAsString());
         builder.deviceType(src.get("deviceType").getAsString());
+        if (src.has("customerName")) {
+            builder.customerName(src.get("customerName").getAsString());
+        }
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }

@@ -32,21 +32,21 @@ package org.thingsboard.server.transport.coap.adaptors;
 
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
-import org.thingsboard.server.common.transport.adaptor.AdaptorException;
+import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
 import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
 import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
 
 import java.util.UUID;
-import java.util.Optional;
 
 public interface CoapTransportAdaptor {
 
@@ -59,6 +59,8 @@ public interface CoapTransportAdaptor {
     ToDeviceRpcResponseMsg convertToDeviceRpcResponse(UUID sessionId, Request inbound) throws AdaptorException;
 
     ToServerRpcRequestMsg convertToServerRpcRequest(UUID sessionId, Request inbound) throws AdaptorException;
+
+    ClaimDeviceMsg convertToClaimDevice(UUID sessionId, Request inbound, SessionInfoProto sessionInfo) throws AdaptorException;
 
     Response convertToPublish(CoapTransportResource.CoapSessionListener session, GetAttributeResponseMsg responseMsg) throws AdaptorException;
 

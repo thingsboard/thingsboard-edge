@@ -108,6 +108,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 readTelemetry: "READ_TELEMETRY",
                 writeTelemetry: "WRITE_TELEMETRY",
                 impersonate: "IMPERSONATE",
+                claimDevices: "CLAIM_DEVICES",
                 changeOwner: "CHANGE_OWNER",
                 addToGroup: "ADD_TO_GROUP",
                 removeFromGroup: "REMOVE_FROM_GROUP"

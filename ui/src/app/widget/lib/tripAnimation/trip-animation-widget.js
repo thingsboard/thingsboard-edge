@@ -694,7 +694,7 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
 
     function fillPattern(pattern, replaceInfo, currentNormalizedValue) {
         let text = angular.copy(pattern);
-        let reg = /\$\{([^\}]*)\}/g;
+        let reg = /\$\{([^}]*)\}/g;
         if (replaceInfo) {
             for (let v = 0; v < replaceInfo.variables.length; v++) {
                 let variableInfo = replaceInfo.variables[v];
@@ -980,7 +980,9 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             }
         }
         if (trip && vm.activeTripIndex !== trip.dSIndex) vm.activeTripIndex = trip.dSIndex;
-        vm.mainTooltip = vm.trips[vm.activeTripIndex].settings.tooltipText;
+        if (vm.trips.length) {
+            vm.mainTooltip = vm.trips[vm.activeTripIndex].settings.tooltipText;
+        }
     }
 
     function showHidePointTooltip(text, index) {

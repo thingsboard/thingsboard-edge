@@ -1,0 +1,88 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../scss/constants";
+
+.tb-signup-block {
+  height: 100%;
+  max-height: 800px;
+  margin-top: 0;
+  margin-bottom: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.tb-signup-form {
+  @media (min-width: $layout-breakpoint-sm) {
+    width: 550px !important;
+  }
+}
+
+span.tb-signup-message {
+  margin-top: 15px;
+  font-size: 18px;
+  line-height: 26px;
+  text-align: center;
+  opacity: .9;
+}
+
+.tb-recaptcha {
+  margin-left: -10px;
+
+  @media (min-width: $layout-breakpoint-sm) {
+    margin-left: 0;
+  }
+}
+
+.tb-email-verification {
+  font-size: 18px;
+}
+
+.tb-accept-privacy-policy {
+  margin-top: 16px;
+
+  .privacy-policy {
+    font-weight: 600;
+    color: #51c4ff;
+    text-decoration: underline;
+    outline: none;
+  }
+}
+
+.tb-privacy-policy{
+  md-dialog-content{
+    font-family: "Times New Roman", serif;
+    font-size: 1rem;
+
+    p {
+      font-size: 1rem;
+    }
+  }
+}

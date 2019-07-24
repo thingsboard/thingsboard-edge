@@ -87,6 +87,7 @@ import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -226,6 +227,9 @@ public abstract class BaseController {
 
     @Autowired
     protected UserPermissionsService userPermissionsService;
+
+    @Autowired
+    protected ClaimDevicesService claimDevicesService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter

@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
+
 public interface SystemDataLoaderService {
 
     void createSysAdmin() throws Exception;
@@ -37,6 +40,8 @@ public interface SystemDataLoaderService {
     void createAdminSettings() throws Exception;
 
     void loadMailTemplates() throws Exception;
+
+    void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;
 
     void loadSystemWidgets() throws Exception;
 

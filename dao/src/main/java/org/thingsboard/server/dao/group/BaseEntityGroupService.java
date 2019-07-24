@@ -35,17 +35,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.group.*;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.group.ColumnConfiguration;
+import org.thingsboard.server.common.data.group.ColumnType;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -66,14 +75,23 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -155,7 +173,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             entityRelation.setFrom(parentEntityId);
             entityRelation.setTo(savedEntityGroup.getId());
             entityRelation.setTypeGroup(RelationTypeGroup.TO_ENTITY_GROUP);
-            entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX+savedEntityGroup.getType().name());
+            entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
             relationService.saveRelation(tenantId, entityRelation);
         }
         return savedEntityGroup;
@@ -218,10 +236,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 if (additionalInfo == null) {
                     additionalInfo = mapper.createObjectNode();
                 }
-                ((ObjectNode)additionalInfo).put("description", description);
+                ((ObjectNode) additionalInfo).put("description", description);
                 if (publicCustomerId != null && !publicCustomerId.isNullUid()) {
-                    ((ObjectNode)additionalInfo).put("isPublic", true);
-                    ((ObjectNode)additionalInfo).put("publicCustomerId", publicCustomerId.getId().toString());
+                    ((ObjectNode) additionalInfo).put("isPublic", true);
+                    ((ObjectNode) additionalInfo).put("publicCustomerId", publicCustomerId.getId().toString());
                 }
                 entityGroup.setAdditionalInfo(additionalInfo);
                 return saveEntityGroup(tenantId, parentEntityId, entityGroup);
@@ -293,7 +311,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer == null) {
-            throw new RuntimeException("Customer with id '"+customerId.getId().toString()+"' is not present in database!");
+            throw new RuntimeException("Customer with id '" + customerId.getId().toString() + "' is not present in database!");
         }
 
         String groupName = customer.getTitle();
@@ -487,8 +505,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
     }
 
-
-
     @Override
     public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
@@ -513,9 +529,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                                                   java.util.function.Function<EntityId, I> toIdFunction,
-                                                                                   java.util.function.Function<I, E> toEntityFunction,
-                                                                                   BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
+                                                                                    java.util.function.Function<EntityId, I> toIdFunction,
+                                                                                    java.util.function.Function<I, E> toEntityFunction,
+                                                                                    BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
@@ -543,11 +559,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>>
-                                                        findEntities(TenantId tenantId, EntityGroupId entityGroupId,
-                                                                     TimePageLink pageLink,
-                                                                     java.util.function.Function<EntityId, I> toIdFunction,
-                                                                     java.util.function.Function<List<I>,ListenableFuture<List<E>>> toEntitiesFunction,
-                                                                     BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
+    findEntities(TenantId tenantId, EntityGroupId entityGroupId,
+                 TimePageLink pageLink,
+                 java.util.function.Function<EntityId, I> toIdFunction,
+                 java.util.function.Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
+                 BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validatePageLink(pageLink, "Incorrect page link " + pageLink);
@@ -675,7 +691,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         for (EntityField entityField : columnsInfo.commonEntityFields) {
             if (entityField == EntityField.CREATED_TIME) {
                 long timestamp = UUIDs.unixTimestamp(entity.getId().getId());
-                entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp+"");
+                entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
             }
         }
         if (!entityView.isSkipEntity()) {
@@ -688,7 +704,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                                        Map<String, List<String>> attributeScopeToKeysMap,
                                        List<String> timeseriesKeys) {
         EntityId entityId = entityView.getId();
-        attributeScopeToKeysMap.forEach( (scope, attributeKeys) -> {
+        attributeScopeToKeysMap.forEach((scope, attributeKeys) -> {
             try {
                 List<AttributeKvEntry> attributeKvEntries = attributesService.find(tenantId, entityId, scope, attributeKeys).get();
                 attributeKvEntries.forEach(attributeKvEntry -> {

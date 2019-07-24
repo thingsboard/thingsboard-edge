@@ -2065,6 +2065,7 @@
         "decimals": "Número de dígitos después del punto flotante",
         "timewindow": "Ventana de tiempo",
         "use-dashboard-timewindow": "Utilizar ventana de tiempo del panel",
+        "display-timewindow": "Mostrar ventana de tiempo",
         "display-legend": "Mostrar leyenda",
         "datasources": "Orígenes de datos",
         "maximum-datasources": "Máximo { count, plural, 1 {1 origen de datos permitido.} other {# origenes de datos permitidos} }",
@@ -2202,7 +2203,9 @@
             "row-click": "Clic en la fila",
             "polygon-click": "Clic en la fila",
             "marker-click": "Clic en el polígono",
-            "tooltip-tag-action": "Acción de etiqueta para globo de ayuda"
+            "tooltip-tag-action": "Acción de etiqueta para globo de ayuda",
+            "node-selected": "Clic en el nodo seleccionado",
+            "element-click": "Clic en el elemento HTML"
         }
     },
     "language": {
@@ -2219,7 +2222,8 @@
             "ja_JA": "Japonés",
             "tr_TR": "Turco",
             "fa_IR": "Persa",
-            "uk_UA": "Ucraniano"
+            "uk_UA": "Ucraniano",
+            "cs_CZ": "Checo"            
         }
     }
 }

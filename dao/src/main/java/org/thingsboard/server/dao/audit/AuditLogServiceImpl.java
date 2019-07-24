@@ -53,7 +53,6 @@ import org.thingsboard.server.common.data.id.AuditLogId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -288,6 +287,16 @@ public class AuditLogServiceImpl implements AuditLogService {
                 strEntityGroupName = extractParameter(String.class, 1, additionalInfo);
                 actionData.put("entityGroupId", strEntityGroupId);
                 actionData.put("entityGroupName", strEntityGroupName);
+            case LOGIN:
+            case LOGOUT:
+                String clientAddress = extractParameter(String.class, 0, additionalInfo);
+                String browser = extractParameter(String.class, 1, additionalInfo);
+                String os = extractParameter(String.class, 2, additionalInfo);
+                String device = extractParameter(String.class, 3, additionalInfo);
+                actionData.put("clientAddress", clientAddress);
+                actionData.put("browser", browser);
+                actionData.put("os", os);
+                actionData.put("device", device);
                 break;
         }
         return actionData;

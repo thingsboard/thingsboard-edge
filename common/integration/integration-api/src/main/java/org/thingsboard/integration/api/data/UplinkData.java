@@ -34,7 +34,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -45,6 +44,7 @@ public class UplinkData {
 
     private final String deviceName;
     private final String deviceType;
+    private final String customerName;
     private final PostTelemetryMsg telemetry;
     private final PostAttributeMsg attributesUpdate;
 

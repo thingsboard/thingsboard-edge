@@ -38,12 +38,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
@@ -64,7 +66,6 @@ import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -92,7 +93,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType());
+        Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
 
         UUID sessionId = UUID.randomUUID();
         SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
@@ -115,7 +116,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processEntityViewCreation(EntityViewDataProto data, IntegrationCallback<Void> callback) {
-        createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType()));
+        createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
     }
 
     @Override
@@ -213,12 +214,12 @@ public class LocalIntegrationContext implements IntegrationContext {
         DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 
-    private Device getOrCreateDevice(String deviceName, String deviceType) {
+    private Device getOrCreateDevice(String deviceName, String deviceType, String customerName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device == null) {
             entityCreationLock.lock();
             try {
-                return processGetOrCreateDevice(deviceName, deviceType);
+                return processGetOrCreateDevice(deviceName, deviceType, customerName);
             } finally {
                 entityCreationLock.unlock();
             }
@@ -226,29 +227,37 @@ public class LocalIntegrationContext implements IntegrationContext {
         return device;
     }
 
-    private Device processGetOrCreateDevice(String deviceName, String deviceType) {
+    private Device processGetOrCreateDevice(String deviceName, String deviceType, String customerName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device == null) {
             device = new Device();
             device.setName(deviceName);
             device.setType(deviceType);
             device.setTenantId(configuration.getTenantId());
+            if (!StringUtils.isEmpty(customerName)) {
+                Customer customer;
+                Optional<Customer> customerOptional = ctx.getCustomerService().findCustomerByTenantIdAndTitle(configuration.getTenantId(), customerName);
+                if (customerOptional.isPresent()) {
+                    customer = customerOptional.get();
+                } else {
+                    customer = new Customer();
+                    customer.setTitle(customerName);
+                    customer.setTenantId(configuration.getTenantId());
+                    customer = ctx.getCustomerService().saveCustomer(customer);
+                    pushCustomerCreatedEventToRuleEngine(customer);
+                }
+                device.setCustomerId(customer.getId());
+            }
             device = ctx.getDeviceService().saveDevice(device);
             createRelationFromIntegration(device.getId());
             ctx.getActorService().onDeviceAdded(device);
-            try {
-                ObjectNode entityNode = mapper.valueToTree(device);
-                TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), actionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-                ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
-            } catch (JsonProcessingException | IllegalArgumentException e) {
-                log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
-            }
+            pushDeviceCreatedEventToRuleEngine(device);
         }
         return device;
     }
 
-    private void createEntityViewForDeviceIfAbsent(Device device) {
-        String entityViewName = device.getName() + DEVICE_VIEW_NAME_ENDING;
+    private void createEntityViewForDeviceIfAbsent(Device device, EntityViewDataProto proto) {
+        String entityViewName = proto.getViewName();
         EntityView entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
         if (entityView == null) {
             entityCreationLock.lock();
@@ -257,12 +266,12 @@ public class LocalIntegrationContext implements IntegrationContext {
                 if (entityView == null) {
                     entityView = new EntityView();
                     entityView.setName(entityViewName);
-                    entityView.setType("deviceView");
+                    entityView.setType(proto.getViewType());
                     entityView.setTenantId(configuration.getTenantId());
                     entityView.setEntityId(device.getId());
 
                     TelemetryEntityView telemetryEntityView = new TelemetryEntityView();
-                    telemetryEntityView.setTimeseries(ctx.getOphardtConfiguration().getKeys());
+                    telemetryEntityView.setTimeseries(proto.getTelemetryKeysList());
                     entityView.setKeys(telemetryEntityView);
 
                     entityView = ctx.getEntityViewService().saveEntityView(entityView);
@@ -293,6 +302,47 @@ public class LocalIntegrationContext implements IntegrationContext {
         }
         return metaData;
     }
+
+    private void pushDeviceCreatedEventToRuleEngine(Device device) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(device);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
+            ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
+    private void pushCustomerCreatedEventToRuleEngine(Customer customer) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(customer);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
+            ctx.getActorService().onMsg(new SendToClusterMsg(customer.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
+    private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
+        TbMsgMetaData metaData = getTbMsgMetaData();
+        CustomerId customerId = device.getCustomerId();
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
+    }
+
+    private TbMsgMetaData customerActionTbMsgMetaData() {
+        return getTbMsgMetaData();
+    }
+
+    private TbMsgMetaData getTbMsgMetaData() {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("integrationId", configuration.getId().toString());
+        metaData.putValue("integrationName", configuration.getName());
+        return metaData;
+    }
+
 
     @Override
     public ServerAddress getServerAddress() {

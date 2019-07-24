@@ -28,25 +28,84 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.adaptor;
+.tb-custom-action-pretty {
+  box-sizing: border-box;
+  padding: 8px;
+  background-color: #fff;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-@Slf4j
-public class JsonConverterConfig {
-
-    @Value("${transport.json.type_cast_enabled:true}")
-    public void setIsJsonTypeCastEnabled(boolean jsonTypeCastEnabled) {
-        JsonConverter.setTypeCastEnabled(jsonTypeCastEnabled);
-        log.info("JSON type cast enabled = {}", jsonTypeCastEnabled);
+  .tb-fullscreen-panel {
+    .tb-custom-action-editor-container {
+      height: calc(100% - 40px);
     }
 
-    @Value("${transport.json.max_string_value_length:0}")
-    public void setMaxStringValueLength(int maxStringValueLength) {
-        JsonConverter.setMaxStringValueLength(maxStringValueLength);
-        log.info("JSON max string value length = {}", maxStringValueLength);
+    #right-panel {
+      padding-top: 8px;
+      padding-left: 3px;
     }
+
+    tb-js-func .tb-js-func-panel {
+      box-sizing: border-box;
+    }
+
+    md-tabs-content-wrapper,
+    md-tab-content {
+      height: 100%;
+    }
+  }
+
+  .html-panel,
+  .css-panel {
+    width: 100%;
+    min-width: 200px;
+    height: 100%;
+    min-height: 200px;
+  }
+
+  .tb-split {
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .tb-content {
+    border: 1px solid #c0c0c0;
+  }
+
+  .gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+  }
+
+  .gutter.gutter-horizontal {
+    cursor: col-resize;
+    background-image: url("../../../../../node_modules/split.js/grips/vertical.png");
+  }
+
+  .tb-split.tb-split-horizontal,
+  .gutter.gutter-horizontal {
+    float: left;
+    height: 100%;
+  }
+
+  .tb-action-expand-button {
+    position: absolute;
+    right: 14px;
+    z-index: 1;
+
+    &.tb-fullscreen-editor {
+      position: relative;
+      right: 0;
+    }
+
+    .md-button {
+      min-width: auto;
+    }
+  }
+
+  .tb-custom-action-editor {
+    &.tb-fullscreen-editor {
+      height: 100%;
+    }
+  }
 }

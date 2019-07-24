@@ -40,6 +40,7 @@ import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.DeviceActorToTransportMsg;
 import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
@@ -54,10 +55,15 @@ import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
 import org.thingsboard.server.gen.transport.SubscriptionInfoProto;
 import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ashvayka on 17.10.18.
@@ -157,6 +163,12 @@ public abstract class AbstractTransportService implements TransportService {
     }
 
     @Override
+    public void process(SessionInfoProto sessionInfo, ClaimDeviceMsg msg,
+                        TransportServiceCallback<Void> callback) {
+        registerClaimingInfo(sessionInfo, msg, callback);
+    }
+
+    @Override
     public void reportActivity(SessionInfoProto sessionInfo) {
         reportActivityInternal(sessionInfo);
     }
@@ -176,6 +188,8 @@ public abstract class AbstractTransportService implements TransportService {
     protected abstract void doProcess(SessionInfoProto sessionInfo, ToDeviceRpcResponseMsg msg, TransportServiceCallback<Void> callback);
 
     protected abstract void doProcess(SessionInfoProto sessionInfo, ToServerRpcRequestMsg msg, TransportServiceCallback<Void> callback);
+
+    protected abstract void registerClaimingInfo(SessionInfoProto sessionInfo, ClaimDeviceMsg msg, TransportServiceCallback<Void> callback);
 
     private SessionMetaData reportActivityInternal(SessionInfoProto sessionInfo) {
         UUID sessionId = toId(sessionInfo);
@@ -207,15 +221,24 @@ public abstract class AbstractTransportService implements TransportService {
 
     @Override
     public void registerSyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener, long timeout) {
-        sessions.putIfAbsent(toId(sessionInfo), new SessionMetaData(sessionInfo, SessionType.SYNC, listener));
-        schedulerExecutor.schedule(() -> {
+        SessionMetaData currentSession = new SessionMetaData(sessionInfo, SessionType.SYNC, listener);
+        sessions.putIfAbsent(toId(sessionInfo), currentSession);
+
+        ScheduledFuture executorFuture = schedulerExecutor.schedule(() -> {
             listener.onRemoteSessionCloseCommand(SessionCloseNotificationProto.getDefaultInstance());
             deregisterSession(sessionInfo);
         }, timeout, TimeUnit.MILLISECONDS);
+
+        currentSession.setScheduledFuture(executorFuture);
     }
 
     @Override
     public void deregisterSession(SessionInfoProto sessionInfo) {
+        SessionMetaData currentSession = sessions.get(toId(sessionInfo));
+        if (currentSession != null && currentSession.hasScheduledFuture()) {
+            log.debug("Stopping scheduler to avoid resending response if request has been ack.");
+            currentSession.getScheduledFuture().cancel(false);
+        }
         sessions.remove(toId(sessionInfo));
     }
 

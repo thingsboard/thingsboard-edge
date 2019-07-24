@@ -28,22 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.adaptor;
+package org.thingsboard.rule.engine.gcp.pubsub;
 
-public class AdaptorException extends Exception {
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-    private static final long serialVersionUID = 1L;
+import java.util.Collections;
+import java.util.Map;
 
-    public AdaptorException() {
-        super();
+@Data
+public class TbPubSubNodeConfiguration implements NodeConfiguration<TbPubSubNodeConfiguration> {
+
+    private String projectId;
+    private String topicName;
+    private Map<String, String> messageAttributes;
+    private String serviceAccountKey;
+    private String serviceAccountKeyFileName;
+
+    @Override
+    public TbPubSubNodeConfiguration defaultConfiguration() {
+        TbPubSubNodeConfiguration configuration = new TbPubSubNodeConfiguration();
+        configuration.setProjectId("my-google-cloud-project-id");
+        configuration.setTopicName("my-pubsub-topic-name");
+        configuration.setMessageAttributes(Collections.emptyMap());
+        return configuration;
     }
-
-    public AdaptorException(String cause) {
-        super(cause);
-    }
-
-    public AdaptorException(Exception cause) {
-        super(cause);
-    }
-
 }

@@ -31,10 +31,12 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
+import securitySettingsTemplate from '../admin/security-settings.tpl.html';
 import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
 import whiteLabelingTemplate from './white-labeling.tpl.html';
 import customTranslationTemplate from './custom-translation.tpl.html';
 import customMenuTemplate from './custom-menu.tpl.html';
+import selfRegistrationTemplate from './self-registration.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -163,6 +165,42 @@ export default function AdminRoutes($stateProvider) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "list", "label": "custom-menu.custom-menu"}'
+            }
+        })
+        .state('home.settings.selfRegistration', {
+            url: '/selfRegistration',
+            module: 'private',
+            auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: selfRegistrationTemplate,
+                    controllerAs: 'vm',
+                    controller: 'SelfRegistrationController'
+                }
+            },
+            data: {
+                pageTitle: 'self-registration.self-registration'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "group_add", "label": "Self Registration"}'
+            }
+        })
+        .state('home.settings.security-settings', {
+            url: '/security-settings',
+            module: 'private',
+            auth: ['SYS_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: securitySettingsTemplate,
+                    controllerAs: 'vm',
+                    controller: 'SecuritySettingsController'
+                }
+            },
+            data: {
+                pageTitle: 'admin.security-settings'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "security", "label": "admin.security-settings"}'
             }
         });
 }

@@ -40,6 +40,6 @@ import org.thingsboard.server.dao.util.SqlDao;
 public class SqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
         implements EntityDatabaseSchemaService {
     public SqlEntityDatabaseSchemaService() {
-        super("schema-entities.sql");
+        super("schema-entities.sql", "schema-entities-idx.sql");
     }
 }

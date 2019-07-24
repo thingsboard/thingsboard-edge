@@ -75,6 +75,7 @@ public final class IntegrationGrpcSession implements Closeable {
             public void onNext(RequestMsg requestMsg) {
                 if (!connected && requestMsg.getMessageType().equals(MessageType.CONNECT_RPC_MESSAGE)) {
                     ConnectResponseMsg responseMsg = rpcService.validateConnect(requestMsg.getConnectRequestMsg(), IntegrationGrpcSession.this);
+                    //TODO: create local integration context here and use it.
                     tenantId = new TenantId(new UUID(responseMsg.getConfiguration().getTenantIdMSB(), responseMsg.getConfiguration().getTenantIdLSB()));
 
                     outputStream.onNext(ResponseMsg.newBuilder()

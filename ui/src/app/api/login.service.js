@@ -43,6 +43,8 @@ function LoginService($http, $q) {
         publicLogin: publicLogin,
         resetPassword: resetPassword,
         sendResetPasswordLink: sendResetPasswordLink,
+        activateByEmailCode: activateByEmailCode,
+        resendEmailActivation: resendEmailActivation
     }
 
     return service;
@@ -115,6 +117,28 @@ function LoginService($http, $q) {
         var deferred = $q.defer();
         var url = '/api/auth/changePassword';
         $http.post(url, {currentPassword: currentPassword, newPassword: newPassword}).then(function success(response) {
+            deferred.resolve(response);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function activateByEmailCode(emailCode) {
+        var deferred = $q.defer();
+        var url = '/api/noauth/activateByEmailCode?emailCode=' + emailCode;
+        $http.post(url, null).then(function success(response) {
+            deferred.resolve(response);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function resendEmailActivation(email) {
+        var deferred = $q.defer();
+        var url = '/api/noauth/resendEmailActivation?email=' + email;
+        $http.post(url, null).then(function success(response) {
             deferred.resolve(response);
         }, function fail() {
             deferred.reject();

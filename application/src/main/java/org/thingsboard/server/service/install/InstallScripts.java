@@ -31,9 +31,9 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -42,9 +42,9 @@ import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -63,6 +63,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
@@ -247,10 +248,33 @@ public class InstallScripts {
     public void loadMailTemplates() throws Exception {
         AdminSettings mailTemplateSettings = new AdminSettings();
         mailTemplateSettings.setKey("mailTemplates");
-        Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
-        JsonNode mailTemplatesJson = objectMapper.readTree(mailTemplatesFile.toFile());
+        JsonNode mailTemplatesJson = readMailTemplates();
         mailTemplateSettings.setJsonValue(mailTemplatesJson);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
     }
 
+    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
+        AdminSettings mailTemplateSettings = new AdminSettings();
+        mailTemplateSettings.setId(adminSettingsId);
+        mailTemplateSettings.setKey("mailTemplates");
+        JsonNode mailTemplatesJson = readMailTemplates();
+
+        ObjectNode result = objectMapper.createObjectNode();
+        Iterator<String> fieldsIterator = mailTemplatesJson.fieldNames();
+        while (fieldsIterator.hasNext()) {
+            String field = fieldsIterator.next();
+            if (value.has(field)) {
+                result.set(field, value.get(field));
+            } else {
+                result.set(field, mailTemplatesJson.get(field));
+            }
+        }
+        mailTemplateSettings.setJsonValue(result);
+        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+    }
+
+    private JsonNode readMailTemplates() throws IOException {
+        Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
+        return objectMapper.readTree(mailTemplatesFile.toFile());
+    }
 }

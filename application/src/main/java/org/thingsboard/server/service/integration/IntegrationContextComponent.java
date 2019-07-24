@@ -38,10 +38,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.thingsboard.integration.ophardt.OphardtConfiguration;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -115,7 +115,7 @@ public class IntegrationContextComponent {
 
     @Lazy
     @Autowired
-    private OphardtConfiguration ophardtConfiguration;
+    private CustomerService customerService;
 
     private EventLoopGroup eventLoopGroup;
 
@@ -128,4 +128,5 @@ public class IntegrationContextComponent {
     public void destroy() {
         eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);
     }
+
 }
