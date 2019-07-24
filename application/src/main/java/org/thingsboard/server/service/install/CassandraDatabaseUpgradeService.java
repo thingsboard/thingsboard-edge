@@ -341,6 +341,17 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
 
                 log.info("Converters updated.");
                 break;
+            case "2.4.1":
+                log.info("Updating schema ...");
+                String updateRemoteIntegrationSecretTableStmt = "alter table " + INTEGRATION + " add secret text";
+                String updateRemoteIntegrationIsRemoteTableStmt = "alter table " + INTEGRATION + " add is_remote boolean";
+                try {
+                    cluster.getSession().execute(updateRemoteIntegrationSecretTableStmt);
+                    cluster.getSession().execute(updateRemoteIntegrationIsRemoteTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+                log.info("Schema updated.");
+                break;
             default:
                 throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);
         }
