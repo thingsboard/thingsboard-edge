@@ -49,6 +49,7 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
@@ -127,10 +128,14 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         log.trace("[{}] Processing msg: {}", sessionId, msg);
-        if (msg instanceof MqttMessage) {
-            processMqttMsg(ctx, (MqttMessage) msg);
-        } else {
-            ctx.close();
+        try {
+            if (msg instanceof MqttMessage) {
+                processMqttMsg(ctx, (MqttMessage) msg);
+            } else {
+                ctx.close();
+            }
+        } finally {
+            ReferenceCountUtil.safeRelease(msg);
         }
     }
 
@@ -434,6 +439,11 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         MqttConnAckVariableHeader mqttConnAckVariableHeader =
                 new MqttConnAckVariableHeader(returnCode, true);
         return new MqttConnAckMessage(mqttFixedHeader, mqttConnAckVariableHeader);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) {
+        ctx.flush();
     }
 
     @Override
