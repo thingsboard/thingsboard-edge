@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import org.springframework.util.StringUtils;
+import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -96,7 +97,6 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
-import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 

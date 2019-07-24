@@ -32,12 +32,17 @@ package org.thingsboard.server.service.security.system;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.passay.*;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.LengthRule;
+import org.passay.PasswordData;
+import org.passay.PasswordValidator;
+import org.passay.Rule;
+import org.passay.RuleResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -57,7 +62,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTINGS_CACHE;
 
 @Service

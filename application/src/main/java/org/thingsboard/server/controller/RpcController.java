@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.rpc.RpcRequest;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
@@ -62,7 +63,6 @@ import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.rpc.LocalRequestMetaData;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;

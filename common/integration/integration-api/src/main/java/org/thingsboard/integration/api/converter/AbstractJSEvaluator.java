@@ -31,9 +31,9 @@
 package org.thingsboard.integration.api.converter;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.UUID;
 

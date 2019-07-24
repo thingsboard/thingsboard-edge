@@ -45,10 +45,10 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import java.util.List;
 

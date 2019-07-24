@@ -30,13 +30,12 @@
  */
 package org.thingsboard.server.common.data.page;
 
+import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.id.UUIDBased;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-
-import org.thingsboard.server.common.data.SearchTextBased;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 
 public class PageDataIterable<T extends SearchTextBased<? extends UUIDBased>> implements Iterable<T>, Iterator<T> {
 

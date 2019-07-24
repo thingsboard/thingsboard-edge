@@ -38,9 +38,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import java.util.ArrayList;
 import java.util.List;

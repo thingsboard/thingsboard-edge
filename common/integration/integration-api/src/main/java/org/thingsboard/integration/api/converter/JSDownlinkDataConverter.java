@@ -31,10 +31,10 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.msg.TbMsg;
 
 /**
  * Created by ashvayka on 02.12.17.

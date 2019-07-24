@@ -39,8 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.*;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.JwtSettings;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -48,7 +49,10 @@ import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component

@@ -32,7 +32,6 @@ package org.thingsboard.integration.api;
 
 import lombok.ToString;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @ToString

@@ -33,11 +33,11 @@ package org.thingsboard.integration.api.converter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
 import java.util.concurrent.ExecutionException;

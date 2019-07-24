@@ -46,11 +46,11 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;

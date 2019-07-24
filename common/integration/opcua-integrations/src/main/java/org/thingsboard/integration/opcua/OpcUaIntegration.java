@@ -68,17 +68,17 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.WriteValue;
 import org.eclipse.milo.opcua.stack.core.util.ConversionUtil;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.integration.api.data.DownlinkData;
-import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkData;
-import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkData;
+import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -101,9 +101,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
-import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.toList;
 
 /**
  * Created by Valerii Sosliuk on 3/17/2018.

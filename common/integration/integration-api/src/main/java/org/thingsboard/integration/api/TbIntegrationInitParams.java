@@ -32,10 +32,9 @@ package org.thingsboard.integration.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.server.common.data.integration.Integration;
 
 /**
  * Created by ashvayka on 05.12.17.

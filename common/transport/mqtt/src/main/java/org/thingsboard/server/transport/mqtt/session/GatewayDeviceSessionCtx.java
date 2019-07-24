@@ -33,14 +33,12 @@ package org.thingsboard.server.transport.mqtt.session;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.DeviceInfoProto;
 import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
 import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;

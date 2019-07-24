@@ -39,9 +39,16 @@ import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor

@@ -33,10 +33,10 @@ package org.thingsboard.integration.api.converter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.server.common.data.id.EntityId;
 
 @Slf4j
 public class JSUplinkEvaluator extends AbstractJSEvaluator {

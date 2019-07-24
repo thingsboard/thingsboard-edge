@@ -30,22 +30,22 @@
  */
 package org.thingsboard.server.common.transport;
 
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
+import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayRequestMsg;
 import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayResponseMsg;
-import org.thingsboard.server.gen.transport.SubscriptionInfoProto;
-import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
-import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
-import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.SessionEventMsg;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
+import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.SubscriptionInfoProto;
+import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.ValidateDeviceX509CertRequestMsg;
-import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
 
 
 /**

@@ -38,8 +38,8 @@ import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 

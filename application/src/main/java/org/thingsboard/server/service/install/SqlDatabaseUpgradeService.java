@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLSyntaxErrorException;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
 import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;

@@ -31,8 +31,6 @@
 package org.thingsboard.integration.opcua;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 

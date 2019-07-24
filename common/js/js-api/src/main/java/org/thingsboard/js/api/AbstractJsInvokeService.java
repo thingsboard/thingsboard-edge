@@ -33,8 +33,6 @@ package org.thingsboard.js.api;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.js.api.JsScriptType;
 
 import java.util.Map;
 import java.util.UUID;

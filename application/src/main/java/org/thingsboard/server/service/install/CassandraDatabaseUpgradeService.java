@@ -54,7 +54,6 @@ import static org.thingsboard.server.service.install.DatabaseHelper.ASSET;
 import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
 import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATION;
 import static org.thingsboard.server.service.install.DatabaseHelper.CUSTOMER_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.DASHBOARD;
 import static org.thingsboard.server.service.install.DatabaseHelper.DEVICE;
 import static org.thingsboard.server.service.install.DatabaseHelper.END_TS;
 import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_ID;

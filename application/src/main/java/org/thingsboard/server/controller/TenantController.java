@@ -47,11 +47,11 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.service.install.InstallScripts;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;

@@ -32,7 +32,6 @@ package org.thingsboard.server.service.transport;
 
 import org.thingsboard.server.gen.transport.TransportApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportApiResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.kafka.TbKafkaHandler;
 
 /**

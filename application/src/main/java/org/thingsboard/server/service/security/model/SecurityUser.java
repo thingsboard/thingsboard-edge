@@ -35,12 +35,10 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

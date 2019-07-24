@@ -37,6 +37,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.actors.rpc.RpcBroadcastMsg;
 import org.thingsboard.server.actors.rpc.RpcSessionCreateRequestMsg;
 import org.thingsboard.server.common.msg.TbActorMsg;
@@ -47,7 +48,6 @@ import org.thingsboard.server.gen.cluster.ClusterRpcServiceGrpc;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cluster.rpc;
 
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;

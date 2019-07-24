@@ -76,11 +76,10 @@ import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 @Data
 @Slf4j

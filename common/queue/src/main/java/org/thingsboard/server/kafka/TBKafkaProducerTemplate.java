@@ -33,17 +33,12 @@ package org.thingsboard.server.kafka;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.CreateTopicsResult;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.header.Header;
 import org.springframework.util.StringUtils;
 

@@ -30,8 +30,8 @@
  */
 package org.thingsboard.integration.api;
 
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.integration.Integration;
 
 /**
  * Created by ashvayka on 02.12.17.

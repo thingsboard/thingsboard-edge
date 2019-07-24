@@ -53,13 +53,13 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;

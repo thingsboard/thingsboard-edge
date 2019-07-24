@@ -55,9 +55,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
 
-    private static final String DEVICE_VIEW_NAME_ENDING = "_View";
-
-
     private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
 
     @Value("${integrations.rpc.port}")

@@ -30,21 +30,21 @@
  */
 package org.thingsboard.integration.mqtt;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.util.StringUtils;
+import org.thingsboard.integration.api.AbstractIntegration;
+import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttConnectResult;
 import org.thingsboard.mqtt.MqttHandler;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.integration.api.AbstractIntegration;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;

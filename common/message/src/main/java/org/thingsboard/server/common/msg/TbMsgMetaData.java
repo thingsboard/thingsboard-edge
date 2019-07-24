@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.msg;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

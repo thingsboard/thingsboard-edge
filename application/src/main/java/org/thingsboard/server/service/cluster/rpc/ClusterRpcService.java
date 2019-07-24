@@ -31,11 +31,11 @@
 package org.thingsboard.server.service.cluster.rpc;
 
 import io.grpc.stub.StreamObserver;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.actors.rpc.RpcBroadcastMsg;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 
 import java.util.UUID;
 

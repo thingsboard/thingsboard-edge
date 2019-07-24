@@ -42,21 +42,25 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**

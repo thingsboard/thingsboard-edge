@@ -31,7 +31,6 @@
 package org.thingsboard.integration.api;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 
 import java.util.concurrent.Executor;
 

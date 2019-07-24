@@ -30,9 +30,6 @@
  */
 package org.thingsboard.server.service.security.permission;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;

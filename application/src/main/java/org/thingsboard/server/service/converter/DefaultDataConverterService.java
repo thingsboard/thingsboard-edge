@@ -32,7 +32,6 @@ package org.thingsboard.server.service.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
@@ -45,7 +44,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;

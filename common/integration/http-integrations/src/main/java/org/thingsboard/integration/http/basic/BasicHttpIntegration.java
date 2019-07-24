@@ -35,20 +35,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.integration.api.data.DownlinkData;
-import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkData;
-import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownLinkMsg;
+import org.thingsboard.integration.api.data.DownlinkData;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkData;
+import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
 import org.thingsboard.integration.http.HttpIntegrationMsg;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 @Slf4j
