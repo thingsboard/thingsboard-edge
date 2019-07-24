@@ -412,11 +412,6 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
-                <artifactId>ophardt-integrations</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>opcua-integrations</artifactId>
                 <version>${project.version}</version>
             </dependency>

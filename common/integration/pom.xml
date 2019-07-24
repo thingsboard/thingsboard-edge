@@ -56,7 +56,6 @@
         <module>azure-integrations</module>
         <module>opcua-integrations</module>
         <module>remote-integration-api</module>
-        <module>ophardt-integrations</module>
     </modules>
 
 </project>

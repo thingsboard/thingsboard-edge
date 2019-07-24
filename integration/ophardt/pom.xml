@@ -57,11 +57,37 @@
     <dependencies>
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>ophardt-integrations</artifactId>
+            <artifactId>remote-integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.rule-engine</groupId>
+            <artifactId>rule-engine-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>proto</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>remote-integration-api</artifactId>
+            <artifactId>http-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>js-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
