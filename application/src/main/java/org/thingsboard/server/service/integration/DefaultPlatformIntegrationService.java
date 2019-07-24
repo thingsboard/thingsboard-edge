@@ -656,8 +656,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AzureEventHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
-//            case OPHARDT_OSDMP:
-//                return new OphardtIntegration();
+            case CUSTOM:
+                throw new RuntimeException("Custom Integrations should be executed remotely!");
             default:
                 throw new RuntimeException("Not Implemented!");
         }

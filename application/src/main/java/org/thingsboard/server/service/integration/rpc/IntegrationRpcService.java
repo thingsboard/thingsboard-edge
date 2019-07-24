@@ -47,8 +47,4 @@ public interface IntegrationRpcService {
 
     void updateConverter(Converter converter);
 
-    ConnectResponseMsg validateConnect(ConnectRequestMsg request, IntegrationGrpcSession session) throws JsonProcessingException;
-
-    UplinkResponseMsg processUplinkMsg(TenantId tenantId, IntegrationId integrationId, ConverterId defaultConverterId, ConverterId downlinkConverterId, UplinkMsg request);
-
 }

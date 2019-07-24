@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -159,7 +160,7 @@ public class RemoteIntegrationManagerService {
         }
         try {
             Integration configuration = createIntegrationConfiguration(integrationConfigurationProto);
-            integration = createPlatformIntegration(integrationConfigurationProto.getType());
+            integration = createPlatformIntegration(integrationConfigurationProto.getType(), configuration.getConfiguration());
             integration.validateConfiguration(configuration, allowLocalNetworkHosts); // TODO: 7/3/19 allowLocalNetworkHosts?
 
             if (uplinkDataConverter == null) {
@@ -265,7 +266,7 @@ public class RemoteIntegrationManagerService {
         }
     }
 
-    private ThingsboardPlatformIntegration createPlatformIntegration(String type) throws Exception {
+    private ThingsboardPlatformIntegration createPlatformIntegration(String type, JsonNode configuration) throws Exception {
         switch (IntegrationType.valueOf(type)) {
             case HTTP:
                 return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
@@ -289,8 +290,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.azure.AzureEventHubIntegration");
             case OPC_UA:
                 return newInstance("org.thingsboard.integration.opcua.OpcUaIntegration");
-            case OPHARDT_OSDMP:
-                return newInstance("org.thingsboard.integration.ophardt.basic.OphardtIntegration");
+            case CUSTOM:
+                return newInstance(configuration.get("clazz").asText());
             default:
                 throw new RuntimeException("Not Implemented!");
         }

@@ -292,17 +292,6 @@ public class LocalIntegrationContext implements IntegrationContext {
         ctx.getRelationService().saveRelation(configuration.getTenantId(), relation);
     }
 
-    private TbMsgMetaData actionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", configuration.getId().toString());
-        metaData.putValue("integrationName", configuration.getName());
-        CustomerId customerId = device.getCustomerId();
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
     private void pushDeviceCreatedEventToRuleEngine(Device device) {
         try {
             ObjectNode entityNode = mapper.valueToTree(device);

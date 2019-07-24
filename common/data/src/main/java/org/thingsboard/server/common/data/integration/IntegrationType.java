@@ -31,7 +31,7 @@
 package org.thingsboard.server.common.data.integration;
 
 public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true), OPHARDT_OSDMP(false);
+    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true), CUSTOM(false);
 
     //Identifies if the Integration instance is one per cluster.
     private final boolean singleton;
