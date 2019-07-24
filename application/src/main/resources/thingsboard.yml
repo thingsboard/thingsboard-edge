@@ -267,6 +267,7 @@ integrations:
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
+  allow_resource_intensive: "${ALLOW_RESOURCE_INTENSIVE:true}"
 
 # Reports parameters
 reports:

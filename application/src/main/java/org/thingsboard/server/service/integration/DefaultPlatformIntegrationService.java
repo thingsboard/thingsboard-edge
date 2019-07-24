@@ -95,6 +95,8 @@ import org.thingsboard.server.service.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.msg.IntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.opcua.OpcUaIntegration;
+import org.thingsboard.server.service.integration.tcpip.tcp.BasicTcpIntegration;
+import org.thingsboard.server.service.integration.tcpip.udp.BasicUdpIntegration;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
@@ -113,6 +115,8 @@ import java.util.function.Function;
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
     public static EventLoopGroup EVENT_LOOP_GROUP;
+    public static EventLoopGroup WORKER_LOOP_GROUP;
+    public static EventLoopGroup BOSS_LOOP_GROUP;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -180,6 +184,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
+    @Value("${integrations.allow_resource_intensive:true}")
+    private boolean allowResourceIntensive;
+
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService reinitExecutorService;
     private ListeningExecutorService refreshExecutorService;
@@ -195,6 +202,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @PostConstruct
     public void init() {
         EVENT_LOOP_GROUP = new NioEventLoopGroup();
+        WORKER_LOOP_GROUP = new NioEventLoopGroup();
+        BOSS_LOOP_GROUP = new NioEventLoopGroup();
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -213,6 +222,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
         integrationsByIdMap.values().forEach(ThingsboardPlatformIntegration::destroy);
         EVENT_LOOP_GROUP.shutdownGracefully(0, 5, TimeUnit.SECONDS);
+        WORKER_LOOP_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
+        BOSS_LOOP_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
         integrationsByIdMap.clear();
         integrationsByRoutingKeyMap.clear();
         refreshExecutorService.shutdownNow();
@@ -601,6 +612,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     private ThingsboardPlatformIntegration createThingsboardPlatformIntegration(Integration integration) {
+        if (integration.getType().isResourceIntensive() && !allowResourceIntensive) {
+            throw new RuntimeException("It isn`t allowed to use " + integration.getType().toString() + " Integration as it is resource intensive operation");
+        }
         switch (integration.getType()) {
             case HTTP:
                 return new BasicHttpIntegration();
@@ -624,6 +638,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AzureEventHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration(context);
+            case TCP:
+                return new BasicTcpIntegration();
+            case UDP:
+                return new BasicUdpIntegration();
             default:
                 throw new RuntimeException("Not Implemented!");
         }
