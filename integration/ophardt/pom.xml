@@ -60,17 +60,13 @@
             <artifactId>remote-integration-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thingsboard.rule-engine</groupId>
-            <artifactId>rule-engine-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>proto</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>http-integrations</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.thingsboard.common.integration</groupId>-->
+<!--            <artifactId>http-integrations</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>integration-api</artifactId>

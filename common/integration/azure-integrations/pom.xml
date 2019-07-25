@@ -73,4 +73,5 @@
             <artifactId>iot-service-client</artifactId>
         </dependency>
     </dependencies>
+
 </project>

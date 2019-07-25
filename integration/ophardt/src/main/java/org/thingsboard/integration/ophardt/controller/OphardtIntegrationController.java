@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.http.HttpIntegrationMsg;
-import org.thingsboard.integration.http.controller.BaseIntegrationController;
+import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.rule.engine.api.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
