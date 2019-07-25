@@ -28,13 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.util;
+package org.thingsboard.common.util;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -49,7 +48,7 @@ public class DonAsynchron {
                                          Consumer<Throwable> onFailure, Executor executor) {
         FutureCallback<T> callback = new FutureCallback<T>() {
             @Override
-            public void onSuccess(@Nullable T result) {
+            public void onSuccess(T result) {
                 try {
                     onSuccess.accept(result);
                 } catch (Throwable th) {

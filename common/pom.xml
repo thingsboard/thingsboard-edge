@@ -50,6 +50,7 @@
     </properties>
     <modules>
         <module>data</module>
+        <module>util</module>
         <module>message</module>
         <module>queue</module>
         <module>transport</module>
