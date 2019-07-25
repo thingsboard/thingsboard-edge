@@ -191,9 +191,9 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                     log.info("Schema updated.");
                 }
                 break;
-            case "2.4.0":
+            case "2.4.1":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.0pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.1pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {
@@ -212,18 +212,14 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                         conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_type varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
                     conn.createStatement().execute("update converter set type = 'UPLINK' where type = 'CUSTOM'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                }
-                log.info("Schema updated.");
-                break;
-            case "2.4.1":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN secret varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN is_remote boolean"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
-                    log.info("Schema updated.");
                 }
+                log.info("Schema updated.");
                 break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
