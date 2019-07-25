@@ -53,7 +53,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
+import static org.thingsboard.common.util.DonAsynchron.withCallback;
 
 @Slf4j
 public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionConfigration> implements TbNode {

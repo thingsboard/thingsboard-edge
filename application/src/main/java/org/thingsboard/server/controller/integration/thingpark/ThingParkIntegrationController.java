@@ -38,7 +38,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.rule.engine.api.util.DonAsynchron;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.integration.BaseIntegrationController;
 import org.thingsboard.server.service.integration.ThingsboardPlatformIntegration;
