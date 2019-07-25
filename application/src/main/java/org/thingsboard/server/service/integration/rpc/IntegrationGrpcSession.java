@@ -340,17 +340,6 @@ public final class IntegrationGrpcSession implements Closeable {
         ctx.getRelationService().saveRelation(configuration.getTenantId(), relation);
     }
 
-    private TbMsgMetaData actionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", null);
-        metaData.putValue("integrationName", null);
-        CustomerId customerId = device.getCustomerId();
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
         return IntegrationConfigurationProto.newBuilder()
                 .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
