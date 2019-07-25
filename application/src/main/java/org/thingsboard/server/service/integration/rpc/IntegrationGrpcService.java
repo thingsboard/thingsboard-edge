@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import com.google.common.io.Resources;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -59,9 +60,11 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Value("${integrations.rpc.port}")
     private int rpcPort;
-    @Value("${integrations.rpc.cert}")
+    @Value("${integrations.rpc.ssl.enabled}")
+    private boolean sslEnabled;
+    @Value("${integrations.rpc.ssl.cert}")
     private String certFileResource;
-    @Value("${integrations.rpc.privateKey}")
+    @Value("${integrations.rpc.ssl.privateKey}")
     private String privateKeyResource;
 
     @Autowired
@@ -72,22 +75,18 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     @PostConstruct
     public void init() {
         log.info("Initializing RPC service!");
-
-        //TODO: add parameter SSL enabled true/false and use it to avoid commented code.
-        File certFile;
-        File privateKeyFile;
-        /*try {
-            certFile = new File(Resources.getResource(certFileResource).toURI());
-            privateKeyFile = new File(Resources.getResource(privateKeyResource).toURI());
-        } catch (Exception e) {
-            log.error("Unable to set up SSL context. Reason: " + e.getMessage(), e);
-            throw new RuntimeException("Unable to set up SSL context!", e);
-        }*/
-        server = ServerBuilder
-                .forPort(rpcPort)
-//                .useTransportSecurity(certFile, privateKeyFile)
-                .addService(this)
-                .build();
+        ServerBuilder builder = ServerBuilder.forPort(rpcPort).addService(this);
+        if (sslEnabled) {
+            try {
+                File certFile = new File(Resources.getResource(certFileResource).toURI());
+                File privateKeyFile = new File(Resources.getResource(privateKeyResource).toURI());
+                builder.useTransportSecurity(certFile, privateKeyFile);
+            } catch (Exception e) {
+                log.error("Unable to set up SSL context. Reason: " + e.getMessage(), e);
+                throw new RuntimeException("Unable to set up SSL context!", e);
+            }
+        }
+        server = builder.build();
         log.info("Going to start RPC server using port: {}", rpcPort);
         try {
             server.start();

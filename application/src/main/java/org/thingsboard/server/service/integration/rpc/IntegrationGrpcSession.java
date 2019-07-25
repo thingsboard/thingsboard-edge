@@ -91,7 +91,6 @@ public final class IntegrationGrpcSession implements Closeable {
     private final UUID sessionId;
     private final Consumer<StreamObserver<ResponseMsg>> sessionCloseListener;
 
-
     private IntegrationContextComponent ctx;
     private Integration configuration;
     private StreamObserver<RequestMsg> inputStream;
@@ -184,7 +183,6 @@ public final class IntegrationGrpcSession implements Closeable {
     private UplinkResponseMsg processUplinkMsg(UplinkMsg msg) {
         if (msg.getDeviceDataCount() > 0) {
             for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
-                //TODO: @dlandiak - add customer name + events on customer/device creation.
                 Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
 
                 UUID sessionId = UUID.randomUUID();

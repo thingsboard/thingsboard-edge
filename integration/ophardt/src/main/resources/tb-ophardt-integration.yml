@@ -36,8 +36,8 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:975b432a68d0f43f646f2bd97623291a}"
-  secret: "${INTEGRATION_SECRET:jddk55lcweef8zygpjl1}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:443b004ce17568361ea146e0a23d190d}"
+  secret: "${INTEGRATION_SECRET:m30jbq5it02m4qig5bgi}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
 
 storage:
@@ -65,8 +65,10 @@ rpc:
   host: "${PRC_HOST:localhost}"
   port: "${RPC_PORT:50051}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
-  cert: "${RPC_CERT:roots.pem}"
   client_id: "${RPC_CLIENT_ID:remote}"
+  ssl:
+    enabled: "${RPC_SSL_ENABLED:false}"
+    cert: "${RPC_SSL_CERT:roots.pem}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}"

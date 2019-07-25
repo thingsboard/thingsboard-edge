@@ -269,8 +269,11 @@ integrations:
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   rpc:
     port: "${INTEGRATIONS_RPC_PORT:50051}"
-    cert: "${INTEGRATIONS_RPC_CERT:certChainFile.pem}"
-    privateKey: "${INTEGRATIONS_RPC_PRIVATE_KEY:privateKeyFile.pem}"
+    ssl:
+      # Enable/disable SSL support
+      enabled: "${INTEGRATIONS_RPC_SSL_ENABLED:false}"
+      cert: "${INTEGRATIONS_RPC_SSL_CERT:certChainFile.pem}"
+      privateKey: "${INTEGRATIONS_RPC_SSL_PRIVATE_KEY:privateKeyFile.pem}"
 
 # Reports parameters
 reports:
@@ -564,7 +567,3 @@ transport:
     bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
     bind_port: "${COAP_BIND_PORT:5683}"
     timeout: "${COAP_TIMEOUT:10000}"
-
-ophardt:
-  keys:
-    - FILLINGLEVEL

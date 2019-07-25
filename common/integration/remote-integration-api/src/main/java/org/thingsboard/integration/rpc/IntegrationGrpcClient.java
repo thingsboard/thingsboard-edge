@@ -30,7 +30,9 @@
  */
 package org.thingsboard.integration.rpc;
 
+import com.google.common.io.Resources;
 import io.grpc.ManagedChannel;
+import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +53,9 @@ import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +71,9 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private int rpcPort;
     @Value("${rpc.timeout}")
     private int timeoutSecs;
-    @Value("${rpc.cert}")
+    @Value("${rpc.ssl.enabled}")
+    private boolean sslEnabled;
+    @Value("${rpc.ssl.cert}")
     private String certResource;
 
     @Autowired
@@ -78,16 +85,18 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     @Override
     public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<Exception> onError) {
-        try {
-            channel = NettyChannelBuilder
-                    .forAddress(rpcHost, rpcPort)
-//                    .sslContext(GrpcSslContexts.forClient().trustManager(new File(Resources.getResource(certResource).toURI())).build())
-                    .usePlaintext()
-                    .build();
-        } catch (Exception e) {
-            log.error("Failed to initialize channel!", e);
-            throw new RuntimeException(e);
+        NettyChannelBuilder builder = NettyChannelBuilder
+                .forAddress(rpcHost, rpcPort)
+                .usePlaintext();
+        if (sslEnabled) {
+            try {
+                builder.sslContext(GrpcSslContexts.forClient().trustManager(new File(Resources.getResource(certResource).toURI())).build());
+            } catch (URISyntaxException | SSLException e) {
+                log.error("Failed to initialize channel!", e);
+                throw new RuntimeException(e);
+            }
         }
+        channel = builder.build();
         IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", integrationKey);
         this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onIntegrationUpdate, onConverterUpdate, onError));
