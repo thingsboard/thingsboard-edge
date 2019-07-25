@@ -77,6 +77,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
     @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
     private boolean debugMode;
 
+    @Column(name = INTEGRATION_ENABLED_PROPERTY)
+    private Boolean enabled;
+
     @Column(name = INTEGRATION_NAME_PROPERTY)
     private String name;
 
@@ -113,6 +116,9 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.debugMode = integration.isDebugMode();
+        if (integration.isEnabled() != null) {
+            this.enabled = integration.isEnabled();
+        }
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -139,6 +145,7 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         integration.setRoutingKey(routingKey);
         integration.setType(type);
         integration.setDebugMode(debugMode);
+        integration.setEnabled(enabled);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
         return integration;

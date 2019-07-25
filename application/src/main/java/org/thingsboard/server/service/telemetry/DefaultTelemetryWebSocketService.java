@@ -399,6 +399,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                     update = new SubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.UNAUTHORIZED,
                             SubscriptionErrorCode.UNAUTHORIZED.getDefaultMsg());
                 } else {
+                    log.error(FAILED_TO_FETCH_DATA + " Reason: " + e.getMessage(), e);
                     update = new SubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR,
                             FAILED_TO_FETCH_DATA);
                 }
@@ -504,6 +505,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                     update = new SubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.UNAUTHORIZED,
                             SubscriptionErrorCode.UNAUTHORIZED.getDefaultMsg());
                 } else {
+                    log.error(FAILED_TO_FETCH_DATA + " Reason: " + e.getMessage(), e);
                     update = new SubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR,
                             FAILED_TO_FETCH_DATA);
                 }

@@ -73,29 +73,31 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        this.context = params.getContext();
-        AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                AzureEventHubClientConfiguration.class);
-        ehClient = initClient(clientConfiguration);
-        EventHubRuntimeInformation runtimeInfo = ehClient.getRuntimeInformation().get();
-        receivers = new ArrayList<>();
-        for (String partitionId : runtimeInfo.getPartitionIds()) {
-            PartitionReceiver receiver = ehClient.createReceiverSync(
-                    EventHubClient.DEFAULT_CONSUMER_GROUP_NAME,
-                    partitionId,
-                    PartitionReceiver.END_OF_STREAM,
-                    false);
-            receiver.setReceiveTimeout(Duration.ofSeconds(20));
-            receivers.add(receiver);
+        if (this.configuration.isEnabled()) {
+            this.context = params.getContext();
+            AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
+                    mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
+                    AzureEventHubClientConfiguration.class);
+            ehClient = initClient(clientConfiguration);
+            EventHubRuntimeInformation runtimeInfo = ehClient.getRuntimeInformation().get();
+            receivers = new ArrayList<>();
+            for (String partitionId : runtimeInfo.getPartitionIds()) {
+                PartitionReceiver receiver = ehClient.createReceiverSync(
+                        EventHubClient.DEFAULT_CONSUMER_GROUP_NAME,
+                        partitionId,
+                        PartitionReceiver.END_OF_STREAM,
+                        false);
+                receiver.setReceiveTimeout(Duration.ofSeconds(20));
+                receivers.add(receiver);
+            }
+            if (downlinkConverter != null) {
+                serviceClient = initServiceClient(clientConfiguration);
+            }
+            started = true;
+            executorService = Executors.newFixedThreadPool(receivers.size());
+            receiverFutures = new ArrayList<>();
+            receiverFutures.addAll(receivers.stream().map(receiver -> executorService.submit(new ReceiverRunnable(receiver))).collect(Collectors.toList()));
         }
-        if (downlinkConverter != null) {
-            serviceClient = initServiceClient(clientConfiguration);
-        }
-        started = true;
-        executorService = Executors.newFixedThreadPool(receivers.size());
-        receiverFutures = new ArrayList<>();
-        receiverFutures.addAll(receivers.stream().map(receiver -> executorService.submit(new ReceiverRunnable(receiver))).collect(Collectors.toList()));
     }
 
     @Override

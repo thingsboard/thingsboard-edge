@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -59,6 +60,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -70,6 +72,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
@@ -83,6 +86,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
     private static final String LOGO_IMAGE = "logoImage";
     private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
+    private static final int DEFAULT_LIMIT = 100;
 
     @Autowired
     private TenantService tenantService;
@@ -92,6 +96,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private InstallScripts installScripts;
+
+    @Autowired
+    private IntegrationService integrationService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -153,7 +160,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 //White Labeling updates
                 updateSystemWhiteLabelingParameters();
                 tenantsWhiteLabelingUpdater.updateEntities(null);
-
+                break;
+            case "2.4.1":
+                log.info("Updating data from version 2.4.1 to 2.4.1PE ...");
+                tenantIntegrationUpdater.updateEntities(null);
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -265,7 +275,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         log.error("Unable to update Tenant", e);
                     }
                 }
-    };
+            };
 
     private class TenantAdminsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, User> {
 
@@ -410,7 +420,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         private Map<CustomerId, Customer> customersMap = new HashMap<>();
 
         public DashboardsGroupAllUpdater(EntityGroup groupAll,
-                                              boolean fetchAllTenantEntities) {
+                                         boolean fetchAllTenantEntities) {
             this.groupAll = groupAll;
             this.fetchAllTenantEntities = fetchAllTenantEntities;
         }
@@ -467,16 +477,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
     }
 
     private PaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new PaginatedUpdater<String, Tenant>() {
-                @Override
-                protected TextPageData<Tenant> findEntities(String id, TextPageLink pageLink) {
-                    return tenantService.findTenants(pageLink);
-                }
+        @Override
+        protected TextPageData<Tenant> findEntities(String id, TextPageLink pageLink) {
+            return tenantService.findTenants(pageLink);
+        }
 
-                @Override
-                protected void updateEntity(Tenant tenant) {
-                    updateEntityWhiteLabelingParameters(tenant.getId());
-                    customersWhiteLabelingUpdater.updateEntities(tenant.getId());
-                }
+        @Override
+        protected void updateEntity(Tenant tenant) {
+            updateEntityWhiteLabelingParameters(tenant.getId());
+            customersWhiteLabelingUpdater.updateEntities(tenant.getId());
+        }
     };
 
     private PaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new PaginatedUpdater<TenantId, Customer>() {
@@ -484,9 +494,22 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected TextPageData<Customer> findEntities(TenantId id, TextPageLink pageLink) {
             return customerService.findCustomersByTenantId(id, pageLink);
         }
+
         @Override
         protected void updateEntity(Customer customer) {
             updateEntityWhiteLabelingParameters(customer.getId());
+        }
+    };
+
+    private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {
+        @Override
+        protected TextPageData<Tenant> findEntities(String id, TextPageLink pageLink) {
+            return tenantService.findTenants(pageLink);
+        }
+
+        @Override
+        protected void updateEntity(Tenant tenant) {
+            updateTenantIntegrations(tenant.getId());
         }
     };
 
@@ -526,6 +549,24 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         deleteEntityAttribute(entityId, LOGO_IMAGE);
         deleteEntityAttribute(entityId, LOGO_IMAGE_CHECKSUM);
+    }
+
+    private void updateTenantIntegrations(TenantId tenantId) {
+        TextPageData<Integration> pageData = integrationService.findTenantIntegrations(tenantId, new TextPageLink(DEFAULT_LIMIT));
+        boolean hasNext = true;
+        while (hasNext) {
+            for (Integration integration : pageData.getData()) {
+                if (integration.isEnabled() == null) {
+                    integration.setEnabled(true);
+                    integrationService.saveIntegration(integration);
+                }
+            }
+            if (pageData.hasNext()) {
+                pageData = integrationService.findTenantIntegrations(tenantId, pageData.getNextPageLink());
+            } else {
+                hasNext = false;
+            }
+        }
     }
 
     private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl, boolean isSystem) {
@@ -638,7 +679,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private void deleteEntityAttribute(EntityId entityId, String key) {
         try {
-            attributesService.removeAll(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE,  Arrays.asList(key)).get();
+            attributesService.removeAll(TenantId.SYS_TENANT_ID, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
         } catch (Exception e) {
             log.error("Unable to delete attribute for " + key + "!", e);
         }

@@ -131,7 +131,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationContext context, IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {

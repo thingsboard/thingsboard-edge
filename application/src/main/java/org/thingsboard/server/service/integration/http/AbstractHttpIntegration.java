@@ -44,33 +44,35 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
 
     @Override
     public void process(IntegrationContext context, T msg) {
-        String status = "OK";
-        Exception exception = null;
-        try {
-            ResponseEntity httpResponse = doProcess(context, msg);
-            if (!httpResponse.getStatusCode().is2xxSuccessful()) {
-                status = httpResponse.getStatusCode().name();
-            }
+        if (this.configuration.isEnabled()) {
+            String status = "OK";
+            Exception exception = null;
             try {
-                msg.getCallback().setResult(httpResponse);
+                ResponseEntity httpResponse = doProcess(context, msg);
+                if (!httpResponse.getStatusCode().is2xxSuccessful()) {
+                    status = httpResponse.getStatusCode().name();
+                }
+                try {
+                    msg.getCallback().setResult(httpResponse);
+                } catch (Exception e) {
+                    log.error("Failed to send response from integration to original HTTP request", e);
+                }
+                integrationStatistics.incMessagesProcessed();
             } catch (Exception e) {
-                log.error("Failed to send response from integration to original HTTP request", e);
+                log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+                exception = e;
+                status = "ERROR";
+                msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
             }
-            integrationStatistics.incMessagesProcessed();
-        } catch (Exception e) {
-            log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
-            exception = e;
-            status = "ERROR";
-            msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
-        }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
+            if (!status.equals("OK")) {
+                integrationStatistics.incErrorsOccurred();
+            }
+            if (configuration.isDebugMode()) {
+                try {
+                    persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                } catch (Exception e) {
+                    log.warn("Failed to persist debug message", e);
+                }
             }
         }
     }

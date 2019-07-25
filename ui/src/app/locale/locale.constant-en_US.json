@@ -1505,6 +1505,7 @@
         "delete-integrations-action-title": "Delete { count, plural, 1 {1 integration} other {# integrations} }",
         "delete-integrations-text": "Be careful, after the confirmation all selected integrations will be removed and all related data will become unrecoverable.",
         "events": "Events",
+        "enabled": "Enabled",
         "add": "Add Integration",
         "integration-details": "Integration details",
         "details": "Details",

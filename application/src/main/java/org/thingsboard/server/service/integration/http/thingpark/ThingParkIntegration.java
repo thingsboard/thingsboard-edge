@@ -85,18 +85,20 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        JsonNode json = configuration.getConfiguration();
-        securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
-        if (securityEnabled) {
-            securityAsId = json.get("asId").asText();
-            securityAsKey = json.get("asKey").asText();
-            maxTimeDiffInSeconds = json.get("maxTimeDiffInSeconds").asLong();
-        }
-        if (downlinkConverter != null) {
-            downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
-            Netty4ClientHttpRequestFactory nettyFactory = new Netty4ClientHttpRequestFactory(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP);
-            nettyFactory.setSslContext(SslContextBuilder.forClient().build());
-            httpClient = new AsyncRestTemplate(nettyFactory);
+        if (this.configuration.isEnabled()) {
+            JsonNode json = configuration.getConfiguration();
+            securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
+            if (securityEnabled) {
+                securityAsId = json.get("asId").asText();
+                securityAsKey = json.get("asKey").asText();
+                maxTimeDiffInSeconds = json.get("maxTimeDiffInSeconds").asLong();
+            }
+            if (downlinkConverter != null) {
+                downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
+                Netty4ClientHttpRequestFactory nettyFactory = new Netty4ClientHttpRequestFactory(DefaultPlatformIntegrationService.EVENT_LOOP_GROUP);
+                nettyFactory.setSslContext(SslContextBuilder.forClient().build());
+                httpClient = new AsyncRestTemplate(nettyFactory);
+            }
         }
     }
 
