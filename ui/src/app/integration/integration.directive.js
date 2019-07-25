@@ -57,6 +57,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
                 if (!scope.integration.configuration.metadata) {
                     scope.integration.configuration.metadata = {};
                 }
+                if (angular.isUndefined(scope.integration.enabled)) {
+                    scope.integration.enabled = true;
+                }
             }
         });
 

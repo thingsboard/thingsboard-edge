@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS integration (
     additional_info varchar,
     configuration varchar(10000000),
     debug_mode boolean,
+    enabled boolean,
     name varchar(255),
     converter_id varchar(31),
     downlink_converter_id varchar(31),

@@ -326,6 +326,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.integration (
     search_text text,
     configuration text,
     debug_mode boolean,
+    enabled boolean,
     additional_info text,
     PRIMARY KEY (id, tenant_id)
 );
