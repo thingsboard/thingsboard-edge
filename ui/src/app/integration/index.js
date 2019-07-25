@@ -40,6 +40,7 @@ import IntegrationTtnDirective from './integration-forms/integration-ttn.directi
 import MqttTopicFiltersDirective from './integration-forms/mqtt-topic-filters.directive';
 import OpcUaSubscriptionTagsDirective from './integration-forms/opc-ua-subscription-tags.directive';
 import IntegrationAzureEventHubDirective from './integration-forms/integration-azure-event-hub.directive';
+import IntegrationCustomDirective from './integration-forms/integration-custom.directive';
 
 export default angular.module('thingsboard.integration', [])
     .config(IntegrationRoutes)
@@ -55,4 +56,5 @@ export default angular.module('thingsboard.integration', [])
     .directive('tbMqttTopicFilters', MqttTopicFiltersDirective)
     .directive('tbOpcUaSubscriptionTags', OpcUaSubscriptionTagsDirective)
     .directive('tbIntegrationAzureEventHub', IntegrationAzureEventHubDirective)
+    .directive('tbIntegrationCustom', IntegrationCustomDirective)
     .name;

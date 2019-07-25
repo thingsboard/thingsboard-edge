@@ -446,10 +446,10 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
                 },
-                "OPHARDT_OSDMP": {
-                    name: "integration.type-ophardt-osdmp",
-                    value: "OPHARDT_OSDMP",
-                    http: true
+                "CUSTOM": {
+                    name: "integration.type-custom",
+                    value: "CUSTOM",
+                    remote: true
                 },
             },
             componentType: {

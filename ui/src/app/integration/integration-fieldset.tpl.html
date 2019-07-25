@@ -87,7 +87,7 @@
                                    label-text="'integration.downlink-converter'"
                                    use-full-entity-id="true">
         </tb-converter-autocomplete>
-        <md-switch ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.execute-remotely' | translate }}"
+        <md-switch ng-disabled="$root.loading || !isEdit || types.integrationType[integration.type].remote" aria-label="{{ 'integration.execute-remotely' | translate }}"
                    ng-model="integration.remote">{{ 'integration.execute-remotely' | translate }}
         </md-switch>
     </fieldset>
@@ -171,6 +171,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-azure-event-hub>
+    <tb-integration-custom
+            ng-if="integration.type == types.integrationType.CUSTOM.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-custom>
     <fieldset ng-disabled="$root.loading || !isEdit">
         <md-input-container class="md-block">
             <label translate>integration.description</label>

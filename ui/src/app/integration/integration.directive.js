@@ -65,6 +65,9 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             scope.integration.configuration = {
                 metadata: {}
             };
+            if (types.integrationType[scope.integration.type].remote) {
+                scope.integration.remote = true;
+            }
         };
 
         function generateSecret(length) {
