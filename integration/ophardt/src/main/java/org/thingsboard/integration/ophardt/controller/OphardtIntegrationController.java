@@ -56,17 +56,16 @@ import java.util.Map;
 public class OphardtIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}")
+    @RequestMapping(value = "/")
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
-            @PathVariable("routingKey") String routingKey,
             @RequestBody JsonNode msg,
             @RequestHeader Map<String, String> requestHeaders
     ) {
-        log.debug("[{}] Received request: {}", routingKey, msg);
+        log.debug("Received request: {}", msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
+        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(IntegrationType.CUSTOM.name());
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
             if (integration == null) {
@@ -79,7 +78,7 @@ public class OphardtIntegrationController extends BaseIntegrationController {
             }
             api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
+            log.trace("Failed to fetch integration by routing key", failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
         }, api.getCallbackExecutor());
 

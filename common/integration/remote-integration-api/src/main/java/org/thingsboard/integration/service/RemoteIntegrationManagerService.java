@@ -119,13 +119,14 @@ public class RemoteIntegrationManagerService {
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledFuture<?> scheduledFuture;
 
-    private boolean initialized;
+    private volatile boolean initialized;
 
     @PostConstruct
     public void init() {
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+        processHandleMessages();
     }
 
     @PreDestroy
@@ -175,10 +176,7 @@ public class RemoteIntegrationManagerService {
                     uplinkDataConverter,
                     downlinkDataConverter);
             integration.init(params);
-            if (!initialized) {
-                processHandleMessages();
-                initialized = true;
-            }
+            initialized = true;
         } catch (Exception e) {
             log.error("Failed to initialize platform integration!", e);
         }
@@ -257,6 +255,7 @@ public class RemoteIntegrationManagerService {
     }
 
     private void scheduleReconnect(Exception e) {
+        initialized = false;
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
@@ -302,9 +301,13 @@ public class RemoteIntegrationManagerService {
 
     private void processHandleMessages() {
         executor.submit(() -> {
-            while (true) {
+            while (!Thread.interrupted()) {
                 try {
-                    rpcClient.handleMsgs();
+                    if (initialized) {
+                        rpcClient.handleMsgs();
+                    } else {
+                        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+                    }
                 } catch (Exception e) {
                     log.warn("Failed to process messages handling!", e);
                 }

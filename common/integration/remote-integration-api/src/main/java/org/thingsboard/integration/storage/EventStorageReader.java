@@ -57,8 +57,8 @@ class EventStorageReader {
 
     private BufferedReader bufferedReader;
 
-    private EventStorageReaderPointer currentPos;
-    private EventStorageReaderPointer newPos;
+    private volatile EventStorageReaderPointer currentPos;
+    private volatile EventStorageReaderPointer newPos;
     private List<UplinkMsg> currentBatch;
 
     EventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
@@ -69,7 +69,8 @@ class EventStorageReader {
     }
 
     List<UplinkMsg> read() {
-        if (!currentPos.equals(newPos) && currentBatch != null) {
+        log.debug("[{}:{}] Check for new messages in storage", newPos.getFile(), newPos.getLine());
+        if (currentBatch != null && !currentPos.equals(newPos)) {
             log.debug("The previous batch was not discarded!");
             return currentBatch;
         }
@@ -117,11 +118,12 @@ class EventStorageReader {
                 break;
             }
         }
+        log.debug("Got {} mesages from storage", currentBatch.size());
         return currentBatch;
     }
 
-    public void discardBatch() {
-        currentPos = newPos;
+    void discardBatch() {
+        currentPos = newPos.copy();
         writeInfoToStateFile(currentPos);
     }
 

@@ -70,6 +70,7 @@ class EventStorageWriter {
                 log.debug("File [{}] is full with [{}] records", currentFile.getName(), currentFileRecordsCount);
             }
             try {
+                log.debug("Created new data file: {}", currentFile.getName());
                 currentFile = createDataFile(Long.toString(System.currentTimeMillis()));
             } catch (IOException e) {
                 log.error("Failed to create a new file!", e);
@@ -105,8 +106,10 @@ class EventStorageWriter {
             BufferedWriter writer = getOrInitBufferedWriter(currentFile);
             writer.write(encoded);
             writer.newLine();
+            log.debug("Record written to: [{}:{}]", currentFile.getName(), currentFileRecordsCount);
             currentFileRecordsCount++;
             if (currentFileRecordsCount % settings.getMaxRecordsBetweenFsync() == 0) {
+                log.debug("Executing flush of the full pack!");
                 writer.flush();
                 newRecordAfterFlush = false;
             }
@@ -126,6 +129,7 @@ class EventStorageWriter {
         if (newRecordAfterFlush) {
             if (bufferedWriter != null) {
                 try {
+                    log.debug("Executing flush of the temporary pack!");
                     bufferedWriter.flush();
                     newRecordAfterFlush = false;
                 } catch (IOException e) {

@@ -36,16 +36,16 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:30de5197b0d01daea9f381299fe3c12e}"
-  secret: "${INTEGRATION_SECRET:l900dow9bxf79izx1yyf}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:975b432a68d0f43f646f2bd97623291a}"
+  secret: "${INTEGRATION_SECRET:jddk55lcweef8zygpjl1}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
 
 storage:
-  data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:/home/dima/Documents/data}"
+  data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:.}"
   max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:100}"
   max_records_per_file: "${INTEGRATION_STORAGE_MAX_RECORDS_PER_FILE:30}"
   max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:10}"
-  max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:50}"
+  max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:10}"
   no_read_records_sleep: "${INTEGRATION_STORAGE_NO_READ_RECORDS_SLEEP:1000}"
 
 executors:

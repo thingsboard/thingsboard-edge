@@ -129,6 +129,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
             @Override
             public void onError(Throwable t) {
+                log.debug("[{}] The rpc session received an error!", integrationKey, t);
                 onError.accept(new RuntimeException(t));
             }
 
@@ -157,8 +158,11 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                     .setUplinkMsg(msg)
                     .build());
         }
-        latch.await();
-        if(!uplinkMsgList.isEmpty()){
+        boolean success = latch.await(10, TimeUnit.SECONDS);
+        if (!success) {
+            log.warn("Failed to deliver the batch: {}", uplinkMsgList);
+        }
+        if (success && !uplinkMsgList.isEmpty()) {
             eventStorage.discardCurrentBatch();
         } else {
             eventStorage.sleep();

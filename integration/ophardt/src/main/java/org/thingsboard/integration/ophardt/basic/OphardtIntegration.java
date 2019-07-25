@@ -121,7 +121,7 @@ public class OphardtIntegration extends AbstractIntegration<HttpIntegrationMsg> 
         if (uplinkData != null) {
             processUplinkData(context, uplinkData);
             log.info("[{}] Processing uplink data", uplinkData);
-            processEntityViewCreation(context, uplinkData);
+            processEntityViewCreation(context, uplinkData, uplinkData.getDeviceName() + "_View", uplinkData.getDeviceType());
             for (Map.Entry<UUID, JsonNode> entry : result.getEventsMap().entrySet()) {
                 context.saveEventUidInCache(uplinkData.getDeviceName(), DataConstants.RAW_DATA, entry.getKey().toString());
                 context.saveRawDataEvent(uplinkData.getDeviceName(), DataConstants.RAW_DATA, entry.getKey().toString(), createEventBody(entry.getKey().toString(), entry.getValue()), new IntegrationDebugEventCallback());

@@ -80,6 +80,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
@@ -250,8 +251,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (StringUtils.isEmpty(integration.getRoutingKey())) {
             throw new DataValidationException("Integration routing key should be specified!");
         }
-        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-        platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
+        if (integration.getType() != IntegrationType.CUSTOM) {
+            ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
+            platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
+        }
     }
 
     @Override
