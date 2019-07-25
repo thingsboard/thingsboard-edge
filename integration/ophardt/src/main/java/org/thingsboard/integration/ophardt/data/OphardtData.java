@@ -28,31 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.ophardt;
+package org.thingsboard.integration.ophardt.data;
 
-public enum ErrorCodes {
+import lombok.Data;
 
-    MotorError(256),
-    MotorErrorBlocked(257),
-    UpdateError(513);
+@Data
+public class OphardtData {
 
-    long value;
-
-    public long getValue() {
-        return value;
-    }
-
-    ErrorCodes(long value) {
-        this.value = value;
-    }
-
-    public static String getErrorCodeByValue(long value) {
-        for (ErrorCodes errorCode : ErrorCodes.values()) {
-            if (errorCode.getValue() == value) {
-                return errorCode.name();
-            }
-        }
-        throw new RuntimeException();
-    }
+    private String type;
+    private Long value;
 
 }

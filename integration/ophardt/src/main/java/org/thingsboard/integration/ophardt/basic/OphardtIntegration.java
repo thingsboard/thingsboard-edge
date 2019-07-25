@@ -42,7 +42,7 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.HttpIntegrationMsg;
-import org.thingsboard.integration.ophardt.ConverterResult;
+import org.thingsboard.integration.ophardt.data.ConverterResult;
 import org.thingsboard.integration.ophardt.converter.OphardtConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.gen.transport.PostAttributeMsg;

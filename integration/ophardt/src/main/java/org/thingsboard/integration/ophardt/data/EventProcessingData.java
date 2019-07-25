@@ -28,37 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.ophardt;
+package org.thingsboard.integration.ophardt.data;
 
-public enum DeviceTypes {
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 
-    NSU(1),
-    HSU(2),
-    KX_SAO(3),
-    TRU(4),
-    FBU(5),
-    VCU(6),
-    WECO(7),
-    IMP_TT(8),
-    CWS_PARADISE_DRY_SLIM(9),
-    HAU(16);
+import java.util.List;
+import java.util.UUID;
 
-    long value;
+@Data
+public class EventProcessingData {
 
-    public long getValue() {
-        return value;
-    }
+    private final UUID uuid;
+    private final JsonNode node;
+    private final OphardtData event;
+    private final List<OphardtData> sensors;
+    private final long eventTs;
+    private final String deviceName;
 
-    DeviceTypes(long value) {
-        this.value = value;
-    }
-
-    public static String getDeviceTypeByValue(long value) {
-        for (DeviceTypes deviceType : DeviceTypes.values()) {
-            if (deviceType.getValue() == value) {
-                return deviceType.name();
-            }
-        }
-        throw new RuntimeException("Invalid value for device type!");
-    }
 }
