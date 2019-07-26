@@ -28,10 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const varsRegex = /\$\{([^\}]*)\}/g;
+const varsRegex = /\$\{([^}]*)\}/g;
 
-const linkActionRegex = /\<link-act name=['"]([^['"]*)['"]\>([^\<]*)\<\/link-act\>/g;
-const buttonActionRegex = /\<button-act name=['"]([^['"]*)['"]\>([^\<]*)\<\/button-act\>/g;
+const linkActionRegex = /<link-act name=['"]([^['"]*)['"]>([^<]*)<\/link-act>/g;
+const buttonActionRegex = /<button-act name=['"]([^['"]*)['"]>([^<]*)<\/button-act>/g;
 
 export function processPattern(pattern, datasources, dsIndex) {
     var match = varsRegex.exec(pattern);

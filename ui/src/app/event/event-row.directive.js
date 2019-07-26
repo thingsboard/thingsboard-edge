@@ -34,6 +34,7 @@ import eventErrorDialogTemplate from './event-content-dialog.tpl.html';
 
 import eventRowLcEventTemplate from './event-row-lc-event.tpl.html';
 import eventRowStatsTemplate from './event-row-stats.tpl.html';
+import eventRowRawDataTemplate from './event-row-raw-data.tpl.html';
 import eventRowErrorTemplate from './event-row-error.tpl.html';
 import eventRowDebugConverterTemplate from './event-row-debug-converter.tpl.html';
 import eventRowDebugIntegrationTemplate from './event-row-debug-integration.tpl.html';
@@ -69,6 +70,9 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                     break;
                 case types.debugEventType.debugRuleChain.value:
                     template = eventRowDebugRuleNodeTemplate;
+                    break;
+                case types.eventType.rawData.value:
+                    template = eventRowRawDataTemplate;
                     break;
             }
             return $templateCache.get(template);

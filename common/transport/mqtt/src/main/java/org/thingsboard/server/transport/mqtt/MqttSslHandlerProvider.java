@@ -42,7 +42,8 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg;
+import org.thingsboard.server.gen.transport.ValidateDeviceX509CertRequestMsg;
 import org.thingsboard.server.transport.mqtt.util.SslUtil;
 
 import javax.net.ssl.KeyManager;
@@ -171,10 +172,10 @@ public class MqttSslHandlerProvider {
                     String sha3Hash = EncryptionUtil.getSha3Hash(strCert);
                     final String[] credentialsBodyHolder = new String[1];
                     CountDownLatch latch = new CountDownLatch(1);
-                    transportService.process(TransportProtos.ValidateDeviceX509CertRequestMsg.newBuilder().setHash(sha3Hash).build(),
-                            new TransportServiceCallback<TransportProtos.ValidateDeviceCredentialsResponseMsg>() {
+                    transportService.process(ValidateDeviceX509CertRequestMsg.newBuilder().setHash(sha3Hash).build(),
+                            new TransportServiceCallback<ValidateDeviceCredentialsResponseMsg>() {
                                 @Override
-                                public void onSuccess(TransportProtos.ValidateDeviceCredentialsResponseMsg msg) {
+                                public void onSuccess(ValidateDeviceCredentialsResponseMsg msg) {
                                     if (!StringUtils.isEmpty(msg.getCredentialsBody())) {
                                         credentialsBodyHolder[0] = msg.getCredentialsBody();
                                     }

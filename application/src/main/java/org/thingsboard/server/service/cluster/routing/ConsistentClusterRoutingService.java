@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
 import org.thingsboard.server.service.cluster.discovery.ServerInstance;
 import org.thingsboard.server.utils.MiscUtils;
 
@@ -50,7 +49,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Cluster service implementation based on consistent hash ring

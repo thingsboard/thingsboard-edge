@@ -31,6 +31,7 @@
 package org.thingsboard.server.actors.ruleChain;
 
 import akka.actor.ActorRef;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import org.springframework.util.StringUtils;
+import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -89,6 +91,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
+import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -96,7 +99,6 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.service.script.JsScriptType;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
@@ -520,8 +522,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public CassandraBufferedRateExecutor getCassandraBufferedRateExecutor() {
-        return mainCtx.getCassandraBufferedRateExecutor();
+    public ResultSetFuture submitCassandraTask(CassandraStatementTask task) {
+        return mainCtx.getCassandraBufferedRateExecutor().submit(task);
     }
 
     private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {

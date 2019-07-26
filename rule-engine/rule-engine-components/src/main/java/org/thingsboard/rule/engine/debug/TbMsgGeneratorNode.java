@@ -45,7 +45,7 @@ import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
+import static org.thingsboard.common.util.DonAsynchron.withCallback;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
@@ -69,6 +69,7 @@ public class TbMsgGeneratorNode implements TbNode {
     private ScriptEngine jsEngine;
     private long delay;
     private long lastScheduledTs;
+    private int currentMsgCount;
     private EntityId originatorId;
     private UUID nextTickId;
     private TbMsg prevMsg;
@@ -78,6 +79,7 @@ public class TbMsgGeneratorNode implements TbNode {
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgGeneratorNodeConfiguration.class);
         this.delay = TimeUnit.SECONDS.toMillis(config.getPeriodInSeconds());
+        this.currentMsgCount = 0;
         if (!StringUtils.isEmpty(config.getOriginatorId())) {
             originatorId = EntityIdFactory.getByTypeAndUuid(config.getOriginatorType(), config.getOriginatorId());
         } else {
@@ -109,9 +111,10 @@ public class TbMsgGeneratorNode implements TbNode {
         if (initialized && msg.getType().equals(TB_MSG_GENERATOR_NODE_MSG) && msg.getId().equals(nextTickId)) {
             withCallback(generate(ctx),
                     m -> {
-                        if (initialized) {
+                        if (initialized && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
                             ctx.tellNext(m, SUCCESS);
                             scheduleTickMsg(ctx);
+                            currentMsgCount++;
                         }
                     },
                     t -> {

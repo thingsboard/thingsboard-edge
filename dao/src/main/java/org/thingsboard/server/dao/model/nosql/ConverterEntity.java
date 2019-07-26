@@ -48,7 +48,15 @@ import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_ADDITIONAL_INFO_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_CONFIGURATION_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Table(name = CONVERTER_COLUMN_FAMILY_NAME)
 @EqualsAndHashCode

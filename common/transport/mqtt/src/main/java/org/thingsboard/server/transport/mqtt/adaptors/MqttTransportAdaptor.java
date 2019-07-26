@@ -32,17 +32,17 @@ package org.thingsboard.server.transport.mqtt.adaptors;
 
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import org.thingsboard.server.common.transport.adaptor.AdaptorException;
-import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
+import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
 import org.thingsboard.server.transport.mqtt.session.MqttDeviceAwareSessionContext;
 
 import java.util.Optional;

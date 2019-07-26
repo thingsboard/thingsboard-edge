@@ -31,6 +31,7 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
+import securitySettingsTemplate from '../admin/security-settings.tpl.html';
 import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
 import whiteLabelingTemplate from './white-labeling.tpl.html';
 import customTranslationTemplate from './custom-translation.tpl.html';
@@ -182,6 +183,24 @@ export default function AdminRoutes($stateProvider) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "group_add", "label": "Self Registration"}'
+            }
+        })
+        .state('home.settings.security-settings', {
+            url: '/security-settings',
+            module: 'private',
+            auth: ['SYS_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: securitySettingsTemplate,
+                    controllerAs: 'vm',
+                    controller: 'SecuritySettingsController'
+                }
+            },
+            data: {
+                pageTitle: 'admin.security-settings'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "security", "label": "admin.security-settings"}'
             }
         });
 }

@@ -33,7 +33,6 @@ package org.thingsboard.server.service.scheduler;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
-import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;

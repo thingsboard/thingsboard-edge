@@ -275,6 +275,13 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                 state: 'home.settings.customMenu',
                                 icon: 'list',
                                 disabled: disabledItems.indexOf('custom_menu') > -1
+                            },
+                            {
+                                name: 'admin.security-settings',
+                                type: 'link',
+                                state: 'home.settings.security-settings',
+                                icon: 'security',
+                                disabled: disabledItems.indexOf('security_settings') > -1
                             }
                         ]
                     }]);
@@ -315,6 +322,12 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     icon: 'format_shapes',
                                     state: 'home.settings.mail-template',
                                     disabled: disabledItems.indexOf('mail_templates') > -1
+                                },
+                                {
+                                    name: 'admin.security-settings',
+                                    icon: 'security',
+                                    state: 'home.settings.security-settings',
+                                    disabled: disabledItems.indexOf('security_settings') > -1
                                 }
                             ]
                         },

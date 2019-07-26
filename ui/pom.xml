@@ -71,7 +71,7 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v6.9.1</nodeVersion>
+                            <nodeVersion>v10.16.0</nodeVersion>
                             <npmVersion>6.4.1</npmVersion>
                         </configuration>
                     </execution>
@@ -85,6 +85,13 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>

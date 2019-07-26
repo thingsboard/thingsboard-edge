@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.transport;
 
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceActorToTransportMsg;
+import org.thingsboard.server.gen.transport.DeviceActorToTransportMsg;
 
 import java.util.function.Consumer;
 

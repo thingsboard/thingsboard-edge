@@ -32,7 +32,8 @@ package org.thingsboard.server.common.transport.service;
 
 import lombok.Data;
 import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
+import org.thingsboard.server.gen.transport.SessionType;
 
 import java.util.concurrent.ScheduledFuture;
 
@@ -42,8 +43,8 @@ import java.util.concurrent.ScheduledFuture;
 @Data
 class SessionMetaData {
 
-    private final TransportProtos.SessionInfoProto sessionInfo;
-    private final TransportProtos.SessionType sessionType;
+    private final SessionInfoProto sessionInfo;
+    private final SessionType sessionType;
     private final SessionMsgListener listener;
 
     private ScheduledFuture scheduledFuture;
@@ -52,11 +53,7 @@ class SessionMetaData {
     private volatile boolean subscribedToAttributes;
     private volatile boolean subscribedToRPC;
 
-    SessionMetaData(
-            TransportProtos.SessionInfoProto sessionInfo,
-            TransportProtos.SessionType sessionType,
-            SessionMsgListener listener
-    ) {
+    SessionMetaData(SessionInfoProto sessionInfo, SessionType sessionType, SessionMsgListener listener) {
         this.sessionInfo = sessionInfo;
         this.sessionType = sessionType;
         this.listener = listener;

@@ -32,9 +32,13 @@ package org.thingsboard.server.transport.mqtt.session;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
+import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
@@ -78,7 +82,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     }
 
     @Override
-    public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg response) {
+    public void onGetAttributesResponse(GetAttributeResponseMsg response) {
         try {
             parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), response).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
@@ -87,7 +91,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     }
 
     @Override
-    public void onAttributeUpdate(TransportProtos.AttributeUpdateNotificationMsg notification) {
+    public void onAttributeUpdate(AttributeUpdateNotificationMsg notification) {
         try {
             parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), notification).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
@@ -96,12 +100,12 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     }
 
     @Override
-    public void onRemoteSessionCloseCommand(TransportProtos.SessionCloseNotificationProto sessionCloseNotification) {
+    public void onRemoteSessionCloseCommand(SessionCloseNotificationProto sessionCloseNotification) {
         parent.deregisterSession(getDeviceInfo().getDeviceName());
     }
 
     @Override
-    public void onToDeviceRpcRequest(TransportProtos.ToDeviceRpcRequestMsg request) {
+    public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg request) {
         try {
             parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), request).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
@@ -110,7 +114,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     }
 
     @Override
-    public void onToServerRpcResponse(TransportProtos.ToServerRpcResponseMsg toServerResponse) {
+    public void onToServerRpcResponse(ToServerRpcResponseMsg toServerResponse) {
         // This feature is not supported in the TB IoT Gateway yet.
     }
 }

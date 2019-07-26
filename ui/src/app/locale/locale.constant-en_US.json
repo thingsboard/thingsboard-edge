@@ -104,7 +104,22 @@
             "user-registered": "User registered message"
         },
         "mail-subject": "Mail Subject",
-        "mail-body": "Mail body"
+        "mail-body": "Mail body",
+        "security-settings": "Security settings",
+        "password-policy": "Password policy",
+        "minimum-password-length": "Minimum password length",
+        "minimum-password-length-required": "Minimum password length is required",
+        "minimum-password-length-range": "Minimum password length should be in a range from 5 to 50",
+        "minimum-uppercase-letters": "Minimum number of uppercase letters",
+        "minimum-uppercase-letters-range": "Minimum number of uppercase letters can't be negative",
+        "minimum-lowercase-letters": "Minimum number of lowercase letters",
+        "minimum-lowercase-letters-range": "Minimum number of lowercase letters can't be negative",
+        "minimum-digits": "Minimum number of digits",
+        "minimum-digits-range": "Minimum number of digits can't be negative",
+        "minimum-special-characters": "Minimum number of special characters",
+        "minimum-special-characters-range": "Minimum number of special characters can't be negative",
+        "password-expiration-period-days": "Password expiration period in days",
+        "password-expiration-period-days-range": "Password expiration period in days can't be negative"
     },
     "alarm": {
         "alarm": "Alarm",
@@ -346,6 +361,8 @@
         "type-rest-api-rule-engine-call": "Rule engine REST API call",
         "type-made-public": "Made public",
         "type-made-private": "Made private",
+        "type-login": "Login",
+        "type-logout": "Logout",
         "status-success": "Success",
         "status-failure": "Failure",
         "audit-log-details": "Audit log details",
@@ -1212,6 +1229,7 @@
         "event-type": "Event type",
         "type-error": "Error",
         "type-lc-event": "Lifecycle event",
+        "type-rw-event": "Raw data",
         "type-stats": "Statistics",
         "type-debug-converter": "Debug",
         "type-debug-integration": "Debug",
@@ -1240,7 +1258,8 @@
         "success": "Success",
         "failed": "Failed",
         "messages-processed": "Messages processed",
-        "errors-occurred": "Errors occurred"
+        "errors-occurred": "Errors occurred",
+        "uuid": "UUID"
     },
     "extension": {
         "extensions": "Extensions",
@@ -1578,6 +1597,9 @@
         "sas-key": "SAS Key",
         "sas-key-required": "SAS Key is required.",
         "iot-hub-name": "IoT Hub Name (required for downlink)",
+        "integration-clazz": "Integration class",
+        "integration-clazz-required": "Integration class is required",
+        "integration-configuration": "Integration JSON configuration",
         "metadata": "Metadata",
         "type": "Type",
         "type-required": "Type is required.",
@@ -1595,6 +1617,7 @@
         "type-ttn": "TheThingsNetwork",
         "type-azure-event-hub": "Azure Event Hub",
         "type-opc-ua": "OPC-UA",
+        "type-custom": "Custom",
         "opc-ua-application-name": "Application name",
         "opc-ua-application-uri": "Application uri",
         "opc-ua-scan-period-in-seconds": "Scan period in seconds",
@@ -1632,7 +1655,14 @@
         "add-subscription-tag-prompt": "Please add subscription tag",
         "key": "Key",
         "path": "Path",
-        "required": "Required"
+        "required": "Required",
+        "integration-key": "Integration key",
+        "copy-integration-key": "Copy integration key",
+        "integration-key-copied-message": "Integration key has been copied to clipboard",
+        "integration-secret": "Integration secret",
+        "copy-integration-secret": "Copy integration secret",
+        "integration-secret-copied-message": "Integration secret has been copied to clipboard",
+        "execute-remotely": "Execute remotely"
     },
     "item": {
         "selected": "Selected"
@@ -1683,6 +1713,7 @@
         "remember-me": "Remember me",
         "forgot-password": "Forgot Password?",
         "password-reset": "Password reset",
+        "expired-password-reset-message": "Your credentials has been expired! Please create new password.",
         "new-password": "New password",
         "new-password-again": "New password again",
         "password-link-sent-message": "Password reset link was successfully sent!",
@@ -2326,6 +2357,7 @@
         "settings-schema": "Settings schema",
         "datakey-settings-schema": "Data key settings schema",
         "javascript": "Javascript",
+        "js": "JS",
         "remove-widget-type-title": "Are you sure you want to remove the widget type '{{widgetName}}'?",
         "remove-widget-type-text": "After the confirmation the widget type and all related data will become unrecoverable.",
         "remove-widget-type": "Remove widget type",
@@ -2346,6 +2378,7 @@
         "update-dashboard-state": "Update current dashboard state",
         "open-dashboard": "Navigate to other dashboard",
         "custom": "Custom action",
+        "custom-pretty": "Custom action (with HTML template)",
         "target-dashboard-state": "Target dashboard state",
         "target-dashboard-state-required": "Target dashboard state is required",
         "set-entity-from-widget": "Set entity from widget",

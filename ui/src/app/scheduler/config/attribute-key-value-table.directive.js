@@ -52,7 +52,7 @@ export default function AttributeKeyValueTableDirective($compile, $templateCache
             scope.kvList = [];
             if (keyValMap) {
                 for (var property in keyValMap) {
-                    if (keyValMap.hasOwnProperty(property)) {
+                    if (Object.prototype.hasOwnProperty.call(keyValMap, property)) {
                         scope.kvList.push(
                             {
                                 key: property + '',

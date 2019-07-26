@@ -35,6 +35,7 @@ export default angular.module('thingsboard.types', [])
                 general: 2,
                 authentication: 10,
                 jwtTokenExpired: 11,
+                credentialsExpired: 15,
                 permissionDenied: 20,
                 invalidArguments: 30,
                 badRequestParams: 31,
@@ -242,6 +243,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "MADE_PRIVATE": {
                     name: "audit-log.type-made-private"
+                },
+                "LOGIN": {
+                    name: "audit-log.type-login"
+                },
+                "LOGOUT": {
+                    name: "audit-log.type-logout"
                 }
             },
             auditLogActionStatus: {
@@ -438,7 +445,12 @@ export default angular.module('thingsboard.types', [])
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
-                }
+                },
+                "CUSTOM": {
+                    name: "integration.type-custom",
+                    value: "CUSTOM",
+                    remote: true
+                },
             },
             componentType: {
                 enrichment: "ENRICHMENT",
@@ -861,6 +873,10 @@ export default angular.module('thingsboard.types', [])
                 stats: {
                     value: "STATS",
                     name: "event.type-stats"
+                },
+                rawData: {
+                    value: "RAW_DATA",
+                    name: "event.type-rw-event"
                 }
             },
             debugEventType: {
@@ -1298,6 +1314,10 @@ export default angular.module('thingsboard.types', [])
                 custom: {
                     name: 'widget-action.custom',
                     value: 'custom'
+                },
+                customPretty: {
+                    name: 'widget-action.custom-pretty',
+                    value: 'customPretty'
                 }
             },
             entityGroupActionTypes: {

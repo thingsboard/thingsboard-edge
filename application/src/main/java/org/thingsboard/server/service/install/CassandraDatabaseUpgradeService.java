@@ -54,7 +54,6 @@ import static org.thingsboard.server.service.install.DatabaseHelper.ASSET;
 import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
 import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATION;
 import static org.thingsboard.server.service.install.DatabaseHelper.CUSTOMER_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.DASHBOARD;
 import static org.thingsboard.server.service.install.DatabaseHelper.DEVICE;
 import static org.thingsboard.server.service.install.DatabaseHelper.END_TS;
 import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_ID;
@@ -290,7 +289,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 break;
             case "2.4.0":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.0pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.1pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
@@ -320,6 +319,18 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 updateEntityGroupTableStmt = "alter table "+ENTITY_GROUP+" add owner_type text";
                 try {
                     cluster.getSession().execute(updateEntityGroupTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
+                String updateRemoteIntegrationSecretTableStmt = "alter table " + INTEGRATION + " add secret text";
+                try {
+                    cluster.getSession().execute(updateRemoteIntegrationSecretTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
+                String updateRemoteIntegrationIsRemoteTableStmt = "alter table " + INTEGRATION + " add is_remote boolean";
+                try {
+                    cluster.getSession().execute(updateRemoteIntegrationIsRemoteTableStmt);
                     Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
 

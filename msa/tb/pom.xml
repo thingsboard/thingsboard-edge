@@ -51,8 +51,6 @@
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>thingsboard</pkg.name>
         <tb.docker.name>tb-pe</tb.docker.name>
-        <tb-postgres.docker.name>tb-pe-postgres</tb-postgres.docker.name>
-        <tb-cassandra.docker.name>tb-pe-cassandra</tb-cassandra.docker.name>
         <pkg.user>thingsboard</pkg.user>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.upgradeVersion>2.3.1</pkg.upgradeVersion>
@@ -62,6 +60,14 @@
         <dependency>
             <groupId>org.thingsboard</groupId>
             <artifactId>application</artifactId>
+            <version>${project.version}</version>
+            <classifier>deb</classifier>
+            <type>deb</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.msa</groupId>
+            <artifactId>web-report</artifactId>
             <version>${project.version}</version>
             <classifier>deb</classifier>
             <type>deb</type>
@@ -91,43 +97,13 @@
                                     <destFileName>${pkg.name}.deb</destFileName>
                                     <outputDirectory>${project.build.directory}/docker-tb</outputDirectory>
                                 </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-tb-postgres-deb</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.thingsboard</groupId>
-                                    <artifactId>application</artifactId>
+                                    <groupId>org.thingsboard.msa</groupId>
+                                    <artifactId>web-report</artifactId>
                                     <classifier>deb</classifier>
                                     <type>deb</type>
-                                    <destFileName>${pkg.name}.deb</destFileName>
-                                    <outputDirectory>${project.build.directory}/docker-postgres</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-tb-cassandra-deb</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.thingsboard</groupId>
-                                    <artifactId>application</artifactId>
-                                    <classifier>deb</classifier>
-                                    <type>deb</type>
-                                    <destFileName>${pkg.name}.deb</destFileName>
-                                    <outputDirectory>${project.build.directory}/docker-cassandra</outputDirectory>
+                                    <destFileName>tb-web-report.deb</destFileName>
+                                    <outputDirectory>${project.build.directory}/docker-tb</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -153,46 +129,6 @@
                                 </resource>
                                 <resource>
                                     <directory>docker-tb</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-docker-tb-postgres-config</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/docker-postgres</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>docker</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                                <resource>
-                                    <directory>docker-postgres</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-docker-tb-cassandra-config</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/docker-cassandra</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>docker</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                                <resource>
-                                    <directory>docker-cassandra</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
@@ -227,58 +163,6 @@
                         <configuration>
                             <skip>${dockerfile.skip}</skip>
                             <repository>${docker.repo}/${tb.docker.name}</repository>
-                            <tag>${project.version}</tag>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>build-docker-tb-postgres-image</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${tb-postgres.docker.name}</repository>
-                            <verbose>true</verbose>
-                            <googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
-                            <contextDirectory>${project.build.directory}/docker-postgres</contextDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>tag-docker-tb-postgres-image</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>tag</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${tb-postgres.docker.name}</repository>
-                            <tag>${project.version}</tag>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>build-docker-tb-cassandra-image</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${tb-cassandra.docker.name}</repository>
-                            <verbose>true</verbose>
-                            <googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
-                            <contextDirectory>${project.build.directory}/docker-cassandra</contextDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>tag-docker-tb-cassandra-image</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>tag</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${tb-cassandra.docker.name}</repository>
                             <tag>${project.version}</tag>
                         </configuration>
                     </execution>
@@ -320,50 +204,6 @@
                                 <configuration>
                                     <tag>${project.version}</tag>
                                     <repository>${docker.repo}/${tb.docker.name}</repository>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>push-latest-docker-tb-postgres-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>latest</tag>
-                                    <repository>${docker.repo}/${tb-postgres.docker.name}</repository>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>push-version-docker-tb-postgres-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>${project.version}</tag>
-                                    <repository>${docker.repo}/${tb-postgres.docker.name}</repository>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>push-latest-docker-tb-cassandra-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>latest</tag>
-                                    <repository>${docker.repo}/${tb-cassandra.docker.name}</repository>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>push-version-docker-tb-cassandra-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>${project.version}</tag>
-                                    <repository>${docker.repo}/${tb-cassandra.docker.name}</repository>
                                 </configuration>
                             </execution>
                         </executions>

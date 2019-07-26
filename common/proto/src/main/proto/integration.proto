@@ -1,0 +1,183 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.thingsboard.server.gen.integration";
+option java_outer_classname = "IntegrationProtos";
+
+import "transport.proto";
+
+package integration;
+
+// Interface exported by the ThingsBoard Integration Transport.
+service IntegrationTransport {
+
+  rpc handleMsgs(stream RequestMsg) returns (stream ResponseMsg) {}
+
+}
+
+/**
+ * Data Structures;
+ */
+message RequestMsg {
+  MessageType messageType = 1;
+  ConnectRequestMsg connectRequestMsg = 2;
+  UplinkMsg uplinkMsg = 3;
+}
+
+message ResponseMsg {
+  ConnectResponseMsg connectResponseMsg = 1;
+  UplinkResponseMsg uplinkResponseMsg = 2;
+  DownlinkMsg downlinkMsg = 3;
+  IntegrationUpdateMsg integrationUpdateMsg = 4;
+  ConverterUpdateMsg converterUpdateMsg = 5;
+}
+
+enum MessageType {
+  CONNECT_RPC_MESSAGE = 0;
+  UPLINK_RPC_MESSAGE = 1;
+}
+
+message IntegrationUpdateMsg {
+  IntegrationConfigurationProto configuration = 1;
+}
+
+message ConverterUpdateMsg {
+  ConverterConfigurationProto configuration = 1;
+}
+
+message ConnectRequestMsg {
+  string integrationRoutingKey = 1;
+  string integrationSecret = 2;
+}
+
+enum ConnectResponseCode {
+  ACCEPTED = 0;
+  BAD_CREDENTIALS = 1;
+  SERVER_UNAVAILABLE = 2;
+}
+
+message ConnectResponseMsg {
+  ConnectResponseCode responseCode = 1;
+  string errorMsg = 2;
+  IntegrationConfigurationProto configuration = 3;
+}
+
+message DeviceUplinkDataProto {
+  string deviceName = 1;
+  string deviceType = 2;
+  string customerName = 3;
+  transport.PostTelemetryMsg postTelemetryMsg = 4;
+  transport.PostAttributeMsg postAttributesMsg = 5;
+}
+
+message EntityViewDataProto {
+  string deviceName = 1;
+  string deviceType = 2;
+  string viewName = 3;
+  string viewType = 4;
+  repeated string telemetryKeys = 5;
+}
+
+message DeviceDownlinkDataProto {
+  string deviceName = 1;
+  string deviceType = 2;
+  bytes tbMsg = 3;
+}
+
+enum TbEventSource {
+  INTEGRATION = 0;
+  UPLINK_CONVERTER = 1;
+  DOWNLINK_CONVERTER = 2;
+  DEVICE = 3;
+}
+
+message TbEventProto {
+  TbEventSource source = 1;
+  string type = 2;
+  string uid = 3;
+  string data = 4;
+  string deviceName = 5;
+}
+
+message IntegrationConfigurationProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  ConverterConfigurationProto uplinkConverter = 3;
+  ConverterConfigurationProto downlinkConverter = 4;
+  string name = 5;
+  string routingKey = 6;
+  string type = 7;
+  bool debugMode = 8;
+  string configuration = 9;
+  string additionalInfo = 10;
+}
+
+message UplinkProcessingResultProto {
+  int32 uplinkMsgId = 1;
+  bool success = 2;
+  string errorMsg = 3;
+}
+
+message ConverterConfigurationProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 converterIdMSB = 3;
+  int64 converterIdLSB = 4;
+  string name = 5;
+  bool debugMode = 6;
+  string configuration = 7;
+  string additionalInfo = 8;
+}
+
+/**
+ * Main Messages;
+ */
+
+message UplinkMsg {
+  int32 uplinkMsgId = 1;
+  repeated DeviceUplinkDataProto deviceData = 2;
+  repeated EntityViewDataProto entityViewData = 3;
+  repeated TbEventProto eventsData = 4;
+  repeated bytes tbMsg = 5;
+}
+
+message UplinkResponseMsg {
+  bool success = 1;
+  string errorMsg = 2;
+}
+
+message DownlinkMsg {
+  UplinkProcessingResultProto processingResult = 1;
+  IntegrationConfigurationProto configurationUpdate = 2;
+  DeviceDownlinkDataProto deviceData = 3;
+}

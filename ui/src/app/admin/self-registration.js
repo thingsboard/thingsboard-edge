@@ -109,6 +109,6 @@ export default function selfRegistrationController($scope, $rootScope, selfRegis
     }
 
     function convertHTMLToText(str){
-        return str.replace(/<br\s*[\/]?>/gi, "\n");
+        return str.replace(/<br\s*[/]?>/gi, "\n");
     }
 }

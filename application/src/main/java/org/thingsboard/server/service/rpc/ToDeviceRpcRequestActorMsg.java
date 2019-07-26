@@ -40,8 +40,6 @@ import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 
-import java.util.Optional;
-
 /**
  * Created by ashvayka on 16.04.18.
  */

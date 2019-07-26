@@ -50,9 +50,14 @@
     </properties>
     <modules>
         <module>data</module>
+        <module>proto</module>
+        <module>util</module>
         <module>message</module>
         <module>queue</module>
+        <module>js</module>
         <module>transport</module>
+        <module>integration</module>
+        <module>dao-api</module>
     </modules>
 
 </project>

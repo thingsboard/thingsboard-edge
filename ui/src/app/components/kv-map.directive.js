@@ -74,7 +74,7 @@ function KeyValMapController($scope, $mdUtil) {
         vm.kvList.length = 0;
         if (vm.keyValMap) {
             for (var property in vm.keyValMap) {
-                if (vm.keyValMap.hasOwnProperty(property)) {
+                if (Object.prototype.hasOwnProperty.call(vm.keyValMap, property)) {
                     vm.kvList.push(
                         {
                             key: property + '',
@@ -95,7 +95,7 @@ function KeyValMapController($scope, $mdUtil) {
                 return;
             }
             for (var property in vm.keyValMap) {
-                if (vm.keyValMap.hasOwnProperty(property)) {
+                if (Object.prototype.hasOwnProperty.call(vm.keyValMap, property)) {
                     delete vm.keyValMap[property];
                 }
             }

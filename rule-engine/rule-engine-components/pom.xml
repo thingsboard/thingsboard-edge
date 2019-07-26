@@ -50,11 +50,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <aws.sdk.version>1.11.323</aws.sdk.version>
-        <pubsub.client.version>1.75.0</pubsub.client.version>
-        <google.common.protos.version>1.15.0</google.common.protos.version>
+        <pubsub.client.version>1.83.0</pubsub.client.version>
+        <google.common.protos.version>1.16.0</google.common.protos.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>util</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.thingsboard</groupId>
             <artifactId>dao</artifactId>
@@ -190,7 +195,13 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

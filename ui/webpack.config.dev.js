@@ -31,7 +31,7 @@
 /* eslint-disable */
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 
@@ -39,8 +39,6 @@ const webpack = require('webpack');
 const path = require('path');
 const dirTree = require('directory-tree');
 const jsonminify = require("jsonminify");
-
-const HappyPack = require('happypack');
 
 const PUBLIC_RESOURCE_PATH = '/';
 
@@ -51,12 +49,10 @@ dirTree('./src/app/locale/', {extensions:/\.json$/}, (item) => {
     langs.push(item.name.slice(item.name.lastIndexOf('-') + 1, -5));
 });
 
-
-var happyThreadPool = HappyPack.ThreadPool({ size: 3 });
-
 /* devtool: 'cheap-module-eval-source-map', */
 
 module.exports = {
+    mode: 'development',
     devtool: 'source-map',
     entry: [
         './src/app/app.js',
@@ -99,34 +95,14 @@ module.exports = {
             inject: 'body',
         }),
         new StyleLintPlugin(),
-        new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.NoErrorsPlugin(),
-        new ExtractTextPlugin('style.[contentHash].css', {
-            allChunks: true,
+        new MiniCssExtractPlugin({
+            filename: 'style.[contentHash].css'
         }),
         new webpack.DefinePlugin({
             THINGSBOARD_VERSION: JSON.stringify(require('./package.json').version),
             '__DEVTOOLS__': false,
-            'process.env': {
-                NODE_ENV: JSON.stringify('development'),
-            },
             PUBLIC_PATH: JSON.stringify(PUBLIC_RESOURCE_PATH),
             SUPPORTED_LANGS: JSON.stringify(langs)
-        }),
-        new HappyPack({
-            threadPool: happyThreadPool,
-            id: 'cached-babel',
-            loaders: ["babel-loader?cacheDirectory=true"]
-        }),
-        new HappyPack({
-            threadPool: happyThreadPool,
-            id: 'eslint',
-            loaders: ["eslint-loader?{parser: 'babel-eslint'}"]
-        }),
-        new HappyPack({
-            threadPool: happyThreadPool,
-            id: 'ng-annotate-and-cached-babel-loader',
-            loaders: ['ng-annotate', 'babel-loader?cacheDirectory=true']
         })
     ],
     node: {
@@ -134,40 +110,102 @@ module.exports = {
         fs: "empty"
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.jsx$/,
-                loader: 'happypack/loader?id=cached-babel',
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            cacheDirectory: true
+                        }
+                    }
+                ],
                 exclude: /node_modules/,
                 include: __dirname,
             },
             {
                 test: /\.js$/,
-                loaders: ['happypack/loader?id=ng-annotate-and-cached-babel-loader'],
+                use: [
+                    {
+                        loader: 'ng-annotate-loader',
+                        options: {
+                            ngAnnotate: 'ng-annotate-patched',
+                            es6: true,
+                            explicitOnly: false
+                        }
+                    },
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            cacheDirectory: true
+                        }
+                    }
+                ],
                 exclude: /node_modules/,
                 include: __dirname,
             },
             {
                 test: /\.js$/,
-                loader: 'happypack/loader?id=eslint',
+                use: [
+                    {
+                        loader: 'eslint-loader',
+                        options: {
+                            parser: 'babel-eslint'
+                        }
+                    }
+                ],
                 exclude: /node_modules|vendor/,
                 include: __dirname,
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract('style-loader', 'css-loader'),
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
+                ]
             },
             {
                 test: /\.scss$/,
-                loader: ExtractTextPlugin.extract('style-loader', 'css-loader!postcss-loader!sass-loader'),
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    'postcss-loader',
+                    'sass-loader'
+                ]
             },
             {
                 test: /\.less$/,
-                loader: ExtractTextPlugin.extract('style-loader', 'css-loader!postcss-loader!less-loader'),
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    'postcss-loader',
+                    'less-loader'
+                ]
             },
             {
                 test: /\.tpl\.html$/,
-                loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src/app')) + '/!html!html-minifier-loader'
+                use: [
+                    {
+                        loader: 'ngtemplate-loader',
+                        options: {
+                            relativeTo: path.resolve(__dirname, './src/app')
+                        }
+                    },
+                    {
+                        loader: 'html-loader'
+                    },
+                    {
+                        loader: 'html-minifier-loader',
+                        options: {
+                            caseSensitive: true,
+                            removeComments: true,
+                            collapseWhitespace: false,
+                            preventAttributesEscaping: true,
+                            removeEmptyAttributes: false
+                        }
+                    }
+                ]
             },
             {
                 test: /\.tpl\.txt$/,
@@ -175,28 +213,32 @@ module.exports = {
             },
             {
                 test: /\.(svg)(\?v=[0-9]+\.[0-9]+\.[0-9]+)?$/,
-                loader: 'url?limit=8192'
-            },
-            {
-                test: /\.(png|jpe?g|gif|woff|woff2|ttf|otf|eot|ico)(\?v=[0-9]+\.[0-9]+\.[0-9]+)?$/,
-                loaders: [
-                    'url?limit=8192',
-                    'img?minimize'
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: 8192
+                        }
+                    }
                 ]
             },
             {
-                test: /\.json$/,
-                loader: 'json-loader',
-                exclude: /locale\.constant.*$/,
-                include: __dirname,
+                test: /\.(png|jpe?g|gif|woff|woff2|ttf|otf|eot|ico)(\?v=[0-9]+\.[0-9]+\.[0-9]+)?$/,
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: 8192
+                        }
+                    },
+                    {
+                        loader: 'img-loader',
+                        options: {
+                            minimize: true
+                        }
+                    }
+                ]
             }
         ],
-    },
-    'html-minifier-loader': {
-        caseSensitive: true,
-        removeComments: true,
-        collapseWhitespace: false,
-        preventAttributesEscaping: true,
-        removeEmptyAttributes: false
     }
 };

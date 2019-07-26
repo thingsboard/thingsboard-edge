@@ -31,13 +31,10 @@
 package org.thingsboard.server.common.data.integration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -56,6 +53,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private String routingKey;
     private IntegrationType type;
     private boolean debugMode;
+    private boolean isRemote;
+    private String secret;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
 
@@ -76,6 +75,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.debugMode = integration.isDebugMode();
+        this.isRemote = integration.isRemote();
+        this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -128,6 +129,22 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.debugMode = debugMode;
     }
 
+    public boolean isRemote() {
+        return isRemote;
+    }
+
+    public void setRemote(boolean remote) {
+        isRemote = remote;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
     public JsonNode getConfiguration() {
         return configuration;
     }
@@ -173,6 +190,10 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         builder.append(type);
         builder.append(", debugMode=");
         builder.append(debugMode);
+        builder.append(", isRemote=");
+        builder.append(isRemote);
+        builder.append(", secret=");
+        builder.append(secret);
         builder.append(", configuration=");
         builder.append(configuration);
         builder.append(", additionalInfo=");

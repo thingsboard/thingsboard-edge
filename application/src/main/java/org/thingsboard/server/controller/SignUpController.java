@@ -75,6 +75,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -113,6 +114,9 @@ public class SignUpController extends BaseController {
 
     @Autowired
     private SelfRegistrationService selfRegistrationService;
+
+    @Autowired
+    private SystemSecurityService systemSecurityService;
 
     @PostConstruct
     public void init() throws Exception {
@@ -158,6 +162,8 @@ public class SignUpController extends BaseController {
                     return SignUpResult.INACTIVE_USER_EXISTS;
                 }
             }
+
+            systemSecurityService.validatePassword(tenantId, signUpRequest.getPassword());
 
             Customer customer = new Customer();
 
