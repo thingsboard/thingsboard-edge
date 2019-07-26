@@ -343,7 +343,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
     }
 
     private void handlePostAttributesRequest(ActorContext context, SessionInfoProto sessionInfo, PostAttributeMsg postAttributes) {
-        JsonObject json = getJsonObject(postAttributes.getKvList(), null);
+        JsonObject json = getJsonObject(postAttributes.getKvList());
         TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), deviceId, defaultMetaData.copy(),
                 TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
         pushToRuleEngine(context, tbMsg);
@@ -353,7 +353,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         for (TsKvListProto tsKv : postTelemetry.getTsKvListList()) {
             TbMsgMetaData metaData = defaultMetaData.copy();
             metaData.putValue("ts", tsKv.getTs() + "");
-            JsonObject json = getJsonObject(tsKv.getKvList(), metaData);
+            JsonObject json = getJsonObject(tsKv.getKvList());
             TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), deviceId, metaData, TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
             pushToRuleEngine(context, tbMsg);
         }
@@ -567,13 +567,9 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         this.defaultMetaData.putValue("deviceType", deviceType);
     }
 
-    private JsonObject getJsonObject(List<KeyValueProto> tsKv, TbMsgMetaData metaData) {
+    private JsonObject getJsonObject(List<KeyValueProto> tsKv) {
         JsonObject json = new JsonObject();
         for (KeyValueProto kv : tsKv) {
-            if (kv.getKey().equals("ophardtLastEventTs")) {
-                metaData.putValue("lateEvent", kv.getStringV());
-                continue;
-            }
             switch (kv.getType()) {
                 case BOOLEAN_V:
                     json.addProperty(kv.getKey(), kv.getBoolV());

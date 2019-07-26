@@ -115,7 +115,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void processEntityViewCreation(EntityViewDataProto data, IntegrationCallback<Void> callback) {
+    public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
         createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
     }
 
@@ -138,42 +138,6 @@ public class LocalIntegrationContext implements IntegrationContext {
         if (device != null) {
             saveEvent(device.getId(), type, uid, body, callback);
         }
-    }
-
-    @Override
-    public void saveDeviceAttributeValueInCache(String deviceName, String scope, String key, long value) {
-    }
-
-    @Override
-    public void saveEventUidInCache(String deviceName, String type, String uid) {
-    }
-
-    @Override
-    public long findDeviceAttributeValue(String deviceName, String scope, String key) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
-        if (device != null) {
-            try {
-                Optional<AttributeKvEntry> optional = ctx.getAttributesService().find(configuration.getTenantId(), device.getId(), scope, key).get();
-                if (optional.isPresent()) {
-                    return optional.get().getLongValue().orElse(0L);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                log.warn("[{}] Failed to fetch device attribute!", device.getId(), e);
-            }
-        }
-        return 0L;
-    }
-
-    @Override
-    public String findEventUid(String deviceName, String type, String uid) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
-        if (device != null) {
-            Optional<Event> optionalEvent = ctx.getEventService().findEvent(configuration.getTenantId(), device.getId(), type, uid);
-            if (optionalEvent.isPresent()) {
-                return optionalEvent.get().getUid();
-            }
-        }
-        return null;
     }
 
     @Override
