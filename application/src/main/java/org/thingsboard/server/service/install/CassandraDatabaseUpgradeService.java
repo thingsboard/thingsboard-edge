@@ -287,7 +287,7 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 } catch (InvalidQueryException e) {}
                 log.info("Schema updated.");
                 break;
-            case "2.4.1":
+            case "2.4.0":
                 log.info("Updating schema ...");
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.1pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
