@@ -57,6 +57,7 @@
         <module>js</module>
         <module>transport</module>
         <module>integration</module>
+        <module>dao-api</module>
     </modules>
 
 </project>
