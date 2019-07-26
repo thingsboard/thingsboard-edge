@@ -41,7 +41,7 @@ import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
-import org.thingsboard.integration.http.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 
 import java.nio.charset.StandardCharsets;

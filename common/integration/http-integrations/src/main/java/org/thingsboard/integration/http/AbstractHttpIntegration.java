@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.AbstractIntegration;
+import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 
 /**
  * Created by ashvayka on 04.12.17.

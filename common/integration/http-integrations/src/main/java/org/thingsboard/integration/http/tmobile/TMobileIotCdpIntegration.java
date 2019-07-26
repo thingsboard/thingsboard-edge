@@ -35,7 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
-import org.thingsboard.integration.http.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 
 import java.util.List;
 

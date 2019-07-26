@@ -47,7 +47,7 @@ import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegrationMsg;
 import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
-import org.thingsboard.rule.engine.api.util.DonAsynchron;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;

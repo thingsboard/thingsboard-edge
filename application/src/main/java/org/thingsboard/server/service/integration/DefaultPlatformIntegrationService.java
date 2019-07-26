@@ -69,7 +69,7 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
-import org.thingsboard.rule.engine.api.util.DonAsynchron;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;

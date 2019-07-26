@@ -49,7 +49,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
 import java.util.*;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
+import static org.thingsboard.common.util.DonAsynchron.withCallback;
 
 @Slf4j
 public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfiguration> implements TbNode {

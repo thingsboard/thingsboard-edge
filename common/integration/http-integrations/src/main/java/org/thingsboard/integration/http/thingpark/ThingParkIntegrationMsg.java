@@ -35,7 +35,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.integration.http.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 
 import java.util.Map;
 

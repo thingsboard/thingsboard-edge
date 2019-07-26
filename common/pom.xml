@@ -51,6 +51,7 @@
     <modules>
         <module>data</module>
         <module>proto</module>
+        <module>util</module>
         <module>message</module>
         <module>queue</module>
         <module>js</module>

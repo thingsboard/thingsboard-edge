@@ -380,6 +380,11 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
+                <artifactId>util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
                 <artifactId>proto</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -970,6 +975,14 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>thingsboard-repo-deploy</id>
+            <name>ThingsBoard Repo Deployment</name>
+            <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
         <repository>
