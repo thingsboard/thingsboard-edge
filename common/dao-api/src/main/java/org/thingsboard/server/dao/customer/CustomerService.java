@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.apache.curator.framework.listen.Listenable;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.EntityGroup;
