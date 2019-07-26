@@ -60,22 +60,6 @@
             <artifactId>remote-integration-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>proto</artifactId>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.thingsboard.common.integration</groupId>-->
-<!--            <artifactId>http-integrations</artifactId>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>integration-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.js</groupId>
-            <artifactId>js-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <scope>provided</scope>
@@ -337,16 +321,20 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
     <repositories>
         <repository>
-            <id>jenkins</id>
-            <name>Jenkins Repository</name>
-            <url>http://repo.jenkins-ci.org/releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
+            <id>thingsboard-repo</id>
+            <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
         </repository>
     </repositories>
 </project>
