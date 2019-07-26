@@ -53,7 +53,6 @@
         <module>mqtt</module>
         <module>opc-ua</module>
         <module>azure</module>
-        <module>ophardt</module>
     </modules>
 
     <build>

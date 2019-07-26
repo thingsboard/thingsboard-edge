@@ -140,8 +140,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                 .setPostTelemetryMsg(data.getTelemetry()).setPostAttributesMsg(data.getAttributesUpdate()).build(), null);
     }
 
-    protected void processEntityViewCreation(IntegrationContext context, UplinkData data, String viewName, String viewType) {
-        context.processEntityViewCreation(EntityViewDataProto.newBuilder()
+    protected void createEntityView(IntegrationContext context, UplinkData data, String viewName, String viewType) {
+        context.createEntityView(EntityViewDataProto.newBuilder()
                 .setViewName(viewName).setViewType(viewType)
                 .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType()).build(), null);
     }

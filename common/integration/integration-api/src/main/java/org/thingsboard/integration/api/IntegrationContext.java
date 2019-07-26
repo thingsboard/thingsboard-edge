@@ -74,7 +74,7 @@ public interface IntegrationContext {
      */
     void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 
-    void processEntityViewCreation(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback);
+    void createEntityView(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback);
 
     /**
      * Dispatch custom message to the rule engine.
@@ -90,14 +90,6 @@ public interface IntegrationContext {
     void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
 
     void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
-
-    long findDeviceAttributeValue(String deviceName, String scope, String key);
-
-    void saveDeviceAttributeValueInCache(String deviceName, String scope, String key, long value);
-
-    String findEventUid(String deviceName, String type, String uid);
-
-    void saveEventUidInCache(String deviceName, String type, String uid);
 
     /**
      * Provides Netty Event loop group to be used by integrations in order to avoid creating separate threads per integration.
