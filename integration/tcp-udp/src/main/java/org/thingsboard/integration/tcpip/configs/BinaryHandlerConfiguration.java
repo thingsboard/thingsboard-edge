@@ -28,28 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.tcpip.configs;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true);
+@Data
+public class BinaryHandlerConfiguration implements HandlerConfiguration {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+    private String byteOrder;
+    private int maxFrameLength;
+    private int lengthFieldOffset;
+    private int lengthFieldLength;
+    private int lengthAdjustment;
+    private int initialBytesToStrip;
+    private boolean failFast;
+
+    @Override
+    public String getHandlerType() {
+        return "BINARY";
     }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
 }
