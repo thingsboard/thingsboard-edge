@@ -78,7 +78,7 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
     private boolean debugMode;
 
     @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
-    private boolean isRemote;
+    private Boolean isRemote;
 
     @Column(name = INTEGRATION_NAME_PROPERTY)
     private String name;
