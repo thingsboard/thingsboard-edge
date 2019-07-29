@@ -104,9 +104,6 @@ public class RemoteIntegrationManagerService {
     @Autowired
     private JsInvokeService jsInvokeService;
 
-    @Autowired
-    private CacheManager cacheManager;
-
     private ThingsboardPlatformIntegration integration;
 
     private TBUplinkDataConverter uplinkDataConverter;
@@ -171,7 +168,7 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, cacheManager, configuration, clientId, port),
+                    new RemoteIntegrationContext(eventStorage, configuration, clientId, port),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);
