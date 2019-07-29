@@ -53,7 +53,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private String routingKey;
     private IntegrationType type;
     private boolean debugMode;
-    private boolean isRemote;
+    private Boolean isRemote;
     private String secret;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
@@ -129,11 +129,11 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.debugMode = debugMode;
     }
 
-    public boolean isRemote() {
-        return isRemote;
+    public Boolean isRemote() {
+        return !(isRemote == null) && isRemote;
     }
 
-    public void setRemote(boolean remote) {
+    public void setRemote(Boolean remote) {
         isRemote = remote;
     }
 

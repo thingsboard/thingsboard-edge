@@ -83,7 +83,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     private boolean debugMode;
 
     @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
-    private boolean isRemote;
+    private Boolean isRemote;
 
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
