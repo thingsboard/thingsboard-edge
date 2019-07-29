@@ -285,6 +285,10 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.azure.AzureEventHubIntegration");
             case OPC_UA:
                 return newInstance("org.thingsboard.integration.opcua.OpcUaIntegration");
+            case TCP:
+                return newInstance("org.thingsboard.integration.tcpip.tcp.BasicTcpIntegration");
+            case UDP:
+                return newInstance("org.thingsboard.integration.tcpip.udp.BasicUdpIntegration");
             case CUSTOM:
                 return newInstance(configuration.get("clazz").asText());
             default:

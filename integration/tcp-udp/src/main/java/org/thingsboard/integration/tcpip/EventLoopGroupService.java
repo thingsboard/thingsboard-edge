@@ -28,28 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.tcpip;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import org.springframework.stereotype.Service;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true);
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.concurrent.TimeUnit;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+@Service
+public class EventLoopGroupService {
+
+    public static EventLoopGroup WORKER_LOOP_GROUP;
+    public static EventLoopGroup BOSS_LOOP_GROUP;
+
+    @PostConstruct
+    public void init() {
+        WORKER_LOOP_GROUP = new NioEventLoopGroup();
+        BOSS_LOOP_GROUP = new NioEventLoopGroup();
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
+    @PreDestroy
+    public void destroy() {
+        WORKER_LOOP_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
+        BOSS_LOOP_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
+    }
 }
