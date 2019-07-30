@@ -1535,6 +1535,7 @@
         "base-url-required": "Base URL is required",
         "security-key": "Security key",
         "http-endpoint": "HTTP endpoint URL",
+        "replace-no-content-to-ok": "Replace response status from 'No-Content' to 'OK'",
         "copy-http-endpoint-url": "Copy HTTP endpoint URL",
         "http-endpoint-url-copied-message": "HTTP endpoint URL has been copied to clipboard",
         "host": "Host",

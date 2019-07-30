@@ -61,6 +61,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
 
     public static final String HEADER = "Header:";
     private boolean securityEnabled = false;
+    private boolean replaceNoContentToOk = false;
     private Map<String, String> headersFilter = new HashMap<>();
 
     @Override
@@ -68,6 +69,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         super.init(params);
         JsonNode json = configuration.getConfiguration();
         securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
+        replaceNoContentToOk = json.has("replaceNoContentToOk") && json.get("replaceNoContentToOk").asBoolean();
         if (securityEnabled && json.has("headersFilter")) {
             JsonNode headersFilterNode = json.get("headersFilter");
             for (Iterator<Map.Entry<String, JsonNode>> it = headersFilterNode.fields(); it.hasNext(); ) {
@@ -142,7 +144,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
             }
         }
 
-        return fromStatus(HttpStatus.NO_CONTENT);
+        return replaceNoContentToOk ? fromStatus(HttpStatus.OK) : fromStatus(HttpStatus.NO_CONTENT);
     }
 
     private ResponseEntity convertJson(DownlinkData downlink) {
