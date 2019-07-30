@@ -52,21 +52,14 @@ executors:
   thread_pool_size: "${EXECUTORS_SIZE:1}"
   reconnect_timeout: "${EXECUTORS_RECONNECT_TIMEOUT:3000}" # in milliseconds
 
-redis:
-  # standalone or cluster
-  connection:
-    type: standalone
-    host: "${REDIS_HOST:localhost}"
-    port: "${REDIS_PORT:6379}"
-    db: "${REDIS_DB:0}"
-    password: "${REDIS_PASSWORD:}"
-
 rpc:
   host: "${PRC_HOST:localhost}"
   port: "${RPC_PORT:50051}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
-  cert: "${RPC_CERT:roots.pem}"
   client_id: "${RPC_CLIENT_ID:remote}"
+  ssl:
+    enabled: "${RPC_SSL_ENABLED:false}"
+    cert: "${RPC_SSL_CERT:roots.pem}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}"

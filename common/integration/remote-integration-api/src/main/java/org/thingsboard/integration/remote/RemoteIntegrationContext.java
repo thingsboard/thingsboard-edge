@@ -66,16 +66,14 @@ public class RemoteIntegrationContext implements IntegrationContext {
     private static final String REMOTE_INTEGRATION_CACHE = "remoteIntegration";
 
     protected final EventStorage eventStorage;
-    protected final CacheManager cacheManager;
     protected final Integration configuration;
     protected final String clientId;
     protected final int port;
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, CacheManager cacheManager, Integration configuration, String clientId, int port) {
+    public RemoteIntegrationContext(EventStorage eventStorage, Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
-        this.cacheManager = cacheManager;
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;

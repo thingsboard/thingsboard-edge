@@ -171,6 +171,18 @@
             ng-model="integration.configuration"
     >
     </tb-integration-azure-event-hub>
+    <tb-integration-tcp
+            ng-if="integration.type == types.integrationType.TCP.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-tcp>
+    <tb-integration-udp
+            ng-if="integration.type == types.integrationType.UDP.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-udp>
     <tb-integration-custom
             ng-if="integration.type == types.integrationType.CUSTOM.value"
             is-edit="isEdit"

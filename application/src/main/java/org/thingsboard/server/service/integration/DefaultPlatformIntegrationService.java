@@ -50,6 +50,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -69,7 +70,6 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
-import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -80,7 +80,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
@@ -204,6 +203,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
+    @Value("${integrations.allow_resource_intensive:true}")
+    private boolean allowResourceIntensive;
+
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService reinitExecutorService;
     private ListeningExecutorService refreshExecutorService;
@@ -251,7 +253,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (StringUtils.isEmpty(integration.getRoutingKey())) {
             throw new DataValidationException("Integration routing key should be specified!");
         }
-        if (integration.getType() != IntegrationType.CUSTOM) {
+        if (!integration.getType().isRemoteOnly()) {
             ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
             platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
         }
@@ -660,6 +662,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case OPC_UA:
                 return new OpcUaIntegration();
             case CUSTOM:
+            case TCP:
+            case UDP:
                 throw new RuntimeException("Custom Integrations should be executed remotely!");
             default:
                 throw new RuntimeException("Not Implemented!");

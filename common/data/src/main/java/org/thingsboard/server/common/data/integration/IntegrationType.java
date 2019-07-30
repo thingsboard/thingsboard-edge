@@ -30,17 +30,26 @@
  */
 package org.thingsboard.server.common.data.integration;
 
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true), AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true), CUSTOM(false);
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-    //Identifies if the Integration instance is one per cluster.
-    private final boolean singleton;
+@AllArgsConstructor
+public enum IntegrationType {
+    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
+    AWS_IOT(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
+    CUSTOM(false, true), UDP(false, true), TCP(false, true);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;
+        this.remoteOnly = false;
     }
 
-    public boolean isSingleton() {
-        return singleton;
-    }
+    //Identifies if the Integration instance is one per cluster.
+    @Getter
+    private final boolean singleton;
+
+    @Getter
+    private final boolean remoteOnly;
+
+
 }
