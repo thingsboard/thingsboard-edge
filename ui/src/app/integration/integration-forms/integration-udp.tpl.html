@@ -36,7 +36,7 @@
             <md-input-container flex="40" class="md-block">
                 <label translate>integration.port</label>
                 <input type="number" step="1" min="1" max="65535" required
-                       name="port" ng-model="configuration.port">
+                       name="port" ng-model="configuration.clientConfiguration.port">
                 <div ng-messages="udpIntegrationForm.port.$error">
                     <div translate ng-message="required">integration.port-required</div>
                     <div translate ng-message="min">integration.port-range</div>
@@ -47,7 +47,7 @@
         <div layout="column" layout-gt-sm="row">
             <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.so-broadcast' | translate }}"
-                         ng-model="configuration.soBroadcast">
+                         ng-model="configuration.clientConfiguration.soBroadcast">
                 {{ 'integration.so-broadcast' | translate }}
             </md-checkbox>
         </div>
@@ -55,7 +55,7 @@
             <md-input-container flex="40" class="md-block">
                 <label translate>integration.so-rcv-buf</label>
                 <input type="number" step="1" min="1" max="65535" required
-                       name="soRcvBuf" ng-model="configuration.soRcvBuf">
+                       name="soRcvBuf" ng-model="configuration.clientConfiguration.soRcvBuf">
                 <div ng-messages="udpIntegrationForm.soRcvBuf.$error">
                     <div translate ng-message="required">integration.so-rcv-buf-required</div>
                     <div translate ng-message="min">integration.so-rcv-buf-range</div>
@@ -67,7 +67,7 @@
             <md-input-container flex="40" class="md-block">
                 <label translate>integration.charset-name</label>
                 <input type="text" required
-                       name="charsetName" ng-model="configuration.charsetName">
+                       name="charsetName" ng-model="configuration.clientConfiguration.charsetName">
                 <div ng-messages="udpIntegrationForm.charsetName.$error">
                     <div translate ng-message="required">integration.charset-name-required</div>
                 </div>
@@ -77,14 +77,14 @@
             <md-expansion-panel md-component-id="handlerConfigurationPanel">
                 <md-expansion-panel-collapsed>
                     <div class="tb-panel-title">{{ 'integration.handler-configuration' | translate }}</div>
-                    <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.handlerConfiguration.handlerType].name | translate }}</div>
+                    <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.clientConfiguration.handlerConfiguration.handlerType].name | translate }}</div>
                     <span flex></span>
                     <md-expansion-panel-icon></md-expansion-panel-icon>
                 </md-expansion-panel-collapsed>
                 <md-expansion-panel-expanded>
                     <md-expansion-panel-header ng-click="$mdExpansionPanel('handlerConfigurationPanel').collapse()">
                         <div class="tb-panel-title" translate>integration.handler-configuration</div>
-                        <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.handlerConfiguration.handlerType].name | translate }}</div>
+                        <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.clientConfiguration.handlerConfiguration.handlerType].name | translate }}</div>
                         <span flex></span>
                         <md-expansion-panel-icon></md-expansion-panel-icon>
                     </md-expansion-panel-header>
@@ -92,7 +92,7 @@
                         <div>
                             <md-input-container class="md-block">
                                 <label translate>integration.handler-configuration-type</label>
-                                <md-select required name="handlerConfigurationType" ng-model="configuration.handlerConfiguration.handlerType"
+                                <md-select required name="handlerConfigurationType" ng-model="configuration.clientConfiguration.handlerConfiguration.handlerType"
                                            ng-disabled="$root.loading || !isEdit" ng-change="handlerConfigurationTypeChangedChanged()">
                                     <md-option ng-repeat="(handlerConfigurationType, handlerConfigurationValue) in types.handlerConfigurationTypes" ng-value="handlerConfigurationValue.value">
                                         {{handlerConfigurationValue.name | translate}}

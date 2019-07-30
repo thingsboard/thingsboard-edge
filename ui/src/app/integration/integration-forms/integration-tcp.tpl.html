@@ -36,7 +36,7 @@
             <md-input-container flex="40" class="md-block">
                 <label translate>integration.port</label>
                 <input type="number" step="1" min="1" max="65535" required
-                       name="port" ng-model="configuration.port">
+                       name="port" ng-model="configuration.clientConfiguration.port">
                 <div ng-messages="tcpIntegrationForm.port.$error">
                     <div translate ng-message="required">integration.port-required</div>
                     <div translate ng-message="min">integration.port-range</div>
@@ -49,7 +49,7 @@
                 <md-input-container flex="40" class="md-block">
                     <label translate>integration.so-backlog-option</label>
                     <input type="number" step="1" min="1" max="65535" required
-                           name="soBacklogOption" ng-model="configuration.soBacklogOption">
+                           name="soBacklogOption" ng-model="configuration.clientConfiguration.soBacklogOption">
                     <div ng-messages="tcpIntegrationForm.soBacklogOption.$error">
                         <div translate ng-message="required">integration.so-backlog-option-required</div>
                         <div translate ng-message="min">integration.so-backlog-option-range</div>
@@ -61,7 +61,7 @@
                 <md-input-container flex="40" class="md-block">
                     <label translate>integration.so-rcv-buf</label>
                     <input type="number" step="1" min="1" max="65535" required
-                           name="soRcvBuf" ng-model="configuration.soRcvBuf">
+                           name="soRcvBuf" ng-model="configuration.clientConfiguration.soRcvBuf">
                     <div ng-messages="tcpIntegrationForm.soRcvBuf.$error">
                         <div translate ng-message="required">integration.so-rcv-buf-required</div>
                         <div translate ng-message="min">integration.so-rcv-buf-range</div>
@@ -73,7 +73,7 @@
                 <md-input-container flex="40" class="md-block">
                     <label translate>integration.so-snd-buf</label>
                     <input type="number" step="1" min="1" max="65535" required
-                           name="soSndBuf" ng-model="configuration.soSndBuf">
+                           name="soSndBuf" ng-model="configuration.clientConfiguration.soSndBuf">
                     <div ng-messages="tcpIntegrationForm.soSndBuf.$error">
                         <div translate ng-message="required">integration.so-snd-buf-required</div>
                         <div translate ng-message="min">integration.so-snd-buf-range</div>
@@ -85,7 +85,7 @@
                 <md-input-container flex="40" class="md-block">
                     <label translate>integration.charset-name</label>
                     <input type="text" required
-                           name="charsetName" ng-model="configuration.charsetName">
+                           name="charsetName" ng-model="configuration.clientConfiguration.charsetName">
                     <div ng-messages="tcpIntegrationForm.charsetName.$error">
                         <div translate ng-message="required">integration.charset-name-required</div>
                     </div>
@@ -93,17 +93,17 @@
             </div>
             <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.so-keepalive-option' | translate }}"
-                         ng-model="configuration.soKeepaliveOption">
+                         ng-model="configuration.clientConfiguration.soKeepaliveOption">
                 {{ 'integration.so-keepalive-option' | translate }}
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.so-reuse-addr' | translate }}"
-                         ng-model="configuration.soReuseAddr">
+                         ng-model="configuration.clientConfiguration.soReuseAddr">
                 {{ 'integration.so-reuse-addr' | translate }}
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.tcp-no-delay' | translate }}"
-                         ng-model="configuration.tcpNoDelay">
+                         ng-model="configuration.clientConfiguration.tcpNoDelay">
                 {{ 'integration.tcp-no-delay' | translate }}
             </md-checkbox>
         </div>
@@ -111,14 +111,14 @@
             <md-expansion-panel md-component-id="handlerConfigurationPanel">
                 <md-expansion-panel-collapsed>
                     <div class="tb-panel-title">{{ 'integration.handler-configuration' | translate }}</div>
-                    <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.handlerConfiguration.handlerType].name | translate }}</div>
+                    <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.clientConfiguration.handlerConfiguration.handlerType].name | translate }}</div>
                     <span flex></span>
                     <md-expansion-panel-icon></md-expansion-panel-icon>
                 </md-expansion-panel-collapsed>
                 <md-expansion-panel-expanded>
                     <md-expansion-panel-header ng-click="$mdExpansionPanel('handlerConfigurationPanel').collapse()">
                         <div class="tb-panel-title" translate>integration.handler-configuration</div>
-                        <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.handlerConfiguration.handlerType].name | translate }}</div>
+                        <div class="tb-panel-prompt">{{ types.handlerConfigurationTypes[configuration.clientConfiguration.handlerConfiguration.handlerType].name | translate }}</div>
                         <span flex></span>
                         <md-expansion-panel-icon></md-expansion-panel-icon>
                     </md-expansion-panel-header>
@@ -126,7 +126,7 @@
                         <div>
                             <md-input-container class="md-block">
                                 <label translate>integration.handler-configuration-type</label>
-                                <md-select required name="handlerConfigurationType" ng-model="configuration.handlerConfiguration.handlerType"
+                                <md-select required name="handlerConfigurationType" ng-model="configuration.clientConfiguration.handlerConfiguration.handlerType"
                                            ng-disabled="$root.loading || !isEdit" ng-change="handlerConfigurationTypeChangedChanged()">
                                     <md-option ng-repeat="(handlerConfigurationType, handlerConfigurationValue) in types.handlerConfigurationTypes" ng-value="handlerConfigurationValue.value">
                                         {{handlerConfigurationValue.name | translate}}
@@ -136,12 +136,12 @@
                                     <div translate ng-message="required">integration.handler-configuration-type-required</div>
                                 </div>
                             </md-input-container>
-                            <section ng-if="configuration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.text.value">
+                            <section ng-if="configuration.clientConfiguration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.text.value">
                                 <div layout="column" layout-gt-sm="row">
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.max-frame-length</label>
                                         <input type="number" step="1" min="1" max="65535" required
-                                               name="maxFrameLength" ng-model="configuration.handlerConfiguration.maxFrameLength">
+                                               name="maxFrameLength" ng-model="configuration.clientConfiguration.handlerConfiguration.maxFrameLength">
                                         <div ng-messages="tcpIntegrationForm.maxFrameLength.$error">
                                             <div translate ng-message="required">integration.max-frame-length-required</div>
                                             <div translate ng-message="min">integration.max-frame-length-range</div>
@@ -151,21 +151,21 @@
                                 </div>
                                 <md-checkbox ng-disabled="$root.loading || !isEdit"
                                              aria-label="{{ 'integration.strip-delimiter' | translate }}"
-                                             ng-model="configuration.handlerConfiguration.stripDelimiter">
+                                             ng-model="configuration.clientConfiguration.handlerConfiguration.stripDelimiter">
                                     {{ 'integration.strip-delimiter' | translate }}
                                 </md-checkbox>
                                 <p class="md-subhead" translate>integration.message-separator</p>
-                                <md-radio-group ng-model="configuration.handlerConfiguration.messageSeparator">
+                                <md-radio-group ng-model="configuration.clientConfiguration.handlerConfiguration.messageSeparator">
                                     <md-radio-button value="systemLineSeparator">Systeme Line Separator</md-radio-button>
                                     <md-radio-button value="nulDelimiter">Nul Delimiter</md-radio-button>
                                 </md-radio-group>
                             </section>
-                            <section ng-if="configuration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.hex.value">
+                            <section ng-if="configuration.clientConfiguration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.hex.value">
                                 <div layout="column" layout-gt-sm="row">
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.max-frame-length</label>
                                         <input type="number" step="1" min="1" max="65535" required
-                                               name="maxFrameLength" ng-model="configuration.handlerConfiguration.maxFrameLength">
+                                               name="maxFrameLength" ng-model="configuration.clientConfiguration.handlerConfiguration.maxFrameLength">
                                         <div ng-messages="tcpIntegrationForm.maxFrameLength.$error">
                                             <div translate ng-message="required">integration.max-frame-length-required</div>
                                             <div translate ng-message="min">integration.max-frame-length-range</div>
@@ -174,9 +174,9 @@
                                     </md-input-container>
                                 </div>
                             </section>
-                            <section ng-if="configuration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.binary.value">
+                            <section ng-if="configuration.clientConfiguration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.binary.value">
                                 <p class="md-subhead" translate>integration.byte-order</p>
-                                <md-radio-group ng-model="configuration.handlerConfiguration.byteOrder">
+                                <md-radio-group ng-model="configuration.clientConfiguration.handlerConfiguration.byteOrder">
                                     <md-radio-button value="littleEndian">Little Endian</md-radio-button>
                                     <md-radio-button value="bigEndian">Big Endian</md-radio-button>
                                 </md-radio-group>
@@ -184,7 +184,7 @@
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.max-frame-length</label>
                                         <input type="number" step="1" min="1" max="65535" required
-                                               name="maxFrameLength" ng-model="configuration.handlerConfiguration.maxFrameLength">
+                                               name="maxFrameLength" ng-model="configuration.clientConfiguration.handlerConfiguration.maxFrameLength">
                                         <div ng-messages="tcpIntegrationForm.maxFrameLength.$error">
                                             <div translate ng-message="required">integration.max-frame-length-required</div>
                                             <div translate ng-message="min">integration.max-frame-length-range</div>
@@ -196,7 +196,7 @@
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.length-field-offset</label>
                                         <input type="number" step="1" min="0" max="8" required
-                                               name="lengthFieldOffset" ng-model="configuration.handlerConfiguration.lengthFieldOffset">
+                                               name="lengthFieldOffset" ng-model="configuration.clientConfiguration.handlerConfiguration.lengthFieldOffset">
                                         <div ng-messages="tcpIntegrationForm.lengthFieldOffset.$error">
                                             <div translate ng-message="required">integration.length-field-offset-required</div>
                                             <div translate ng-message="min">integration.length-field-offset-range</div>
@@ -208,7 +208,7 @@
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.length-field-length</label>
                                         <input type="number" step="1" min="0" max="8" required
-                                               name="lengthFieldLength" ng-model="configuration.handlerConfiguration.lengthFieldLength">
+                                               name="lengthFieldLength" ng-model="configuration.clientConfiguration.handlerConfiguration.lengthFieldLength">
                                         <div ng-messages="tcpIntegrationForm.lengthFieldOffset.$error">
                                             <div translate ng-message="required">integration.length-field-length-required</div>
                                             <div translate ng-message="min">integration.length-field-length-range</div>
@@ -220,7 +220,7 @@
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.length-adjustment</label>
                                         <input type="number" step="1" min="0" max="8" required
-                                               name="lengthAdjustment" ng-model="configuration.handlerConfiguration.lengthAdjustment">
+                                               name="lengthAdjustment" ng-model="configuration.clientConfiguration.handlerConfiguration.lengthAdjustment">
                                         <div ng-messages="tcpIntegrationForm.lengthAdjustment.$error">
                                             <div translate ng-message="required">integration.length-adjustment-required</div>
                                             <div translate ng-message="min">integration.length-adjustment-range</div>
@@ -232,7 +232,7 @@
                                     <md-input-container flex="40" class="md-block">
                                         <label translate>integration.initial-bytes-to-strip</label>
                                         <input type="number" step="1" min="0" max="8" required
-                                               name="initialBytesToStrip" ng-model="configuration.handlerConfiguration.initialBytesToStrip">
+                                               name="initialBytesToStrip" ng-model="configuration.clientConfiguration.handlerConfiguration.initialBytesToStrip">
                                         <div ng-messages="tcpIntegrationForm.initialBytesToStrip.$error">
                                             <div translate ng-message="required">integration.initial-bytes-to-strip-required</div>
                                             <div translate ng-message="min">integration.initial-bytes-to-strip-range</div>
@@ -242,7 +242,7 @@
                                 </div>
                                 <md-checkbox ng-disabled="$root.loading || !isEdit"
                                              aria-label="{{ 'integration.fail-fast' | translate }}"
-                                             ng-model="configuration.handlerConfiguration.failFast">
+                                             ng-model="configuration.clientConfiguration.handlerConfiguration.failFast">
                                     {{ 'integration.fail-fast' | translate }}
                                 </md-checkbox>
                             </section>

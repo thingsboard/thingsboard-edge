@@ -163,7 +163,7 @@ public class BasicTcpIntegration extends AbstractTcpIpIntegration {
                         BinaryHandlerConfiguration binaryHandlerConfig = (BinaryHandlerConfiguration) handlerConfig;
                         socketChannel.pipeline()
                                 .addLast("tcpByteFrameDecoder", new TcpByteFrameDecoder(
-                                        "littleEndian".equals(binaryHandlerConfig.getByteOrder()) ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN,
+                                        "LITTLE_ENDIAN".equals(binaryHandlerConfig.getByteOrder()) ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN,
                                         binaryHandlerConfig.getMaxFrameLength(),
                                         binaryHandlerConfig.getLengthFieldOffset(),
                                         binaryHandlerConfig.getLengthFieldLength(),

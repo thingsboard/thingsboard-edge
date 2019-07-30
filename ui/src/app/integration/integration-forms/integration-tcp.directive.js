@@ -52,17 +52,34 @@ export default function IntegrationTcpDirective($compile, $templateCache, $trans
         };
 
         function setupTcpConfiguration() {
-            if (!scope.configuration) {
-                scope.configuration.port = 10560;
-                scope.configuration.soBroadcast = true;
-                scope.configuration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.text.value;
+            if (!scope.configuration.clientConfiguration) {
+                scope.configuration.clientConfiguration = {
+                    port: 10560,
+                    soBacklogOption: 128,
+                    soRcvBuf: 65535,
+                    soSndBuf: 65535,
+                    soKeepaliveOption: false,
+                    soReuseAddr: false,
+                    tcpNoDelay: true,
+                    charsetName: 'UTF-8',
+                    handlerConfiguration: {
+                        byteOrder: 'LITTLE_ENDIAN',
+                        maxFrameLength: 128,
+                        lengthFieldOffset: 2,
+                        lengthFieldLength: 2,
+                        lengthAdjustment: 0,
+                        initialBytesToStrip: 0,
+                        failFast: false
+                    }
+                }
             }
+            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.binary.value;
         }
 
         scope.handlerConfigurationTypeChanged = () => {
-            var handlerType = scope.configuration.handlerConfiguration.handlerType;
-            scope.configuration.handlerConfiguration = {};
-            scope.configuration.handlerConfiguration.handlerType = handlerType;
+            var handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
+            scope.configuration.clientConfiguration.handlerConfiguration = {};
+            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = handlerType;
         };
 
         $compile(element.contents())(scope);
