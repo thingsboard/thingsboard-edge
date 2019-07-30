@@ -1,0 +1,9 @@
+@import "../../../scss/constants";
+
+.tb-integration-panel-group {
+  &.header-filters {
+    md-expansion-panel {
+      margin-bottom: 15px;
+    }
+  }
+}

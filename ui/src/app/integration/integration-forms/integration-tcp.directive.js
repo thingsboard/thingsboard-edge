@@ -28,12 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import integrationTcpIpTemplate from './integration-tcpip.tpl.html';
+import integrationTcpTemplate from './integration-tcp.tpl.html';
 
-export default function IntegrationTcpIpDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
+/*@ngInject*/
+export default function IntegrationTcpDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(integrationTcpIpTemplate);
+        var template = $templateCache.get(integrationTcpTemplate);
         element.html(template);
 
         scope.types = types;
@@ -47,10 +48,10 @@ export default function IntegrationTcpIpDirective($compile, $templateCache, $tra
 
         ngModelCtrl.$render = function () {
             scope.configuration = ngModelCtrl.$viewValue;
-            setupUdpConfiguration();
+            setupTcpConfiguration();
         };
 
-        function setupUdpConfiguration() {
+        function setupTcpConfiguration() {
             if (!scope.configuration) {
                 scope.configuration.port = 10560;
                 scope.configuration.soBroadcast = true;
