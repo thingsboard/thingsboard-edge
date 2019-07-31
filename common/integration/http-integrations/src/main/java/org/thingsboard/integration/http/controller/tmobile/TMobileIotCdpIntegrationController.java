@@ -80,12 +80,7 @@ public class TMobileIotCdpIntegrationController extends BaseIntegrationControlle
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (integration == null) {
-                result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-                return;
-            }
-            if (integration.getConfiguration().getType() != IntegrationType.TMOBILE_IOT_CDP) {
-                result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            if (checkIntegrationPlatform(result, integration, IntegrationType.TMOBILE_IOT_CDP)) {
                 return;
             }
             api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
