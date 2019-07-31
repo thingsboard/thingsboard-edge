@@ -80,6 +80,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
             if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
                 return;
             }
+            suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
             api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
