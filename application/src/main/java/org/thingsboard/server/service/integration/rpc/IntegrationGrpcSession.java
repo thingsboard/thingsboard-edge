@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
@@ -79,6 +80,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Data
@@ -89,7 +91,8 @@ public final class IntegrationGrpcSession implements Closeable {
     public static final ObjectMapper mapper = new ObjectMapper();
 
     private final UUID sessionId;
-    private final Consumer<StreamObserver<ResponseMsg>> sessionCloseListener;
+    private final BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener;
+    private final Consumer<IntegrationId> sessionCloseListener;
 
     private IntegrationContextComponent ctx;
     private Integration configuration;
@@ -97,10 +100,13 @@ public final class IntegrationGrpcSession implements Closeable {
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
 
-    public IntegrationGrpcSession(IntegrationContextComponent ctx, StreamObserver<ResponseMsg> outputStream, Consumer<StreamObserver<ResponseMsg>> sessionCloseListener) {
+    IntegrationGrpcSession(IntegrationContextComponent ctx, StreamObserver<ResponseMsg> outputStream
+            , BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener
+            , Consumer<IntegrationId> sessionCloseListener) {
         this.sessionId = UUID.randomUUID();
         this.ctx = ctx;
         this.outputStream = outputStream;
+        this.sessionOpenListener = sessionOpenListener;
         this.sessionCloseListener = sessionCloseListener;
         initInputStream();
     }
@@ -134,7 +140,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
             @Override
             public void onCompleted() {
-                sessionCloseListener.accept(outputStream);
+                sessionCloseListener.accept(configuration.getId());
                 outputStream.onCompleted();
             }
         };
@@ -157,6 +163,7 @@ public final class IntegrationGrpcSession implements Closeable {
                         downLinkConverterProto = constructConverterConfigProto(downlinkConverter);
                     }
                     connected = true;
+                    sessionOpenListener.accept(configuration.getId(), this);
                     return ConnectResponseMsg.newBuilder()
                             .setResponseCode(ConnectResponseCode.ACCEPTED)
                             .setErrorMsg("")

@@ -39,10 +39,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.RequestMsg;
 import org.thingsboard.server.gen.integration.ResponseMsg;
+import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
+import org.thingsboard.server.service.cluster.rpc.ClusterGrpcService;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import javax.annotation.PostConstruct;
@@ -56,7 +59,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
 
-    private final Map<StreamObserver<ResponseMsg>, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
+    private final Map<IntegrationId, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
 
     @Value("${integrations.rpc.port}")
     private int rpcPort;
@@ -68,7 +71,11 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private String privateKeyResource;
 
     @Autowired
+    private ServerInstanceService instanceService;
+    @Autowired
     private IntegrationContextComponent ctx;
+    @Autowired
+    private RemoteIntegrationSessionService sessionsCache;
 
     private Server server;
 
@@ -106,12 +113,23 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Override
     public StreamObserver<RequestMsg> handleMsgs(StreamObserver<ResponseMsg> responseObserver) {
-        return sessions.computeIfAbsent(responseObserver, r -> new IntegrationGrpcSession(ctx, responseObserver, sessions::remove)).getInputStream();
+        return new IntegrationGrpcSession(ctx, responseObserver, this::onIntegrationConnect, this::onIntegrationDisconnect).getInputStream();
+    }
+
+    private void onIntegrationConnect(IntegrationId integrationId, IntegrationGrpcSession integrationGrpcSession) {
+        sessions.put(integrationId, integrationGrpcSession);
+        sessionsCache.putIntegrationSession(integrationId, new IntegrationSession(instanceService.getSelf().getServerAddress()));
+    }
+
+    private void onIntegrationDisconnect(IntegrationId integrationId) {
+        sessions.remove(integrationId);
+        sessionsCache.removeIntegrationSession(integrationId);
     }
 
     @Override
     public void updateIntegration(Integration configuration) {
-        for (Map.Entry<StreamObserver<ResponseMsg>, IntegrationGrpcSession> entry : sessions.entrySet()) {
+        //TODO: handle cluster mode
+        for (Map.Entry<IntegrationId, IntegrationGrpcSession> entry : sessions.entrySet()) {
             if (entry.getValue().isConnected() && entry.getValue().getConfiguration().getId().equals(configuration.getId())) {
                 entry.getValue().onConfigurationUpdate(configuration);
             }
@@ -120,7 +138,7 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
 
     @Override
     public void updateConverter(Converter converter) {
-        for (Map.Entry<StreamObserver<ResponseMsg>, IntegrationGrpcSession> entry : sessions.entrySet()) {
+        for (Map.Entry<IntegrationId, IntegrationGrpcSession> entry : sessions.entrySet()) {
             Integration configuration = entry.getValue().getConfiguration();
             if (entry.getValue().isConnected()
                     && (configuration.getDefaultConverterId().equals(converter.getId()) || configuration.getDownlinkConverterId().equals(converter.getId()))) {
