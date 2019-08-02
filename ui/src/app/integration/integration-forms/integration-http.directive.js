@@ -64,6 +64,9 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
             if (!scope.configuration.baseUrl) {
                 scope.configuration.baseUrl = utils.baseUrl();
             }
+            if (!scope.configuration.replaceNoContentToOk) {
+                scope.configuration.replaceNoContentToOk = false;
+            }
             scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
             if (scope.integrationType == types.integrationType.THINGPARK.value) {
                 if (!scope.configuration.downlinkUrl) {

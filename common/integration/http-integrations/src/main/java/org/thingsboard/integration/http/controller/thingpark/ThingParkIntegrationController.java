@@ -77,12 +77,7 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (integration == null) {
-                result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-                return;
-            }
-            if (integration.getConfiguration().getType() != IntegrationType.THINGPARK) {
-                result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            if (checkIntegrationPlatform(result, integration, IntegrationType.THINGPARK)) {
                 return;
             }
 
