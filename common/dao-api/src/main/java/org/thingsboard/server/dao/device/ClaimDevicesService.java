@@ -35,7 +35,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.device.claim.ClaimResponse;
+import org.thingsboard.server.dao.device.claim.ClaimResult;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public interface ClaimDevicesService {
 
     ListenableFuture<Void> registerClaimingInfo(TenantId tenantId, DeviceId deviceId, String secretKey, long durationMs);
 
-    ListenableFuture<ClaimResponse> claimDevice(Device device, CustomerId customerId, String secretKey);
+    ListenableFuture<ClaimResult> claimDevice(Device device, CustomerId customerId, String secretKey);
 
     ListenableFuture<List<Void>> reClaimDevice(TenantId tenantId, Device device);
 

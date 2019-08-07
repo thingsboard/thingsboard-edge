@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -52,6 +52,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.claim.ClaimData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.Collections;
@@ -116,7 +117,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     }
 
     @Override
-    public ListenableFuture<ClaimResponse> claimDevice(Device device, CustomerId customerId, String secretKey) {
+    public ListenableFuture<ClaimResult> claimDevice(Device device, CustomerId customerId, String secretKey) {
         List<Object> key = constructCacheKey(device.getId());
         Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
         ClaimData claimData = cache.get(key, ClaimData.class);
@@ -125,7 +126,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
             if (currTs > claimData.getExpirationTime() || !secretKey.equals(claimData.getSecretKey())) {
                 log.warn("The claiming timeout occurred or wrong 'secretKey' provided for the device [{}]", device.getName());
                 cache.evict(key);
-                return Futures.immediateFuture(ClaimResponse.FAILURE);
+                return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.FAILURE));
             } else {
                 if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
                     ListenableFuture<Void> future = Futures.transform(entityGroupService.findEntityGroupsForEntity(device.getTenantId(), device.getId()), entityGroupList -> {
@@ -143,13 +144,17 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                         ownersCache.evict(getOwnerCacheKey(device.getId()));
                         return null;
                     });
-                    return Futures.transformAsync(future, input -> Futures.transform(removeClaimingSavedData(cache, key, device), result -> ClaimResponse.SUCCESS));
+                    return Futures.transformAsync(future, input -> Futures.transform(removeClaimingSavedData(cache, key, device), result -> new ClaimResult(device, ClaimResponse.SUCCESS)));
                 }
-                return Futures.transform(removeClaimingSavedData(cache, key, device), result -> ClaimResponse.CLAIMED);
+                return Futures.transform(removeClaimingSavedData(cache, key, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED));
             }
         } else {
             log.warn("Failed to find the device's claiming message![{}]", device.getName());
-            return Futures.immediateFuture(ClaimResponse.CLAIMED);
+            if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+                return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.FAILURE));
+            } else {
+                return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.CLAIMED));
+            }
         }
     }
 
