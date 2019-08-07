@@ -37,15 +37,23 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.RequestMsg;
 import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
+import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterGrpcService;
+import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import javax.annotation.PostConstruct;
@@ -57,7 +65,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
-public class IntegrationGrpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
+@ConditionalOnProperty(prefix = "integrations.rpc", value = "enabled", havingValue = "true")
+public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
 
     private final Map<IntegrationId, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
 
@@ -76,6 +85,11 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
     private IntegrationContextComponent ctx;
     @Autowired
     private RemoteIntegrationSessionService sessionsCache;
+    @Autowired
+    @Lazy
+    private ClusterRpcService clusterRpcService;
+    @Autowired
+    private DeviceService deviceService;
 
     private Server server;
 
@@ -116,23 +130,11 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
         return new IntegrationGrpcSession(ctx, responseObserver, this::onIntegrationConnect, this::onIntegrationDisconnect).getInputStream();
     }
 
-    private void onIntegrationConnect(IntegrationId integrationId, IntegrationGrpcSession integrationGrpcSession) {
-        sessions.put(integrationId, integrationGrpcSession);
-        sessionsCache.putIntegrationSession(integrationId, new IntegrationSession(instanceService.getSelf().getServerAddress()));
-    }
-
-    private void onIntegrationDisconnect(IntegrationId integrationId) {
-        sessions.remove(integrationId);
-        sessionsCache.removeIntegrationSession(integrationId);
-    }
-
     @Override
     public void updateIntegration(Integration configuration) {
-        //TODO: handle cluster mode
-        for (Map.Entry<IntegrationId, IntegrationGrpcSession> entry : sessions.entrySet()) {
-            if (entry.getValue().isConnected() && entry.getValue().getConfiguration().getId().equals(configuration.getId())) {
-                entry.getValue().onConfigurationUpdate(configuration);
-            }
+        IntegrationGrpcSession session = sessions.get(configuration.getId());
+        if (session != null && session.isConnected()) {
+            session.onConfigurationUpdate(configuration);
         }
     }
 
@@ -145,5 +147,39 @@ public class IntegrationGrpcService extends IntegrationTransportGrpc.Integration
                 entry.getValue().onConverterUpdate(converter);
             }
         }
+    }
+
+    @Override
+    public boolean handleRemoteDownlink(IntegrationDownlinkMsg msg) {
+        boolean sessionFound = false;
+        IntegrationGrpcSession session = sessions.get(msg.getIntegrationId());
+        if (session != null) {
+            log.debug("[{}] Remote integration session found for [{}] downlink.", msg.getIntegrationId(), msg.getEntityId());
+            Device device = deviceService.findDeviceById(msg.getTenantId(), new DeviceId(msg.getEntityId().getId()));
+            if (device != null) {
+                session.onDownlink(device, msg);
+            } else {
+                log.debug("[{}] device [{}] not found.", msg.getIntegrationId(), msg.getEntityId());
+            }
+            sessionFound = true;
+        } else {
+            IntegrationSession remoteSession = sessionsCache.findIntegrationSession(msg.getIntegrationId());
+            if (remoteSession != null && !remoteSession.getServerAddress().equals(instanceService.getSelf().getServerAddress())) {
+                log.debug("[{}] Remote integration session found for [{}] downlink @ Server [{}].", msg.getIntegrationId(), msg.getEntityId(), remoteSession.getServerAddress());
+                clusterRpcService.tell(remoteSession.getServerAddress(), msg);
+                sessionFound = true;
+            }
+        }
+        return sessionFound;
+    }
+
+    private void onIntegrationConnect(IntegrationId integrationId, IntegrationGrpcSession integrationGrpcSession) {
+        sessions.put(integrationId, integrationGrpcSession);
+        sessionsCache.putIntegrationSession(integrationId, new IntegrationSession(instanceService.getSelf().getServerAddress()));
+    }
+
+    private void onIntegrationDisconnect(IntegrationId integrationId) {
+        sessions.remove(integrationId);
+        sessionsCache.removeIntegrationSession(integrationId);
     }
 }

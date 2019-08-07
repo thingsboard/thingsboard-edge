@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.integration.Integration;
 
@@ -39,4 +40,5 @@ public interface IntegrationRpcService {
 
     void updateConverter(Converter converter);
 
+    boolean handleRemoteDownlink(IntegrationDownlinkMsg msg);
 }

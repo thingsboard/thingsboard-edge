@@ -28,20 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.msg;
+package org.thingsboard.integration.api.data;
 
+import lombok.Data;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.TbMsg;
 
 /**
  * Created by ashvayka on 22.02.18.
  */
-public interface ToDeviceIntegrationDownlinkMsg extends IntegrationDownlinkMsg {
+@Data
+public class DefaultIntegrationDownlinkMsg implements IntegrationDownlinkMsg {
 
-    DeviceId getDeviceId();
+    private final TenantId tenantId;
+    private final IntegrationId integrationId;
+    private final TbMsg tbMsg;
 
-    String getDeviceName();
-
-    String getDeviceType();
-
+    @Override
+    public EntityId getEntityId() {
+        return tbMsg.getOriginator();
+    }
 }

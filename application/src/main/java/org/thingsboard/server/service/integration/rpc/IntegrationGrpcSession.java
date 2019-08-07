@@ -39,6 +39,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -62,7 +63,9 @@ import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.ConverterUpdateMsg;
+import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationUpdateMsg;
@@ -458,5 +461,19 @@ public final class IntegrationGrpcSession implements Closeable {
         } catch (JsonProcessingException e) {
             log.error("Failed to construct proto objects!", e);
         }
+    }
+
+    void onDownlink(Device device, IntegrationDownlinkMsg msg) {
+        outputStream.onNext(ResponseMsg.newBuilder()
+                .setDownlinkMsg(DownlinkMsg.newBuilder()
+                        .setDeviceData(
+                                DeviceDownlinkDataProto.newBuilder()
+                                        .setDeviceName(device.getName())
+                                        .setDeviceType(device.getType())
+                                        .setTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg.getTbMsg())))
+                                        .build()
+                        )
+                        .build())
+                .build());
     }
 }

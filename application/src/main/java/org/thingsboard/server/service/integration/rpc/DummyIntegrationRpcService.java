@@ -28,27 +28,51 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.msg;
+package org.thingsboard.server.service.integration.rpc;
 
-import lombok.Data;
+import com.google.common.io.Resources;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.RequestMsg;
+import org.thingsboard.server.gen.integration.ResponseMsg;
+import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
+import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
-/**
- * Created by ashvayka on 22.02.18.
- */
-@Data
-public class DefaultIntegrationDownlinkMsg implements IntegrationDownlinkMsg {
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    private final TenantId tenantId;
-    private final IntegrationId integrationId;
-    private final TbMsg tbMsg;
+@Service
+@Slf4j
+@ConditionalOnProperty(prefix = "integrations.rpc", value = "enabled", havingValue = "false")
+public class DummyIntegrationRpcService implements IntegrationRpcService {
 
     @Override
-    public EntityId getEntityId() {
-        return tbMsg.getOriginator();
+    public void updateIntegration(Integration integration) {
+
+    }
+
+    @Override
+    public void updateConverter(Converter converter) {
+
+    }
+
+    @Override
+    public boolean handleRemoteDownlink(IntegrationDownlinkMsg msg) {
+        return false;
     }
 }

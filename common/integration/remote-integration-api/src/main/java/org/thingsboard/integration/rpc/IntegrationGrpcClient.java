@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
+import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.MessageType;
@@ -84,7 +85,8 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private CountDownLatch latch;
 
     @Override
-    public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<Exception> onError) {
+    public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate
+            , Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<DeviceDownlinkDataProto> onDownlink, Consumer<Exception> onError) {
         NettyChannelBuilder builder = NettyChannelBuilder
                 .forAddress(rpcHost, rpcPort)
                 .usePlaintext();
@@ -99,14 +101,14 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
         channel = builder.build();
         IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", integrationKey);
-        this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onIntegrationUpdate, onConverterUpdate, onError));
+        this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onIntegrationUpdate, onConverterUpdate, onDownlink, onError));
         this.inputStream.onNext(RequestMsg.newBuilder()
                 .setMessageType(MessageType.CONNECT_RPC_MESSAGE)
                 .setConnectRequestMsg(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build())
                 .build());
     }
 
-    private StreamObserver<ResponseMsg> initOutputStream(String integrationKey, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<Exception> onError) {
+    private StreamObserver<ResponseMsg> initOutputStream(String integrationKey, Consumer<IntegrationConfigurationProto> onIntegrationUpdate, Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<DeviceDownlinkDataProto> onDownlink, Consumer<Exception> onError) {
         return new StreamObserver<ResponseMsg>() {
             @Override
             public void onNext(ResponseMsg responseMsg) {
@@ -133,6 +135,9 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                 } else if (responseMsg.hasConverterUpdateMsg()) {
                     log.info("[{}] Converter configuration updated: {}", integrationKey, responseMsg.getConverterUpdateMsg().getConfiguration());
                     onConverterUpdate.accept(responseMsg.getConverterUpdateMsg().getConfiguration());
+                } else if (responseMsg.hasDownlinkMsg()) {
+                    log.debug("[{}] Downlink message received for device {}", integrationKey, responseMsg.getDownlinkMsg().getDeviceData().getDeviceName());
+                    onDownlink.accept(responseMsg.getDownlinkMsg().getDeviceData());
                 }
             }
 

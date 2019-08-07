@@ -86,14 +86,7 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Override
     public TBDataConverter updateConverter(Converter configuration) {
-        List<Integration> allIntegrations = integrationService.findTenantIntegrations(configuration.getTenantId(), new TextPageLink(Integer.MAX_VALUE)).getData();
-        for (Integration integration : allIntegrations) {
-            if (integration.isRemote() && (integration.getDefaultConverterId().getId().equals(configuration.getId().getId()) ||
-                    integration.getDownlinkConverterId().getId().equals(configuration.getId().getId()))) {
-                rpcService.updateConverter(configuration);
-            }
-        }
-
+        rpcService.updateConverter(configuration);
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);
