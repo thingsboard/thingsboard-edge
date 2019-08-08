@@ -116,7 +116,6 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
         return createSession(new RpcSessionCreateRequestMsg(UUID.randomUUID(), null, responseObserver));
     }
 
-
     @PreDestroy
     public void stop() {
         if (server != null) {

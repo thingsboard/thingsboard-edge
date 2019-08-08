@@ -30,15 +30,49 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import com.google.common.io.Resources;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
+import org.thingsboard.server.gen.integration.RequestMsg;
+import org.thingsboard.server.gen.integration.ResponseMsg;
+import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
+import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
-public interface IntegrationRpcService {
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    void updateIntegration(Integration integration);
+@Service
+@Slf4j
+@ConditionalOnProperty(prefix = "integrations.rpc", value = "enabled", havingValue = "false")
+public class DummyIntegrationRpcService implements IntegrationRpcService {
 
-    void updateConverter(Converter converter);
+    @Override
+    public void updateIntegration(Integration integration) {
 
-    boolean handleRemoteDownlink(IntegrationDownlinkMsg msg);
+    }
+
+    @Override
+    public void updateConverter(Converter converter) {
+
+    }
+
+    @Override
+    public boolean handleRemoteDownlink(IntegrationDownlinkMsg msg) {
+        return false;
+    }
 }

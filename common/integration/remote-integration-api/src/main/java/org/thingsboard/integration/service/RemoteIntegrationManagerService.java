@@ -46,6 +46,7 @@ import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.integration.storage.EventStorage;
@@ -56,7 +57,9 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
+import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 
 import javax.annotation.PostConstruct;
@@ -120,7 +123,7 @@ public class RemoteIntegrationManagerService {
 
     @PostConstruct
     public void init() {
-        rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::scheduleReconnect);
+        rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
         processHandleMessages();
@@ -197,6 +200,14 @@ public class RemoteIntegrationManagerService {
         }
     }
 
+    private void onDownlink(DeviceDownlinkDataProto deviceDownlinkDataProto) {
+        DefaultIntegrationDownlinkMsg downlinkMsg = new DefaultIntegrationDownlinkMsg(
+                integration.getConfiguration().getTenantId(),
+                integration.getConfiguration().getId(), TbMsg.fromBytes(deviceDownlinkDataProto.getTbMsg().toByteArray()));
+
+        integration.onDownlinkMsg(downlinkMsg);
+    }
+
     private TBUplinkDataConverter createUplinkConverter(ConverterConfigurationProto uplinkConverter) throws IOException {
         JSUplinkDataConverter uplinkDataConverter = new JSUplinkDataConverter(jsInvokeService);
         Converter converter = constructConverter(uplinkConverter, ConverterType.UPLINK);
@@ -256,7 +267,7 @@ public class RemoteIntegrationManagerService {
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
-                rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::scheduleReconnect);
+                rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }
     }

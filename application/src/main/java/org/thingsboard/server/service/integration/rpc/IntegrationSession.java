@@ -28,27 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.msg;
+package org.thingsboard.server.service.integration.rpc;
 
 import lombok.Data;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
-/**
- * Created by ashvayka on 22.02.18.
- */
+import java.io.Serializable;
+
 @Data
-public class DefaultIntegrationDownlinkMsg implements IntegrationDownlinkMsg {
+public class IntegrationSession implements Serializable {
 
-    private final TenantId tenantId;
-    private final IntegrationId integrationId;
-    private final TbMsg tbMsg;
+    private final ServerAddress serverAddress;
 
-    @Override
-    public EntityId getEntityId() {
-        return tbMsg.getOriginator();
-    }
 }
