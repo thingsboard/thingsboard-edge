@@ -62,6 +62,9 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
     @Autowired
     private AttributeKvRepository attributeKvRepository;
 
+    @Autowired
+    private AttributeKvInsertRepository attributeKvInsertRepository;
+
     @Override
     public ListenableFuture<Optional<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String attributeType, String attributeKey) {
         AttributeKvCompositeKey compositeKey =
@@ -102,10 +105,11 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
         entity.setLongValue(attribute.getLongValue().orElse(null));
         entity.setBooleanValue(attribute.getBooleanValue().orElse(null));
         return service.submit(() -> {
-            attributeKvRepository.save(entity);
+            attributeKvInsertRepository.saveOrUpdate(entity);
             return null;
         });
     }
+
 
     @Override
     public ListenableFuture<List<Void>> removeAll(TenantId tenantId, EntityId entityId, String attributeType, List<String> keys) {
