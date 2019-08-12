@@ -46,12 +46,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -72,6 +74,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -373,20 +376,30 @@ public class DeviceController extends BaseController {
     @RequestMapping(value = "/customer/device/{deviceName}/claim", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> claimDevice(@PathVariable(DEVICE_NAME) String deviceName,
-                                                      @RequestBody(required = false) ClaimRequest claimRequest) throws ThingsboardException {
+                                                      @RequestBody(required = false) ClaimRequest claimRequest,
+                                                      @RequestParam(required = false) String subCustomerId) throws ThingsboardException {
         checkParameter(DEVICE_NAME, deviceName);
         try {
             final DeferredResult<ResponseEntity> deferredResult = new DeferredResult<>();
 
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            CustomerId customerId = user.getCustomerId();
-
+            CustomerId parentCustomerId = user.getCustomerId();
+            CustomerId customerId;
             Device device = checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
             accessControlService.checkPermission(user, Resource.DEVICE, Operation.CLAIM_DEVICES,
                     device.getId(), device);
             String secretKey = getSecretKey(claimRequest);
 
+            if (StringUtils.isEmpty(subCustomerId)) {
+                customerId = parentCustomerId;
+            } else {
+                Customer subCustomer = checkNotNull(customerService.findCustomerById(tenantId, new CustomerId(UUID.fromString(subCustomerId))));
+                customerId = subCustomer.getId();
+                if (!ownersCacheService.isChildOwner(tenantId, parentCustomerId, customerId)) {
+                    throw new ThingsboardException("Requested sub-customer wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+                }
+            }
             ListenableFuture<ClaimResult> future = claimDevicesService.claimDevice(device, customerId, secretKey);
             Futures.addCallback(future, new FutureCallback<ClaimResult>() {
                 @Override
@@ -404,6 +417,7 @@ public class DeviceController extends BaseController {
                         deferredResult.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
                     }
                 }
+
                 @Override
                 public void onFailure(Throwable t) {
                     deferredResult.setErrorResult(t);

@@ -234,7 +234,7 @@ public abstract class BaseController {
     protected EntityGroupService entityGroupService;
 
     @Autowired
-    private OwnersCacheService ownersCacheService;
+    protected OwnersCacheService ownersCacheService;
 
     @Autowired
     protected SchedulerEventService schedulerEventService;
