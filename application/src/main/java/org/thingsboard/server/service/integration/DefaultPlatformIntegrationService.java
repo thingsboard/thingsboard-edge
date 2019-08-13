@@ -106,7 +106,7 @@ import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
-import org.thingsboard.server.service.integration.msg.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
@@ -283,29 +283,30 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (configuration.isRemote()) {
             integrationRpcService.updateIntegration(configuration);
             return Futures.immediateFuture(null);
-        }
-        return refreshExecutorService.submit(() -> {
-            Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());
-            if (integration != null) {
-                synchronized (integration) {
-                    try {
-                        IntegrationContext newCtx = new LocalIntegrationContext(contextComponent, configuration);
-                        integrationsByIdMap.put(configuration.getId(), Pair.of(integration.getFirst(), newCtx));
-                        integration.getFirst().update(new TbIntegrationInitParams(newCtx,
-                                configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                        actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
-                        integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.UPDATED);
-                        return integration.getFirst();
-                    } catch (Exception e) {
-                        integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
-                        actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
-                        throw e;
+        } else {
+            return refreshExecutorService.submit(() -> {
+                Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());
+                if (integration != null) {
+                    synchronized (integration) {
+                        try {
+                            IntegrationContext newCtx = new LocalIntegrationContext(contextComponent, configuration);
+                            integrationsByIdMap.put(configuration.getId(), Pair.of(integration.getFirst(), newCtx));
+                            integration.getFirst().update(new TbIntegrationInitParams(newCtx,
+                                    configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
+                            actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
+                            integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.UPDATED);
+                            return integration.getFirst();
+                        } catch (Exception e) {
+                            integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
+                            actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
+                            throw e;
+                        }
                     }
+                } else {
+                    return getOrCreateThingsboardPlatformIntegration(configuration, false);
                 }
-            } else {
-                return getOrCreateThingsboardPlatformIntegration(configuration, false);
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -355,22 +356,25 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             IntegrationId integrationId = msg.getIntegrationId();
             Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
             if (integration == null) {
-                Optional<ServerAddress> server = clusterRoutingService.resolveById(integrationId);
-                if (server.isPresent()) {
-                    clusterRpcService.tell(server.get(), msg);
-                } else {
-                    Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
-                    DonAsynchron.withCallback(createIntegration(configuration), i -> {
-                        onMsg(i, msg);
-                        if (callback != null) {
-                            callback.onSuccess(null);
-                        }
-                    }, e -> {
-                        if (callback != null) {
-                            callback.onFailure(e);
-                        }
-                    }, refreshExecutorService);
-                    return;
+                boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
+                if (!remoteIntegrationDownlink) {
+                    Optional<ServerAddress> server = clusterRoutingService.resolveById(integrationId);
+                    if (server.isPresent()) {
+                        clusterRpcService.tell(server.get(), msg);
+                    } else {
+                        Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
+                        DonAsynchron.withCallback(createIntegration(configuration), i -> {
+                            onMsg(i, msg);
+                            if (callback != null) {
+                                callback.onSuccess(null);
+                            }
+                        }, e -> {
+                            if (callback != null) {
+                                callback.onFailure(e);
+                            }
+                        }, refreshExecutorService);
+                        return;
+                    }
                 }
             } else {
                 onMsg(integration.getFirst(), msg);

@@ -28,12 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import integrationTcpIpTemplate from './integration-tcpip.tpl.html';
+import integrationUdpTemplate from './integration-udp.tpl.html';
 
-export default function IntegrationTcpIpDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
+/*@ngInject*/
+export default function IntegrationUdpDirective($compile, $templateCache, $translate, $mdExpansionPanel, types) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(integrationTcpIpTemplate);
+        var template = $templateCache.get(integrationUdpTemplate);
         element.html(template);
 
         scope.types = types;
@@ -51,17 +52,22 @@ export default function IntegrationTcpIpDirective($compile, $templateCache, $tra
         };
 
         function setupUdpConfiguration() {
-            if (!scope.configuration) {
-                scope.configuration.port = 10560;
-                scope.configuration.soBroadcast = true;
-                scope.configuration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.text.value;
+            if (!scope.configuration.clientConfiguration) {
+                scope.configuration.clientConfiguration = {
+                    port: 11560,
+                    soBroadcast: true,
+                    soRcvBuf: 128,
+                    charsetName: 'UTF-8',
+                    handlerConfiguration: {}
+                }
+                scope.configuration.clientConfiguration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.binary.value;
             }
         }
 
         scope.handlerConfigurationTypeChanged = () => {
-            var handlerType = scope.configuration.handlerConfiguration.handlerType;
-            scope.configuration.handlerConfiguration = {};
-            scope.configuration.handlerConfiguration.handlerType = handlerType;
+            var handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
+            scope.configuration.clientConfiguration.handlerConfiguration = {};
+            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = handlerType;
         };
 
         $compile(element.contents())(scope);

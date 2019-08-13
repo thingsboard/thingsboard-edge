@@ -36,6 +36,7 @@ import org.thingsboard.server.actors.rpc.RpcBroadcastMsg;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
 
 import java.util.UUID;
 

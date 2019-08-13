@@ -148,14 +148,14 @@ class EventStorageReader {
         try {
             if (bufferedReader == null) {
                 bufferedReader = Files.newBufferedReader(pointer.getFile().toPath());
-            }
-            int linesToSkip = pointer.getLine();
-            if (linesToSkip > 0) {
-                while (bufferedReader.readLine() != null) {
-                    if (linesToSkip != 0) {
-                        linesToSkip--;
-                    } else {
-                        break;
+                int linesToSkip = pointer.getLine();
+                if (linesToSkip > 0) {
+                    while (bufferedReader.readLine() != null) {
+                        if (linesToSkip != 0) {
+                            linesToSkip--;
+                        } else {
+                            break;
+                        }
                     }
                 }
             }

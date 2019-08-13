@@ -28,12 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../scss/constants";
+package org.thingsboard.server.service.integration.rpc;
 
-.tb-integration-panel-group {
-  &.header-filters {
-    md-expansion-panel {
-      margin-bottom: 15px;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.id.IntegrationId;
+
+import static org.thingsboard.server.common.data.CacheConstants.REMOTE_INTEGRATIONS_CACHE;
+
+@Service
+public class DefaultRemoteIntegrationSessionService implements RemoteIntegrationSessionService {
+
+    @Cacheable(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
+    @Override
+    public IntegrationSession findIntegrationSession(IntegrationId integrationId) {
+        return null;
     }
-  }
+
+    @CachePut(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
+    @Override
+    public IntegrationSession putIntegrationSession(IntegrationId integrationId, IntegrationSession session) {
+        return session;
+    }
+
+    @CacheEvict(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
+    @Override
+    public void removeIntegrationSession(IntegrationId integrationId) {
+
+    }
 }

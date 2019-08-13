@@ -31,8 +31,13 @@
 package org.thingsboard.integration.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.IntegrationControllerApi;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 /**
  * Created by ashvayka on 18.12.17.
@@ -42,5 +47,17 @@ public class BaseIntegrationController {
 
     @Autowired(required = false)
     protected IntegrationControllerApi api;
+
+    protected boolean checkIntegrationPlatform(DeferredResult<ResponseEntity> result, ThingsboardPlatformIntegration integration, IntegrationType type) {
+        if (integration == null) {
+            result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            return true;
+        }
+        if (integration.getConfiguration().getType() != type) {
+            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            return true;
+        }
+        return false;
+    }
 
 }

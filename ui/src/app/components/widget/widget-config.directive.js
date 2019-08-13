@@ -124,6 +124,10 @@ function WidgetConfig($compile, $templateCache, $rootScope, $translate, $timeout
                 if (config) {
                     scope.selectedTab = 0;
                     scope.title = config.title;
+                    scope.showTitleIcon = angular.isDefined(config.showTitleIcon) ? config.showTitleIcon : false;
+                    scope.titleIcon = angular.isDefined(config.titleIcon) ? config.titleIcon : '';
+                    scope.iconColor = angular.isDefined(config.iconColor) ? config.iconColor : 'rgba(0, 0, 0, 0.87)';
+                    scope.iconSize = angular.isDefined(config.iconSize) ? config.iconSize : '24px';
                     scope.showTitle = config.showTitle;
                     scope.dropShadow = angular.isDefined(config.dropShadow) ? config.dropShadow : true;
                     scope.enableFullscreen = angular.isDefined(config.enableFullscreen) ? config.enableFullscreen : true;
@@ -252,7 +256,7 @@ function WidgetConfig($compile, $templateCache, $rootScope, $translate, $timeout
             }
         };
 
-        scope.$watch('title + showTitle + dropShadow + enableFullscreen + enableDataExport + backgroundColor + color + ' +
+        scope.$watch('title + showTitleIcon + titleIcon + iconColor + iconSize + showTitle + dropShadow + enableFullscreen + enableDataExport + backgroundColor + color + ' +
             'padding + margin + widgetStyle + titleStyle + mobileOrder + mobileHeight + units + decimals + useDashboardTimewindow + displayTimewindow + ' +
             'alarmSearchStatus + alarmsPollingInterval + showLegend', function () {
             if (ngModelCtrl.$viewValue) {
@@ -260,6 +264,10 @@ function WidgetConfig($compile, $templateCache, $rootScope, $translate, $timeout
                 if (value.config) {
                     var config = value.config;
                     config.title = scope.title;
+                    config.showTitleIcon = scope.showTitleIcon;
+                    config.titleIcon = scope.titleIcon;
+                    config.iconColor = scope.iconColor;
+                    config.iconSize = scope.iconSize;
                     config.showTitle = scope.showTitle;
                     config.dropShadow = scope.dropShadow;
                     config.enableFullscreen = scope.enableFullscreen;

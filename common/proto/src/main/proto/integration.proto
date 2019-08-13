@@ -177,7 +177,5 @@ message UplinkResponseMsg {
 }
 
 message DownlinkMsg {
-  UplinkProcessingResultProto processingResult = 1;
-  IntegrationConfigurationProto configurationUpdate = 2;
-  DeviceDownlinkDataProto deviceData = 3;
+  DeviceDownlinkDataProto deviceData = 1;
 }

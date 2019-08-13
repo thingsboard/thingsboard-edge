@@ -28,20 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.msg;
+package org.thingsboard.server.service.integration.rpc;
 
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 
-/**
- * Created by ashvayka on 22.02.18.
- */
-public interface ToDeviceIntegrationDownlinkMsg extends IntegrationDownlinkMsg {
+public interface RemoteIntegrationSessionService {
 
-    DeviceId getDeviceId();
+    IntegrationSession findIntegrationSession(IntegrationId integrationId);
 
-    String getDeviceName();
+    IntegrationSession putIntegrationSession(IntegrationId integrationId, IntegrationSession session);
 
-    String getDeviceType();
-
+    void removeIntegrationSession(IntegrationId integrationId);
 }

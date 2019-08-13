@@ -53,6 +53,7 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/integrations/http")
@@ -62,10 +63,11 @@ public class HttpIntegrationController extends BaseIntegrationController {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}", method = {RequestMethod.POST})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
+            @PathVariable("suffix") Optional<String> suffix,
             @RequestBody JsonNode msg,
             @RequestHeader Map<String, String> requestHeaders
     ) {
@@ -75,14 +77,10 @@ public class HttpIntegrationController extends BaseIntegrationController {
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (integration == null) {
-                result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
                 return;
             }
-            if (integration.getConfiguration().getType() != IntegrationType.HTTP) {
-                result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-                return;
-            }
+            suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
             api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
@@ -105,12 +103,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
         DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (integration == null) {
-                result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-                return;
-            }
-            if (integration.getConfiguration().getType() != IntegrationType.HTTP) {
-                result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
                 return;
             }
             if (requestParams.size() > 0) {

@@ -39,6 +39,11 @@
                 <div translate ng-message="required">integration.base-url-required</div>
             </div>
         </md-input-container>
+        <div layout="column">
+            <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.replace-no-content-to-ok' | translate }}"
+                         ng-model="configuration.replaceNoContentToOk"> {{ 'integration.replace-no-content-to-ok' | translate }}
+            </md-checkbox>
+        </div>
         <section ng-if="integrationType == types.integrationType.HTTP.value ||
                                                 integrationType == types.integrationType.SIGFOX.value">
             <md-input-container class="md-block">

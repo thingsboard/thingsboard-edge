@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
@@ -85,14 +86,7 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Override
     public TBDataConverter updateConverter(Converter configuration) {
-        List<Integration> allIntegrations = integrationService.findAllIntegrations(TenantId.SYS_TENANT_ID);
-        for (Integration integration : allIntegrations) {
-            if (integration.isRemote() && (integration.getDefaultConverterId().getId().equals(configuration.getId().getId()) ||
-                    integration.getDownlinkConverterId().getId().equals(configuration.getId().getId()))) {
-                rpcService.updateConverter(configuration);
-            }
-        }
-
+        rpcService.updateConverter(configuration);
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);

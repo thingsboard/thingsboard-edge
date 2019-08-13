@@ -245,6 +245,11 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         }
     }
 
+    @Override
+    public boolean isChildOwner(TenantId tenantId, CustomerId parentOwnerId, CustomerId childOwnerId) {
+        return getChildOwners(tenantId, parentOwnerId).stream().anyMatch(childOwnerId::equals);
+    }
+
     private EntityId fetchOwnerId(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
             case DEVICE:

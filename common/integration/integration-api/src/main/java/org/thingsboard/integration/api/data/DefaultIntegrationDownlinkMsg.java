@@ -28,20 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.integration.api.data;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String SESSIONS_CACHE = "sessions";
-    public static final String ASSET_CACHE = "assets";
-    public static final String DOWNLINK_CACHE = "downlink";
-    public static final String ENTITY_VIEW_CACHE = "entityViews";
-    public static final String ROLE_CACHE = "roles";
-    public static final String USER_PERMISSIONS_CACHE = "permissions";
-    public static final String ENTITY_OWNERS_CACHE = "owners";
-    public static final String CLAIM_DEVICES_CACHE = "claimDevices";
-    public static final String SECURITY_SETTINGS_CACHE = "securitySettings";
-    public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
+import lombok.Data;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.TbMsg;
+
+/**
+ * Created by ashvayka on 22.02.18.
+ */
+@Data
+public class DefaultIntegrationDownlinkMsg implements IntegrationDownlinkMsg {
+
+    private final TenantId tenantId;
+    private final IntegrationId integrationId;
+    private final TbMsg tbMsg;
+
+    @Override
+    public EntityId getEntityId() {
+        return tbMsg.getOriginator();
+    }
 }
