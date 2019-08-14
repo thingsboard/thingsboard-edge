@@ -589,6 +589,10 @@ export default angular.module('thingsboard.types', [])
                     phone: {
                         name: 'entity-group.entity-field.phone',
                         value: 'phone'
+                    },
+                    label: {
+                        name: 'entity-group.entity-field.label',
+                        value: 'label'
                     }
                 },
                 detailsMode: {

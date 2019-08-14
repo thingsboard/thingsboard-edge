@@ -1054,7 +1054,8 @@
             "address": "Address",
             "address2": "Address 2",
             "zip": "Zip",
-            "phone": "Phone"
+            "phone": "Phone",
+            "label": "Label"
         },
         "sort-order": {
             "asc": "Ascending",
