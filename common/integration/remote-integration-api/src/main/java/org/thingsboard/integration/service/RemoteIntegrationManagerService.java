@@ -30,15 +30,18 @@
  */
 package org.thingsboard.integration.service;
 
+import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
@@ -51,20 +54,37 @@ import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
+import org.thingsboard.server.gen.integration.IntegrationStatisticsProto;
+import org.thingsboard.server.gen.integration.TbEventProto;
+import org.thingsboard.server.gen.integration.TbEventSource;
+import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.server.gen.transport.KeyValueProto;
+import org.thingsboard.server.gen.transport.KeyValueType;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TsKvListProto;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,7 +92,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-// TODO: 7/2/19 integration statistics?
 @Service("RemoteIntegrationManagerService")
 @Slf4j
 @Data
@@ -98,6 +117,12 @@ public class RemoteIntegrationManagerService {
     @Value("${executors.reconnect_timeout}")
     private long reconnectTimeoutMs;
 
+    @Value("${integration.statistics.enabled}")
+    private boolean statisticsEnabled;
+
+    @Value("${integration.statistics.persist_frequency}")
+    private long statisticsPersistFrequency;
+
     @Autowired
     private IntegrationRpcClient rpcClient;
 
@@ -108,6 +133,7 @@ public class RemoteIntegrationManagerService {
     private JsInvokeService jsInvokeService;
 
     private ThingsboardPlatformIntegration integration;
+    private ComponentLifecycleEvent integrationEvent;
 
     private TBUplinkDataConverter uplinkDataConverter;
     private TBDownlinkDataConverter downlinkDataConverter;
@@ -117,9 +143,11 @@ public class RemoteIntegrationManagerService {
 
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
+    private ScheduledExecutorService statisticsExecutorService;
     private ScheduledFuture<?> scheduledFuture;
 
     private volatile boolean initialized;
+    private volatile boolean updatingIntegration;
 
     @PostConstruct
     public void init() {
@@ -127,6 +155,10 @@ public class RemoteIntegrationManagerService {
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
         processHandleMessages();
+        if (statisticsEnabled) {
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
+            statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
+        }
     }
 
     @PreDestroy
@@ -147,13 +179,17 @@ public class RemoteIntegrationManagerService {
         if (reconnectScheduler != null) {
             reconnectScheduler.shutdownNow();
         }
+        if (statisticsEnabled && statisticsExecutorService != null) {
+            statisticsExecutorService.shutdownNow();
+        }
     }
 
     private void onConfigurationUpdate(IntegrationConfigurationProto integrationConfigurationProto) {
         if (integration != null) {
+            updatingIntegration = true;
             integration.destroy();
         }
-        //cancel reconnect scheduler
+        //canceling reconnect scheduler
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
             scheduledFuture = null;
@@ -161,7 +197,7 @@ public class RemoteIntegrationManagerService {
         try {
             Integration configuration = createIntegrationConfiguration(integrationConfigurationProto);
             integration = createPlatformIntegration(integrationConfigurationProto.getType(), configuration.getConfiguration());
-            integration.validateConfiguration(configuration, allowLocalNetworkHosts); // TODO: 7/3/19 allowLocalNetworkHosts?
+            integration.validateConfiguration(configuration, allowLocalNetworkHosts);
 
             if (uplinkDataConverter == null) {
                 uplinkDataConverter = createUplinkConverter(integrationConfigurationProto.getUplinkConverter());
@@ -176,9 +212,18 @@ public class RemoteIntegrationManagerService {
                     uplinkDataConverter,
                     downlinkDataConverter);
             integration.init(params);
+            if (updatingIntegration) {
+                integrationEvent = ComponentLifecycleEvent.UPDATED;
+                persistLifecycleEvent(ComponentLifecycleEvent.UPDATED, null);
+            } else {
+                integrationEvent = ComponentLifecycleEvent.STARTED;
+                persistLifecycleEvent(ComponentLifecycleEvent.STARTED, null);
+            }
             initialized = true;
         } catch (Exception e) {
             log.error("Failed to initialize platform integration!", e);
+            integrationEvent = ComponentLifecycleEvent.FAILED;
+            persistLifecycleEvent(ComponentLifecycleEvent.FAILED, e);
         }
     }
 
@@ -325,5 +370,84 @@ public class RemoteIntegrationManagerService {
                 }
             }
         });
+    }
+
+    private void persistStatistics() {
+        ServerAddress serverAddress = new ServerAddress(clientId, port, ServerType.CORE);
+        long ts = System.currentTimeMillis();
+        IntegrationStatistics statistics = integration.popStatistics();
+        try {
+            String eventData = mapper.writeValueAsString(toBodyJson(serverAddress, statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+            eventStorage.write(UplinkMsg.newBuilder()
+                    .addEventsData(TbEventProto.newBuilder()
+                            .setSource(TbEventSource.INTEGRATION)
+                            .setType(DataConstants.STATS)
+                            .setUid(UUIDs.timeBased().toString())
+                            .setData(eventData)
+                            .setDeviceName("")
+                            .build())
+                    .build(), null);
+
+            PostTelemetryMsg.Builder telemetryBuilder = PostTelemetryMsg.newBuilder();
+            List<KeyValueProto> telemetryResult = new ArrayList<>();
+            telemetryResult.add(KeyValueProto.newBuilder().setKey("messagesCount").setType(KeyValueType.LONG_V)
+                    .setLongV(statistics.getMessagesProcessed()).build());
+            telemetryResult.add(KeyValueProto.newBuilder().setKey("errorsCount").setType(KeyValueType.LONG_V)
+                    .setLongV(statistics.getErrorsOccurred()).build());
+            telemetryResult.add(KeyValueProto.newBuilder().setKey("state").setType(KeyValueType.STRING_V)
+                    .setStringV(integrationEvent != null ? integrationEvent.name() : "N/A").build());
+
+            TsKvListProto.Builder tsKvListBuilder = TsKvListProto.newBuilder();
+            tsKvListBuilder.setTs(ts);
+            tsKvListBuilder.addAllKv(telemetryResult);
+            telemetryBuilder.addTsKvList(tsKvListBuilder.build());
+
+            eventStorage.write(UplinkMsg.newBuilder()
+                    .addIntegrationStatistics(IntegrationStatisticsProto
+                            .newBuilder()
+                            .setPostTelemetryMsg(telemetryBuilder.build())
+                            .build())
+                    .build(), null);
+        } catch (Exception e) {
+            log.warn("[{}] Failed to persist statistics: {}", integration.getConfiguration().getId(), statistics, e);
+        }
+    }
+
+    private void persistLifecycleEvent(ComponentLifecycleEvent event, Exception e) {
+        try {
+            String eventData = mapper.writeValueAsString(toBodyJson(new ServerAddress(clientId, port, ServerType.CORE), event, Optional.ofNullable(e)));
+            eventStorage.write(UplinkMsg.newBuilder()
+                    .addEventsData(TbEventProto.newBuilder()
+                            .setSource(TbEventSource.INTEGRATION)
+                            .setType(DataConstants.LC_EVENT)
+                            .setUid(UUIDs.timeBased().toString())
+                            .setData(eventData)
+                            .setDeviceName("")
+                            .build())
+                    .build(), null);
+        } catch (JsonProcessingException ex) {
+            log.warn("[{}] Failed to persist lifecycle event!", integration.getConfiguration().getId(), e);
+        }
+    }
+
+    private JsonNode toBodyJson(ServerAddress server, long messagesProcessed, long errorsOccurred) {
+        return mapper.createObjectNode().put("server", server.toString()).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
+    }
+
+    private JsonNode toBodyJson(ServerAddress server, ComponentLifecycleEvent event, Optional<Exception> e) {
+        ObjectNode node = mapper.createObjectNode().put("server", server.toString()).put("event", event.name());
+        if (e.isPresent()) {
+            node = node.put("success", false);
+            node = node.put("error", toString(e.get()));
+        } else {
+            node = node.put("success", true);
+        }
+        return node;
+    }
+
+    private String toString(Throwable e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }

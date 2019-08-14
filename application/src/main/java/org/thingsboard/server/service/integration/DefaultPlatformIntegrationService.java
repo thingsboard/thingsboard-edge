@@ -298,7 +298,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                             return integration.getFirst();
                         } catch (Exception e) {
                             integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
-                            actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
+                            actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
                             throw e;
                         }
                     }
@@ -627,7 +627,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                     integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.STARTED);
                 } catch (Exception e) {
                     integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, e);
+                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
                     throw handleException(e);
                 }
             }

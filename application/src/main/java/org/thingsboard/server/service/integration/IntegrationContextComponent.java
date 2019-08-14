@@ -49,6 +49,7 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.integration.downlink.DownlinkService;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -92,6 +93,10 @@ public class IntegrationContextComponent {
     @Lazy
     @Autowired
     private AttributesService attributesService;
+
+    @Lazy
+    @Autowired
+    private TelemetrySubscriptionService telemetrySubscriptionService;
 
     @Lazy
     @Autowired
