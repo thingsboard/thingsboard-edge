@@ -39,7 +39,7 @@ import './alarm-details-dialog.scss';
 const js_beautify = beautify.js;
 
 /*@ngInject*/
-export default function AlarmDetailsDialogController($mdDialog, $filter, $translate, types,
+export default function AlarmDetailsDialogController($mdDialog, $filter, $translate, types, utils,
                                                      alarmService, alarmId, alarm, allowAcknowledgment, allowClear, displayDetails, showingCallback) {
 
     var vm = this;
@@ -128,6 +128,8 @@ export default function AlarmDetailsDialogController($mdDialog, $filter, $transl
             vm.clearTime = $filter('date')(vm.alarm.clearTs, 'yyyy-MM-dd HH:mm:ss');
         }
 
+        vm.alarmType = utils.customTranslation(vm.alarm.type, vm.alarm.type);
+
         vm.alarmSeverity = $translate.instant(types.alarmSeverity[vm.alarm.severity].name);
 
         vm.alarmStatus = $translate.instant('alarm.display-status.' + vm.alarm.status);
@@ -135,6 +137,7 @@ export default function AlarmDetailsDialogController($mdDialog, $filter, $transl
         vm.alarmDetails = null;
         if (vm.alarm.details) {
             vm.alarmDetails = angular.toJson(vm.alarm.details);
+            vm.alarmDetails = utils.customTranslation(vm.alarmDetails, vm.alarmDetails);
             vm.alarmDetails = js_beautify(vm.alarmDetails, {indent_size: 4});
         }
     }
