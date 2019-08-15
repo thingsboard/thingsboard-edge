@@ -39,6 +39,7 @@
     display: block;
     height: 48px;
     line-height: 1.5;
+    white-space: normal !important;
 
     .tb-no-entries {
       line-height: 48px;
@@ -47,7 +48,6 @@
 
   li {
     height: auto !important;
-    white-space: normal !important;
   }
 }
 

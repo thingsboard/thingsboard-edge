@@ -338,6 +338,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     case TYPE:
                         entityView.put(key, device.getType());
                         break;
+                    case LABEL:
+                        entityView.put(key, device.getLabel());
+                        break;
                 }
             }
             return entityView;
@@ -398,18 +401,18 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             };
 
     private PaginatedRemover<TenantId, Device> tenantDevicesRemover =
-        new PaginatedRemover<TenantId, Device>() {
+            new PaginatedRemover<TenantId, Device>() {
 
-            @Override
-            protected List<Device> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
-                return deviceDao.findDevicesByTenantId(id.getId(), pageLink);
-            }
+                @Override
+                protected List<Device> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+                    return deviceDao.findDevicesByTenantId(id.getId(), pageLink);
+                }
 
-            @Override
-            protected void removeEntity(TenantId tenantId, Device entity) {
-                deleteDevice(tenantId, new DeviceId(entity.getUuidId()));
-            }
-        };
+                @Override
+                protected void removeEntity(TenantId tenantId, Device entity) {
+                    deleteDevice(tenantId, new DeviceId(entity.getUuidId()));
+                }
+            };
 
     private PaginatedRemover<CustomerId, Device> customerDevicesRemover = new PaginatedRemover<CustomerId, Device>() {
 

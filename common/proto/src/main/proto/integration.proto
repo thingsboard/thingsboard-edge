@@ -108,6 +108,10 @@ message EntityViewDataProto {
   repeated string telemetryKeys = 5;
 }
 
+message IntegrationStatisticsProto {
+  transport.PostTelemetryMsg postTelemetryMsg = 1;
+}
+
 message DeviceDownlinkDataProto {
   string deviceName = 1;
   string deviceType = 2;
@@ -167,8 +171,9 @@ message UplinkMsg {
   int32 uplinkMsgId = 1;
   repeated DeviceUplinkDataProto deviceData = 2;
   repeated EntityViewDataProto entityViewData = 3;
-  repeated TbEventProto eventsData = 4;
-  repeated bytes tbMsg = 5;
+  repeated IntegrationStatisticsProto integrationStatistics = 4;
+  repeated TbEventProto eventsData = 5;
+  repeated bytes tbMsg = 6;
 }
 
 message UplinkResponseMsg {

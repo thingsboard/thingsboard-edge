@@ -39,6 +39,10 @@ integration:
   routingKey: "${INTEGRATION_ROUTING_KEY:ba9db69c8c0de6e8d050ac59fcd4411f}"
   secret: "${INTEGRATION_SECRET:7abm5lie1m57wv59jtkq}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
+  statistics:
+    # Enable/disable integration statistics
+    enabled: "${INTEGRATION_STATISTICS_ENABLED:true}"
+    persist_frequency: "${INTEGRATION_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
 storage:
   data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
