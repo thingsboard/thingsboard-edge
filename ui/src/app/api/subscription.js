@@ -316,6 +316,7 @@ export default class Subscription {
                         deferred.resolve();
                     },
                     function fail() {
+                        subscription.notifyDataLoaded();
                         deferred.reject();
                     }
                 );

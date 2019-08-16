@@ -88,7 +88,7 @@
                         </md-menu-content>
                     </md-menu>
                     <tb-timewindow ng-show="vm.isEdit || vm.displayDashboardTimewindow()"
-                                   is-toolbar
+                                   is-toolbar is-edit="vm.isEdit"
                                    direction="left"
                                    tooltip-direction="bottom" aggregation="true"
                                    ng-model="vm.dashboardCtx.dashboardTimewindow">

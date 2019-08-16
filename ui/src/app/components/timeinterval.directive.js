@@ -246,7 +246,9 @@ function Timeinterval($compile, $templateCache, timeService) {
             required: '=ngRequired',
             min: '=?',
             max: '=?',
-            predefinedName: '=?'
+            predefinedName: '=?',
+            hideFlag: '=?',
+            isEdit: '=?'
         },
         link: linker
     };
