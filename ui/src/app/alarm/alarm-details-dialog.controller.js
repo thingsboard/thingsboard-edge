@@ -128,7 +128,7 @@ export default function AlarmDetailsDialogController($mdDialog, $filter, $transl
             vm.clearTime = $filter('date')(vm.alarm.clearTs, 'yyyy-MM-dd HH:mm:ss');
         }
 
-        vm.alarmType = utils.customTranslation(vm.alarm.type, vm.alarm.type);
+        vm.alarm.type = utils.customTranslation(vm.alarm.type, vm.alarm.type);
 
         vm.alarmSeverity = $translate.instant(types.alarmSeverity[vm.alarm.severity].name);
 
