@@ -66,7 +66,7 @@
 											<md-icon class="material-icons" ng-if="vm.showWidgetTitleIcon(widget)" ng-style="vm.widgetTitleIconStyle(widget)">
 												{{vm.widgetTitleIcon(widget)}}
 											</md-icon>
-											{{vm.widgetTitle(widget)}}
+											{{vm.getCustomTranslatedWidgetTitle(widget)}}
 											<md-tooltip class="tb-tooltip-multiline" ng-if="vm.widgetTitleTooltip(widget)" md-direction="{{vm.isWidgetExpanded ? 'bottom' : 'top'}}">
 												<span ng-bind-html="vm.widgetTitleTooltip(widget)"></span>
 											</md-tooltip>

@@ -224,7 +224,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.exportWidget = exportWidget;
     vm.removeWidget = removeWidget;
     vm.loading = loading;
-    vm.getWidgetTitle = getWidgetTitle;
+    vm.getCustomTranslatedWidgetTitle = getCustomTranslatedWidgetTitle;
 
     vm.openDashboardContextMenu = openDashboardContextMenu;
     vm.openWidgetContextMenu = openWidgetContextMenu;
@@ -1146,7 +1146,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         return !vm.ignoreLoading && $rootScope.loading;
     }
 
-    function getWidgetTitle(widget) {
+    function getCustomTranslatedWidgetTitle(widget) {
         return utils.customTranslation(vm.widgetTitle(widget), vm.widgetTitle(widget));
     }
 }
