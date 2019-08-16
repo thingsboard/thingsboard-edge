@@ -829,6 +829,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
         });
 
         $scope.$on('widgetForceReInit', function () {
+            $scope.displayNoData = false;
             reInit();
         });
 
