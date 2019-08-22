@@ -290,6 +290,7 @@ export default class TbMapWidgetV2 {
 					location.settings.labelText = fillPattern(location.settings.label,
 						location.settings.labelReplaceInfo, tbMap.subscription.data);
 				}
+				location.settings.labelText = tbMap.utils.customTranslation(location.settings.labelText, location.settings.labelText);
 				tbMap.map.updateMarkerLabel(location.marker, location.settings);
 			}
 		}
@@ -647,6 +648,7 @@ export default class TbMapWidgetV2 {
 				}
 			}
 			content = fillPattern(settings.tooltipPattern, settings.tooltipReplaceInfo, data);
+			content = tbMap.utils.customTranslation(content, content);
 			return fillPatternWithActions(content, 'onTooltipAction', tooltip.markerArgs);
 		}
 

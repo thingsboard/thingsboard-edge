@@ -42,5 +42,5 @@ public class RelationsQuery {
     private EntitySearchDirection direction;
     private int maxLevel = 1;
     private List<EntityTypeFilter> filters;
-
+    private boolean fetchLastLevelOnly = false;
 }

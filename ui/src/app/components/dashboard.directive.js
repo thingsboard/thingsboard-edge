@@ -211,6 +211,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.widgetTitle = widgetTitle;
     vm.widgetTitleIcon = widgetTitleIcon;
     vm.widgetTitleIconStyle = widgetTitleIconStyle;
+    vm.widgetTitleTooltip = widgetTitleTooltip;
     vm.customWidgetHeaderActions = customWidgetHeaderActions;
     vm.widgetActions = widgetActions;
     vm.dropWidgetShadow = dropWidgetShadow;
@@ -223,7 +224,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.exportWidget = exportWidget;
     vm.removeWidget = removeWidget;
     vm.loading = loading;
-    vm.getWidgetTitle = getWidgetTitle;
+    vm.getCustomTranslatedWidgetTitle = getCustomTranslatedWidgetTitle;
 
     vm.openDashboardContextMenu = openDashboardContextMenu;
     vm.openWidgetContextMenu = openWidgetContextMenu;
@@ -1006,6 +1007,16 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         return style;
     }
 
+    function widgetTitleTooltip(widget) {
+        var ctx = widgetContext(widget);
+        if (ctx && ctx.widgetTitleTooltip
+            && ctx.widgetTitleTooltip.length) {
+            return ctx.widgetTitleTooltip;
+        } else {
+            return widget.config.titleTooltip;
+        }
+    }
+
     function customWidgetHeaderActions(widget) {
         var ctx = widgetContext(widget);
         if (ctx && ctx.customHeaderActions && ctx.customHeaderActions.length) {
@@ -1135,7 +1146,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         return !vm.ignoreLoading && $rootScope.loading;
     }
 
-    function getWidgetTitle(widget) {
+    function getCustomTranslatedWidgetTitle(widget) {
         return utils.customTranslation(vm.widgetTitle(widget), vm.widgetTitle(widget));
     }
 }
