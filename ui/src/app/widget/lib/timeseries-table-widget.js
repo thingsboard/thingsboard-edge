@@ -61,7 +61,7 @@ function TimeseriesTableWidget() {
 /*@ngInject*/
 function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, types) {
     var vm = this;
-    let dateFormatFilter = 'yyyy-MM-dd HH:mm:ss';
+    let dateFormatFilter;
 
     vm.sources = [];
     vm.sourceIndex = 0;
@@ -113,6 +113,7 @@ function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, ty
         vm.ctx.widgetActions = [ vm.searchAction ];
         vm.actionCellDescriptors = vm.ctx.actionsApi.getActionDescriptors('actionCellButton');
         vm.showTimestamp = vm.settings.showTimestamp !== false;
+        dateFormatFilter = (vm.settings.showMilliseconds !== true) ? 'yyyy-MM-dd HH:mm:ss' :  'yyyy-MM-dd HH:mm:ss.sss';
         var origColor = vm.widgetConfig.color || 'rgba(0, 0, 0, 0.87)';
         var defaultColor = tinycolor(origColor);
         var mdDark = defaultColor.setAlpha(0.87).toRgbString();
