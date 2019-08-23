@@ -288,7 +288,7 @@ export default function ConverterTestController($scope, $mdDialog, $window, $doc
                 } else {
                     inputParams.msg = vm.inputParams.msg;
                     inputParams.msgType = vm.inputParams.msgType;
-                    inputParams.integrationMetdadata = vm.inputParams.integrationMetdadata;
+                    inputParams.integrationMetadata = vm.inputParams.integrationMetadata;
                     inputParams.encoder = vm.funcBody;
                 }
                 var testPromise = vm.isDecoder ? converterService.testUpLink(inputParams) :
