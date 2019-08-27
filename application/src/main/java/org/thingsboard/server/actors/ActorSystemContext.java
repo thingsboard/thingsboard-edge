@@ -76,9 +76,11 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -246,6 +248,12 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter private BlobEntityService blobEntityService;
+
+    @Autowired
+    @Getter private GroupPermissionService groupPermissionService;
+
+    @Autowired
+    @Getter private RoleService roleService;
 
     @Autowired
     @Getter
