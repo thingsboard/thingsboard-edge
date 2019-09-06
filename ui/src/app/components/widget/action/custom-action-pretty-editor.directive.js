@@ -88,8 +88,11 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
         scope.removeResource = removeResource;
         scope.toggleFullscreen = toggleFullscreen;
 
-        var sampleJsFunction = "/* There are three examples: for delete, edit and add entity */\n" +
-            "/* Delete entity example */\n" +
+        var sampleJsFunction = "/*=======================================================================*/\n" +
+            "/*=====  There are three examples: for delete, edit and add entity  =====*/\n" +
+            "/*=======================================================================*/\n" +
+            "/*=======================  Delete entity example  =======================*/\n" +
+            "/*=======================================================================*/\n" +
             "//\n" +
             "//var $injector = widgetContext.$scope.$injector;\n" +
             "//var $mdDialog = $injector.get('$mdDialog'),\n" +
@@ -170,7 +173,9 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             "//    $mdDialog.show(alert);\n" +
             "//}\n" +
             "//\n" +
-            "/* Edit entity example */\n" +
+            "/*=======================================================================*/\n" +
+            "/*========================  Edit entity example  ========================*/\n" +
+            "/*=======================================================================*/\n" +
             "//\n" +
             "//var $injector = widgetContext.$scope.$injector;\n" +
             "//var $mdDialog = $injector.get('$mdDialog'),\n" +
@@ -355,7 +360,9 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             "//    }\n" +
             "//}\n" +
             "//\n" +
-            "/* Add entity example */\n" +
+            "/*========================================================================*/\n" +
+            "/*=========================  Add entity example  =========================*/\n" +
+            "/*========================================================================*/\n" +
             "//\n" +
             "//var $injector = widgetContext.$scope.$injector;\n" +
             "//var $mdDialog = $injector.get('$mdDialog'),\n" +
@@ -474,15 +481,16 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             "//            tasks.push(widgetContext.aliasController.getAliasInfo(aliasId));\n" +
             "//        });\n" +
             "//        $q.all(tasks).then(function() {\n" +
-            "//            $rootScope.$broadcast('entityAliasesChanged', aliasIds);\n" +
+            "//            $rootScope.$broadcast('widgetForceReInit');\n" +
             "//        });\n" +
             "//    }\n" +
-            "//}\n" +
-            "\n" +
-            "\n";
+            "//}\n";
 
-        var sampleHtmlTemplate = '<!-- There are two example templates: for edit and add entity -->\n' +
-            '<!-- Edit entity example -->\n' +
+        var sampleHtmlTemplate = '<!--=======================================================================-->\n' +
+            '<!--=====  There are two example templates: for edit and add entity   =====-->\n' +
+            '<!--=======================================================================-->\n' +
+            '<!--========================  Edit entity example  ========================-->\n' +
+            '<!--=======================================================================-->\n' +
             '<!-- -->\n' +
             '<!--<md-dialog aria-label="Edit entity">-->\n' +
             '<!--    <form name="editEntityForm" class="edit-entity-form" ng-submit="vm.save()">-->\n' +
@@ -648,9 +656,11 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             '<!--        </md-dialog-actions>-->\n' +
             '<!--    </form>-->\n' +
             '<!--</md-dialog>-->\n' +
-            '<!-- -->\n' +
-            '<!-- Add entity example -->\n' +
-            '<!-- -->\n' +
+            '<!---->\n' +
+            '<!--========================================================================-->\n' +
+            '<!--=========================  Add entity example  =========================-->\n' +
+            '<!--========================================================================-->\n' +
+            '<!---->\n' +
             '<!--<md-dialog aria-label="Add entity">-->\n' +
             '<!--    <form name="addEntityForm" class="add-entity-form" ng-submit="vm.save()">-->\n' +
             '<!--        <md-toolbar>-->\n' +
@@ -781,8 +791,11 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             '<!--    </form>-->\n' +
             '<!--</md-dialog>-->\n';
 
-        var sampleCss = '/* There are two examples: for edit and add entity */\n' +
-            '/* Edit entity example */\n' +
+        var sampleCss = '/*=======================================================================*/\n' +
+            '/*==========  There are two examples: for edit and add entity  ==========*/\n' +
+            '/*=======================================================================*/\n' +
+            '/*========================  Edit entity example  ========================*/\n' +
+            '/*=======================================================================*/\n' +
             '/*\n' +
             '.edit-entity-form md-input-container {\n' +
             '    padding-right: 10px;\n' +
@@ -840,7 +853,9 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             '    display: none;\n' +
             '} \n' +
             '*/\n' +
-            '/* Add entity example */\n' +
+            '/*========================================================================*/\n' +
+            '/*=========================  Add entity example  =========================*/\n' +
+            '/*========================================================================*/\n' +
             '/*\n' +
             '.add-entity-form md-input-container {\n' +
             '    padding-right: 10px;\n' +
@@ -893,9 +908,7 @@ function CustomActionPrettyEditor($compile, $templateCache, $window, $timeout) {
             '.relations-list .body .md-button {\n' +
             '    margin: 0;\n' +
             '}\n' +
-            '*/\n' +
-            '\n' +
-            '\n';
+            '*/\n';
 
         scope.$watch('action', function () {
             ngModelCtrl.$setViewValue(scope.action);

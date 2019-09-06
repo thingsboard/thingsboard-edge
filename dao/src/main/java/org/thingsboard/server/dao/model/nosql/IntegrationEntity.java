@@ -80,8 +80,14 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
 
+    @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
+    private Boolean isRemote;
+
     @Column(name = INTEGRATION_NAME_PROPERTY)
     private String name;
+
+    @Column(name = INTEGRATION_SECRET_PROPERTY)
+    private String secret;
 
     @Column(name = INTEGRATION_ROUTING_KEY_PROPERTY)
     private String routingKey;
@@ -114,11 +120,13 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         }
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
+        this.secret = integration.getSecret();
         this.type = integration.getType();
         this.debugMode = integration.isDebugMode();
         if (integration.isEnabled() != null) {
             this.enabled = integration.isEnabled();
         }
+        this.isRemote = integration.isRemote();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -143,9 +151,11 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
         }
         integration.setName(name);
         integration.setRoutingKey(routingKey);
+        integration.setSecret(secret);
         integration.setType(type);
         integration.setDebugMode(debugMode);
         integration.setEnabled(enabled);
+        integration.setRemote(isRemote);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
         return integration;

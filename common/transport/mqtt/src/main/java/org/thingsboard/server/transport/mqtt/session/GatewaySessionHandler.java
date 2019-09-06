@@ -45,17 +45,24 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.transport.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.common.transport.service.AbstractTransportService;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
+import org.thingsboard.server.gen.transport.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayRequestMsg;
+import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayResponseMsg;
+import org.thingsboard.server.gen.transport.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.SessionEvent;
+import org.thingsboard.server.gen.transport.SessionInfoProto;
+import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.transport.mqtt.MqttTransportContext;
 import org.thingsboard.server.transport.mqtt.MqttTransportHandler;
 import org.thingsboard.server.transport.mqtt.adaptors.JsonMqttAdaptor;
@@ -136,9 +143,9 @@ public class GatewaySessionHandler {
                             if (devices.putIfAbsent(deviceName, deviceSessionCtx) == null) {
                                 SessionInfoProto deviceSessionInfo = deviceSessionCtx.getSessionInfo();
                                 transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
-                                transportService.process(deviceSessionInfo, AbstractTransportService.getSessionEventMsg(TransportProtos.SessionEvent.OPEN), null);
-                                transportService.process(deviceSessionInfo, TransportProtos.SubscribeToRPCMsg.getDefaultInstance(), null);
-                                transportService.process(deviceSessionInfo, TransportProtos.SubscribeToAttributeUpdatesMsg.getDefaultInstance(), null);
+                                transportService.process(deviceSessionInfo, AbstractTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
+                                transportService.process(deviceSessionInfo, SubscribeToRPCMsg.getDefaultInstance(), null);
+                                transportService.process(deviceSessionInfo, SubscribeToAttributeUpdatesMsg.getDefaultInstance(), null);
                             }
                             future.set(devices.get(deviceName));
                         }
@@ -189,7 +196,7 @@ public class GatewaySessionHandler {
                                     throw new JsonSyntaxException(CAN_T_PARSE_VALUE + json);
                                 }
                                 try {
-                                    TransportProtos.PostTelemetryMsg postTelemetryMsg = JsonConverter.convertToTelemetryProto(deviceEntry.getValue().getAsJsonArray());
+                                    PostTelemetryMsg postTelemetryMsg = JsonConverter.convertToTelemetryProto(deviceEntry.getValue().getAsJsonArray());
                                     transportService.process(deviceCtx.getSessionInfo(), postTelemetryMsg, getPubAckCallback(channel, deviceName, msgId, postTelemetryMsg));
                                 } catch (Throwable e) {
                                     UUID gatewayId = new UUID(gateway.getDeviceIdMSB(), gateway.getDeviceIdLSB());
@@ -224,7 +231,7 @@ public class GatewaySessionHandler {
                                 }
                                 try {
                                     DeviceId deviceId = deviceCtx.getDeviceId();
-                                    TransportProtos.ClaimDeviceMsg claimDeviceMsg = JsonConverter.convertToClaimDeviceProto(deviceId, deviceEntry.getValue());
+                                    ClaimDeviceMsg claimDeviceMsg = JsonConverter.convertToClaimDeviceProto(deviceId, deviceEntry.getValue());
                                     transportService.process(deviceCtx.getSessionInfo(), claimDeviceMsg, getPubAckCallback(channel, deviceName, msgId, claimDeviceMsg));
                                 } catch (Throwable e) {
                                     UUID gatewayId = new UUID(gateway.getDeviceIdMSB(), gateway.getDeviceIdLSB());
@@ -257,7 +264,7 @@ public class GatewaySessionHandler {
                                 if (!deviceEntry.getValue().isJsonObject()) {
                                     throw new JsonSyntaxException(CAN_T_PARSE_VALUE + json);
                                 }
-                                TransportProtos.PostAttributeMsg postAttributeMsg = JsonConverter.convertToAttributesProto(deviceEntry.getValue().getAsJsonObject());
+                                PostAttributeMsg postAttributeMsg = JsonConverter.convertToAttributesProto(deviceEntry.getValue().getAsJsonObject());
                                 transportService.process(deviceCtx.getSessionInfo(), postAttributeMsg, getPubAckCallback(channel, deviceName, msgId, postAttributeMsg));
                             }
 
@@ -284,7 +291,7 @@ public class GatewaySessionHandler {
                         public void onSuccess(@Nullable GatewayDeviceSessionCtx deviceCtx) {
                             Integer requestId = jsonObj.get("id").getAsInt();
                             String data = jsonObj.get("data").toString();
-                            TransportProtos.ToDeviceRpcResponseMsg rpcResponseMsg = TransportProtos.ToDeviceRpcResponseMsg.newBuilder()
+                            ToDeviceRpcResponseMsg rpcResponseMsg = ToDeviceRpcResponseMsg.newBuilder()
                                     .setRequestId(requestId).setPayload(data).build();
                             transportService.process(deviceCtx.getSessionInfo(), rpcResponseMsg, getPubAckCallback(channel, deviceName, msgId, rpcResponseMsg));
                         }
@@ -316,7 +323,7 @@ public class GatewaySessionHandler {
                     keys.add(keyObj.getAsString());
                 }
             }
-            TransportProtos.GetAttributeRequestMsg.Builder result = TransportProtos.GetAttributeRequestMsg.newBuilder();
+            GetAttributeRequestMsg.Builder result = GetAttributeRequestMsg.newBuilder();
             result.setRequestId(requestId);
 
             if (clientScope) {
@@ -324,7 +331,7 @@ public class GatewaySessionHandler {
             } else {
                 result.addAllSharedAttributeNames(keys);
             }
-            TransportProtos.GetAttributeRequestMsg requestMsg = result.build();
+            GetAttributeRequestMsg requestMsg = result.build();
             int msgId = msg.variableHeader().packetId();
             Futures.addCallback(checkDeviceConnected(deviceName),
                     new FutureCallback<GatewayDeviceSessionCtx>() {
@@ -391,7 +398,7 @@ public class GatewaySessionHandler {
 
     private void deregisterSession(String deviceName, GatewayDeviceSessionCtx deviceSessionCtx) {
         transportService.deregisterSession(deviceSessionCtx.getSessionInfo());
-        transportService.process(deviceSessionCtx.getSessionInfo(), AbstractTransportService.getSessionEventMsg(TransportProtos.SessionEvent.CLOSED), null);
+        transportService.process(deviceSessionCtx.getSessionInfo(), AbstractTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
         log.debug("[{}] Removed device [{}] from the gateway session", sessionId, deviceName);
     }
 

@@ -29,4 +29,84 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-ALTER TABLE integration ADD COLUMN enabled boolean DEFAULT true;
+CREATE TABLE IF NOT EXISTS entity_group (
+    id varchar(31) NOT NULL CONSTRAINT entity_group_pkey PRIMARY KEY,
+    type varchar(255) NOT NULL,
+    name varchar(255),
+    additional_info varchar,
+    configuration varchar(10000000)
+);
+
+CREATE TABLE IF NOT EXISTS converter (
+    id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar(10000000),
+    debug_mode boolean,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);
+
+CREATE TABLE IF NOT EXISTS integration (
+    id varchar(31) NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    additional_info varchar,
+    configuration varchar(10000000),
+    debug_mode boolean,
+    is_remote boolean,
+    name varchar(255),
+    secret varchar(255),
+    converter_id varchar(31),
+    downlink_converter_id varchar(31),
+    routing_key varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255)
+);
+
+ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);
+
+CREATE TABLE IF NOT EXISTS scheduler_event (
+    id varchar(31) NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
+    additional_info varchar,
+    customer_id varchar(31),
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    type varchar(255),
+    schedule varchar,
+    configuration varchar(10000000)
+);
+
+CREATE TABLE IF NOT EXISTS blob_entity (
+    id varchar(31) NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    customer_id varchar(31),
+    name varchar(255),
+    type varchar(255),
+    content_type varchar(255),
+    search_text varchar(255),
+    data varchar(10485760),
+    additional_info varchar
+);
+
+CREATE TABLE IF NOT EXISTS role (
+    id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    customer_id varchar(31),
+    name varchar(255),
+    type varchar(255),
+    search_text varchar(255),
+    permissions varchar(10000000),
+    additional_info varchar
+);
+
+CREATE TABLE IF NOT EXISTS group_permission (
+    id varchar(31) NOT NULL CONSTRAINT group_permission_pkey PRIMARY KEY,
+    tenant_id varchar(31),
+    role_id varchar(31),
+    user_group_id varchar(31),
+    entity_group_id varchar(31),
+    entity_group_type varchar(255),
+    is_public boolean
+);

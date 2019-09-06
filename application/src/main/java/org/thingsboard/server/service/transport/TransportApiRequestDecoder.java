@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.transport;
 
-import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
+import org.thingsboard.server.gen.transport.TransportApiRequestMsg;
 import org.thingsboard.server.kafka.TbKafkaDecoder;
 
 import java.io.IOException;

@@ -55,6 +55,7 @@ public class DataConstants {
     public static final String STATS = "STATS";
     public static final String DEBUG_RULE_NODE = "DEBUG_RULE_NODE";
     public static final String DEBUG_RULE_CHAIN = "DEBUG_RULE_CHAIN";
+    public static final String RAW_DATA = "RAW_DATA";
 
     public static final String IN = "IN";
     public static final String OUT = "OUT";

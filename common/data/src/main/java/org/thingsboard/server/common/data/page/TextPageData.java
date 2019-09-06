@@ -30,14 +30,13 @@
  */
 package org.thingsboard.server.common.data.page;
 
-import java.util.List;
-import java.util.UUID;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.id.UUIDBased;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import java.util.UUID;
 
 public class TextPageData<T extends SearchTextBased<? extends UUIDBased>> {
 

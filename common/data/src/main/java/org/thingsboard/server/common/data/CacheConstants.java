@@ -43,4 +43,5 @@ public class CacheConstants {
     public static final String ENTITY_OWNERS_CACHE = "owners";
     public static final String CLAIM_DEVICES_CACHE = "claimDevices";
     public static final String SECURITY_SETTINGS_CACHE = "securitySettings";
+    public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
 }

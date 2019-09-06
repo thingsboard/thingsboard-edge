@@ -45,7 +45,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.role.RoleService;
 
 import java.util.Set;
 
@@ -61,6 +63,10 @@ public interface TbPeContext {
     ReportService getReportService();
 
     BlobEntityService getBlobEntityService();
+
+    GroupPermissionService getGroupPermissionService();
+
+    RoleService getRoleService();
 
     EntityId getOwner(TenantId tenantId, EntityId entityId);
 

@@ -32,12 +32,10 @@ package org.thingsboard.server.common.data.page;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiParam;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.UUID;
 
 @ToString

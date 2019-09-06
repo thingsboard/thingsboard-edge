@@ -34,7 +34,6 @@ import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 /**

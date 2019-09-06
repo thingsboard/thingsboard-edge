@@ -40,7 +40,6 @@ import akka.actor.Terminated;
 import akka.japi.Function;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.device.DeviceActorCreator;
 import org.thingsboard.server.actors.device.DeviceActorToRuleEngineMsg;
@@ -66,9 +65,6 @@ import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import scala.concurrent.duration.Duration;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class TenantActor extends RuleChainManagerActor {
 

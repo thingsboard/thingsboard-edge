@@ -46,9 +46,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by ashvayka on 15.03.18.
  */

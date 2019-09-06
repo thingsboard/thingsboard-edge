@@ -50,6 +50,7 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             if (newVal) {
                 if (!scope.integration.id) {
                     scope.integration.routingKey = utils.guid('');
+                    scope.integration.secret = generateSecret(20);
                 }
                 if (!scope.integration.configuration) {
                     scope.integration.configuration = {};
@@ -67,13 +68,41 @@ export default function IntegrationDirective($compile, $templateCache, $translat
             scope.integration.configuration = {
                 metadata: {}
             };
+            if (types.integrationType[scope.integration.type].remote) {
+                scope.integration.remote = true;
+            }
         };
+
+        function generateSecret(length) {
+            if (angular.isUndefined(length) || length == null) {
+                length = 1;
+            }
+            var l = length > 10 ? 10 : length;
+            var str = Math.random().toString(36).substr(2, l);
+            if(str.length >= length){
+                return str;
+            }
+            return str.concat(generateSecret(length - str.length));
+        }
 
         scope.onIntegrationIdCopied = function() {
             toast.showSuccess($translate.instant('integration.idCopiedMessage'), 750, angular.element(element).parent().parent(), 'bottom left');
         };
 
         $compile(element.contents())(scope);
+
+        scope.onIntegrationInfoCopied = function (type){
+            let translateInstant = "";
+            switch (type) {
+                case 'key':
+                    translateInstant = "integration.integration-key-copied-message";
+                    break;
+                case 'secret':
+                    translateInstant = "integration.integration-secret-copied-message";
+                    break;
+            }
+            toast.showSuccess($translate.instant(translateInstant), 750, angular.element(element).parent(), 'top left');
+        }
 
     };
     return {

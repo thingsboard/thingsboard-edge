@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;

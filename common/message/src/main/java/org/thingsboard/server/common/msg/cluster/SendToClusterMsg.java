@@ -31,7 +31,6 @@
 package org.thingsboard.server.common.msg.cluster;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;

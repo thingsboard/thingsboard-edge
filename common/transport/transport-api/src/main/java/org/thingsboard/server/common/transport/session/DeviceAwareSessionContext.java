@@ -34,7 +34,7 @@ import lombok.Data;
 import lombok.Getter;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.msg.session.SessionContext;
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.DeviceInfoProto;
 
 import java.util.UUID;
 

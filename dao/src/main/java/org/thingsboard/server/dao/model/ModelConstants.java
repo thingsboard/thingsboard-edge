@@ -36,9 +36,6 @@ import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.util.UUID;
 
 public class ModelConstants {
@@ -246,12 +243,14 @@ public class ModelConstants {
     public static final String INTEGRATION_COLUMN_FAMILY_NAME = "integration";
     public static final String INTEGRATION_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String INTEGRATION_NAME_PROPERTY = "name";
+    public static final String INTEGRATION_SECRET_PROPERTY = "secret";
     public static final String INTEGRATION_CONVERTER_ID_PROPERTY = "converter_id";
     public static final String INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY = "downlink_converter_id";
     public static final String INTEGRATION_ROUTING_KEY_PROPERTY = "routing_key";
     public static final String INTEGRATION_TYPE_PROPERTY = "type";
     public static final String INTEGRATION_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String INTEGRATION_ENABLED_PROPERTY = "enabled";
+    public static final String INTEGRATION_IS_REMOTE_PROPERTY = "is_remote";
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 

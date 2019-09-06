@@ -33,6 +33,8 @@ import {IntegrationController, IntegrationCardController} from './integration.co
 import IntegrationDirective from './integration.directive';
 import IntegrationHttpDirective from './integration-forms/integration-http.directive';
 import IntegrationMqttDirective from './integration-forms/integration-mqtt.directive';
+import IntegrationUdpDirective from './integration-forms/integration-udp.directive';
+import IntegrationTcpDirective from './integration-forms/integration-tcp.directive';
 import IntegrationOpcUaDirective from './integration-forms/integration-opc-ua.directive';
 import IntegrationAwsIotDirective from './integration-forms/integration-aws-iot.directive';
 import IntegrationIbmWatsonIotDirective from './integration-forms/integration-ibm-watson-iot.directive';
@@ -40,6 +42,7 @@ import IntegrationTtnDirective from './integration-forms/integration-ttn.directi
 import MqttTopicFiltersDirective from './integration-forms/mqtt-topic-filters.directive';
 import OpcUaSubscriptionTagsDirective from './integration-forms/opc-ua-subscription-tags.directive';
 import IntegrationAzureEventHubDirective from './integration-forms/integration-azure-event-hub.directive';
+import IntegrationCustomDirective from './integration-forms/integration-custom.directive';
 
 export default angular.module('thingsboard.integration', [])
     .config(IntegrationRoutes)
@@ -48,6 +51,8 @@ export default angular.module('thingsboard.integration', [])
     .directive('tbIntegration', IntegrationDirective)
     .directive('tbIntegrationHttp', IntegrationHttpDirective)
     .directive('tbIntegrationMqtt', IntegrationMqttDirective)
+    .directive('tbIntegrationUdp', IntegrationUdpDirective)
+    .directive('tbIntegrationTcp', IntegrationTcpDirective)
     .directive('tbIntegrationOpcUa', IntegrationOpcUaDirective)
     .directive('tbIntegrationAwsIot', IntegrationAwsIotDirective)
     .directive('tbIntegrationIbmWatsonIot', IntegrationIbmWatsonIotDirective)
@@ -55,4 +60,5 @@ export default angular.module('thingsboard.integration', [])
     .directive('tbMqttTopicFilters', MqttTopicFiltersDirective)
     .directive('tbOpcUaSubscriptionTags', OpcUaSubscriptionTagsDirective)
     .directive('tbIntegrationAzureEventHub', IntegrationAzureEventHubDirective)
+    .directive('tbIntegrationCustom', IntegrationCustomDirective)
     .name;

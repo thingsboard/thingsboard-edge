@@ -445,6 +445,21 @@ export default angular.module('thingsboard.types', [])
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
+                },
+                "UDP": {
+                    name: "integration.type-udp",
+                    value: "UDP",
+                    remote: true
+                },
+                "TCP": {
+                    name: "integration.type-tcp",
+                    value: "TCP",
+                    remote: true
+                },
+                "CUSTOM": {
+                    name: "integration.type-custom",
+                    value: "CUSTOM",
+                    remote: true
                 }
             },
             componentType: {
@@ -574,6 +589,10 @@ export default angular.module('thingsboard.types', [])
                     phone: {
                         name: 'entity-group.entity-field.phone',
                         value: 'phone'
+                    },
+                    label: {
+                        name: 'entity-group.entity-field.label',
+                        value: 'label'
                     }
                 },
                 detailsMode: {
@@ -868,6 +887,10 @@ export default angular.module('thingsboard.types', [])
                 stats: {
                     value: "STATS",
                     name: "event.type-stats"
+                },
+                rawData: {
+                    value: "RAW_DATA",
+                    name: "event.type-rw-event"
                 }
             },
             debugEventType: {
@@ -941,6 +964,20 @@ export default angular.module('thingsboard.types', [])
                 Basic256: "Basic256",
                 Basic256Sha256: "Basic256Sha256",
                 None: "None"
+            },
+            handlerConfigurationTypes: {
+                text:  {
+                    value: "TEXT",
+                    name: "extension.text"
+                },
+                hex: {
+                    value: "HEX",
+                    name: "extension.hex"
+                },
+                binary: {
+                    value: "BINARY",
+                    name: "extension.binary"
+                }
             },
             identityType: {
                 anonymous: "extension.anonymous",

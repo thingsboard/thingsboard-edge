@@ -193,17 +193,17 @@
                     <md-checkbox ng-disabled="$root.loading || vm.readonly"
                                  aria-label="{{ 'white-labeling.show-platform-name-version' | translate }}"
                                  ng-model="vm.whiteLabelingParams.showNameVersion">{{ 'white-labeling.show-platform-name-version' | translate }}</md-checkbox>
-                    <md-input-container flex class="md-block" ng-show="!vm.isSysAdmin && vm.whiteLabelingParams.showNameVersion">
+                    <md-input-container flex class="md-block" ng-show="vm.whiteLabelingParams.showNameVersion">
                         <label translate>white-labeling.platform-name</label>
-                        <input ng-if="!vm.isSysAdmin && vm.whiteLabelingParams.showNameVersion" ng-required="true" ng-model="vm.whiteLabelingParams.platformName" placeholder="ThingsBoard">
+                        <input ng-if="vm.whiteLabelingParams.showNameVersion" ng-required="true" ng-model="vm.whiteLabelingParams.platformName" placeholder="ThingsBoard">
                     </md-input-container>
-                    <md-input-container flex class="md-block" ng-show="!vm.isSysAdmin && vm.whiteLabelingParams.showNameVersion">
+                    <md-input-container flex class="md-block" ng-show="vm.whiteLabelingParams.showNameVersion">
                         <label translate>white-labeling.platform-version</label>
-                        <input ng-if="!vm.isSysAdmin && vm.whiteLabelingParams.showNameVersion" ng-required="true" ng-model="vm.whiteLabelingParams.platformVersion" placeholder="{{vm.thingsboardVersion}}">
+                        <input ng-if="vm.whiteLabelingParams.showNameVersion" ng-required="true" ng-model="vm.whiteLabelingParams.platformVersion" placeholder="{{vm.thingsboardVersion}}">
                     </md-input-container>
-                    <md-input-container flex class="md-block" ng-show="vm.isLoginWl && !vm.isSysAdmin && vm.whiteLabelingParams.showNameVersion">
+                    <md-input-container flex class="md-block" ng-show="vm.isLoginWl && vm.whiteLabelingParams.showNameVersion">
                         <label translate>white-labeling.position.label</label>
-                        <md-select ng-if="vm.isLoginWl && !vm.isSysAdmin && vm.whiteLabelingParams.showNameVersion" ng-model="vm.whiteLabelingParams.showNameBottom">
+                        <md-select ng-if="vm.isLoginWl && vm.whiteLabelingParams.showNameVersion" ng-model="vm.whiteLabelingParams.showNameBottom">
                             <md-option ng-repeat="position in vm.showPosition" ng-value="position.value" translate>
                                 {{position.name}}
                             </md-option>

@@ -267,6 +267,14 @@ integrations:
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
+  rpc:
+    enabled: "${INTEGRATIONS_RPC_ENABLED:true}"
+    port: "${INTEGRATIONS_RPC_PORT:50051}"
+    ssl:
+      # Enable/disable SSL support
+      enabled: "${INTEGRATIONS_RPC_SSL_ENABLED:false}"
+      cert: "${INTEGRATIONS_RPC_SSL_CERT:certChainFile.pem}"
+      privateKey: "${INTEGRATIONS_RPC_SSL_PRIVATE_KEY:privateKeyFile.pem}"
 
 # Reports parameters
 reports:
@@ -316,6 +324,9 @@ caffeine:
     securitySettings:
       timeToLiveInMinutes: 1440
       maxSize: 1
+    remoteIntegrations:
+      timeToLiveInMinutes: 1440
+      maxSize: 10000
 
 redis:
   # standalone or cluster
@@ -359,7 +370,8 @@ spring.resources.chain:
 
 spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation: "true"
 
-# SQL DAO Configuration
+
+# HSQLDB DAO Configuration
 spring:
   data:
     jpa:
@@ -368,12 +380,29 @@ spring:
   jpa:
     hibernate:
       ddl-auto: "none"
-    database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}"
+    database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.HSQLDialect}"
   datasource:
-    driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.postgresql.Driver}"
-    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thingsboard}"
-    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
-    password: "${SPRING_DATASOURCE_PASSWORD:postgres}"
+    driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.hsqldb.jdbc.JDBCDriver}"
+    url: "${SPRING_DATASOURCE_URL:jdbc:hsqldb:file:${SQL_DATA_FOLDER:/tmp}/thingsboardDb;sql.enforce_size=false;hsqldb.log_size=5}"
+    username: "${SPRING_DATASOURCE_USERNAME:sa}"
+    password: "${SPRING_DATASOURCE_PASSWORD:}"
+
+
+# SQL DAO Configuration
+#spring:
+#  data:
+#    jpa:
+#      repositories:
+#        enabled: "true"
+#  jpa:
+#    hibernate:
+#      ddl-auto: "none"
+#    database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}"
+#  datasource:
+#    driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.postgresql.Driver}"
+#    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thingsboard}"
+#    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
+#    password: "${SPRING_DATASOURCE_PASSWORD:postgres}"
 
 # Audit log parameters
 audit-log:
