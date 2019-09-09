@@ -132,7 +132,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     }
 
     public Boolean isEnabled() {
-        return enabled;
+        return !(enabled == null) && enabled;
     }
 
     public void setEnabled(Boolean enabled) {

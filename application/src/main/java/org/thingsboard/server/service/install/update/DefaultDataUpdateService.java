@@ -84,6 +84,7 @@ import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -569,9 +570,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
         boolean hasNext = true;
         while (hasNext) {
             for (Integration integration : pageData.getData()) {
-                if (integration.isEnabled() == null) {
-                    integration.setEnabled(true);
-                    integrationService.saveIntegration(integration);
+                try {
+                    Field enabledField = integration.getClass().getDeclaredField("enabled");
+                    enabledField.setAccessible(true);
+                    Boolean booleanVal = (Boolean) enabledField.get(integration);
+                    if (booleanVal == null) {
+                        integration.setEnabled(true);
+                        integrationService.saveIntegration(integration);
+                    }
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    log.error(e.getMessage(), e);
                 }
             }
             if (pageData.hasNext()) {
