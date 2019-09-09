@@ -38,9 +38,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -98,6 +96,6 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
     @Override
     @JsonIgnore
     public EntityType getEntityType() {
-        return EntityType.ASSET;
+        return EntityType.ALARM;
     }
 }

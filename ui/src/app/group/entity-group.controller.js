@@ -1296,6 +1296,9 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
     }
 
     function add() {
+        vm.entity.id = {
+            entityType: vm.entityType
+        };
         if (vm.entityGroup.ownerId.entityType === types.entityType.customer) {
             if (vm.entityType === types.entityType.customer) {
                 vm.entity.parentCustomerId = vm.entityGroup.ownerId;

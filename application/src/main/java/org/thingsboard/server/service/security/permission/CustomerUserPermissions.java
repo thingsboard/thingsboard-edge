@@ -33,11 +33,15 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -175,6 +179,9 @@ public class CustomerUserPermissions extends AbstractPermissions {
                     }
                 }
             } else {
+                if (operation == Operation.CLAIM_DEVICES) {
+                    return user.getUserPermissions().hasGenericPermission(resource, operation);
+                }
                 if (entity.getEntityType() == EntityType.CUSTOMER && user.getCustomerId().equals(entityId) ||
                         ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId) entity)).contains(user.getOwnerId())) {
                     // This entity does have groups, so we are checking generic level permissions and then group specific permissions

@@ -32,6 +32,7 @@
 
 import eventHeaderLcEventTemplate from './event-header-lc-event.tpl.html';
 import eventHeaderStatsTemplate from './event-header-stats.tpl.html';
+import eventHeaderRawDataTemplate from './event-header-raw-data.tpl.html';
 import eventHeaderErrorTemplate from './event-header-error.tpl.html';
 import eventHeaderDebugConverterTemplate from './event-header-debug-converter.tpl.html';
 import eventHeaderDebugIntegrationTemplate from './event-header-debug-integration.tpl.html';
@@ -67,6 +68,9 @@ export default function EventHeaderDirective($compile, $templateCache, types) {
                     break;
                 case types.debugEventType.debugRuleChain.value:
                     template = eventHeaderDebugRuleNodeTemplate;
+                    break;
+                case types.eventType.rawData.value:
+                    template = eventHeaderRawDataTemplate;
                     break;
             }
             return $templateCache.get(template);

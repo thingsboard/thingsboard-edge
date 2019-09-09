@@ -42,7 +42,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-import static org.thingsboard.rule.engine.api.util.DonAsynchron.withCallback;
+import static org.thingsboard.common.util.DonAsynchron.withCallback;
 
 /**
  * Created by igor on 5/25/18.

@@ -52,7 +52,9 @@
         "export": "Export",
         "share-via": "Share via {{provider}}",
         "move": "Move",
-        "select": "Select"
+        "select": "Select",
+        "continue": "Continue",
+        "discard-changes": "Discard Changes"
     },
     "aggregation": {
         "aggregation": "Aggregation",
@@ -98,10 +100,27 @@
             "activation": "Account activation message",
             "account-activated": "Account activated message",
             "reset-password": "Reset password message",
-            "password-was-reset": "Password was reset message"
+            "password-was-reset": "Password was reset message",
+            "user-activated": "User activated message",
+            "user-registered": "User registered message"
         },
         "mail-subject": "Mail Subject",
-        "mail-body": "Mail body"
+        "mail-body": "Mail body",
+        "security-settings": "Security settings",
+        "password-policy": "Password policy",
+        "minimum-password-length": "Minimum password length",
+        "minimum-password-length-required": "Minimum password length is required",
+        "minimum-password-length-range": "Minimum password length should be in a range from 5 to 50",
+        "minimum-uppercase-letters": "Minimum number of uppercase letters",
+        "minimum-uppercase-letters-range": "Minimum number of uppercase letters can't be negative",
+        "minimum-lowercase-letters": "Minimum number of lowercase letters",
+        "minimum-lowercase-letters-range": "Minimum number of lowercase letters can't be negative",
+        "minimum-digits": "Minimum number of digits",
+        "minimum-digits-range": "Minimum number of digits can't be negative",
+        "minimum-special-characters": "Minimum number of special characters",
+        "minimum-special-characters-range": "Minimum number of special characters can't be negative",
+        "password-expiration-period-days": "Password expiration period in days",
+        "password-expiration-period-days-range": "Password expiration period in days can't be negative"
     },
     "alarm": {
         "alarm": "Alarm",
@@ -278,7 +297,9 @@
         "remove-assets-from-group": "Are you sure you want to remove { count, plural, 1 {1 asset} other {# assets} } from group '{entityGroup}'?",
         "group": "Group of assets",
         "list-of-groups": "{ count, plural, 1 {One asset group} other {List of # asset groups} }",
-        "group-name-starts-with": "Asset groups whose names start with '{{prefix}}'"
+        "group-name-starts-with": "Asset groups whose names start with '{{prefix}}'",
+        "import": "Import assets",
+        "asset-file": "Asset file"
     },
     "attribute": {
         "attributes": "Attributes",
@@ -341,6 +362,8 @@
         "type-rest-api-rule-engine-call": "Rule engine REST API call",
         "type-made-public": "Made public",
         "type-made-private": "Made private",
+        "type-login": "Login",
+        "type-logout": "Logout",
         "status-success": "Success",
         "status-failure": "Failure",
         "audit-log-details": "Audit log details",
@@ -807,6 +830,7 @@
         "name": "Name",
         "name-required": "Name is required.",
         "description": "Description",
+        "label": "Label",
         "events": "Events",
         "details": "Details",
         "copyId": "Copy device Id",
@@ -827,7 +851,9 @@
         "remove-devices-from-group": "Are you sure you want to remove { count, plural, 1 {1 device} other {# devices} } from group '{entityGroup}'?",
         "group": "Group of devices",
         "list-of-groups": "{ count, plural, 1 {One device group} other {List of # device groups} }",
-        "group-name-starts-with": "Device groups whose names start with '{{prefix}}'"
+        "group-name-starts-with": "Device groups whose names start with '{{prefix}}'",
+        "import": "Import device",
+        "device-file": "Device file"
     },
     "dialog": {
         "close": "Close dialog"
@@ -941,6 +967,7 @@
         "search": "Search entities",
         "selected-entities": "{ count, plural, 1 {1 entity} other {# entities} } selected",
         "entity-name": "Entity name",
+        "entity-label": "Entity label",
         "details": "Entity details",
         "no-entities-prompt": "No entities found",
         "no-data": "No data to display",
@@ -1029,7 +1056,8 @@
             "address": "Address",
             "address2": "Address 2",
             "zip": "Zip",
-            "phone": "Phone"
+            "phone": "Phone",
+            "label": "Label"
         },
         "sort-order": {
             "asc": "Ascending",
@@ -1204,6 +1232,7 @@
         "event-type": "Event type",
         "type-error": "Error",
         "type-lc-event": "Lifecycle event",
+        "type-rw-event": "Raw data",
         "type-stats": "Statistics",
         "type-debug-converter": "Debug",
         "type-debug-integration": "Debug",
@@ -1232,7 +1261,8 @@
         "success": "Success",
         "failed": "Failed",
         "messages-processed": "Messages processed",
-        "errors-occurred": "Errors occurred"
+        "errors-occurred": "Errors occurred",
+        "uuid": "UUID"
     },
     "extension": {
         "extensions": "Extensions",
@@ -1390,7 +1420,10 @@
         "import-extension": "Import extension",
         "export-extension": "Export extension",
         "file": "Extensions file",
-        "invalid-file-error": "Invalid extension file"
+        "invalid-file-error": "Invalid extension file",
+        "text": "TEXT",
+        "hex": "HEX",
+        "binary": "BINARY"
     },
     "fullscreen": {
         "expand": "Expand to fullscreen",
@@ -1428,7 +1461,40 @@
     "import": {
         "no-file": "No file selected",
         "drop-file": "Drop a JSON file or click to select a file to upload.",
-        "drop-csv-file": "Drop a CSV file or click to select a file to upload."
+        "drop-csv-file": "Drop a CSV file or click to select a file to upload.",
+        "drop-file-csv": "Drop a CSV file or click to select a file to upload.",
+        "column-value": "Value",
+        "column-title": "Title",
+        "column-example": "Example value data",
+        "column-key": "Attribute/telemetry key",
+        "csv-delimiter": "CSV delimiter",
+        "csv-first-line-header": "First line contains column names",
+        "csv-update-data": "Update attributes/telemetry",
+        "import-csv-number-columns-error": "A file should contain at least two columns",
+        "import-csv-invalid-format-error": "Invalid file format. Line: '{{line}}'",
+        "column-type": {
+            "name": "Name",
+            "type": "Type",
+            "column-type": "Column type",
+            "client-attribute": "Client attribute",
+            "shared-attribute": "Shared attribute",
+            "server-attribute": "Server attribute",
+            "timeseries": "Timeseries",
+            "entity-field": "Entity field",
+            "access-token": "Access token"
+        },
+        "stepper-text":{
+            "select-file": "Select a file",
+            "configuration": "Import configuration",
+            "column-type": "Select columns type",
+            "creat-entities": "Creating new entities",
+            "done": "Done"
+        },
+        "message": {
+            "create-entities": "{{count}} new entities were successfully created.",
+            "update-entities": "{{count}} entities were successfully updated.",
+            "error-entities": "There was an error creating {{count}} entities."
+        }
     },
     "integration": {
         "integration": "Integration",
@@ -1472,6 +1538,7 @@
         "base-url-required": "Base URL is required",
         "security-key": "Security key",
         "http-endpoint": "HTTP endpoint URL",
+        "replace-no-content-to-ok": "Replace response status from 'No-Content' to 'OK'",
         "copy-http-endpoint-url": "Copy HTTP endpoint URL",
         "http-endpoint-url-copied-message": "HTTP endpoint URL has been copied to clipboard",
         "host": "Host",
@@ -1542,6 +1609,9 @@
         "sas-key": "SAS Key",
         "sas-key-required": "SAS Key is required.",
         "iot-hub-name": "IoT Hub Name (required for downlink)",
+        "integration-clazz": "Integration class",
+        "integration-clazz-required": "Integration class is required",
+        "integration-configuration": "Integration JSON configuration",
         "metadata": "Metadata",
         "type": "Type",
         "type-required": "Type is required.",
@@ -1560,6 +1630,9 @@
         "type-ttn": "TheThingsNetwork",
         "type-azure-event-hub": "Azure Event Hub",
         "type-opc-ua": "OPC-UA",
+        "type-custom": "Custom",
+        "type-udp": "UDP",
+        "type-tcp": "TCP",
         "opc-ua-application-name": "Application name",
         "opc-ua-application-uri": "Application uri",
         "opc-ua-scan-period-in-seconds": "Scan period in seconds",
@@ -1597,7 +1670,56 @@
         "add-subscription-tag-prompt": "Please add subscription tag",
         "key": "Key",
         "path": "Path",
-        "required": "Required"
+        "required": "Required",
+        "integration-key": "Integration key",
+        "copy-integration-key": "Copy integration key",
+        "integration-key-copied-message": "Integration key has been copied to clipboard",
+        "integration-secret": "Integration secret",
+        "copy-integration-secret": "Copy integration secret",
+        "integration-secret-copied-message": "Integration secret has been copied to clipboard",
+        "execute-remotely": "Execute remotely",
+        "handler-configuration": "Handler Configuration",
+        "handler-configuration-type": "Handler Type",
+        "so-broadcast": "Broadcast",
+        "so-keepalive-option": "Keepalive",
+        "so-reuse-addr": "Bind the process to a port",
+        "tcp-no-delay": "Tcp No Delay",
+        "fail-fast": "Fail Fast",
+        "strip-delimiter": "Strip Delimiter",
+        "length-field-offset": "Length Field Offset",
+        "length-field-offset-required": "Length Field Offset is required.",
+        "length-field-offset-range": "Length Field Offset should be in a range from 0 to 8.",
+        "length-field-length": "Length Field Length",
+        "length-field-length-required": "Length Field Length is required.",
+        "length-field-length-range": "Length Field Length should be in a range from 0 to 8.",
+        "length-adjustment": "Length Adjustment",
+        "length-adjustment-required": "Length Adjustment is required.",
+        "length-adjustment-range": "Length Adjustment should be in a range from 0 to 8.",
+        "byte-order": "Byte Order",
+        "initial-bytes-to-strip": "Initial Bytes To Strip",
+        "initial-bytes-to-strip-required": "Initial Bytes To Strip is required.",
+        "initial-bytes-to-strip-range": "Initial Bytes To Strip should be in a range from 0 to 8.",
+        "so-backlog-option": "Max number of pending connects on the socket",
+        "so-backlog-option-required": "The max number of pending connects on the socket is required.",
+        "so-backlog-option-range": "The max number of pending connects on the socket should be in a range from 1 to 65535.",
+        "so-rcv-buf": "Buffer size of Sockets accepted from the ServerSocket",
+        "so-rcv-buf-required": "The Buffer size of Sockets accepted from the ServerSocket is required.",
+        "so-rcv-buf-range": "The Buffer size of Sockets accepted from the ServerSocket should be in a range from 1 to 65535.",
+        "so-snd-buf": "Buffer size of Sockets sent to the ServerSocket",
+        "so-snd-buf-required": "Buffer size of Sockets sent to the ServerSocket is required.",
+        "so-snd-buf-range": "Buffer size of Sockets sent to the ServerSocket be in a range from 1 to 65535.",
+        "charset-name": "Charset Name",
+        "charset-name-required": "Charset Name is required.",
+        "message-separator": "Message Separator",
+        "message-separator-required": "Message Separator is required.",
+        "character-sequence": "Character Sequence",
+        "character-sequence-required": "Character Sequence is required.",
+        "max-frame-length": "Max Frame Length",
+        "max-frame-length-required": "Max Frame Length is required.",
+        "max-frame-length-range": "Max Frame Length should be in a range from 1 to 65535.",
+        "handler-type": "Handler Type",
+        "message-size": "Message Size",
+        "message-size-required": "Message Size is required."
     },
     "item": {
         "selected": "Selected"
@@ -1648,10 +1770,38 @@
         "remember-me": "Remember me",
         "forgot-password": "Forgot Password?",
         "password-reset": "Password reset",
+        "expired-password-reset-message": "Your credentials has been expired! Please create new password.",
         "new-password": "New password",
         "new-password-again": "New password again",
         "password-link-sent-message": "Password reset link was successfully sent!",
-        "email": "Email"
+        "email": "Email",
+        "no-account": "Do not have an account?",
+        "create-account": "Create an account"
+    },
+    "signup": {
+        "firstname": "First name",
+        "lastname": "Last name",
+        "email": "Email",
+        "signup": "Sign up",
+        "create-password": "Create a password",
+        "repeat-password": "Repeat your password",
+        "have-account": "Already have an account?",
+        "signin": "Sign in",
+        "no-captcha-message": "You must confirm that you are not a robot",
+        "password-length-message": "Your password must be at least 6 characters long",
+        "email-verification": "Email verification",
+        "email-verification-message": "An email with verification details was sent to the specified email address.</br>Please follow instructions provided in the email in order to complete your sign up procedure.</br>Note: if you haven't seen the email for a while, please check your 'spam' folder or try to resend email by clicking 'Resend' button.",
+        "account-activation-title": "Account activation",
+        "account-activated": "Account successfully activated!",
+        "account-activated-text": "Congratulations!</br>Your account has been activated.</br>Now you can login to your ThingsBoard space.",
+        "resend": "Resend",
+        "inactive-user-exists-title": "Inactive user already exists",
+        "inactive-user-exists-text": "There is already registered user with unverified email address.</br>Click 'Resend' button if you wish to resend verification email.",
+        "activating-account": "Activating account...",
+        "activating-account-text": "Your account is currently activating. Please wait...",
+        "accept-privacy-policy": "Accept Privacy Policy",
+        "accept": "Accept",
+        "privacy-policy": "Privacy Policy"
     },
     "position": {
         "top": "Top",
@@ -1938,6 +2088,7 @@
                 "WRITE_ATTRIBUTES": "Write Attributes",
                 "READ_TELEMETRY": "Read Telemetry",
                 "WRITE_TELEMETRY": "Write Telemetry",
+                "CLAIM_DEVICES": "Claim devices",
                 "IMPERSONATE": "Impersonate",
                 "CHANGE_OWNER": "Change owner",
                 "ADD_TO_GROUP": "Add to Group",
@@ -2151,7 +2302,8 @@
         "edit": "Edit timewindow",
         "date-range": "Date range",
         "last": "Last",
-        "time-period": "Time period"
+        "time-period": "Time period",
+        "hide": "Hide"
     },
     "user": {
         "user": "User",
@@ -2263,6 +2415,7 @@
         "settings-schema": "Settings schema",
         "datakey-settings-schema": "Data key settings schema",
         "javascript": "Javascript",
+        "js": "JS",
         "remove-widget-type-title": "Are you sure you want to remove the widget type '{{widgetName}}'?",
         "remove-widget-type-text": "After the confirmation the widget type and all related data will become unrecoverable.",
         "remove-widget-type": "Remove widget type",
@@ -2283,6 +2436,7 @@
         "update-dashboard-state": "Update current dashboard state",
         "open-dashboard": "Navigate to other dashboard",
         "custom": "Custom action",
+        "custom-pretty": "Custom action (with HTML template)",
         "target-dashboard-state": "Target dashboard state",
         "target-dashboard-state-required": "Target dashboard state is required",
         "set-entity-from-widget": "Set entity from widget",
@@ -2321,6 +2475,7 @@
         "settings": "Settings",
         "advanced": "Advanced",
         "title": "Title",
+        "title-tooltip": "Title Tooltip",
         "general-settings": "General settings",
         "display-title": "Display title",
         "drop-shadow": "Drop shadow",
@@ -2339,6 +2494,7 @@
         "decimals": "Number of digits after floating point",
         "timewindow": "Timewindow",
         "use-dashboard-timewindow": "Use dashboard timewindow",
+        "display-timewindow": "Display timewindow",
         "display-legend": "Display legend",
         "datasources": "Datasources",
         "maximum-datasources": "Maximum { count, plural, 1 {1 datasource is allowed.} other {# datasources are allowed} }",
@@ -2363,7 +2519,10 @@
         "edit-action": "Edit action",
         "delete-action": "Delete action",
         "delete-action-title": "Delete widget action",
-        "delete-action-text": "Are you sure you want delete widget action with name '{{actionName}}'?"
+        "delete-action-text": "Are you sure you want delete widget action with name '{{actionName}}'?",
+        "display-icon": "Display title icon",
+        "icon-color": "Icon color",
+        "icon-size": "Icon size"
     },
     "widget-type": {
         "import": "Import widget type",
@@ -2372,6 +2531,16 @@
         "create-new-widget-type": "Create new widget type",
         "widget-type-file": "Widget type file",
         "invalid-widget-type-file-error": "Unable to import widget type: Invalid widget type data structure."
+    },
+    "self-registration": {
+        "self-registration": "Self Registration",
+        "self-registration-url": "Self Registration URL",
+        "captcha-site-key": "reCAPTCHA site key",
+        "captcha-secret-key": "reCAPTCHA secret key",
+        "notification-email": "Notification email",
+        "privacy-policy-text": "Privacy policy text",
+        "text-message-page": "Text Message for signup page"
+
     },
     "white-labeling": {
         "white-labeling": "White Labeling",
@@ -2405,7 +2574,17 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "help-link-base-url": "Help links base url",
-        "enable-help-links": "Enable help links"
+        "enable-help-links": "Enable help links",
+        "error-verification-url": "A domain name shouldn't contain symbols '/' and ':'. Example: thingsboard.io",
+        "show-platform-name-version": "Show platform name and version",
+        "platform-name": "Platform Name",
+        "platform-version": "Platform version",
+        "version-mask": "{{name}} v.{{verion}}",
+        "position":{
+            "label": "Platform name and version position",
+            "under-logo": "Under the logo",
+            "bottom": "Bottom of the login form"
+        }
     },
     "widgets": {
         "date-range-navigator": {
@@ -2464,6 +2643,26 @@
                 "Step size": "Step size",
                 "Ok": "Ok"
             }
+        },
+        "input-widgets": {
+            "attribute-not-allowed": "Attribute parameter cannot be used in this widget",
+            "date": "Date",
+            "discard-changes": "Discard changes",
+            "entity-attribute-required": "Entity attribute is required",
+            "entity-timeseries-required": "Entity timeseries is required",
+            "not-allowed-entity": "Selected entity cannot have shared attributes",
+            "no-attribute-selected": "No attribute is selected",
+            "no-entity-selected": "No entity selected",
+            "no-timeseries-selected": "No timeseries selected",
+            "switch-attribute-value": "Switch entity attribute value",
+            "switch-timeseries-value": "Switch entity timeseries value",
+            "time": "Time",
+            "timeseries-not-allowed": "Timeseries parameter cannot be used in this widget",
+            "update-failed": "Update failed",
+            "update-successful": "Update successful",
+            "update-attribute": "Update attribute",
+            "update-timeseries": "Update timeseries",
+            "value": "Value"
         }
     },
     "icon": {
@@ -2479,7 +2678,10 @@
             "polygon-click": "On polygon click",
             "marker-click": "On marker click",
             "tooltip-tag-action": "Tooltip tag action",
-            "node-selected": "On node selected"
+            "node-selected": "On node selected",
+            "element-click": "On HTML element click",
+            "pie-slice-click": "On slice click",
+            "row-double-click": "On row double click"
         }
     },
     "language": {
@@ -2496,7 +2698,8 @@
             "ja_JA": "Japanese",
             "tr_TR": "Turkish",
             "fa_IR": "Persian",
-            "uk_UA": "Ukrainian"
+            "uk_UA": "Ukrainian",
+            "cs_CZ": "Czech"            
         }
     }
 }

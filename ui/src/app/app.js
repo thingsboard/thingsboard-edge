@@ -55,6 +55,7 @@ import ngAnimate from 'angular-animate';
 import 'angular-websocket';
 import uiRouter from 'angular-ui-router';
 import angularJwt from 'angular-jwt';
+import 'angular-recaptcha';
 import 'angular-drag-and-drop-lists';
 import mdDataTable from 'angular-material-data-table';
 import fixedTableHeader from 'angular-fixed-table-header';
@@ -87,6 +88,8 @@ import 'moment-timezone';
 import 'jstree/dist/jstree.min';
 
 //import 'jstree/dist/themes/default/style.min.css';
+import 'material-steppers/dist/material-steppers';
+import 'material-steppers/dist/material-steppers.css';
 import 'jstree-bootstrap-theme/dist/themes/proton/style.min.css';
 import 'tinymce/skins/lightgray/skin.min.css';
 import 'tinymce/skins/lightgray/content.min.css';
@@ -107,6 +110,7 @@ import '../scss/main.scss';
 
 import thingsboardThirdpartyFix from './common/thirdparty-fix';
 import thingsboardTranslateHandler from './locale/translate-handler';
+import thingsboardSignUp from './signup';
 import thingsboardLogin from './login';
 import thingsboardDatakeyConfigDialog from './components/datakey-config-dialog.controller';
 import thingsboardDialogs from './dialog';
@@ -122,6 +126,7 @@ import thingsboardHelp from './help/help.directive';
 import thingsboardToast from './services/toast';
 import thingsboardClipboard from './services/clipboard.service';
 import thingsboardHome from './layout';
+import thingsboardApiSignUp from './api/signup.service';
 import thingsboardApiLogin from './api/login.service';
 import thingsboardApiDevice from './api/device.service';
 import thingsboardApiEntityView from './api/entity-view.service';
@@ -145,6 +150,7 @@ import thingsboardApiCustomTranslation from './api/custom-translation.service';
 import thingsboardApiCustomMenu from './api/custom-menu.service';
 import thingsboardApiRole from './api/role.service';
 import thingsboardApiUserPermissions from './api/user-permissions.service';
+import thingsboardApiSelfRegistration from './api/self-register.service';
 
 import AppConfig from './app.config';
 import GlobalInterceptor from './global-interceptor.service';
@@ -156,6 +162,7 @@ angular.module('thingsboard', [
     ngCookies,
     angularSocialshare,
     'pascalprecht.translate',
+    'vcRecaptcha',
     'mdColorPicker',
     'ngMaterialDateRangePicker',
     mdPickers,
@@ -177,8 +184,10 @@ angular.module('thingsboard', [
     'flow',
     'flowchart',
     'ui.calendar',
+    'mdSteppers',
     thingsboardThirdpartyFix,
     thingsboardTranslateHandler,
+    thingsboardSignUp,
     thingsboardLogin,
     thingsboardDatakeyConfigDialog,
     thingsboardDialogs,
@@ -194,6 +203,7 @@ angular.module('thingsboard', [
     thingsboardToast,
     thingsboardClipboard,
     thingsboardHome,
+    thingsboardApiSignUp,
     thingsboardApiLogin,
     thingsboardApiDevice,
     thingsboardApiEntityView,
@@ -217,6 +227,7 @@ angular.module('thingsboard', [
     thingsboardApiCustomMenu,
     thingsboardApiRole,
     thingsboardApiUserPermissions,
+    thingsboardApiSelfRegistration,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

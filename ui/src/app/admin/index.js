@@ -37,9 +37,11 @@ import thingsboardToast from '../services/toast';
 
 import AdminRoutes from './admin.routes';
 import AdminController from './admin.controller';
+import SecuritySettingsController from './security-settings.controller';
 import WhiteLabelingController from './white-labeling.controller';
 import CustomTranslationController from './custom-translation.controller';
 import CustomMenuController from './custom-menu.controller';
+import SelfRegistrationController from './self-registration';
 
 export default angular.module('thingsboard.admin', [
     uiRouter,
@@ -51,7 +53,9 @@ export default angular.module('thingsboard.admin', [
 ])
     .config(AdminRoutes)
     .controller('AdminController', AdminController)
+    .controller('SecuritySettingsController', SecuritySettingsController)
     .controller('WhiteLabelingController', WhiteLabelingController)
     .controller('CustomTranslationController', CustomTranslationController)
     .controller('CustomMenuController', CustomMenuController)
+    .controller('SelfRegistrationController', SelfRegistrationController)
     .name;

@@ -45,8 +45,8 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.dao.event.EventService;
 
 @RestController
 @RequestMapping("/api")

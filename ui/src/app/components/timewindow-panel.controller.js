@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function TimewindowPanelController(mdPanelRef, $scope, timeService, types, timewindow, historyOnly, aggregation, onTimewindowUpdate) {
+export default function TimewindowPanelController(mdPanelRef, $scope, timeService, types, timewindow, historyOnly, aggregation, isEdit, onTimewindowUpdate) {
 
     var vm = this;
 
@@ -48,6 +48,7 @@ export default function TimewindowPanelController(mdPanelRef, $scope, timeServic
     vm.maxHistoryAggInterval = maxHistoryAggInterval;
     vm.minDatapointsLimit = minDatapointsLimit;
     vm.maxDatapointsLimit = maxDatapointsLimit;
+    vm.isEdit = isEdit;
 
     if (vm.historyOnly) {
         vm.timewindow.selectedTab = 1;

@@ -31,7 +31,7 @@
 package org.thingsboard.server.actors.device;
 
 import lombok.Data;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.SessionType;
 
 import java.util.UUID;
 
@@ -41,6 +41,6 @@ import java.util.UUID;
 @Data
 public class ToServerRpcRequestMetadata {
     private final UUID sessionId;
-    private final TransportProtos.SessionType type;
+    private final SessionType type;
     private final String nodeId;
 }

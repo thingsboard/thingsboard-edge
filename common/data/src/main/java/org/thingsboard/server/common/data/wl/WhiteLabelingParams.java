@@ -47,6 +47,9 @@ public class WhiteLabelingParams {
     protected PaletteSettings paletteSettings;
     protected String helpLinkBaseUrl;
     protected Boolean enableHelpLinks;
+    protected Boolean showNameVersion;
+    protected String platformName;
+    protected String platformVersion;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
@@ -73,6 +76,11 @@ public class WhiteLabelingParams {
         }
         if (otherWlParams.enableHelpLinks != null) {
             this.enableHelpLinks = otherWlParams.enableHelpLinks;
+        }
+        if (this.showNameVersion == null) {
+            this.showNameVersion = otherWlParams.showNameVersion;
+            this.platformName = otherWlParams.platformName;
+            this.platformVersion = otherWlParams.platformVersion;
         }
         return this;
     }

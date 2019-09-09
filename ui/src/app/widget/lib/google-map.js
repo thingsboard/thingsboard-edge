@@ -34,7 +34,7 @@ var gmGlobals = {
 }
 
 export default class TbGoogleMap {
-    constructor($containerElement, utils, initCallback, defaultZoomLevel, dontFitMapBounds, disableScrollZooming, minZoomLevel, gmApiKey, gmDefaultMapType) {
+    constructor($containerElement, utils, initCallback, defaultZoomLevel, dontFitMapBounds, disableScrollZooming, minZoomLevel, gmApiKey, gmDefaultMapType, defaultCenterPosition) {
 
         var tbMap = this;
         this.utils = utils;
@@ -43,6 +43,7 @@ export default class TbGoogleMap {
         this.minZoomLevel = minZoomLevel;
         this.tooltips = [];
         this.defaultMapType = gmDefaultMapType;
+        this.defaultCenterPosition = defaultCenterPosition;
 
         function clearGlobalId() {
             if (gmGlobals.loadingGmId && gmGlobals.loadingGmId === tbMap.mapId) {
@@ -57,13 +58,12 @@ export default class TbGoogleMap {
         }
 
         function initGoogleMap() {
-
             tbMap.map = new google.maps.Map($containerElement[0], { // eslint-disable-line no-undef
                 scrollwheel: !disableScrollZooming,
                 mapTypeId: getGoogleMapTypeId(tbMap.defaultMapType),
-                zoom: tbMap.defaultZoomLevel || 8
+                zoom: tbMap.defaultZoomLevel || 8,
+                center: new google.maps.LatLng(tbMap.defaultCenterPosition[0], tbMap.defaultCenterPosition[1]) // eslint-disable-line no-undef
             });
-
             if (initCallback) {
                 initCallback();
             }
@@ -340,7 +340,7 @@ export default class TbGoogleMap {
 
 
 	createPolygon(latLangs, settings, location,  onClickListener, markerArgs) {
-		let polygon = new google.maps.Polygon({
+		let polygon = new google.maps.Polygon({ // eslint-disable-line no-undef
 			map: this.map,
 			paths: latLangs,
 			strokeColor: settings.polygonStrokeColor,
@@ -352,7 +352,7 @@ export default class TbGoogleMap {
 
 		//initialize-tooltip
 
-		let popup = new google.maps.InfoWindow({
+		let popup = new google.maps.InfoWindow({ // eslint-disable-line no-undef
 			content: ''
 		});
 		if (!this.tooltips) this.tooltips = [];
@@ -364,7 +364,7 @@ export default class TbGoogleMap {
 		});
 		let map = this;
 		if (onClickListener) {
-			google.maps.event.addListener(polygon, 'click', function (event) {
+			google.maps.event.addListener(polygon, 'click', function (event) { // eslint-disable-line no-undef
 				if (settings.displayTooltip ) {
 					if (settings.autocloseTooltip) {
 						map.tooltips.forEach((tooltip) => {
@@ -372,7 +372,7 @@ export default class TbGoogleMap {
 						});
 					}
 					if (!polygon.anchor) {
-						polygon.anchor = new google.maps.MVCObject();
+						polygon.anchor = new google.maps.MVCObject(); // eslint-disable-line no-undef
 					}
 					polygon.anchor.set("position", event.latLng);
 					popup.open(this.map, polygon.anchor);

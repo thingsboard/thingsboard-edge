@@ -43,7 +43,7 @@
 	   <md-chips flex ng-if="widgetType != types.widgetType.alarm.value"
 					 id="function_datakey_chips"
 					 ng-required="true"
-					 ng-model="funcDataKeys" md-autocomplete-snap
+					 ng-model="funcDataKeys"
 					 md-transform-chip="transformFuncDataKeyChip($chip)"
 					 md-require-match="false">
 				  <md-autocomplete
@@ -73,10 +73,13 @@
 				  </md-autocomplete>
 				  <md-chip-template>
 					  <div layout="row" layout-align="start center" class="tb-attribute-chip">
-						  <div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
+                          <div class="tb-chip-drag-handle" style="margin-right: 5px;" tb-chip-draggable>
+                              <ng-md-icon size="20" icon="drag_handle"></ng-md-icon>
+                          </div>
+                          <div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
 							  <div class="tb-color-result" ng-style="{background: $chip.color}"></div>
 						  </div>
-						  <div layout="row">
+						  <div layout="row" flex>
 							  <div class="tb-chip-label">
 								  {{$chip.label}}
 							  </div>
@@ -85,7 +88,7 @@
 								  <strong>{{$chip.name}}</strong>
 							  </div>
 						  </div>
-						  <md-button ng-click="editDataKey($event, $chip, $index)" class="md-icon-button tb-md-32">
+						  <md-button ng-click="editDataKey($event, $chip)" class="md-icon-button tb-md-32">
 							  <md-icon aria-label="edit" class="material-icons tb-md-20">edit</md-icon>
 						  </md-button>
 					  </div>
@@ -94,7 +97,7 @@
 		<md-chips flex ng-if="widgetType == types.widgetType.alarm.value"
 				  id="alarm_datakey_chips"
 				  ng-required="true"
-				  ng-model="alarmDataKeys" md-autocomplete-snap
+				  ng-model="alarmDataKeys"
 				  md-transform-chip="transformAlarmDataKeyChip($chip)"
 				  md-require-match="false">
 			<md-autocomplete
@@ -124,10 +127,13 @@
 			</md-autocomplete>
 			<md-chip-template>
 				<div layout="row" layout-align="start center" class="tb-attribute-chip">
-					<div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
+                    <div class="tb-chip-drag-handle" style="margin-right: 5px;" tb-chip-draggable>
+                        <ng-md-icon size="20" icon="drag_handle"></ng-md-icon>
+                    </div>
+                    <div class="tb-color-preview" ng-click="showColorPicker($event, $chip, $index)" style="margin-right: 5px;">
 						<div class="tb-color-result" ng-style="{background: $chip.color}"></div>
 					</div>
-					<div layout="row">
+					<div layout="row" flex>
 						<div class="tb-chip-label">
 							{{$chip.label}}
 						</div>
@@ -137,7 +143,7 @@
 							<strong ng-if="$chip.postFuncBody">f({{$chip.name}})</strong>
 						</div>
 					</div>
-					<md-button ng-click="editDataKey($event, $chip, $index)" class="md-icon-button tb-md-32">
+					<md-button ng-click="editDataKey($event, $chip)" class="md-icon-button tb-md-32">
 						<md-icon aria-label="edit" class="material-icons tb-md-20">edit</md-icon>
 					</md-button>
 				</div>

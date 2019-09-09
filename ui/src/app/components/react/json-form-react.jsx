@@ -64,16 +64,19 @@ ReactSchemaForm.propTypes = {
         accentPalette: React.PropTypes.object,
         schema: React.PropTypes.object,
         form: React.PropTypes.array,
+        groupInfoes: React.PropTypes.array,
         model: React.PropTypes.object,
         option: React.PropTypes.object,
         onModelChange: React.PropTypes.func,
         onColorClick: React.PropTypes.func,
+        onIconClick: React.PropTypes.func,
         onToggleFullscreen: React.PropTypes.func
 }
 
 ReactSchemaForm.defaultProps = {
     schema: {},
-    form: [ "*" ]
+    form: [ "*" ],
+    groupInfoes:[]
 }
 
 ReactSchemaForm.childContextTypes = {

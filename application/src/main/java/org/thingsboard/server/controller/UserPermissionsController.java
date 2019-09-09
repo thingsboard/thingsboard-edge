@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.Op;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

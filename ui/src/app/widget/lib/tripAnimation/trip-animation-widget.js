@@ -501,6 +501,7 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             labelText = vm.utils.createLabelFromDatasource(trip.dataSource, labelText);
             labelReplaceInfo = processPattern(labelText, vm.ctx.datasources, trip.dSIndex);
             label = fillPattern(labelText, labelReplaceInfo, trip.timeRange[vm.index]);
+            label = vm.utils.customTranslation(label, label);
             if (vm.staticSettings.useLabelFunction && angular.isDefined(vm.staticSettings.labelFunction)) {
                 try {
                     labelText = vm.staticSettings.labelFunction(vm.ctx.data, trip.timeRange[vm.index], trip.dSIndex);
@@ -527,6 +528,7 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             tooltipText = vm.utils.createLabelFromDatasource(trip.dataSource, tooltipText);
             tooltipReplaceInfo = processPattern(tooltipText, vm.ctx.datasources, trip.dSIndex);
             tooltip = fillPattern(tooltipText, tooltipReplaceInfo, trip.timeRange[vm.index]);
+            tooltip = vm.utils.customTranslation(tooltip, tooltip);
             tooltip = fillPatternWithActions(tooltip, 'onTooltipAction', null);
 
         }
@@ -548,6 +550,7 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             tooltipText = vm.utils.createLabelFromDatasource(trip.dataSource, tooltipText);
             tooltipReplaceInfo = processPattern(tooltipText, vm.ctx.datasources, trip.dSIndex);
             tooltip = fillPattern(tooltipText, tooltipReplaceInfo, trip.timeRange[vm.index]);
+            tooltip = vm.utils.customTranslation(tooltip, tooltip);
             tooltip = fillPatternWithActions(tooltip, 'onTooltipAction', null);
 
         }
@@ -569,6 +572,7 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             tooltipText = vm.utils.createLabelFromDatasource(trip.dataSource, tooltipText);
             tooltipReplaceInfo = processPattern(tooltipText, vm.ctx.datasources, trip.dSIndex);
             tooltip = fillPattern(tooltipText, tooltipReplaceInfo, trip.timeRange[index]);
+            tooltip = vm.utils.customTranslation(tooltip, tooltip);
             tooltip = fillPatternWithActions(tooltip, 'onTooltipAction', null);
 
         }
@@ -694,7 +698,7 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
 
     function fillPattern(pattern, replaceInfo, currentNormalizedValue) {
         let text = angular.copy(pattern);
-        let reg = /\$\{([^\}]*)\}/g;
+        let reg = /\$\{([^}]*)\}/g;
         if (replaceInfo) {
             for (let v = 0; v < replaceInfo.variables.length; v++) {
                 let variableInfo = replaceInfo.variables[v];
@@ -980,7 +984,9 @@ function tripAnimationController($document, $scope, $log, $http, $timeout, $filt
             }
         }
         if (trip && vm.activeTripIndex !== trip.dSIndex) vm.activeTripIndex = trip.dSIndex;
-        vm.mainTooltip = vm.trips[vm.activeTripIndex].settings.tooltipText;
+        if (vm.trips.length) {
+            vm.mainTooltip = vm.trips[vm.activeTripIndex].settings.tooltipText;
+        }
     }
 
     function showHidePointTooltip(text, index) {

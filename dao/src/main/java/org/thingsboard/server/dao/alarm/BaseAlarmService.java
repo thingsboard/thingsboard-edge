@@ -170,9 +170,9 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
 
     private Set<EntityId> getParentEntities(Alarm alarm) throws InterruptedException, ExecutionException {
         EntityRelationsQuery commonQuery = new EntityRelationsQuery();
-        commonQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.COMMON));
+        commonQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.COMMON, false));
         EntityRelationsQuery groupQuery = new EntityRelationsQuery();
-        groupQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.FROM_ENTITY_GROUP));
+        groupQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.FROM_ENTITY_GROUP, false));
         Set<EntityId> parentEntities = new HashSet<>();
         parentEntities.addAll(relationService.findByQuery(alarm.getTenantId(), commonQuery).get().stream().map(EntityRelation::getFrom).collect(Collectors.toList()));
         parentEntities.addAll(relationService.findByQuery(alarm.getTenantId(), groupQuery).get().stream().map(EntityRelation::getFrom).collect(Collectors.toList()));

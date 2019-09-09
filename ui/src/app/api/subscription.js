@@ -316,6 +316,7 @@ export default class Subscription {
                         deferred.resolve();
                     },
                     function fail() {
+                        subscription.notifyDataLoaded();
                         deferred.reject();
                     }
                 );
@@ -917,7 +918,7 @@ export default class Subscription {
             const checkProperty = (dataObj, key) => {
                 var toCheck = key;
                 var count = 1;
-                while(dataObj.hasOwnProperty(toCheck)) {
+                while(Object.prototype.hasOwnProperty.call(dataObj, toCheck)) {
                     count++;
                     toCheck = key + count;
                 }

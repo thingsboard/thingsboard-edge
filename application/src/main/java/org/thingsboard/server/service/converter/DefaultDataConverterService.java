@@ -32,15 +32,23 @@ package org.thingsboard.server.service.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
+import org.thingsboard.integration.api.converter.TBDataConverter;
+import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.service.converter.js.JSDownlinkDataConverter;
-import org.thingsboard.server.service.converter.js.JSUplinkDataConverter;
-import org.thingsboard.server.service.script.JsInvokeService;
+import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -57,6 +65,12 @@ public class DefaultDataConverterService implements DataConverterService {
     @Autowired
     private JsInvokeService jsSandbox;
 
+    @Autowired
+    private IntegrationRpcService rpcService;
+
+    @Autowired
+    private IntegrationService integrationService;
+
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
     @PreDestroy
@@ -72,6 +86,7 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Override
     public TBDataConverter updateConverter(Converter configuration) {
+        rpcService.updateConverter(configuration);
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);

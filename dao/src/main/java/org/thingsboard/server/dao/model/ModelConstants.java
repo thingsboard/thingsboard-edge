@@ -36,9 +36,6 @@ import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.util.UUID;
 
 public class ModelConstants {
@@ -155,6 +152,7 @@ public class ModelConstants {
     public static final String DEVICE_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
     public static final String DEVICE_NAME_PROPERTY = "name";
     public static final String DEVICE_TYPE_PROPERTY = "type";
+    public static final String DEVICE_LABEL_PROPERTY = "label";
     public static final String DEVICE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String DEVICE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_tenant_and_search_text";
     public static final String DEVICE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_tenant_by_type_and_search_text";
@@ -245,11 +243,13 @@ public class ModelConstants {
     public static final String INTEGRATION_COLUMN_FAMILY_NAME = "integration";
     public static final String INTEGRATION_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String INTEGRATION_NAME_PROPERTY = "name";
+    public static final String INTEGRATION_SECRET_PROPERTY = "secret";
     public static final String INTEGRATION_CONVERTER_ID_PROPERTY = "converter_id";
     public static final String INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY = "downlink_converter_id";
     public static final String INTEGRATION_ROUTING_KEY_PROPERTY = "routing_key";
     public static final String INTEGRATION_TYPE_PROPERTY = "type";
     public static final String INTEGRATION_DEBUG_MODE_PROPERTY = "debug_mode";
+    public static final String INTEGRATION_IS_REMOTE_PROPERTY = "is_remote";
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 

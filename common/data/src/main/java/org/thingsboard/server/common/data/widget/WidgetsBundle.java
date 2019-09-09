@@ -32,8 +32,6 @@ package org.thingsboard.server.common.data.widget;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasEntityType;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;

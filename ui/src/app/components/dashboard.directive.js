@@ -202,12 +202,16 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.widgetStyle = widgetStyle;
     vm.widgetColor = widgetColor;
     vm.showWidgetTitle = showWidgetTitle;
+    vm.showWidgetTitleIcon = showWidgetTitleIcon;
     vm.hasWidgetTitleTemplate = hasWidgetTitleTemplate;
     vm.widgetTitleTemplate = widgetTitleTemplate;
     vm.showWidgetTitlePanel = showWidgetTitlePanel;
     vm.showWidgetActions = showWidgetActions;
     vm.widgetTitleStyle = widgetTitleStyle;
     vm.widgetTitle = widgetTitle;
+    vm.widgetTitleIcon = widgetTitleIcon;
+    vm.widgetTitleIconStyle = widgetTitleIconStyle;
+    vm.widgetTitleTooltip = widgetTitleTooltip;
     vm.customWidgetHeaderActions = customWidgetHeaderActions;
     vm.widgetActions = widgetActions;
     vm.dropWidgetShadow = dropWidgetShadow;
@@ -220,7 +224,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     vm.exportWidget = exportWidget;
     vm.removeWidget = removeWidget;
     vm.loading = loading;
-    vm.getWidgetTitle = getWidgetTitle;
+    vm.getCustomTranslatedWidgetTitle = getCustomTranslatedWidgetTitle;
 
     vm.openDashboardContextMenu = openDashboardContextMenu;
     vm.openWidgetContextMenu = openWidgetContextMenu;
@@ -922,6 +926,14 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         }
     }
 
+    function showWidgetTitleIcon(widget) {
+        if (angular.isDefined(widget.config.showTitleIcon)) {
+            return widget.config.showTitleIcon;
+        } else {
+            return false;
+        }
+    }
+
     function hasWidgetTitleTemplate(widget) {
         var ctx = widgetContext(widget);
         if (ctx && ctx.widgetTitleTemplate) {
@@ -973,6 +985,35 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
             return ctx.widgetTitle;
         } else {
             return widget.config.title;
+        }
+    }
+
+    function widgetTitleIcon(widget) {
+        if (angular.isDefined(widget.config.titleIcon)) {
+            return widget.config.titleIcon;
+        } else {
+            return '';
+        }
+    }
+
+    function widgetTitleIconStyle(widget) {
+        var style = {};
+        if (angular.isDefined(widget.config.iconColor)) {
+            style.color = widget.config.iconColor;
+        }
+        if (angular.isDefined(widget.config.iconSize)) {
+            style.fontSize = widget.config.iconSize;
+        }
+        return style;
+    }
+
+    function widgetTitleTooltip(widget) {
+        var ctx = widgetContext(widget);
+        if (ctx && ctx.widgetTitleTooltip
+            && ctx.widgetTitleTooltip.length) {
+            return ctx.widgetTitleTooltip;
+        } else {
+            return widget.config.titleTooltip;
         }
     }
 
@@ -1035,7 +1076,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
     function hasTimewindow(widget) {
         if (widget.type === types.widgetType.timeseries.value || widget.type === types.widgetType.alarm.value) {
             return angular.isDefined(widget.config.useDashboardTimewindow) ?
-                !widget.config.useDashboardTimewindow : false;
+                (!widget.config.useDashboardTimewindow && (angular.isUndefined(widget.config.displayTimewindow) || widget.config.displayTimewindow)) : false;
         } else {
             return false;
         }
@@ -1105,7 +1146,7 @@ function DashboardController($scope, $rootScope, $element, $timeout, $mdMedia, $
         return !vm.ignoreLoading && $rootScope.loading;
     }
 
-    function getWidgetTitle(widget) {
+    function getCustomTranslatedWidgetTitle(widget) {
         return utils.customTranslation(vm.widgetTitle(widget), vm.widgetTitle(widget));
     }
 }

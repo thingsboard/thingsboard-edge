@@ -67,7 +67,9 @@ CREATE TABLE IF NOT EXISTS integration (
     additional_info varchar,
     configuration varchar(10000000),
     debug_mode boolean,
+    is_remote boolean,
     name varchar(255),
+    secret varchar(255),
     converter_id varchar(31),
     downlink_converter_id varchar(31),
     routing_key varchar(255),
@@ -159,6 +161,7 @@ CREATE TABLE IF NOT EXISTS device (
     customer_id varchar(31),
     type varchar(255),
     name varchar(255),
+    label varchar(255),
     search_text varchar(255),
     tenant_id varchar(31)
 );

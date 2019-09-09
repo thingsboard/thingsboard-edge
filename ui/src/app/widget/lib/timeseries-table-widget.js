@@ -61,7 +61,7 @@ function TimeseriesTableWidget() {
 /*@ngInject*/
 function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, types) {
     var vm = this;
-    let dateFormatFilter = 'yyyy-MM-dd HH:mm:ss';
+    let dateFormatFilter;
 
     vm.sources = [];
     vm.sourceIndex = 0;
@@ -73,6 +73,9 @@ function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, ty
 
     vm.enterFilterMode = enterFilterMode;
     vm.exitFilterMode = exitFilterMode;
+    vm.onRowClick = onRowClick;
+    vm.onActionButtonClick = onActionButtonClick;
+    vm.actionCellDescriptors = [];
 
     function enterFilterMode () {
         vm.query.search = '';
@@ -108,7 +111,9 @@ function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, ty
 
     function initialize() {
         vm.ctx.widgetActions = [ vm.searchAction ];
+        vm.actionCellDescriptors = vm.ctx.actionsApi.getActionDescriptors('actionCellButton');
         vm.showTimestamp = vm.settings.showTimestamp !== false;
+        dateFormatFilter = (vm.settings.showMilliseconds !== true) ? 'yyyy-MM-dd HH:mm:ss' :  'yyyy-MM-dd HH:mm:ss.sss';
         var origColor = vm.widgetConfig.color || 'rgba(0, 0, 0, 0.87)';
         var defaultColor = tinycolor(origColor);
         var mdDark = defaultColor.setAlpha(0.87).toRgbString();
@@ -193,6 +198,28 @@ function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, ty
         reorder(source);
         updatePage(source);
     }
+
+    function onRowClick($event, row) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var descriptors = vm.ctx.actionsApi.getActionDescriptors('rowClick');
+        if (descriptors.length) {
+						var entityId = vm.ctx.activeEntityInfo.entityId;
+            var entityName = vm.ctx.activeEntityInfo.entityName;
+            vm.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName, row);
+        }
+    }
+
+    function onActionButtonClick($event, row, actionDescriptor) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+				var entityId = vm.ctx.activeEntityInfo.entityId;
+        var entityName = vm.ctx.activeEntityInfo.entityName;
+        vm.ctx.actionsApi.handleWidgetAction($event, actionDescriptor, entityId, entityName, row);
+    }
+
 
     vm.cellStyle = function(source, index, value) {
         var style = {};
@@ -405,7 +432,18 @@ function TimeseriesTableWidgetController($element, $scope, $filter, $timeout, ty
         }
         var rows = [];
         for (var t in rowsMap) {
-            rows.push(rowsMap[t]);
+            if (vm.settings.hideEmptyLines)
+			{
+                var hideLine = true;
+                for (var _c = 0; (_c < data.length) && hideLine; _c++) {
+                    if (rowsMap[t][_c+1])
+                        hideLine = false;
+                }
+                if (!hideLine)
+                   rows.push(rowsMap[t]);
+            }
+            else
+                rows.push(rowsMap[t]);
         }
         return rows;
     }

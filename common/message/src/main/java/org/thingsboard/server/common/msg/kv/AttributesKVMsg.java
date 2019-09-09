@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.common.msg.kv;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface AttributesKVMsg extends Serializable {
 

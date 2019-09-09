@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.common.transport.service;
 
-import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
+import org.thingsboard.server.gen.transport.TransportApiRequestMsg;
 import org.thingsboard.server.kafka.TbKafkaEncoder;
 
 /**

@@ -110,14 +110,19 @@ plugins:
 security:
   # JWT Token parameters
   jwt:
-    tokenExpirationTime: "${JWT_TOKEN_EXPIRATION_TIME:900}" # Number of seconds (15 mins)
-    refreshTokenExpTime: "${JWT_REFRESH_TOKEN_EXPIRATION_TIME:3600}" # Seconds (1 hour)
+    tokenExpirationTime: "${JWT_TOKEN_EXPIRATION_TIME:9000}" # Number of seconds (2.5 hours)
+    refreshTokenExpTime: "${JWT_REFRESH_TOKEN_EXPIRATION_TIME:604800}" # Number of seconds (1 week)
     tokenIssuer: "${JWT_TOKEN_ISSUER:thingsboard.io}"
     tokenSigningKey: "${JWT_TOKEN_SIGNING_KEY:thingsboardDefaultSigningKey}"
   # Enable/disable access to Tenant Administrators JWT token by System Administrator or Customer Users JWT token by Tenant Administrator
   user_token_access_enabled: "${SECURITY_USER_TOKEN_ACCESS_ENABLED:true}"
   # Enable/disable case-sensitive username login
   user_login_case_sensitive: "${SECURITY_USER_LOGIN_CASE_SENSITIVE:true}"
+  claim:
+    # Enable/disable claiming devices, if false -> the device's [claimingAllowed] SERVER_SCOPE attribute must be set to [true] to allow claiming specific device
+    allowClaimingByDefault: "${SECURITY_CLAIM_ALLOW_CLAIMING_BY_DEFAULT:true}"
+    # Time allowed to claim the device in milliseconds
+    duration: "${SECURITY_CLAIM_DURATION:60000}" # 1 minute, note this value must equal claimDevices.timeToLiveInMinutes value
 
 # Dashboard parameters
 dashboard:
@@ -262,6 +267,14 @@ integrations:
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
+  rpc:
+    enabled: "${INTEGRATIONS_RPC_ENABLED:true}"
+    port: "${INTEGRATIONS_RPC_PORT:50051}"
+    ssl:
+      # Enable/disable SSL support
+      enabled: "${INTEGRATIONS_RPC_SSL_ENABLED:false}"
+      cert: "${INTEGRATIONS_RPC_SSL_CERT:certChainFile.pem}"
+      privateKey: "${INTEGRATIONS_RPC_SSL_PRIVATE_KEY:privateKeyFile.pem}"
 
 # Reports parameters
 reports:
@@ -305,6 +318,15 @@ caffeine:
     owners:
       timeToLiveInMinutes: 1440
       maxSize: 100000
+    claimDevices:
+      timeToLiveInMinutes: 1
+      maxSize: 100000
+    securitySettings:
+      timeToLiveInMinutes: 1440
+      maxSize: 1
+    remoteIntegrations:
+      timeToLiveInMinutes: 1440
+      maxSize: 10000
 
 redis:
   # standalone or cluster
@@ -348,6 +370,7 @@ spring.resources.chain:
 
 spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation: "true"
 
+
 # HSQLDB DAO Configuration
 spring:
   data:
@@ -356,7 +379,7 @@ spring:
         enabled: "true"
   jpa:
     hibernate:
-      ddl-auto: "validate"
+      ddl-auto: "none"
     database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.HSQLDialect}"
   datasource:
     driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.hsqldb.jdbc.JDBCDriver}"
@@ -364,15 +387,16 @@ spring:
     username: "${SPRING_DATASOURCE_USERNAME:sa}"
     password: "${SPRING_DATASOURCE_PASSWORD:}"
 
-# PostgreSQL DAO Configuration
+
+# SQL DAO Configuration
 #spring:
 #  data:
-#    sql:
+#    jpa:
 #      repositories:
 #        enabled: "true"
-#  sql:
+#  jpa:
 #    hibernate:
-#      ddl-auto: "validate"
+#      ddl-auto: "none"
 #    database-platform: "${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}"
 #  datasource:
 #    driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.postgresql.Driver}"
