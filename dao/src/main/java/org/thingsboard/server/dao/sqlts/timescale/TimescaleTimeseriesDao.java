@@ -42,14 +42,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.Aggregation;
-import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
-import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
-import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvQuery;
+import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.model.sqlts.timescale.TimescaleTsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.timescale.TimescaleTsKvEntity;
 import org.thingsboard.server.dao.sqlts.AbstractSqlTimeseriesDao;
 import org.thingsboard.server.dao.sqlts.AbstractTimeseriesInsertRepository;
@@ -156,6 +151,11 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
     @Override
     public ListenableFuture<Void> saveLatest(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
         return insertService.submit(() -> null);
+    }
+
+    @Override
+    public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
+        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TimescaleTsKvCompositeKey(tenantId.getId().toString(), entityId.getId().toString(), key, ts))));
     }
 
     @Override
