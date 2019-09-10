@@ -461,7 +461,7 @@ export default class TbFlot {
             if (keySettings.showPoints === true) {
                 series.points.show = true;
                 series.points.lineWidth = 5;
-                series.points.radius = 3;
+                series.points.radius = angular.isDefined(keySettings.showPointsRadius) ? keySettings.showPointsRadius : 3;
             }
 
             if (this.chartType === 'line' && this.ctx.settings.smoothLines && !series.points.show) {
@@ -1122,6 +1122,11 @@ export default class TbFlot {
                         "type": "boolean",
                         "default": false
                     },
+                    "showPointsRadius": {
+                        "title": "Radius of points",
+                        "type": "number",
+                        "default": 3
+                    },
                     "tooltipValueFormatter": {
                         "title": "Tooltip value format function, f(value)",
                         "type": "string",
@@ -1174,6 +1179,7 @@ export default class TbFlot {
                 "showLines",
                 "fillLines",
                 "showPoints",
+                "showPointsRadius",
                 {
                     "key": "tooltipValueFormatter",
                     "type": "javascript"

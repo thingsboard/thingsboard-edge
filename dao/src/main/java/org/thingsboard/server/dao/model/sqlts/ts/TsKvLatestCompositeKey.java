@@ -28,18 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.timeseries;
+package org.thingsboard.server.dao.model.sqlts.ts;
 
-import org.springframework.data.repository.CrudRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.dao.model.sql.TsKvLatestCompositeKey;
-import org.thingsboard.server.dao.model.sql.TsKvLatestEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.List;
+import javax.persistence.Transient;
+import java.io.Serializable;
 
-@SqlDao
-public interface TsKvLatestRepository extends CrudRepository<TsKvLatestEntity, TsKvLatestCompositeKey> {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TsKvLatestCompositeKey implements Serializable{
 
-    List<TsKvLatestEntity> findAllByEntityTypeAndEntityId(EntityType entityType, String entityId);
+    @Transient
+    private static final long serialVersionUID = -4089175869616037523L;
+
+    private EntityType entityType;
+    private String entityId;
+    private String key;
 }
