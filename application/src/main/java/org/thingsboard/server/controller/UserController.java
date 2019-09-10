@@ -413,7 +413,7 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
-            User user = checkUserId(userId, Operation.WRITE);
+            checkUserId(userId, Operation.WRITE);
             TenantId tenantId = getCurrentUser().getTenantId();
             userService.setUserCredentialsEnabled(tenantId, userId, userCredentialsEnabled);
         } catch (Exception e) {
