@@ -48,6 +48,7 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -133,6 +134,13 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+        }
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (executor != null) {
+            executor.shutdownNow();
         }
     }
 }
