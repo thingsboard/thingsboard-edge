@@ -37,6 +37,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.List;
 
+import javax.mail.MessagingException;
+
 public interface MailService {
 
     void sendEmail(TenantId tenantId, String email, String subject, String message) throws ThingsboardException;
@@ -56,5 +58,7 @@ public interface MailService {
     void sendUserRegisteredEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException;
 
     void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException;
+
+    void sendAccountLockoutEmail(TenantId tenantId, String lockoutEmail, String email, Integer maxFailedLoginAttempts) throws ThingsboardException;
 
 }

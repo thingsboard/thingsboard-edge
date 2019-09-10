@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.service.security.system;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
@@ -44,15 +47,21 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
 import org.thingsboard.server.service.security.model.SecuritySettings;
 import org.thingsboard.server.service.security.model.UserPasswordPolicy;
@@ -60,6 +69,7 @@ import org.thingsboard.server.service.security.model.UserPasswordPolicy;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTINGS_CACHE;
@@ -78,6 +88,9 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MailService mailService;
 
     @Resource
     private SystemSecurityService self;
@@ -119,15 +132,31 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
     }
 
     @Override
-    public void validateUserCredentials(TenantId tenantId, UserCredentials userCredentials, String password) throws AuthenticationException {
-
+    public void validateUserCredentials(TenantId tenantId, UserCredentials userCredentials, String username, String password) throws AuthenticationException {
         if (!encoder.matches(password, userCredentials.getPassword())) {
+            int failedLoginAttempts = userService.onUserLoginIncorrectCredentials(tenantId, userCredentials.getUserId());
+            SecuritySettings securitySettings = getSecuritySettings(tenantId);
+            if (securitySettings.getMaxFailedLoginAttempts() != null && securitySettings.getMaxFailedLoginAttempts() > 0) {
+                if (failedLoginAttempts > securitySettings.getMaxFailedLoginAttempts() && userCredentials.isEnabled()) {
+                    userService.setUserCredentialsEnabled(TenantId.SYS_TENANT_ID, userCredentials.getUserId(), false);
+                    if (StringUtils.isNoneBlank(securitySettings.getUserLockoutNotificationEmail())) {
+                        try {
+                            mailService.sendAccountLockoutEmail(tenantId, username, securitySettings.getUserLockoutNotificationEmail(), securitySettings.getMaxFailedLoginAttempts());
+                        } catch (ThingsboardException e) {
+                            log.warn("Can't send email regarding user account [{}] lockout to provided email [{}]", username, securitySettings.getUserLockoutNotificationEmail(), e);
+                        }
+                    }
+                    throw new LockedException("Authentication Failed. Username was locked due to security policy.");
+                }
+            }
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
 
         if (!userCredentials.isEnabled()) {
             throw new DisabledException("User is not active");
         }
+
+        userService.onUserLoginSuccessful(tenantId, userCredentials.getUserId());
 
         SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
         if (isPositiveInteger(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays())) {
@@ -141,7 +170,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
     }
 
     @Override
-    public void validatePassword(TenantId tenantId, String password) throws DataValidationException {
+    public void validatePassword(TenantId tenantId, String password, UserCredentials userCredentials) throws DataValidationException {
         SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
         UserPasswordPolicy passwordPolicy = securitySettings.getPasswordPolicy();
 
@@ -165,6 +194,22 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         if (!result.isValid()) {
             String message = String.join("\n", validator.getMessages(result));
             throw new DataValidationException(message);
+        }
+
+        if (userCredentials != null && isPositiveInteger(passwordPolicy.getPasswordReuseFrequencyDays())) {
+            long passwordReuseFrequencyTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(passwordPolicy.getPasswordReuseFrequencyDays());
+            User user = userService.findUserById(tenantId, userCredentials.getUserId());
+            JsonNode additionalInfo = user.getAdditionalInfo();
+            if (additionalInfo instanceof ObjectNode && additionalInfo.has(UserServiceImpl.USER_PASSWORD_HISTORY)) {
+                JsonNode userPasswordHistoryJson = additionalInfo.get(UserServiceImpl.USER_PASSWORD_HISTORY);
+                Map<String, String> userPasswordHistoryMap = objectMapper.convertValue(userPasswordHistoryJson, Map.class);
+                for (Map.Entry<String, String> entry : userPasswordHistoryMap.entrySet()) {
+                    if (encoder.matches(password, entry.getValue()) && Long.parseLong(entry.getKey()) > passwordReuseFrequencyTs) {
+                        throw new DataValidationException("Password was already used for the last " + passwordPolicy.getPasswordReuseFrequencyDays() + " days");
+                    }
+                }
+
+            }
         }
     }
 

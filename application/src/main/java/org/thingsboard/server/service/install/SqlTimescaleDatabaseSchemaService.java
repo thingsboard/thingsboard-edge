@@ -28,25 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.service.install;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.EntityType;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.server.dao.util.TimescaleDBTsDao;
 
-import javax.persistence.Transient;
-import java.io.Serializable;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TsKvLatestCompositeKey implements Serializable{
-
-    @Transient
-    private static final long serialVersionUID = -4089175869616037523L;
-
-    private EntityType entityType;
-    private String entityId;
-    private String key;
+@Service
+@TimescaleDBTsDao
+@Profile("install")
+public class SqlTimescaleDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
+        implements TsDatabaseSchemaService {
+    public SqlTimescaleDatabaseSchemaService() {
+        super("schema-timescale.sql", "schema-timescale-idx.sql");
+    }
 }
