@@ -135,9 +135,15 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
-        context.processUplinkData(DeviceUplinkDataProto.newBuilder()
-                .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType())
-                .setPostTelemetryMsg(data.getTelemetry()).setPostAttributesMsg(data.getAttributesUpdate()).build(), null);
+        DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
+                .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType());
+        if (data.getTelemetry() != null) {
+            builder.setPostTelemetryMsg(data.getTelemetry());
+        }
+        if (data.getAttributesUpdate() != null) {
+            builder.setPostAttributesMsg(data.getAttributesUpdate());
+        }
+        context.processUplinkData(builder.build(), null);
     }
 
     protected void createEntityView(IntegrationContext context, UplinkData data, String viewName, String viewType, List<String> telemetryKeys) {
