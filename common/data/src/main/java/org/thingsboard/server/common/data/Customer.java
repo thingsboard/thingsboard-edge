@@ -37,8 +37,8 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-public class Customer extends ContactBased<CustomerId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
-    
+public class Customer extends ContactBased<CustomerId> implements TenantEntity, HasCustomerId, HasOwnerId {
+
     private static final long serialVersionUID = -1599722990298929275L;
     
     private String title;

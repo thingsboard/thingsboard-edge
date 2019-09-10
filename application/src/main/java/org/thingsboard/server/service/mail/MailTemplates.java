@@ -43,6 +43,7 @@ public class MailTemplates {
     public static final String TEST = "test";
     public static final String ACTIVATION = "activation";
     public static final String ACCOUNT_ACTIVATED = "accountActivated";
+    public static final String ACCOUNT_LOCKOUT = "accountLockout";
     public static final String RESET_PASSWORD = "resetPassword"; //NOSONAR, used as constant defining key for mail template
     public static final String PASSWORD_WAS_RESET = "passwordWasReset"; //NOSONAR, used as constant defining key for mail template
     public static final String USER_ACTIVATED = "userActivated";

@@ -53,6 +53,13 @@ export default function UserDirective($compile, $templateCache, securityTypes, u
         scope.loginAsUserEnabled = userService.isUserTokenAccessEnabled() &&
             userPermissionsService.hasGenericPermission(securityTypes.resource.user, securityTypes.operation.impersonate);
 
+        scope.isUserCredentialsEnabled = function() {
+            if (!scope.user || !scope.user.additionalInfo) {
+                return true;
+            }
+            return scope.user.additionalInfo.userCredentialsEnabled === true;
+        };
+
         $compile(element.contents())(scope);
     }
     return {
@@ -66,7 +73,8 @@ export default function UserDirective($compile, $templateCache, securityTypes, u
             onDisplayActivationLink: '&',
             onResendActivation: '&',
             onLoginAsUser: '&',
-            onDeleteUser: '&'
+            onDeleteUser: '&',
+            onSetUserCredentialsEnabled: '&',
         }
     };
 }

@@ -35,11 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.thingsboard.server.common.data.Customer;
@@ -67,7 +67,6 @@ import java.util.UUID;
 @Slf4j
 public class RestAuthenticationProvider implements AuthenticationProvider {
 
-    private final BCryptPasswordEncoder encoder;
     private final SystemSecurityService systemSecurityService;
     private final UserService userService;
     private final CustomerService customerService;
@@ -76,12 +75,11 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
     public RestAuthenticationProvider(final UserService userService, final CustomerService customerService,
-                                      final BCryptPasswordEncoder encoder, final UserPermissionsService userPermissionsService,
+                                      final UserPermissionsService userPermissionsService,
                                       final SystemSecurityService systemSecurityService,
                                       final AuditLogService auditLogService) {
         this.userService = userService;
         this.customerService = customerService;
-        this.encoder = encoder;
         this.userPermissionsService = userPermissionsService;
         this.systemSecurityService = systemSecurityService;
         this.auditLogService = auditLogService;
@@ -120,18 +118,21 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
                 throw new UsernameNotFoundException("User credentials not found");
             }
 
-            systemSecurityService.validateUserCredentials(user.getTenantId(), userCredentials, password);
+            try {
+                systemSecurityService.validateUserCredentials(user.getTenantId(), userCredentials, username, password);
+            } catch (LockedException e) {
+                logLoginAction(user, authentication, ActionType.LOCKOUT, null);
+                throw e;
+            }
 
             if (user.getAuthority() == null)
                 throw new InsufficientAuthenticationException("User has no authority assigned");
 
             SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), userPrincipal, getMergedUserPermissions(user, false));
-
-            logLoginAction(user, authentication, null);
-
+            logLoginAction(user, authentication, ActionType.LOGIN, null);
             return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
         } catch (Exception e) {
-            logLoginAction(user, authentication, e);
+            logLoginAction(user, authentication, ActionType.LOGIN, e);
             throw e;
         }
     }
@@ -176,7 +177,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         }
     }
 
-    private void logLoginAction(User user, Authentication authentication, Exception e) {
+    private void logLoginAction(User user, Authentication authentication, ActionType actionType, Exception e) {
         String clientAddress = "Unknown";
         String browser = "Unknown";
         String os = "Unknown";
@@ -222,6 +223,6 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         }
         auditLogService.logEntityAction(
                 user.getTenantId(), user.getCustomerId(), user.getId(),
-                user.getName(), user.getId(), null, ActionType.LOGIN, e, clientAddress, browser, os, device);
+                user.getName(), user.getId(), null, actionType, e, clientAddress, browser, os, device);
     }
 }

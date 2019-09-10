@@ -249,6 +249,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "LOGOUT": {
                     name: "audit-log.type-logout"
+                },
+                "LOCKOUT": {
+                    name: "audit-log.type-lockout"
                 }
             },
             auditLogActionStatus: {
@@ -1249,6 +1252,10 @@ export default angular.module('thingsboard.types', [])
                 accountActivated: {
                     value: "accountActivated",
                     name: "admin.mail-template.account-activated"
+                },
+                accountLockout: {
+                    value: "accountLockout",
+                    name: "admin.mail-template.account-lockout"
                 },
                 resetPassword: {
                     value: "resetPassword",
