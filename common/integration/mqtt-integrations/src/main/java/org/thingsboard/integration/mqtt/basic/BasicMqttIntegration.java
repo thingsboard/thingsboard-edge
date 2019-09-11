@@ -68,27 +68,28 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (this.configuration.isEnabled()) {
-            mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
-            subscribeToTopics();
-            this.downlinkTopicPattern = getDownlinkTopicPattern();
-            this.mqttClient.setCallback(new MqttClientCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    log.info("[{}][{}] MQTT Integration lost connection to the target broker", configuration.getId(), configuration.getName());
-                }
-
-                @Override
-                public void onSuccessfulReconnect() {
-                    log.info("[{}][{}] MQTT Integration successfully reconnected to the target broker", configuration.getId(), configuration.getName());
-                    try {
-                        subscribeToTopics();
-                    } catch (IOException e) {
-                        log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
-                    }
-                }
-            });
+        if (!this.configuration.isEnabled()) {
+            return;
         }
+        mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
+        subscribeToTopics();
+        this.downlinkTopicPattern = getDownlinkTopicPattern();
+        this.mqttClient.setCallback(new MqttClientCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+                log.info("[{}][{}] MQTT Integration lost connection to the target broker", configuration.getId(), configuration.getName());
+            }
+
+            @Override
+            public void onSuccessfulReconnect() {
+                log.info("[{}][{}] MQTT Integration successfully reconnected to the target broker", configuration.getId(), configuration.getName());
+                try {
+                    subscribeToTopics();
+                } catch (IOException e) {
+                    log.info("[{}][{}] MQTT Integration failed to subscribe to topics", configuration.getId(), configuration.getName());
+                }
+            }
+        });
     }
 
     private void subscribeToTopics() throws java.io.IOException {

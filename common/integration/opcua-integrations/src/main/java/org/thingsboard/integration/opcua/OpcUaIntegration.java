@@ -125,22 +125,23 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (this.configuration.isEnabled()) {
-            opcUaServerConfiguration = mapper.readValue(
-                    mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                    OpcUaServerConfiguration.class);
-            if (opcUaServerConfiguration.getMapping().isEmpty()) {
-                throw new IllegalArgumentException("No mapping elements configured!");
-            }
-            this.devices = new ConcurrentHashMap<>();
-            this.devicesByTags = new ConcurrentHashMap<>();
-            opcUaServerConfiguration.getMapping().forEach(DeviceMapping::initMappingPatterns);
-            this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toConcurrentMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
-            scheduleReconnect = true;
-            connected = true;
-            executor = Executors.newSingleThreadScheduledExecutor();
-            executor.execute(this::scanForDevices);
+        if (!this.configuration.isEnabled()) {
+            return;
         }
+        opcUaServerConfiguration = mapper.readValue(
+                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
+                OpcUaServerConfiguration.class);
+        if (opcUaServerConfiguration.getMapping().isEmpty()) {
+            throw new IllegalArgumentException("No mapping elements configured!");
+        }
+        this.devices = new ConcurrentHashMap<>();
+        this.devicesByTags = new ConcurrentHashMap<>();
+        opcUaServerConfiguration.getMapping().forEach(DeviceMapping::initMappingPatterns);
+        this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toConcurrentMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
+        scheduleReconnect = true;
+        connected = true;
+        executor = Executors.newSingleThreadScheduledExecutor();
+        executor.execute(this::scanForDevices);
     }
 
     @Override
