@@ -208,7 +208,6 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
                         throw new DataValidationException("Password was already used for the last " + passwordPolicy.getPasswordReuseFrequencyDays() + " days");
                     }
                 }
-
             }
         }
     }
