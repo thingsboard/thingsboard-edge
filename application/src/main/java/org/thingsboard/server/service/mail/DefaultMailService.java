@@ -237,6 +237,21 @@ public class DefaultMailService implements MailService {
         }
     }
 
+    @Override
+    public void sendAccountLockoutEmail(TenantId tenantId, String lockoutEmail, String email, Integer maxFailedLoginAttempts) throws ThingsboardException {
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("lockoutAccount", lockoutEmail);
+        model.put("maxFailedLoginAttempts", maxFailedLoginAttempts);
+        model.put(TARGET_EMAIL, email);
+
+        String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT, model);
+
+        sendMail(tenantId, email, subject, message);
+    }
+
     private void sendMail(JavaMailSenderImpl mailSender,
                           String mailFrom, String email,
                           String subject, String message) throws ThingsboardException {

@@ -44,5 +44,6 @@ public class UserPasswordPolicy implements Serializable {
     private Integer minimumSpecialCharacters;
 
     private Integer passwordExpirationPeriodDays;
+    private Integer passwordReuseFrequencyDays;
 
 }

@@ -108,6 +108,25 @@ export default function UserGroupConfig($q, $translate, $document, $mdDialog, tb
             userService.loginAsUser(user.id.id);
         };
 
+        groupConfig.onSetUserCredentialsEnabled = (event, user, userCredentialsEnabled) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            userService.setUserCredentialsEnabled(user.id.id, userCredentialsEnabled).then(
+                () => {
+                    if (!user.additionalInfo) {
+                        user.additionalInfo = {};
+                    }
+                    user.additionalInfo.userCredentialsEnabled = userCredentialsEnabled;
+                    if (userCredentialsEnabled) {
+                        toast.showSuccess($translate.instant('user.enable-account-message'));
+                    } else {
+                        toast.showSuccess($translate.instant('user.disable-account-message'));
+                    }
+                }
+            )
+        };
+
         groupConfig.addEntity = (event, entityGroup) => {
             return addUser(event, entityGroup);
         };

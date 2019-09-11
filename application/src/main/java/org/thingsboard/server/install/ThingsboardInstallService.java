@@ -158,7 +158,6 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("date");
 
                         systemDataLoaderService.loadSystemWidgets();
-
                         break;
                     default:
                         throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);

@@ -30,6 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
+<md-button ng-click="onSetUserCredentialsEnabled({event: $event, userCredentialsEnabled: false})"
+           ng-if="entityGroup | hasGroupEntityPermission:'write'"
+           ng-show="!isEdit && isUserCredentialsEnabled()" class="md-raised md-primary">{{
+    'user.disable-account' | translate }}
+</md-button>
+<md-button ng-click="onSetUserCredentialsEnabled({event: $event, userCredentialsEnabled: true})"
+           ng-if="entityGroup | hasGroupEntityPermission:'write'"
+           ng-show="!isEdit && !isUserCredentialsEnabled()" class="md-raised md-primary">{{
+    'user.enable-account' | translate }}
+</md-button>
 <md-button ng-click="onDisplayActivationLink({event: $event})" ng-show="!isEdit" class="md-raised md-primary">{{
     'user.display-activation-link' | translate }}
 </md-button>
