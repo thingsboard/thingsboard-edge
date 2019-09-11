@@ -28,27 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.aws.sqs;
+package org.thingsboard.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.util.Map;
+import java.util.Arrays;
 
-/*
- * Created by Valerii Sosliuk on 05.06.19
- */
-@Data
-public class SqsIntegrationMsg {
+@SpringBootApplication
+@EnableAsync
+@ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api"})
+public class ThingsboardAwsIntegrationApplication {
 
-    private Map<String,String> deviceMetadata;
-    private JsonNode json;
-    private byte[] payload;
+    private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
+    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "tb-aws-integration";
 
-    public SqsIntegrationMsg(JsonNode json, Map<String,String> deviceMetadata) {
-        this.json = json;
-        this.payload = json.toString().getBytes();
-        this.deviceMetadata = deviceMetadata;
+    public static void main(String[] args) {
+        SpringApplication.run(ThingsboardAwsIntegrationApplication.class, updateArguments(args));
+    }
+
+    private static String[] updateArguments(String[] args) {
+        if (Arrays.stream(args).noneMatch(arg -> arg.startsWith(SPRING_CONFIG_NAME_KEY))) {
+            String[] modifiedArgs = new String[args.length + 1];
+            System.arraycopy(args, 0, modifiedArgs, 0, args.length);
+            modifiedArgs[args.length] = DEFAULT_SPRING_CONFIG_PARAM;
+            return modifiedArgs;
+        }
+        return args;
     }
 
 }

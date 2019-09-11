@@ -34,28 +34,41 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.thingsboard</groupId>
+        <groupId>org.thingsboard.common</groupId>
         <version>2.4.1PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
+        <artifactId>integration</artifactId>
     </parent>
-    <artifactId>integration</artifactId>
-    <packaging>pom</packaging>
+    <groupId>org.thingsboard.common.integration</groupId>
+    <artifactId>aws-integrations</artifactId>
+    <packaging>jar</packaging>
 
-    <name>ThingsBoard PE Server Integration Modules</name>
+    <name>Thingsboard Server AWS Integrations</name>
     <url>https://thingsboard.io</url>
 
     <properties>
-        <main.dir>${basedir}/..</main.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <main.dir>${basedir}/../../..</main.dir>
     </properties>
 
-    <modules>
-        <module>http</module>
-        <module>mqtt</module>
-        <module>opc-ua</module>
-        <module>azure</module>
-        <module>aws</module>
-        <module>tcp-udp</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>js-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sqs</artifactId>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -68,4 +81,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

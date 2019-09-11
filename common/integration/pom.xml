@@ -54,6 +54,7 @@
         <module>http-integrations</module>
         <module>mqtt-integrations</module>
         <module>azure-integrations</module>
+        <module>aws-integrations</module>
         <module>opcua-integrations</module>
         <module>remote-integration-api</module>
     </modules>
