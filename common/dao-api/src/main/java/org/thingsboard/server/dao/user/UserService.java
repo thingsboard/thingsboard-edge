@@ -91,4 +91,10 @@ public interface UserService {
 
 	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
+	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
+
+	void onUserLoginSuccessful(TenantId tenantId, UserId userId);
+
+	int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId);
+
 }

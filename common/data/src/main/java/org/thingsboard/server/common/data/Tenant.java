@@ -36,7 +36,7 @@ import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Tenant extends ContactBased<TenantId> implements HasName, TenantEntity {
+public class Tenant extends ContactBased<TenantId> implements TenantEntity {
 
     private static final long serialVersionUID = 8057243243859922101L;
     
