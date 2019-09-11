@@ -334,6 +334,12 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                     Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
 
+                String updateRemoteIntegrationEnabledTableStmt = "alter table " + INTEGRATION + " add enabled boolean";
+                try {
+                    cluster.getSession().execute(updateRemoteIntegrationEnabledTableStmt);
+                    Thread.sleep(2500);
+                } catch (InvalidQueryException e) {}
+
                 log.info("Schema updated.");
 
                 log.info("Updating converters ...");

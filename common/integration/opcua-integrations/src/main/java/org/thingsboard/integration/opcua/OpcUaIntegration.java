@@ -125,6 +125,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        if (!this.configuration.isEnabled()) {
+            return;
+        }
         opcUaServerConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 OpcUaServerConfiguration.class);
@@ -596,7 +599,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 );
             }
         } catch (Exception e) {
-            log.warn("[{}] Failed to process subscription value", this.configuration.getName(), item.getReadValueId().getNodeId(), item.getStatusCode());
+            log.warn("[{}] Failed to process subscription value [{}][{}]", this.configuration.getName(), item.getReadValueId().getNodeId(), item.getStatusCode());
         }
     }
 

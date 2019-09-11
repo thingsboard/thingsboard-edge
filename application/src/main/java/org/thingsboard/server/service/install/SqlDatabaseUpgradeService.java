@@ -218,6 +218,9 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN is_remote boolean"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN enabled boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
                 }
                 log.info("Schema updated.");
                 break;

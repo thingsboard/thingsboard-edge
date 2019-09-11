@@ -47,6 +47,8 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.tcpip.EventLoopGroupService;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
@@ -71,6 +73,9 @@ public class BasicTcpIntegration extends AbstractTcpIpIntegration {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        if (!this.configuration.isEnabled()) {
+            return;
+        }
         try {
             tcpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration()), TcpConfigurationParameters.class);
             EventLoopGroup bossGroup = EventLoopGroupService.BOSS_LOOP_GROUP;

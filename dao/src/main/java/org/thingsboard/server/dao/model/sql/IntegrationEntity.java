@@ -82,6 +82,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
     private boolean debugMode;
 
+    @Column(name = INTEGRATION_ENABLED_PROPERTY)
+    private Boolean enabled;
+
     @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
     private Boolean isRemote;
 
@@ -118,6 +121,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.secret = integration.getSecret();
         this.type = integration.getType();
         this.debugMode = integration.isDebugMode();
+        this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -155,6 +159,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setSecret(secret);
         integration.setType(type);
         integration.setDebugMode(debugMode);
+        integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
