@@ -93,6 +93,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -115,16 +116,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private Map<NodeId, OpcUaDevice> devices;
     private Map<NodeId, List<OpcUaDevice>> devicesByTags;
     private Map<Pattern, DeviceMapping> mappings;
-    private ScheduledExecutorService executor;
 
     private final AtomicLong clientHandles = new AtomicLong(1L);
     // This variable describes the tsate of integration, whether it has to run or shut down, not the state of the opc-ua client
     private volatile boolean connected = false;
     private volatile boolean scheduleReconnect = false;
+    private ScheduledFuture taskFuture;
+    private volatile boolean stopped;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        stopped = false;
         opcUaServerConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 OpcUaServerConfiguration.class);
@@ -137,8 +140,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toConcurrentMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
         scheduleReconnect = true;
         connected = true;
-        executor = Executors.newSingleThreadScheduledExecutor();
-        executor.execute(this::scanForDevices);
+        context.getScheduledExecutorService().execute(this::scanForDevices);
     }
 
     @Override
@@ -322,6 +324,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     @Override
     public void destroy() {
+        stopped = true;
         if (connected) {
             try {
                 connected = false;
@@ -330,8 +333,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 log.warn("[{}] Failed to disconnect", this.configuration.getName(), e);
             }
         }
-        if (executor != null) {
-            executor.shutdownNow();
+        if (taskFuture != null) {
+            taskFuture.cancel(true);
         }
     }
 
@@ -364,33 +367,37 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void scheduleScan() {
-        executor.schedule((Runnable) this::scanForDevices, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
+        taskFuture = context.getScheduledExecutorService().schedule((Runnable) this::scanForDevices, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
     }
 
 
     private void scanForDevices() {
+        if (stopped) {
+            log.info("[{}] Integration is already stopped!", this.configuration.getId());
+            return;
+        }
         try {
             if (connected && scheduleReconnect && !reconnect()) {
-                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getName(), opcUaServerConfiguration.getScanPeriodInSeconds());
+                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
                 scheduleScan();
                 return;
             }
 
             long startTs = System.currentTimeMillis();
             scanForDevices(new OpcUaNode(Identifiers.RootFolder, ""));
-            log.debug("[{}] Device scan cycle completed in {} ms", this.configuration.getName(), (System.currentTimeMillis() - startTs));
+            log.debug("[{}] Device scan cycle completed in {} ms", this.configuration.getId(), (System.currentTimeMillis() - startTs));
             List<OpcUaDevice> deleted = devices.entrySet().stream().filter(kv -> kv.getValue().getScanTs() < startTs).map(Map.Entry::getValue).collect(Collectors.toList());
             if (deleted.size() > 0) {
-                log.info("[{}] Devices {} are no longer available", this.configuration.getName(), deleted);
+                log.info("[{}] Devices {} are no longer available", this.configuration.getId(), deleted);
             }
             deleted.forEach(devices::remove);
 
             if (connected) {
-                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getName(), opcUaServerConfiguration.getScanPeriodInSeconds());
+                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
                 scheduleScan();
             }
         } catch (Throwable e) {
-            log.warn("[{}] Periodic device scan failed!", this.configuration.getName(), e);
+            log.warn("[{}] Periodic device scan failed!", this.configuration.getId(), e);
             scheduleReconnect = true;
             scheduleScan();
         }

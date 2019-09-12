@@ -51,8 +51,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /*
@@ -64,7 +63,8 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     private IntegrationContext context;
     private SqsIntegrationConfiguration sqsConfiguration;
     private AmazonSQS sqs;
-    private ScheduledExecutorService executor;
+    private ScheduledFuture taskFuture;
+    private volatile boolean stopped;
 
     @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -72,18 +72,21 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         if (!this.configuration.isRemote()) {
             return;
         }
+        stopped = false;
         this.context = params.getContext();
         this.sqsConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("sqsConfiguration")),
                 SqsIntegrationConfiguration.class);
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(sqsConfiguration.getAccessKeyId(), sqsConfiguration.getSecretAccessKey());
-        executor = Executors.newSingleThreadScheduledExecutor();
         sqs = AmazonSQSClientBuilder.standard().withRegion(sqsConfiguration.getRegion())
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds)).build();
-        executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+        taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
     }
 
     private void pollMessages() {
+        if (stopped) {
+            return;
+        }
         try {
             ReceiveMessageRequest sqsRequest = new ReceiveMessageRequest();
             sqsRequest.setQueueUrl(sqsConfiguration.getQueueUrl());
@@ -100,14 +103,14 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                         sqs.deleteMessage(sqsConfiguration.getQueueUrl(), message.getReceiptHandle());
                     }
                 }
-                executor.submit(this::pollMessages);
+                this.context.getScheduledExecutorService().submit(this::pollMessages);
             } else {
-                executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+                taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
-            executor.schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
+            taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }
     }
 
@@ -119,7 +122,6 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         SqsIntegrationMsg sqsMsg = new SqsIntegrationMsg(node, metadataTemplate.getKvMap());
         return sqsMsg;
     }
-
 
     @Override
     public void process(SqsIntegrationMsg message) {
@@ -142,11 +144,12 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
 
     @PreDestroy
     public void stop() {
+        stopped = true;
         if (sqs != null) {
             sqs.shutdown();
         }
-        if (executor != null) {
-            executor.shutdownNow();
+        if (taskFuture != null) {
+            taskFuture.cancel(true);
         }
     }
 }

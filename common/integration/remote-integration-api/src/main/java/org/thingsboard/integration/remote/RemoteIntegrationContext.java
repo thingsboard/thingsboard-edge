@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Data
 @Slf4j
@@ -71,14 +72,16 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final int port;
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
+    protected final ScheduledExecutorService scheduledExecutorService;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, Integration configuration, String clientId, int port) {
+    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;
         this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, mapper, clientId, port);
         this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
+        this.scheduledExecutorService = scheduledExecutorService;
     }
 
     @Override
@@ -129,6 +132,11 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public void removeDownlinkMsg(String deviceName) {
 
+    }
+
+    @Override
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService;
     }
 
     @Override

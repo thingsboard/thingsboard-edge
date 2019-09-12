@@ -93,6 +93,10 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>aws-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>opcua-integrations</artifactId>
         </dependency>
         <dependency>

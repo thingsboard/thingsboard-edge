@@ -40,6 +40,8 @@ import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 /**
  * Created by ashvayka on 05.12.17.
  */
@@ -97,6 +99,13 @@ public interface IntegrationContext {
      * @return event loop group
      */
     EventLoopGroup getEventLoopGroup();
+
+    /**
+     * Provides access to ScheduledExecutorService to schedule periodic tasks.
+     * Allows using N threads per M integrations instead of using N threads per integration.
+     * @return scheduled executor
+     */
+    ScheduledExecutorService getScheduledExecutorService();
 
     DownLinkMsg getDownlinkMsg(String deviceName);
 
