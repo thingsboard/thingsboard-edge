@@ -333,8 +333,6 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
             case AWS_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.aws.AwsIotIntegration");
-            case AWS_SQS:
-                return newInstance("org.thingsboard.server.service.integration.aws.sqs.BasicSqsIntegration");
             case IBM_WATSON_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration");
             case TTN:
@@ -347,6 +345,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.tcpip.tcp.BasicTcpIntegration");
             case UDP:
                 return newInstance("org.thingsboard.integration.tcpip.udp.BasicUdpIntegration");
+            case AWS_SQS:
+                return newInstance("org.thingsboard.integration.aws.sqs.AwsSqsIntegration");
             case CUSTOM:
                 return newInstance(configuration.get("clazz").asText());
             default:

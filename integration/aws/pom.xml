@@ -228,7 +228,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.thingsboard.integration.ThingsboardAwsIntegrationApplication</mainClass>
+                    <mainClass>org.thingsboard.integration.ThingsboardAwsSqsIntegrationApplication</mainClass>
                     <classifier>boot</classifier>
                     <layout>ZIP</layout>
                     <executable>true</executable>

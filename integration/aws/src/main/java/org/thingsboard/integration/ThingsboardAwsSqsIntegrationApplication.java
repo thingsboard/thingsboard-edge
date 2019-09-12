@@ -40,13 +40,13 @@ import java.util.Arrays;
 @SpringBootApplication
 @EnableAsync
 @ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api"})
-public class ThingsboardAwsIntegrationApplication {
+public class ThingsboardAwsSqsIntegrationApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
     private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "tb-aws-integration";
 
     public static void main(String[] args) {
-        SpringApplication.run(ThingsboardAwsIntegrationApplication.class, updateArguments(args));
+        SpringApplication.run(ThingsboardAwsSqsIntegrationApplication.class, updateArguments(args));
     }
 
     private static String[] updateArguments(String[] args) {
