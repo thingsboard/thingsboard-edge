@@ -64,6 +64,9 @@ public class BasicUdpIntegration extends AbstractTcpIpIntegration {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        if (!this.configuration.isEnabled()) {
+            return;
+        }
         try {
             udpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration()), UdpConfigurationParameters.class);
             EventLoopGroup workerGroup = EventLoopGroupService.WORKER_LOOP_GROUP;

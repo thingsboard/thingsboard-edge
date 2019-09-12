@@ -67,14 +67,16 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        JsonNode json = configuration.getConfiguration();
-        securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
-        replaceNoContentToOk = json.has("replaceNoContentToOk") && json.get("replaceNoContentToOk").asBoolean();
-        if (securityEnabled && json.has("headersFilter")) {
-            JsonNode headersFilterNode = json.get("headersFilter");
-            for (Iterator<Map.Entry<String, JsonNode>> it = headersFilterNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> headerFilter = it.next();
-                headersFilter.put(headerFilter.getKey(), headerFilter.getValue().asText());
+        if (this.configuration.isEnabled()) {
+            JsonNode json = configuration.getConfiguration();
+            securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
+            replaceNoContentToOk = json.has("replaceNoContentToOk") && json.get("replaceNoContentToOk").asBoolean();
+            if (securityEnabled && json.has("headersFilter")) {
+                JsonNode headersFilterNode = json.get("headersFilter");
+                for (Iterator<Map.Entry<String, JsonNode>> it = headersFilterNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> headerFilter = it.next();
+                    headersFilter.put(headerFilter.getKey(), headerFilter.getValue().asText());
+                }
             }
         }
     }

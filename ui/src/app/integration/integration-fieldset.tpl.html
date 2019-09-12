@@ -65,11 +65,18 @@
                 <div translate ng-message="required">integration.type-required</div>
             </div>
         </md-input-container>
-        <md-input-container class="md-block">
-            <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.debug-mode' | translate }}"
-                         ng-model="integration.debugMode">{{ 'integration.debug-mode' | translate }}
-            </md-checkbox>
-        </md-input-container>
+        <div layout="row" layout-gt-sm="row">
+            <md-input-container class="md-block" flex="50">
+                <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enabled' | translate }}"
+                             ng-model="integration.enabled">{{ 'integration.enabled' | translate }}
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container>
+                <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.debug-mode' | translate }}"
+                             ng-model="integration.debugMode">{{ 'integration.debug-mode' | translate }}
+                </md-checkbox>
+            </md-input-container>
+        </div>
         <tb-converter-autocomplete the-form="theForm"
                                 ng-disabled="$root.loading || !isEdit"
                                 tb-required="true"
