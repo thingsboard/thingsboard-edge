@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
@@ -28,28 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+import integrationAwsSqsTemplate from './integration-aws-sqs.tpl.html';
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+/*@ngInject*/
+export default function IntegrationAwsSqsDirective($compile, $templateCache, types) {
+    var linker = function (scope, element, attrs, ngModelCtrl) {
+        var template = $templateCache.get(integrationAwsSqsTemplate);
+        element.html(template);
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true);
+        scope.types = types;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
-    }
+        scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
+            if (!angular.equals(newConfiguration, oldConfiguration)) {
+                ngModelCtrl.$setViewValue(scope.configuration);
+            }
+        });
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
+        ngModelCtrl.$render = function () {
+            scope.configuration = ngModelCtrl.$viewValue;
+            setupAwsSqsConfiguration();
+            //scope.updateValidity();
+        };
 
-    @Getter
-    private final boolean remoteOnly;
+        function setupAwsSqsConfiguration() {
+            if (!scope.configuration.sqsConfiguration) {
+                scope.configuration.sqsConfiguration = {
+                    region: "us-west-2",
+                    pollingPeriodSeconds: 5,
+                }
+            }
+        }
 
+        $compile(element.contents())(scope);
+    };
 
+    return {
+        restrict: "E",
+        require: "^ngModel",
+        scope: {
+            isEdit: '='
+        },
+        link: linker
+    };
 }

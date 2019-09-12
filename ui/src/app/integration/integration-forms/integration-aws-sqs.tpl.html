@@ -30,42 +30,29 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.thingsboard</groupId>
-        <version>2.4.1PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
-    </parent>
-    <artifactId>integration</artifactId>
-    <packaging>pom</packaging>
-
-    <name>ThingsBoard PE Server Integration Modules</name>
-    <url>https://thingsboard.io</url>
-
-    <properties>
-        <main.dir>${basedir}/..</main.dir>
-    </properties>
-
-    <modules>
-        <module>http</module>
-        <module>mqtt</module>
-        <module>opc-ua</module>
-        <module>azure</module>
-        <module>aws</module>
-        <module>tcp-udp</module>
-    </modules>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+<section ng-form name="awsSqsIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <md-input-container class="md-block">
+            <label translate>integration.aws-sqs-queue-url</label>
+            <input required ng-model="configuration.sqsConfiguration.queueUrl">
+        </md-input-container>
+        <div layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.aws-sqs-polling-period-in-seconds</label>
+                <input type="number" min="1" required ng-model="configuration.sqsConfiguration.pollingPeriodSeconds">
+            </md-input-container>
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.aws-region</label>
+                <input required ng-model="configuration.sqsConfiguration.region">
+            </md-input-container>
+        </div>
+        <md-input-container class="md-block">
+            <label translate>integration.aws-access-key-id</label>
+            <input required ng-model="configuration.sqsConfiguration.accessKeyId">
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.aws-secret-access-key</label>
+            <input required ng-model="configuration.sqsConfiguration.secretAccessKey">
+        </md-input-container>
+    </fieldset>
+</section>

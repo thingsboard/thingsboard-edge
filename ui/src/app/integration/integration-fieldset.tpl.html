@@ -160,6 +160,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-aws-iot>
+    <tb-integration-aws-sqs
+            ng-if="integration.type == types.integrationType.AWS_SQS.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-aws-sqs>
     <tb-integration-ibm-watson-iot
             ng-if="integration.type == types.integrationType.IBM_WATSON_IOT.value"
             is-edit="isEdit"

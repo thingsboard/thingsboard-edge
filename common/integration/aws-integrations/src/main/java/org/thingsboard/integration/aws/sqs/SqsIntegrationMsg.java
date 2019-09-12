@@ -28,28 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.aws.sqs;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true);
+import java.util.Map;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+/*
+ * Created by Valerii Sosliuk on 05.06.19
+ */
+@Data
+public class SqsIntegrationMsg {
+
+    private Map<String,String> deviceMetadata;
+    private JsonNode json;
+    private byte[] payload;
+
+    public SqsIntegrationMsg(JsonNode json, Map<String,String> deviceMetadata) {
+        this.json = json;
+        this.payload = json.toString().getBytes();
+        this.deviceMetadata = deviceMetadata;
     }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
 
 }
