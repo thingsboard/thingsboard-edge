@@ -144,6 +144,7 @@ public class RemoteIntegrationManagerService {
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledExecutorService statisticsExecutorService;
+    private ScheduledExecutorService schedulerService;
     private ScheduledFuture<?> scheduledFuture;
 
     private volatile boolean initialized;
@@ -154,6 +155,7 @@ public class RemoteIntegrationManagerService {
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+        schedulerService = Executors.newSingleThreadScheduledExecutor();
         processHandleMessages();
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -182,6 +184,9 @@ public class RemoteIntegrationManagerService {
         if (statisticsEnabled && statisticsExecutorService != null) {
             statisticsExecutorService.shutdownNow();
         }
+        if (schedulerService != null) {
+            schedulerService.shutdownNow();
+        }
     }
 
     private void onConfigurationUpdate(IntegrationConfigurationProto integrationConfigurationProto) {
@@ -207,7 +212,7 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, configuration, clientId, port),
+                    new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);
@@ -345,6 +350,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.tcpip.tcp.BasicTcpIntegration");
             case UDP:
                 return newInstance("org.thingsboard.integration.tcpip.udp.BasicUdpIntegration");
+            case AWS_SQS:
+                return newInstance("org.thingsboard.integration.aws.sqs.AwsSqsIntegration");
             case CUSTOM:
                 return newInstance(configuration.get("clazz").asText());
             default:

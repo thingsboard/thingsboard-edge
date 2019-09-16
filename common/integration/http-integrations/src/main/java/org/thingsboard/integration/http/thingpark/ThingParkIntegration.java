@@ -88,6 +88,9 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        if (!this.configuration.isEnabled()) {
+            return;
+        }
         JsonNode json = configuration.getConfiguration();
         securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
         if (securityEnabled) {

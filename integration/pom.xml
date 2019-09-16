@@ -53,6 +53,7 @@
         <module>mqtt</module>
         <module>opc-ua</module>
         <module>azure</module>
+        <module>aws</module>
         <module>tcp-udp</module>
     </modules>
 

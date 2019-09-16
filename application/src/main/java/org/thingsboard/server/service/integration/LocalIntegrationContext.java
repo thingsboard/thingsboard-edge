@@ -69,6 +69,7 @@ import org.thingsboard.server.gen.transport.SessionInfoProto;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Data
@@ -305,5 +306,10 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public EventLoopGroup getEventLoopGroup() {
         return ctx.getEventLoopGroup();
+    }
+
+    @Override
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return ctx.getScheduledExecutorService();
     }
 }

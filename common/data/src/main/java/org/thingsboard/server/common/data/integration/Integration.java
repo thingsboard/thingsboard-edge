@@ -53,6 +53,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private String routingKey;
     private IntegrationType type;
     private boolean debugMode;
+    private Boolean enabled;
     private Boolean isRemote;
     private String secret;
     private transient JsonNode configuration;
@@ -75,6 +76,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.debugMode = integration.isDebugMode();
+        this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
@@ -127,6 +129,14 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
 
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
+    }
+
+    public Boolean isEnabled() {
+        return !(enabled == null) && enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     public Boolean isRemote() {

@@ -106,6 +106,7 @@ import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
 import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
+import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -657,6 +658,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new BasicMqttIntegration();
             case AWS_IOT:
                 return new AwsIotIntegration();
+            case AWS_SQS:
+                return new AwsSqsIntegration();
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
             case TTN:

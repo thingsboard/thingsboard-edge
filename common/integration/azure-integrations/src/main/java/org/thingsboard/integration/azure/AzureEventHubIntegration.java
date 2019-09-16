@@ -88,6 +88,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        if (!this.configuration.isEnabled()) {
+            return;
+        }
         this.context = params.getContext();
         AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),

@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS integration (
     additional_info varchar,
     configuration varchar(10000000),
     debug_mode boolean,
+    enabled boolean,
     is_remote boolean,
     name varchar(255),
     secret varchar(255),

@@ -53,6 +53,8 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -123,15 +125,23 @@ public class IntegrationContextComponent {
     private CustomerService customerService;
 
     private EventLoopGroup eventLoopGroup;
+    private ScheduledExecutorService scheduledExecutorService;
 
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
+        scheduledExecutorService = Executors.newScheduledThreadPool(3);
     }
 
     @PreDestroy
     public void destroy() {
         eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);
+        if (scheduledExecutorService != null) {
+            scheduledExecutorService.shutdownNow();
+        }
     }
 
+    ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService;
+    }
 }
