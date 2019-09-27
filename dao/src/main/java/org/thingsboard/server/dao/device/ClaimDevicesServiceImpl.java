@@ -51,8 +51,8 @@ import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.claim.ClaimData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.Collections;
@@ -139,9 +139,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                         device.setOwnerId(customerId);
                         deviceService.saveDevice(device);
 
-                        Cache ownersCache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-                        ownersCache.evict(getOwnersCacheKey(device.getId()));
-                        ownersCache.evict(getOwnerCacheKey(device.getId()));
+                        ownersCacheEviction(device.getId());
                         return null;
                     });
                     return Futures.transformAsync(future, input -> Futures.transform(removeClaimingSavedData(cache, key, device), result -> new ClaimResult(device, ClaimResponse.SUCCESS)));
@@ -161,16 +159,27 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     @Override
     public ListenableFuture<List<Void>> reClaimDevice(TenantId tenantId, Device device) {
         if (!device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            cacheEviction(device.getId());
+            return Futures.transformAsync(entityGroupService.findEntityGroupsForEntity(tenantId, device.getId()), entityGroupList -> {
+                for (EntityGroupId entityGroupId : entityGroupList) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, device.getId());
+                }
+                entityGroupService.addEntityToEntityGroupAll(tenantId, tenantId, device.getId());
 
-            device.setCustomerId(null);
-            deviceService.saveDevice(device);
-            if (isAllowedClaimingByDefault) {
-                return Futures.immediateFuture(Collections.emptyList());
-            }
-            return attributesService.save(tenantId, device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
-                    new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true),
-                            System.currentTimeMillis())));
+                cacheEviction(device.getId());
+
+                device.setCustomerId(null);
+                device.setOwnerId(tenantId);
+                deviceService.saveDevice(device);
+
+                ownersCacheEviction(device.getId());
+
+                if (isAllowedClaimingByDefault) {
+                    return Futures.immediateFuture(Collections.emptyList());
+                }
+                return attributesService.save(tenantId, device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
+                        new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true),
+                                System.currentTimeMillis())));
+            });
         }
         cacheEviction(device.getId());
         return Futures.immediateFuture(Collections.emptyList());
@@ -205,6 +214,12 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     private void cacheEviction(DeviceId deviceId) {
         Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
         cache.evict(constructCacheKey(deviceId));
+    }
+
+    private void ownersCacheEviction(DeviceId deviceId) {
+        Cache ownersCache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
+        ownersCache.evict(getOwnersCacheKey(deviceId));
+        ownersCache.evict(getOwnerCacheKey(deviceId));
     }
 
     private String getOwnersCacheKey(EntityId entityId) {

@@ -296,10 +296,8 @@ public class TelemetryController extends BaseController {
             deleteToTs = System.currentTimeMillis();
         } else {
             if (startTs == null || endTs == null) {
-                deleteToTs = endTs;
                 return getImmediateDeferredResult("When deleteAllDataForKeys is false, start and end timestamp values shouldn't be empty", HttpStatus.BAD_REQUEST);
-            }
-            else{
+            } else {
                 deleteFromTs = startTs;
                 deleteToTs = endTs;
             }
