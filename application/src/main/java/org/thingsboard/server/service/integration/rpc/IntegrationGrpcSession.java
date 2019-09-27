@@ -380,6 +380,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setDebugMode(configuration.isDebugMode())
                 .setConfiguration(mapper.writeValueAsString(configuration.getConfiguration()))
                 .setAdditionalInfo(mapper.writeValueAsString(configuration.getAdditionalInfo()))
+                .setEnabled(configuration.isEnabled())
                 .build();
     }
 

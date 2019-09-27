@@ -144,6 +144,7 @@ message IntegrationConfigurationProto {
   bool debugMode = 8;
   string configuration = 9;
   string additionalInfo = 10;
+  bool enabled = 11;
 }
 
 message UplinkProcessingResultProto {

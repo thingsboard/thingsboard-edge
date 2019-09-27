@@ -309,6 +309,12 @@ public class RemoteIntegrationManagerService {
         integration.setConfiguration(mapper.readTree(integrationConfigurationProto.getConfiguration()));
         integration.setAdditionalInfo(mapper.readTree(integrationConfigurationProto.getAdditionalInfo()));
 
+        if (integrationConfigurationProto.getDescriptorForType().findFieldByName("enabled") == null) {
+            integration.setEnabled(true);
+        } else {
+            integration.setEnabled(integrationConfigurationProto.getEnabled());
+        }
+
         return integration;
     }
 
