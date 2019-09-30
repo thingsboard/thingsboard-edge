@@ -31,13 +31,13 @@
 
 FROM thingsboard/openjdk8
 
-COPY start-tcp-udp-integration.sh ${pkg.name}.deb /tmp/
+COPY start-tb-azure-integration.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-tcp-udp-integration.sh /usr/bin
+    && mv /tmp/start-tb-azure-integration.sh /usr/bin
 
 RUN dpkg -i /tmp/${pkg.name}.deb
 
 RUN update-rc.d ${pkg.name} disable
 
-CMD ["start-tcp-udp-integration.sh"]
+CMD ["start-tb-azure-integration.sh"]

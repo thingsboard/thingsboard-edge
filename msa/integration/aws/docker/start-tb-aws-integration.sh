@@ -36,11 +36,9 @@ configfile=${pkg.name}.conf
 
 source "${CONF_FOLDER}/${configfile}"
 
-export LOADER_PATH=/config,${LOADER_PATH}
-
 echo "Starting '${project.name}' ..."
 
-exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.integration.ThingsboardOpcUaIntegrationApplication \
+exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.integration.ThingsboardAwsSqsIntegrationApplication \
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dlogging.config=${CONF_FOLDER}/logback.xml \
                     org.springframework.boot.loader.PropertiesLauncher

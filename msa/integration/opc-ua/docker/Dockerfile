@@ -31,13 +31,13 @@
 
 FROM thingsboard/openjdk8
 
-COPY start-aws-integration.sh ${pkg.name}.deb /tmp/
+COPY start-tb-opc-ua-integration.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-aws-integration.sh /usr/bin
+    && mv /tmp/start-tb-opc-ua-integration.sh /usr/bin
 
 RUN dpkg -i /tmp/${pkg.name}.deb
 
 RUN update-rc.d ${pkg.name} disable
 
-CMD ["start-aws-integration.sh"]
+CMD ["start-tb-opc-ua-integration.sh"]

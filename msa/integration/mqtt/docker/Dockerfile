@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
@@ -30,17 +29,15 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-CONF_FOLDER="${pkg.installFolder}/conf"
-jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
-configfile=${pkg.name}.conf
+FROM thingsboard/openjdk8
 
-source "${CONF_FOLDER}/${configfile}"
+COPY start-tb-mqtt-integration.sh ${pkg.name}.deb /tmp/
 
-export LOADER_PATH=/config,${LOADER_PATH}
+RUN chmod a+x /tmp/*.sh \
+    && mv /tmp/start-tb-mqtt-integration.sh /usr/bin
 
-echo "Starting '${project.name}' ..."
+RUN dpkg -i /tmp/${pkg.name}.deb
 
-exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.integration.ThingsboardMqttIntegrationApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
+RUN update-rc.d ${pkg.name} disable
+
+CMD ["start-tb-mqtt-integration.sh"]

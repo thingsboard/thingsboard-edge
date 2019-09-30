@@ -58,6 +58,7 @@
         <module>tb-node</module>
         <module>transport</module>
         <module>black-box-tests</module>
+        <module>integration</module>
     </modules>
 
     <build>

@@ -36,16 +36,18 @@
     <parent>
         <groupId>org.thingsboard</groupId>
         <version>2.4.1PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
+        <artifactId>msa</artifactId>
     </parent>
+
+    <groupId>org.thingsboard.msa</groupId>
     <artifactId>integration</artifactId>
     <packaging>pom</packaging>
 
-    <name>ThingsBoard PE Server Integration Modules</name>
+    <name>ThingsBoard Transport Microservices</name>
     <url>https://thingsboard.io</url>
 
     <properties>
-        <main.dir>${basedir}/..</main.dir>
+        <main.dir>${basedir}/../..</main.dir>
     </properties>
 
     <modules>
@@ -58,14 +60,15 @@
     </modules>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.spotify</groupId>
+                    <artifactId>dockerfile-maven-plugin</artifactId>
+                    <version>1.4.5</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
 </project>

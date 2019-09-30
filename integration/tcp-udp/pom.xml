@@ -52,7 +52,6 @@
         <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
-        <docker.name>tb-pe-tcp-udp-integration</docker.name>
     </properties>
 
     <dependencies>
@@ -75,57 +74,9 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>build-docker-image</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${docker.name}</repository>
-                            <verbose>true</verbose>
-                            <googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
-                            <contextDirectory>${project.build.directory}</contextDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>tag-docker-image</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>tag</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${docker.name}</repository>
-                            <tag>${project.version}</tag>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
-                    <execution>
-                        <id>copy-docker-config</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>docker</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
                     <execution>
                         <id>copy-conf</id>
                         <phase>process-resources</phase>
@@ -373,46 +324,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>push-docker-image</id>
-            <activation>
-                <property>
-                    <name>push-docker-image</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>push-latest-docker-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>latest</tag>
-                                    <repository>${docker.repo}/${docker.name}</repository>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>push-version-docker-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>${project.version}</tag>
-                                    <repository>${docker.repo}/${docker.name}</repository>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

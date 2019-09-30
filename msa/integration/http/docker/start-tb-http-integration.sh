@@ -36,8 +36,6 @@ configfile=${pkg.name}.conf
 
 source "${CONF_FOLDER}/${configfile}"
 
-export LOADER_PATH=/config,${LOADER_PATH}
-
 echo "Starting '${project.name}' ..."
 
 exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.integration.ThingsboardHttpIntegrationApplication \

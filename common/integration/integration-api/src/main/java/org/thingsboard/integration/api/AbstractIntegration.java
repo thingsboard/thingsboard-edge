@@ -110,7 +110,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (configuration == null || configuration.getConfiguration() == null) {
             throw new IllegalArgumentException("Integration configuration is empty!");
         }
-        doValidateConfiguration(configuration.getConfiguration(), allowLocalNetworkHosts);
+        if (!configuration.isRemote()) {
+            doValidateConfiguration(configuration.getConfiguration(), allowLocalNetworkHosts);
+        }
     }
 
     @Override

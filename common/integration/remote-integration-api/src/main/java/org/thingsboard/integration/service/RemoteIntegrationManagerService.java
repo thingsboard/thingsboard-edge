@@ -111,7 +111,7 @@ public class RemoteIntegrationManagerService {
     @Value("${integration.secret}")
     private String routingSecret;
 
-    @Value("${integrations.allow_local_network_hosts:true}")
+    @Value("${integration.allow_local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
     @Value("${executors.reconnect_timeout}")

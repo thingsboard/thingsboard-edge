@@ -36,8 +36,8 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:ba9db69c8c0de6e8d050ac59fcd4411f}"
-  secret: "${INTEGRATION_SECRET:7abm5lie1m57wv59jtkq}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:PUT_YOUR_ROUTING_KEY_HERE}"
+  secret: "${INTEGRATION_SECRET:PUT_YOUR_SECRET_HERE}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   statistics:
     # Enable/disable integration statistics
