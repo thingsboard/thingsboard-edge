@@ -278,13 +278,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration configuration) {
-        if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
-            return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-        }
         if (configuration.isRemote()) {
             integrationRpcService.updateIntegration(configuration);
             return Futures.immediateFuture(null);
         } else {
+            if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
+                return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+            }
             return refreshExecutorService.submit(() -> {
                 Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());
                 if (integration != null) {
