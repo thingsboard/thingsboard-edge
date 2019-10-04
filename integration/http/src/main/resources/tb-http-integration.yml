@@ -38,31 +38,47 @@ server:
 integration:
   routingKey: "${INTEGRATION_ROUTING_KEY:PUT_YOUR_ROUTING_KEY_HERE}"
   secret: "${INTEGRATION_SECRET:PUT_YOUR_SECRET_HERE}"
+  # Allows connection to the localhost resources. For example, local MQTT broker, etc.
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   statistics:
     # Enable/disable integration statistics
     enabled: "${INTEGRATION_STATISTICS_ENABLED:true}"
+    # Send statistics interval. Dfault value is once per hour
     persist_frequency: "${INTEGRATION_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
 storage:
+  # Location of the folder to store data files
   data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
+  # Max amount of data files to maintain
   max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:100}"
+  # Max records per data file
   max_records_per_file: "${INTEGRATION_STORAGE_MAX_RECORDS_PER_FILE:30}"
-  max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:10}"
+  # Max records between persistence of data file
+  max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:100}"
+  # Size of the upload chunk
   max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:50}"
+  # Sleep interval while no new records
   no_read_records_sleep: "${INTEGRATION_STORAGE_NO_READ_RECORDS_SLEEP:1000}"
 
 executors:
+  # Size of the thread pool to handle incoming messages and tasks
   thread_pool_size: "${EXECUTORS_SIZE:1}"
+  # Timeout to reconnect to ThingsBoard
   reconnect_timeout: "${EXECUTORS_RECONNECT_TIMEOUT:3000}" # in milliseconds
 
 rpc:
-  host: "${PRC_HOST:localhost}"
-  port: "${RPC_PORT:50051}"
+  # Host of the ThingsBoard server
+  host: "${PRC_HOST:cloud.thingsboard.io}"
+  # Port of the ThingsBoard server
+  port: "${RPC_PORT:9090}"
+  # No reply timeout
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
+  # ID of the RPC client
   client_id: "${RPC_CLIENT_ID:remote}"
   ssl:
+    # SSL enabled/disabled
     enabled: "${RPC_SSL_ENABLED:false}"
+    # SSL certificate
     cert: "${RPC_SSL_CERT:roots.pem}"
 
 js:
@@ -74,6 +90,6 @@ js:
     # Specify thread pool size for JavaScript sandbox resource monitor
     monitor_thread_pool_size: "${LOCAL_JS_SANDBOX_MONITOR_THREAD_POOL_SIZE:4}"
     # Maximum CPU time in milliseconds allowed for script execution
-    max_cpu_time: "${LOCAL_JS_SANDBOX_MAX_CPU_TIME:100}"
+    max_cpu_time: "${LOCAL_JS_SANDBOX_MAX_CPU_TIME:5000}"
     # Maximum allowed JavaScript execution errors before JavaScript will be blacklisted
     max_errors: "${LOCAL_JS_SANDBOX_MAX_ERRORS:3}"
