@@ -63,7 +63,11 @@
         </div>
         <md-input-container class="md-block">
             <label translate>integration.client-id</label>
-            <input name="clientId" ng-model="configuration.clientConfiguration.clientId">
+            <input name="clientId" ng-model="configuration.clientConfiguration.clientId" ng-pattern="/^[a-zA-Z0-9]*$/" ng-maxlength="23">
+            <div ng-messages="mqttIntegrationForm.clientId.$error">
+                <div translate ng-message="pattern">integration.client-id-pattern</div>
+                <div translate ng-message="maxlength">integration.client-id-range</div>
+            </div>
         </md-input-container>
         <div layout="column">
             <md-checkbox ng-disabled="$root.loading || !isEdit"

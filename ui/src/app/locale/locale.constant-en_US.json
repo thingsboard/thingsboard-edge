@@ -1563,6 +1563,8 @@
         "connect-timeout-required": "Connection timeout is required.",
         "connect-timeout-range": "Connection timeout should be in a range from 1 to 200.",
         "client-id": "Client ID",
+        "client-id-range": "Client ID should be in a range from 1 to 23 characters. [MQTT-3.1.3-5]",
+        "client-id-pattern": "Client ID should consist of numbers, upper and lower case letters. [MQTT-3.1.3-5]",
         "clean-session": "Clean session",
         "enable-ssl": "Enable SSL",
         "credentials": "Credentials",
