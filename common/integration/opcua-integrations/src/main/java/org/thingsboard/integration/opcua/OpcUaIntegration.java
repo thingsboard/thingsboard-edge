@@ -353,7 +353,11 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         } catch (Exception e) {
             log.warn("[{}] Failed to reconnect", this.configuration.getName(), e);
             sendConnectionFailedMessageToRuleEngine();
-            scheduleReconnect = true;
+            if (!stopped) {
+                scheduleReconnect = true;
+            } else {
+                scheduleReconnect = false;
+            }
         }
         return false;
     }
