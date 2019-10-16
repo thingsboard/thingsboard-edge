@@ -111,7 +111,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private OpcUaServerConfiguration opcUaServerConfiguration;
 
-    private OpcUaClient client;
+    private volatile OpcUaClient client;
     private UaSubscription subscription;
     private Map<NodeId, OpcUaDevice> devices;
     private Map<NodeId, List<OpcUaDevice>> devicesByTags;
@@ -637,7 +637,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 } else {
                     name = rd.getBrowseName().getName();
                 }
-                log.debug("[{}] Found tag: [{}].[{}]", this.configuration.getName(), nodeId, name);
+                log.trace("[{}] Found tag: [{}].[{}]", this.configuration.getName(), nodeId, name);
                 if (tags.contains(name)) {
                     values.put(name, childId);
                 }
