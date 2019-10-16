@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.device;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -55,9 +57,12 @@ import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.common.data.CacheConstants.CLAIM_DEVICES_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CACHE;
@@ -67,6 +72,8 @@ import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CA
 public class ClaimDevicesServiceImpl implements ClaimDevicesService {
 
     private static final String CLAIM_ATTRIBUTE_NAME = "claimingAllowed";
+    private static final String CLAIM_DATA_ATTRIBUTE_NAME = "claimingData";
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private DeviceService deviceService;
@@ -116,16 +123,37 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
         });
     }
 
-    @Override
-    public ListenableFuture<ClaimResult> claimDevice(Device device, CustomerId customerId, String secretKey) {
+    private ClaimDataInfo getClaimData(Cache cache, Device device) throws ExecutionException, InterruptedException {
         List<Object> key = constructCacheKey(device.getId());
+        ClaimData claimDataFromCache = cache.get(key, ClaimData.class);
+        if (claimDataFromCache != null) {
+            return new ClaimDataInfo(true, key, claimDataFromCache);
+        } else {
+            Optional<AttributeKvEntry> claimDataAttr = attributesService.find(device.getTenantId(), device.getId(),
+                    DataConstants.SERVER_SCOPE, CLAIM_DATA_ATTRIBUTE_NAME).get();
+            if (claimDataAttr.isPresent()) {
+                try {
+                    ClaimData claimDataFromAttribute = mapper.readValue(claimDataAttr.get().getValueAsString(), ClaimData.class);
+                    return new ClaimDataInfo(false, key, claimDataFromAttribute);
+                } catch (IOException e) {
+                    log.warn("Failed to read Claim Data [{}] from attribute!", claimDataAttr, e);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public ListenableFuture<ClaimResult> claimDevice(Device device, CustomerId customerId, String secretKey) throws ExecutionException, InterruptedException {
         Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
-        ClaimData claimData = cache.get(key, ClaimData.class);
+        ClaimDataInfo claimData = getClaimData(cache, device);
         if (claimData != null) {
             long currTs = System.currentTimeMillis();
-            if (currTs > claimData.getExpirationTime() || !secretKey.equals(claimData.getSecretKey())) {
+            if (currTs > claimData.getData().getExpirationTime() || !secretKeyIsEmptyOrEqual(secretKey, claimData.getData().getSecretKey())) {
                 log.warn("The claiming timeout occurred or wrong 'secretKey' provided for the device [{}]", device.getName());
-                cache.evict(key);
+                if (claimData.isFromCache()) {
+                    cache.evict(claimData.getKey());
+                }
                 return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.FAILURE));
             } else {
                 if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
@@ -142,9 +170,9 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                         ownersCacheEviction(device.getId());
                         return null;
                     });
-                    return Futures.transformAsync(future, input -> Futures.transform(removeClaimingSavedData(cache, key, device), result -> new ClaimResult(device, ClaimResponse.SUCCESS)));
+                    return Futures.transformAsync(future, input -> Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(device, ClaimResponse.SUCCESS)));
                 }
-                return Futures.transform(removeClaimingSavedData(cache, key, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED));
+                return Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED));
             }
         } else {
             log.warn("Failed to find the device's claiming message![{}]", device.getName());
@@ -154,6 +182,10 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.CLAIMED));
             }
         }
+    }
+
+    private boolean secretKeyIsEmptyOrEqual(String secretKeyA, String secretKeyB) {
+        return (StringUtils.isEmpty(secretKeyA) && StringUtils.isEmpty(secretKeyB)) || secretKeyA.equals(secretKeyB);
     }
 
     @Override
@@ -202,13 +234,12 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
         return systemDurationMs;
     }
 
-    private ListenableFuture<List<Void>> removeClaimingSavedData(Cache cache, List<Object> key, Device device) {
-        cache.evict(key);
-        if (isAllowedClaimingByDefault) {
-            return Futures.immediateFuture(null);
+    private ListenableFuture<List<Void>> removeClaimingSavedData(Cache cache, ClaimDataInfo data, Device device) {
+        if (data.isFromCache()) {
+            cache.evict(data.getKey());
         }
         return attributesService.removeAll(device.getTenantId(),
-                device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(CLAIM_ATTRIBUTE_NAME));
+                device.getId(), DataConstants.SERVER_SCOPE, Arrays.asList(CLAIM_ATTRIBUTE_NAME, CLAIM_DATA_ATTRIBUTE_NAME));
     }
 
     private void cacheEviction(DeviceId deviceId) {
