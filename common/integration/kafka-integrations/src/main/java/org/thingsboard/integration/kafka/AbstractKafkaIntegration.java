@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -111,6 +111,10 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         if (loopExecutor != null) {
             loopExecutor.shutdownNow();
         }
+        if (kafkaConsumer != null) {
+            kafkaConsumer.unsubscribe();
+            kafkaConsumer.close();
+        }
     }
 
     protected void initConsumer(KafkaConsumerConfiguration configuration) {
@@ -118,13 +122,14 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         properties.put(ConsumerConfig.CLIENT_ID_CONFIG, configuration.getClientId());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, configuration.getGroupId());
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, configuration.getKeyDeserializer());
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, configuration.getValueDeserializer());
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, configuration.getAutoCreateTopics());
         kafkaConsumer = new KafkaConsumer<>(properties);
         kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
 
         pollInterval = configuration.getPollInterval();
+        stopped = false;
     }
 
     protected abstract void doProcess(IntegrationContext context, T msg) throws Exception;

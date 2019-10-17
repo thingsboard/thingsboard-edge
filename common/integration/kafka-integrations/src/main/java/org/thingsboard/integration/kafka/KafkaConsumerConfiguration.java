@@ -39,8 +39,6 @@ public class KafkaConsumerConfiguration {
     private String groupId;
     private String topics;
     private String bootstrapServers;
-    private String keyDeserializer;
-    private String valueDeserializer;
     private String autoCreateTopics;
     private long pollInterval;
 }

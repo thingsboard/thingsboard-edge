@@ -196,6 +196,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-udp>
+    <tb-integration-kafka
+            ng-if="integration.type == types.integrationType.KAFKA.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-kafka>
     <tb-integration-custom
             ng-if="integration.type == types.integrationType.CUSTOM.value"
             is-edit="isEdit"
