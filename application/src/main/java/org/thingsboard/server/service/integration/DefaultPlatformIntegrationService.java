@@ -65,6 +65,7 @@ import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
+import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
@@ -668,6 +669,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AzureEventHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
+            case KAFKA:
+                return new BasicKafkaIntegration();
             case CUSTOM:
             case TCP:
             case UDP:

@@ -359,6 +359,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.tcpip.udp.BasicUdpIntegration");
             case AWS_SQS:
                 return newInstance("org.thingsboard.integration.aws.sqs.AwsSqsIntegration");
+            case KAFKA:
+                return newInstance("org.thingsboard.integration.kafka.basic.BasicKafkaIntegration");
             case CUSTOM:
                 return newInstance(configuration.get("clazz").asText());
             default:
