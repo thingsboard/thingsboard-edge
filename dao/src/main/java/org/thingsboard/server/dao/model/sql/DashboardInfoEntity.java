@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -65,6 +66,9 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
 
     @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
     private String tenantId;
+
+    @Column(name = ModelConstants.DASHBOARD_CUSTOMER_ID_PROPERTY)
+    private String customerId;
 
     @Column(name = ModelConstants.DASHBOARD_TITLE_PROPERTY)
     private String title;
@@ -116,6 +120,9 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         dashboardInfo.setCreatedTime(UUIDs.unixTimestamp(getId()));
         if (tenantId != null) {
             dashboardInfo.setTenantId(new TenantId(toUUID(tenantId)));
+        }
+        if (customerId != null){
+            dashboardInfo.setCustomerId(new CustomerId(toUUID(customerId)));
         }
         dashboardInfo.setTitle(title);
         if (!StringUtils.isEmpty(assignedCustomers)) {
