@@ -57,6 +57,7 @@
         <module>azure</module>
         <module>aws</module>
         <module>tcp-udp</module>
+        <module>kafka</module>
     </modules>
 
     <build>

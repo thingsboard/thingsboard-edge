@@ -56,6 +56,7 @@
         <module>azure-integrations</module>
         <module>aws-integrations</module>
         <module>opcua-integrations</module>
+        <module>kafka-integrations</module>
         <module>remote-integration-api</module>
     </modules>
 

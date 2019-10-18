@@ -468,6 +468,10 @@ export default angular.module('thingsboard.types', [])
                     value: "TCP",
                     remote: true
                 },
+                "KAFKA": {
+                    name: "integration.type-kafka",
+                    value: "KAFKA"
+                },
                 "CUSTOM": {
                     name: "integration.type-custom",
                     value: "CUSTOM",

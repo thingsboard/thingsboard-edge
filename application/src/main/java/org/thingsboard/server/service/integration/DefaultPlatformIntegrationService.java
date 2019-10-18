@@ -66,6 +66,7 @@ import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
+import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
@@ -671,6 +672,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new OpcUaIntegration();
             case AWS_KINESIS:
                 return new AwsKinesisIntegration();
+            case KAFKA:
+                return new BasicKafkaIntegration();
             case CUSTOM:
             case TCP:
             case UDP:
