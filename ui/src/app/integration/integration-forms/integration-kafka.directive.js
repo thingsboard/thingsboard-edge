@@ -59,11 +59,25 @@ export default function IntegrationKafkaDirective($compile, $templateCache, $tra
             if (!scope.configuration.clientConfiguration) {
                 scope.configuration.clientConfiguration = {};
 
+                scope.configuration.clientConfiguration.groupId = 'group_id_'.concat(generateId(10));
+                scope.configuration.clientConfiguration.clientId = 'client_id_'.concat(generateId(10));
                 scope.configuration.clientConfiguration.topics = 'my-topic-output';
                 scope.configuration.clientConfiguration.bootstrapServers = 'localhost:9092';
                 scope.configuration.clientConfiguration.pollInterval = 5000;
                 scope.configuration.clientConfiguration.autoCreateTopics = false;
             }
+        }
+
+        function generateId(length) {
+            if (angular.isUndefined(length) || length == null) {
+                length = 1;
+            }
+            var l = length > 10 ? 10 : length;
+            var str = Math.random().toString(36).substr(2, l);
+            if (str.length >= length) {
+                return str;
+            }
+            return str.concat(generateId(length - str.length));
         }
 
         $compile(element.contents())(scope);
@@ -77,4 +91,5 @@ export default function IntegrationKafkaDirective($compile, $templateCache, $tra
         },
         link: linker
     };
+
 }
