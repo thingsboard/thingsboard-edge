@@ -34,7 +34,7 @@ var gmGlobals = {
 }
 
 export default class TbGoogleMap {
-    constructor($containerElement, utils, initCallback, defaultZoomLevel, dontFitMapBounds, disableScrollZooming, minZoomLevel, gmApiKey, gmDefaultMapType, defaultCenterPosition) {
+    constructor($containerElement, utils, initCallback, defaultZoomLevel, dontFitMapBounds, disableScrollZooming, minZoomLevel, gmApiKey, gmDefaultMapType, defaultCenterPosition, markerClusteringSetting) {
 
         var tbMap = this;
         this.utils = utils;
@@ -44,6 +44,7 @@ export default class TbGoogleMap {
         this.tooltips = [];
         this.defaultMapType = gmDefaultMapType;
         this.defaultCenterPosition = defaultCenterPosition;
+        this.isMarketCluster = markerClusteringSetting.isMarketCluster;
 
         function clearGlobalId() {
             if (gmGlobals.loadingGmId && gmGlobals.loadingGmId === tbMap.mapId) {
@@ -64,6 +65,10 @@ export default class TbGoogleMap {
                 zoom: tbMap.defaultZoomLevel || 8,
                 center: new google.maps.LatLng(tbMap.defaultCenterPosition[0], tbMap.defaultCenterPosition[1]) // eslint-disable-line no-undef
             });
+            if (tbMap.isMarketCluster){
+                tbMap.markersCluster = new MarkerClusterer(tbMap.map, [],  // eslint-disable-line no-undef
+                    angular.merge({imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'}, markerClusteringSetting));
+            }
             if (initCallback) {
                 initCallback();
             }
@@ -102,7 +107,10 @@ export default class TbGoogleMap {
         this.initMapFunctionName = 'initGoogleMap_' + this.mapId;
 
         window[this.initMapFunctionName] = function() { // eslint-disable-line no-undef, angular/window-service
-            lazyLoad.load({ type: 'js', path: 'https://unpkg.com/@google/markerwithlabel@1.2.3/src/markerwithlabel.js' }).then( // eslint-disable-line no-undef
+            lazyLoad.load([ // eslint-disable-line no-undef
+                { type: 'js', path: 'https://unpkg.com/@google/markerwithlabel@1.2.3/src/markerwithlabel.js' },
+                { type: 'js', path: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js' }
+            ]).then(
                 function success() {
                     gmGlobals.gmApiKeys[tbMap.apiKey].loaded = true;
                     initGoogleMap();
@@ -120,6 +128,7 @@ export default class TbGoogleMap {
             );
 
         };
+        /* eslint-enable no-undef */
 
         if (this.apiKey && this.apiKey.length > 0) {
             if (gmGlobals.gmApiKeys[this.apiKey]) {
@@ -156,6 +165,10 @@ export default class TbGoogleMap {
 
     inited() {
         return angular.isDefined(this.map);
+    }
+
+    getContainer() {
+        return this.isMarketCluster ? this.markersCluster : this.map;
     }
 
     /* eslint-disable no-undef */
@@ -255,7 +268,11 @@ export default class TbGoogleMap {
             if (settings.showLabel) {
                 marker.set('labelAnchor', new google.maps.Point(100, iconInfo.size[1] + 20));
             }
-            marker.setMap(gMap.map);
+            if(gMap.isMarketCluster) {
+                gMap.getContainer().addMarker(marker);
+            } else {
+                marker.setMap(gMap.getContainer());
+            }
         });
 
         if (settings.displayTooltip) {
