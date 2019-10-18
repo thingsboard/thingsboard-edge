@@ -28,28 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.aws.kinesis;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Data;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true);
+import java.nio.ByteBuffer;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+@Data
+public class KinesisIntegrationMsg {
+
+    private static ObjectMapper mapper = new ObjectMapper();
+
+    private final String shardId;
+    private final String sequenceNumber;
+    private final String partitionKey;
+    private final byte[] payload;
+
+    public KinesisIntegrationMsg(String shardId, String sequenceNumber, ByteBuffer payload, String partitionKey) {
+        this.shardId = shardId;
+        this.sequenceNumber = sequenceNumber;
+        this.payload = new byte[payload.remaining()];
+        payload.get(this.payload);
+        this.partitionKey = partitionKey;
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
+    public JsonNode toJson() {
+        ObjectNode json = mapper.createObjectNode();
+        json.put("shardId", shardId);
+        json.put("sequenceNumber", sequenceNumber);
+        json.put("partitionKey", partitionKey);
+        JsonNode payloadJson = null;
+        try {
+            payloadJson = mapper.readTree(payload);
+        } catch (Exception e) {}
+        if (payloadJson != null) {
+            json.set("payload", payloadJson);
+        } else {
+            json.put("payload", payload);
+        }
+        return json;
+    }
 }

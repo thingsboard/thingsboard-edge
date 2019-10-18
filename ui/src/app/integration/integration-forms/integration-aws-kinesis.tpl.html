@@ -1,0 +1,129 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section ng-form name="kinesisIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.kinesis-stream-name</label>
+                <input required
+                       name="streamName"
+                       ng-model="configuration.clientConfiguration.streamName">
+                <div ng-messages="kinesisIntegrationForm.streamName.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.kinesis-stream-name-required</div>
+                </div>
+            </md-input-container>
+
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.kinesis-region</label>
+                <input required
+                       name="region"
+                       ng-model="configuration.clientConfiguration.region">
+                <div ng-messages="kinesisIntegrationForm.region.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.kinesis-region-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.kinesis-access-key-id</label>
+                <input ng-required="!configuration.clientConfiguration.useCredentialsFromInstanceMetadata"
+                       ng-disabled="$root.loading || !isEdit || configuration.clientConfiguration.useCredentialsFromInstanceMetadata"
+                       name="accessKeyId"
+                       ng-model="configuration.clientConfiguration.accessKeyId">
+                <div ng-messages="kinesisIntegrationForm.accessKeyId.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.kinesis-access-key-id-required</div>
+                </div>
+            </md-input-container>
+
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.kinesis-secret-access-key</label>
+                <input ng-required="!configuration.clientConfiguration.useCredentialsFromInstanceMetadata"
+                       ng-disabled="$root.loading || !isEdit || configuration.clientConfiguration.useCredentialsFromInstanceMetadata"
+                       type="password"
+                       name="secretAccessKey"
+                       ng-model="configuration.clientConfiguration.secretAccessKey">
+                <div ng-messages="kinesisIntegrationForm.secretAccessKey.$error">
+                    <div translate
+                         ng-message="required"
+                    >integration.kinesis-secret-access-key-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container class="md-block">
+                <md-checkbox ng-disabled="$root.loading || !isEdit"
+                             aria-label="{{ 'integration.kinesis-use-credentials-from-instance-metadata' | translate }}"
+                             ng-model="configuration.clientConfiguration.useCredentialsFromInstanceMetadata">
+                    {{ 'integration.kinesis-use-credentials-from-instance-metadata' | translate }}
+                </md-checkbox>
+            </md-input-container>
+        </div>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container flex="50" class="md-block">
+                <label translate>integration.kinesis-application-name</label>
+                <input name="applicationName"
+                       ng-model="configuration.clientConfiguration.applicationName">
+            </md-input-container>
+            <md-input-container flex="50" class="md-block tb-container-for-select">
+                <label translate>integration.kinesis-initial-position-in-stream</label>
+                <md-select required
+                           ng-disabled="$root.loading || !isEdit"
+                           name="initialPositionInStream"
+                           ng-model="configuration.clientConfiguration.initialPositionInStream">
+                    <md-option ng-repeat="(key, value) in types.initialPositionInStream" ng-value="value">
+                        {{value}}
+                    </md-option>
+                </md-select>
+                <div ng-messages="kinesisIntegrationForm.initialPositionInStream.$error">
+                    <div translate
+                         ng-message="required">integration.kinesis-initial-position-in-stream-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div flex layout="column" layout-gt-sm="row">
+            <md-input-container class="md-block">
+                <md-checkbox ng-disabled="$root.loading || !isEdit"
+                             aria-label="{{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}"
+                             ng-model="configuration.clientConfiguration.useConsumersWithEnhancedFanOut">
+                    {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}
+                </md-checkbox>
+            </md-input-container>
+        </div>
+    </fieldset>
+</section>

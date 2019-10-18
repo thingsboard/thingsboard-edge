@@ -36,6 +36,7 @@ import IntegrationMqttDirective from './integration-forms/integration-mqtt.direc
 import IntegrationUdpDirective from './integration-forms/integration-udp.directive';
 import IntegrationTcpDirective from './integration-forms/integration-tcp.directive';
 import IntegrationOpcUaDirective from './integration-forms/integration-opc-ua.directive';
+import IntegrationAwsKinesisDirective from './integration-forms/integration-aws-kinesis.directive';
 import IntegrationAwsIotDirective from './integration-forms/integration-aws-iot.directive';
 import IntegrationAwsSqsDirective from './integration-forms/integration-aws-sqs.directive';
 import IntegrationIbmWatsonIotDirective from './integration-forms/integration-ibm-watson-iot.directive';
@@ -57,6 +58,7 @@ export default angular.module('thingsboard.integration', [])
     .directive('tbIntegrationOpcUa', IntegrationOpcUaDirective)
     .directive('tbIntegrationAwsIot', IntegrationAwsIotDirective)
     .directive('tbIntegrationAwsSqs', IntegrationAwsSqsDirective)
+    .directive('tbIntegrationAwsKinesis', IntegrationAwsKinesisDirective)
     .directive('tbIntegrationIbmWatsonIot', IntegrationIbmWatsonIotDirective)
     .directive('tbIntegrationTtn', IntegrationTtnDirective)
     .directive('tbMqttTopicFilters', MqttTopicFiltersDirective)

@@ -436,6 +436,10 @@ export default angular.module('thingsboard.types', [])
                     value: "AWS_SQS",
                     mqtt: true
                 },
+                "AWS_KINESIS": {
+                    name: "integration.type-aws-kinesis",
+                    value: "AWS_KINESIS"
+                },
                 "IBM_WATSON_IOT": {
                     name: "integration.type-ibm-watson-iot",
                     value: "IBM_WATSON_IOT",
@@ -994,6 +998,11 @@ export default angular.module('thingsboard.types', [])
             identityType: {
                 anonymous: "extension.anonymous",
                 username: "extension.username"
+            },
+            initialPositionInStream: {
+                latest: "LATEST",
+                trim_horizon: "TRIM_HORIZON",
+                at_timestamp: "AT_TIMESTAMP"
             },
             extensionKeystoreType: {
                 PKCS12: "PKCS12",

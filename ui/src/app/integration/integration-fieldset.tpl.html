@@ -154,6 +154,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-opc-ua>
+    <tb-integration-aws-kinesis
+            ng-if="integration.type == types.integrationType.AWS_KINESIS.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-aws-kinesis>
     <tb-integration-aws-iot
             ng-if="integration.type == types.integrationType.AWS_IOT.value"
             is-edit="isEdit"
