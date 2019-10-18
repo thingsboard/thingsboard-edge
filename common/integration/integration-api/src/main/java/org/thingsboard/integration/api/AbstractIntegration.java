@@ -139,6 +139,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType());
+        if(data.getCustomerName() != null) {
+            builder.setCustomerName(data.getCustomerName());
+        }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }
