@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -35,6 +35,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -50,27 +52,32 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.transport.SessionInfoProto;
+import org.thingsboard.server.utils.JsonUtils;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
 
 @Data
 @Slf4j
@@ -84,6 +91,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
     protected final ObjectMapper mapper = new ObjectMapper();
+    private final Gson gson = new Gson();
 
     public LocalIntegrationContext(IntegrationContextComponent ctx, Integration configuration) {
         this.ctx = ctx;
@@ -112,6 +120,50 @@ public class LocalIntegrationContext implements IntegrationContext {
 
         if (data.hasPostAttributesMsg()) {
             ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
+        }
+    }
+
+    @Override
+    public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
+        Asset asset = getOrCreateAsset(data.getAssetName(), data.getAssetType(), data.getCustomerName());
+
+        TbMsgMetaData tbMsgMetaData = new TbMsgMetaData();
+        tbMsgMetaData.putValue("assetName", data.getAssetName());
+        tbMsgMetaData.putValue("assetType", data.getAssetType());
+
+        if (data.hasPostTelemetryMsg()) {
+            data.getPostTelemetryMsg().getTsKvListList()
+                    .forEach(tsKvListProto -> {
+                        JsonObject json = JsonUtils.getJsonObject(tsKvListProto.getKvList());
+                        TbMsg tbMsg = new TbMsg(
+                                UUIDs.timeBased(),
+                                POST_TELEMETRY_REQUEST.name(),
+                                asset.getId(),
+                                tbMsgMetaData,
+                                TbMsgDataType.JSON,
+                                gson.toJson(json),
+                                null,
+                                null,
+                                0L);
+
+                        ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(asset.getTenantId(), tbMsg)));
+                    });
+        }
+
+        if (data.hasPostAttributesMsg()) {
+            JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
+            TbMsg tbMsg = new TbMsg(
+                    UUIDs.timeBased(),
+                    POST_ATTRIBUTES_REQUEST.name(),
+                    asset.getId(),
+                    tbMsgMetaData,
+                    TbMsgDataType.JSON,
+                    gson.toJson(json),
+                    null,
+                    null,
+                    0L);
+
+            ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(asset.getTenantId(), tbMsg)));
         }
     }
 
@@ -248,6 +300,47 @@ public class LocalIntegrationContext implements IntegrationContext {
         }
     }
 
+    private Asset getOrCreateAsset(String assetName, String assetType, String customerName) {
+        Asset asset = ctx.getAssetService().findAssetByTenantIdAndName(configuration.getTenantId(), assetName);
+        if (asset == null) {
+            entityCreationLock.lock();
+            try {
+                return processGetOrCreateAsset(assetName, assetType, customerName);
+            } finally {
+                entityCreationLock.unlock();
+            }
+        }
+        return asset;
+    }
+
+    private Asset processGetOrCreateAsset(String assetName, String assetType, String customerName) {
+        Asset asset = ctx.getAssetService().findAssetByTenantIdAndName(configuration.getTenantId(), assetName);
+        if (asset == null) {
+            asset = new Asset();
+            asset.setName(assetName);
+            asset.setType(assetType);
+            asset.setTenantId(configuration.getTenantId());
+            if (!StringUtils.isEmpty(customerName)) {
+                Customer customer;
+                Optional<Customer> customerOptional = ctx.getCustomerService().findCustomerByTenantIdAndTitle(configuration.getTenantId(), customerName);
+                if (customerOptional.isPresent()) {
+                    customer = customerOptional.get();
+                } else {
+                    customer = new Customer();
+                    customer.setTitle(customerName);
+                    customer.setTenantId(configuration.getTenantId());
+                    customer = ctx.getCustomerService().saveCustomer(customer);
+                    pushCustomerCreatedEventToRuleEngine(customer);
+                }
+                asset.setCustomerId(customer.getId());
+            }
+            asset = ctx.getAssetService().saveAsset(asset);
+            createRelationFromIntegration(asset.getId());
+            pushAssetCreatedEventToRuleEngine(asset);
+        }
+        return asset;
+    }
+
     private void createRelationFromIntegration(EntityId entityId) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(configuration.getId());
@@ -277,9 +370,26 @@ public class LocalIntegrationContext implements IntegrationContext {
         }
     }
 
+    private void pushAssetCreatedEventToRuleEngine(Asset asset) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(asset);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(asset), mapper.writeValueAsString(entityNode), null, null, 0L);
+            ctx.getActorService().onMsg(new SendToClusterMsg(asset.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
     private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
+        return getActionTbMsgMetaData(device.getCustomerId());
+    }
+
+    private TbMsgMetaData assetActionTbMsgMetaData(Asset asset) {
+        return getActionTbMsgMetaData(asset.getCustomerId());
+    }
+
+    private TbMsgMetaData getActionTbMsgMetaData(CustomerId customerId) {
         TbMsgMetaData metaData = getTbMsgMetaData();
-        CustomerId customerId = device.getCustomerId();
         if (customerId != null && !customerId.isNullUid()) {
             metaData.putValue("customerId", customerId.toString());
         }
@@ -296,7 +406,6 @@ public class LocalIntegrationContext implements IntegrationContext {
         metaData.putValue("integrationName", configuration.getName());
         return metaData;
     }
-
 
     @Override
     public ServerAddress getServerAddress() {

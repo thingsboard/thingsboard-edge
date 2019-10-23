@@ -28,27 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.data;
+package org.thingsboard.server.utils;
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import com.google.gson.JsonObject;
+import org.thingsboard.server.gen.transport.KeyValueProto;
 
-/**
- * Created by ashvayka on 04.12.17.
- */
-@Data
-@Builder
-public class UplinkData {
+import java.util.List;
 
-    private final String deviceName;
-    private final String deviceType;
-    private final String assetName;
-    private final String assetType;
-    private final String customerName;
-    private final PostTelemetryMsg telemetry;
-    private final PostAttributeMsg attributesUpdate;
-    private final boolean isAsset;
+public class JsonUtils {
 
+    public static JsonObject getJsonObject(List<KeyValueProto> tsKv) {
+        JsonObject json = new JsonObject();
+        for (KeyValueProto kv : tsKv) {
+            switch (kv.getType()) {
+                case BOOLEAN_V:
+                    json.addProperty(kv.getKey(), kv.getBoolV());
+                    break;
+                case LONG_V:
+                    json.addProperty(kv.getKey(), kv.getLongV());
+                    break;
+                case DOUBLE_V:
+                    json.addProperty(kv.getKey(), kv.getDoubleV());
+                    break;
+                case STRING_V:
+                    json.addProperty(kv.getKey(), kv.getStringV());
+                    break;
+            }
+        }
+        return json;
+    }
 }
