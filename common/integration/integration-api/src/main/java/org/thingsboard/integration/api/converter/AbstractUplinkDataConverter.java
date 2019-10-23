@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -86,14 +86,18 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     protected abstract String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
     protected UplinkData parseUplinkData(JsonObject src) {
-        if (!src.has("deviceName")) {
-            throw new JsonParseException("Device name is not set!");
-        } else if (!src.has("deviceType")) {
-            throw new JsonParseException("Device type is not set!");
-        }
+        boolean isAsset = getIsAssetAndVerify(src);
+
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
-        builder.deviceName(src.get("deviceName").getAsString());
-        builder.deviceType(src.get("deviceType").getAsString());
+        builder.isAsset(isAsset);
+        if (isAsset) {
+            builder.assetName(src.get("assetName").getAsString());
+            builder.assetType(src.get("assetType").getAsString());
+        } else {
+            builder.deviceName(src.get("deviceName").getAsString());
+            builder.deviceType(src.get("deviceType").getAsString());
+        }
+
         if (src.has("customerName")) {
             builder.customerName(src.get("customerName").getAsString());
         }
@@ -106,6 +110,29 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
         //TODO: add support of attribute requests and client-side RPC.
         return builder.build();
+    }
+
+    private boolean getIsAssetAndVerify(JsonObject src) {
+        boolean isAsset;
+        boolean isDeviceNamePresent = src.has("deviceName");
+        boolean isDeviceTypePresent = src.has("deviceType");
+        boolean isAssetNamePresent = src.has("assetName");
+        boolean isAssetTypePresent = src.has("assetType");
+
+        if ((!isDeviceNamePresent && !isAssetNamePresent) || (isDeviceNamePresent && isAssetNamePresent)) {
+            throw new JsonParseException("Device name and asset name is not present or present both!");
+        } else if (isDeviceNamePresent) {
+            if (!isDeviceTypePresent) {
+                throw new JsonParseException("Device type is not set!");
+            }
+            isAsset = false;
+        } else {
+            if (!isAssetTypePresent) {
+                throw new JsonParseException("Asset type is not set!");
+            }
+            isAsset = true;
+        }
+        return isAsset;
     }
 
     private PostTelemetryMsg parseTelemetry(JsonElement src) {

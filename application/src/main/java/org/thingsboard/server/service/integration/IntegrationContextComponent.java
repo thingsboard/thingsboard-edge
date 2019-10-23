@@ -39,6 +39,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -123,6 +124,10 @@ public class IntegrationContextComponent {
     @Lazy
     @Autowired
     private CustomerService customerService;
+
+    @Lazy
+    @Autowired
+    private AssetService assetService;
 
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
