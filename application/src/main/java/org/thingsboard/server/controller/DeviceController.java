@@ -71,7 +71,6 @@ import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -466,7 +465,7 @@ public class DeviceController extends BaseController {
         }
     }
 
-    private String getSecretKey(ClaimRequest claimRequest) throws IOException {
+    private String getSecretKey(ClaimRequest claimRequest) {
         String secretKey = claimRequest.getSecretKey();
         if (secretKey != null) {
             return secretKey;

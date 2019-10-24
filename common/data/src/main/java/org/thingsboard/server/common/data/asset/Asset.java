@@ -52,6 +52,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     private CustomerId customerId;
     private String name;
     private String type;
+    private String label;
 
     public Asset() {
         super();
@@ -67,6 +68,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.customerId = asset.getCustomerId();
         this.name = asset.getName();
         this.type = asset.getType();
+        this.label = asset.getLabel();
     }
 
     public TenantId getTenantId() {
@@ -116,6 +118,14 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.type = type;
     }
 
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -132,6 +142,8 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         builder.append(name);
         builder.append(", type=");
         builder.append(type);
+        builder.append(", label=");
+        builder.append(label);
         builder.append(", additionalInfo=");
         builder.append(getAdditionalInfo());
         builder.append(", createdTime=");

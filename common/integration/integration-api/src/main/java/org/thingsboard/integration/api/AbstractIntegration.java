@@ -110,7 +110,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (configuration == null || configuration.getConfiguration() == null) {
             throw new IllegalArgumentException("Integration configuration is empty!");
         }
-        doValidateConfiguration(configuration.getConfiguration(), allowLocalNetworkHosts);
+        if (!configuration.isRemote()) {
+            doValidateConfiguration(configuration.getConfiguration(), allowLocalNetworkHosts);
+        }
     }
 
     @Override
@@ -137,6 +139,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType());
+        if(data.getCustomerName() != null) {
+            builder.setCustomerName(data.getCustomerName());
+        }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }

@@ -106,6 +106,15 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $mdP
         icon: 'search'
     };
 
+    let columnDisplayAction = {
+        name: 'entity.columns-to-display',
+        show: true,
+        onAction: function($event) {
+            vm.editColumnsToDisplay($event);
+        },
+        icon: 'view_column'
+    };
+
     vm.enterFilterMode = enterFilterMode;
     vm.exitFilterMode = exitFilterMode;
     vm.onReorder = onReorder;
@@ -162,7 +171,7 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $mdP
 
     function initializeConfig() {
 
-        vm.ctx.widgetActions = [ vm.searchAction ];
+        vm.ctx.widgetActions = [ vm.searchAction, columnDisplayAction ];
 
         vm.ctx.customDataExport = customDataExport;
 
@@ -179,6 +188,7 @@ function EntitiesTableWidgetController($element, $scope, $filter, $mdMedia, $mdP
         vm.searchAction.show = angular.isDefined(vm.settings.enableSearch) ? vm.settings.enableSearch : true;
         vm.displayEntityName = angular.isDefined(vm.settings.displayEntityName) ? vm.settings.displayEntityName : true;
         vm.displayEntityLabel = angular.isDefined(vm.settings.displayEntityLabel) ? vm.settings.displayEntityLabel : false;
+        columnDisplayAction.show = angular.isDefined(vm.settings.enableSelectColumnDisplay) ? vm.settings.enableSelectColumnDisplay : true;
 
         if (vm.settings.entityNameColumnTitle && vm.settings.entityNameColumnTitle.length) {
             vm.entityNameColumnTitle = utils.customTranslation(vm.settings.entityNameColumnTitle, vm.settings.entityNameColumnTitle);

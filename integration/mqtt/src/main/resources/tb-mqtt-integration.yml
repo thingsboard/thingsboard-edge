@@ -36,8 +36,8 @@ server:
   port: "${HTTP_BIND_PORT:8082}"
 
 integration:
-  routingKey: "${INTEGRATION_ROUTING_KEY:7337725943709716771ea73006c856f1}"
-  secret: "${INTEGRATION_SECRET:f3njx5xe09pifqt9m1zf}"
+  routingKey: "${INTEGRATION_ROUTING_KEY:PUT_YOUR_ROUTING_KEY_HERE}"
+  secret: "${INTEGRATION_SECRET:PUT_YOUR_SECRET_HERE}"
   allow_local_network_hosts: "${INTEGRATION_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   statistics:
     # Enable/disable integration statistics
@@ -57,8 +57,8 @@ executors:
   reconnect_timeout: "${EXECUTORS_RECONNECT_TIMEOUT:3000}" # in milliseconds
 
 rpc:
-  host: "${PRC_HOST:localhost}"
-  port: "${RPC_PORT:50051}"
+  host: "${PRC_HOST:cloud.thingsboard.io}"
+  port: "${RPC_PORT:9090}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
   client_id: "${RPC_CLIENT_ID:remote}"
   ssl:

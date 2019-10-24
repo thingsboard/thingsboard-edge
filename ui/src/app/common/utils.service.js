@@ -161,6 +161,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         baseUrl: baseUrl,
         validateDatasources: validateDatasources,
         createKey: createKey,
+        createAdditionalDataKey: createAdditionalDataKey,
         createLabelFromDatasource: createLabelFromDatasource,
         insertVariable: insertVariable,
         customTranslation: customTranslation,
@@ -460,8 +461,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         return copy;
     }
 
-    function genNextColor(datasources) {
-        var index = 0;
+    function genNextColor(datasources, initialIndex) {
+        var index = initialIndex || 0;
         if (datasources) {
             for (var i = 0; i < datasources.length; i++) {
                 var datasource = datasources[i];
@@ -547,6 +548,23 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             dataKey.postFuncBody = keyInfo.postFuncBody;
         }
         return dataKey;
+    }
+
+    function createAdditionalDataKey(dataKey, datasource, timeUnit, datasources, additionalKeysNumber) {
+        let additionalDataKey = angular.copy(dataKey);
+        if (dataKey.settings.comparisonSettings.comparisonValuesLabel) {
+            additionalDataKey.label = createLabelFromDatasource(datasource, dataKey.settings.comparisonSettings.comparisonValuesLabel);
+        } else {
+            additionalDataKey.label = dataKey.label + ' ' + $translate.instant('legend.comparison-time-ago.'+timeUnit);
+        }
+        additionalDataKey.pattern = additionalDataKey.label;
+        if (dataKey.settings.comparisonSettings.color) {
+            additionalDataKey.color = dataKey.settings.comparisonSettings.color;
+        } else {
+            additionalDataKey.color = genNextColor(datasources, additionalKeysNumber);
+        }
+        additionalDataKey._hash = Math.random();
+        return additionalDataKey;
     }
 
     function createLabelFromDatasource(datasource, pattern) {

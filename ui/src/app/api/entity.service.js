@@ -1436,19 +1436,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         let newEntity = {
             name: entityParameters.name,
             type: entityParameters.type,
+            label: entityParameters.label,
             customerId: customerId
         };
-        let promise;
-        switch (entityType) {
-            case types.entityType.device:
-                promise = deviceService.saveDevice(newEntity, entityGroupId, config);
-                break;
-            case types.entityType.asset:
-                promise = assetService.saveAsset(newEntity, true, config, entityGroupId);
-                break;
-        }
+        let saveEntityPromise = getEntitySavePromise(entityType, newEntity, config);
 
-        promise.then(function success(response) {
+        saveEntityPromise.then(function success(response) {
             saveEntityRelation(entityType, response.id, entityParameters, config).then(function success() {
                 statisticalInfo.create = {
                     entity: 1
@@ -1472,7 +1465,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         break;
                 }
                 findIdEntity.then(function success(response) {
-                    saveEntityRelation(entityType, response.id, entityParameters, config).then(function success() {
+                    let promises = [];
+                    if(response.label !== entityParameters.label || response.type !== entityParameters.type){
+                        response.label = entityParameters.label;
+                        response.type = entityParameters.type;
+                        promises.push(getEntitySavePromise(entityType, response, config));
+                    }
+                    promises.push(saveEntityRelation(entityType, response.id, entityParameters, config));
+
+                    $q.all(promises).then(function success() {
                         statisticalInfo.update = {
                             entity: 1
                         };
@@ -1497,6 +1498,19 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             }
         });
         return deferred.promise;
+    }
+
+    function getEntitySavePromise(entityType, newEntity, config) {
+        let promise;
+        switch (entityType) {
+            case types.entityType.device:
+                promise = deviceService.saveDevice(newEntity, config);
+                break;
+            case types.entityType.asset:
+                promise = assetService.saveAsset(newEntity, true, config);
+                break;
+        }
+        return promise;
     }
 
     function getRelatedEntity(entityId, keys, typeTranslatePrefix) {

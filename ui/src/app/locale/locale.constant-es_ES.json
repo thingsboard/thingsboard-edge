@@ -301,7 +301,8 @@
         "list-of-groups": "{ count, plural, 1 {One asset group} other {List of # asset groups} }",
         "group-name-starts-with": "Grupos de activos cuyos nombres comienzan con '{{prefix}}'",
         "import": "Importar activos",
-        "asset-file": "Archivo del activo"
+        "asset-file": "Archivo del activo",
+        "label": "Etiqueta"
     },
     "attribute": {
         "attributes": "Atributos",

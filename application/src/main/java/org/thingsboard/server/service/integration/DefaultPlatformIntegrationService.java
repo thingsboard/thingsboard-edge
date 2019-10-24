@@ -65,6 +65,8 @@ import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
+import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
+import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
@@ -278,13 +280,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration configuration) {
-        if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
-            return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-        }
         if (configuration.isRemote()) {
             integrationRpcService.updateIntegration(configuration);
             return Futures.immediateFuture(null);
         } else {
+            if (configuration.getType().isSingleton() && clusterRoutingService.resolveById(configuration.getId()).isPresent()) {
+                return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+            }
             return refreshExecutorService.submit(() -> {
                 Pair<ThingsboardPlatformIntegration, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());
                 if (integration != null) {
@@ -668,6 +670,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AzureEventHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
+            case AWS_KINESIS:
+                return new AwsKinesisIntegration();
+            case KAFKA:
+                return new BasicKafkaIntegration();
             case CUSTOM:
             case TCP:
             case UDP:

@@ -436,6 +436,10 @@ export default angular.module('thingsboard.types', [])
                     value: "AWS_SQS",
                     mqtt: true
                 },
+                "AWS_KINESIS": {
+                    name: "integration.type-aws-kinesis",
+                    value: "AWS_KINESIS"
+                },
                 "IBM_WATSON_IOT": {
                     name: "integration.type-ibm-watson-iot",
                     value: "IBM_WATSON_IOT",
@@ -463,6 +467,10 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-tcp",
                     value: "TCP",
                     remote: true
+                },
+                "KAFKA": {
+                    name: "integration.type-kafka",
+                    value: "KAFKA"
                 },
                 "CUSTOM": {
                     name: "integration.type-custom",
@@ -667,6 +675,10 @@ export default angular.module('thingsboard.types', [])
                 type: {
                     name: 'import.column-type.type',
                     value: 'type'
+                },
+                label: {
+                    name: 'import.column-type.label',
+                    value: 'label'
                 },
                 clientAttribute: {
                     name: 'import.column-type.client-attribute',
@@ -990,6 +1002,11 @@ export default angular.module('thingsboard.types', [])
             identityType: {
                 anonymous: "extension.anonymous",
                 username: "extension.username"
+            },
+            initialPositionInStream: {
+                latest: "LATEST",
+                trim_horizon: "TRIM_HORIZON",
+                at_timestamp: "AT_TIMESTAMP"
             },
             extensionKeystoreType: {
                 PKCS12: "PKCS12",
