@@ -183,6 +183,7 @@ message UplinkMsg {
   repeated IntegrationStatisticsProto integrationStatistics = 4;
   repeated TbEventProto eventsData = 5;
   repeated bytes tbMsg = 6;
+  repeated AssetUplinkDataProto assetData = 7;
 }
 
 message UplinkResponseMsg {
