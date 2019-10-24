@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -52,6 +52,8 @@ import java.util.List;
  */
 @Slf4j
 public abstract class AbstractUplinkDataConverter extends AbstractDataConverter implements TBUplinkDataConverter {
+
+    private static final String DEFAULT_DEVICE_TYPE = "default";
 
     @Override
     public void init(Converter configuration) {
@@ -95,7 +97,11 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             builder.assetType(src.get("assetType").getAsString());
         } else {
             builder.deviceName(src.get("deviceName").getAsString());
-            builder.deviceType(src.get("deviceType").getAsString());
+            if (src.has("deviceType")) {
+                builder.deviceType(src.get("deviceType").getAsString());
+            } else {
+                builder.deviceType(DEFAULT_DEVICE_TYPE);
+            }
         }
 
         if (src.has("customerName")) {
@@ -115,16 +121,18 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     private boolean getIsAssetAndVerify(JsonObject src) {
         boolean isAsset;
         boolean isDeviceNamePresent = src.has("deviceName");
-        boolean isDeviceTypePresent = src.has("deviceType");
         boolean isAssetNamePresent = src.has("assetName");
         boolean isAssetTypePresent = src.has("assetType");
 
-        if ((!isDeviceNamePresent && !isAssetNamePresent) || (isDeviceNamePresent && isAssetNamePresent)) {
-            throw new JsonParseException("Device name and asset name is not present or present both!");
-        } else if (isDeviceNamePresent) {
-            if (!isDeviceTypePresent) {
-                throw new JsonParseException("Device type is not set!");
-            }
+        if (!isDeviceNamePresent && !isAssetNamePresent) {
+            throw new JsonParseException("Device name and asset name both are not present!");
+        }
+
+        if (isDeviceNamePresent && isAssetNamePresent) {
+            throw new JsonParseException("Device name and asset name both are present!");
+        }
+
+        if (isDeviceNamePresent) {
             isAsset = false;
         } else {
             if (!isAssetTypePresent) {
