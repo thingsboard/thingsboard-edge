@@ -91,9 +91,9 @@ public class RemoteIntegrationContext implements IntegrationContext {
         eventStorage.write(UplinkMsg.newBuilder().addDeviceData(msg).build(), callback);
     }
 
-    //TODO need create
     @Override
     public void processUplinkData(AssetUplinkDataProto msg, IntegrationCallback<Void> callback) {
+        eventStorage.write(UplinkMsg.newBuilder().addAssetData(msg).build(), callback);
     }
 
     @Override
