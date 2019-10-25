@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.channel.EventLoopGroup;
@@ -50,11 +51,14 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -73,6 +77,7 @@ import org.thingsboard.server.utils.JsonUtils;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -102,7 +107,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
+        Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
         UUID sessionId = UUID.randomUUID();
         SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
@@ -125,7 +130,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Asset asset = getOrCreateAsset(data.getAssetName(), data.getAssetType(), data.getCustomerName());
+        Asset asset = getOrCreateAsset(data.getAssetName(), data.getAssetType(), data.getCustomerName(), data.getGroupName());
 
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData();
         tbMsgMetaData.putValue("assetName", data.getAssetName());
@@ -169,7 +174,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
-        createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
+        createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null, null), data);
     }
 
     @Override
@@ -231,12 +236,12 @@ public class LocalIntegrationContext implements IntegrationContext {
         DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 
-    private Device getOrCreateDevice(String deviceName, String deviceType, String customerName) {
+    private Device getOrCreateDevice(String deviceName, String deviceType, String customerName, String groupName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device == null) {
             entityCreationLock.lock();
             try {
-                return processGetOrCreateDevice(deviceName, deviceType, customerName);
+                return processGetOrCreateDevice(deviceName, deviceType, customerName, groupName);
             } finally {
                 entityCreationLock.unlock();
             }
@@ -244,7 +249,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         return device;
     }
 
-    private Device processGetOrCreateDevice(String deviceName, String deviceType, String customerName) {
+    private Device processGetOrCreateDevice(String deviceName, String deviceType, String customerName, String entityGroupName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device == null) {
             device = new Device();
@@ -265,7 +270,13 @@ public class LocalIntegrationContext implements IntegrationContext {
                 }
                 device.setCustomerId(customer.getId());
             }
+
             device = ctx.getDeviceService().saveDevice(device);
+            EntityId parentId = StringUtils.isEmpty(customerName) ? device.getTenantId() : device.getCustomerId();
+            if (!StringUtils.isEmpty(entityGroupName)) {
+                addEntityToEntityGroup(entityGroupName, configuration.getTenantId(), device.getId(), parentId, device.getEntityType());
+            }
+
             createRelationFromIntegration(device.getId());
             ctx.getActorService().onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(device);
@@ -300,12 +311,12 @@ public class LocalIntegrationContext implements IntegrationContext {
         }
     }
 
-    private Asset getOrCreateAsset(String assetName, String assetType, String customerName) {
+    private Asset getOrCreateAsset(String assetName, String assetType, String customerName, String groupName) {
         Asset asset = ctx.getAssetService().findAssetByTenantIdAndName(configuration.getTenantId(), assetName);
         if (asset == null) {
             entityCreationLock.lock();
             try {
-                return processGetOrCreateAsset(assetName, assetType, customerName);
+                return processGetOrCreateAsset(assetName, assetType, customerName, groupName);
             } finally {
                 entityCreationLock.unlock();
             }
@@ -313,7 +324,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         return asset;
     }
 
-    private Asset processGetOrCreateAsset(String assetName, String assetType, String customerName) {
+    private Asset processGetOrCreateAsset(String assetName, String assetType, String customerName, String groupName) {
         Asset asset = ctx.getAssetService().findAssetByTenantIdAndName(configuration.getTenantId(), assetName);
         if (asset == null) {
             asset = new Asset();
@@ -335,10 +346,39 @@ public class LocalIntegrationContext implements IntegrationContext {
                 asset.setCustomerId(customer.getId());
             }
             asset = ctx.getAssetService().saveAsset(asset);
+
+            EntityId parentId = StringUtils.isEmpty(customerName) ? asset.getTenantId() : asset.getCustomerId();
+            if (!StringUtils.isEmpty(groupName)) {
+                addEntityToEntityGroup(groupName, configuration.getTenantId(), asset.getId(), parentId, asset.getEntityType());
+            }
+
             createRelationFromIntegration(asset.getId());
             pushAssetCreatedEventToRuleEngine(asset);
         }
         return asset;
+    }
+
+    private void addEntityToEntityGroup(String groupName, TenantId tenantId, EntityId entityId, EntityId parentId, EntityType entityType) {
+        ListenableFuture<Optional<EntityGroup>> futureEntityGroup = ctx.getEntityGroupService()
+                .findEntityGroupByTypeAndName(tenantId, parentId, entityType, groupName);
+
+        DonAsynchron.withCallback(futureEntityGroup, optionalEntityGroup -> {
+            EntityGroup entityGroup =
+                    optionalEntityGroup.orElseGet(() -> createEntityGroup(groupName, parentId, entityType, tenantId));
+
+            pushEntityGroupCreatedEventToRuleEngine(entityGroup);
+
+            ctx.getEntityGroupService().addEntityToEntityGroup(tenantId, entityGroup.getId(), entityId);
+
+        }, throwable -> {
+        }, Executors.newSingleThreadExecutor());
+    }
+
+    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, EntityType entityType, TenantId tenantId) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName(entityGroupName);
+        entityGroup.setType(entityType);
+        return ctx.getEntityGroupService().saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
     private void createRelationFromIntegration(EntityId entityId) {
@@ -380,12 +420,26 @@ public class LocalIntegrationContext implements IntegrationContext {
         }
     }
 
+    private void pushEntityGroupCreatedEventToRuleEngine(EntityGroup entityGroup) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(entityGroup);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, entityGroup.getId(), entityGroupActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
+            ctx.getActorService().onMsg(new SendToClusterMsg(entityGroup.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
     private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
         return getActionTbMsgMetaData(device.getCustomerId());
     }
 
     private TbMsgMetaData assetActionTbMsgMetaData(Asset asset) {
         return getActionTbMsgMetaData(asset.getCustomerId());
+    }
+
+    private TbMsgMetaData entityGroupActionTbMsgMetaData() {
+        return getTbMsgMetaData();
     }
 
     private TbMsgMetaData getActionTbMsgMetaData(CustomerId customerId) {

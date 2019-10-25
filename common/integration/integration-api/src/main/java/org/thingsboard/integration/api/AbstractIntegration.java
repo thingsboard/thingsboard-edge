@@ -151,6 +151,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (data.getCustomerName() != null) {
             builder.setCustomerName(data.getCustomerName());
         }
+        if (data.getGroupName() != null) {
+            builder.setGroupName(data.getGroupName());
+        }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }
@@ -165,6 +168,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                 .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
         if (data.getCustomerName() != null) {
             builder.setCustomerName(data.getCustomerName());
+        }
+        if (data.getGroupName() != null) {
+            builder.setGroupName(data.getGroupName());
         }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
