@@ -47,14 +47,14 @@ import java.util.Arrays;
         "org.thingsboard.server.dao",
         "org.thingsboard.js",
         "org.thingsboard.integration"})
-public class ThingsboardInstallApplication {
+public class TbEdgeInstallApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
     private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "thingsboard";
 
     public static void main(String[] args) {
         try {
-            SpringApplication application = new SpringApplication(ThingsboardInstallApplication.class);
+            SpringApplication application = new SpringApplication(TbEdgeInstallApplication.class);
             application.setAdditionalProfiles("install");
             ConfigurableApplicationContext context = application.run(updateArguments(args));
             context.getBean(ThingsboardInstallService.class).performInstall();

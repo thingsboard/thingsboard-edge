@@ -43,14 +43,14 @@ import java.util.Arrays;
 @EnableAsync
 @EnableSwagger2
 @EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration"})
-public class ThingsboardServerApplication {
+@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration", "org.thingsboard.edge"})
+public class TbEdgeServerApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
     private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "thingsboard";
 
     public static void main(String[] args) {
-        SpringApplication.run(ThingsboardServerApplication.class, updateArguments(args));
+        SpringApplication.run(TbEdgeServerApplication.class, updateArguments(args));
     }
 
     private static String[] updateArguments(String[] args) {

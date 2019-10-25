@@ -63,7 +63,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="org.thingsboard.server.ThingsboardInstallApplication" level="ERROR">
+    <logger name="org.thingsboard.server.TbEdgeInstallApplication" level="ERROR">
         <appender-ref ref="STDOUT" />
     </logger>
 

@@ -70,6 +70,15 @@ server:
         enabled: "${TB_SERVER_REST_LIMITS_CUSTOMER_ENABLED:false}"
         configuration: "${TB_SERVER_REST_LIMITS_CUSTOMER_CONFIGURATION:50:1,1000:60}"
 
+cloud:
+  rpc:
+    host: "${CLOUD_PRC_HOST:localhost}"
+    port: "${CLOUD_RPC_PORT:60061}"
+    timeout: "${CLOUD_RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
+    ssl:
+      enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
+      cert: "${CLOUD_RPC_SSL_CERT:roots.pem}"
+
 # Zookeeper connection parameters. Used for service discovery.
 zk:
   # Enable/disable zookeeper discovery service.
@@ -83,7 +92,7 @@ zk:
   # Zookeeper session timeout in milliseconds
   session_timeout_ms: "${ZOOKEEPER_SESSION_TIMEOUT_MS:3000}"
   # Name of the directory in zookeeper 'filesystem'
-  zk_dir: "${ZOOKEEPER_NODES_DIR:/thingsboard}"
+  zk_dir: "${ZOOKEEPER_NODES_DIR:/tb_edge}"
 
 # RPC connection parameters. Used only in cluster mode only.
 rpc:
