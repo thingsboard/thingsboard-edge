@@ -107,6 +107,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("customerName")) {
             builder.customerName(src.get("customerName").getAsString());
         }
+        if (src.has("groupName")) {
+            builder.groupName(src.get("groupName").getAsString());
+        }
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
         }

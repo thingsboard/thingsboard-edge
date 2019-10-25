@@ -96,16 +96,18 @@ message DeviceUplinkDataProto {
   string deviceName = 1;
   string deviceType = 2;
   string customerName = 3;
-  transport.PostTelemetryMsg postTelemetryMsg = 4;
-  transport.PostAttributeMsg postAttributesMsg = 5;
+  string groupName = 4;
+  transport.PostTelemetryMsg postTelemetryMsg = 5;
+  transport.PostAttributeMsg postAttributesMsg = 6;
 }
 
 message AssetUplinkDataProto {
   string assetName = 1;
   string assetType = 2;
   string customerName = 3;
-  transport.PostTelemetryMsg postTelemetryMsg = 4;
-  transport.PostAttributeMsg postAttributesMsg = 5;
+  string groupName = 4;
+  transport.PostTelemetryMsg postTelemetryMsg = 5;
+  transport.PostAttributeMsg postAttributesMsg = 6;
 }
 
 message EntityViewDataProto {

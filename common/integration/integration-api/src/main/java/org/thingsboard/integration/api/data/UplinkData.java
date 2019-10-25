@@ -47,6 +47,7 @@ public class UplinkData {
     private final String assetName;
     private final String assetType;
     private final String customerName;
+    private final String groupName;
     private final PostTelemetryMsg telemetry;
     private final PostAttributeMsg attributesUpdate;
     private final boolean isAsset;
