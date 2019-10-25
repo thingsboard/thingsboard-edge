@@ -272,9 +272,8 @@ public class LocalIntegrationContext implements IntegrationContext {
             }
 
             device = ctx.getDeviceService().saveDevice(device);
-            EntityId parentId = StringUtils.isEmpty(customerName) ? device.getTenantId() : device.getCustomerId();
             if (!StringUtils.isEmpty(entityGroupName)) {
-                addEntityToEntityGroup(entityGroupName, configuration.getTenantId(), device.getId(), parentId, device.getEntityType());
+                addEntityToEntityGroup(entityGroupName, configuration.getTenantId(), device.getId(), device.getOwnerId(), device.getEntityType());
             }
 
             createRelationFromIntegration(device.getId());
@@ -347,9 +346,8 @@ public class LocalIntegrationContext implements IntegrationContext {
             }
             asset = ctx.getAssetService().saveAsset(asset);
 
-            EntityId parentId = StringUtils.isEmpty(customerName) ? asset.getTenantId() : asset.getCustomerId();
             if (!StringUtils.isEmpty(groupName)) {
-                addEntityToEntityGroup(groupName, configuration.getTenantId(), asset.getId(), parentId, asset.getEntityType());
+                addEntityToEntityGroup(groupName, configuration.getTenantId(), asset.getId(), asset.getOwnerId(), asset.getEntityType());
             }
 
             createRelationFromIntegration(asset.getId());
