@@ -42,7 +42,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -54,7 +53,6 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
-@SqlDao
 public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, Converter> implements ConverterDao {
 
     @Autowired

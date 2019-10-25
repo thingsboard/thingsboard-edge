@@ -36,11 +36,9 @@ import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.AttributeKvCompositeKey;
 import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
-@SqlDao
 public interface AttributeKvRepository extends CrudRepository<AttributeKvEntity, AttributeKvCompositeKey> {
 
     @Query("SELECT a FROM AttributeKvEntity a WHERE a.id.entityType = :entityType " +

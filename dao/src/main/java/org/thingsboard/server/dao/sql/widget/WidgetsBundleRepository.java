@@ -35,14 +35,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.WidgetsBundleEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
 /**
  * Created by Valerii Sosliuk on 4/23/2017.
  */
-@SqlDao
 public interface WidgetsBundleRepository extends CrudRepository<WidgetsBundleEntity, String> {
 
     WidgetsBundleEntity findWidgetsBundleByTenantIdAndAlias(String tenantId, String alias);

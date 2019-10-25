@@ -42,7 +42,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -54,7 +53,6 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
-@SqlDao
 public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntity, Integration> implements IntegrationDao {
 
     @Autowired

@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.service.install.sql.SqlDbHelper;
 
 import java.nio.charset.Charset;
@@ -68,7 +67,6 @@ import static org.thingsboard.server.service.install.DatabaseHelper.TYPE;
 @Service
 @Profile("install")
 @Slf4j
-@SqlDao
 public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
 
     private static final String SCHEMA_UPDATE_SQL = "schema_update.sql";
@@ -91,148 +89,6 @@ public class SqlDatabaseUpgradeService implements DatabaseUpgradeService {
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
-            case "1.3.0":
-                log.info("Updating schema ...");
-                Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.3.1", SCHEMA_UPDATE_SQL);
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    loadSql(schemaUpdateFile, conn);
-                }
-                log.info("Schema updated.");
-                break;
-            case "1.3.1":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-
-                    log.info("Dumping dashboards ...");
-                    Path dashboardsDump = SqlDbHelper.dumpTableIfExists(conn, DASHBOARD,
-                            new String[]{ID, TENANT_ID, CUSTOMER_ID, TITLE, SEARCH_TEXT, ASSIGNED_CUSTOMERS, CONFIGURATION},
-                            new String[]{"", "", "", "", "", "", ""},
-                            "tb-dashboards", true);
-                    log.info("Dashboards dumped.");
-
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.4.0", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    log.info("Schema updated.");
-
-                    log.info("Restoring dashboards ...");
-                    if (dashboardsDump != null) {
-                        SqlDbHelper.loadTable(conn, DASHBOARD,
-                                new String[]{ID, TENANT_ID, TITLE, SEARCH_TEXT, CONFIGURATION}, dashboardsDump, true);
-                        DatabaseHelper.upgradeTo40_assignDashboards(dashboardsDump, dashboardService, true);
-                        Files.deleteIfExists(dashboardsDump);
-                    }
-                    log.info("Dashboards restored.");
-                }
-                break;
-            case "1.4.0":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.0.0", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    log.info("Schema updated.");
-                }
-                break;
-            case "2.0.0":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.1", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    log.info("Schema updated.");
-                }
-                break;
-            case "2.1.1":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-
-                    log.info("Dumping entity views ...");
-                    Path entityViewsDump = SqlDbHelper.dumpTableIfExists(conn, ENTITY_VIEWS,
-                            new String[]{ID, ENTITY_ID, ENTITY_TYPE, TENANT_ID, CUSTOMER_ID, TYPE, NAME, KEYS, START_TS, END_TS, SEARCH_TEXT, ADDITIONAL_INFO},
-                            new String[]{"", "", "", "", "", "default", "", "", "0", "0", "", ""},
-                            "tb-entity-views", true);
-                    log.info("Entity views dumped.");
-
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.1.2", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    log.info("Schema updated.");
-
-                    log.info("Restoring entity views ...");
-                    if (entityViewsDump != null) {
-                        SqlDbHelper.loadTable(conn, ENTITY_VIEW,
-                                new String[]{ID, ENTITY_ID, ENTITY_TYPE, TENANT_ID, CUSTOMER_ID, TYPE, NAME, KEYS, START_TS, END_TS, SEARCH_TEXT, ADDITIONAL_INFO}, entityViewsDump, true);
-                        Files.deleteIfExists(entityViewsDump);
-                    }
-                    log.info("Entity views restored.");
-                }
-                break;
-            case "2.1.3":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.2.0", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    log.info("Schema updated.");
-                }
-                break;
-            case "2.3.0":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.3.1", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    log.info("Schema updated.");
-                }
-                break;
-            case "2.3.1":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.0", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-                    try {
-                        conn.createStatement().execute("ALTER TABLE device ADD COLUMN label varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    log.info("Schema updated.");
-                }
-                break;
-            case "2.4.1":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    try {
-                        conn.createStatement().execute("ALTER TABLE asset ADD COLUMN label varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    log.info("Schema updated.");
-                }
-                break;
-            case "2.4.2":
-                log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.2pe", SCHEMA_UPDATE_SQL);
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    loadSql(schemaUpdateFile, conn);
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE customer ADD COLUMN parent_customer_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE dashboard ADD COLUMN customer_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_id varchar(31)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_type varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    conn.createStatement().execute("update converter set type = 'UPLINK' where type = 'CUSTOM'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN secret varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN is_remote boolean"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN enabled boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                }
-                log.info("Schema updated.");
-                break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }

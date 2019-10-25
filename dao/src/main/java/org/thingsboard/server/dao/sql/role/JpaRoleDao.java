@@ -46,7 +46,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.*;
 
@@ -55,7 +54,6 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
-@SqlDao
 public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> implements RoleDao {
 
     @Autowired

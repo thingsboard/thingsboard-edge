@@ -57,7 +57,6 @@
         <mockito.version>1.9.5</mockito.version>
         <rat.version>0.10</rat.version>
         <cassandra.version>3.6.0</cassandra.version>
-        <cassandra-unit.version>3.5.0.1</cassandra-unit.version>
         <takari-cpsuite.version>1.2.7</takari-cpsuite.version>
         <guava.version>21.0</guava.version>
         <caffeine.version>2.6.1</caffeine.version>
@@ -131,7 +130,6 @@
         <module>ui</module>
         <module>tools</module>
         <module>application</module>
-        <module>msa</module>
     </modules>
 
     <profiles>
@@ -689,16 +687,6 @@
                 <version>${cassandra.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.datastax.cassandra</groupId>
-                <artifactId>cassandra-driver-mapping</artifactId>
-                <version>${cassandra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.datastax.cassandra</groupId>
-                <artifactId>cassandra-driver-extras</artifactId>
-                <version>${cassandra.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
@@ -848,12 +836,6 @@
                 <groupId>io.takari.junit</groupId>
                 <artifactId>takari-cpsuite</artifactId>
                 <version>${takari-cpsuite.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.cassandraunit</groupId>
-                <artifactId>cassandra-unit</artifactId>
-                <version>${cassandra-unit.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

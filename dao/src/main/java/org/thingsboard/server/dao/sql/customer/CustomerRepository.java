@@ -35,14 +35,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-@SqlDao
 public interface CustomerRepository extends CrudRepository<CustomerEntity, String> {
 
     @Query("SELECT c FROM CustomerEntity c WHERE c.tenantId = :tenantId " +

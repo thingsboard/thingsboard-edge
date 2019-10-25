@@ -53,7 +53,6 @@ import org.thingsboard.server.dao.alarm.BaseAlarmService;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +63,6 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
-@SqlDao
 public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements AlarmDao {
 
     @Autowired

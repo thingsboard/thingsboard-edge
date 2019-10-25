@@ -33,12 +33,10 @@ package org.thingsboard.server.dao.sql.attributes;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-@SqlDao
 @Repository
 public abstract class AttributeKvInsertRepository {
 

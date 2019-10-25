@@ -35,11 +35,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.RuleChainEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
-@SqlDao
 public interface RuleChainRepository extends CrudRepository<RuleChainEntity, String> {
 
     @Query("SELECT rc FROM RuleChainEntity rc WHERE rc.tenantId = :tenantId " +

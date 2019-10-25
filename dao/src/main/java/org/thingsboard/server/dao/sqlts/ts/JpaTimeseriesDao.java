@@ -58,7 +58,6 @@ import org.thingsboard.server.dao.sqlts.AbstractSqlTimeseriesDao;
 import org.thingsboard.server.dao.sqlts.AbstractTimeseriesInsertRepository;
 import org.thingsboard.server.dao.timeseries.SimpleListenableFuture;
 import org.thingsboard.server.dao.timeseries.TimeseriesDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -73,7 +72,6 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 
 @Component
 @Slf4j
-@SqlTsDao
 public class JpaTimeseriesDao extends AbstractSqlTimeseriesDao implements TimeseriesDao {
 
     @Autowired

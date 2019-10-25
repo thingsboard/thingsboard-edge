@@ -35,9 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sqlts.AbstractTimeseriesInsertRepository;
 import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
 
-@SqlTsDao
 @PsqlDao
 @Repository
 @Transactional

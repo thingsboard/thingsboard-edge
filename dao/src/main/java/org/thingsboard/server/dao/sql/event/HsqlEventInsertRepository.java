@@ -34,9 +34,7 @@ import org.springframework.stereotype.Repository;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.util.HsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
-@SqlDao
 @HsqlDao
 @Repository
 public class HsqlEventInsertRepository extends EventInsertRepository {

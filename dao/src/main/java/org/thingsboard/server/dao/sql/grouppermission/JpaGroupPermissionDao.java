@@ -44,7 +44,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionDao;
 import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -55,7 +54,6 @@ import static org.springframework.data.jpa.domain.Specifications.where;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
-@SqlDao
 public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermissionEntity, GroupPermission> implements GroupPermissionDao {
 
     @Autowired

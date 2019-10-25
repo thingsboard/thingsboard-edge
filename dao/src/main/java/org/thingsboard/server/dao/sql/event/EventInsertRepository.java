@@ -41,14 +41,12 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.dao.model.sql.EventEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 @Slf4j
-@SqlDao
 @Repository
 public abstract class EventInsertRepository {
 

@@ -35,11 +35,9 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.dao.model.sql.RelationCompositeKey;
 import org.thingsboard.server.dao.model.sql.RelationEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
-@SqlDao
 public interface RelationRepository
         extends CrudRepository<RelationEntity, RelationCompositeKey>, JpaSpecificationExecutor<RelationEntity> {
 

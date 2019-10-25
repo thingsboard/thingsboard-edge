@@ -44,20 +44,16 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-
-import com.datastax.driver.core.ResultSetFuture;
 
 import java.util.Set;
 
@@ -149,9 +145,5 @@ public interface TbContext {
     RuleChainTransactionService getRuleChainTransactionService();
 
     EventLoopGroup getSharedEventLoop();
-
-    CassandraCluster getCassandraCluster();
-
-    ResultSetFuture submitCassandraTask(CassandraStatementTask task);
 
 }

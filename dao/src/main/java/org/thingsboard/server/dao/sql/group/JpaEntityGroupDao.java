@@ -39,7 +39,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +46,6 @@ import java.util.UUID;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
-@SqlDao
 public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityGroup> implements EntityGroupDao {
 
     @Autowired

@@ -35,11 +35,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
-@SqlDao
 public interface ConverterRepository extends CrudRepository<ConverterEntity, String> {
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +

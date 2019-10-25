@@ -31,8 +31,6 @@
 package org.thingsboard.server.controller.sql;
 
 import org.thingsboard.server.controller.BaseConverterControllerTest;
-import org.thingsboard.server.dao.service.DaoSqlTest;
 
-@DaoSqlTest
 public class ConverterControllerSqlTest extends BaseConverterControllerTest {
 }

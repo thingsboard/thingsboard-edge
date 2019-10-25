@@ -37,14 +37,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.EventEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
 /**
  * Created by Valerii Sosliuk on 5/3/2017.
  */
-@SqlDao
 public interface EventRepository extends CrudRepository<EventEntity, String>, JpaSpecificationExecutor<EventEntity> {
 
     EventEntity findByTenantIdAndEntityTypeAndEntityIdAndEventTypeAndEventUid(String tenantId,

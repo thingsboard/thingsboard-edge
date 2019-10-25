@@ -32,8 +32,6 @@ package org.thingsboard.server.dao.sql.scheduler;
 
 import org.springframework.data.repository.CrudRepository;
 import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
-@SqlDao
 public interface SchedulerEventRepository extends CrudRepository<SchedulerEventEntity, String> {
 }

@@ -40,6 +40,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.thingsboard.server.common.data.BaseData;
@@ -84,6 +85,7 @@ import java.util.Map;
 @ContextConfiguration(classes = AbstractServiceTest.class, loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Configuration
+@TestPropertySource(locations = {"classpath:application-test.properties", "classpath:sql-test.properties"})
 @ComponentScan("org.thingsboard.server")
 public abstract class AbstractServiceTest {
 

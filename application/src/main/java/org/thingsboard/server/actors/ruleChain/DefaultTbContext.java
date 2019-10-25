@@ -31,7 +31,6 @@
 package org.thingsboard.server.actors.ruleChain;
 
 import akka.actor.ActorRef;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,7 +81,6 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
-import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -91,7 +89,6 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -525,16 +522,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 callback.onFailure(throwable);
             }
         });
-    }
-
-    @Override
-    public CassandraCluster getCassandraCluster() {
-        return mainCtx.getCassandraCluster();
-    }
-
-    @Override
-    public ResultSetFuture submitCassandraTask(CassandraStatementTask task) {
-        return mainCtx.getCassandraBufferedRateExecutor().submit(task);
     }
 
     private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {

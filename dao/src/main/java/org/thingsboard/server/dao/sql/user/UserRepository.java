@@ -36,14 +36,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
 /**
  * @author Valerii Sosliuk
  */
-@SqlDao
 public interface UserRepository extends CrudRepository<UserEntity, String> {
 
     UserEntity findByEmail(String email);

@@ -42,7 +42,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RuleChainEntity;
 import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -52,7 +51,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Slf4j
 @Component
-@SqlDao
 public class JpaRuleChainDao extends JpaAbstractSearchTextDao<RuleChainEntity, RuleChain> implements RuleChainDao {
 
     @Autowired

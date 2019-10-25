@@ -109,6 +109,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @WebAppConfiguration
 @SpringBootTest
 @Slf4j
+@TestPropertySource(locations = {"classpath:application-test.properties", "classpath:sql-test.properties"})
 public abstract class AbstractControllerTest {
 
     protected ObjectMapper mapper = new ObjectMapper();

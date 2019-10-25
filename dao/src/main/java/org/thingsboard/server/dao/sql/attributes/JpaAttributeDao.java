@@ -45,7 +45,6 @@ import org.thingsboard.server.dao.attributes.AttributesDao;
 import org.thingsboard.server.dao.model.sql.AttributeKvCompositeKey;
 import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Collection;
 import java.util.List;
@@ -56,7 +55,6 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 
 @Component
 @Slf4j
-@SqlDao
 public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService implements AttributesDao {
 
     @Autowired

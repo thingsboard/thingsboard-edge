@@ -42,7 +42,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -56,7 +55,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 @Component
-@SqlDao
 public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Customer> implements CustomerDao {
 
     @Autowired

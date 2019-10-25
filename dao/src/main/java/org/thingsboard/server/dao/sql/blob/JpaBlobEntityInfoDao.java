@@ -45,7 +45,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.blob.BlobEntityInfoDao;
 import org.thingsboard.server.dao.model.sql.BlobEntityInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -57,7 +56,6 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
-@SqlDao
 public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInfoEntity, BlobEntityInfo> implements BlobEntityInfoDao {
 
     @Autowired

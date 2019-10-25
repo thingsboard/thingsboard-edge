@@ -34,9 +34,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
 import org.thingsboard.server.dao.util.HsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
-@SqlDao
 @HsqlDao
 @Repository
 @Transactional

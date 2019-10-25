@@ -52,7 +52,6 @@ import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.model.sql.AuditLogEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.criteria.Predicate;
@@ -65,7 +64,6 @@ import static org.springframework.data.jpa.domain.Specifications.where;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
-@SqlDao
 public class JpaAuditLogDao extends JpaAbstractDao<AuditLogEntity, AuditLog> implements AuditLogDao {
 
     private ListeningExecutorService insertService = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());

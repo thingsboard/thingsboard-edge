@@ -35,14 +35,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.EntityViewEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
 /**
  * Created by Victor Basanets on 8/31/2017.
  */
-@SqlDao
 public interface EntityViewRepository extends CrudRepository<EntityViewEntity, String> {
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +

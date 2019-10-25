@@ -32,8 +32,6 @@ package org.thingsboard.server.dao.sql.blob;
 
 import org.springframework.data.repository.CrudRepository;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
-@SqlDao
 public interface BlobEntityRepository extends CrudRepository<BlobEntityEntity, String> {
 }
