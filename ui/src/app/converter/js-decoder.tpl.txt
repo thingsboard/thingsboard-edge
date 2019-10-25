@@ -10,13 +10,22 @@ var payloadStr = decodeToString(payload);
 // decode payload to JSON
 // var data = decodeToJson(payload);
 
+// SHOULD BE OR DEVICE NAME OR ASSET NAME, BUT NOT BOTH!!!
+// var assetName = 'Asset A';
+// var assetType = 'type';
 var deviceName = 'Device A';
 var deviceType = 'thermostat';
+var customerName = 'customer';
+var groupName = 'thermostat devices';
 
-// Result object with device attributes/telemetry data
+// Result object with device/asset attributes/telemetry data
 var result = {
+// assetName: assetName,
+// assetType: assetType,
    deviceName: deviceName,
    deviceType: deviceType,
+   customerName: customerName,
+   groupName: groupName,
    attributes: {
        model: 'Model A',
        serialNumber: 'SN111',
