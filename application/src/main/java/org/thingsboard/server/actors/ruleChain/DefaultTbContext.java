@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.ListeningExecutor;
@@ -535,6 +536,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public ResultSetFuture submitCassandraTask(CassandraStatementTask task) {
         return mainCtx.getCassandraBufferedRateExecutor().submit(task);
+    }
+
+    @Override
+    public RedisTemplate<String, Object> getRedisTemplate() {
+        return mainCtx.getRedisTemplate();
+    }
+
+    @Override
+    public String getServerAddress() {
+        return mainCtx.getServerAddress();
     }
 
     private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {

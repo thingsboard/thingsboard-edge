@@ -97,6 +97,11 @@
             <artifactId>cassandra-driver-extras</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
