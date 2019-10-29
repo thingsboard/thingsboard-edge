@@ -28,25 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.storage;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.thingsboard.edge.rpc.EdgeRpcClient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import javax.annotation.PostConstruct;
+import java.io.File;
+import java.util.Objects;
 
-@Service
-@Slf4j
-public class CloudService {
+@ToString
+@AllArgsConstructor
+class EventStorageReaderPointer {
 
-    @Autowired
-    private EdgeRpcClient edgeRpcClient;
+    @Getter @Setter
+    private File file;
+    @Getter @Setter
+    private int line;
 
-    @PostConstruct
-    public void init() {
-        log.info("Starting edge mock service");
-        edgeRpcClient.connect();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EventStorageReaderPointer that = (EventStorageReaderPointer) o;
+        return line == that.line &&
+                Objects.equals(file.getName(), that.file.getName());
+    }
+
+    public EventStorageReaderPointer copy(){
+        return new EventStorageReaderPointer(file, line);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(file.getName(), line);
     }
 }

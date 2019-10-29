@@ -32,7 +32,7 @@ package org.thingsboard.server.service.integration;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -63,10 +63,10 @@ public interface PlatformIntegrationService extends DiscoveryServiceListener {
 
     void onRemoteDownlinkMsg(ServerAddress serverAddress, byte[] bytes);
 
-    void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback);
+    void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, RpcCallback<Void> callback);
 
-    void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback);
+    void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, RpcCallback<Void> callback);
 
-    void process(SessionInfoProto sessionInfo, GetAttributeRequestMsg msg, IntegrationCallback<Void> callback);
+    void process(SessionInfoProto sessionInfo, GetAttributeRequestMsg msg, RpcCallback<Void> callback);
 
 }

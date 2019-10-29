@@ -28,12 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.storage;
 
+import com.google.protobuf.AbstractMessageLite;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.rpc.api.RpcCallback;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -45,7 +45,7 @@ import java.util.Base64;
 
 @Data
 @Slf4j
-class EventStorageWriter {
+class EventStorageWriter<T extends AbstractMessageLite> {
 
     private EventStorageFiles files;
     private FileEventStorageSettings settings;
@@ -63,7 +63,7 @@ class EventStorageWriter {
         currentFileRecordsCount = getNumberOfRecordsInFile(currentFile);
     }
 
-    void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
+    void write(T msg, RpcCallback<Void> callback) {
         newRecordAfterFlush = true;
         if (isFileFull(currentFileRecordsCount)) {
             if (log.isDebugEnabled()) {

@@ -28,15 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.storage;
 
-import lombok.Data;
+import org.thingsboard.rpc.api.RpcCallback;
 
-import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.List;
 
-@Data
-public class EventStorageFiles {
-    private final File stateFile;
-    private final CopyOnWriteArrayList<File> dataFiles;
+public interface EventStorage<T> {
+
+    void write(T msg, RpcCallback<Void> callback);
+
+    List<T> readCurrentBatch();
+
+    void discardCurrentBatch();
+
+    void sleep();
 }

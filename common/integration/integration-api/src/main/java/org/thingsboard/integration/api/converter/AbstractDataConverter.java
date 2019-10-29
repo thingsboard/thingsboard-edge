@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
-import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 
@@ -94,7 +94,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         context.saveEvent(DataConstants.DEBUG_CONVERTER, node, new DebugEventCallback());
     }
 
-    private static class DebugEventCallback implements IntegrationCallback<Void> {
+    private static class DebugEventCallback implements RpcCallback<Void> {
 
         @Override
         public void onSuccess(Void msg) {

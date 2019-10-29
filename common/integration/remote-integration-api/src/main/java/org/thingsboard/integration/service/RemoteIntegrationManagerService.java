@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -52,7 +53,6 @@ import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
-import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -76,6 +76,7 @@ import org.thingsboard.server.gen.transport.KeyValueProto;
 import org.thingsboard.server.gen.transport.KeyValueType;
 import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TsKvListProto;
+import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -127,7 +128,8 @@ public class RemoteIntegrationManagerService {
     private IntegrationRpcClient rpcClient;
 
     @Autowired
-    private EventStorage eventStorage;
+    @Qualifier("integrationFileEventStorage")
+    private EventStorage<UplinkMsg> eventStorage;
 
     @Autowired
     private JsInvokeService jsInvokeService;

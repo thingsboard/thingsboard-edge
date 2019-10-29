@@ -28,40 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.storage;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.util.Objects;
-
-@ToString
-@AllArgsConstructor
-class EventStorageReaderPointer {
-
-    @Getter @Setter
-    private File file;
-    @Getter @Setter
-    private int line;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EventStorageReaderPointer that = (EventStorageReaderPointer) o;
-        return line == that.line &&
-                Objects.equals(file.getName(), that.file.getName());
-    }
-
-    public EventStorageReaderPointer copy(){
-        return new EventStorageReaderPointer(file, line);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(file.getName(), line);
-    }
+@Component
+@Slf4j
+@Data
+public class FileEventStorageSettings {
+    @Value("${storage.data_folder_path}")
+    private String dataFolderPath;
+    @Value("${storage.max_file_count}")
+    private int maxFileCount;
+    @Value("${storage.max_records_per_file}")
+    private int maxRecordsPerFile;
+    @Value("${storage.max_records_between_fsync}")
+    private int maxRecordsBetweenFsync;
+    @Value("${storage.max_read_records_count}")
+    private int maxReadRecordsCount;
+    @Value("${storage.no_read_records_sleep}")
+    private long noRecordsSleepInterval;
 }

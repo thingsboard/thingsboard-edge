@@ -51,7 +51,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -494,27 +494,27 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
+    public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, RpcCallback<Void> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
             forwardToDeviceActor(TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostTelemetry(msg).build(), callback);
         }
     }
 
     @Override
-    public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
+    public void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, RpcCallback<Void> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
             forwardToDeviceActor(TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPostAttributes(msg).build(), callback);
         }
     }
 
     @Override
-    public void process(SessionInfoProto sessionInfo, GetAttributeRequestMsg msg, IntegrationCallback<Void> callback) {
+    public void process(SessionInfoProto sessionInfo, GetAttributeRequestMsg msg, RpcCallback<Void> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
             forwardToDeviceActor(TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setGetAttributes(msg).build(), callback);
         }
     }
 
-    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, IntegrationCallback<Void> callback) {
+    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, RpcCallback<Void> callback) {
         TransportToDeviceActorMsgWrapper wrapper = new TransportToDeviceActorMsgWrapper(toDeviceActorMsg);
         Optional<ServerAddress> address = routingService.resolveById(wrapper.getDeviceId());
         if (address.isPresent()) {
@@ -527,7 +527,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private boolean checkLimits(SessionInfoProto sessionInfo, Object msg, IntegrationCallback<Void> callback) {
+    private boolean checkLimits(SessionInfoProto sessionInfo, Object msg, RpcCallback<Void> callback) {
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
         }

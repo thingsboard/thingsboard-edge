@@ -470,6 +470,11 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
+                <artifactId>storage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
                 <artifactId>transport</artifactId>
                 <version>${project.version}</version>
             </dependency>

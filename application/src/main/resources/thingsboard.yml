@@ -71,6 +71,9 @@ server:
         configuration: "${TB_SERVER_REST_LIMITS_CUSTOMER_CONFIGURATION:50:1,1000:60}"
 
 cloud:
+  routingKey: "${CLOUD_ROUTING_KEY:8281f344-6869-5f5c-54ee-498aac6d3b6c}"
+  secret: "${CLOUD_ROUTING_SECRET:ir134i5skie7csfm6wuc}"
+  reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}" # in milliseconds
   rpc:
     host: "${CLOUD_PRC_HOST:localhost}"
     port: "${CLOUD_RPC_PORT:60061}"
@@ -78,6 +81,14 @@ cloud:
     ssl:
       enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
       cert: "${CLOUD_RPC_SSL_CERT:roots.pem}"
+
+storage:
+  data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
+  max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:100}"
+  max_records_per_file: "${INTEGRATION_STORAGE_MAX_RECORDS_PER_FILE:30}"
+  max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:10}"
+  max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:50}"
+  no_read_records_sleep: "${INTEGRATION_STORAGE_NO_READ_RECORDS_SLEEP:1000}"
 
 # Zookeeper connection parameters. Used for service discovery.
 zk:

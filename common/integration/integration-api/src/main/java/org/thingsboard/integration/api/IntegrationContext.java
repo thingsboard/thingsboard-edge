@@ -35,6 +35,7 @@ import io.netty.channel.EventLoopGroup;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -74,9 +75,9 @@ public interface IntegrationContext {
      *
      * @return
      */
-    void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
+    void processUplinkData(DeviceUplinkDataProto uplinkData, RpcCallback<Void> callback);
 
-    void createEntityView(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback);
+    void createEntityView(EntityViewDataProto entityViewDataProto, RpcCallback<Void> callback);
 
     /**
      * Dispatch custom message to the rule engine.
@@ -84,14 +85,14 @@ public interface IntegrationContext {
      *
      * @param msg - custom message to dispatch
      */
-    void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback);
+    void processCustomMsg(TbMsg msg, RpcCallback<Void> callback);
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
      */
-    void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
+    void saveEvent(String type, String uid, JsonNode body, RpcCallback<Void> callback);
 
-    void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
+    void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, RpcCallback<Void> callback);
 
     /**
      * Provides Netty Event loop group to be used by integrations in order to avoid creating separate threads per integration.

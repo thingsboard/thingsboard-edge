@@ -28,14 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.storage;
+package org.thingsboard.storage;
 
+import com.google.protobuf.AbstractMessageLite;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.rpc.api.RpcCallback;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -49,10 +48,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Component
+
 @Slf4j
 @Data
-public class FileEventStorage implements EventStorage {
+public abstract class FileEventStorage<T extends AbstractMessageLite> implements EventStorage<T> {
 
     @Autowired
     private FileEventStorageSettings settings;
@@ -66,6 +65,8 @@ public class FileEventStorage implements EventStorage {
     private EventStorageWriter storageWriter;
     private EventStorageReader storageReader;
 
+    protected abstract EventStorageReader<T> getEventStorageReader(EventStorageFiles eventStorageFiles, FileEventStorageSettings settings);
+
     @PostConstruct
     public void init() {
         initDataFolderIfNotExist();
@@ -73,7 +74,7 @@ public class FileEventStorage implements EventStorage {
         dataFiles = eventStorageFiles.getDataFiles();
         stateFile = eventStorageFiles.getStateFile();
         storageWriter = new EventStorageWriter(eventStorageFiles, settings);
-        storageReader = new EventStorageReader(eventStorageFiles, settings);
+        storageReader = getEventStorageReader(eventStorageFiles, settings);
     }
 
     @PreDestroy
@@ -83,7 +84,7 @@ public class FileEventStorage implements EventStorage {
     }
 
     @Override
-    public void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
+    public void write(T msg, RpcCallback<Void> callback) {
         writeLock.lock();
         try {
             storageWriter.write(msg, callback);
@@ -93,7 +94,7 @@ public class FileEventStorage implements EventStorage {
     }
 
     @Override
-    public List<UplinkMsg> readCurrentBatch() {
+    public List<T> readCurrentBatch() {
         writeLock.lock();
         try {
             storageWriter.flushIfNeeded();

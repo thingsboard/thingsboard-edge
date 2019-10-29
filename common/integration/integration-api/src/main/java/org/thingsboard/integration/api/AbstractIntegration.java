@@ -43,6 +43,7 @@ import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -255,7 +256,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    private static class DebugEventCallback implements IntegrationCallback<Void> {
+    private static class DebugEventCallback implements RpcCallback<Void> {
         @Override
         public void onSuccess(Void msg) {
             if (log.isDebugEnabled()) {

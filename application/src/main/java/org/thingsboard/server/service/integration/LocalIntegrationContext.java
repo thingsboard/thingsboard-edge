@@ -40,7 +40,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
@@ -53,7 +53,6 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -68,7 +67,6 @@ import org.thingsboard.server.gen.transport.SessionInfoProto;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -93,7 +91,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+    public void processUplinkData(DeviceUplinkDataProto data, RpcCallback<Void> callback) {
         Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
 
         UUID sessionId = UUID.randomUUID();
@@ -116,12 +114,12 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
+    public void createEntityView(EntityViewDataProto data, RpcCallback<Void> callback) {
         createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
     }
 
     @Override
-    public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
+    public void processCustomMsg(TbMsg msg, RpcCallback<Void> callback) {
         ctx.getActorService().onMsg(new SendToClusterMsg(this.configuration.getId(), new ServiceToRuleEngineMsg(this.configuration.getTenantId(), msg)));
         if (callback != null) {
             callback.onSuccess(null);
@@ -129,12 +127,12 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+    public void saveEvent(String type, String uid, JsonNode body, RpcCallback<Void> callback) {
         saveEvent(configuration.getId(), type, uid, body, callback);
     }
 
     @Override
-    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, RpcCallback<Void> callback) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
             saveEvent(device.getId(), type, uid, body, callback);
@@ -169,7 +167,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         return false;
     }
 
-    private void saveEvent(EntityId entityId, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+    private void saveEvent(EntityId entityId, String type, String uid, JsonNode body, RpcCallback<Void> callback) {
         Event event = new Event();
         event.setTenantId(configuration.getTenantId());
         event.setEntityId(entityId);

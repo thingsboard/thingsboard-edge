@@ -43,7 +43,7 @@ import java.util.Arrays;
 @EnableAsync
 @EnableSwagger2
 @EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration", "org.thingsboard.edge"})
+@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration", "org.thingsboard.edge", "org.thingsboard.storage"})
 public class TbEdgeServerApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
