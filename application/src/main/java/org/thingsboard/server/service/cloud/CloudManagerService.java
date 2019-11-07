@@ -36,15 +36,40 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
-import org.thingsboard.server.gen.edge.CloudDownlinkDataProto;
-import org.thingsboard.server.gen.edge.EdgeConfigurationProto;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.DownlinkMsg;
+import org.thingsboard.server.gen.edge.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.EntityType;
+import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
+import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,6 +95,24 @@ public class CloudManagerService {
     private EventStorage<UplinkMsg> eventStorage;
 
     @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
+    private TenantService tenantService;
+
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private DeviceStateService deviceStateService;
+
+    @Autowired
+    private AssetService assetService;
+
+    @Autowired
+    private EntityViewService entityViewService;
+
+    @Autowired
     private EdgeRpcClient edgeRpcClient;
 
     private CountDownLatch latch;
@@ -79,13 +122,32 @@ public class CloudManagerService {
     private ScheduledFuture<?> scheduledFuture;
     private volatile boolean initialized;
 
+    private TenantId tenantId;
+
     @PostConstruct
     public void init() {
         log.info("Starting edge mock service");
-        edgeRpcClient.connect(routingKey, routingSecret, this::onUplinkResponse, this::onEdgeUpdate, this::onDownlink, this::scheduleReconnect);
+        edgeRpcClient.connect(routingKey, routingSecret,
+                this::onUplinkResponse,
+                this::onEdgeUpdate,
+                this::onDeviceUpdate,
+                this::onAssetUpdate,
+                this::onEntityViewUpdate,
+                this::onRuleChainUpdate,
+                this::onDashboardUpdate,
+                this::onDownlink,
+                this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+        setTenantId();
         processHandleMessages();
+    }
+
+    private void setTenantId() {
+        TextPageData<Tenant> tenants = tenantService.findTenants(new TextPageLink(1));
+        if (tenants.getData() != null && !tenants.getData().isEmpty()) {
+            tenantId = tenants.getData().get(0).getId();
+        }
     }
 
     @PreDestroy
@@ -137,7 +199,7 @@ public class CloudManagerService {
         latch.countDown();
     }
 
-    private void onEdgeUpdate(EdgeConfigurationProto edgeConfiguration) {
+    private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
             scheduledFuture = null;
@@ -145,8 +207,140 @@ public class CloudManagerService {
         initialized = true;
     }
 
-    private void onDownlink(CloudDownlinkDataProto cloudDownlinkDataProto) {
+    private void onDeviceUpdate(DeviceUpdateMsg deviceUpdateMsg) {
+        log.info("onDeviceUpdate {}", deviceUpdateMsg);
+        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceUpdateMsg.getName());
+        switch (deviceUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                if (device == null) {
+                    device = new Device();
+                    device.setTenantId(tenantId);
+                    device.setName(deviceUpdateMsg.getName());
+                    device.setType(deviceUpdateMsg.getType());
+                    device = deviceService.saveDevice(device);
+                    deviceStateService.onDeviceAdded(device);
+                } else {
+                    device.setType(deviceUpdateMsg.getType());
+                    deviceService.saveDevice(device);
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                if (device != null) {
+                    deviceService.deleteDevice(tenantId, device.getId());
+                }
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
+    }
 
+    private void onAssetUpdate(AssetUpdateMsg assetUpdateMsg) {
+        log.info("onAssetUpdate {}", assetUpdateMsg);
+        Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetUpdateMsg.getName());
+        switch (assetUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                if (asset == null) {
+                    asset = new Asset();
+                    asset.setTenantId(tenantId);
+                    asset.setName(assetUpdateMsg.getName());
+                    asset.setType(assetUpdateMsg.getType());
+                    assetService.saveAsset(asset);
+                } else {
+                    asset.setType(assetUpdateMsg.getType());
+                    assetService.saveAsset(asset);
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                if (asset != null) {
+                    assetService.deleteAsset(tenantId, asset.getId());
+                }
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
+    }
+
+    private void onEntityViewUpdate(EntityViewUpdateMsg entityViewUpdateMsg) {
+        log.info("onEntityViewUpdate {}", entityViewUpdateMsg);
+        EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewUpdateMsg.getName());
+        EntityId relatedEntityId = getRelatedEntityId(entityViewUpdateMsg);
+        switch (entityViewUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                if (entityView == null) {
+                    entityView = new EntityView();
+                    entityView.setTenantId(tenantId);
+                    entityView.setName(entityViewUpdateMsg.getName());
+                    entityView.setType(entityViewUpdateMsg.getType());
+                    entityView.setEntityId(relatedEntityId);
+                    entityViewService.saveEntityView(entityView);
+                } else {
+                    entityView.setEntityId(relatedEntityId);
+                    entityView.setType(entityViewUpdateMsg.getType());
+                    entityViewService.saveEntityView(entityView);
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                if (entityView != null) {
+                    entityViewService.deleteEntityView(tenantId, entityView.getId());
+                }
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
+    }
+
+    private EntityId getRelatedEntityId(EntityViewUpdateMsg entityViewUpdateMsg) {
+       String entityName = entityViewUpdateMsg.getRelatedName();
+       if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.DEVICE)) {
+               Device device = deviceService.findDeviceByTenantIdAndName(tenantId, entityName);
+               if (device == null) {
+                   throw new RuntimeException("Related device [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
+               }
+               return device.getId();
+       } else if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.ASSET)) {
+           Asset asset = assetService.findAssetByTenantIdAndName(tenantId, entityName);
+           if (asset == null) {
+               throw new RuntimeException("Related asset [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
+           }
+           return asset.getId();
+       }
+       throw new RuntimeException("Unsupported related EntityType [" + entityViewUpdateMsg.getRelatedEntityType() + "]");
+    }
+
+    private void onDashboardUpdate(DashboardUpdateMsg dashboardUpdateMsg) {
+        log.info("DashboardUpdateMsg {}", dashboardUpdateMsg);
+    }
+
+    private void onRuleChainUpdate(RuleChainUpdateMsg ruleChainUpdateMsg) {
+        RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
+        switch (ruleChainUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                RuleChain originalRuleChain = new RuleChain();
+                originalRuleChain.setId(ruleChainId);
+                originalRuleChain.setTenantId(tenantId);
+                originalRuleChain.setName(ruleChainUpdateMsg.getName());
+                if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
+                    originalRuleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+                }
+                originalRuleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
+                originalRuleChain.setRoot(ruleChainUpdateMsg.getRoot());
+                originalRuleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
+                ruleChainService.saveRuleChain(originalRuleChain);
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
+    }
+
+    private void onDownlink(DownlinkMsg downlinkMsg) {
+        log.info("onDownlink {}", downlinkMsg);
     }
 
     private void scheduleReconnect(Exception e) {
@@ -154,7 +348,16 @@ public class CloudManagerService {
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
-                edgeRpcClient.connect(routingKey, routingSecret, this::onUplinkResponse, this::onEdgeUpdate, this::onDownlink, this::scheduleReconnect);
+                edgeRpcClient.connect(routingKey, routingSecret,
+                        this::onUplinkResponse,
+                        this::onEdgeUpdate,
+                        this::onDeviceUpdate,
+                        this::onAssetUpdate,
+                        this::onEntityViewUpdate,
+                        this::onRuleChainUpdate,
+                        this::onDashboardUpdate,
+                        this::onDownlink,
+                        this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }
     }
