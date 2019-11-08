@@ -28,92 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-multiple-input {
-  height: 100%;
-  overflow-x: hidden;
+.tb-add-entity-panel {
+  min-width: 150px;
+  max-height: 200px;
+  overflow: hidden;
   overflow-y: auto;
-
-  .input-field {
-    padding-right: 10px;
-
-    md-input-container,
-    md-checkbox,
-    md-switch {
-      margin-bottom: 5px;
-    }
-  }
-
-  md-checkbox {
-    margin-top: 22px;
-  }
-
-  md-switch {
-    margin-top: 20px;
-  }
-
-  .md-icon-button md-icon {
-    width: 20px;
-    min-width: 20px;
-    height: 20px;
-    min-height: 20px;
-    font-size: 20px;
-  }
-
-  .date-time-input {
-    &__label {
-      margin-left: 36px;
-      font-size: 12px;
-      color: rgba(0, 0, 0, .54);
-    }
-
-    mdp-date-picker,
-    mdp-time-picker {
-      width: 100%;
-
-      .md-button.md-icon-button {
-        margin: 5px 0 0;
-      }
-
-      md-input-container {
-        width: 100%;
-        margin: 2px 0;
-
-        label {
-          display: none;
-        }
-      }
-    }
-  }
-
-  .vertical-alignment {
-    flex-direction: column;
-
-    md-checkbox,
-    md-switch {
-      margin-top: 18px;
-    }
-
-    md-switch {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .date-time-input {
-      &__label {
-        margin-top: 10px;
-      }
-    }
-  }
-
-  .vertically-aligned {
-    flex-direction: column;
-  }
-}
-
-md-toast {
-  min-width: 0;
-
-  .md-toast-content {
-    font-size: 14px !important;
-  }
+  background: #fff;
+  border-radius: 4px;
+  box-shadow:
+    0 7px 8px -4px rgba(0, 0, 0, .2),
+    0 13px 19px 2px rgba(0, 0, 0, .14),
+    0 5px 24px 4px rgba(0, 0, 0, .12);
 }
