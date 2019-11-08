@@ -1439,7 +1439,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             label: entityParameters.label,
             customerId: customerId
         };
-        let saveEntityPromise = getEntitySavePromise(entityType, newEntity, config);
+        let saveEntityPromise = getEntitySavePromise(entityType, entityGroupId, newEntity, config);
 
         saveEntityPromise.then(function success(response) {
             saveEntityRelation(entityType, response.id, entityParameters, config).then(function success() {
@@ -1469,7 +1469,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     if(response.label !== entityParameters.label || response.type !== entityParameters.type){
                         response.label = entityParameters.label;
                         response.type = entityParameters.type;
-                        promises.push(getEntitySavePromise(entityType, response, config));
+                        promises.push(getEntitySavePromise(entityType, entityGroupId, response, config));
                     }
                     promises.push(saveEntityRelation(entityType, response.id, entityParameters, config));
 
@@ -1500,14 +1500,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function getEntitySavePromise(entityType, newEntity, config) {
+    function getEntitySavePromise(entityType, entityGroupId, newEntity, config) {
         let promise;
         switch (entityType) {
             case types.entityType.device:
-                promise = deviceService.saveDevice(newEntity, config);
+                promise = deviceService.saveDevice(newEntity, entityGroupId, config);
                 break;
             case types.entityType.asset:
-                promise = assetService.saveAsset(newEntity, true, config);
+                promise = assetService.saveAsset(newEntity, true, config, entityGroupId);
                 break;
         }
         return promise;
