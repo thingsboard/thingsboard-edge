@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,11 +43,14 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -60,7 +64,9 @@ import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleNodeProto;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -68,6 +74,8 @@ import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -80,6 +88,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class CloudManagerService {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -134,6 +144,7 @@ public class CloudManagerService {
                 this::onAssetUpdate,
                 this::onEntityViewUpdate,
                 this::onRuleChainUpdate,
+                this::onRuleChainMetadataUpdate,
                 this::onDashboardUpdate,
                 this::onDownlink,
                 this::scheduleReconnect);
@@ -319,17 +330,20 @@ public class CloudManagerService {
         switch (ruleChainUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                RuleChain originalRuleChain = new RuleChain();
-                originalRuleChain.setId(ruleChainId);
-                originalRuleChain.setTenantId(tenantId);
-                originalRuleChain.setName(ruleChainUpdateMsg.getName());
-                if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
-                    originalRuleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+                RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);
+                if (ruleChain == null) {
+                    ruleChain = new RuleChain();
+                    ruleChain.setId(ruleChainId);
+                    ruleChain.setTenantId(tenantId);
                 }
-                originalRuleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
-                originalRuleChain.setRoot(ruleChainUpdateMsg.getRoot());
-                originalRuleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
-                ruleChainService.saveRuleChain(originalRuleChain);
+                ruleChain.setName(ruleChainUpdateMsg.getName());
+//                if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
+//                    originalRuleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+//                }
+                ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
+                ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
+                ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
+                ruleChainService.saveRuleChain(ruleChain);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
@@ -337,6 +351,68 @@ public class CloudManagerService {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+    }
+
+    private void onRuleChainMetadataUpdate(RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
+        try {
+            switch (ruleChainMetadataUpdateMsg.getMsgType()) {
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    RuleChainMetaData ruleChainMetadata = new RuleChainMetaData();
+                    RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB()));
+                    ruleChainMetadata.setRuleChainId(ruleChainId);
+                    ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
+                    ruleChainMetadata.setNodes(parseNodeProtos(ruleChainId, ruleChainMetadataUpdateMsg.getNodesList()));
+                    ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
+                    ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
+                    ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
+                    break;
+                case UNRECOGNIZED:
+                    log.error("Unsupported msg type");
+            }
+        } catch (IOException e) {
+            log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
+        }
+
+    }
+
+    private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
+        List<RuleChainConnectionInfo> result = new ArrayList<>();
+        for (org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto proto : ruleChainConnectionsList) {
+            RuleChainConnectionInfo info = new RuleChainConnectionInfo();
+            info.setFromIndex(proto.getFromIndex());
+            info.setTargetRuleChainId(new RuleChainId(new UUID(proto.getTargetRuleChainIdMSB(), proto.getTargetRuleChainIdLSB())));
+            info.setType(proto.getType());
+            info.setAdditionalInfo(mapper.readTree(proto.getAdditionalInfo()));
+            result.add(info);
+        }
+        return result;
+    }
+
+    private List<NodeConnectionInfo> parseConnectionProtos(List<org.thingsboard.server.gen.edge.NodeConnectionInfoProto> connectionsList) {
+        List<NodeConnectionInfo> result = new ArrayList<>();
+        for (org.thingsboard.server.gen.edge.NodeConnectionInfoProto proto : connectionsList) {
+            NodeConnectionInfo info = new NodeConnectionInfo();
+            info.setFromIndex(proto.getFromIndex());
+            info.setToIndex(proto.getToIndex());
+            info.setType(proto.getType());
+            result.add(info);
+        }
+        return result;
+    }
+
+    private List<RuleNode> parseNodeProtos(RuleChainId ruleChainId, List<RuleNodeProto> nodesList) throws IOException {
+        List<RuleNode> result = new ArrayList<>();
+        for (RuleNodeProto proto : nodesList) {
+            RuleNode ruleNode = new RuleNode();
+            ruleNode.setRuleChainId(ruleChainId);
+            ruleNode.setType(proto.getType());
+            ruleNode.setName(proto.getName());
+            ruleNode.setDebugMode(proto.getDebugMode());
+            ruleNode.setConfiguration(mapper.readTree(proto.getConfiguration()));
+            ruleNode.setAdditionalInfo(mapper.readTree(proto.getAdditionalInfo()));
+            result.add(ruleNode);
+        }
+        return result;
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
@@ -355,6 +431,7 @@ public class CloudManagerService {
                         this::onAssetUpdate,
                         this::onEntityViewUpdate,
                         this::onRuleChainUpdate,
+                        this::onRuleChainMetadataUpdate,
                         this::onDashboardUpdate,
                         this::onDownlink,
                         this::scheduleReconnect);
