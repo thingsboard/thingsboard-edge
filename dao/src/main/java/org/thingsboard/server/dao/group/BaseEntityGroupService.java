@@ -250,6 +250,17 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName) {
+        log.trace("Executing findEntityGroup, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
+        try {
+            return findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Entity group with name: " + groupName + " and type: " + groupType + " doesn't exist!", e);
+        }
+    }
+
+
+    @Override
     public EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId) {
 
         // User Group 'Tenant Users' -> 'Tenant User' role -> Read only permissions

@@ -110,6 +110,33 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}", method = RequestMethod.GET)
+    @ResponseBody
+    public EntityGroupInfo getOwnerEntityGroupByNameAndType(@PathVariable("ownerType") String strOwnerType,
+                                                            @PathVariable("ownerId") String strOwnerId,
+                                                            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+                                                            @PathVariable("groupName") String groupName) throws ThingsboardException {
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
+        checkParameter("groupName", groupName);
+        EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+        try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
+            checkEntityId(ownerId, Operation.READ);
+            SecurityUser currentUser = getCurrentUser();
+            Optional<EntityGroup> entityGroupOptional = entityGroupService.findOwnerEntityGroup(currentUser.getTenantId(), ownerId, groupType, groupName);
+            if (entityGroupOptional.isPresent()) {
+                accessControlService.checkEntityGroupPermission(getCurrentUser(), Operation.READ, entityGroupOptional.get());
+                return toEntityGroupInfo(entityGroupOptional.get());
+            } else {
+                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup", method = RequestMethod.POST)
     @ResponseBody
     public EntityGroupInfo saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
@@ -312,7 +339,7 @@ public class EntityGroupController extends BaseController {
                 }
             }
             for (EntityId entityId : entityIds) {
-                logEntityAction((UUIDBased & EntityId)entityId, null,
+                logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
             }
@@ -358,7 +385,7 @@ public class EntityGroupController extends BaseController {
                 }
             }
             for (EntityId entityId : entityIds) {
-                logEntityAction((UUIDBased & EntityId)entityId, null,
+                logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
             }
@@ -567,8 +594,8 @@ public class EntityGroupController extends BaseController {
             if (additionalInfo == null || additionalInfo instanceof NullNode) {
                 additionalInfo = mapper.createObjectNode();
             }
-            ((ObjectNode)additionalInfo).put("isPublic", true);
-            ((ObjectNode)additionalInfo).put("publicCustomerId", publicUsers.getOwnerId().getId().toString());
+            ((ObjectNode) additionalInfo).put("isPublic", true);
+            ((ObjectNode) additionalInfo).put("publicCustomerId", publicUsers.getOwnerId().getId().toString());
             entityGroup.setAdditionalInfo(additionalInfo);
 
             GroupPermission savedGroupPermission = groupPermissionService.saveGroupPermission(getTenantId(), groupPermission);
@@ -619,8 +646,8 @@ public class EntityGroupController extends BaseController {
             if (additionalInfo == null) {
                 additionalInfo = mapper.createObjectNode();
             }
-            ((ObjectNode)additionalInfo).put("isPublic", false);
-            ((ObjectNode)additionalInfo).put("publicCustomerId", "");
+            ((ObjectNode) additionalInfo).put("isPublic", false);
+            ((ObjectNode) additionalInfo).put("publicCustomerId", "");
             entityGroup.setAdditionalInfo(additionalInfo);
 
             entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);

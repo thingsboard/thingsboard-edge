@@ -69,6 +69,8 @@ public interface EntityGroupService {
     EntityGroup findOrCreateEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName,
                                         String description, CustomerId publicCustomerId);
 
+    Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName);
+
     EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
 
     EntityGroup findOrCreateTenantAdminsGroup(TenantId tenantId);

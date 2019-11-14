@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.group;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -69,7 +70,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
     private EntityId ownerId;
 
+    @JsonDeserialize(using = JsonFieldsDeserializer.class)
     private JsonNode additionalInfo;
+
+    @JsonDeserialize(using = JsonFieldsDeserializer.class)
     private JsonNode configuration;
 
     public EntityGroup(EntityGroupId id) {

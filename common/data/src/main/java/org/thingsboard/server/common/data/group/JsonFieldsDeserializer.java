@@ -28,22 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.id;
+package org.thingsboard.server.common.data.group;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.UUID;
+import java.io.IOException;
 
-public class UserCredentialsId extends UUIDBased {
+@Slf4j
+public class JsonFieldsDeserializer extends JsonDeserializer {
 
-//    @JsonCreator
-//    public UserCredentialsId(@JsonProperty("id") UUID id){
-//        super(id);
-//    }
-
-    public UserCredentialsId(UUID id){
-        super(id);
+    @Override
+    public JsonNode deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+        try {
+            JsonNode node = jsonParser.readValueAsTree();
+            if (node.isNull()) {
+                return null;
+            }
+            return node;
+        } catch (IOException e) {
+             log.trace("Failed to deserialize JSON content into equivalent tree model during creating EntityGroup!", e);
+             throw new RuntimeException("Failed to deserialize JSON content into equivalent tree model during creating EntityGroup!", e);
+        }
     }
-
 }
