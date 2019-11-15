@@ -28,51 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.executors;
+package org.thingsboard.server.dao.sql;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import org.thingsboard.rule.engine.api.ListeningExecutor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
+@Component
+@SqlDao
+public class JpaExecutorService extends AbstractListeningExecutor {
 
-/**
- * Created by igor on 4/13/18.
- */
-public abstract class AbstractListeningExecutor implements ListeningExecutor {
-
-    private ListeningExecutorService service;
-
-    @PostConstruct
-    public void init() {
-        this.service = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(getThreadPollSize()));
-    }
-
-    @PreDestroy
-    public void destroy() {
-        if (this.service != null) {
-            this.service.shutdown();
-        }
-    }
+    @Value("${spring.datasource.hikari.maximumPoolSize}")
+    private int poolSize;
 
     @Override
-    public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
-        return service.submit(task);
+    protected int getThreadPollSize() {
+        return poolSize;
     }
-
-    @Override
-    public void execute(Runnable command) {
-        service.execute(command);
-    }
-
-    public ListeningExecutorService executor() {
-        return service;
-    }
-
-    protected abstract int getThreadPollSize();
 
 }

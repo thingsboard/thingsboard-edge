@@ -51,6 +51,7 @@ import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;

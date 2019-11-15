@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.common.util;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -38,5 +38,9 @@ import java.util.concurrent.Executor;
 public interface ListeningExecutor extends Executor {
 
     <T> ListenableFuture<T> executeAsync(Callable<T> task);
+
+    default <T> ListenableFuture<T> submit(Callable<T> task) {
+        return executeAsync(task);
+    }
 
 }
