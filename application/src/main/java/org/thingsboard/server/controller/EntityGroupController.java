@@ -112,7 +112,7 @@ public class EntityGroupController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}", method = RequestMethod.GET)
     @ResponseBody
-    public EntityGroupInfo getOwnerEntityGroupByNameAndType(@PathVariable("ownerType") String strOwnerType,
+    public EntityGroupInfo getEnitityGroupByOwnerAndNameAndType(@PathVariable("ownerType") String strOwnerType,
                                                             @PathVariable("ownerId") String strOwnerId,
                                                             @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
                                                             @PathVariable("groupName") String groupName) throws ThingsboardException {

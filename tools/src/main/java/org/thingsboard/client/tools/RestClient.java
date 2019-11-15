@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -199,6 +200,15 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/device", device, Device.class).getBody();
     }
 
+    public Device createDevice(String name, String type, String label, CustomerId customerId) {
+        Device device = new Device();
+        device.setName(name);
+        device.setType(type);
+        device.setLabel(label);
+        device.setCustomerId(customerId);
+        return restTemplate.postForEntity(baseURL + "/api/device", device, Device.class).getBody();
+    }
+
     public DeviceCredentials updateDeviceCredentials(DeviceId deviceId, String token) {
         DeviceCredentials deviceCredentials = getCredentials(deviceId);
         deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
@@ -216,6 +226,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public UserCredentials saveUserCredentials(UserCredentials userCredentials) {
         return restTemplate.postForEntity(baseURL + "/api/user/credentials", userCredentials, UserCredentials.class).getBody();
+    }
+
+    public JsonNode activateUser(JsonNode activateRequest) {
+        return restTemplate.postForEntity(baseURL + "/api/noauth/activate/", activateRequest, JsonNode.class).getBody();
     }
 
     public User createUser(User user) {
@@ -239,6 +253,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public EntityGroup createEntityGroup(EntityGroup entityGroup) {
         return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroup.class).getBody();
+    }
+
+    public void addEntitiesToEntityGroup(String entityGroupId, List<String> strEntityIds) {
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", strEntityIds, Void.class, entityGroupId);
     }
 
     public EntityGroup createEntityGroupByNameAndType(String name, String type) {
@@ -315,17 +333,31 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
-
-    public void addEntitiesToEntityGroup(String entityGroupId, List<String> strEntityIds) {
-        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", strEntityIds, Void.class, entityGroupId);
-    }
-
     public DeviceCredentials getCredentials(DeviceId id) {
         return restTemplate.getForEntity(baseURL + "/api/device/" + id.getId().toString() + "/credentials", DeviceCredentials.class).getBody();
     }
 
     public UserCredentials getUserCredentials(UserId userId) {
         return restTemplate.getForEntity(baseURL + "/api/user/{userId}/credentials", UserCredentials.class, userId.getId().toString()).getBody();
+    }
+
+    public String getUserActivationLink(UserId userId) {
+        return restTemplate.getForEntity(baseURL + "/api/user/{userId}/activationLink", String.class, userId.getId().toString()).getBody();
+    }
+
+    public Optional<EntityGroupInfo> getEntityGroupInfoByOwnerAndNameAndType(String ownerType, String ownerId, String groupType, String groupName) {
+        try {
+            EntityGroupInfo entity = restTemplate.getForEntity(baseURL + "/api/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}"
+                    , EntityGroupInfo.class, ownerType, ownerId, groupType, groupName
+            ).getBody();
+            return Optional.ofNullable(entity);
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
     }
 
     public RestTemplate getRestTemplate() {

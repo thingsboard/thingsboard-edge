@@ -405,40 +405,6 @@ public class UserController extends BaseController {
         }
     }
 
-//    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-//    @RequestMapping(value = "/user/{userId}/credentials", method = RequestMethod.GET)
-//    @ResponseBody
-//    public UserCredentials getUserCredentialsById(
-//            @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
-//        try {
-//            TenantId tenantId = getTenantId();
-//            User user = checkNotNull(userService.findUserById(tenantId, UserId.fromString(strUserId)));
-//            return userService.findUserCredentialsByUserId(tenantId, user.getId());
-//        } catch (Exception e) {
-//            throw handleException(e);
-//        }
-//    }
-//
-//    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-//    @RequestMapping(value = "/user/credentials", method = RequestMethod.POST)
-//    @ResponseBody
-//    public UserCredentials saveUserCredentials(@RequestBody UserCredentials userCredentials) throws ThingsboardException {
-//        checkNotNull(userCredentials);
-//        try {
-//            User user = checkUserId(userCredentials.getUserId(), Operation.CREATE);
-//            UserCredentials result = checkNotNull(userService.saveUserCredentials(getTenantId(), userCredentials));
-//            logEntityAction(user.getId(), user,
-//                    user.getCustomerId(),
-//                    ActionType.CREDENTIALS_UPDATED, null, userCredentials);
-//            return result;
-//        } catch (Exception e) {
-//            logEntityAction(emptyId(EntityType.USER), null,
-//                    null,
-//                    ActionType.CREDENTIALS_UPDATED, e, userCredentials);
-//            throw handleException(e);
-//        }
-//    }
-
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/user/{userId}/userCredentialsEnabled", method = RequestMethod.POST)
     @ResponseBody
