@@ -96,8 +96,10 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+import org.thingsboard.storage.EventStorage;
 import scala.concurrent.duration.Duration;
 
 import javax.annotation.Nullable;
@@ -528,6 +530,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ruleNodeId", ruleNodeId.toString());
         return metaData;
+    }
+
+    @Override
+    public EventStorage<UplinkMsg> getEdgeEventStorage() {
+        return mainCtx.getEdgeEventStorage();
     }
 
 }

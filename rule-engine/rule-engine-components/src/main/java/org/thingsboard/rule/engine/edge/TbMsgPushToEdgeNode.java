@@ -28,24 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage.edge;
+package org.thingsboard.rule.engine.edge;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.storage.EventStorageFiles;
-import org.thingsboard.storage.EventStorageReader;
-import org.thingsboard.storage.FileEventStorageSettings;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
+import org.thingsboard.rule.engine.api.RuleNode;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.Base64;
+@Slf4j
+@RuleNode(
+        type = ComponentType.ACTION,
+        name = "push to edge",
+        configClazz = EmptyNodeConfiguration.class,
+        nodeDescription = "Pushes messages to edge",
+        nodeDetails = "Pushes messages to edge, if Message Originator assigned to particular edge or is EDGE entity. This node is used only on Cloud instances to push messages from Cloud to Edge. Supports only DEVICE, ENTITY_VIEW, ASSET and EDGE Message Originator(s).",
+        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        configDirective = "tbNodeEmptyConfig",
+        icon = "cloud_download"
+)
+public class TbMsgPushToEdgeNode implements TbNode {
 
-public class EdgeEventStorageReader extends EventStorageReader<UplinkMsg> {
+    private EmptyNodeConfiguration config;
 
-    EdgeEventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
-        super(files, settings);
+    @Override
+    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
     }
 
     @Override
-    protected UplinkMsg parseFromLine(String line) throws InvalidProtocolBufferException {
-        return UplinkMsg.parser().parseFrom(Base64.getDecoder().decode(line));
+    public void onMsg(TbContext ctx, TbMsg msg) {
+        // Implementation of this node is done on the Cloud
     }
+
+    @Override
+    public void destroy() {
+    }
+
 }

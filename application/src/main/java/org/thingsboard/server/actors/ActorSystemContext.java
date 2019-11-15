@@ -45,6 +45,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -83,6 +84,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.kafka.TbNodeIdProvider;
 import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
 import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
@@ -105,6 +107,7 @@ import org.thingsboard.server.service.session.DeviceSessionCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.RuleEngineTransportService;
+import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -219,6 +222,11 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DeviceRpcService deviceRpcService;
+
+    @Autowired
+    @Qualifier("edgeFileEventStorage")
+    @Getter
+    private EventStorage<UplinkMsg> edgeEventStorage;
 
     @Autowired
     @Getter

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
@@ -51,6 +53,9 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
+import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -62,6 +67,7 @@ import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.EntityData;
 import org.thingsboard.server.gen.edge.EntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
@@ -121,6 +127,9 @@ public class CloudManagerService {
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private ActorService actorService;
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
@@ -416,7 +425,42 @@ public class CloudManagerService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        log.info("onDownlink {}", downlinkMsg);
+        log.debug("onDownlink {}", downlinkMsg);
+        if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
+            for (EntityData entityData : downlinkMsg.getEntityDataList()) {
+                TbMsg tbMsg = null;
+                TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray());
+                switch (tmp.getOriginator().getEntityType()) {
+                    case DEVICE:
+                        String deviceName = entityData.getEntityName();
+                        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+                        if (device != null) {
+                            tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), device.getId(), tmp.getMetaData().copy(),
+                                    tmp.getDataType(), tmp.getData(), null, null, 0L);
+                        }
+                        break;
+                    case ASSET:
+                        String assetName = entityData.getEntityName();
+                        Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetName);
+                        if (asset != null) {
+                            tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
+                                    tmp.getDataType(), tmp.getData(), null, null, 0L);
+                        }
+                        break;
+                    case ENTITY_VIEW:
+                        String entityViewName = entityData.getEntityName();
+                        EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
+                        if (entityView != null) {
+                            tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
+                                    tmp.getDataType(), tmp.getData(), null, null, 0L);
+                        }
+                        break;
+                }
+                if (tbMsg != null) {
+                    actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+                }
+            }
+        }
     }
 
     private void scheduleReconnect(Exception e) {

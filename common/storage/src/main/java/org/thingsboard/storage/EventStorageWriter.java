@@ -63,6 +63,7 @@ class EventStorageWriter<T extends AbstractMessageLite> {
         currentFileRecordsCount = getNumberOfRecordsInFile(currentFile);
     }
 
+    // TODO: remove RpcCallback
     void write(T msg, RpcCallback<Void> callback) {
         newRecordAfterFlush = true;
         if (isFileFull(currentFileRecordsCount)) {

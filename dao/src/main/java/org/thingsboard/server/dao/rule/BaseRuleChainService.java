@@ -83,6 +83,14 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     @Override
     public RuleChain saveRuleChain(RuleChain ruleChain) {
+        boolean setNewRuleChain = false;
+        if (ruleChain.isRoot()) {
+            RuleChain currentRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
+            if (!currentRuleChain.getId().equals(ruleChain.getId())) {
+                ruleChain.setRoot(false);
+                setNewRuleChain = true;
+            }
+        }
         ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
         RuleChain savedRuleChain = ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
         if (ruleChain.isRoot() && ruleChain.getId() == null) {
@@ -94,6 +102,11 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                         savedRuleChain.getTenantId(), savedRuleChain.getId());
                 throw new RuntimeException(e);
             }
+        }
+
+        if (setNewRuleChain) {
+            log.debug("Setting root rule chain [{}]", ruleChain);
+            setRootRuleChain(ruleChain.getTenantId(), ruleChain.getId());
         }
         return savedRuleChain;
     }
@@ -413,6 +426,8 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     if (tenant == null) {
                         throw new DataValidationException("Rule chain is referencing to non-existent tenant!");
                     }
+
+                    // TODO: voba  this check is not needed currently on edge
                     if (ruleChain.isRoot()) {
                         RuleChain rootRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
                         if (rootRuleChain != null && !rootRuleChain.getId().equals(ruleChain.getId())) {

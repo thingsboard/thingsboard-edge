@@ -28,24 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage.edge;
+package org.thingsboard.rule.engine.edge;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.storage.EventStorageFiles;
-import org.thingsboard.storage.EventStorageReader;
-import org.thingsboard.storage.FileEventStorageSettings;
+import com.google.common.util.concurrent.FutureCallback;
+import lombok.Data;
+import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.Base64;
+import javax.annotation.Nullable;
 
-public class EdgeEventStorageReader extends EventStorageReader<UplinkMsg> {
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
-    EdgeEventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
-        super(files, settings);
+@Data
+class PushToCloudNodeCallback implements RpcCallback<Void> {
+    private final TbContext ctx;
+    private final TbMsg msg;
+
+    @Override
+    public void onSuccess(@Nullable Void result) {
+        ctx.tellNext(msg, SUCCESS);
     }
 
     @Override
-    protected UplinkMsg parseFromLine(String line) throws InvalidProtocolBufferException {
-        return UplinkMsg.parser().parseFrom(Base64.getDecoder().decode(line));
+    public void onError(Throwable t) {
+        ctx.tellFailure(msg, t);
     }
 }

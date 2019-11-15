@@ -54,6 +54,8 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.storage.EventStorage;
 
 import java.util.Set;
 
@@ -121,6 +123,8 @@ public interface TbContext {
     RelationService getRelationService();
 
     EntityViewService getEntityViewService();
+
+    EventStorage<UplinkMsg> getEdgeEventStorage();
 
     ListeningExecutor getJsExecutor();
 
