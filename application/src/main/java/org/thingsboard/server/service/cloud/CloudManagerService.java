@@ -42,6 +42,9 @@ import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -56,19 +59,22 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.EntityData;
+import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityType;
+import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
@@ -90,6 +96,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -129,6 +136,9 @@ public class CloudManagerService {
     private EntityViewService entityViewService;
 
     @Autowired
+    private AlarmService alarmService;
+
+    @Autowired
     private ActorService actorService;
 
     @Autowired
@@ -149,12 +159,7 @@ public class CloudManagerService {
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
                 this::onEdgeUpdate,
-                this::onDeviceUpdate,
-                this::onAssetUpdate,
-                this::onEntityViewUpdate,
-                this::onRuleChainUpdate,
-                this::onRuleChainMetadataUpdate,
-                this::onDashboardUpdate,
+                this::onEntityUpdate,
                 this::onDownlink,
                 this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
@@ -225,6 +230,31 @@ public class CloudManagerService {
             scheduledFuture = null;
         }
         initialized = true;
+    }
+
+    private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
+        if (entityUpdateMsg.hasDeviceUpdateMsg()) {
+            log.debug("Device update message received {}", entityUpdateMsg.getDeviceUpdateMsg());
+            onDeviceUpdate(entityUpdateMsg.getDeviceUpdateMsg());
+        } else if (entityUpdateMsg.hasAssetUpdateMsg()) {
+            log.debug("Asset update message received {}", entityUpdateMsg.getAssetUpdateMsg());
+            onAssetUpdate(entityUpdateMsg.getAssetUpdateMsg());
+        } else if (entityUpdateMsg.hasEntityViewUpdateMsg()) {
+            log.debug("EntityView update message received {}", entityUpdateMsg.getEntityViewUpdateMsg());
+            onEntityViewUpdate(entityUpdateMsg.getEntityViewUpdateMsg());
+        } else if (entityUpdateMsg.hasRuleChainUpdateMsg()) {
+            log.debug("Rule Chain udpate message received {}", entityUpdateMsg.getRuleChainUpdateMsg());
+            onRuleChainUpdate(entityUpdateMsg.getRuleChainUpdateMsg());
+        } else if (entityUpdateMsg.hasRuleChainMetadataUpdateMsg()) {
+            log.debug("Rule Chain Metadata udpate message received {}", entityUpdateMsg.getRuleChainMetadataUpdateMsg());
+            onRuleChainMetadataUpdate(entityUpdateMsg.getRuleChainMetadataUpdateMsg());
+        } else if (entityUpdateMsg.hasDashboardUpdateMsg()) {
+            log.debug("Dashboard message received {}", entityUpdateMsg.getDashboardUpdateMsg());
+            onDashboardUpdate(entityUpdateMsg.getDashboardUpdateMsg());
+        } else if (entityUpdateMsg.hasAlarmUpdateMsg()) {
+            log.debug("Alarm message received {}", entityUpdateMsg.getAlarmUpdateMsg());
+            onAlarmUpdate(entityUpdateMsg.getAlarmUpdateMsg());
+        }
     }
 
     private void onDeviceUpdate(DeviceUpdateMsg deviceUpdateMsg) {
@@ -313,21 +343,21 @@ public class CloudManagerService {
     }
 
     private EntityId getRelatedEntityId(EntityViewUpdateMsg entityViewUpdateMsg) {
-       String entityName = entityViewUpdateMsg.getRelatedName();
-       if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.DEVICE)) {
-               Device device = deviceService.findDeviceByTenantIdAndName(tenantId, entityName);
-               if (device == null) {
-                   throw new RuntimeException("Related device [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
-               }
-               return device.getId();
-       } else if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.ASSET)) {
-           Asset asset = assetService.findAssetByTenantIdAndName(tenantId, entityName);
-           if (asset == null) {
-               throw new RuntimeException("Related asset [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
-           }
-           return asset.getId();
-       }
-       throw new RuntimeException("Unsupported related EntityType [" + entityViewUpdateMsg.getRelatedEntityType() + "]");
+        String entityName = entityViewUpdateMsg.getRelatedName();
+        if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.DEVICE)) {
+            Device device = deviceService.findDeviceByTenantIdAndName(tenantId, entityName);
+            if (device == null) {
+                throw new RuntimeException("Related device [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
+            }
+            return device.getId();
+        } else if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.ASSET)) {
+            Asset asset = assetService.findAssetByTenantIdAndName(tenantId, entityName);
+            if (asset == null) {
+                throw new RuntimeException("Related asset [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
+            }
+            return asset.getId();
+        }
+        throw new RuntimeException("Unsupported related EntityType [" + entityViewUpdateMsg.getRelatedEntityType() + "]");
     }
 
     private void onDashboardUpdate(DashboardUpdateMsg dashboardUpdateMsg) {
@@ -424,10 +454,67 @@ public class CloudManagerService {
         return result;
     }
 
+    private void onAlarmUpdate(AlarmUpdateMsg alarmUpdateMsg) {
+        EntityId originatorId = getAlarmOriginator(alarmUpdateMsg.getOriginatorName(), org.thingsboard.server.common.data.EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
+        if (originatorId != null) {
+            try {
+                Alarm existentAlarm = alarmService.findLatestByOriginatorAndType(tenantId, originatorId, alarmUpdateMsg.getType()).get();
+                switch (alarmUpdateMsg.getMsgType()) {
+                    case ENTITY_CREATED_RPC_MESSAGE:
+                    case ENTITY_UPDATED_RPC_MESSAGE:
+                        if (existentAlarm == null) {
+                            existentAlarm = new Alarm();
+                        }
+                        existentAlarm.setType(alarmUpdateMsg.getName());
+                        existentAlarm.setOriginator(originatorId);
+                        existentAlarm.setSeverity(AlarmSeverity.valueOf(alarmUpdateMsg.getSeverity()));
+                        existentAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
+                        existentAlarm.setStartTs(alarmUpdateMsg.getStartTs());
+                        existentAlarm.setEndTs(alarmUpdateMsg.getEndTs());
+                        existentAlarm.setAckTs(alarmUpdateMsg.getAckTs());
+                        existentAlarm.setClearTs(alarmUpdateMsg.getClearTs());
+                        existentAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
+                        existentAlarm.setPropagate(alarmUpdateMsg.getPropagate());
+                        alarmService.createOrUpdateAlarm(existentAlarm);
+                    case ALARM_ACK_RPC_MESSAGE:
+                        if (existentAlarm != null) {
+                            alarmService.ackAlarm(tenantId, existentAlarm.getId(), alarmUpdateMsg.getAckTs());
+                        }
+                        break;
+                    case ALARM_CLEARK_RPC_MESSAGE:
+                        if (existentAlarm != null) {
+                            alarmService.clearAlarm(tenantId, existentAlarm.getId(), mapper.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
+                        }
+                        break;
+                    case ENTITY_DELETED_RPC_MESSAGE:
+                        if (existentAlarm != null) {
+                            alarmService.deleteAlarm(tenantId, existentAlarm.getId());
+                        }
+                        break;
+                }
+            } catch (Exception e) {
+                log.error("Error during finding existent alarm", e);
+            }
+        }
+    }
+
+    private EntityId getAlarmOriginator(String entityName, org.thingsboard.server.common.data.EntityType entityType) {
+        switch (entityType) {
+            case DEVICE:
+                return deviceService.findDeviceByTenantIdAndName(tenantId, entityName).getId();
+            case ASSET:
+                return assetService.findAssetByTenantIdAndName(tenantId, entityName).getId();
+            case ENTITY_VIEW:
+                return entityViewService.findEntityViewByTenantIdAndName(tenantId, entityName).getId();
+            default:
+                return null;
+        }
+    }
+
     private void onDownlink(DownlinkMsg downlinkMsg) {
         log.debug("onDownlink {}", downlinkMsg);
         if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
-            for (EntityData entityData : downlinkMsg.getEntityDataList()) {
+            for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                 TbMsg tbMsg = null;
                 TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray());
                 switch (tmp.getOriginator().getEntityType()) {
@@ -471,12 +558,7 @@ public class CloudManagerService {
                 edgeRpcClient.connect(routingKey, routingSecret,
                         this::onUplinkResponse,
                         this::onEdgeUpdate,
-                        this::onDeviceUpdate,
-                        this::onAssetUpdate,
-                        this::onEntityViewUpdate,
-                        this::onRuleChainUpdate,
-                        this::onRuleChainMetadataUpdate,
-                        this::onDashboardUpdate,
+                        this::onEntityUpdate,
                         this::onDownlink,
                         this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);

@@ -75,30 +75,34 @@ public class TbMsgPushToCloudNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         String entityName = null;
+        String entityType = null;
         switch (msg.getOriginator().getEntityType()) {
             case DEVICE:
                 Device device = ctx.getDeviceService().findDeviceById(ctx.getTenantId(), new DeviceId(msg.getOriginator().getId()));
                 entityName = device.getName();
+                entityType = device.getType();
                 break;
             case ASSET:
                 Asset asset = ctx.getAssetService().findAssetById(ctx.getTenantId(), new AssetId(msg.getOriginator().getId()));
                 entityName = asset.getName();
+                entityType = asset.getType();
                 break;
             case ENTITY_VIEW:
                 EntityView entityView = ctx.getEntityViewService().findEntityViewById(ctx.getTenantId(), new EntityViewId(msg.getOriginator().getId()));
                 entityName = entityView.getName();
+                entityType = entityView.getType();
                 break;
-
         }
 
-        if (entityName != null) {
-            ctx.getEdgeEventStorage().write(constructUplinkMsg(entityName, msg), new PushToCloudNodeCallback(ctx, msg));
+        if (entityName != null && entityType != null) {
+            ctx.getEdgeEventStorage().write(constructUplinkMsg(entityName, entityType, msg), new PushToCloudNodeCallback(ctx, msg));
         }
     }
 
-    private UplinkMsg constructUplinkMsg(String entityName, TbMsg tbMsg) {
+    private UplinkMsg constructUplinkMsg(String entityName, String entityType, TbMsg tbMsg) {
         EntityDataProto entityData = EntityDataProto.newBuilder()
                 .setEntityName(entityName)
+                .setEntityType(entityType)
                 .setTbMsg(ByteString.copyFrom(TbMsg.toBytes(tbMsg))).build();
 
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()

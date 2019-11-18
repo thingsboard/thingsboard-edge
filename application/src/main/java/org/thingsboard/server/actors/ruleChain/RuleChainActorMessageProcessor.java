@@ -35,10 +35,13 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import com.datastax.driver.core.utils.UUIDs;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.device.DeviceActorToRuleEngineMsg;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -55,7 +58,12 @@ import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -344,6 +352,43 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         if (nodeCtx != null) {
             nodeCtx.getSelfActor().tell(new RuleChainToRuleNodeMsg(new DefaultTbContext(systemContext, nodeCtx), msg, fromRelationType), self);
         }
+        pushUpdatesToEdges(msg);
+    }
+
+    private void pushUpdatesToEdges(TbMsg msg) {
+        if (EntityType.DEVICE.equals(msg.getOriginator().getEntityType())) {
+            switch (msg.getType()) {
+                case DataConstants.ENTITY_CREATED:
+                    try {
+                        Device device = mapper.readValue(msg.getData(), Device.class);
+                        systemContext.getEdgeEventStorage().write(constructUplinkMsg(device.getName(), device.getType()), new RpcCallback<Void>() {
+                            @Override
+                            public void onSuccess(@Nullable Void aVoid) {
+                                log.debug("Event saved successfully!");
+                            }
+
+                            @Override
+                            public void onError(Throwable t) {
+                                log.debug("Failure during event save", t);
+                            }
+                        });
+                    } catch (IOException e) {
+                        log.error("Can't push to edge updates, entity type [{}], data [{}]", msg.getOriginator().getEntityType(), msg.getData(), e);
+                    }
+            }
+        }
+    }
+
+    private UplinkMsg constructUplinkMsg(String entityName, String entityType) {
+        DeviceUpdateMsg deviceUpdateMsg = DeviceUpdateMsg.newBuilder()
+                .setName(entityName)
+                .setType(entityType)
+                .setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE)
+                .build();
+
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg));
+        return builder.build();
     }
 
     private TbMsg enrichWithRuleChainId(TbMsg tbMsg) {

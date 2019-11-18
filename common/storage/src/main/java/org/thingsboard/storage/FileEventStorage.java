@@ -62,8 +62,8 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
     private List<File> dataFiles;
     private File stateFile;
 
-    private EventStorageWriter storageWriter;
-    private EventStorageReader storageReader;
+    private EventStorageWriter<T> storageWriter;
+    private EventStorageReader<T> storageReader;
 
     protected abstract EventStorageReader<T> getEventStorageReader(EventStorageFiles eventStorageFiles, FileEventStorageSettings settings);
 
@@ -73,7 +73,7 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
         EventStorageFiles eventStorageFiles = initDataFiles();
         dataFiles = eventStorageFiles.getDataFiles();
         stateFile = eventStorageFiles.getStateFile();
-        storageWriter = new EventStorageWriter(eventStorageFiles, settings);
+        storageWriter = new EventStorageWriter<>(eventStorageFiles, settings);
         storageReader = getEventStorageReader(eventStorageFiles, settings);
     }
 
