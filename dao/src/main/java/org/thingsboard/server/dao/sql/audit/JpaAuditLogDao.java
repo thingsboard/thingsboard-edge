@@ -68,8 +68,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 @SqlDao
 public class JpaAuditLogDao extends JpaAbstractDao<AuditLogEntity, AuditLog> implements AuditLogDao {
 
-    private ListeningExecutorService insertService = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
-
     @Autowired
     private AuditLogRepository auditLogRepository;
 
@@ -83,14 +81,9 @@ public class JpaAuditLogDao extends JpaAbstractDao<AuditLogEntity, AuditLog> imp
         return auditLogRepository;
     }
 
-    @PreDestroy
-    void onDestroy() {
-        insertService.shutdown();
-    }
-
     @Override
     public ListenableFuture<Void> saveByTenantId(AuditLog auditLog) {
-        return insertService.submit(() -> {
+        return service.submit(() -> {
             save(auditLog.getTenantId(), auditLog);
             return null;
         });
@@ -98,22 +91,22 @@ public class JpaAuditLogDao extends JpaAbstractDao<AuditLogEntity, AuditLog> imp
 
     @Override
     public ListenableFuture<Void> saveByTenantIdAndEntityId(AuditLog auditLog) {
-        return insertService.submit(() -> null);
+        return service.submit(() -> null);
     }
 
     @Override
     public ListenableFuture<Void> saveByTenantIdAndCustomerId(AuditLog auditLog) {
-        return insertService.submit(() -> null);
+        return service.submit(() -> null);
     }
 
     @Override
     public ListenableFuture<Void> saveByTenantIdAndUserId(AuditLog auditLog) {
-        return insertService.submit(() -> null);
+        return service.submit(() -> null);
     }
 
     @Override
     public ListenableFuture<Void> savePartitionsByTenantId(AuditLog auditLog) {
-        return insertService.submit(() -> null);
+        return service.submit(() -> null);
     }
 
     @Override

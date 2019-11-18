@@ -28,22 +28,51 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.executors;
+package org.thingsboard.common.util;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.AbstractListeningExecutor;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import org.thingsboard.common.util.ListeningExecutor;
 
-@Component
-public class ExternalCallExecutorService extends AbstractListeningExecutor {
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 
-    @Value("${actors.rule.external_call_thread_pool_size}")
-    private int externalCallExecutorThreadPoolSize;
+/**
+ * Created by igor on 4/13/18.
+ */
+public abstract class AbstractListeningExecutor implements ListeningExecutor {
 
-    @Override
-    protected int getThreadPollSize() {
-        return externalCallExecutorThreadPoolSize;
+    private ListeningExecutorService service;
+
+    @PostConstruct
+    public void init() {
+        this.service = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(getThreadPollSize()));
     }
 
-}
+    @PreDestroy
+    public void destroy() {
+        if (this.service != null) {
+            this.service.shutdown();
+        }
+    }
 
+    @Override
+    public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
+        return service.submit(task);
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        service.execute(command);
+    }
+
+    public ListeningExecutorService executor() {
+        return service;
+    }
+
+    protected abstract int getThreadPollSize();
+
+}
