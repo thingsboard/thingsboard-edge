@@ -33,6 +33,7 @@ package org.thingsboard.client.tools;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -103,6 +105,20 @@ public class RestClient implements ClientHttpRequestInterceptor {
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public List<Device> findDevicesByQuery(DeviceSearchQuery deviceSearchQuery) {
+        try {
+            ResponseEntity<List<Device>> responseEntity = restTemplate.exchange(baseURL + "/api/devices", HttpMethod.POST, new HttpEntity<>(deviceSearchQuery), new ParameterizedTypeReference<List<Device>>() {
+            });
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Collections.emptyList();
             } else {
                 throw exception;
             }
