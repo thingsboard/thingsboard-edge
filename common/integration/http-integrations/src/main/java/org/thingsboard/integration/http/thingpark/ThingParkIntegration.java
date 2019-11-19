@@ -85,11 +85,6 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     private AsyncRestTemplate httpClient;
     private String downlinkUrl;
 
-    private boolean securityEnabledNew = false;
-    private String securityArantType;
-    private String securityClientId;
-    private String securityClientSecret;
-
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
