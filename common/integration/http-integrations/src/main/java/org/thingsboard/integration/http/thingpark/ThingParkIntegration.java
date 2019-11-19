@@ -98,17 +98,10 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         }
         JsonNode json = configuration.getConfiguration();
         securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
-        securityEnabledNew = json.has("enableSecurityNew") && json.get("enableSecurityNew").asBoolean();
-//        securityEnabledNew = true;
         if (securityEnabled) {
             securityAsId = json.get("asId").asText();
             securityAsKey = json.get("asKey").asText();
             maxTimeDiffInSeconds = json.get("maxTimeDiffInSeconds").asLong();
-            if (securityEnabledNew) {
-                securityArantType = "client_credentials";
-                securityClientId = json.get("clientIdNew").asText();
-                securityClientSecret = json.get("clientSecret").asText();
-            }
         }
         if (downlinkConverter != null) {
             downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
