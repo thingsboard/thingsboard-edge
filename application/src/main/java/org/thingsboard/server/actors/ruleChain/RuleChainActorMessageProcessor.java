@@ -43,7 +43,11 @@ import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -58,6 +62,8 @@ import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
@@ -352,37 +358,71 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         if (nodeCtx != null) {
             nodeCtx.getSelfActor().tell(new RuleChainToRuleNodeMsg(new DefaultTbContext(systemContext, nodeCtx), msg, fromRelationType), self);
         }
-        pushUpdatesToEdges(msg);
+        pushUpdatesToCloud(msg);
     }
 
-    private void pushUpdatesToEdges(TbMsg msg) {
-        if (EntityType.DEVICE.equals(msg.getOriginator().getEntityType())) {
-            switch (msg.getType()) {
-                case DataConstants.ENTITY_CREATED:
-                    try {
-                        Device device = mapper.readValue(msg.getData(), Device.class);
-                        systemContext.getEdgeEventStorage().write(constructUplinkMsg(device.getName(), device.getType()), new RpcCallback<Void>() {
-                            @Override
-                            public void onSuccess(@Nullable Void aVoid) {
-                                log.debug("Event saved successfully!");
-                            }
-
-                            @Override
-                            public void onError(Throwable t) {
-                                log.debug("Failure during event save", t);
-                            }
-                        });
-                    } catch (IOException e) {
-                        log.error("Can't push to edge updates, entity type [{}], data [{}]", msg.getOriginator().getEntityType(), msg.getData(), e);
-                    }
-            }
+    private void pushUpdatesToCloud(TbMsg tbMsg) {
+        switch (tbMsg.getOriginator().getEntityType()) {
+            case DEVICE:
+                pushDeviceUpdatesToCloud(tbMsg);
+                break;
+            case ALARM:
+                pushAlarmUpdatesToCloud(tbMsg);
+                break;
         }
     }
 
-    private UplinkMsg constructUplinkMsg(String entityName, String entityType) {
+    private void pushDeviceUpdatesToCloud(TbMsg tbMsg) {
+        switch (tbMsg.getType()) {
+            case DataConstants.ENTITY_CREATED:
+                try {
+                    Device device = mapper.readValue(tbMsg.getData(), Device.class);
+                    systemContext.getEdgeEventStorage().write(constructDeviceUpdateMsg(device), edgeEventSaveCallback);
+                } catch (IOException e) {
+                    log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
+                }
+        }
+    }
+
+    private void pushAlarmUpdatesToCloud(TbMsg tbMsg) {
+        switch (tbMsg.getType()) {
+            case DataConstants.ENTITY_CREATED:
+            case DataConstants.ENTITY_UPDATED:
+            case DataConstants.ENTITY_DELETED:
+            case DataConstants.ALARM_ACK:
+            case DataConstants.ALARM_CLEAR:
+                try {
+                    UpdateMsgType updateMsgType = getUpdateMsgTypeByTbMsgType(tbMsg.getType());
+                    Alarm alarm = mapper.readValue(tbMsg.getData(), Alarm.class);
+                    systemContext.getEdgeEventStorage().write(constructAlarmUpdateMsg(alarm, updateMsgType), edgeEventSaveCallback);
+                } catch (IOException e) {
+                    log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
+                }
+        }
+    }
+
+    private UpdateMsgType getUpdateMsgTypeByTbMsgType(String tbMsgType) {
+        switch (tbMsgType) {
+            case DataConstants.ENTITY_CREATED:
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
+            case DataConstants.ENTITY_UPDATED:
+                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
+            case DataConstants.ENTITY_DELETED:
+                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
+            case DataConstants.ALARM_ACK:
+                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
+            case DataConstants.ALARM_CLEAR:
+                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
+            default:
+                log.debug("Unsupported tbMsgType [{}]",  tbMsgType);
+                return null;
+        }
+    }
+
+    private UplinkMsg constructDeviceUpdateMsg(Device device) {
         DeviceUpdateMsg deviceUpdateMsg = DeviceUpdateMsg.newBuilder()
-                .setName(entityName)
-                .setType(entityType)
+                .setName(device.getName())
+                .setType(device.getType())
                 .setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE)
                 .build();
 
@@ -390,6 +430,54 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
                 .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg));
         return builder.build();
     }
+
+    private UplinkMsg constructAlarmUpdateMsg(Alarm alarm, UpdateMsgType updateMsgType) {
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllAlarmUpdatemsg(Collections.singletonList(constructAlarmUpdatedMsg(alarm, updateMsgType)));
+        return builder.build();
+    }
+
+    private AlarmUpdateMsg constructAlarmUpdatedMsg(Alarm alarm, UpdateMsgType msgType) {
+        String entityName = null;
+        switch (alarm.getOriginator().getEntityType()) {
+            case DEVICE:
+                entityName = systemContext.getDeviceService().findDeviceById(alarm.getTenantId(), new DeviceId(alarm.getOriginator().getId())).getName();
+                break;
+            case ASSET:
+                entityName = systemContext.getAssetService().findAssetById(alarm.getTenantId(), new AssetId(alarm.getOriginator().getId())).getName();
+                break;
+            case ENTITY_VIEW:
+                entityName = systemContext.getEntityViewService().findEntityViewById(alarm.getTenantId(), new EntityViewId(alarm.getOriginator().getId())).getName();
+                break;
+        }
+        AlarmUpdateMsg.Builder builder = AlarmUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setName(alarm.getName())
+                .setType(alarm.getName())
+                .setOriginatorName(entityName)
+                .setOriginatorType(alarm.getOriginator().getEntityType().name())
+                .setSeverity(alarm.getSeverity().name())
+                .setStatus(alarm.getStatus().name())
+                .setStartTs(alarm.getStartTs())
+                .setEndTs(alarm.getEndTs())
+                .setAckTs(alarm.getAckTs())
+                .setClearTs(alarm.getClearTs())
+                .setDetails(JacksonUtil.toString(alarm.getDetails()))
+                .setPropagate(alarm.isPropagate());
+        return builder.build();
+    }
+
+    private RpcCallback<Void> edgeEventSaveCallback = new RpcCallback<Void>() {
+        @Override
+        public void onSuccess(@Nullable Void aVoid) {
+            log.debug("Event saved successfully!");
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            log.debug("Failure during event save", t);
+        }
+    };
 
     private TbMsg enrichWithRuleChainId(TbMsg tbMsg) {
         // We don't put firstNodeId because it may change over time;

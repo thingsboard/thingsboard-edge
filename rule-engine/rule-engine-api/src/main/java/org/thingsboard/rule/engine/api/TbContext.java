@@ -92,6 +92,10 @@ public interface TbContext {
 
     TbMsg alarmCreatedMsg(Alarm alarm, RuleNodeId ruleNodeId);
 
+    TbMsg alarmUpdatedMsg(Alarm alarm, RuleNodeId ruleNodeId);
+
+    TbMsg alarmClearedMsg(Alarm alarm, RuleNodeId ruleNodeId);
+
     RuleNodeId getSelfId();
 
     TenantId getTenantId();

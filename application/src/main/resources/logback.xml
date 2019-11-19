@@ -41,6 +41,7 @@
     </appender>
 
     <logger name="org.thingsboard.server" level="INFO" />
+    <logger name="org.thingsboard.server.service.cloud" level="TRACE" />
     <logger name="akka" level="INFO" />
 
     <root level="INFO">

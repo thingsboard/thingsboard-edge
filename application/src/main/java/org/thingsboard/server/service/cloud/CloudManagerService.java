@@ -458,42 +458,44 @@ public class CloudManagerService {
         EntityId originatorId = getAlarmOriginator(alarmUpdateMsg.getOriginatorName(), org.thingsboard.server.common.data.EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
         if (originatorId != null) {
             try {
-                Alarm existentAlarm = alarmService.findLatestByOriginatorAndType(tenantId, originatorId, alarmUpdateMsg.getType()).get();
+                Alarm existingAlarm = alarmService.findLatestByOriginatorAndType(tenantId, originatorId, alarmUpdateMsg.getType()).get();
                 switch (alarmUpdateMsg.getMsgType()) {
                     case ENTITY_CREATED_RPC_MESSAGE:
                     case ENTITY_UPDATED_RPC_MESSAGE:
-                        if (existentAlarm == null) {
-                            existentAlarm = new Alarm();
+                        if (existingAlarm == null || existingAlarm.getStatus().isCleared()) {
+                            existingAlarm = new Alarm();
+                            existingAlarm.setTenantId(tenantId);
+                            existingAlarm.setType(alarmUpdateMsg.getName());
+                            existingAlarm.setOriginator(originatorId);
+                            existingAlarm.setSeverity(AlarmSeverity.valueOf(alarmUpdateMsg.getSeverity()));
+                            existingAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
+                            existingAlarm.setStartTs(alarmUpdateMsg.getStartTs());
+                            existingAlarm.setAckTs(alarmUpdateMsg.getAckTs());
+                            existingAlarm.setClearTs(alarmUpdateMsg.getClearTs());
+                            existingAlarm.setPropagate(alarmUpdateMsg.getPropagate());
                         }
-                        existentAlarm.setType(alarmUpdateMsg.getName());
-                        existentAlarm.setOriginator(originatorId);
-                        existentAlarm.setSeverity(AlarmSeverity.valueOf(alarmUpdateMsg.getSeverity()));
-                        existentAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
-                        existentAlarm.setStartTs(alarmUpdateMsg.getStartTs());
-                        existentAlarm.setEndTs(alarmUpdateMsg.getEndTs());
-                        existentAlarm.setAckTs(alarmUpdateMsg.getAckTs());
-                        existentAlarm.setClearTs(alarmUpdateMsg.getClearTs());
-                        existentAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
-                        existentAlarm.setPropagate(alarmUpdateMsg.getPropagate());
-                        alarmService.createOrUpdateAlarm(existentAlarm);
+                        existingAlarm.setEndTs(alarmUpdateMsg.getEndTs());
+                        existingAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
+                        alarmService.createOrUpdateAlarm(existingAlarm);
+                        break;
                     case ALARM_ACK_RPC_MESSAGE:
-                        if (existentAlarm != null) {
-                            alarmService.ackAlarm(tenantId, existentAlarm.getId(), alarmUpdateMsg.getAckTs());
+                        if (existingAlarm != null) {
+                            alarmService.ackAlarm(tenantId, existingAlarm.getId(), alarmUpdateMsg.getAckTs());
                         }
                         break;
-                    case ALARM_CLEARK_RPC_MESSAGE:
-                        if (existentAlarm != null) {
-                            alarmService.clearAlarm(tenantId, existentAlarm.getId(), mapper.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
+                    case ALARM_CLEAR_RPC_MESSAGE:
+                        if (existingAlarm != null) {
+                            alarmService.clearAlarm(tenantId, existingAlarm.getId(), mapper.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
                         }
                         break;
                     case ENTITY_DELETED_RPC_MESSAGE:
-                        if (existentAlarm != null) {
-                            alarmService.deleteAlarm(tenantId, existentAlarm.getId());
+                        if (existingAlarm != null) {
+                            alarmService.deleteAlarm(tenantId, existingAlarm.getId());
                         }
                         break;
                 }
             } catch (Exception e) {
-                log.error("Error during finding existent alarm", e);
+                log.error("Error during on alarm update msg", e);
             }
         }
     }

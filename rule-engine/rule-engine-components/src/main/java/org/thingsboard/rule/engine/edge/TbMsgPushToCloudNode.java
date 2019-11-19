@@ -39,6 +39,7 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 
@@ -74,6 +76,13 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
+        if (!msg.getType().equals(SessionMsgType.POST_TELEMETRY_REQUEST.name()) &&
+                !msg.getType().equals(SessionMsgType.POST_ATTRIBUTES_REQUEST.name()) &&
+                !msg.getType().equals(DataConstants.ATTRIBUTES_UPDATED) &&
+                !msg.getType().equals(DataConstants.ATTRIBUTES_DELETED)) {
+            ctx.tellFailure(msg, new IllegalArgumentException("Unsupported msg type: " + msg.getType()));
+            return;
+        }
         String entityName = null;
         String entityType = null;
         switch (msg.getOriginator().getEntityType()) {
