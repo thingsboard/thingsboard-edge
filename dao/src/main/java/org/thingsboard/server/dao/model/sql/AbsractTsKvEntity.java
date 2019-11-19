@@ -31,14 +31,11 @@
 package org.thingsboard.server.dao.model.sql;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.dao.model.ToData;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -50,11 +47,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.LONG_VALUE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.STRING_VALUE_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
 
 @Data
 @MappedSuperclass
-public abstract class AbsractTsKvEntity implements ToData<TsKvEntry> {
+public abstract class AbsractTsKvEntity {
 
     protected static final String SUM = "SUM";
     protected static final String AVG = "AVG";
@@ -64,10 +60,6 @@ public abstract class AbsractTsKvEntity implements ToData<TsKvEntry> {
     @Id
     @Column(name = ENTITY_ID_COLUMN)
     protected String entityId;
-
-    @Id
-    @Column(name = TS_COLUMN)
-    protected Long ts;
 
     @Id
     @Column(name = KEY_COLUMN)
@@ -85,8 +77,7 @@ public abstract class AbsractTsKvEntity implements ToData<TsKvEntry> {
     @Column(name = DOUBLE_VALUE_COLUMN)
     protected Double doubleValue;
 
-    @Override
-    public TsKvEntry toData() {
+    protected KvEntry getKvEntry() {
         KvEntry kvEntry = null;
         if (strValue != null) {
             kvEntry = new StringDataEntry(key, strValue);
@@ -97,7 +88,7 @@ public abstract class AbsractTsKvEntity implements ToData<TsKvEntry> {
         } else if (booleanValue != null) {
             kvEntry = new BooleanDataEntry(key, booleanValue);
         }
-        return new BasicTsKvEntry(ts, kvEntry);
+        return kvEntry;
     }
 
     public abstract boolean isNotEmpty();

@@ -52,6 +52,9 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -72,6 +75,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -135,6 +139,10 @@ public class DefaultDeviceStateService implements DeviceStateService {
     @Value("${state.defaultStateCheckIntervalInSec}")
     @Getter
     private long defaultStateCheckIntervalInSec;
+
+    @Value("${state.persistToTelemetry:false}")
+    @Getter
+    private boolean persistToTelemetry;
 
 // TODO in v2.1
 //    @Value("${state.defaultStatePersistenceIntervalInSec}")
@@ -289,8 +297,8 @@ public class DefaultDeviceStateService implements DeviceStateService {
             if (!state.isActive() && (state.getLastInactivityAlarmTime() == 0L || state.getLastInactivityAlarmTime() < state.getLastActivityTime())) {
                 state.setLastInactivityAlarmTime(ts);
                 pushRuleEngineMessage(stateData, INACTIVITY_EVENT);
-                saveAttribute(deviceId, INACTIVITY_ALARM_TIME, ts);
-                saveAttribute(deviceId, ACTIVITY_STATE, state.isActive());
+                save(deviceId, INACTIVITY_ALARM_TIME, ts);
+                save(deviceId, ACTIVITY_STATE, state.isActive());
             }
         }
     }
@@ -301,7 +309,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
             long ts = System.currentTimeMillis();
             stateData.getState().setLastConnectTime(ts);
             pushRuleEngineMessage(stateData, CONNECT_EVENT);
-            saveAttribute(deviceId, LAST_CONNECT_TIME, ts);
+            save(deviceId, LAST_CONNECT_TIME, ts);
         }
     }
 
@@ -311,7 +319,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
             long ts = System.currentTimeMillis();
             stateData.getState().setLastDisconnectTime(ts);
             pushRuleEngineMessage(stateData, DISCONNECT_EVENT);
-            saveAttribute(deviceId, LAST_DISCONNECT_TIME, ts);
+            save(deviceId, LAST_DISCONNECT_TIME, ts);
         }
     }
 
@@ -320,11 +328,14 @@ public class DefaultDeviceStateService implements DeviceStateService {
         if (stateData != null) {
             DeviceState state = stateData.getState();
             long ts = System.currentTimeMillis();
-            state.setActive(true);
             stateData.getState().setLastActivityTime(ts);
             pushRuleEngineMessage(stateData, ACTIVITY_EVENT);
-            saveAttribute(deviceId, LAST_ACTIVITY_TIME, ts);
-            saveAttribute(deviceId, ACTIVITY_STATE, state.isActive());
+            save(deviceId, LAST_ACTIVITY_TIME, ts);
+
+            if (!state.isActive()) {
+                state.setActive(true);
+                save(deviceId, ACTIVITY_STATE, state.isActive());
+            }
         }
     }
 
@@ -357,7 +368,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
             boolean oldActive = state.isActive();
             state.setActive(ts < state.getLastActivityTime() + state.getInactivityTimeout());
             if (!oldActive && state.isActive() || oldActive && !state.isActive()) {
-                saveAttribute(deviceId, ACTIVITY_STATE, state.isActive());
+                save(deviceId, ACTIVITY_STATE, state.isActive());
             }
         }
     }
@@ -476,12 +487,26 @@ public class DefaultDeviceStateService implements DeviceStateService {
         }
     }
 
-    private void saveAttribute(DeviceId deviceId, String key, long value) {
-        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(deviceId, key, value));
+    private void save(DeviceId deviceId, String key, long value) {
+        if (persistToTelemetry) {
+            tsSubService.saveAndNotify(
+                    TenantId.SYS_TENANT_ID, deviceId,
+                    Collections.singletonList(new BasicTsKvEntry(System.currentTimeMillis(), new LongDataEntry(key, value))),
+                    new AttributeSaveCallback(deviceId, key, value));
+        } else {
+            tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(deviceId, key, value));
+        }
     }
 
-    private void saveAttribute(DeviceId deviceId, String key, boolean value) {
-        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(deviceId, key, value));
+    private void save(DeviceId deviceId, String key, boolean value) {
+        if (persistToTelemetry) {
+            tsSubService.saveAndNotify(
+                    TenantId.SYS_TENANT_ID, deviceId,
+                    Collections.singletonList(new BasicTsKvEntry(System.currentTimeMillis(), new BooleanDataEntry(key, value))),
+                    new AttributeSaveCallback(deviceId, key, value));
+        } else {
+            tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(deviceId, key, value));
+        }
     }
 
     private class AttributeSaveCallback implements FutureCallback<Void> {

@@ -34,19 +34,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.thingsboard.server.dao.model.sql.AbsractTsKvEntity;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 @Repository
-public abstract class AbstractTimeseriesInsertRepository<T extends AbsractTsKvEntity> {
-
-    protected static final String BOOL_V = "bool_v";
-    protected static final String STR_V = "str_v";
-    protected static final String LONG_V = "long_v";
-    protected static final String DBL_V = "dbl_v";
-
-    @PersistenceContext
-    protected EntityManager entityManager;
+public abstract class AbstractTimeseriesInsertRepository<T extends AbsractTsKvEntity> extends AbstractInsertRepository {
 
     public abstract void saveOrUpdate(T entity);
 
