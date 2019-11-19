@@ -1531,6 +1531,7 @@
         "idCopiedMessage": "Integration Id has been copied to clipboard",
         "debug-mode": "Debug mode",
         "enable-security": "Enable security",
+        "enable-security-new": "Enable security for automatic token updates",
         "headers-filter": "Headers filter",
         "header": "Header",
         "no-headers-filter": "No headers filter",
@@ -1540,6 +1541,10 @@
         "as-id-required": "AS ID is required.",
         "as-key": "AS Key",
         "as-key-required": "AS Key is required.",
+        "client-id-new": "Client Id",
+        "client-id-new-required": "Client Id (login) is required (login).",
+        "client-secret": "Client Secret",
+        "client-secret-required": "Client Secret (password) is required (password).",
         "max-time-diff-in-seconds": "Maximum time difference (seconds)",
         "max-time-diff-in-seconds-required": "Maximum time difference is required.",
         "name": "Name",
@@ -2768,7 +2773,7 @@
             "tr_TR": "Turkish",
             "fa_IR": "Persian",
             "uk_UA": "Ukrainian",
-            "cs_CZ": "Czech"            
+            "cs_CZ": "Czech"
         }
     }
 }

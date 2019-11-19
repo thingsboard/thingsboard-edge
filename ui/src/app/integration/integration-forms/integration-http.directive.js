@@ -95,6 +95,13 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
                 !scope.configuration.maxTimeDiffInSeconds) {
                 scope.configuration.maxTimeDiffInSeconds = 60;
             }
+            else {
+                scope.configuration.enableSecurityNew = false;
+                scope.configuration.clientIdNew = null;
+                scope.configuration.clientSecret = null;
+                scope.configuration.asIdNew = null;
+                scope.configuration.asKey = null;
+            }
         };
 
         scope.onHttpEndpointCopied = function() {

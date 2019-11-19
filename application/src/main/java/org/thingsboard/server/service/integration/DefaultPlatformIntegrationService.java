@@ -64,6 +64,7 @@ import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
+import org.thingsboard.integration.http.thingpark.ThingParkIntegrationActilityNew;
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
@@ -653,7 +654,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case OCEANCONNECT:
                 return new OceanConnectIntegration();
             case THINGPARK:
-                return new ThingParkIntegration();
+                JsonNode configuration = integration.getConfiguration();
+                Boolean securityEnabledNew  = configuration.has("enableSecurityNew") && configuration.get("enableSecurityNew").asBoolean();
+                return securityEnabledNew ?  new ThingParkIntegrationActilityNew() : new ThingParkIntegration();
+//                return new ThingParkIntegration();
             case TMOBILE_IOT_CDP:
                 return new TMobileIotCdpIntegration();
             case MQTT:
