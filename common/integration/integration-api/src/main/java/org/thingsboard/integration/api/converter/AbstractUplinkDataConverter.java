@@ -168,7 +168,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, UplinkMetaData metadata, Exception e) {
         try {
-            persistDebug(context, "Uplink01", inMessageType, inMessage, null, null, metadataToJson(metadata), e);
+            persistDebug(context, "Uplink", inMessageType, inMessage, null, null, metadataToJson(metadata), e);
         } catch (JsonProcessingException ex) {
             log.warn("Failed to persist uplink debug message", ex);
         }

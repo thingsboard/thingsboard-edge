@@ -657,7 +657,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 JsonNode configuration = integration.getConfiguration();
                 Boolean securityEnabledNew  = configuration.has("enableSecurityNew") && configuration.get("enableSecurityNew").asBoolean();
                 return securityEnabledNew ?  new ThingParkIntegrationActilityNew() : new ThingParkIntegration();
-//                return new ThingParkIntegration();
             case TMOBILE_IOT_CDP:
                 return new TMobileIotCdpIntegration();
             case MQTT:
