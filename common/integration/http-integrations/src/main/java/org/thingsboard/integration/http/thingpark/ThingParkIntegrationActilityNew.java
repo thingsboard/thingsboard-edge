@@ -22,14 +22,18 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.common.msg.TbMsg;
+
+import java.io.DataInput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -60,6 +64,8 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
     private static final String CREATION_TIME = "creationTime";
     private static final String AS_KEY = "asKey";
     private static final String AS_ID = "asId";
+    private static final String DEFAULT_DEV_EUI_SENT = "DevEUI_downlink_Sent";
+    private static final String DEFAULT_DEV_EUI_SENT_POS = "0";
     private static final String ERROR_STATUS = "ERROR";
 
     private long expiresInSeconds;
@@ -73,6 +79,8 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
     private int targetPorts;
     private String urlSufixToken;
     private String firstParamToken;
+    private String devEUiSent;
+    private String devEUiSentPos;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -87,11 +95,14 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
             this.securityClientId = json.get("clientIdNew").asText();
             this.securityClientSecret = json.get("clientSecret").asText();
             this.downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
+            this.devEUiSent = json.has("devEUiSent") ? json.get("devEUiSent").asText() : DEFAULT_DEV_EUI_SENT;
+            this.devEUiSentPos = json.has("devEUiSentPos") ? json.get("devEUiSentPos").asText() : DEFAULT_DEV_EUI_SENT_POS;
         }
     }
 
     @Override
     protected ResponseEntity doProcess(ThingParkIntegrationMsg msg) throws Exception {
+        if (checkSecurity(msg)) {
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg);
         if (uplinkDataList != null) {
             uplinkDataList.stream().forEach(data -> {
@@ -100,6 +111,9 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
             });
         }
         return fromStatus(HttpStatus.OK);
+        } else {
+            return fromStatus(HttpStatus.FORBIDDEN);
+        }
     }
 
     @Override
@@ -277,5 +291,67 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
             httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         }
         return httpHeaders;
+    }
+
+    private boolean checkSecurity(ThingParkIntegrationMsg msg) throws Exception {
+
+            ThingParkRequestParameters params = msg.getParams();
+            if (params == null) {
+                log.trace("Expected params: {}, actual: {}", "not null", params);
+                return false;
+            }
+
+            if (params.getAsId().lastIndexOf("TWA") != 0) {
+                log.trace("Expected AS ID: {}, actual: {}", 0, params.getAsId().lastIndexOf("TWA"));
+                return false;
+            }
+
+            if (params.getLrnDevEui() == null || params.getLrnDevEui().isEmpty()) {
+                log.trace("Expected LrnDevEui: {}, actual: {}", "not null and not empty", params.getLrnDevEui());
+                return false;
+            }
+
+            if (params.getLrnFPort() == null || params.getLrnFPort().isEmpty()) {
+                log.trace("Expected LrnFPort: {}, actual: {}", "not null and not empty", params.getLrnFPort());
+                return false;
+            }
+
+            if (params.getTime() == null || params.getTime().isEmpty()) {
+                log.trace("Expected Time: {}, actual: {}", "not null and not empty", params.getTime());
+                return false;
+            }
+
+            if (!securityAsId.equalsIgnoreCase(params.getAsId())) {
+                log.trace("Expected AS ID: {}, actual: {}", securityAsId, params.getAsId());
+                return false;
+            }
+
+            if (!msg.getMsg().has("DevEUI_uplink") && !msg.getMsg().has(devEUiSent) ) {
+                log.trace("Expected DevEUI_uplink/sent: {}, actual: {}", true, false);
+                return false;
+            }
+
+            if (msg.getMsg().has("DevEUI_uplink") && !msg.getMsg().get("DevEUI_uplink").has("DevEUI")) {
+                log.trace("Expected DevEUI: {}, actual: {}", true, false);
+                return false;
+            }
+
+            if (msg.getMsg().has(devEUiSent) && !msg.getMsg().get(devEUiSent).has("DevEUI")) {
+                log.trace("Expected DevEUI/Sent: {}, actual: {}", true, false);
+                return false;
+            }
+
+            if (msg.getMsg().has("DevEUI_uplink") && !msg.getMsg().get("DevEUI_uplink").has("FPort")) {
+                log.trace("Expected FPort: {}, actual: {}", true, false);
+                return false;
+            }
+
+            if (msg.getMsg().has(devEUiSent) && !msg.getMsg().get(devEUiSent).has("FPort")) {
+                log.trace("Expected FPort/Sent: {}, actual: {}", true, false);
+                return false;
+            }
+
+            log.trace("Validating request using following raw token: {}", true);
+        return true;
     }
 }

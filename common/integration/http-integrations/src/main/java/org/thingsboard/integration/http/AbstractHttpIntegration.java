@@ -30,11 +30,14 @@
  */
 package org.thingsboard.integration.http;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+
+import java.util.Arrays;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -72,7 +75,9 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                String type = "Uplink";
+                if (msg.getMsg().has("DevEUI_downlink_Sent")) type += "/Sent";
+                persistDebug(context, type , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
