@@ -654,9 +654,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case OCEANCONNECT:
                 return new OceanConnectIntegration();
             case THINGPARK:
-                JsonNode configuration = integration.getConfiguration();
-                Boolean securityEnabledNew  = configuration.has("enableSecurityNew") && configuration.get("enableSecurityNew").asBoolean();
-                return securityEnabledNew ?  new ThingParkIntegrationActilityNew() : new ThingParkIntegration();
+                return thingParkIntegrationStart (integration);
             case TMOBILE_IOT_CDP:
                 return new TMobileIotCdpIntegration();
             case MQTT:
@@ -684,5 +682,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             default:
                 throw new RuntimeException("Not Implemented!");
         }
+    }
+
+    private ThingsboardPlatformIntegration thingParkIntegrationStart (Integration integration)  {
+        JsonNode configuration = integration.getConfiguration();
+        Boolean securityEnabledNew  = configuration.has("enableSecurityNew") && configuration.get("enableSecurityNew").asBoolean();
+        return securityEnabledNew ?  new ThingParkIntegrationActilityNew() : new ThingParkIntegration();
     }
 }
