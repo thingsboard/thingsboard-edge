@@ -416,6 +416,11 @@ export default angular.module('thingsboard.types', [])
                     value: "THINGPARK",
                     http: true
                 },
+                "THINGPARK_ENTERPRISE": {
+                    name: "integration.type-thingpark-enterprise",
+                    value: "THINGPARK_ENTERPRISE",
+                    http: true
+                },
                 "TMOBILE_IOT_CDP": {
                     name: "integration.type-tmobile-iot-cdp",
                     value: "TMOBILE_IOT_CDP",

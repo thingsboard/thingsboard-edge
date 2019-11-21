@@ -1679,6 +1679,7 @@
         "type-required": "Le type est requis.",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile IoT CDP",
         "type-ttn": "TheThingsNetwork",
         "uplink-converter": "Convertisseur de données en liaison montante",

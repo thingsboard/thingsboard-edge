@@ -3,8 +3,6 @@ package org.thingsboard.integration.http.thingpark;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.sun.jdi.request.ExceptionRequest;
-import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,35 +21,32 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.io.DataInput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 
 /**
  * Created by nickAS21 on 16.11.19.
  */
 @Slf4j
-public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
+public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
     private static final ThreadLocal<SimpleDateFormat> ISO8601 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
     private static final String DEFAULT_DOWNLINK_URL = "https://api.thingpark.com/thingpark/lrc/rest/downlink";
     private static final String URL_PREFIX = "urlPrefix";
     private static final String DEFAULT_URL_PREFIX = "/core/latest/api/devices/";
-    private static final String URL_SUFIX = "urlSufix";
-    private static final String DEFAULT_URL_SUFIX = "/downlinkMessages";
-    private static final String URL_SUFIX_TOKEN = "urlSufixToken";
-    private static final String DEFAULT_URL_SUFIX_TOKEN = "/admin/latest/api/oauth/token";
-    private static final String URL_SUFIX_GET_DEVICES = "urlSufixGetDevices";
-    private static final String DEFAULT_URL_SUFIX_GET_DEVICES = "/core/latest/api/devices";
+    private static final String URL_SUFFIX = "urlSuffix";
+    private static final String DEFAULT_URL_SUFFIX = "/downlinkMessages";
+    private static final String URL_SUFFIX_TOKEN = "urlSuffixToken";
+    private static final String DEFAULT_URL_SUFFIX_TOKEN = "/admin/latest/api/oauth/token";
+    private static final String URL_SUFFIX_GET_DEVICES = "urlSuffixGetDevices";
+    private static final String DEFAULT_URL_SUFFIX_GET_DEVICES = "/core/latest/api/devices";
     private static final String FIRST_PARAM_TOKEN = "firstParamToken";
     private static final String DEFAULT_FIRST_PARAM_TOKEN = "client_credentials";
     private static final String FIRST_PARAM_NAME_TOKEN = "?grant_type=";
@@ -77,7 +72,7 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
     private String securityClientSecret;
     private String downlinkUrl;
     private int targetPorts;
-    private String urlSufixToken;
+    private String urlSuffixToken;
     private String firstParamToken;
     private String devEUiSent;
     private String devEUiSentPos;
@@ -144,16 +139,16 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
                     }
                     String dataStr = new String(downlink.getData(), StandardCharsets.UTF_8);
                     JsonNode dataJson = mapper.readTree(dataStr);
-                    urlSufixToken = dataJson.has(URL_SUFIX_TOKEN) ? dataJson.get(URL_SUFIX_TOKEN).asText() : DEFAULT_URL_SUFIX_TOKEN;
+                    urlSuffixToken = dataJson.has(URL_SUFFIX_TOKEN) ? dataJson.get(URL_SUFFIX_TOKEN).asText() : DEFAULT_URL_SUFFIX_TOKEN;
                     firstParamToken = dataJson.has(FIRST_PARAM_TOKEN) ? dataJson.get(FIRST_PARAM_TOKEN).asText() : DEFAULT_FIRST_PARAM_TOKEN;
                     processGetRestToken(downlink, context, msg);
                     String deviceName = dataJson.get(DEV_EUI).asText();
-                    String urlSufixGetDivaces = dataJson.has(URL_SUFIX_GET_DEVICES) ? dataJson.get(URL_SUFIX_GET_DEVICES).asText() : DEFAULT_URL_SUFIX_GET_DEVICES;
-                    String ref = getRef(deviceName, urlSufixGetDivaces, true, downlink, msg);
+                    String urlSuffixGetDevices = dataJson.has(URL_SUFFIX_GET_DEVICES) ? dataJson.get(URL_SUFFIX_GET_DEVICES).asText() : DEFAULT_URL_SUFFIX_GET_DEVICES;
+                    String ref = getRef(deviceName, urlSuffixGetDevices, true, downlink, msg);
                     String payloadHex = dataJson.get("payload").asText();
                     String urlPrefix = dataJson.has(URL_PREFIX) ? dataJson.get(URL_PREFIX).asText() : DEFAULT_URL_PREFIX;
-                    String urlSufix = dataJson.has(URL_SUFIX) ? dataJson.get(URL_SUFIX).asText() : DEFAULT_URL_SUFIX;
-                    sendMessage(ref, urlPrefix, urlSufix, payloadHex, true, downlink, msg);
+                    String urlSuffix = dataJson.has(URL_SUFFIX) ? dataJson.get(URL_SUFFIX).asText() : DEFAULT_URL_SUFFIX;
+                    sendMessage(ref, urlPrefix, urlSuffix, payloadHex, true, downlink, msg);
                 }
             }
         } catch (Exception e) {
@@ -175,7 +170,7 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
     protected void processGetRestToken(DownlinkData downlink, IntegrationContext context, TbMsg msg) {
         long curTime = (new Date()).getTime();
         if (accessToken == null || accessToken.isEmpty() || expiresInSeconds < curTime) {
-            String url = this.downlinkUrl + urlSufixToken +
+            String url = this.downlinkUrl + urlSuffixToken +
                     FIRST_PARAM_NAME_TOKEN + firstParamToken +
                     SECOND_PARAM_NAME_TOKEN + securityClientId +
                     THIRD_PARAM_NAME_TOKEN + securityClientSecret;
@@ -198,8 +193,8 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
         }
     }
 
-    private String getRef(String deviceName, String urlSufix, boolean token, DownlinkData downlink, TbMsg msg) {
-        String url = this.downlinkUrl + urlSufix;
+    private String getRef(String deviceName, String urlSuffix, boolean token, DownlinkData downlink, TbMsg msg) {
+        String url = this.downlinkUrl + urlSuffix;
         ResponseEntity<String> response = getResult(url, HttpMethod.GET, "", token, downlink, msg);
         String ref = "";
         if (response != null) {
@@ -223,8 +218,8 @@ public class ThingParkIntegrationActilityNew extends AbstractHttpIntegration<Thi
         return ref;
     }
 
-    private void sendMessage(String ref, String urlPrefix, String urlSufix, String payloadHex, boolean token, DownlinkData downlink, TbMsg msg) {
-        String url = this.downlinkUrl + urlPrefix + ref + urlSufix;
+    private void sendMessage(String ref, String urlPrefix, String urlSuffix, String payloadHex, boolean token, DownlinkData downlink, TbMsg msg) {
+        String url = this.downlinkUrl + urlPrefix + ref + urlSuffix;
         this.targetPorts = (this.targetPorts++ > 15) ? 1 : this.targetPorts;
         String creationTime = ISO8601.get().format(new Date());
         String body = "{" +

@@ -50,15 +50,16 @@ import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/integrations/thingpark")
+@RequestMapping("/api/v1/integrations")
 @Slf4j
 public class ThingParkIntegrationController extends BaseIntegrationController {
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = "/{routingKey}")
+    @RequestMapping({"/thingpark/{routingKey}", "/thingpark_enterprise/{routingKey}"})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
@@ -69,15 +70,16 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
             @RequestParam(value = "Time", required = false) String time,
             @RequestParam(value = "Token", required = false) String token,
             @RequestBody JsonNode msg,
-            @RequestHeader Map<String, String> requestHeaders
-    ) {
+            @RequestHeader Map<String, String> requestHeaders,
+        HttpServletRequest request) {
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
+        IntegrationType typeIntegration = (request.getServletPath().lastIndexOf("/thingpark_enterprise") >0) ? IntegrationType.THINGPARK_ENTERPRISE : IntegrationType.THINGPARK;
         DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.THINGPARK)) {
+            if (checkIntegrationPlatform(result, integration, typeIntegration)) {
                 return;
             }
 
@@ -98,5 +100,4 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
 
         return result;
     }
-
 }

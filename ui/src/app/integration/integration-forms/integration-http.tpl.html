@@ -81,7 +81,7 @@
                 </md-expansion-panel>
             </md-expansion-panel-group>
         </section>
-        <section ng-if="integrationType == types.integrationType.THINGPARK.value">
+        <section ng-if="integrationType == types.integrationType.THINGPARK.value || integrationType == types.integrationType.THINGPARK_ENTERPRISE.value">
             <md-input-container class="md-block">
                 <label translate>integration.downlink-url</label>
                 <input name="downlinkUrl" ng-model="configuration.downlinkUrl">
@@ -114,9 +114,6 @@
                 <md-input-container flex ng-if="configuration.enableSecurityNew" class="md-block">
                     <label translate>integration.as-id</label>
                     <input required name="asIdNew" ng-model="configuration.asIdNew">
-<!--                    <div ng-messages="httpIntegrationForm.asIdNew.$error">-->
-<!--                        <div translate ng-message="required">integration.as-id-required</div>-->
-<!--                    </div>-->
                 </md-input-container>
                 <md-input-container flex class="md-block">
                     <label translate>integration.as-key</label>

@@ -64,7 +64,7 @@ import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
-import org.thingsboard.integration.http.thingpark.ThingParkIntegrationActilityNew;
+import org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise;
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
@@ -654,7 +654,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case OCEANCONNECT:
                 return new OceanConnectIntegration();
             case THINGPARK:
-                return thingParkIntegrationStart (integration);
+                return new ThingParkIntegration();
+            case THINGPARK_ENTERPRISE:
+                return  new ThingParkIntegrationEnterprise();
             case TMOBILE_IOT_CDP:
                 return new TMobileIotCdpIntegration();
             case MQTT:
@@ -682,11 +684,5 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             default:
                 throw new RuntimeException("Not Implemented!");
         }
-    }
-
-    private ThingsboardPlatformIntegration thingParkIntegrationStart (Integration integration)  {
-        JsonNode configuration = integration.getConfiguration();
-        Boolean securityEnabledNew  = configuration.has("enableSecurityNew") && configuration.get("enableSecurityNew").asBoolean();
-        return securityEnabledNew ?  new ThingParkIntegrationActilityNew() : new ThingParkIntegration();
     }
 }

@@ -155,12 +155,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return JsonConverter.convertToAttributesProto(src);
     }
 
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,
-                                    String outMessage, UplinkMetaData metadata) {
+    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
         try {
-            String type = "Uplink";
-            if (Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent"))) type += "/Sent";
-            persistDebug(context, type, inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
+            persistDebug(context, getTypeUplink (inMessage), inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
             log.warn("Failed to persist uplink debug message");
         }
@@ -178,4 +175,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return mapper.writeValueAsString(metaData.getKvMap());
     }
 
+    private String getTypeUplink (byte[] inMessage) throws JsonProcessingException {
+        return (Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent")))? "Downlink_Sent": "Uplink";
+    }
 }

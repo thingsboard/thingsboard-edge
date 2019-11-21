@@ -75,9 +75,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                String type = "Uplink";
-                if (msg.getMsg().has("DevEUI_downlink_Sent")) type += "/Sent";
-                persistDebug(context, type , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context,  getTypeUplink (msg) , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -88,6 +86,12 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
 
     protected static ResponseEntity fromStatus(HttpStatus status) {
         return new ResponseEntity<>(status);
+    }
+
+    private String getTypeUplink (T msg)  {
+        return (msg != null &&  msg.getMsg() != null && JsonNode.class.isInstance(msg.getMsg()) && msg.getMsg().has("DevEUI_downlink_Sent")) ?
+                "Downlink_Sent":
+                "Uplink";
     }
 
 }

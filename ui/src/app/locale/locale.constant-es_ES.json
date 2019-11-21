@@ -1516,6 +1516,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
