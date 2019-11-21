@@ -191,6 +191,36 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
+    public Optional<JsonNode> getLatestTimeseries(String entityType, String entityId, String keys) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityType", entityType);
+        params.put("entityId", entityId);
+        params.put("keys", keys);
+        try {
+            ResponseEntity<JsonNode> currentUserResponceEntity = restTemplate.getForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/values/timeseries?keys={keys}", JsonNode.class, params);
+            return Optional.ofNullable(currentUserResponceEntity.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<User> getCurrentTenantUser() {
+        try {
+            ResponseEntity<User> currentUserResponceEntity = restTemplate.getForEntity(baseURL + "/api/auth/user", User.class);
+            return Optional.ofNullable(currentUserResponceEntity.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public Customer createCustomer(Customer customer) {
         return restTemplate.postForEntity(baseURL + "/api/customer", customer, Customer.class).getBody();
     }
