@@ -70,10 +70,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
     private EntityId ownerId;
 
-    @JsonDeserialize(using = JsonFieldsDeserializer.class)
+    @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode additionalInfo;
 
-    @JsonDeserialize(using = JsonFieldsDeserializer.class)
+    @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode configuration;
 
     public EntityGroup(EntityGroupId id) {
