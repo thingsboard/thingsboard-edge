@@ -137,7 +137,7 @@ class EventStorageReader {
                 found = true;
             }
         }
-        if(found) {
+        if (found) {
             return null;
         } else {
             return files.getDataFiles().get(0);
@@ -150,12 +150,8 @@ class EventStorageReader {
                 bufferedReader = Files.newBufferedReader(pointer.getFile().toPath());
                 int linesToSkip = pointer.getLine();
                 if (linesToSkip > 0) {
-                    while (bufferedReader.readLine() != null) {
-                        if (linesToSkip != 0) {
-                            linesToSkip--;
-                        } else {
-                            break;
-                        }
+                    while (linesToSkip != 0 && bufferedReader.readLine() != null) {
+                        linesToSkip--;
                     }
                 }
             }

@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.model.sqlts.ts.TsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvLatestCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvLatestEntity;
+import org.thingsboard.server.dao.sqlts.AbstractLatestInsertRepository;
 import org.thingsboard.server.dao.sqlts.AbstractSqlTimeseriesDao;
 import org.thingsboard.server.dao.sqlts.AbstractTimeseriesInsertRepository;
 import org.thingsboard.server.dao.timeseries.SimpleListenableFuture;
@@ -84,6 +85,9 @@ public class JpaTimeseriesDao extends AbstractSqlTimeseriesDao implements Timese
 
     @Autowired
     private AbstractTimeseriesInsertRepository insertRepository;
+
+    @Autowired
+    private AbstractLatestInsertRepository insertLatestRepository;
 
     @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
@@ -305,7 +309,7 @@ public class JpaTimeseriesDao extends AbstractSqlTimeseriesDao implements Timese
         latestEntity.setLongValue(tsKvEntry.getLongValue().orElse(null));
         latestEntity.setBooleanValue(tsKvEntry.getBooleanValue().orElse(null));
         return insertService.submit(() -> {
-            tsKvLatestRepository.save(latestEntity);
+            insertLatestRepository.saveOrUpdate(latestEntity);
             return null;
         });
     }
