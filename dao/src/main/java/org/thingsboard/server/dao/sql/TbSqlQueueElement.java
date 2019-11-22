@@ -28,38 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.server.dao.sql;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import com.google.common.util.concurrent.SettableFuture;
+import lombok.Getter;
 
-import java.util.Collections;
-import java.util.List;
+public final class TbSqlQueueElement<E> {
+    @Getter
+    private final SettableFuture<Void> future;
+    @Getter
+    private final E entity;
 
-/**
- * Created by ashvayka on 19.01.18.
- */
-@Data
-public class TbGetAttributesNodeConfiguration implements NodeConfiguration<TbGetAttributesNodeConfiguration> {
-
-    private List<String> clientAttributeNames;
-    private List<String> sharedAttributeNames;
-    private List<String> serverAttributeNames;
-
-    private List<String> latestTsKeyNames;
-
-    private boolean tellFailureIfAbsent;
-    private boolean getLatestValueWithTs;
-
-    @Override
-    public TbGetAttributesNodeConfiguration defaultConfiguration() {
-        TbGetAttributesNodeConfiguration configuration = new TbGetAttributesNodeConfiguration();
-        configuration.setClientAttributeNames(Collections.emptyList());
-        configuration.setSharedAttributeNames(Collections.emptyList());
-        configuration.setServerAttributeNames(Collections.emptyList());
-        configuration.setLatestTsKeyNames(Collections.emptyList());
-        configuration.setTellFailureIfAbsent(true);
-        configuration.setGetLatestValueWithTs(false);
-        return configuration;
+    public TbSqlQueueElement(SettableFuture<Void> future, E entity) {
+        this.future = future;
+        this.entity = entity;
     }
 }
+
+
