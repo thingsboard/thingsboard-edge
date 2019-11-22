@@ -191,6 +191,23 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
+    public Optional<JsonNode> getEntityAttributesByIdAndType(String entityType, String entityId, String keys) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityType", entityType);
+        params.put("entityId", entityId);
+        params.put("keys", keys);
+        try {
+            ResponseEntity<JsonNode> telemetryEntity = restTemplate.getForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/values/attributes?keys={keys}", JsonNode.class, params);
+            return Optional.ofNullable(telemetryEntity.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public Optional<JsonNode> getLatestTimeseries(String entityType, String entityId, String keys) {
         Map<String, String> params = new HashMap<>();
         params.put("entityType", entityType);
