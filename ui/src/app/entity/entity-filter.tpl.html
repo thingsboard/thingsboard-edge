@@ -166,7 +166,7 @@
             </div>
         </md-input-container>
     </section>
-    <section layout="column" ng-if="filter.type == types.aliasFilterType.stateEntity.value" id="stateEntityFilter">
+    <section layout="column" ng-if="filter.type == types.aliasFilterType.stateEntity.value || filter.type == types.aliasFilterType.stateEntityOwner.value " id="stateEntityFilter">
         <md-input-container class="md-block">
             <label translate>alias.state-entity-parameter-name</label>
             <input name="stateEntityParamName"

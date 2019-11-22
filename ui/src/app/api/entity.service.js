@@ -802,6 +802,29 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     deferred.resolve(result);
                 }
                 break;
+            case types.aliasFilterType.stateEntityOwner.value:
+                result.stateEntity = true;
+                if (stateEntityId) {
+                    getEntity(stateEntityId.entityType, stateEntityId.id, {ignoreLoading: true, ignoreErrors: true}).then(
+                        function success(entity) {
+                            getEntity(entity.ownerId.entityType, entity.ownerId.id, {ignoreLoading: true, ignoreErrors: true}).then(
+                                function success(entity) {
+                                    result.entities = entitiesToEntitiesInfo([entity]);
+                                    deferred.resolve(result);
+                                },
+                                function fail() {
+                                    deferred.resolve(result);
+                                }
+                            );
+                        },
+                        function fail() {
+                            deferred.resolve(result);
+                        }
+                    );
+                } else {
+                    deferred.resolve(result);
+                }
+                break;
             case types.aliasFilterType.assetType.value:
                 getEntitiesByNameFilter(types.entityType.asset, filter.assetNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, filter.assetType).then(
                     function success(entities) {
@@ -972,6 +995,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 case types.aliasFilterType.entityGroupName.value:
                     return entityTypes.indexOf(types.entityType.entityGroup) > -1 ? true : false;
                 case types.aliasFilterType.stateEntity.value:
+                case types.aliasFilterType.stateOwner.value:
                     return true;
                 case types.aliasFilterType.assetType.value:
                     return entityTypes.indexOf(types.entityType.asset)  > -1 ? true : false;
@@ -1026,6 +1050,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.entityGroupName.value:
                 return entityType === types.entityType.entityGroup;
             case types.aliasFilterType.stateEntity.value:
+            case types.aliasFilterType.stateOwner.value:
                 return true;
             case types.aliasFilterType.assetType.value:
                 return entityType === types.entityType.asset;

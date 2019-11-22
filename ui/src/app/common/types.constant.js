@@ -299,6 +299,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'stateEntity',
                     name: 'alias.filter-type-state-entity'
                 },
+                stateEntityOwner: {
+                    value: 'stateEntityOwner',
+                    name: 'alias.filter-type-state-entity-owner'
+                },
                 assetType: {
                     value: 'assetType',
                     name: 'alias.filter-type-asset-type'

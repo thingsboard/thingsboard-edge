@@ -199,6 +199,8 @@
         "filter-type-entity-group-name": "Название группы объктов",
         "filter-type-state-entity": "Объект из состояния дашборда",
         "filter-type-state-entity-description": "Объект, полученный из параметров состояния дашборда",
+        "filter-type-state-entity-owner": "Владелец объекта из состояния дашборда",
+        "filter-type-state-entity-owner-description": "Владелец объекта, полученного из параметров состояния дашборда",
         "filter-type-asset-type": "Тип актива",
         "filter-type-asset-type-description": "Активы типа '{{assetType}}'",
         "filter-type-asset-type-and-name-description": "Активы типа '{{assetType}}' и названием, начинающимся с '{{prefix}}'",
