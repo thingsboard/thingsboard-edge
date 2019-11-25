@@ -199,6 +199,8 @@
         "filter-type-entity-group-name": "Назва групи сутностей",
         "filter-type-state-entity": "Сутність з стану панелі пристроїв",
         "filter-type-state-entity-description": "Сутність, взята з параметрів стану панелі пристроїв",
+        "filter-type-state-entity-owner": "Власник сутності з стану панелі пристроїв",
+        "filter-type-state-entity-owner-description": "Власник сутності, взятої з параметрів стану панелі пристроїв",
         "filter-type-asset-type": "Тип активу",
         "filter-type-asset-type-description": "Тип активів '{{assetType}}'",
         "filter-type-asset-type-and-name-description": "Тип активів '{{assetType}}' і ім'я, що починаються з '{{prefix}}'",

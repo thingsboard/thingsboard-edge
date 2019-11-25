@@ -92,6 +92,9 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                     case types.aliasFilterType.stateEntity.value:
                         scope.filterDisplayValue = $translate.instant('alias.filter-type-state-entity-description');
                         break;
+                    case types.aliasFilterType.stateEntityOwner.value:
+                        scope.filterDisplayValue = $translate.instant('alias.filter-type-state-entity-owner-description');
+                        break;
                     case types.aliasFilterType.assetType.value:
                         var assetType = scope.filter.assetType;
                         prefix = scope.filter.assetNameFilter;

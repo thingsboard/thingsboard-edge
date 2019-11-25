@@ -199,6 +199,8 @@
         "filter-type-entity-group-name": "Entity group name",
         "filter-type-state-entity": "Entity from dashboard state",
         "filter-type-state-entity-description": "Entity taken from dashboard state parameters",
+        "filter-type-state-entity-owner": "Owner of entity from dashboard state",
+        "filter-type-state-entity-owner-description": "Owner of entity taken from dashboard state parameters",
         "filter-type-asset-type": "Asset type",
         "filter-type-asset-type-description": "Assets of type '{{assetType}}'",
         "filter-type-asset-type-and-name-description": "Assets of type '{{assetType}}' and with name starting with '{{prefix}}'",

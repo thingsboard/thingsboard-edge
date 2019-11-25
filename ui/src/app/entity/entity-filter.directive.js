@@ -100,6 +100,7 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     filter.entityGroupNameFilter = '';
                     break;
                 case types.aliasFilterType.stateEntity.value:
+                case types.aliasFilterType.stateEntityOwner.value:
                     filter.stateEntityParamName = null;
                     filter.defaultStateEntity = null;
                     filter.resolveMultiple = false;

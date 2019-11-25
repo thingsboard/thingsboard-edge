@@ -128,11 +128,10 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         boolean isAssetTypePresent = src.has("assetType");
 
         if (!isDeviceNamePresent && !isAssetNamePresent) {
-            throw new JsonParseException("Device name and asset name both are not present!");
+            throw new JsonParseException("Either 'deviceName' or 'assetName' should be present in the converter output!");
         }
-
         if (isDeviceNamePresent && isAssetNamePresent) {
-            throw new JsonParseException("Device name and asset name both are present!");
+            throw new JsonParseException("Both 'deviceName' and 'assetName' can't be present in the converter output!");
         }
 
         if (isDeviceNamePresent) {
