@@ -495,6 +495,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
                             .state(deviceState).build();
                 } catch (Exception e) {
                     log.warn("[{}] Failed to fetch device state data", device.getId(), e);
+                    throw new RuntimeException(e);
                 }
             }
         };
