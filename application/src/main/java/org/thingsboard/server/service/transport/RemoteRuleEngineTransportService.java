@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.msg.cluster.ServerAddress;
@@ -94,6 +95,8 @@ public class RemoteRuleEngineTransportService implements RuleEngineTransportServ
     private long pollRecordsPerSecond;
     @Value("${transport.remote.rule_engine.max_poll_records_per_minute}")
     private long pollRecordsPerMinute;
+    @Value("${transport.remote.rule_engine.stats.enabled:false}")
+    private boolean statsEnabled;
 
     @Autowired
     private TbKafkaSettings kafkaSettings;
@@ -118,6 +121,8 @@ public class RemoteRuleEngineTransportService implements RuleEngineTransportServ
     private ExecutorService mainConsumerExecutor = Executors.newSingleThreadExecutor();
 
     private volatile boolean stopped = false;
+
+    private final RuleEngineStats stats = new RuleEngineStats();
 
     @PostConstruct
     public void init() {
@@ -187,6 +192,13 @@ public class RemoteRuleEngineTransportService implements RuleEngineTransportServ
         });
     }
 
+    @Scheduled(fixedDelayString = "${transport.remote.rule_engine.stats.print_interval_ms}")
+    public void printStats() {
+        if (statsEnabled) {
+            stats.printStats();
+        }
+    }
+
     @Override
     public void process(String nodeId, DeviceActorToTransportMsg msg) {
         process(nodeId, msg, null, null);
@@ -202,6 +214,9 @@ public class RemoteRuleEngineTransportService implements RuleEngineTransportServ
     }
 
     private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg) {
+        if (statsEnabled) {
+            stats.log(toDeviceActorMsg);
+        }
         TransportToDeviceActorMsgWrapper wrapper = new TransportToDeviceActorMsgWrapper(toDeviceActorMsg);
         Optional<ServerAddress> address = routingService.resolveById(wrapper.getDeviceId());
         if (address.isPresent()) {
