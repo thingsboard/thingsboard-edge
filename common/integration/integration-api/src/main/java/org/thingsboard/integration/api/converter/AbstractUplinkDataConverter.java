@@ -176,6 +176,6 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     }
 
     private String getTypeUplink (byte[] inMessage) throws JsonProcessingException {
-        return (Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent")))? "Downlink_Sent": "Uplink";
+        return (inMessage != null && inMessage.length >23 &&Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent")))? "Downlink_Sent": "Uplink";
     }
 }

@@ -62,4 +62,9 @@ public class OceanConnectIntegration extends AbstractHttpIntegration<HttpIntegra
         return fromStatus(HttpStatus.OK);
     }
 
+    @Override
+    protected String getTypeUplink(HttpIntegrationMsg msg) {
+        return "Uplink";
+    }
+
 }

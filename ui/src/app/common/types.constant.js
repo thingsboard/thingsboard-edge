@@ -416,9 +416,9 @@ export default angular.module('thingsboard.types', [])
                     value: "THINGPARK",
                     http: true
                 },
-                "THINGPARK_ENTERPRISE": {
+                "TPE": {
                     name: "integration.type-thingpark-enterprise",
-                    value: "THINGPARK_ENTERPRISE",
+                    value: "TPE",
                     http: true
                 },
                 "TMOBILE_IOT_CDP": {

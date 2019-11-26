@@ -655,7 +655,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new OceanConnectIntegration();
             case THINGPARK:
                 return new ThingParkIntegration();
-            case THINGPARK_ENTERPRISE:
+            case TPE:
                 return  new ThingParkIntegrationEnterprise();
             case TMOBILE_IOT_CDP:
                 return new TMobileIotCdpIntegration();

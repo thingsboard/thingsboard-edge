@@ -339,7 +339,7 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.http.oc.OceanConnectIntegration");
             case THINGPARK:
                 return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegration");
-            case THINGPARK_ENTERPRISE:
+            case TPE:
                 return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise");
             case TMOBILE_IOT_CDP:
                 return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");

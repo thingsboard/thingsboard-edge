@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.integration.http.thingpark;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -109,6 +139,13 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         } else {
             return fromStatus(HttpStatus.FORBIDDEN);
         }
+    }
+
+    @Override
+    protected String getTypeUplink(ThingParkIntegrationMsg msg) {
+        return (msg != null &&  msg.getMsg() != null && JsonNode.class.isInstance(msg.getMsg()) && msg.getMsg().has("DevEUI_downlink_Sent")) ?
+                "Downlink_Sent":
+                "Uplink";
     }
 
     @Override
@@ -296,8 +333,13 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
                 return false;
             }
 
-            if (params.getAsId().lastIndexOf("TWA") != 0) {
-                log.trace("Expected AS ID: {}, actual: {}", 0, params.getAsId().lastIndexOf("TWA"));
+            if (!securityAsId.equalsIgnoreCase(params.getAsId())) {
+                log.trace("Expected securityAsId: {}, actual: {}", securityAsId, params.getAsId());
+                return false;
+            }
+
+            if (params.getToken() == null || params.getToken().isEmpty()) {
+                log.trace("Expected Time: {}, actual: {}", "not null and not empty", params.getToken());
                 return false;
             }
 
@@ -316,10 +358,6 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
                 return false;
             }
 
-            if (!securityAsId.equalsIgnoreCase(params.getAsId())) {
-                log.trace("Expected AS ID: {}, actual: {}", securityAsId, params.getAsId());
-                return false;
-            }
 
             if (!msg.getMsg().has("DevEUI_uplink") && !msg.getMsg().has(devEUiSent) ) {
                 log.trace("Expected DevEUI_uplink/sent: {}, actual: {}", true, false);
@@ -349,4 +387,6 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
             log.trace("Validating request using following raw token: {}", true);
         return true;
     }
+
+
 }

@@ -30,14 +30,11 @@
  */
 package org.thingsboard.integration.http;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
-
-import java.util.Arrays;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -75,7 +72,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context,  getTypeUplink (msg) , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context,  getTypeUplink(msg) , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -87,11 +84,6 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
     protected static ResponseEntity fromStatus(HttpStatus status) {
         return new ResponseEntity<>(status);
     }
-
-    private String getTypeUplink (T msg)  {
-        return (msg != null &&  msg.getMsg() != null && JsonNode.class.isInstance(msg.getMsg()) && msg.getMsg().has("DevEUI_downlink_Sent")) ?
-                "Downlink_Sent":
-                "Uplink";
-    }
+    protected abstract String getTypeUplink(T msg) ;
 
 }
