@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.transport;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportToDeviceActorMsg;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,7 +50,7 @@ public class RuleEngineStats {
     private final AtomicInteger subscriptionInfoCounter = new AtomicInteger(0);
     private final AtomicInteger claimDeviceCounter = new AtomicInteger(0);
 
-    public void log(TransportProtos.TransportToDeviceActorMsg msg) {
+    public void log(TransportToDeviceActorMsg msg) {
         totalCounter.incrementAndGet();
         if (msg.hasSessionEvent()) {
             sessionEventCounter.incrementAndGet();
