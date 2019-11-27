@@ -47,8 +47,11 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -238,6 +241,21 @@ public class RestClient implements ClientHttpRequestInterceptor {
                     restTemplate.exchange(baseURL + "/api/tenant/dashboards?limit=100000", HttpMethod.GET, null, new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
                     });
             return dashboards.getBody().getData();
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Collections.emptyList();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public List<EntityGroupInfo> findTenantEntityGroups(EntityType entityType) {
+        try {
+            ResponseEntity<List<EntityGroupInfo>> entityGroups =
+                    restTemplate.exchange(baseURL + "/api/tenant/entityGroups/{groupType}", HttpMethod.GET, null, new ParameterizedTypeReference<List<EntityGroupInfo>>() {
+                    }, entityType.name());
+            return entityGroups.getBody();
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Collections.emptyList();
