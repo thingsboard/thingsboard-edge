@@ -34,14 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.dao.model.sql.ComponentDescriptorEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

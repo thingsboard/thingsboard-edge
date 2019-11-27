@@ -32,6 +32,8 @@ package org.thingsboard.client.tools;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,13 +44,17 @@ import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
@@ -56,6 +62,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,9 +72,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RestClient implements ClientHttpRequestInterceptor {
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
-    private final RestTemplate restTemplate = new RestTemplate();
+    protected final RestTemplate restTemplate = new RestTemplate();
+    protected final String baseURL;
     private String token;
-    private final String baseURL;
 
     public void login(String username, String password) {
         Map<String, String> loginRequest = new HashMap<>();
@@ -215,6 +222,29 @@ public class RestClient implements ClientHttpRequestInterceptor {
         relation.setTo(idTo);
         relation.setType(relationType);
         return restTemplate.postForEntity(baseURL + "/api/relation", relation, EntityRelation.class).getBody();
+    }
+
+    public Dashboard createDashboard(Dashboard dashboard) {
+        return restTemplate.postForEntity(baseURL + "/api/dashboard", dashboard, Dashboard.class).getBody();
+    }
+
+    public void deleteDashboard(DashboardId dashboardId) {
+        restTemplate.delete(baseURL + "/api/dashboard/{dashboardId}", dashboardId);
+    }
+
+    public List<DashboardInfo> findTenantDashboards() {
+        try {
+            ResponseEntity<TextPageData<DashboardInfo>> dashboards =
+                    restTemplate.exchange(baseURL + "/api/tenant/dashboards?limit=100000", HttpMethod.GET, null, new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
+                    });
+            return dashboards.getBody().getData();
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Collections.emptyList();
+            } else {
+                throw exception;
+            }
+        }
     }
 
     public DeviceCredentials getCredentials(DeviceId id) {

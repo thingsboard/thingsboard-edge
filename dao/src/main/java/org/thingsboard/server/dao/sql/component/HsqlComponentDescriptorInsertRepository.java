@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.dao.model.sql.ComponentDescriptorEntity;
 import org.thingsboard.server.dao.util.HsqlDao;
 import org.thingsboard.server.dao.util.SqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
 
 @SqlDao
 @HsqlDao
