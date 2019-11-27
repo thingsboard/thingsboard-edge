@@ -56,19 +56,14 @@ export default function IntegrationUdpDirective($compile, $templateCache, $trans
                 scope.configuration.clientConfiguration = {
                     port: 11560,
                     soBroadcast: true,
-                    soRcvBuf: 128,
+                    soRcvBuf: 64,
                     charsetName: 'UTF-8',
-                    handlerConfiguration: {}
+                    handlerConfiguration: {
+                        handlerType: types.handlerConfigurationTypes.binary.value
+                    }
                 }
-                scope.configuration.clientConfiguration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.binary.value;
             }
         }
-
-        scope.handlerConfigurationTypeChanged = () => {
-            var handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
-            scope.configuration.clientConfiguration.handlerConfiguration = {};
-            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = handlerType;
-        };
 
         $compile(element.contents())(scope);
     };

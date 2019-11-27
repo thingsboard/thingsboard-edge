@@ -33,6 +33,6 @@ package org.thingsboard.integration.tcpip;
 import lombok.Data;
 
 @Data
-public class TcpipIntegrationMsg {
+public class TcpIpIntegrationMsg {
     private final byte[] msg;
 }

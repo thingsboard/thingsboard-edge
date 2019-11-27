@@ -40,6 +40,8 @@ export default function IntegrationTcpDirective($compile, $templateCache, $trans
         scope.types = types;
         scope.$mdExpansionPanel = $mdExpansionPanel;
 
+        var defaultHandlerConfigurations = {};
+
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
                 ngModelCtrl.$setViewValue(scope.configuration);
@@ -52,34 +54,49 @@ export default function IntegrationTcpDirective($compile, $templateCache, $trans
         };
 
         function setupTcpConfiguration() {
+            setupDefaultHandlerConfigurations();
             if (!scope.configuration.clientConfiguration) {
                 scope.configuration.clientConfiguration = {
                     port: 10560,
                     soBacklogOption: 128,
-                    soRcvBuf: 65535,
-                    soSndBuf: 65535,
+                    soRcvBuf: 64,
+                    soSndBuf: 64,
                     soKeepaliveOption: false,
-                    soReuseAddr: false,
                     tcpNoDelay: true,
                     charsetName: 'UTF-8',
-                    handlerConfiguration: {
-                        byteOrder: 'LITTLE_ENDIAN',
-                        maxFrameLength: 128,
-                        lengthFieldOffset: 2,
-                        lengthFieldLength: 2,
-                        lengthAdjustment: 0,
-                        initialBytesToStrip: 0,
-                        failFast: false
-                    }
+                    handlerConfiguration: defaultHandlerConfigurations[types.handlerConfigurationTypes.binary.value]
                 }
             }
-            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.binary.value;
+        }
+
+        function setupDefaultHandlerConfigurations() {
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.binary.value] = {
+                handlerType: types.handlerConfigurationTypes.binary.value,
+                byteOrder: types.tcpBinaryByteOrder.littleEndian.value,
+                maxFrameLength: 128,
+                lengthFieldOffset: 0,
+                lengthFieldLength: 2,
+                lengthAdjustment: 0,
+                initialBytesToStrip: 0,
+                failFast: false
+            };
+
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.text.value] = {
+                handlerType: types.handlerConfigurationTypes.text.value,
+                maxFrameLength: 128,
+                stripDelimiter: true,
+                messageSeparator: types.tcpTextMessageSeparator.systemLineSeparator.value
+            };
+
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.json.value] = {
+                handlerType: types.handlerConfigurationTypes.json.value
+            };
         }
 
         scope.handlerConfigurationTypeChanged = () => {
-            var handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
+            let handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
             scope.configuration.clientConfiguration.handlerConfiguration = {};
-            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = handlerType;
+            scope.configuration.clientConfiguration.handlerConfiguration = angular.copy(defaultHandlerConfigurations[handlerType]);
         };
 
         $compile(element.contents())(scope);

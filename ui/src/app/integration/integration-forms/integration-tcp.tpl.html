@@ -97,11 +97,6 @@
                 {{ 'integration.so-keepalive-option' | translate }}
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !isEdit"
-                         aria-label="{{ 'integration.so-reuse-addr' | translate }}"
-                         ng-model="configuration.clientConfiguration.soReuseAddr">
-                {{ 'integration.so-reuse-addr' | translate }}
-            </md-checkbox>
-            <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.tcp-no-delay' | translate }}"
                          ng-model="configuration.clientConfiguration.tcpNoDelay">
                 {{ 'integration.tcp-no-delay' | translate }}
@@ -127,7 +122,7 @@
                             <md-input-container class="md-block">
                                 <label translate>integration.handler-configuration-type</label>
                                 <md-select required name="handlerConfigurationType" ng-model="configuration.clientConfiguration.handlerConfiguration.handlerType"
-                                           ng-disabled="$root.loading || !isEdit" ng-change="handlerConfigurationTypeChangedChanged()">
+                                           ng-disabled="$root.loading || !isEdit" ng-change="handlerConfigurationTypeChanged()">
                                     <md-option ng-repeat="(handlerConfigurationType, handlerConfigurationValue) in types.handlerConfigurationTypes" ng-value="handlerConfigurationValue.value">
                                         {{handlerConfigurationValue.name | translate}}
                                     </md-option>
@@ -155,30 +150,16 @@
                                     {{ 'integration.strip-delimiter' | translate }}
                                 </md-checkbox>
                                 <p class="md-subhead" translate>integration.message-separator</p>
-                                <md-radio-group ng-model="configuration.clientConfiguration.handlerConfiguration.messageSeparator">
-                                    <md-radio-button value="systemLineSeparator">Systeme Line Separator</md-radio-button>
-                                    <md-radio-button value="nulDelimiter">Nul Delimiter</md-radio-button>
+                                <md-radio-group ng-model="configuration.clientConfiguration.handlerConfiguration.messageSeparator" ng-disabled="$root.loading || !isEdit">
+                                    <md-radio-button ng-value="types.tcpTextMessageSeparator.systemLineSeparator.value">{{ 'integration.tcp.system-line-separator' | translate }}</md-radio-button>
+                                    <md-radio-button ng-value="types.tcpTextMessageSeparator.nulDelimiter.value">{{ 'integration.tcp.nul-delimiter' | translate }}</md-radio-button>
                                 </md-radio-group>
-                            </section>
-                            <section ng-if="configuration.clientConfiguration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.hex.value">
-                                <div layout="column" layout-gt-sm="row">
-                                    <md-input-container flex="40" class="md-block">
-                                        <label translate>integration.max-frame-length</label>
-                                        <input type="number" step="1" min="1" max="65535" required
-                                               name="maxFrameLength" ng-model="configuration.clientConfiguration.handlerConfiguration.maxFrameLength">
-                                        <div ng-messages="tcpIntegrationForm.maxFrameLength.$error">
-                                            <div translate ng-message="required">integration.max-frame-length-required</div>
-                                            <div translate ng-message="min">integration.max-frame-length-range</div>
-                                            <div translate ng-message="max">integration.max-frame-length-range</div>
-                                        </div>
-                                    </md-input-container>
-                                </div>
                             </section>
                             <section ng-if="configuration.clientConfiguration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.binary.value">
                                 <p class="md-subhead" translate>integration.byte-order</p>
-                                <md-radio-group ng-model="configuration.clientConfiguration.handlerConfiguration.byteOrder">
-                                    <md-radio-button value="littleEndian">Little Endian</md-radio-button>
-                                    <md-radio-button value="bigEndian">Big Endian</md-radio-button>
+                                <md-radio-group ng-model="configuration.clientConfiguration.handlerConfiguration.byteOrder" ng-disabled="$root.loading || !isEdit">
+                                    <md-radio-button ng-value="types.tcpBinaryByteOrder.littleEndian.value">{{ 'integration.tcp.byte-order-little-endian' | translate }}</md-radio-button>
+                                    <md-radio-button ng-value="types.tcpBinaryByteOrder.bigEndian.value">{{ 'integration.tcp.byte-order-big-endian' | translate }}</md-radio-button>
                                 </md-radio-group>
                                 <div layout="column" layout-gt-sm="row">
                                     <md-input-container flex="40" class="md-block">

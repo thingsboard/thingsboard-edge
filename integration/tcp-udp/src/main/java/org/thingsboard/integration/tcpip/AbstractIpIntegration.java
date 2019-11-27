@@ -31,14 +31,13 @@
 package org.thingsboard.integration.tcpip;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -48,22 +47,36 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 @Slf4j
-public abstract class AbstractTcpIpIntegration extends AbstractIntegration<TcpipIntegrationMsg> {
+public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpIntegrationMsg> {
 
-    protected IntegrationContext integrationContext;
+    public static final String TEXT_PAYLOAD = "TEXT";
+    public static final String BINARY_PAYLOAD = "BINARY";
+    public static final String JSON_PAYLOAD = "JSON";
+
+    protected IntegrationContext ctx;
+    protected Channel serverChannel;
+    protected EventLoopGroup bossGroup;
+    protected EventLoopGroup workerGroup;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    protected ScheduledFuture bindFuture = null;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        integrationContext = params.getContext();
+        this.ctx = params.getContext();
     }
 
     @Override
-    public void process(TcpipIntegrationMsg msg) {
+    public void process(TcpIpIntegrationMsg msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -87,6 +100,47 @@ public abstract class AbstractTcpIpIntegration extends AbstractIntegration<Tcpip
         }
     }
 
+    protected void startServer() {
+        try {
+            bind();
+        } catch (Exception e) {
+            log.warn("[{}] Integration wasn't able to bind to required port. Starting re-bind mechanism!", e);
+            bindFuture = scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    bind();
+                } catch (Exception ex) {
+                    log.warn("[{}] Integration wasn't able to bind to required port. Waiting for port to be release externally...", ex);
+                }
+            }, 0, 5, TimeUnit.SECONDS);
+        }
+    }
+
+    protected abstract void bind() throws Exception;
+
+    @Override
+    public void destroy() {
+        try {
+            if (bossGroup != null) {
+                bossGroup.shutdownGracefully().sync();
+            }
+            if (workerGroup != null) {
+                workerGroup.shutdownGracefully().sync();
+            }
+            if (serverChannel != null && serverChannel.isOpen()) {
+                ChannelFuture cf = serverChannel.close();
+                cf.sync();
+                cf.awaitUninterruptibly();
+            }
+            if (bindFuture != null) {
+                bindFuture.cancel(true);
+            }
+            log.info("[{}] Integration was successfully stopped", configuration.getName());
+        } catch (Exception e) {
+            log.error("Exception while closing of channel, integration [{}]", e, configuration.getName());
+            throw new RuntimeException(e);
+        }
+    }
+
     public byte[] writeValueAsBytes(String msg) {
         try {
             return mapper.writeValueAsBytes(msg);
@@ -96,34 +150,21 @@ public abstract class AbstractTcpIpIntegration extends AbstractIntegration<Tcpip
         }
     }
 
-    public boolean isEmptyObjectNode(ObjectNode objectNode) {
-        if (objectNode == null) {
-            return true;
-        }
-        JsonNode jsonNode = objectNode.get("report");
-        return jsonNode == null || (jsonNode.isArray() && (jsonNode.size() == 0 || jsonNode.get(0).size() == 0));
+    public boolean isEmptyFrame(ByteBuf frame) {
+        return frame == null;
     }
 
     public boolean isEmptyByteArray(byte[] byteArray) {
         return byteArray == null || byteArray.length == 0;
     }
 
-    protected byte [] toByteArray(ByteBuf buffer) {
-        byte [] bytes = new byte[buffer.readableBytes()];
+    public byte[] toByteArray(ByteBuf buffer) {
+        byte[] bytes = new byte[buffer.readableBytes()];
         buffer.readBytes(bytes);
         return bytes;
     }
 
-    protected ObjectNode getJsonHexReport(byte[] hexBytes) {
-        String hexString = Hex.encodeHexString(hexBytes);
-        ArrayNode reports = mapper.createArrayNode();
-        reports.add(mapper.createObjectNode().put("value", hexString));
-        ObjectNode payload = mapper.createObjectNode();
-        payload.set("reports", reports);
-        return payload;
-    }
-
-    private List<UplinkData> getUplinkDataList(IntegrationContext context, TcpipIntegrationMsg msg) throws Exception {
+    private List<UplinkData> getUplinkDataList(IntegrationContext context, TcpIpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
         return convertToUplinkDataList(context, msg.getMsg(), new UplinkMetaData(getUplinkContentType(), metadataMap));
     }
@@ -139,23 +180,24 @@ public abstract class AbstractTcpIpIntegration extends AbstractIntegration<Tcpip
 
     protected abstract class AbstractChannelHandler<T> extends SimpleChannelInboundHandler<T> {
 
-        private Predicate<T> predicate;
         private Function<T, byte[]> transformer;
+        private Predicate<T> predicate;
 
         protected AbstractChannelHandler(Function<T, byte[]> transformer, Predicate<T> predicate) {
-            this.predicate = predicate;
             this.transformer = transformer;
+            this.predicate = predicate;
         }
 
         @Override
         public void channelRead0(ChannelHandlerContext ctx, T msg) throws Exception {
             try {
-                if (!predicate.test(msg)) {
+                if (predicate.test(msg)) {
+                    log.debug("Message is ignored, because it's not supported by current integration. Message [{}]", msg);
                     return;
                 }
-                process(new TcpipIntegrationMsg(transformer.apply(msg)));
+                process(new TcpIpIntegrationMsg(transformer.apply(msg)));
             } catch (Exception e) {
-                log.error("[{}] Text channel read Exception!", e.getMessage(), e);
+                log.error("[{}] Exception happened during read messages from channel!", e.getMessage(), e);
                 throw new Exception(e);
             }
         }
@@ -163,7 +205,7 @@ public abstract class AbstractTcpIpIntegration extends AbstractIntegration<Tcpip
         @Override
         public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
             ctx.flush();
-            log.info("Message received on channel {}", ctx.name());
+            log.debug("Channel Read Complete [{}]", ctx.name());
         }
 
         @Override
@@ -171,4 +213,6 @@ public abstract class AbstractTcpIpIntegration extends AbstractIntegration<Tcpip
             log.error("Exception caught", cause);
         }
     }
+
+
 }

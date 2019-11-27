@@ -31,6 +31,7 @@
 package org.thingsboard.integration.tcpip.configs;
 
 import lombok.Data;
+import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
 @Data
@@ -46,6 +47,6 @@ public class BinaryHandlerConfiguration implements HandlerConfiguration {
 
     @Override
     public String getHandlerType() {
-        return "BINARY";
+        return AbstractIpIntegration.BINARY_PAYLOAD;
     }
 }

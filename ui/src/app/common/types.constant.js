@@ -994,13 +994,29 @@ export default angular.module('thingsboard.types', [])
                     value: "TEXT",
                     name: "extension.text"
                 },
-                hex: {
-                    value: "HEX",
-                    name: "extension.hex"
-                },
                 binary: {
                     value: "BINARY",
                     name: "extension.binary"
+                },
+                json: {
+                    value: "JSON",
+                    name: "extension.json"
+                }
+            },
+            tcpBinaryByteOrder: {
+                littleEndian: {
+                    value: "LITTLE_ENDIAN"
+                },
+                bigEndian: {
+                    value: "BIG_ENDIAN"
+                }
+            },
+            tcpTextMessageSeparator: {
+                systemLineSeparator: {
+                    value: "SYSTEM_LINE_SEPARATOR"
+                },
+                nulDelimiter: {
+                    value: "NUL_DELIMITER"
                 }
             },
             identityType: {

@@ -205,71 +205,77 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private UplinkResponseMsg processUplinkMsg(UplinkMsg msg) {
-        if (msg.getDeviceDataCount() > 0) {
-            for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
-                Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
+        try {
+            if (msg.getDeviceDataCount() > 0) {
+                for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
+                    Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
 
-                UUID sessionId = UUID.randomUUID();
-                SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
-                        .setSessionIdMSB(sessionId.getMostSignificantBits())
-                        .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                        .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                        .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                        .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                        .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                        .build();
+                    UUID sessionId = UUID.randomUUID();
+                    SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
+                            .setSessionIdMSB(sessionId.getMostSignificantBits())
+                            .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                            .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                            .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                            .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                            .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                            .build();
 
-                if (data.hasPostTelemetryMsg()) {
-                    ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
-                }
+                    if (data.hasPostTelemetryMsg()) {
+                        ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
+                    }
 
-                if (data.hasPostAttributesMsg()) {
-                    ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), null);
-                }
-            }
-        }
-
-        if (msg.getEntityViewDataCount() > 0) {
-            for (EntityViewDataProto data : msg.getEntityViewDataList()) {
-                createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
-            }
-        }
-
-        if (msg.getIntegrationStatisticsCount() > 0) {
-            for (IntegrationStatisticsProto data : msg.getIntegrationStatisticsList()) {
-                processIntegrationStatistics(data);
-            }
-        }
-
-        if (msg.getEventsDataCount() > 0) {
-            for (TbEventProto proto : msg.getEventsDataList()) {
-                switch (proto.getSource()) {
-                    case INTEGRATION:
-                        saveDebugEvent(configuration.getTenantId(), configuration.getId(), proto);
-                        break;
-                    case UPLINK_CONVERTER:
-                        saveDebugEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
-                        break;
-                    case DOWNLINK_CONVERTER:
-                        saveDebugEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
-                        break;
-                    case DEVICE:
-                        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), proto.getDeviceName());
-                        if (device != null) {
-                            saveDebugEvent(configuration.getTenantId(), device.getId(), proto);
-                        }
-                        break;
+                    if (data.hasPostAttributesMsg()) {
+                        ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), null);
+                    }
                 }
             }
-        }
 
-        if (msg.getTbMsgCount() > 0) {
-            for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
-                ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(configuration.getTenantId(), tbMsg)));
+            if (msg.getEntityViewDataCount() > 0) {
+                for (EntityViewDataProto data : msg.getEntityViewDataList()) {
+                    createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
+                }
             }
-        }
 
+            if (msg.getIntegrationStatisticsCount() > 0) {
+                for (IntegrationStatisticsProto data : msg.getIntegrationStatisticsList()) {
+                    processIntegrationStatistics(data);
+                }
+            }
+
+            if (msg.getEventsDataCount() > 0) {
+                for (TbEventProto proto : msg.getEventsDataList()) {
+                    switch (proto.getSource()) {
+                        case INTEGRATION:
+                            saveDebugEvent(configuration.getTenantId(), configuration.getId(), proto);
+                            break;
+                        case UPLINK_CONVERTER:
+                            saveDebugEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            break;
+                        case DOWNLINK_CONVERTER:
+                            saveDebugEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
+                            break;
+                        case DEVICE:
+                            Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), proto.getDeviceName());
+                            if (device != null) {
+                                saveDebugEvent(configuration.getTenantId(), device.getId(), proto);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (msg.getTbMsgCount() > 0) {
+                for (ByteString tbMsgByteString : msg.getTbMsgList()) {
+                    TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
+                    ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(configuration.getTenantId(), tbMsg)));
+                }
+            }
+        } catch (Exception e) {
+            return UplinkResponseMsg.newBuilder()
+                    .setSuccess(false)
+                    .setErrorMsg(e.getMessage())
+                    .build();
+        }
         return UplinkResponseMsg.newBuilder()
                 .setSuccess(true)
                 .setErrorMsg("")
