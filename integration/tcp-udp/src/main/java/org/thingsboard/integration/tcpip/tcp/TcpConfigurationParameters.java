@@ -42,7 +42,6 @@ class TcpConfigurationParameters {
     private int soSndBuf;
     private boolean soKeepaliveOption;
     private boolean tcpNoDelay;
-    private String charsetName;
     private JsonNode metadata;
     private HandlerConfiguration handlerConfiguration;
 }

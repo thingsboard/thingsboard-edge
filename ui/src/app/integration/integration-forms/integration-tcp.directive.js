@@ -63,8 +63,7 @@ export default function IntegrationTcpDirective($compile, $templateCache, $trans
                     soSndBuf: 64,
                     soKeepaliveOption: false,
                     tcpNoDelay: true,
-                    charsetName: 'UTF-8',
-                    handlerConfiguration: defaultHandlerConfigurations[types.handlerConfigurationTypes.binary.value]
+                    handlerConfiguration: angular.copy(defaultHandlerConfigurations[types.handlerConfigurationTypes.binary.value])
                 }
             }
         }

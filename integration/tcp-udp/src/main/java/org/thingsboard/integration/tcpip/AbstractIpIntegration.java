@@ -55,7 +55,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 @Slf4j
-public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpIntegrationMsg> {
+public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegrationMsg> {
 
     public static final String TEXT_PAYLOAD = "TEXT";
     public static final String BINARY_PAYLOAD = "BINARY";
@@ -73,10 +73,13 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpInt
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         this.ctx = params.getContext();
+        if (serverChannel != null) {
+            destroy();
+        }
     }
 
     @Override
-    public void process(TcpIpIntegrationMsg msg) {
+    public void process(IpIntegrationMsg msg) {
         String status = "OK";
         Exception exception = null;
         try {
@@ -93,7 +96,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpInt
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(mapper.readTree(msg.getMsg())), status, exception);
+                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -120,24 +123,23 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpInt
     @Override
     public void destroy() {
         try {
-            if (bossGroup != null) {
-                bossGroup.shutdownGracefully().sync();
-            }
-            if (workerGroup != null) {
-                workerGroup.shutdownGracefully().sync();
-            }
-            if (serverChannel != null && serverChannel.isOpen()) {
-                ChannelFuture cf = serverChannel.close();
-                cf.sync();
-                cf.awaitUninterruptibly();
-            }
             if (bindFuture != null) {
                 bindFuture.cancel(true);
+            }
+            if (serverChannel != null) {
+                ChannelFuture cf = serverChannel.close().sync();
+                cf.awaitUninterruptibly();
             }
             log.info("[{}] Integration was successfully stopped", configuration.getName());
         } catch (Exception e) {
             log.error("Exception while closing of channel, integration [{}]", e, configuration.getName());
-            throw new RuntimeException(e);
+        } finally {
+            if (bossGroup != null) {
+                bossGroup.shutdownGracefully();
+            }
+            if (workerGroup != null) {
+                workerGroup.shutdownGracefully();
+            }
         }
     }
 
@@ -164,9 +166,9 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpInt
         return bytes;
     }
 
-    private List<UplinkData> getUplinkDataList(IntegrationContext context, TcpIpIntegrationMsg msg) throws Exception {
+    private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getMsg(), new UplinkMetaData(getUplinkContentType(), metadataMap));
+        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {
@@ -195,7 +197,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<TcpIpInt
                     log.debug("Message is ignored, because it's not supported by current integration. Message [{}]", msg);
                     return;
                 }
-                process(new TcpIpIntegrationMsg(transformer.apply(msg)));
+                process(new IpIntegrationMsg(transformer.apply(msg)));
             } catch (Exception e) {
                 log.error("[{}] Exception happened during read messages from channel!", e.getMessage(), e);
                 throw new Exception(e);

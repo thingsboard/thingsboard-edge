@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
+import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -114,8 +115,9 @@ public class BasicUdpIntegration extends AbstractIpIntegration {
                     @Override
                     protected void initChannel(final NioDatagramChannel channel) {
                         try {
+                            TextHandlerConfiguration textHandlerConfiguration = (TextHandlerConfiguration) handlerConfig;
                             channel.pipeline()
-                                    .addLast("datagramToStringDecoder", new AbstractUdpMsgDecoder<DatagramPacket, String>(msg -> msg.content().toString(Charset.forName(udpConfigurationParameters.getCharsetName()))) {
+                                    .addLast("datagramToStringDecoder", new AbstractUdpMsgDecoder<DatagramPacket, String>(msg -> msg.content().toString(Charset.forName(textHandlerConfiguration.getCharsetName()))) {
                                     })
                                     .addLast("udpStringHandler", new AbstractChannelHandler<String>(BasicUdpIntegration.this::writeValueAsBytes, StringUtils::isEmpty) {
                                     });

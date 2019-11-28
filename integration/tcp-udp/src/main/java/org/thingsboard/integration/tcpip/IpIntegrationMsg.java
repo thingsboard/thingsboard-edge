@@ -30,9 +30,32 @@
  */
 package org.thingsboard.integration.tcpip;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 
+import java.io.IOException;
+
 @Data
-public class TcpIpIntegrationMsg {
-    private final byte[] msg;
+public class IpIntegrationMsg {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    private final byte[] payload;
+
+    public JsonNode toJson() {
+        ObjectNode json = mapper.createObjectNode();
+        JsonNode payloadJson = null;
+        try {
+            payloadJson = mapper.readTree(payload);
+        } catch (IOException e) {
+        }
+        if (payloadJson != null) {
+            json.set("payload", payloadJson);
+        } else {
+            json.put("payload", payload);
+        }
+        return json;
+    }
 }

@@ -40,6 +40,7 @@ public class TextHandlerConfiguration implements HandlerConfiguration {
     private int maxFrameLength;
     private boolean stripDelimiter;
     private String messageSeparator;
+    private String charsetName;
 
     @Override
     public String getHandlerType() {

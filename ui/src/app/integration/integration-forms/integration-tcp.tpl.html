@@ -81,16 +81,6 @@
                     </div>
                 </md-input-container>
             </div>
-            <div layout="column" layout-gt-sm="row">
-                <md-input-container flex="40" class="md-block">
-                    <label translate>integration.charset-name</label>
-                    <input type="text" required
-                           name="charsetName" ng-model="configuration.clientConfiguration.charsetName">
-                    <div ng-messages="tcpIntegrationForm.charsetName.$error">
-                        <div translate ng-message="required">integration.charset-name-required</div>
-                    </div>
-                </md-input-container>
-            </div>
             <md-checkbox ng-disabled="$root.loading || !isEdit"
                          aria-label="{{ 'integration.so-keepalive-option' | translate }}"
                          ng-model="configuration.clientConfiguration.soKeepaliveOption">
@@ -123,8 +113,8 @@
                                 <label translate>integration.handler-configuration-type</label>
                                 <md-select required name="handlerConfigurationType" ng-model="configuration.clientConfiguration.handlerConfiguration.handlerType"
                                            ng-disabled="$root.loading || !isEdit" ng-change="handlerConfigurationTypeChanged()">
-                                    <md-option ng-repeat="(handlerConfigurationType, handlerConfigurationValue) in types.handlerConfigurationTypes" ng-value="handlerConfigurationValue.value">
-                                        {{handlerConfigurationValue.name | translate}}
+                                    <md-option ng-repeat="handlerConfigurationType in types.handlerConfigurationTypes" ng-value="handlerConfigurationType.value">
+                                        {{handlerConfigurationType.name | translate}}
                                     </md-option>
                                 </md-select>
                                 <div ng-messages="tcpIntegrationForm.handlerConfigurationType.$error">
