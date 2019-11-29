@@ -246,18 +246,18 @@ public final class IntegrationGrpcSession implements Closeable {
                 for (TbEventProto proto : msg.getEventsDataList()) {
                     switch (proto.getSource()) {
                         case INTEGRATION:
-                            saveDebugEvent(configuration.getTenantId(), configuration.getId(), proto);
+                            saveEvent(configuration.getTenantId(), configuration.getId(), proto);
                             break;
                         case UPLINK_CONVERTER:
-                            saveDebugEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            saveEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
                             break;
                         case DOWNLINK_CONVERTER:
-                            saveDebugEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
+                            saveEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
                             break;
                         case DEVICE:
                             Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), proto.getDeviceName());
                             if (device != null) {
-                                saveDebugEvent(configuration.getTenantId(), device.getId(), proto);
+                                saveEvent(configuration.getTenantId(), device.getId(), proto);
                             }
                             break;
                     }
@@ -282,7 +282,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 .build();
     }
 
-    private void saveDebugEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
+    private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
             Event event = new Event();
             event.setTenantId(tenantId);
