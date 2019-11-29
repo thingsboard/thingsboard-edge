@@ -284,6 +284,27 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public void logJsEvalRequest() {
+        if (mainCtx.isStatisticsEnabled()) {
+            mainCtx.getJsInvokeRequestsCount().incrementAndGet();
+        }
+    }
+
+    @Override
+    public void logJsEvalResponse() {
+        if (mainCtx.isStatisticsEnabled()) {
+            mainCtx.getJsInvokeResponsesCount().incrementAndGet();
+        }
+    }
+
+    @Override
+    public void logJsEvalFailure() {
+        if (mainCtx.isStatisticsEnabled()) {
+            mainCtx.getJsInvokeFailuresCount().incrementAndGet();
+        }
+    }
+
+    @Override
     public String getNodeId() {
         return mainCtx.getNodeIdProvider().getNodeId();
     }

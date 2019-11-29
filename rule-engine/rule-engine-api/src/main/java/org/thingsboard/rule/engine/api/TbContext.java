@@ -145,6 +145,12 @@ public interface TbContext {
      */
     TbPeContext getPeContext();
 
+    void logJsEvalRequest();
+
+    void logJsEvalResponse();
+
+    void logJsEvalFailure();
+
     String getNodeId();
 
     RuleChainTransactionService getRuleChainTransactionService();
