@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.AuditLog;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
@@ -76,6 +77,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
@@ -693,6 +695,57 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 throw exception;
             }
         }
+    }
+
+    public Optional<BlobEntityInfo> getBlobEntityInfoById(String blobEntityId) {
+        try {
+            ResponseEntity<BlobEntityInfo> blobEntityInfo = restTemplate.getForEntity(baseURL + "/api/blobEntity/info/{blobEntityId}", BlobEntityInfo.class, blobEntityId);
+            return Optional.ofNullable(blobEntityInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public ResponseEntity<Resource> downloadBlobEntity(String blobEntityId) {
+        return restTemplate.exchange(
+                baseURL + "/api/blobEntity/{blobEntityId}/download",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<ResponseEntity<Resource>>() {
+                },
+                blobEntityId).getBody();
+    }
+
+    public void deleteBlobEntity(String blobEntityId) {
+        restTemplate.delete(baseURL + "/api/blobEntity/{blobEntityId}", blobEntityId);
+    }
+
+    public TimePageData<BlobEntityInfo> getBlobEntities( String type, TimePageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/blobEntities?type={type}&" + TIME_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TimePageData<BlobEntityInfo>>() {
+                },
+                params).getBody();
+    }
+
+    public List<BlobEntityInfo> getBlobEntitiesByIds(String[] blobEntityIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/blobEntities?blobEntityIds={blobEntityIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<BlobEntityInfo>>() {
+                },
+                blobEntityIds).getBody();
     }
 
     public Optional<ComponentDescriptor> getComponentDescriptorByClazz(String componentDescriptorClazz) {
