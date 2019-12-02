@@ -51,8 +51,8 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.Tenant;
@@ -62,12 +62,11 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -483,50 +482,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/asset/{assetId}", assetId);
     }
 
-    public Optional<Asset> assignAssetToCustomer(String customerId,
-                                                 String assetId) {
-        Map<String, String> params = new HashMap<>();
-        params.put("customerId", customerId);
-        params.put("assetId", assetId);
-
-        try {
-            ResponseEntity<Asset> asset = restTemplate.postForEntity(baseURL + "/api/customer/{customerId}/asset/{assetId}", null, Asset.class, params);
-            return Optional.ofNullable(asset.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Asset> unassignAssetFromCustomer(String assetId) {
-        try {
-            ResponseEntity<Asset> asset = restTemplate.exchange(baseURL + "/api/customer/asset/{assetId}", HttpMethod.DELETE, HttpEntity.EMPTY, Asset.class, assetId);
-            return Optional.ofNullable(asset.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Asset> assignAssetToPublicCustomer(String assetId) {
-        try {
-            ResponseEntity<Asset> asset = restTemplate.postForEntity(baseURL + "/api/customer/public/asset/{assetId}", null, Asset.class, assetId);
-            return Optional.ofNullable(asset.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
     public TextPageData<Asset> getTenantAssets(TextPageLink pageLink, String type) {
         Map<String, String> params = new HashMap<>();
         params.put("type", type);
@@ -568,6 +523,19 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 },
                 params);
         return assets.getBody();
+    }
+
+    public TextPageData<Asset> getUserAssets(String type, TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/user/assets?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<Asset>>() {
+                },
+                params).getBody();
     }
 
     public List<Asset> getAssetsByIds(String[] assetIds) {
