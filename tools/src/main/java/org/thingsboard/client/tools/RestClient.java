@@ -1144,45 +1144,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/device/{deviceId}", deviceId);
     }
 
-    public Optional<Device> assignDeviceToCustomer(String customerId, String deviceId) {
-        try {
-            ResponseEntity<Device> device = restTemplate.postForEntity(baseURL + "/api/customer/{customerId}/device/{deviceId}", null, Device.class, customerId, deviceId);
-            return Optional.ofNullable(device.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Device> unassignDeviceFromCustomer(String deviceId) {
-        try {
-            ResponseEntity<Device> device = restTemplate.exchange(baseURL + "/api/customer/device/{deviceId}", HttpMethod.DELETE, HttpEntity.EMPTY, Device.class, deviceId);
-            return Optional.ofNullable(device.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Device> assignDeviceToPublicCustomer(String deviceId) {
-        try {
-            ResponseEntity<Device> device = restTemplate.postForEntity(baseURL + "/api/customer/public/device/{deviceId}", null, Device.class, deviceId);
-            return Optional.ofNullable(device.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
     public Optional<DeviceCredentials> getDeviceCredentialsByDeviceId(String deviceId) {
         try {
             ResponseEntity<DeviceCredentials> deviceCredentials = restTemplate.getForEntity(baseURL + "/api/device/{deviceId}/credentials", DeviceCredentials.class, deviceId);
@@ -1233,11 +1194,24 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
                 baseURL + "/api/customer/{customerId}/devices?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
-                HttpMethod.GET, HttpEntity.EMPTY,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Device>>() {
                 },
-                params)
-                .getBody();
+                params).getBody();
+    }
+
+    public TextPageData<Device> getUserDevices(String type, TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/user/devices?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<Device>>() {
+                },
+                params).getBody();
     }
 
     public List<Device> getDevicesByIds(String[] deviceIds) {
