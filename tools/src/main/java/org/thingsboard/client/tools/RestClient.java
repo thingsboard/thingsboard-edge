@@ -1592,36 +1592,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
-    public Optional<EntityView> assignEntityViewToCustomer(String customerId, String entityViewId) {
-        try {
-            ResponseEntity<EntityView> entityView = restTemplate.postForEntity(baseURL + "/api/customer/{customerId}/entityView/{entityViewId}", null, EntityView.class, customerId, entityViewId);
-            return Optional.ofNullable(entityView.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<EntityView> unassignEntityViewFromCustomer(String entityViewId) {
-        try {
-            ResponseEntity<EntityView> entityView = restTemplate.exchange(
-                    baseURL + "/api/customer/entityView/{entityViewId}",
-                    HttpMethod.DELETE,
-                    HttpEntity.EMPTY,
-                    EntityView.class, entityViewId);
-            return Optional.ofNullable(entityView.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
     public TextPageData<EntityView> getCustomerEntityViews(String customerId, String type, TextPageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("customerId", customerId);
@@ -1640,6 +1610,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
+
         return restTemplate.exchange(
                 baseURL + "/api/tenant/entityViews?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
                 HttpMethod.GET,
@@ -1647,6 +1618,30 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<TextPageData<EntityView>>() {
                 },
                 params).getBody();
+    }
+
+    public TextPageData<EntityView> getUserEntityViews(String type, TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/user/entityViews?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<EntityView>>() {
+                },
+                params).getBody();
+    }
+
+    public List<EntityView> getEntityViewsByIds(String[] entityViewIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/entityViews",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityView>>() {
+                },
+                entityViewIds).getBody();
     }
 
     public List<EntityView> findByQuery(EntityViewSearchQuery query) {
@@ -1657,19 +1652,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
     public List<EntitySubtype> getEntityViewTypes() {
         return restTemplate.exchange(baseURL + "/api/entityView/types", HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<List<EntitySubtype>>() {
         }).getBody();
-    }
-
-    public Optional<EntityView> assignEntityViewToPublicCustomer(String entityViewId) {
-        try {
-            ResponseEntity<EntityView> entityView = restTemplate.postForEntity(baseURL + "/api/customer/public/entityView/{entityViewId}", null, EntityView.class, entityViewId);
-            return Optional.ofNullable(entityView.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
     }
 
     //Event
