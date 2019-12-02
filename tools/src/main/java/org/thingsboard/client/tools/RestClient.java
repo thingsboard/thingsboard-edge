@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
@@ -335,6 +336,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return token;
     }
 
+    //Admin
+
     public Optional<AdminSettings> getAdminSettings(String key) {
         try {
             ResponseEntity<AdminSettings> adminSettings = restTemplate.getForEntity(baseURL + "/api/admin/settings/{key}", AdminSettings.class, key);
@@ -385,6 +388,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
             }
         }
     }
+
+    //Alarm
 
     public Optional<Alarm> getAlarmById(String alarmId) {
         try {
@@ -462,6 +467,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
             }
         }
     }
+
+    //Asset
 
     public Optional<Asset> getAssetById(String assetId) {
         try {
@@ -568,6 +575,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 }).getBody();
     }
 
+    //AuditLog
+
     public TimePageData<AuditLog> getAuditLogsByCustomerId(String customerId, TimePageLink pageLink, String actionTypes) {
         Map<String, String> params = new HashMap<>();
         params.put("customerId", customerId);
@@ -631,6 +640,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 params);
         return auditLog.getBody();
     }
+
+    //Auth
 
     public Optional<User> getUser() {
         ResponseEntity<User> user = restTemplate.getForEntity(baseURL + "/api/auth/user", User.class);
@@ -697,6 +708,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
+    //BlobEntity
+
     public Optional<BlobEntityInfo> getBlobEntityInfoById(String blobEntityId) {
         try {
             ResponseEntity<BlobEntityInfo> blobEntityInfo = restTemplate.getForEntity(baseURL + "/api/blobEntity/info/{blobEntityId}", BlobEntityInfo.class, blobEntityId);
@@ -724,7 +737,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/blobEntity/{blobEntityId}", blobEntityId);
     }
 
-    public TimePageData<BlobEntityInfo> getBlobEntities( String type, TimePageLink pageLink) {
+    public TimePageData<BlobEntityInfo> getBlobEntities(String type, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
@@ -748,9 +761,11 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 blobEntityIds).getBody();
     }
 
+    //ComponentDescriptor
+
     public Optional<ComponentDescriptor> getComponentDescriptorByClazz(String componentDescriptorClazz) {
         try {
-            ResponseEntity<ComponentDescriptor> componentDescriptor = restTemplate.getForEntity(baseURL + "/api/component/{componentDescriptorClazz}", ComponentDescriptor.class);
+            ResponseEntity<ComponentDescriptor> componentDescriptor = restTemplate.getForEntity(baseURL + "/api/component/{componentDescriptorClazz}", ComponentDescriptor.class, componentDescriptorClazz);
             return Optional.ofNullable(componentDescriptor.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -779,6 +794,93 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 },
                 componentTypes).getBody();
     }
+
+    //Converter
+
+    public Optional<Converter> getConverterById(String converterId) {
+        try {
+            ResponseEntity<Converter> converter = restTemplate.getForEntity(baseURL + "/api/converter/{converterId}", Converter.class, converterId);
+            return Optional.ofNullable(converter.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Converter saveConverter(Converter converter) {
+        return restTemplate.postForEntity(baseURL + "/api/converter", converter, Converter.class).getBody();
+    }
+
+    public TextPageData<Converter> getConverters(TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/converters?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<Converter>>() {
+                },
+                params).getBody();
+    }
+
+    public void deleteConverter(String converterId) {
+        restTemplate.delete(baseURL + "/api/converter/{converterId}", converterId);
+    }
+
+    public Optional<JsonNode> getLatestConverterDebugInput(String converterId) {
+        try {
+            ResponseEntity<JsonNode> jsonNode = restTemplate.getForEntity(baseURL + "/api/converter/{converterId}/debugIn", JsonNode.class, converterId);
+            return Optional.ofNullable(jsonNode.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<JsonNode> testUpLinkConverter(JsonNode inputParams) {
+        try {
+            ResponseEntity<JsonNode> jsonNode = restTemplate.postForEntity(baseURL + "/api/converter/testUpLink", inputParams, JsonNode.class);
+            return Optional.ofNullable(jsonNode.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<JsonNode> testDownLinkConverter(JsonNode inputParams) {
+        try {
+            ResponseEntity<JsonNode> jsonNode = restTemplate.postForEntity(baseURL + "/api/converter/testDownLink", inputParams, JsonNode.class);
+            return Optional.ofNullable(jsonNode.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public List<Converter> getConvertersByIds(String[] converterIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/converters?converterIds={converterIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<Converter>>() {
+                },
+                converterIds).getBody();
+    }
+
+    //Customer
 
     public Optional<Customer> getCustomerById(String customerId) {
         try {
@@ -844,6 +946,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
             }
         }
     }
+
+    //Dashboard
 
     public Long getServerTime() {
         return restTemplate.getForObject(baseURL + "/api/dashboard/serverTime", Long.class);
@@ -1016,6 +1120,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
         ).getBody();
     }
 
+    //Device
+
     public Optional<Device> getDeviceById(String deviceId) {
         try {
             ResponseEntity<Device> device = restTemplate.getForEntity(baseURL + "/api/device/{deviceId}", Device.class, deviceId);
@@ -1179,6 +1285,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 deviceName).getBody();
     }
 
+    //EntityRelation
+
     public void saveRelation(EntityRelation relation) {
         restTemplate.postForEntity(baseURL + "/api/relation", relation, Object.class);
     }
@@ -1332,6 +1440,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 }).getBody();
     }
 
+    //EntityView
+
     public Optional<EntityView> getEntityViewById(String entityViewId) {
         try {
             ResponseEntity<EntityView> entityView = restTemplate.getForEntity(baseURL + "/api/entityView/{entityViewId}", EntityView.class, entityViewId);
@@ -1446,6 +1556,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
+    //Event
+
     public TimePageData<Event> getEvents(String entityType, String entityId, String eventType, String tenantId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("entityType", entityType);
@@ -1479,6 +1591,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 params).getBody();
     }
 
+    //Rpc
+
     public DeferredResult<ResponseEntity> handleOneWayDeviceRPCRequest(String deviceId, String requestBody) {
         return restTemplate.exchange(
                 baseURL + "/oneway/{deviceId}",
@@ -1498,6 +1612,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 },
                 deviceId).getBody();
     }
+
+    //RuleChain
 
     public Optional<RuleChain> getRuleChainById(String ruleChainId) {
         try {
@@ -1587,6 +1703,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
             }
         }
     }
+
+    //Telemetry
 
     public DeferredResult<ResponseEntity> getAttributeKeys(String entityType, String entityId) {
         return restTemplate.exchange(
@@ -1790,6 +1908,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 keys).getBody();
     }
 
+    //Tenant
+
     public Optional<Tenant> getTenantById(String tenantId) {
         try {
             ResponseEntity<Tenant> tenant = restTemplate.getForEntity(baseURL + "/api/tenant/{tenantId}", Tenant.class, tenantId);
@@ -1822,6 +1942,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 },
                 params).getBody();
     }
+
+    //User
 
     public Optional<User> getUserById(String userId) {
         try {
@@ -1878,14 +2000,13 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/user/{userId}", userId);
     }
 
-    //    @RequestMapping(value = "/tenant/{tenantId}/users", params = {"limit"}, method = RequestMethod.GET)
     public TextPageData<User> getTenantAdmins(String tenantId, TextPageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("tenantId", tenantId);
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/tenant/{tenantId}/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenant/{tenantId}/users?" + TEXT_PAGE_LINK_URL_PARAMS,
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<User>>() {
@@ -1915,6 +2036,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 userId,
                 userCredentialsEnabled);
     }
+
+    //WidgetsBundle
 
     public Optional<WidgetsBundle> getWidgetsBundleById(String widgetsBundleId) {
         try {
@@ -1957,6 +2080,8 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<List<WidgetsBundle>>() {
                 }).getBody();
     }
+
+    //WidgetType
 
     public Optional<WidgetType> getWidgetTypeById(String widgetTypeId) {
         try {
