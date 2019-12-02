@@ -47,6 +47,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.ClaimRequest;
+import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -55,6 +56,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.UpdateMessage;
 import org.thingsboard.server.common.data.User;
@@ -68,11 +70,13 @@ import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -1258,6 +1262,143 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
                 },
                 deviceName).getBody();
+    }
+
+    //EntityGroup
+
+    public Optional<EntityGroupInfo> getEntityGroupById(String entityGroupId) {
+        try {
+            ResponseEntity<EntityGroupInfo> entityGroupInfo = restTemplate.getForEntity(baseURL + "/api/entityGroup/{entityGroupId}", EntityGroupInfo.class, entityGroupId);
+            return Optional.ofNullable(entityGroupInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public EntityGroupInfo saveEntityGroup(EntityGroup entityGroup) {
+        return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroupInfo.class).getBody();
+    }
+
+    public void deleteEntityGroup(String entityGroupId) {
+        restTemplate.delete(baseURL + "/api/entityGroup/{entityGroupId}", entityGroupId);
+    }
+
+    public List<EntityGroupInfo> getEntityGroupsByType(String groupType) {
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroups/{groupType}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityGroupInfo>>() {
+                },
+                groupType).getBody();
+    }
+
+    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(String ownerType, String ownerId, String groupType) {
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroups/{ownerType}/{ownerId}/{groupType}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityGroupInfo>>() {
+                },
+                ownerType,
+                ownerId,
+                groupType).getBody();
+    }
+
+    public Optional<EntityGroupInfo> getEntityGroupAllByOwnerAndType(String ownerType, String ownerId, String groupType) {
+        try {
+            ResponseEntity<EntityGroupInfo> entityGroupInfo =
+                    restTemplate.getForEntity(baseURL + "/api/entityGroup/all/{ownerType}/{ownerId}/{groupType}", EntityGroupInfo.class, ownerType, ownerId, groupType);
+            return Optional.ofNullable(entityGroupInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public void addEntitiesToEntityGroup(String entityGroupId, String[] entityIds) {
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", entityIds, Object.class, entityGroupId);
+    }
+
+    public void removeEntitiesFromEntityGroup(String entityGroupId, String[] entityIds) {
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/deleteEntities", entityIds, Object.class, entityGroupId);
+    }
+
+    public Optional<ShortEntityView> getGroupEntity(String entityGroupId, String entityId) {
+        try {
+            ResponseEntity<ShortEntityView> shortEntityView =
+                    restTemplate.getForEntity(baseURL + "/api/entityGroup/{entityGroupId}/{entityId}", ShortEntityView.class, entityGroupId, entityId);
+            return Optional.ofNullable(shortEntityView.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public TimePageData<ShortEntityView> getEntities(String entityGroupId, TimePageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId);
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/entities?" + TIME_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TimePageData<ShortEntityView>>() {
+                },
+                params).getBody();
+    }
+
+    public List<EntityGroupId> getEntityGroupsForEntity(String entityType, String entityId) {
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroups/{entityType}/{entityId}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityGroupId>>() {
+                },
+                entityType,
+                entityId).getBody();
+    }
+
+    public List<EntityGroup> getEntityGroupsByIds(String[] entityGroupIds) {
+        return restTemplate.exchange(
+                baseURL + "/entityGroups?entityGroupIds={entityGroupIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityGroup>>() {
+                },
+                entityGroupIds).getBody();
+    }
+
+    public TextPageData<ContactBased<?>> getOwners(TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/owners?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<ContactBased<?>>>() {
+                },
+                params).getBody();
+    }
+
+    public void makeEntityGroupPublic(String entityGroupId) {
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/makePublic", null, Object.class, entityGroupId);
+    }
+
+    public void makeEntityGroupPrivate(String entityGroupId) {
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/makePrivate", null, Object.class, entityGroupId);
     }
 
     //EntityRelation
