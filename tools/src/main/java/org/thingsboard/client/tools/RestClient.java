@@ -1057,97 +1057,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/dashboard/{dashboardId}", dashboardId);
     }
 
-    public Optional<Dashboard> assignDashboardToCustomer(String customerId, String dashboardId) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.postForEntity(baseURL + "/api/customer/{customerId}/dashboard/{dashboardId}", null, Dashboard.class, customerId, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Dashboard> unassignDashboardFromCustomer(String customerId, String dashboardId) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.exchange(baseURL + "/api/customer/{customerId}/dashboard/{dashboardId}", HttpMethod.DELETE, HttpEntity.EMPTY, Dashboard.class, customerId, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Dashboard> updateDashboardCustomers(String dashboardId, String[] customerIds) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.postForEntity(baseURL + "/api/dashboard/{dashboardId}/customers", customerIds, Dashboard.class, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Dashboard> addDashboardCustomers(String dashboardId, String[] customerIds) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.postForEntity(baseURL + "/api/dashboard/{dashboardId}/customers/add", customerIds, Dashboard.class, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Dashboard> removeDashboardCustomers(String dashboardId, String[] customerIds) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.postForEntity(baseURL + "/api/dashboard/{dashboardId}/customers/remove", customerIds, Dashboard.class, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Dashboard> assignDashboardToPublicCustomer(String dashboardId) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.postForEntity(baseURL + "/api/customer/public/dashboard/{dashboardId}", null, Dashboard.class, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
-    public Optional<Dashboard> unassignDashboardFromPublicCustomer(String dashboardId) {
-        try {
-            ResponseEntity<Dashboard> dashboard = restTemplate.exchange(baseURL + "/api/customer/public/dashboard/{dashboardId}", HttpMethod.DELETE, HttpEntity.EMPTY, Dashboard.class, dashboardId);
-            return Optional.ofNullable(dashboard.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
     public TextPageData<DashboardInfo> getTenantDashboards(String tenantId, TextPageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("tenantId", tenantId);
@@ -1173,17 +1082,43 @@ public class RestClient implements ClientHttpRequestInterceptor {
         ).getBody();
     }
 
-    public TimePageData<DashboardInfo> getCustomerDashboards(String customerId, TimePageLink pageLink) {
+    public TextPageData<DashboardInfo> getUserDashboards(TextPageLink pageLink, String operation, String userId) {
         Map<String, String> params = new HashMap<>();
-        params.put("customerId", customerId);
+        params.put("operation", operation);
+        params.put("userId", userId);
         addPageLinkToParam(params, pageLink);
+
         return restTemplate.exchange(
-                baseURL + "/api/customer/{customerId}/dashboards?" + TEXT_PAGE_LINK_URL_PARAMS,
-                HttpMethod.GET, HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TimePageData<DashboardInfo>>() {
+                baseURL + "/api/user/dashboards?operation={operation}&userId={userId}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
                 },
-                params
-        ).getBody();
+                params).getBody();
+    }
+
+    public TextPageData<DashboardInfo> getGroupDashboards(String entityGroupId, TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId);
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/dashboards?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
+                },
+                params).getBody();
+    }
+
+    public List<DashboardInfo> getDashboardsByIds(String[] dashboardIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/dashboards?dashboardIds={dashboardIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<DashboardInfo>>() {
+                },
+                dashboardIds).getBody();
     }
 
     //Device
