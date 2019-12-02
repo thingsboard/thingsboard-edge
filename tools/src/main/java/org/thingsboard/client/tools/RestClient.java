@@ -83,6 +83,8 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -1687,6 +1689,49 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<TimePageData<Event>>() {
                 },
                 params).getBody();
+    }
+
+    //GroupPermission
+
+    public Optional<GroupPermission> getGroupPermissionById(String groupPermissionId) {
+        try {
+            ResponseEntity<GroupPermission> groupPermission = restTemplate.getForEntity(baseURL + "/api/groupPermission/{groupPermissionId}", GroupPermission.class, groupPermissionId);
+            return Optional.ofNullable(groupPermission.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public GroupPermission saveGroupPermission(GroupPermission groupPermission) {
+        return restTemplate.postForEntity(baseURL + "/api/groupPermission", groupPermission, GroupPermission.class).getBody();
+    }
+
+    public void deleteGroupPermission(String groupPermissionId) {
+        restTemplate.delete(baseURL + "/api/groupPermission/{groupPermissionId}", groupPermissionId);
+    }
+
+    public List<GroupPermissionInfo> getUserGroupPermissions(String userGroupId) {
+        return restTemplate.exchange(
+                baseURL + "/api/userGroup/{userGroupId}/groupPermissions",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<GroupPermissionInfo>>() {
+                },
+                userGroupId).getBody();
+    }
+
+    public List<GroupPermissionInfo> getEntityGroupPermissions(String entityGroupId) {
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/groupPermissions",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<GroupPermissionInfo>>() {
+                },
+                entityGroupId).getBody();
     }
 
     //Rpc
