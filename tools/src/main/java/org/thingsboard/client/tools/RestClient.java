@@ -85,6 +85,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.AllowedPermissionsInfo;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -2509,6 +2510,21 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 Object.class,
                 userId,
                 userCredentialsEnabled);
+    }
+
+    //UserPermissions
+
+    public Optional<AllowedPermissionsInfo> getAllowedPermissions() {
+        try {
+            ResponseEntity<AllowedPermissionsInfo> allowedPermissionsInfo = restTemplate.getForEntity(baseURL + "/api/permissions/allowedPermissions", AllowedPermissionsInfo.class);
+            return Optional.ofNullable(allowedPermissionsInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
     }
 
     //WidgetsBundle
