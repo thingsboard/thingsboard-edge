@@ -102,6 +102,8 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
+import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
+import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -2048,6 +2050,42 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<List<SchedulerEventInfo>>() {
                 },
                 String.join(",", schedulerEventIds)).getBody();
+    }
+
+    //SelfRegistration
+
+    public SelfRegistrationParams saveSelfRegistrationParams(SelfRegistrationParams selfRegistrationParams) {
+       return restTemplate.postForEntity(baseURL + "/api/selfRegistration/selfRegistrationParams", selfRegistrationParams, SelfRegistrationParams.class).getBody();
+    }
+
+    public Optional<SelfRegistrationParams> getSelfRegistrationParams() {
+        try {
+            ResponseEntity<SelfRegistrationParams> selfRegistrationParams = restTemplate.getForEntity(baseURL + "/api/selfRegistration/selfRegistrationParams}", SelfRegistrationParams.class);
+            return Optional.ofNullable(selfRegistrationParams.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<SignUpSelfRegistrationParams> getSignUpSelfRegistrationParams() {
+        try {
+            ResponseEntity<SignUpSelfRegistrationParams> selfRegistrationParams = restTemplate.getForEntity(baseURL + "/api/noauth/selfRegistration/signUpSelfRegistrationParams", SignUpSelfRegistrationParams.class);
+            return Optional.ofNullable(selfRegistrationParams.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public String getPrivacyPolicy() {
+        return restTemplate.getForEntity(baseURL + "/api/noauth/selfRegistration/privacyPolicy", String.class).getBody();
     }
 
     //Telemetry
