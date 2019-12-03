@@ -80,6 +80,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -1746,6 +1747,64 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<List<GroupPermissionInfo>>() {
                 },
                 entityGroupId).getBody();
+    }
+
+    //Integration
+
+    public Optional<Integration> getIntegrationById(String integrationId) {
+        try {
+            ResponseEntity<Integration> integration = restTemplate.getForEntity(baseURL + "/api/integration/{integrationId}", Integration.class, integrationId);
+            return Optional.ofNullable(integration.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<Integration> getIntegrationByRoutingKey(String routingKey) {
+        try {
+            ResponseEntity<Integration> integration = restTemplate.getForEntity(baseURL + "/api/integration/routingKey/{routingKey}", Integration.class, routingKey);
+            return Optional.ofNullable(integration.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Integration saveIntegration(Integration integration) {
+        return restTemplate.postForEntity(baseURL + "/api/integration", integration, Integration.class).getBody();
+    }
+
+
+    public TextPageData<Integration> getIntegrations(TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/integrations?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<Integration>>() {
+                }).getBody();
+    }
+
+    public void deleteIntegration(String integrationId) {
+        restTemplate.delete(baseURL + "/api/integration/{integrationId}", integrationId);
+    }
+
+    public List<Integration> getIntegrationsByIds(String[] integrationIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/integrations?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<Integration>>() {
+                },
+                integrationIds).getBody();
     }
 
     //Rpc
