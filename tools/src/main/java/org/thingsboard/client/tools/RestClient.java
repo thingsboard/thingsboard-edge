@@ -317,21 +317,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/dashboard/{dashboardId}", dashboardId);
     }
 
-    public List<EntityGroupInfo> findTenantEntityGroups(EntityType entityType) {
-        try {
-            ResponseEntity<List<EntityGroupInfo>> entityGroups =
-                    restTemplate.exchange(baseURL + "/api/tenant/entityGroups/{groupType}", HttpMethod.GET, null, new ParameterizedTypeReference<List<EntityGroupInfo>>() {
-                    }, entityType.name());
-            return entityGroups.getBody();
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Collections.emptyList();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
     public DeviceCredentials getCredentials(DeviceId id) {
         return restTemplate.getForEntity(baseURL + "/api/device/" + id.getId().toString() + "/credentials", DeviceCredentials.class).getBody();
     }
