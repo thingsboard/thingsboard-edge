@@ -1799,12 +1799,22 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public List<Integration> getIntegrationsByIds(String[] integrationIds) {
         return restTemplate.exchange(
-                baseURL + "/api/integrations?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/integrations?integrationIds={integrationIds}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<Integration>>() {
                 },
                 integrationIds).getBody();
+    }
+
+    //Owner
+
+    public void changeOwnerToTenant(String ownerId, String entityType, String entityId) {
+        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId, entityType, entityId);
+    }
+
+    public void changeOwnerToCustomer(String ownerId, String entityType, String entityId) {
+        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId, entityType, entityId);
     }
 
     //Rpc
