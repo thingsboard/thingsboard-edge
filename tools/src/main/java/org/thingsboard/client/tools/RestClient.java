@@ -55,7 +55,6 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -107,7 +106,6 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1958,6 +1956,40 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 throw exception;
             }
         }
+    }
+
+    //RuleEngine
+
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(String requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
+                }).getBody();
+    }
+
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(String entityType, String entityId, String requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/{entityType}/{entityId}",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
+                },
+                entityType,
+                entityId).getBody();
+    }
+
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(String entityType, String entityId, int timeout, String requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/{entityType}/{entityId}/{timeout}",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
+                },
+                entityType,
+                entityId,
+                timeout).getBody();
     }
 
     //Telemetry
