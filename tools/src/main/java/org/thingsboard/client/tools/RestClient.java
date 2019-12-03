@@ -94,6 +94,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.report.ReportConfig;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -1838,6 +1839,52 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
                 },
                 reportsServerEndpointUrl).getBody();
+    }
+
+    //Role
+
+    public Optional<Role> getRoleById(String roleId) {
+        try {
+            ResponseEntity<Role> role = restTemplate.getForEntity(baseURL + "/api/role/{roleId}", Role.class, roleId);
+            return Optional.ofNullable(role.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Role saveRole(Role role) {
+        return restTemplate.postForEntity(baseURL + "/api/role", role, Role.class).getBody();
+    }
+
+    public void deleteRole(String roleId) {
+        restTemplate.delete(baseURL + "/api/role/{roleId}", roleId);
+    }
+
+    public TextPageData<Role> getRoles(String type, TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/roles?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<Role>>() {
+                },
+                params).getBody();
+    }
+
+    public List<Role> getRolesByIds(String[] roleIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/roles?roleIds={roleIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<Role>>() {
+                },
+                roleIds).getBody();
     }
 
     //Rpc
