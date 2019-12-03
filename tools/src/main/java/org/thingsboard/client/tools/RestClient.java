@@ -2372,12 +2372,22 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/tenants?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenants?" + TEXT_PAGE_LINK_URL_PARAMS,
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Tenant>>() {
                 },
                 params).getBody();
+    }
+
+    public List<Tenant> getTenantsByIds(String[] tenantIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/tenants?tenantIds={tenantIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<Tenant>>() {
+                },
+                String.join(",", tenantIds)).getBody();
     }
 
     //User
@@ -2454,6 +2464,42 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 new ParameterizedTypeReference<TextPageData<User>>() {
                 },
                 params).getBody();
+    }
+
+    public TextPageData<User> getAllCustomerUsers(TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/customer/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<User>>() {
+                },
+                params).getBody();
+    }
+
+    public TextPageData<User> getUserUsers(TextPageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/user/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<TextPageData<User>>() {
+                },
+                params).getBody();
+    }
+
+    public List<User> getUsersByIds(String[] userIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/users?userIds={userIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<User>>() {
+                },
+                String.join(",", userIds)).getBody();
     }
 
     public void setUserCredentialsEnabled(String userId, boolean userCredentialsEnabled) {
