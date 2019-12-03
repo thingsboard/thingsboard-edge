@@ -93,6 +93,7 @@ import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -1815,6 +1816,28 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public void changeOwnerToCustomer(String ownerId, String entityType, String entityId) {
         restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId, entityType, entityId);
+    }
+
+    //Report
+
+    public DeferredResult<ResponseEntity> downloadDashboardReport(String dashboardId, JsonNode reportParams) {
+        return restTemplate.exchange(
+                baseURL + "/api/report/{dashboardId}/download",
+                HttpMethod.POST,
+                new HttpEntity<>(reportParams),
+                new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
+                },
+                dashboardId).getBody();
+    }
+
+    public DeferredResult<ResponseEntity> downloadTestReport(ReportConfig reportConfig, String reportsServerEndpointUrl) {
+        return restTemplate.exchange(
+                baseURL + "/api/report/test?reportsServerEndpointUrl={reportsServerEndpointUrl}",
+                HttpMethod.POST,
+                new HttpEntity<>(reportConfig),
+                new ParameterizedTypeReference<DeferredResult<ResponseEntity>>() {
+                },
+                reportsServerEndpointUrl).getBody();
     }
 
     //Rpc
