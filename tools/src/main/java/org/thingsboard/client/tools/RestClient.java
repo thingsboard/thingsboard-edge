@@ -96,6 +96,8 @@ import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
@@ -1990,6 +1992,62 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 entityType,
                 entityId,
                 timeout).getBody();
+    }
+
+    //SchedulerEvent
+
+    public Optional<SchedulerEventInfo> getSchedulerEventInfoById(String schedulerEventId) {
+        try {
+            ResponseEntity<SchedulerEventInfo> schedulerEventInfo = restTemplate.getForEntity(baseURL + "/api/schedulerEvent/info/{schedulerEventId}", SchedulerEventInfo.class, schedulerEventId);
+            return Optional.ofNullable(schedulerEventInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<SchedulerEvent> getSchedulerEventById(String schedulerEventId) {
+        try {
+            ResponseEntity<SchedulerEvent> schedulerEvent = restTemplate.getForEntity(baseURL + "/api/schedulerEvent/{schedulerEventId}", SchedulerEvent.class, schedulerEventId);
+            return Optional.ofNullable(schedulerEvent.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public SchedulerEvent saveSchedulerEvent(SchedulerEvent schedulerEvent) {
+        return restTemplate.postForEntity(baseURL + "/api/schedulerEvent", schedulerEvent, SchedulerEvent.class).getBody();
+    }
+
+    public void deleteSchedulerEvent(String schedulerEventId) {
+        restTemplate.delete(baseURL + "/api/schedulerEvent/{schedulerEventId}", schedulerEventId);
+    }
+
+    public List<SchedulerEventInfo> getSchedulerEvents(String type) {
+        return restTemplate.exchange(
+                baseURL + "/api/schedulerEvents&type={type}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<SchedulerEventInfo>>() {
+                },
+                type).getBody();
+    }
+
+    public List<SchedulerEventInfo> getSchedulerEventsByIds(String[] schedulerEventIds) {
+        return restTemplate.exchange(
+                baseURL + "/api/schedulerEvents?schedulerEventIds={schedulerEventIds}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<SchedulerEventInfo>>() {
+                },
+                String.join(",", schedulerEventIds)).getBody();
     }
 
     //Telemetry
