@@ -548,7 +548,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<Asset>>() {
                 },
-                assetIds).getBody();
+                String.join(",", assetIds)).getBody();
     }
 
     public List<Asset> findByQuery(AssetSearchQuery query) {
@@ -743,7 +743,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<BlobEntityInfo>>() {
                 },
-                blobEntityIds).getBody();
+                String.join(",", blobEntityIds)).getBody();
     }
 
     //ComponentDescriptor
@@ -777,7 +777,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<ComponentDescriptor>>() {
                 },
-                componentTypes).getBody();
+                String.join(",", componentTypes)).getBody();
     }
 
     //Converter
@@ -862,7 +862,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<Converter>>() {
                 },
-                converterIds).getBody();
+                String.join(",", converterIds)).getBody();
     }
 
     //Customer
@@ -1101,7 +1101,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<DashboardInfo>>() {
                 },
-                dashboardIds).getBody();
+                String.join(",", dashboardIds)).getBody();
     }
 
     //Device
@@ -1202,7 +1202,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpMethod.GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<Device>>() {
                 },
-                deviceIds).getBody();
+                String.join(",", deviceIds)).getBody();
     }
 
     public List<Device> findByQuery(DeviceSearchQuery query) {
@@ -1356,7 +1356,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntityGroup>>() {
                 },
-                entityGroupIds).getBody();
+                String.join(",", entityGroupIds)).getBody();
     }
 
     public TextPageData<ContactBased<?>> getOwners(TextPageLink pageLink) {
@@ -1615,12 +1615,12 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public List<EntityView> getEntityViewsByIds(String[] entityViewIds) {
         return restTemplate.exchange(
-                baseURL + "/api/entityViews",
+                baseURL + "/api/entityViews?entityViewIds={entityViewIds}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntityView>>() {
                 },
-                entityViewIds).getBody();
+                String.join(",", entityViewIds)).getBody();
     }
 
     public List<EntityView> findByQuery(EntityViewSearchQuery query) {
@@ -1766,7 +1766,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<Integration>>() {
                 },
-                integrationIds).getBody();
+                String.join(",", integrationIds)).getBody();
     }
 
     //Owner
@@ -1844,7 +1844,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<Role>>() {
                 },
-                roleIds).getBody();
+                String.join(",", roleIds)).getBody();
     }
 
     //Rpc
