@@ -2055,7 +2055,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
     //SelfRegistration
 
     public SelfRegistrationParams saveSelfRegistrationParams(SelfRegistrationParams selfRegistrationParams) {
-       return restTemplate.postForEntity(baseURL + "/api/selfRegistration/selfRegistrationParams", selfRegistrationParams, SelfRegistrationParams.class).getBody();
+        return restTemplate.postForEntity(baseURL + "/api/selfRegistration/selfRegistrationParams", selfRegistrationParams, SelfRegistrationParams.class).getBody();
     }
 
     public Optional<SelfRegistrationParams> getSelfRegistrationParams() {
@@ -2086,6 +2086,59 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public String getPrivacyPolicy() {
         return restTemplate.getForEntity(baseURL + "/api/noauth/selfRegistration/privacyPolicy", String.class).getBody();
+    }
+
+    //SignUp
+
+    //TODO: need to move class SignUpRequest from app pack to common pack
+//    @RequestMapping(value = "/noauth/signup", method = RequestMethod.POST)
+//    public SignUpResult signUp(@RequestBody SignUpRequest signUpRequest) {
+//
+//    }
+
+
+    public void resendEmailActivation(String email) {
+        restTemplate.postForEntity(baseURL + "/api/noauth/resendEmailActivation?email={email}", null, Object.class, email);
+    }
+
+    public ResponseEntity<String> activateEmail(String emailCode) {
+        return restTemplate.exchange(
+                baseURL + "/api/noauth/activateEmail?emailCode={emailCode}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<ResponseEntity<String>>() {
+                },
+                emailCode).getBody();
+    }
+
+    public Optional<JsonNode> activateUserByEmailCode(String emailCode) {
+        try {
+            ResponseEntity<JsonNode> jsonNode = restTemplate.postForEntity(baseURL + "/api/noauth/activateByEmailCode?emailCode={emailCode}", null, JsonNode.class, emailCode);
+            return Optional.ofNullable(jsonNode.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Boolean privacyPolicyAccepted() {
+        return restTemplate.getForEntity(baseURL + "/api/signup/privacyPolicyAccepted", Boolean.class).getBody();
+    }
+
+    public Optional<JsonNode> acceptPrivacyPolicy() {
+        try {
+            ResponseEntity<JsonNode> jsonNode = restTemplate.postForEntity(baseURL + "/api/signup/acceptPrivacyPolicy", null, JsonNode.class);
+            return Optional.ofNullable(jsonNode.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
     }
 
     //Telemetry
