@@ -301,16 +301,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/asset/{assetId}", assetId);
     }
 
-    public Device assignDevice(CustomerId customerId, DeviceId deviceId) {
-        return restTemplate.postForEntity(baseURL + "/api/customer/{customerId}/device/{deviceId}", null, Device.class,
-                customerId.toString(), deviceId.toString()).getBody();
-    }
-
-    public Asset assignAsset(CustomerId customerId, AssetId assetId) {
-        return restTemplate.postForEntity(baseURL + "/api/customer/{customerId}/asset/{assetId}", HttpEntity.EMPTY, Asset.class,
-                customerId.toString(), assetId.toString()).getBody();
-    }
-
     public EntityRelation makeRelation(String relationType, EntityId idFrom, EntityId idTo) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(idFrom);
@@ -325,21 +315,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public void deleteDashboard(DashboardId dashboardId) {
         restTemplate.delete(baseURL + "/api/dashboard/{dashboardId}", dashboardId);
-    }
-
-    public List<DashboardInfo> findTenantDashboards() {
-        try {
-            ResponseEntity<TextPageData<DashboardInfo>> dashboards =
-                    restTemplate.exchange(baseURL + "/api/tenant/dashboards?limit=100000", HttpMethod.GET, null, new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
-                    });
-            return dashboards.getBody().getData();
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Collections.emptyList();
-            } else {
-                throw exception;
-            }
-        }
     }
 
     public List<EntityGroupInfo> findTenantEntityGroups(EntityType entityType) {
