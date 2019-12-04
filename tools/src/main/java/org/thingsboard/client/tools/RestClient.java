@@ -371,19 +371,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/dashboard/{dashboardId}", dashboardId);
     }
 
-    public Optional<RuleChainMetaData> getRuleChainMetaData(RuleChainId ruleChainId) {
-        try {
-            ResponseEntity<RuleChainMetaData> responseEntity = restTemplate.getForEntity(baseURL + "/api/ruleChain/{ruleChainId}/metadata", RuleChainMetaData.class, ruleChainId.toString());
-            return Optional.ofNullable(responseEntity.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
-
     public DeviceCredentials getCredentials(DeviceId id) {
         return restTemplate.getForEntity(baseURL + "/api/device/" + id.getId().toString() + "/credentials", DeviceCredentials.class).getBody();
     }
@@ -1328,13 +1315,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroupInfo.class).getBody();
     }
 
-    public EntityGroup saveEntityGroupByNameAndType(String name, String type) {
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName(name);
-        entityGroup.setType(EntityType.valueOf(type));
-        return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroup.class).getBody();
-    }
-
     public void deleteEntityGroup(String entityGroupId) {
         restTemplate.delete(baseURL + "/api/entityGroup/{entityGroupId}", entityGroupId);
     }
@@ -1388,10 +1368,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 throw exception;
             }
         }
-    }
-
-    public void addEntitiesToEntityGroup(String entityGroupId, List<String> strEntityIds) {
-        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", strEntityIds, Void.class, entityGroupId);
     }
 
     public void addEntitiesToEntityGroup(String entityGroupId, String[] entityIds) {
@@ -1993,10 +1969,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/ruleChain", ruleChain, RuleChain.class).getBody();
     }
 
-    public RuleChain setRootRuleChain(RuleChainId ruleChainId) {
-        return restTemplate.postForEntity(baseURL + "/api/ruleChain/{ruleChainId}/root", null, RuleChain.class, ruleChainId.toString()).getBody();
-    }
-
     public Optional<RuleChain> setRootRuleChain(String ruleChainId) {
         try {
             ResponseEntity<RuleChain> ruleChain = restTemplate.postForEntity(baseURL + "/api/ruleChain/{ruleChainId}/root", null, RuleChain.class, ruleChainId);
@@ -2373,10 +2345,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 scope).getBody();
     }
 
-    public JsonNode saveEntityAttributes(EntityId entityId, String scope, JsonNode attributes) {
-        return restTemplate.postForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", attributes, JsonNode.class, entityId.getEntityType().name(), entityId.toString(), scope).getBody();
-    }
-
     public DeferredResult<ResponseEntity> saveEntityAttributesV1(String entityType, String entityId, String scope, JsonNode request) {
         return restTemplate.exchange(
                 baseURL + "/{entityType}/{entityId}/{scope}",
@@ -2563,10 +2531,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public String getActivationLink(String userId) {
         return restTemplate.getForEntity(baseURL + "/api/user/{userId}/activationLink", String.class, userId).getBody();
-    }
-
-    public String getActivationLink(UserId userId) {
-        return restTemplate.getForEntity(baseURL + "/api/user/{userId}/activationLink", String.class, userId.getId().toString()).getBody();
     }
 
     public void deleteUser(String userId) {
