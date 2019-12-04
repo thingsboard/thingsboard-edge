@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -95,6 +96,7 @@ import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -120,6 +122,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.springframework.util.StringUtils.isEmpty;
+
 /**
  * @author Andrew Shvayka
  */
@@ -131,8 +135,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
     private String refreshToken;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final static String TIME_PAGE_LINK_URL_PARAMS = "limit={limit}&startTime={startTime}&endTime={endTime}&ascOrder={ascOrder}&offset={offset}";
-    private final static String TEXT_PAGE_LINK_URL_PARAMS = "limit={limit}&textSearch{textSearch}&idOffset={idOffset}&textOffset{textOffset}";
 
     protected static final String ACTIVATE_TOKEN_REGEX = "/api/noauth/activate?activateToken=";
 
@@ -443,12 +445,41 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("fetchOriginator", String.valueOf(fetchOriginator));
         addPageLinkToParam(params, pageLink);
 
+        String urlParams = getUrlParams(pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/alarm/{entityType}/{entityId}?searchStatus={searchStatus}&status={status}&fetchOriginator={fetchOriginator}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/alarm/{entityType}/{entityId}?searchStatus={searchStatus}&status={status}&fetchOriginator={fetchOriginator}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AlarmInfo>>() {
                 }, params).getBody();
+    }
+
+    private String getUrlParams(TimePageLink pageLink) {
+        String urlParams = "limit={limit}&ascOrder={ascOrder}";
+        if (pageLink.getStartTime() != null) {
+            urlParams += "&startTime={startTime}";
+        }
+        if (pageLink.getEndTime() != null) {
+            urlParams += "&endTime={endTime}";
+        }
+        if (pageLink.getIdOffset() != null) {
+            urlParams += "&offset={offset}";
+        }
+        return urlParams;
+    }
+
+    private String getUrlParams(TextPageLink pageLink) {
+        String urlParams = "limit={limit}&ascOrder={ascOrder}";
+        if (!isEmpty(pageLink.getTextSearch())) {
+            urlParams += "&textSearch={textSearch}";
+        }
+        if (!isEmpty(pageLink.getIdOffset())) {
+            urlParams += "&idOffset={idOffset}";
+        }
+        if (!isEmpty(pageLink.getTextOffset())) {
+            urlParams += "&textOffset={textOffset}";
+        }
+        return urlParams;
     }
 
     public Optional<AlarmSeverity> getHighestAlarmSeverity(String entityType, String entityId, String searchStatus, String status) {
@@ -498,7 +529,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TextPageData<Asset>> assets = restTemplate.exchange(
-                baseURL + "/tenant/assets?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/tenant/assets?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Asset>>() {
                 },
@@ -526,7 +557,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TextPageData<Asset>> assets = restTemplate.exchange(
-                baseURL + "/api/customer/{customerId}/assets?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/customer/{customerId}/assets?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Asset>>() {
@@ -540,7 +571,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/user/assets?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/user/assets?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Asset>>() {
@@ -585,7 +616,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TimePageData<AuditLog>> auditLog = restTemplate.exchange(
-                baseURL + "/api/audit/logs/customer/{customerId}?actionTypes={actionTypes}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/audit/logs/customer/{customerId}?actionTypes={actionTypes}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
@@ -601,7 +632,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TimePageData<AuditLog>> auditLog = restTemplate.exchange(
-                baseURL + "/api/audit/logs/user/{userId}?actionTypes={actionTypes}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/audit/logs/user/{userId}?actionTypes={actionTypes}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
@@ -618,7 +649,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TimePageData<AuditLog>> auditLog = restTemplate.exchange(
-                baseURL + "/api/audit/logs/entity/{entityType}/{entityId}?actionTypes={actionTypes}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/audit/logs/entity/{entityType}/{entityId}?actionTypes={actionTypes}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
@@ -633,7 +664,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TimePageData<AuditLog>> auditLog = restTemplate.exchange(
-                baseURL + "/api/audit/logs?actionTypes={actionTypes}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/audit/logs?actionTypes={actionTypes}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
@@ -735,7 +766,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/blobEntities?type={type}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/blobEntities?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<BlobEntityInfo>>() {
@@ -810,7 +841,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/converters?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/converters?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Converter>>() {
@@ -916,7 +947,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         ResponseEntity<TextPageData<Customer>> customer = restTemplate.exchange(
-                baseURL + "/api/customers?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/customers?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Customer>>() {
@@ -1051,7 +1082,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("tenantId", tenantId);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/tenant/{tenantId}/dashboards?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenant/{tenantId}/dashboards?" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
                 },
@@ -1063,7 +1094,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/tenant/dashboards?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenant/dashboards?" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
                 },
@@ -1078,7 +1109,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/user/dashboards?operation={operation}&userId={userId}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/user/dashboards?operation={operation}&userId={userId}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
@@ -1092,7 +1123,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/entityGroup/{entityGroupId}/dashboards?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/entityGroup/{entityGroupId}/dashboards?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<DashboardInfo>>() {
@@ -1155,7 +1186,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/tenant/devices?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenant/devices?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Device>>() {
                 },
@@ -1182,7 +1213,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/customer/{customerId}/devices?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/customer/{customerId}/devices?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Device>>() {
@@ -1195,7 +1226,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/user/devices?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/user/devices?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Device>>() {
@@ -1272,17 +1303,17 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/entityGroup/{entityGroupId}", entityGroupId);
     }
 
-    public List<EntityGroupInfo> getEntityGroupsByType(String groupType) {
+    public List<EntityGroupInfo> getEntityGroupsByType(EntityType entityType) {
         return restTemplate.exchange(
                 baseURL + "/api/entityGroups/{groupType}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntityGroupInfo>>() {
                 },
-                groupType).getBody();
+                entityType.name()).getBody();
     }
 
-    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(String ownerType, String ownerId, String groupType) {
+    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(String ownerType, String ownerId, EntityType entityType) {
         return restTemplate.exchange(
                 baseURL + "/api/entityGroups/{ownerType}/{ownerId}/{groupType}",
                 HttpMethod.GET,
@@ -1291,13 +1322,13 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 },
                 ownerType,
                 ownerId,
-                groupType).getBody();
+                entityType.name()).getBody();
     }
 
-    public Optional<EntityGroupInfo> getEntityGroupAllByOwnerAndType(String ownerType, String ownerId, String groupType) {
+    public Optional<EntityGroupInfo> getEntityGroupAllByOwnerAndType(String ownerType, String ownerId, EntityType entityType) {
         try {
             ResponseEntity<EntityGroupInfo> entityGroupInfo =
-                    restTemplate.getForEntity(baseURL + "/api/entityGroup/all/{ownerType}/{ownerId}/{groupType}", EntityGroupInfo.class, ownerType, ownerId, groupType);
+                    restTemplate.getForEntity(baseURL + "/api/entityGroup/all/{ownerType}/{ownerId}/{groupType}", EntityGroupInfo.class, ownerType, ownerId, entityType.name());
             return Optional.ofNullable(entityGroupInfo.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1336,7 +1367,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/entityGroup/{entityGroupId}/entities?" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/entityGroup/{entityGroupId}/entities?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<ShortEntityView>>() {
@@ -1370,7 +1401,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/owners?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/owners?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<ContactBased<?>>>() {
@@ -1583,7 +1614,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/customer/{customerId}/entityViews?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/customer/{customerId}/entityViews?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<EntityView>>() {
@@ -1597,7 +1628,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/tenant/entityViews?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenant/entityViews?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<EntityView>>() {
@@ -1611,7 +1642,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/user/entityViews?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/user/entityViews?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<EntityView>>() {
@@ -1650,7 +1681,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<Event>>() {
@@ -1666,7 +1697,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/events/{entityType}/{entityId}?tenantId={tenantId}&" + TIME_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/events/{entityType}/{entityId}?tenantId={tenantId}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<Event>>() {
@@ -1754,7 +1785,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/integrations?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/integrations?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Integration>>() {
@@ -1830,12 +1861,12 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/role/{roleId}", roleId);
     }
 
-    public TextPageData<Role> getRoles(String type, TextPageLink pageLink) {
+    public TextPageData<Role> getRoles(RoleType type, TextPageLink pageLink) {
         Map<String, String> params = new HashMap<>();
-        params.put("type", type);
+        params.put("type", type.name());
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/roles?type={type}&" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/roles?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Role>>() {
@@ -1928,7 +1959,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/ruleChains" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/ruleChains" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<RuleChain>>() {
@@ -2374,7 +2405,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/tenants?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenants?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Tenant>>() {
@@ -2446,7 +2477,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/tenant/{tenantId}/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/tenant/{tenantId}/users?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<User>>() {
@@ -2460,7 +2491,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/customer/{customerId}/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/customer/{customerId}/users?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<User>>() {
@@ -2473,7 +2504,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/customer/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/customer/users?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<User>>() {
@@ -2486,7 +2517,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/user/users?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/user/users?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<User>>() {
@@ -2641,7 +2672,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/widgetsBundles?" + TEXT_PAGE_LINK_URL_PARAMS,
+                baseURL + "/api/widgetsBundles?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<WidgetsBundle>>() {
