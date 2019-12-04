@@ -275,10 +275,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
     }
 
-    public JsonNode saveEntityAttributes(EntityId entityId, String scope, JsonNode attributes) {
-        return restTemplate.postForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", attributes, JsonNode.class, entityId.getEntityType().name(), entityId.toString(), scope).getBody();
-    }
-
     public Customer createCustomer(Customer customer) {
         return restTemplate.postForEntity(baseURL + "/api/customer", customer, Customer.class).getBody();
     }
@@ -347,29 +343,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/alarm", alarm, Alarm.class).getBody();
     }
 
-    public EntityGroup createEntityGroup(EntityGroup entityGroup) {
-        return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroup.class).getBody();
-    }
-
-    public void addEntitiesToEntityGroup(String entityGroupId, List<String> strEntityIds) {
-        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", strEntityIds, Void.class, entityGroupId);
-    }
-
-    public EntityGroup createEntityGroupByNameAndType(String name, String type) {
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName(name);
-        entityGroup.setType(EntityType.valueOf(type));
-        return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroup.class).getBody();
-    }
-
-    public SchedulerEvent createSchedulerEvent(SchedulerEvent schedulerEvent) {
-        return restTemplate.postForEntity(baseURL + "/api/schedulerEvent", schedulerEvent, SchedulerEvent.class).getBody();
-    }
-
-    public RuleChain createRuleChain(RuleChain ruleChain) {
-        return restTemplate.postForEntity(baseURL + "/api/ruleChain", ruleChain, RuleChain.class).getBody();
-    }
-
     public void deleteCustomer(CustomerId customerId) {
         restTemplate.delete(baseURL + "/api/customer/{customerId}", customerId);
     }
@@ -398,10 +371,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         restTemplate.delete(baseURL + "/api/dashboard/{dashboardId}", dashboardId);
     }
 
-    public RuleChain setRootRuleChain(RuleChainId ruleChainId) {
-        return restTemplate.postForEntity(baseURL + "/api/ruleChain/{ruleChainId}/root", null, RuleChain.class, ruleChainId.toString()).getBody();
-    }
-
     public Optional<RuleChainMetaData> getRuleChainMetaData(RuleChainId ruleChainId) {
         try {
             ResponseEntity<RuleChainMetaData> responseEntity = restTemplate.getForEntity(baseURL + "/api/ruleChain/{ruleChainId}/metadata", RuleChainMetaData.class, ruleChainId.toString());
@@ -417,10 +386,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public DeviceCredentials getCredentials(DeviceId id) {
         return restTemplate.getForEntity(baseURL + "/api/device/" + id.getId().toString() + "/credentials", DeviceCredentials.class).getBody();
-    }
-
-    public String getUserActivationLink(UserId userId) {
-        return restTemplate.getForEntity(baseURL + "/api/user/{userId}/activationLink", String.class, userId.getId().toString()).getBody();
     }
 
     public RestTemplate getRestTemplate() {
@@ -1363,6 +1328,13 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroupInfo.class).getBody();
     }
 
+    public EntityGroup saveEntityGroupByNameAndType(String name, String type) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName(name);
+        entityGroup.setType(EntityType.valueOf(type));
+        return restTemplate.postForEntity(baseURL + "/api/entityGroup", entityGroup, EntityGroup.class).getBody();
+    }
+
     public void deleteEntityGroup(String entityGroupId) {
         restTemplate.delete(baseURL + "/api/entityGroup/{entityGroupId}", entityGroupId);
     }
@@ -1416,6 +1388,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 throw exception;
             }
         }
+    }
+
+    public void addEntitiesToEntityGroup(String entityGroupId, List<String> strEntityIds) {
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", strEntityIds, Void.class, entityGroupId);
     }
 
     public void addEntitiesToEntityGroup(String entityGroupId, String[] entityIds) {
@@ -2017,6 +1993,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/ruleChain", ruleChain, RuleChain.class).getBody();
     }
 
+    public RuleChain setRootRuleChain(RuleChainId ruleChainId) {
+        return restTemplate.postForEntity(baseURL + "/api/ruleChain/{ruleChainId}/root", null, RuleChain.class, ruleChainId.toString()).getBody();
+    }
+
     public Optional<RuleChain> setRootRuleChain(String ruleChainId) {
         try {
             ResponseEntity<RuleChain> ruleChain = restTemplate.postForEntity(baseURL + "/api/ruleChain/{ruleChainId}/root", null, RuleChain.class, ruleChainId);
@@ -2393,6 +2373,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 scope).getBody();
     }
 
+    public JsonNode saveEntityAttributes(EntityId entityId, String scope, JsonNode attributes) {
+        return restTemplate.postForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", attributes, JsonNode.class, entityId.getEntityType().name(), entityId.toString(), scope).getBody();
+    }
+
     public DeferredResult<ResponseEntity> saveEntityAttributesV1(String entityType, String entityId, String scope, JsonNode request) {
         return restTemplate.exchange(
                 baseURL + "/{entityType}/{entityId}/{scope}",
@@ -2579,6 +2563,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public String getActivationLink(String userId) {
         return restTemplate.getForEntity(baseURL + "/api/user/{userId}/activationLink", String.class, userId).getBody();
+    }
+
+    public String getActivationLink(UserId userId) {
+        return restTemplate.getForEntity(baseURL + "/api/user/{userId}/activationLink", String.class, userId.getId().toString()).getBody();
     }
 
     public void deleteUser(String userId) {
