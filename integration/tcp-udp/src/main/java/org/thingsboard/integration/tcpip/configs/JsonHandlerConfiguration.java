@@ -28,31 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.tcpip;
+package org.thingsboard.integration.tcpip.configs;
 
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import org.springframework.stereotype.Service;
+import lombok.Data;
+import org.thingsboard.integration.tcpip.AbstractIpIntegration;
+import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.TimeUnit;
+@Data
+public class JsonHandlerConfiguration implements HandlerConfiguration {
 
-@Service
-public class EventLoopGroupService {
-
-    public static EventLoopGroup WORKER_LOOP_GROUP;
-    public static EventLoopGroup BOSS_LOOP_GROUP;
-
-    @PostConstruct
-    public void init() {
-        WORKER_LOOP_GROUP = new NioEventLoopGroup();
-        BOSS_LOOP_GROUP = new NioEventLoopGroup();
-    }
-
-    @PreDestroy
-    public void destroy() {
-        WORKER_LOOP_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
-        BOSS_LOOP_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
+    @Override
+    public String getHandlerType() {
+        return AbstractIpIntegration.JSON_PAYLOAD;
     }
 }

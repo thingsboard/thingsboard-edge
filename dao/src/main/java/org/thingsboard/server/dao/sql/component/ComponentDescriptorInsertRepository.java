@@ -28,13 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.claim.data;
+package org.thingsboard.server.dao.sql.component;
 
-import lombok.Data;
+import org.thingsboard.server.dao.model.sql.ComponentDescriptorEntity;
 
-@Data
-public class ClaimRequest {
+public interface ComponentDescriptorInsertRepository {
 
-    private final String secretKey;
+    ComponentDescriptorEntity saveOrUpdate(ComponentDescriptorEntity entity);
 
 }

@@ -41,9 +41,7 @@ class TcpConfigurationParameters {
     private int soRcvBuf;
     private int soSndBuf;
     private boolean soKeepaliveOption;
-    private boolean soReuseAddr;
     private boolean tcpNoDelay;
-    private String charsetName;
     private JsonNode metadata;
     private HandlerConfiguration handlerConfiguration;
 }

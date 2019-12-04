@@ -28,11 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.tcpip;
+package org.thingsboard.server.common.data.security.model;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class TcpipIntegrationMsg {
-    private final byte[] msg;
+public class UserPasswordPolicy implements Serializable {
+
+    private Integer minimumLength;
+    private Integer minimumUppercaseLetters;
+    private Integer minimumLowercaseLetters;
+    private Integer minimumDigits;
+    private Integer minimumSpecialCharacters;
+
+    private Integer passwordExpirationPeriodDays;
+    private Integer passwordReuseFrequencyDays;
+
 }

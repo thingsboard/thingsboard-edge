@@ -28,12 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.kafka;
+package org.thingsboard.server.common.data.signup;
 
-import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-public interface TbKafkaEnricher<T> {
+/**
+ * Created by igor on 12/13/16.
+ */
+@ToString
+public class SignUpRequest {
 
-    T enrich(T value, String responseTopic, UUID requestId);
+    @Getter
+    @Setter
+    private String firstName;
+    @Getter
+    @Setter
+    private String lastName;
+    @Getter
+    @Setter
+    private String email;
+    @Getter
+    @Setter
+    private String password;
+    @Getter
+    @Setter
+    private String recaptchaResponse;
+
+    public SignUpRequest() {
+        super();
+    }
 
 }

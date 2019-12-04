@@ -56,6 +56,11 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         this.configuration = configuration;
     }
 
+    @Override
+    public String getName() {
+        return configuration != null ? configuration.getName() : null;
+    }
+
     protected String toString(Exception e) {
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));

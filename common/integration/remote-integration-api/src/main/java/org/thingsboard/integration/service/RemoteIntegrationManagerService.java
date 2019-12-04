@@ -204,10 +204,11 @@ public class RemoteIntegrationManagerService {
             integration = createPlatformIntegration(integrationConfigurationProto.getType(), configuration.getConfiguration());
             integration.validateConfiguration(configuration, allowLocalNetworkHosts);
 
-            if (uplinkDataConverter == null) {
+            if (uplinkDataConverter == null || !uplinkDataConverter.getName().equals(integrationConfigurationProto.getUplinkConverter().getName())) {
                 uplinkDataConverter = createUplinkConverter(integrationConfigurationProto.getUplinkConverter());
             }
-            if (downlinkDataConverter == null) {
+
+            if (downlinkDataConverter == null || !downlinkDataConverter.getName().equals(integrationConfigurationProto.getDownlinkConverter().getName())) {
                 downlinkDataConverter = createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter());
             }
 

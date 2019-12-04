@@ -43,4 +43,6 @@ public interface TBDataConverter {
 
     void destroy();
 
+    String getName();
+
 }

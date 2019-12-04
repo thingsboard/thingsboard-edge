@@ -34,11 +34,28 @@ const vm = require('vm');
 const btoa = require('btoa');
 const atob = require('atob');
 
-function JsExecutor() {
+function JsExecutor(useSandbox) {
+    this.useSandbox = useSandbox;
 }
 
 JsExecutor.prototype.compileScript = function(code) {
-    return new Promise(function(resolve, reject) {
+    if (this.useSandbox) {
+        return createScript(code);
+    } else {
+        return createFunction(code);
+    }
+}
+
+JsExecutor.prototype.executeScript = function(script, args, timeout) {
+    if (this.useSandbox) {
+        return invokeScript(script, args, timeout);
+    } else {
+        return invokeFunction(script, args);
+    }
+}
+
+function createScript(code) {
+    return new Promise((resolve, reject) => {
         try {
             code = "("+code+")(...args)";
             var script = new vm.Script(code);
@@ -49,14 +66,39 @@ JsExecutor.prototype.compileScript = function(code) {
     });
 }
 
-JsExecutor.prototype.executeScript = function(script, args, timeout) {
-    return new Promise(function(resolve, reject) {
+function invokeScript(script, args, timeout) {
+    return new Promise((resolve, reject) => {
         try {
             var sandbox = Object.create(null);
             sandbox.args = args;
             sandbox.btoa = btoa;
             sandbox.atob = atob;
             var result = script.runInNewContext(sandbox, {timeout: timeout});
+            resolve(result);
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+
+function createFunction(code) {
+    return new Promise((resolve, reject) => {
+        try {
+            code = "return ("+code+")(...args)";
+            const parsingContext = vm.createContext({btoa: btoa, atob: atob});
+            const func = vm.compileFunction(code, ['args'], {parsingContext: parsingContext});
+            resolve(func);
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+function invokeFunction(func, args) {
+    return new Promise((resolve, reject) => {
+        try {
+            var result = func(args);
             resolve(result);
         } catch (err) {
             reject(err);

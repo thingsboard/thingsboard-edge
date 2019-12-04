@@ -28,22 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.model;
+package org.thingsboard.server.common.data.signup;
 
-import lombok.Data;
+/**
+ * Created by igor on 12/13/16.
+ */
+public enum SignUpResult {
 
-import java.io.Serializable;
-
-@Data
-public class UserPasswordPolicy implements Serializable {
-
-    private Integer minimumLength;
-    private Integer minimumUppercaseLetters;
-    private Integer minimumLowercaseLetters;
-    private Integer minimumDigits;
-    private Integer minimumSpecialCharacters;
-
-    private Integer passwordExpirationPeriodDays;
-    private Integer passwordReuseFrequencyDays;
+    SUCCESS,
+    INACTIVE_USER_EXISTS
 
 }

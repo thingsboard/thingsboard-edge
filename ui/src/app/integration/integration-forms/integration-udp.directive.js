@@ -40,6 +40,8 @@ export default function IntegrationUdpDirective($compile, $templateCache, $trans
         scope.types = types;
         scope.$mdExpansionPanel = $mdExpansionPanel;
 
+        var defaultHandlerConfigurations = {};
+
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
                 ngModelCtrl.$setViewValue(scope.configuration);
@@ -52,22 +54,36 @@ export default function IntegrationUdpDirective($compile, $templateCache, $trans
         };
 
         function setupUdpConfiguration() {
+            setupDefaultHandlerConfigurations();
             if (!scope.configuration.clientConfiguration) {
                 scope.configuration.clientConfiguration = {
                     port: 11560,
                     soBroadcast: true,
-                    soRcvBuf: 128,
-                    charsetName: 'UTF-8',
-                    handlerConfiguration: {}
+                    soRcvBuf: 64,
+                    handlerConfiguration: angular.copy(defaultHandlerConfigurations[types.handlerConfigurationTypes.binary.value])
                 }
-                scope.configuration.clientConfiguration.handlerConfiguration.handlerType = types.handlerConfigurationTypes.binary.value;
             }
         }
 
+        function setupDefaultHandlerConfigurations() {
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.binary.value] = {
+                handlerType: types.handlerConfigurationTypes.binary.value
+            };
+
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.text.value] = {
+                handlerType: types.handlerConfigurationTypes.text.value,
+                charsetName: 'UTF-8'
+            };
+
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.json.value] = {
+                handlerType: types.handlerConfigurationTypes.json.value
+            };
+        }
+
         scope.handlerConfigurationTypeChanged = () => {
-            var handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
+            let handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
             scope.configuration.clientConfiguration.handlerConfiguration = {};
-            scope.configuration.clientConfiguration.handlerConfiguration.handlerType = handlerType;
+            scope.configuration.clientConfiguration.handlerConfiguration = angular.copy(defaultHandlerConfigurations[handlerType]);
         };
 
         $compile(element.contents())(scope);

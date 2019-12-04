@@ -103,7 +103,7 @@ public abstract class AbstractTcpHexPayloadHandlerIntegrationTest extends Abstra
     @Override
     protected ObjectNode createHandlerConfiguration() {
         return mapper.createObjectNode()
-                .put("handlerType", "HEX")
+                .put("handlerType", "JSON")
                 .put("maxFrameLength", 37);
     }
 

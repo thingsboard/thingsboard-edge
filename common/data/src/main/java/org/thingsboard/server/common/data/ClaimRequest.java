@@ -28,36 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.data;
+package org.thingsboard.server.common.data;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-/**
- * Created by igor on 12/13/16.
- */
-@ToString
-public class SignUpRequest {
+@Data
+public class ClaimRequest {
 
-    @Getter
-    @Setter
-    private String firstName;
-    @Getter
-    @Setter
-    private String lastName;
-    @Getter
-    @Setter
-    private String email;
-    @Getter
-    @Setter
-    private String password;
-    @Getter
-    @Setter
-    private String recaptchaResponse;
-
-    public SignUpRequest() {
-        super();
-    }
+    private final String secretKey;
 
 }

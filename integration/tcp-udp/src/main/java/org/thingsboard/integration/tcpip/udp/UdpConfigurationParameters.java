@@ -39,7 +39,6 @@ class UdpConfigurationParameters {
     private int port;
     private int soRcvBuf;
     private boolean soBroadcast;
-    private String charsetName;
     private JsonNode metadata;
     private HandlerConfiguration handlerConfiguration;
 }
