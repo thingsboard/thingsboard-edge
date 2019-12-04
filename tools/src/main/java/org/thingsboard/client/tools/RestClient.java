@@ -754,7 +754,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
     }
 
     //ComponentDescriptor
-
     public Optional<ComponentDescriptor> getComponentDescriptorByClazz(String componentDescriptorClazz) {
         try {
             ResponseEntity<ComponentDescriptor> componentDescriptor = restTemplate.getForEntity(baseURL + "/api/component/{componentDescriptorClazz}", ComponentDescriptor.class, componentDescriptorClazz);
