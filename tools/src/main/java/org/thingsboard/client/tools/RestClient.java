@@ -105,6 +105,8 @@ import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
+import org.thingsboard.server.common.data.signup.SignUpRequest;
+import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -2093,11 +2095,9 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     //SignUp
 
-    //TODO: need to move class SignUpRequest from app pack to common pack
-//    @RequestMapping(value = "/noauth/signup", method = RequestMethod.POST)
-//    public SignUpResult signUp(@RequestBody SignUpRequest signUpRequest) {
-//
-//    }
+    public SignUpResult signUp(SignUpRequest signUpRequest) {
+        return restTemplate.postForEntity(baseURL + "/api/noauth/signup", signUpRequest, SignUpResult.class).getBody();
+    }
 
 
     public void resendEmailActivation(String email) {

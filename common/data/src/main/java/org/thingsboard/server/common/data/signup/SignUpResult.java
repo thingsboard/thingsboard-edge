@@ -28,36 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.data;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+package org.thingsboard.server.common.data.signup;
 
 /**
  * Created by igor on 12/13/16.
  */
-@ToString
-public class SignUpRequest {
+public enum SignUpResult {
 
-    @Getter
-    @Setter
-    private String firstName;
-    @Getter
-    @Setter
-    private String lastName;
-    @Getter
-    @Setter
-    private String email;
-    @Getter
-    @Setter
-    private String password;
-    @Getter
-    @Setter
-    private String recaptchaResponse;
-
-    public SignUpRequest() {
-        super();
-    }
+    SUCCESS,
+    INACTIVE_USER_EXISTS
 
 }
