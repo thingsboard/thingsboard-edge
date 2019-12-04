@@ -320,14 +320,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/device", device, Device.class).getBody();
     }
 
-    public JsonNode activateUser(JsonNode activateRequest) {
-        return restTemplate.postForEntity(baseURL + "/api/noauth/activate/", activateRequest, JsonNode.class).getBody();
-    }
-
-    public User createUser(User user) {
-        return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail=false", user, User.class).getBody();
-    }
-
     public Asset createAsset(Asset asset) {
         return restTemplate.postForEntity(baseURL + "/api/asset", asset, Asset.class).getBody();
     }
@@ -729,6 +721,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
         ObjectNode resetPasswordByEmailRequest = objectMapper.createObjectNode();
         resetPasswordByEmailRequest.put("email", email);
         restTemplate.exchange(URI.create(baseURL + "/api/noauth/resetPasswordByEmail"), HttpMethod.POST, new HttpEntity<>(resetPasswordByEmailRequest), Object.class);
+    }
+
+    public JsonNode activateUser(JsonNode activateRequest) {
+        return restTemplate.postForEntity(baseURL + "/api/noauth/activate/", activateRequest, JsonNode.class).getBody();
     }
 
     public Optional<JsonNode> activateUser(String userId, String password) {
