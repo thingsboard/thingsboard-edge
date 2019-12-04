@@ -34,6 +34,7 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -74,10 +75,10 @@ public class TbJsFilterNodeTest {
         initWithScript();
         TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
         mockJsExecutor();
-        when(scriptEngine.executeFilter(msg)).thenReturn(false);
+        when(scriptEngine.executeFilterAsync(msg)).thenReturn(Futures.immediateFuture(false));
 
         node.onMsg(ctx, msg);
-        verify(ctx).getJsExecutor();
+        verify(ctx).getDbCallbackExecutor();
         verify(ctx).tellNext(msg, "False");
     }
 
@@ -87,7 +88,7 @@ public class TbJsFilterNodeTest {
         TbMsgMetaData metaData = new TbMsgMetaData();
         TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, "{}", ruleChainId, ruleNodeId, 0L);
         mockJsExecutor();
-        when(scriptEngine.executeFilter(msg)).thenThrow(new ScriptException("error"));
+        when(scriptEngine.executeFilterAsync(msg)).thenReturn(Futures.immediateFailedFuture(new ScriptException("error")));
 
 
         node.onMsg(ctx, msg);
@@ -100,10 +101,10 @@ public class TbJsFilterNodeTest {
         TbMsgMetaData metaData = new TbMsgMetaData();
         TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, "{}", ruleChainId, ruleNodeId, 0L);
         mockJsExecutor();
-        when(scriptEngine.executeFilter(msg)).thenReturn(true);
+        when(scriptEngine.executeFilterAsync(msg)).thenReturn(Futures.immediateFuture(true));
 
         node.onMsg(ctx, msg);
-        verify(ctx).getJsExecutor();
+        verify(ctx).getDbCallbackExecutor();
         verify(ctx).tellNext(msg, "True");
     }
 
