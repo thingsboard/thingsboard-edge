@@ -324,10 +324,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return restTemplate.postForEntity(baseURL + "/api/device", device, Device.class).getBody();
     }
 
-    public UserCredentials saveUserCredentials(UserCredentials userCredentials) {
-        return restTemplate.postForEntity(baseURL + "/api/user/credentials", userCredentials, UserCredentials.class).getBody();
-    }
-
     public JsonNode activateUser(JsonNode activateRequest) {
         return restTemplate.postForEntity(baseURL + "/api/noauth/activate/", activateRequest, JsonNode.class).getBody();
     }
@@ -421,10 +417,6 @@ public class RestClient implements ClientHttpRequestInterceptor {
 
     public DeviceCredentials getCredentials(DeviceId id) {
         return restTemplate.getForEntity(baseURL + "/api/device/" + id.getId().toString() + "/credentials", DeviceCredentials.class).getBody();
-    }
-
-    public UserCredentials getUserCredentials(UserId userId) {
-        return restTemplate.getForEntity(baseURL + "/api/user/{userId}/credentials", UserCredentials.class, userId.getId().toString()).getBody();
     }
 
     public String getUserActivationLink(UserId userId) {
