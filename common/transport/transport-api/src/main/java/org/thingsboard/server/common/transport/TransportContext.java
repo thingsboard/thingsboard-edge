@@ -62,7 +62,7 @@ public class TransportContext {
 
     @PostConstruct
     public void init() {
-        executor = Executors.newCachedThreadPool();
+        executor = Executors.newWorkStealingPool(50);
     }
 
     @PreDestroy
