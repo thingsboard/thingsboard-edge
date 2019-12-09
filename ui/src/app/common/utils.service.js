@@ -580,7 +580,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             } else if (variableName === 'deviceName') {
                 label = label.split(variable).join(datasource.entityName);
             } else if (variableName === 'entityLabel') {
-                label = label.split(variable).join(datasource.entityLabel);
+                label = label.split(variable).join(datasource.entityLabel || datasource.entityName);
             } else if (variableName === 'aliasName') {
                 label = label.split(variable).join(datasource.aliasName);
             } else if (variableName === 'entityDescription') {
