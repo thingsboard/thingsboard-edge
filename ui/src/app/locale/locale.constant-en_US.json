@@ -2485,6 +2485,7 @@
         "export-data": "Export widget data",
         "export-to-csv": "Export data to CSV...",
         "export-to-excel": "Export data to XLS...",
+        "export-to-excel-xlsx": "Export data to XLSX...",
         "no-data": "No data to display on widget"
     },
     "widget-action": {

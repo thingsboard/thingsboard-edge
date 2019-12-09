@@ -2373,6 +2373,7 @@
         "export-data": "Exporter les données du widget",
         "export-to-csv": "Exporter les données au format CSV...",
         "export-to-excel": "Exporter les données au format XLS...",
+        "export-to-excel-xlsx": "Exporter les données au format XLS..."
         "html": "HTML",
         "javascript": "Javascript",
         "latest-values": "Dernières valeurs",

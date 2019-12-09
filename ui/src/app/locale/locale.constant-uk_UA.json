@@ -2401,6 +2401,7 @@
         "export-data": "Експортувати дані віджетів",
         "export-to-csv": "Експортувати дані в CSV...",
         "export-to-excel": "Експортувати дані в XLS...",
+        "export-to-excel-xlsx": "Експортувати дані в XLSX...",
         "no-data": "Немає даних для показу"
     },
     "widget-action": {

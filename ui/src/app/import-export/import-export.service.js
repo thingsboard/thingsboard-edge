@@ -33,6 +33,7 @@
 import importDialogTemplate from './import-dialog.tpl.html';
 import importDialogCSVTemplate from './import-dialog-csv.tpl.html';
 import entityAliasesTemplate from '../entity/alias/entity-aliases.tpl.html';
+import Excel from 'exceljs'
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -59,6 +60,11 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         extension: 'xls'
     };
 
+    const XLSX_TYPE = {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        extension: 'xlsx'
+    };
+
     const TEMPLATE_XLS = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
         <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
@@ -82,6 +88,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         importWidgetsBundle: importWidgetsBundle,
         exportCsv: exportCsv,
         exportXls: exportXls,
+        exportXlsx: exportXlsx,
         exportExtension: exportExtension,
         importExtension: importExtension,
         importEntities: importEntities,
@@ -1088,6 +1095,58 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         var parameters = { title: filename, table: tableData };
         var xlsData = TEMPLATE_XLS.replace(/{(\w+)}/g, (x, y) => parameters[y]);
         downloadFile(xlsData, filename, XLS_TYPE);
+    }
+
+    function exportXlsx(data, filename) {
+        let workbook = new Excel.Workbook();
+        workbook.creator = 'ThingsBoard, Inc.';
+        workbook.lastModifiedBy = 'ThingsBoard, Inc.';
+        workbook.properties.date1904 = false;
+
+        let sheet = workbook.addWorksheet('Export');
+
+        const cellBorderStyle = {
+            top: {style: 'thin'},
+            left: {style: 'thin'},
+            bottom: {style: 'thin'},
+            right: {style: 'thin'}
+        };
+
+        const dateFormat = 'yyyy-MM-dd HH:mm:ss';
+
+        if (data && data.length) {
+            const titles = Object.keys(data[0]);
+            let columnsTable = [];
+            titles.forEach((title) => {
+                columnsTable.push({
+                    header: title,
+                    key: title,
+                    width: (title === 'Timestamp' ? dateFormat.length : title.length) * 1.2,
+                    style: {
+                        numFmt: title === 'Timestamp' ? dateFormat : null
+                    }
+                });
+            });
+
+            sheet.columns = columnsTable;
+            sheet.views = [
+                {state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'B1'}
+            ];
+            sheet.getRow(1).eachCell(cell => cell.border = cellBorderStyle);
+
+            data.forEach((item) => {
+                if (item.Timestamp) {
+                    item.Timestamp = new Date(item.Timestamp);
+                }
+                sheet.addRow(item).eachCell((cell) => {
+                    cell.border = cellBorderStyle;
+                });
+            })
+        }
+
+        workbook.xlsx.writeBuffer().then((xlsxData) => {
+            downloadFile(xlsxData, filename, XLSX_TYPE);
+        });
     }
 
     function downloadFile(data, filename, fileType) {

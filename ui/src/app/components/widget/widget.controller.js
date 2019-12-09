@@ -646,13 +646,15 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
         if (widgetContext.widgetTitle && widgetContext.widgetTitle.length) {
             filename = widgetContext.widgetTitle;
         } else {
-            filename = widget.config.title;
+            filename = utils.customTranslation(widget.config.title, widget.config.title);
         }
         var data = prepareWidgetExportData();
         if (widgetExportType == types.widgetExportType.csv.value) {
             importExport.exportCsv(data, filename);
         } else if (widgetExportType == types.widgetExportType.xls.value) {
             importExport.exportXls(data, filename);
+        } else if (widgetExportType === types.widgetExportType.xlsx.value) {
+            importExport.exportXlsx(data, filename);
         }
     }
 

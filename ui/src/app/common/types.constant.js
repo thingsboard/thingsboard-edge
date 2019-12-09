@@ -1366,6 +1366,10 @@ export default angular.module('thingsboard.types', [])
                 xls: {
                     name: 'widget.export-to-excel',
                     value: 'xls'
+                },
+                xlsx: {
+                    name: 'widget.export-to-excel-xlsx',
+                    value: 'xlsx'
                 }
             },
             widgetActionSources: {

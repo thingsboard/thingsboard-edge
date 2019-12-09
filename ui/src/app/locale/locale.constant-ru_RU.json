@@ -2397,6 +2397,7 @@
         "export-data": "Экспортировать данные виджета",
         "export-to-csv": "Экспортировать в CSV...",
         "export-to-excel": "Экспортировать в XLS...",
+        "export-to-excel-xlsx": "Экспортировать в XLSX...",
         "no-data": "Нет данных для отображения"
     },
     "widget-action": {

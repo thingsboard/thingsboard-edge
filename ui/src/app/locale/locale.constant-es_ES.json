@@ -2085,7 +2085,8 @@
         "export": "Exportar widget",
         "export-data": "Exportar datos del widget",
         "export-to-csv": "Exportar datos a CSV...",
-        "export-to-excel": "Exportar datos a XLS..."
+        "export-to-excel": "Exportar datos a XLS...",
+        "export-to-excel-xlsx": "Exportar datos a XLSX..."
     },
     "widget-action": {
         "custom-pretty": "",

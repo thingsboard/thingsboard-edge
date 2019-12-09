@@ -55,6 +55,7 @@
     "clipboard": "^1.5.15",
     "compass-sass-mixins": "^0.12.7",
     "event-source-polyfill": "0.0.9",
+    "exceljs": "^3.4.0",
     "flot": "git://github.com/thingsboard/flot.git#0.9-work",
     "flot.curvedlines": "git://github.com/MichaelZinsmaier/CurvedLines.git#master",
     "font-awesome": "^4.6.3",
