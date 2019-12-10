@@ -376,15 +376,28 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
     function getEntitiesByPageLinkPromise(entityType, pageLink, config, subType) {
         var promise;
         var user = userService.getCurrentUser();
+        var isGenericPermission = userPermissionsService.hasReadGenericPermission(securityTypes.resource[entityType]);
         switch (entityType) {
             case types.entityType.device:
-                promise = deviceService.getUserDevices(pageLink, config, subType);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = deviceService.getTenantDevices(pageLink, false, config, subType);
+                } else {
+                    promise = deviceService.getUserDevices(pageLink, config, subType);
+                }
                 break;
             case types.entityType.asset:
-                promise = assetService.getUserAssets(pageLink, config, subType);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = assetService.getTenantAssets(pageLink, false, config, subType);
+                } else {
+                    promise = assetService.getUserAssets(pageLink, config, subType);
+                }
                 break;
             case types.entityType.entityView:
-                promise = entityViewService.getUserEntityViews(pageLink, config, subType);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = entityViewService.getTenantEntityViews(pageLink, false, config, subType);
+                } else {
+                    promise = entityViewService.getUserEntityViews(pageLink, config, subType);
+                }
                 break;
             case types.entityType.tenant:
                 if (user.authority === 'TENANT_ADMIN') {
@@ -400,7 +413,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = ruleChainService.getRuleChains(pageLink, config);
                 break;
             case types.entityType.dashboard:
-                promise = dashboardService.getUserDashboards(null, null, pageLink, config);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = dashboardService.getTenantDashboards(pageLink, config);
+                } else {
+                    promise = dashboardService.getUserDashboards(null, null, pageLink, config);
+                }
                 break;
             case types.entityType.user:
                 promise = userService.getUserUsers(pageLink, config);
