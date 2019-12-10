@@ -53,7 +53,7 @@
         <tb.docker.name>tb-pe</tb.docker.name>
         <pkg.user>thingsboard</pkg.user>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <pkg.upgradeVersion>2.3.1</pkg.upgradeVersion>
+        <pkg.upgradeVersion>2.4.1</pkg.upgradeVersion>
     </properties>
 
     <dependencies>
