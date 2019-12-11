@@ -41,6 +41,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.thingsboard.common.util.ListeningExecutor;
@@ -74,8 +75,6 @@ public class TbAlarmNodeTest {
 
     @Mock
     private TbContext ctx;
-    @Mock
-    private ListeningExecutor executor;
     @Mock
     private AlarmService alarmService;
 
@@ -117,7 +116,7 @@ public class TbAlarmNodeTest {
         metaData.putValue("key", "value");
         TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", originator, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
 
-        when(detailsJs.executeJson(msg)).thenReturn(null);
+        when(detailsJs.executeJsonAsync(msg)).thenReturn(Futures.immediateFuture(null));
         when(alarmService.findLatestByOriginatorAndType(tenantId, originator, "SomeType")).thenReturn(Futures.immediateFuture(null));
 
         doAnswer((Answer<Alarm>) invocationOnMock -> (Alarm) (invocationOnMock.getArguments())[0]).when(alarmService).createOrUpdateAlarm(any(Alarm.class));
@@ -151,8 +150,6 @@ public class TbAlarmNodeTest {
                 .build();
 
         assertEquals(expectedAlarm, actualAlarm);
-
-        verify(executor, times(1)).executeAsync(any(Callable.class));
     }
 
     @Test
@@ -161,7 +158,7 @@ public class TbAlarmNodeTest {
         metaData.putValue("key", "value");
         TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", originator, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
 
-        when(detailsJs.executeJson(msg)).thenThrow(new NotImplementedException("message"));
+        when(detailsJs.executeJsonAsync(msg)).thenReturn(Futures.immediateFailedFuture(new NotImplementedException("message")));
         when(alarmService.findLatestByOriginatorAndType(tenantId, originator, "SomeType")).thenReturn(Futures.immediateFuture(null));
 
         node.onMsg(ctx, msg);
@@ -169,7 +166,6 @@ public class TbAlarmNodeTest {
         verifyError(msg, "message", NotImplementedException.class);
 
         verify(ctx).createJsScriptEngine("DETAILS");
-        verify(ctx, times(1)).getJsExecutor();
         verify(ctx).getAlarmService();
         verify(ctx, times(3)).getDbCallbackExecutor();
         verify(ctx).logJsEvalRequest();
@@ -187,7 +183,7 @@ public class TbAlarmNodeTest {
 
         Alarm clearedAlarm = Alarm.builder().status(CLEARED_ACK).build();
 
-        when(detailsJs.executeJson(msg)).thenReturn(null);
+        when(detailsJs.executeJsonAsync(msg)).thenReturn(Futures.immediateFuture(null));
         when(alarmService.findLatestByOriginatorAndType(tenantId, originator, "SomeType")).thenReturn(Futures.immediateFuture(clearedAlarm));
 
         doAnswer((Answer<Alarm>) invocationOnMock -> (Alarm) (invocationOnMock.getArguments())[0]).when(alarmService).createOrUpdateAlarm(any(Alarm.class));
@@ -222,8 +218,6 @@ public class TbAlarmNodeTest {
                 .build();
 
         assertEquals(expectedAlarm, actualAlarm);
-
-        verify(executor, times(1)).executeAsync(any(Callable.class));
     }
 
     @Test
@@ -235,7 +229,7 @@ public class TbAlarmNodeTest {
         long oldEndDate = System.currentTimeMillis();
         Alarm activeAlarm = Alarm.builder().type("SomeType").tenantId(tenantId).originator(originator).status(ACTIVE_UNACK).severity(WARNING).endTs(oldEndDate).build();
 
-        when(detailsJs.executeJson(msg)).thenReturn(null);
+        when(detailsJs.executeJsonAsync(msg)).thenReturn(Futures.immediateFuture(null));
         when(alarmService.findLatestByOriginatorAndType(tenantId, originator, "SomeType")).thenReturn(Futures.immediateFuture(activeAlarm));
 
         doAnswer((Answer<Alarm>) invocationOnMock -> (Alarm) (invocationOnMock.getArguments())[0]).when(alarmService).createOrUpdateAlarm(activeAlarm);
@@ -271,8 +265,6 @@ public class TbAlarmNodeTest {
                 .build();
 
         assertEquals(expectedAlarm, actualAlarm);
-
-        verify(executor, times(1)).executeAsync(any(Callable.class));
     }
 
     @Test
@@ -284,7 +276,7 @@ public class TbAlarmNodeTest {
         long oldEndDate = System.currentTimeMillis();
         Alarm activeAlarm = Alarm.builder().type("SomeType").tenantId(tenantId).originator(originator).status(ACTIVE_UNACK).severity(WARNING).endTs(oldEndDate).build();
 
-//        when(detailsJs.executeJson(msg)).thenReturn(null);
+        when(detailsJs.executeJsonAsync(msg)).thenReturn(Futures.immediateFuture(null));
         when(alarmService.findLatestByOriginatorAndType(tenantId, originator, "SomeType")).thenReturn(Futures.immediateFuture(activeAlarm));
         when(alarmService.clearAlarm(eq(activeAlarm.getTenantId()), eq(activeAlarm.getId()), org.mockito.Mockito.any(JsonNode.class), anyLong())).thenReturn(Futures.immediateFuture(true));
         when(alarmService.findAlarmByIdAsync(eq(activeAlarm.getTenantId()), eq(activeAlarm.getId()))).thenReturn(Futures.immediateFuture(activeAlarm));
@@ -335,11 +327,8 @@ public class TbAlarmNodeTest {
             when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
 
             when(ctx.getTenantId()).thenReturn(tenantId);
-            when(ctx.getJsExecutor()).thenReturn(executor);
             when(ctx.getAlarmService()).thenReturn(alarmService);
             when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
-
-            mockJsExecutor();
 
             node = new TbCreateAlarmNode();
             node.init(ctx, nodeConfiguration);
@@ -359,29 +348,14 @@ public class TbAlarmNodeTest {
             when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
 
             when(ctx.getTenantId()).thenReturn(tenantId);
-            when(ctx.getJsExecutor()).thenReturn(executor);
             when(ctx.getAlarmService()).thenReturn(alarmService);
             when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
-
-            mockJsExecutor();
 
             node = new TbClearAlarmNode();
             node.init(ctx, nodeConfiguration);
         } catch (TbNodeException ex) {
             throw new IllegalStateException(ex);
         }
-    }
-
-    private void mockJsExecutor() {
-        when(ctx.getJsExecutor()).thenReturn(executor);
-        doAnswer((Answer<ListenableFuture<Boolean>>) invocationOnMock -> {
-            try {
-                Callable task = (Callable) (invocationOnMock.getArguments())[0];
-                return Futures.immediateFuture((Boolean) task.call());
-            } catch (Throwable th) {
-                return Futures.immediateFailedFuture(th);
-            }
-        }).when(executor).executeAsync(any(Callable.class));
     }
 
     private void verifyError(TbMsg msg, String message, Class expectedClass) {
