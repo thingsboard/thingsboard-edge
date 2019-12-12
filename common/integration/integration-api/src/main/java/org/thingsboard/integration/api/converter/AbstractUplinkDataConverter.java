@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.transport.PostTelemetryMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -153,10 +154,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return JsonConverter.convertToAttributesProto(src);
     }
 
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,
-                                    String outMessage, UplinkMetaData metadata) {
+    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
         try {
-            persistDebug(context, "Uplink", inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
+            persistDebug(context, getTypeUplink (inMessage), inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
             log.warn("Failed to persist uplink debug message");
         }
@@ -174,4 +174,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return mapper.writeValueAsString(metaData.getKvMap());
     }
 
+    private String getTypeUplink (byte[] inMessage) throws JsonProcessingException {
+        return (inMessage != null && inMessage.length >23 &&Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent")))? "Downlink_Sent": "Uplink";
+    }
 }
