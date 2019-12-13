@@ -42,6 +42,7 @@ export default function IntegrationKafkaDirective($compile, $templateCache, $tra
         element.html(template);
 
         scope.types = types;
+        scope.otherPropertiesPanelId = (Math.random()*1000).toFixed(0);
         scope.$mdExpansionPanel = $mdExpansionPanel;
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
@@ -65,6 +66,7 @@ export default function IntegrationKafkaDirective($compile, $templateCache, $tra
                 scope.configuration.clientConfiguration.bootstrapServers = 'localhost:9092';
                 scope.configuration.clientConfiguration.pollInterval = 5000;
                 scope.configuration.clientConfiguration.autoCreateTopics = false;
+                scope.configuration.clientConfiguration.otherProperties = {};
             }
         }
 
