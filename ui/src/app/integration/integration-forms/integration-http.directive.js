@@ -68,7 +68,7 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
                 scope.configuration.replaceNoContentToOk = false;
             }
             scope.httpEndpoint = integrationService.getIntegrationHttpEndpointLink(scope.configuration, scope.integrationType, scope.routingKey);
-            if (scope.integrationType == types.integrationType.THINGPARK.value) {
+            if (scope.integrationType == types.integrationType.THINGPARK.value || scope.integrationType == types.integrationType.TPE.value) {
                 if (!scope.configuration.downlinkUrl) {
                     scope.configuration.downlinkUrl = 'https://api.thingpark.com/thingpark/lrc/rest/downlink';
                 }
@@ -94,6 +94,13 @@ export default function IntegrationHttpDirective($compile, $templateCache, $tran
             if (scope.configuration.enableSecurity &&
                 !scope.configuration.maxTimeDiffInSeconds) {
                 scope.configuration.maxTimeDiffInSeconds = 60;
+            }
+            else {
+                scope.configuration.enableSecurityNew = false;
+                scope.configuration.clientIdNew = null;
+                scope.configuration.clientSecret = null;
+                scope.configuration.asIdNew = null;
+                scope.configuration.asKey = null;
             }
         };
 
