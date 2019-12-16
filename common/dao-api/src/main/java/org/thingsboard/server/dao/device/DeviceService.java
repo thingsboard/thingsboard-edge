@@ -57,6 +57,8 @@ public interface DeviceService {
 
     Device saveDevice(Device device);
 
+    Device saveDeviceWithAccessToken(Device device, String accessToken);
+
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
     TextPageData<Device> findDevicesByTenantId(TenantId tenantId, TextPageLink pageLink);
