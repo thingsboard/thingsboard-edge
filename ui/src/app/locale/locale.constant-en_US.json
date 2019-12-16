@@ -1716,6 +1716,7 @@
         "kinesis-application-name": "Application name (by default equals Stream name)",
         "kinesis-initial-position-in-stream": "Initial position in stream",
         "kinesis-initial-position-in-stream-required": "Initial position in stream required",
+        "other-properties": "Other properties",
         "subscription-tags": "Subscription tags",
         "remove-subscription-tag": "Remove subscription tag",
         "add-subscription-tag": "Add subscription tag",
