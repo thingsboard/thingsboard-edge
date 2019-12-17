@@ -183,7 +183,13 @@
         "clear-alarms-text": "Ви впевнені, що хочете деактивувати { count, plural, 1 {1 сигнал тривоги} other {# сигнали тривоги} }?",
         "clear-alarm-title": "Деактивувати сигнал тривоги",
         "clear-alarm-text": "Ви впевнені, що хочете деактивувати сигнал тривоги?",
-        "alarm-status-filter": "Фільтр статусу сигналу тривоги"
+        "alarm-status-filter": "Фільтр статусу сигналу тривоги",
+        "max-count-load": "Максимальна кількість сигналів тривоги для завантаження (0 - необмежено)",
+        "max-count-load-required": "Необхідно задати максимальну кількість сигналів тривоги для завантаження.",
+        "max-count-load-error-min": "Мінімальне значення 0.",
+        "fetch-size": "Розмір пакету для завантаження",
+        "fetch-size-required": "Необхідно задати розмір пакету для завантаження.",
+        "fetch-size-error-min": "Мінімальне значення 10."
     },
     "alias": {
         "add": "Додати псевдонім ",
@@ -1526,6 +1532,7 @@
         "idCopiedMessage": "Id інтеграції скопійовано в буфер обміну",
         "debug-mode": "Режим налагодження",
         "enable-security": "Увімкнути безпеку",
+        "enable-security-new": "Увімкнути безпеку для автоматичного оновлення токену",
         "headers-filter": "Заголовки фільтра",
         "header": "Заголовок",
         "no-headers-filter": "Немає фільтрів заголовків",
@@ -1535,6 +1542,10 @@
         "as-id-required": "Необхідно вказати AS ID.",
         "as-key": "AS ключ",
         "as-key-required": "Необхідно вказати AS ключ.",
+        "client-id-new": "Id клієнта.",
+        "client-id-new-required": "Необхідно вказати Id клієнта (логін).",
+        "client-secret": "Пароль Клиєнта",
+        "client-secret-required": "Необхідно вказати пароль клиєнта.",
         "max-time-diff-in-seconds": "Максимальна різниця в часі (секунди)",
         "max-time-diff-in-seconds-required": "Необхідно вказати максимальну різницю в часі.",
         "name": "Ім'я",
@@ -1629,6 +1640,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
@@ -2401,6 +2413,7 @@
         "export-data": "Експортувати дані віджетів",
         "export-to-csv": "Експортувати дані в CSV...",
         "export-to-excel": "Експортувати дані в XLS...",
+        "export-to-excel-xlsx": "Експортувати дані в XLSX...",
         "no-data": "Немає даних для показу"
     },
     "widget-action": {
@@ -2690,7 +2703,8 @@
             "de_DE": "Німецька",
             "uk_UA": "Українська",
             "fa_IR": "Перська",
-            "cs_CZ": "Чеська"
+            "cs_CZ": "Чеська",
+            "el_GR": "Грецька"
         }
     }
 }

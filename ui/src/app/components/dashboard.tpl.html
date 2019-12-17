@@ -121,6 +121,14 @@
                                                         <span translate>{{vm.types.widgetExportType.xls.name}}</span>
                                                     </md-button>
                                                 </md-menu-item>
+                                                <md-menu-item>
+                                                    <md-button ng-click="vm.exportWidgetData($event, widget, vm.types.widgetExportType.xlsx.value)">
+                                                        <md-icon md-menu-align-target
+                                                                 aria-label="{{ vm.types.widgetExportType.xlsx.name | translate }}"
+                                                                 md-svg-icon="mdi:file-excel"></md-icon>
+                                                        <span translate>{{vm.types.widgetExportType.xlsx.name}}</span>
+                                                    </md-button>
+                                                </md-menu-item>
                                             </md-menu-content>
                                         </md-menu>
                                         <md-button id="expand-button"

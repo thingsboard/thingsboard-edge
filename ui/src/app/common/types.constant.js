@@ -420,6 +420,11 @@ export default angular.module('thingsboard.types', [])
                     value: "THINGPARK",
                     http: true
                 },
+                "TPE": {
+                    name: "integration.type-thingpark-enterprise",
+                    value: "TPE",
+                    http: true
+                },
                 "TMOBILE_IOT_CDP": {
                     name: "integration.type-tmobile-iot-cdp",
                     value: "TMOBILE_IOT_CDP",
@@ -1366,6 +1371,10 @@ export default angular.module('thingsboard.types', [])
                 xls: {
                     name: 'widget.export-to-excel',
                     value: 'xls'
+                },
+                xlsx: {
+                    name: 'widget.export-to-excel-xlsx',
+                    value: 'xlsx'
                 }
             },
             widgetActionSources: {

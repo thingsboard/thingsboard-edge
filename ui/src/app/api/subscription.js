@@ -90,6 +90,10 @@ export default class Subscription {
                 options.alarmSearchStatus : this.ctx.types.alarmSearchStatus.any;
             this.alarmsPollingInterval = angular.isDefined(options.alarmsPollingInterval) ?
                 options.alarmsPollingInterval : 5000;
+            this.alarmsMaxCountLoad = angular.isDefined(options.alarmsMaxCountLoad) ?
+                options.alarmsMaxCountLoad : 0;
+            this.alarmsFetchSize = angular.isDefined(options.alarmsFetchSize) ?
+                options.alarmsFetchSize : 100;
 
             this.alarmSourceListener = null;
             this.alarms = [];
@@ -931,6 +935,8 @@ export default class Subscription {
             alarmSource: this.alarmSource,
             alarmSearchStatus: this.alarmSearchStatus,
             alarmsPollingInterval: this.alarmsPollingInterval,
+            alarmsMaxCountLoad: this.alarmsMaxCountLoad,
+            alarmsFetchSize: this.alarmsFetchSize,
             alarmsUpdated: function(alarms, apply) {
                 subscription.alarmsUpdated(alarms, apply);
             }

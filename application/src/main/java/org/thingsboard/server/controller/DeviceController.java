@@ -101,6 +101,7 @@ public class DeviceController extends BaseController {
     @RequestMapping(value = "/device", method = RequestMethod.POST)
     @ResponseBody
     public Device saveDevice(@RequestBody Device device,
+                             @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             device.setTenantId(getCurrentUser().getTenantId());
@@ -121,7 +122,7 @@ public class DeviceController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation,
                     device.getId(), device, entityGroupId);
 
-            Device savedDevice = checkNotNull(deviceService.saveDevice(device));
+            Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
 
             if (entityGroupId != null && operation == Operation.CREATE) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDevice.getId());

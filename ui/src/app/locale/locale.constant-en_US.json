@@ -183,7 +183,13 @@
         "clear-alarms-text": "Are you sure you want to clear { count, plural, 1 {1 alarm} other {# alarms} }?",
         "clear-alarm-title": "Clear Alarm",
         "clear-alarm-text": "Are you sure you want to clear Alarm?",
-        "alarm-status-filter": "Alarm Status Filter"
+        "alarm-status-filter": "Alarm Status Filter",
+        "max-count-load": "Maximum number of alarms to load (0 - unlimited)",
+        "max-count-load-required": "Maximum number of alarms to load is required.",
+        "max-count-load-error-min": "Minimum value is 0.",
+        "fetch-size": "Fetch size",
+        "fetch-size-required": "Fetch size is required.",
+        "fetch-size-error-min": "Minimum value is 10."
     },
     "alias": {
         "add": "Add alias",
@@ -1533,6 +1539,7 @@
         "idCopiedMessage": "Integration Id has been copied to clipboard",
         "debug-mode": "Debug mode",
         "enable-security": "Enable security",
+        "enable-security-new": "Enable security for automatic token updates",
         "headers-filter": "Headers filter",
         "header": "Header",
         "no-headers-filter": "No headers filter",
@@ -1542,6 +1549,10 @@
         "as-id-required": "AS ID is required.",
         "as-key": "AS Key",
         "as-key-required": "AS Key is required.",
+        "client-id-new": "Client Id",
+        "client-id-new-required": "Client Id (login) is required (login).",
+        "client-secret": "Client Secret",
+        "client-secret-required": "Client Secret (password) is required (password).",
         "max-time-diff-in-seconds": "Maximum time difference (seconds)",
         "max-time-diff-in-seconds-required": "Maximum time difference is required.",
         "name": "Name",
@@ -1647,6 +1658,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
@@ -1704,6 +1716,7 @@
         "kinesis-application-name": "Application name (by default equals Stream name)",
         "kinesis-initial-position-in-stream": "Initial position in stream",
         "kinesis-initial-position-in-stream-required": "Initial position in stream required",
+        "other-properties": "Other properties",
         "subscription-tags": "Subscription tags",
         "remove-subscription-tag": "Remove subscription tag",
         "add-subscription-tag": "Add subscription tag",
@@ -2485,6 +2498,7 @@
         "export-data": "Export widget data",
         "export-to-csv": "Export data to CSV...",
         "export-to-excel": "Export data to XLS...",
+        "export-to-excel-xlsx": "Export data to XLSX...",
         "no-data": "No data to display on widget"
     },
     "widget-action": {
@@ -2776,7 +2790,8 @@
             "tr_TR": "Turkish",
             "fa_IR": "Persian",
             "uk_UA": "Ukrainian",
-            "cs_CZ": "Czech"            
+            "cs_CZ": "Czech",
+            "el_GR": "Greek"
         }
     }
 }

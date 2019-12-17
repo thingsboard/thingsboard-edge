@@ -40,20 +40,25 @@
             </div>
         </md-input-container>
         <div layout="column">
-            <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.replace-no-content-to-ok' | translate }}"
-                         ng-model="configuration.replaceNoContentToOk"> {{ 'integration.replace-no-content-to-ok' | translate }}
+            <md-checkbox ng-disabled="$root.loading || !isEdit"
+                         aria-label="{{ 'integration.replace-no-content-to-ok' | translate }}"
+                         ng-model="configuration.replaceNoContentToOk"> {{ 'integration.replace-no-content-to-ok' |
+                translate }}
             </md-checkbox>
         </div>
         <section ng-if="integrationType == types.integrationType.HTTP.value ||
                                                 integrationType == types.integrationType.SIGFOX.value">
             <md-input-container class="md-block">
-                <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
+                <md-checkbox ng-disabled="$root.loading || !isEdit"
+                             aria-label="{{ 'integration.enable-security' | translate }}"
                              ng-model="configuration.enableSecurity"
                              ng-change="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
                 </md-checkbox>
             </md-input-container>
             <md-expansion-panel-group ng-if="configuration.enableSecurity"
-                                      class="tb-integration-panel-group header-filters" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="headersFilterPanelGroup">
+                                      class="tb-integration-panel-group header-filters"
+                                      ng-class="{'disabled': $root.loading || !isEdit}"
+                                      md-component-id="headersFilterPanelGroup">
                 <md-expansion-panel md-component-id="{{headersFilterPanelId}}">
                     <md-expansion-panel-collapsed>
                         <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
@@ -67,7 +72,8 @@
                             <md-expansion-panel-icon></md-expansion-panel-icon>
                         </md-expansion-panel-header>
                         <md-expansion-panel-content>
-                            <tb-key-val-map no-data-text="integration.no-headers-filter" key-placeholder-text="integration.header"
+                            <tb-key-val-map no-data-text="integration.no-headers-filter"
+                                            key-placeholder-text="integration.header"
                                             ng-disabled="$root.loading || !isEdit"
                                             key-val-map="configuration.headersFilter"></tb-key-val-map>
                         </md-expansion-panel-content>
@@ -75,31 +81,64 @@
                 </md-expansion-panel>
             </md-expansion-panel-group>
         </section>
-        <section ng-if="integrationType == types.integrationType.THINGPARK.value">
+        <section ng-if="integrationType == types.integrationType.THINGPARK.value || integrationType == types.integrationType.TPE.value">
             <md-input-container class="md-block">
                 <label translate>integration.downlink-url</label>
                 <input name="downlinkUrl" ng-model="configuration.downlinkUrl">
             </md-input-container>
-            <md-input-container class="md-block">
-                <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-security' | translate }}"
-                             ng-model="configuration.enableSecurity"
-                             ng-change="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
-                </md-checkbox>
-            </md-input-container>
-            <md-input-container class="md-block" ng-if="configuration.enableSecurity">
-                <label translate>integration.as-id</label>
-                <input required name="asId" ng-model="configuration.asId">
-                <div ng-messages="httpIntegrationForm.asId.$error">
-                    <div translate ng-message="required">integration.as-id-required</div>
-                </div>
-            </md-input-container>
-            <md-input-container class="md-block" ng-if="configuration.enableSecurity">
-                <label translate>integration.as-key</label>
-                <input required name="asKey" ng-model="configuration.asKey">
-                <div ng-messages="httpIntegrationForm.asKey.$error">
-                    <div translate ng-message="required">integration.as-key-required</div>
-                </div>
-            </md-input-container>
+            <div layout="row">
+                <md-input-container flex class="md-block">
+                    <md-checkbox ng-disabled="$root.loading || !isEdit"
+                                 aria-label="{{ 'integration.enable-security' | translate }}"
+                                 ng-model="configuration.enableSecurity"
+                                 ng-change="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' |
+                        translate }}
+                    </md-checkbox>
+                </md-input-container>
+                <md-input-container flex class="md-block" ng-if="configuration.enableSecurity">
+                    <md-checkbox ng-disabled="$root.loading || !isEdit"
+                                 aria-label="{{ 'integration.enable-security-new' | translate }}"
+                                 ng-model="configuration.enableSecurityNew">{{ 'integration.enable-security-new' |
+                        translate}}
+                    </md-checkbox>
+                </md-input-container>
+            </div>
+            <section ng-if="configuration.enableSecurity" layout="column" layout-gt-sm="row">
+                <md-input-container flex ng-if="!configuration.enableSecurityNew" class="md-block">
+                    <label translate>integration.as-id</label>
+                    <input required name="asId" ng-model="configuration.asId">
+                    <div ng-messages="httpIntegrationForm.asId.$error">
+                        <div translate ng-message="required">integration.as-id-required</div>
+                    </div>
+                </md-input-container>
+                <md-input-container flex ng-if="configuration.enableSecurityNew" class="md-block">
+                    <label translate>integration.as-id</label>
+                    <input required name="asIdNew" ng-model="configuration.asIdNew">
+                </md-input-container>
+                <md-input-container flex class="md-block">
+                    <label translate>integration.as-key</label>
+                    <input required name="asKey" ng-model="configuration.asKey">
+                    <div ng-messages="httpIntegrationForm.asKey.$error">
+                        <div translate ng-message="required">integration.as-key-required</div>
+                    </div>
+                </md-input-container>
+            </section>
+            <section ng-if="configuration.enableSecurityNew" layout="column" layout-gt-sm="row">
+                <md-input-container flex class="md-block">
+                    <label translate>integration.client-id-new</label>
+                    <input required name="clientIdNew" ng-model="configuration.clientIdNew">
+                    <div ng-messages="httpIntegrationForm.clientIdNew.$error">
+                        <div translate ng-message="required">integration.client-id-new-required</div>
+                    </div>
+                </md-input-container>
+                <md-input-container flex class="md-block">
+                    <label translate>integration.client-secret</label>
+                    <input required name="clientSecret" ng-model="configuration.clientSecret">
+                    <div ng-messages="httpIntegrationForm.clientSecret.$error">
+                        <div translate ng-message="required">integration.client-secret-required</div>
+                    </div>
+                </md-input-container>
+            </section>
             <md-input-container class="md-block" ng-if="configuration.enableSecurity">
                 <label translate>integration.max-time-diff-in-seconds</label>
                 <input type="number" min="0" step="1" required name="maxTimeDiffInSeconds"

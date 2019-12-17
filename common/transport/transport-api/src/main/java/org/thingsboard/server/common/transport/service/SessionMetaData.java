@@ -50,6 +50,7 @@ class SessionMetaData {
     private ScheduledFuture scheduledFuture;
 
     private volatile long lastActivityTime;
+    private volatile long lastReportedActivityTime;
     private volatile boolean subscribedToAttributes;
     private volatile boolean subscribedToRPC;
 

@@ -183,7 +183,13 @@
         "clear-alarms-text": "Вы точно хотите сбросить { count, plural, 1 {1 оповещение} other {# оповещений} }?",
         "clear-alarm-title": "Сбросить оповещение",
         "clear-alarm-text": "Вы точно хотите сбросить оповещение?",
-        "alarm-status-filter": "Фильтр оповещений"
+        "alarm-status-filter": "Фильтр оповещений",
+        "max-count-load": "Максимальное количество оповещений для загрузки (0 - неограниченно)",
+        "max-count-load-required": "Максимальное количество оповещений для загрузки обязателен.",
+        "max-count-load-error-min": "Минимальное значение 0.",
+        "fetch-size": "Размер пакета для загрузки",
+        "fetch-size-required": "Размер пакета для загрузки обязателен.",
+        "fetch-size-error-min": "Минимальное значение 10."
     },
     "alias": {
         "add": "Добавить псевдоним",
@@ -1515,6 +1521,7 @@
         "idCopiedMessage": "Id интеграции скопировано в буфер обмена",
         "debug-mode": "Режим отладки",
         "enable-security": "Включить безопасность",
+        "enable-security-new": "Включить безопасность для автоматического обновления токена",
         "headers-filter": "Фильтр заголовков",
         "header": "Заголовок",
         "no-headers-filter": "Нет ни одного фильтра заголовков",
@@ -1524,6 +1531,10 @@
         "as-id-required": "Необходимо указать AS ID.",
         "as-key": "Ключ AS",
         "as-key-required": "Необходимо указать ключ AS.",
+        "client-id-new": "Id клиента",
+        "client-id-new-required": "Необходимо указать Id клиента (логин).",
+        "client-secret": "Пароль Клиента",
+        "client-secret-required": "Необходимо указать Пароль Клиента.",
         "max-time-diff-in-seconds": "Максимальная разница во времени (секунды)",
         "max-time-diff-in-seconds-required": "Необходимо указать максимальную разницу во времени.",
         "name": "Название",
@@ -1619,6 +1630,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
@@ -2397,6 +2409,7 @@
         "export-data": "Экспортировать данные виджета",
         "export-to-csv": "Экспортировать в CSV...",
         "export-to-excel": "Экспортировать в XLS...",
+        "export-to-excel-xlsx": "Экспортировать в XLSX...",
         "no-data": "Нет данных для отображения"
     },
     "widget-action": {
@@ -2686,7 +2699,8 @@
             "ja_JA": "Японский",
             "fa_IR": "Персидский",
             "uk_UA": "Украинский",
-            "cs_CZ": "Чешский"
+            "cs_CZ": "Чешский",
+            "el_GR": "Греческий"
         }
     }
 }
