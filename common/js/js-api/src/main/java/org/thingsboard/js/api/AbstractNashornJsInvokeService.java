@@ -33,29 +33,26 @@ package org.thingsboard.js.api;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import delight.nashornsandbox.NashornSandbox;
 import delight.nashornsandbox.NashornSandboxes;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -64,6 +61,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     private NashornSandbox sandbox;
     private ScriptEngine engine;
     private ExecutorService monitorExecutorService;
+    private ListeningExecutorService jsExecutor;
     private ScheduledExecutorService timeoutExecutorService;
 
     private final AtomicInteger jsPushedMsgs = new AtomicInteger(0);
@@ -74,17 +72,16 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     private final FutureCallback<UUID> evalCallback = new JsStatCallback<UUID>(jsEvalMsgs, jsTimeoutMsgs, jsFailedMsgs);
     private final FutureCallback<Object> invokeCallback = new JsStatCallback<Object>(jsInvokeMsgs, jsTimeoutMsgs, jsFailedMsgs);
 
-    @Autowired
-    @Getter
-    private JsExecutorService jsExecutor;
-
     @Value("${js.local.max_requests_timeout:0}")
     private long maxRequestsTimeout;
 
-    @Value("${js.local.stats.enabled:false}")
+    @Value("${js.local.stats.enabled:true}")
     private boolean statsEnabled;
 
-    @Scheduled(fixedDelayString = "${js.remote.stats.print_interval_ms:10000}")
+    @Value("${js.local.js_thread_pool_size:50}")
+    private int jsExecutorThreadPoolSize;
+
+    @Scheduled(fixedDelayString = "${js.remote.stats.print_interval_ms:1000}")
     public void printStats() {
         if (statsEnabled) {
             int pushedMsgs = jsPushedMsgs.getAndSet(0);
@@ -101,6 +98,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
 
     @PostConstruct
     public void init() {
+        jsExecutor = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(jsExecutorThreadPoolSize));
         if (maxRequestsTimeout > 0) {
             timeoutExecutorService = Executors.newSingleThreadScheduledExecutor();
         }
@@ -142,7 +140,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     @Override
     protected ListenableFuture<UUID> doEval(UUID scriptId, String functionName, String jsScript) {
         jsPushedMsgs.incrementAndGet();
-        ListenableFuture<UUID> result = jsExecutor.executeAsync(() -> {
+        ListenableFuture<UUID> result = jsExecutor.submit(() -> {
             try {
                 if (useJsSandbox()) {
                     sandbox.eval(jsScript);
@@ -166,7 +164,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     @Override
     protected ListenableFuture<Object> doInvokeFunction(UUID scriptId, String functionName, Object[] args) {
         jsPushedMsgs.incrementAndGet();
-        ListenableFuture<Object> result = jsExecutor.executeAsync(() -> {
+        ListenableFuture<Object> result = jsExecutor.submit(() -> {
             try {
                 if (useJsSandbox()) {
                     return sandbox.getSandboxedInvocable().invokeFunction(functionName, args);
