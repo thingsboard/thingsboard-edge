@@ -436,7 +436,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             }
         } else if (entityId.getEntityType().equals(EntityType.TENANT)) {
             Tenant tenant = tenantService.findTenantById((TenantId) entityId);
-            JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+            JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING) : null;
             if (allowWhiteLabelJsonNode == null) {
                 return true;
             } else {
@@ -450,12 +450,12 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     @Override
     public boolean isCustomerWhiteLabelingAllowed(TenantId tenantId) {
         Tenant tenant = tenantService.findTenantById(tenantId);
-        JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+        JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING) : null;
         if (allowWhiteLabelJsonNode == null) {
             return true;
         } else {
             if (allowWhiteLabelJsonNode.asBoolean()) {
-                JsonNode allowCustomerWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_CUSTOMER_WHITE_LABELING);
+                JsonNode allowCustomerWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_CUSTOMER_WHITE_LABELING) : null;
                 if (allowCustomerWhiteLabelJsonNode == null) {
                     return true;
                 } else {
