@@ -28,35 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql;
+package org.thingsboard.common.util;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+/**
+ * Copy of Executors.DefaultThreadFactory but with ability to set name of the pool
+ */
+public class ThingsBoardThreadFactory implements ThreadFactory {
+    private static final AtomicInteger poolNumber = new AtomicInteger(1);
+    private final ThreadGroup group;
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private final String namePrefix;
 
-@Component
-public class ScheduledLogExecutorComponent {
-
-    private ScheduledExecutorService schedulerLogExecutor;
-
-    @PostConstruct
-    public void init() {
-        schedulerLogExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("sql-log"));
+    public static ThingsBoardThreadFactory forName(String name) {
+        return new ThingsBoardThreadFactory(name);
     }
 
-    @PreDestroy
-    public void stop() {
-        if (schedulerLogExecutor != null) {
-            schedulerLogExecutor.shutdownNow();
-        }
+    private ThingsBoardThreadFactory(String name) {
+        SecurityManager s = System.getSecurityManager();
+        group = (s != null) ? s.getThreadGroup() :
+                Thread.currentThread().getThreadGroup();
+        namePrefix = name + "-" +
+                poolNumber.getAndIncrement() +
+                "-thread-";
     }
 
-    public void scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        schedulerLogExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
+    @Override
+    public Thread newThread(Runnable r) {
+        Thread t = new Thread(group, r,
+                namePrefix + threadNumber.getAndIncrement(),
+                0);
+        if (t.isDaemon())
+            t.setDaemon(false);
+        if (t.getPriority() != Thread.NORM_PRIORITY)
+            t.setPriority(Thread.NORM_PRIORITY);
+        return t;
     }
 }
