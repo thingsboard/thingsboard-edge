@@ -295,6 +295,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'entityGroupName',
                     name: 'alias.filter-type-entity-group-name'
                 },
+                entitiesByGroupName: {
+                    value: 'entitiesByGroupName',
+                    name: 'alias.filter-type-entities-by-group-name'
+                },
                 stateEntity: {
                     value: 'stateEntity',
                     name: 'alias.filter-type-state-entity'

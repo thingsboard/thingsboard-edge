@@ -201,8 +201,9 @@
         "filter-type-entity-group": "Группа объектов",
         "filter-type-entity-list": "Список объектов",
         "filter-type-entity-name": "Название объекта",
-        "filter-type-entity-group-list": "Список групп объетов",
-        "filter-type-entity-group-name": "Название группы объктов",
+        "filter-type-entity-group-list": "Список групп объектов",
+        "filter-type-entity-group-name": "Название группы объектов",
+        "filter-type-entities-by-group-name": "Объекты по названию группы",
         "filter-type-state-entity": "Объект из состояния дашборда",
         "filter-type-state-entity-description": "Объект, полученный из параметров состояния дашборда",
         "filter-type-state-entity-owner": "Владелец объекта из состояния дашборда",
@@ -240,7 +241,7 @@
         "max-relation-level": "Максимальная глубина отношений",
         "unlimited-level": "Неограниченная глубина",
         "state-entity": "Объект состояния дашборда",
-        "entities-of-group-state-entity": "Объекты из групы объктов состояния",
+        "entities-of-group-state-entity": "Объекты из групы объектов состояния",
         "all-entities": "Все объекты",
         "any-relation": "не указано"
     },
@@ -1125,7 +1126,8 @@
         "make-private-entity-group-title": "Вы уверенны, что хотите сделать группу объектов '{{entityGroupName}}' приватной?",
         "make-private-entity-group-text": "После подтверждения группа объектов и все ее объекты станут приватными и не будут доступны для других пользователей.",
         "copyId": "Копировать Id группы объектов",
-        "idCopiedMessage": "Id группы объектов был скопирован в буфер обмена"
+        "idCopiedMessage": "Id группы объектов был скопирован в буфер обмена",
+        "entity-group-name": "Название группы объектов"
     },
     "entity-field": {
         "created-time": "Время создания",

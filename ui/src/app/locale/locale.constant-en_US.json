@@ -203,6 +203,7 @@
         "filter-type-entity-name": "Entity name",
         "filter-type-entity-group-list": "Entity group list",
         "filter-type-entity-group-name": "Entity group name",
+        "filter-type-entities-by-group-name": "Entities by group name",
         "filter-type-state-entity": "Entity from dashboard state",
         "filter-type-state-entity-description": "Entity taken from dashboard state parameters",
         "filter-type-state-entity-owner": "Owner of entity from dashboard state",
@@ -1137,7 +1138,8 @@
         "make-private-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' private?",
         "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others.",
         "copyId": "Copy entity group Id",
-        "idCopiedMessage": "Entity group Id has been copied to clipboard"
+        "idCopiedMessage": "Entity group Id has been copied to clipboard",
+        "entity-group-name": "Entity group name"
     },
     "entity-field": {
         "created-time": "Created time",

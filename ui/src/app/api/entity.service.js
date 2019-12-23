@@ -575,6 +575,49 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
+    function getEntitiesByGroupName(entityType, entityNameFilter, limit, config, stateEntiTyId) {
+        var deferred = $q.defer();
+        var promise;
+        if(angular.isDefined(stateEntiTyId)) {
+            promise = getEntity(stateEntiTyId.entityType, stateEntiTyId.id, config).then(function success(result) {
+                let entityId;
+                if(result.id.entityType === types.entityType.customer) {
+                    entityId = result.id;
+                } else {
+                    entityId = result.ownerId;
+                }
+                return entityId;
+            }, function fail() {
+                deferred.resolve(null);
+            }).then(function (entityId) {
+                return entityGroupService.getEntityGroupsByOwnerId(entityId.entityType, entityId.id, entityType, true, config);
+            })
+        } else {
+            promise = entityGroupService.getEntityGroups(entityType);
+        }
+
+        promise.then(function success(result) {
+            if (result && result.length) {
+                for (let i = 0; i < result.length; i++) {
+                    if (result[i].name === entityNameFilter) {
+                        return result[i].id.id;
+                    }
+                }
+            }
+        }, function fail() {
+            deferred.resolve(null);
+        }).then(function (groupId) {
+            getEntityGroupEntities(groupId, limit, config).then(
+                function success(result) {
+                    deferred.resolve(result);
+                }, function fail() {
+                    deferred.resolve(null);
+                }
+            )
+        });
+        return deferred.promise;
+    }
+
     function entityToEntityInfo(entity) {
         return {
             origEntity: entity,
@@ -803,6 +846,22 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 break;
+            case types.aliasFilterType.entitiesByGroupName.value:
+                result.stateEntity = filter.groupStateEntity;
+                getEntitiesByGroupName(filter.groupType, filter.entityGroupNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, stateEntityId).then(
+                    function success(entities) {
+                        if (entities && entities.length || !failOnEmpty) {
+                            result.entities = entitiesToEntitiesInfo(entities);
+                            deferred.resolve(result);
+                        } else {
+                            deferred.reject();
+                        }
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+                break;
             case types.aliasFilterType.stateEntity.value:
                 result.stateEntity = true;
                 if (stateEntityId) {
@@ -1011,6 +1070,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     return entityTypes.indexOf(types.entityType.entityGroup) > -1 ? true : false;
                 case types.aliasFilterType.entityGroupName.value:
                     return entityTypes.indexOf(types.entityType.entityGroup) > -1 ? true : false;
+                case types.aliasFilterType.entitiesByGroupName.value:
+                    return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
                 case types.aliasFilterType.stateEntity.value:
                 case types.aliasFilterType.stateOwner.value:
                     return true;
@@ -1066,6 +1127,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 return entityType === types.entityType.entityGroup;
             case types.aliasFilterType.entityGroupName.value:
                 return entityType === types.entityType.entityGroup;
+            case types.aliasFilterType.entitiesByGroupName.value:
+                return true;
             case types.aliasFilterType.stateEntity.value:
             case types.aliasFilterType.stateOwner.value:
                 return true;
