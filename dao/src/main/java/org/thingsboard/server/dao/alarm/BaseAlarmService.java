@@ -38,9 +38,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmId;
@@ -77,6 +77,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -175,9 +176,15 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         commonQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.COMMON, false));
         EntityRelationsQuery groupQuery = new EntityRelationsQuery();
         groupQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.FROM_ENTITY_GROUP, false));
+        List<String> propagateRelationTypes = alarm.getPropagateRelationTypes();
+        Stream<EntityRelation> commonRelations = relationService.findByQuery(alarm.getTenantId(), commonQuery).get().stream();
+        Stream<EntityRelation> groupRelations = relationService.findByQuery(alarm.getTenantId(), groupQuery).get().stream();
+        if (!CollectionUtils.isEmpty(propagateRelationTypes)) {
+            commonRelations = commonRelations.filter(entityRelation -> propagateRelationTypes.contains(entityRelation.getType()));
+        }
         Set<EntityId> parentEntities = new HashSet<>();
-        parentEntities.addAll(relationService.findByQuery(alarm.getTenantId(), commonQuery).get().stream().map(EntityRelation::getFrom).collect(Collectors.toList()));
-        parentEntities.addAll(relationService.findByQuery(alarm.getTenantId(), groupQuery).get().stream().map(EntityRelation::getFrom).collect(Collectors.toList()));
+        parentEntities.addAll(commonRelations.map(EntityRelation::getFrom).collect(Collectors.toList()));
+        parentEntities.addAll(groupRelations.map(EntityRelation::getFrom).collect(Collectors.toList()));
         return parentEntities;
     }
 
@@ -410,13 +417,30 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         existing.setSeverity(alarm.getSeverity());
         existing.setDetails(alarm.getDetails());
         existing.setPropagate(existing.isPropagate() || alarm.isPropagate());
+        List<String> existingPropagateRelationTypes = existing.getPropagateRelationTypes();
+        List<String> newRelationTypes = alarm.getPropagateRelationTypes();
+        if (!CollectionUtils.isEmpty(newRelationTypes)) {
+            if (!CollectionUtils.isEmpty(existingPropagateRelationTypes)) {
+                existing.setPropagateRelationTypes(Stream.concat(existingPropagateRelationTypes.stream(), newRelationTypes.stream())
+                        .distinct()
+                        .collect(Collectors.toList()));
+            } else {
+                existing.setPropagateRelationTypes(newRelationTypes);
+            }
+        }
         return existing;
     }
 
     private void updateRelations(Alarm alarm, AlarmStatus oldStatus, AlarmStatus newStatus) {
         try {
             List<EntityRelation> relations = relationService.findByToAsync(alarm.getTenantId(), alarm.getId(), RelationTypeGroup.ALARM).get();
-            Set<EntityId> parents = relations.stream().map(EntityRelation::getFrom).collect(Collectors.toSet());
+
+            List<String> propagateRelationTypes = alarm.getPropagateRelationTypes();
+            Stream<EntityRelation> relationStream = relations.stream();
+            if (!CollectionUtils.isEmpty(propagateRelationTypes)) {
+                relationStream = relationStream.filter(entityRelation -> propagateRelationTypes.contains(entityRelation.getType()));
+            }
+            Set<EntityId> parents = relationStream.map(EntityRelation::getFrom).collect(Collectors.toSet());
             for (EntityId parentId : parents) {
                 updateAlarmRelation(alarm.getTenantId(), parentId, alarm.getId(), oldStatus, newStatus);
             }

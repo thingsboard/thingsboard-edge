@@ -1003,6 +1003,23 @@
         "role-name-starts-with": "Ролі, назви яких починаються з '{{prefix}}'",
         "type-group-permission": "Групові дозволи"
     },
+    "entity-field": {
+        "created-time": "Час створення",
+        "name": "Ім'я",
+        "type": "Тип",
+        "first-name": "Ім'я",
+        "last-name": "Прізвище",
+        "email": "Електронна пошта",
+        "title": "Назва",
+        "country": "Країна",
+        "state": "Штат",
+        "city": "Місто",
+        "address": "Адреса",
+        "address2": "Адреса 2",
+        "zip": "Zip",
+        "phone": "Телефон",
+        "label": "Мітка"
+    },
     "entity-group": {
         "entity-group": "Група сутності",
         "details": "Деталі",
