@@ -89,6 +89,11 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                         prefix = scope.filter.entityGroupNameFilter;
                         scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].groupNameStartsWith, {prefix: prefix});
                         break;
+                    case types.aliasFilterType.entitiesByGroupName.value:
+                        entityType = scope.filter.groupType;
+                        prefix = scope.filter.entityGroupNameFilter;
+                        scope.filterDisplayValue = $translate.instant(types.entityTypeTranslations[entityType].group) + ": " + prefix;
+                        break;
                     case types.aliasFilterType.stateEntity.value:
                         scope.filterDisplayValue = $translate.instant('alias.filter-type-state-entity-description');
                         break;

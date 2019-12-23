@@ -203,6 +203,7 @@
         "filter-type-entity-name": "Назва сутності",
         "filter-type-entity-group-list": "Список груп сутностей",
         "filter-type-entity-group-name": "Назва групи сутностей",
+        "filter-type-entities-by-group-name": "Сутності за назвою групи",
         "filter-type-state-entity": "Сутність з стану панелі пристроїв",
         "filter-type-state-entity-description": "Сутність, взята з параметрів стану панелі пристроїв",
         "filter-type-state-entity-owner": "Власник сутності з стану панелі пристроїв",
@@ -1153,7 +1154,8 @@
         "make-private-entity-group-title": "Ви впевнені, що бажаєте зробити групу сутностей '{{entityGroupName}}' приватною?",
         "make-private-entity-group-text": "Після підтвердження група сутностей і всі її сутності стануть приватними та не будуть доступні для інших користувачів.",
         "copyId": "Копіювати Id групи сутностей",
-        "idCopiedMessage": "Id групи сутностей було скопійовано в буфер обміну"
+        "idCopiedMessage": "Id групи сутностей було скопійовано в буфер обміну",
+        "entity-group-name": "Ім'я групи сутностей"
     },
     "entity-view": {
         "entity-view": "Представлення сутності",

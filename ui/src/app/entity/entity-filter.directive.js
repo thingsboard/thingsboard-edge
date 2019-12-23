@@ -99,6 +99,12 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     filter.groupType = null;
                     filter.entityGroupNameFilter = '';
                     break;
+                case types.aliasFilterType.entitiesByGroupName.value:
+                    filter.groupStateEntity = false;
+                    filter.stateEntityParamName = null;
+                    filter.groupType = null;
+                    filter.entityGroupNameFilter = '';
+                    break;
                 case types.aliasFilterType.stateEntity.value:
                 case types.aliasFilterType.stateEntityOwner.value:
                     filter.stateEntityParamName = null;
