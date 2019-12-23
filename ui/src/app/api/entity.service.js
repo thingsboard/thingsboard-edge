@@ -1130,7 +1130,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.entitiesByGroupName.value:
                 return true;
             case types.aliasFilterType.stateEntity.value:
-            case types.aliasFilterType.stateOwner.value:
+            case types.aliasFilterType.stateEntityOwner.value:
                 return true;
             case types.aliasFilterType.assetType.value:
                 return entityType === types.entityType.asset;
