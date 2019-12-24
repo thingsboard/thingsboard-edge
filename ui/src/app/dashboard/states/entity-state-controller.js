@@ -205,6 +205,9 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
                 }).then(
                     function success(entity) {
                         params.entityName = entity.name;
+                        if (params.entityId.entityType === types.entityType.entityGroup) {
+                            params.entityGroupType = entity.type;
+                        }
                         deferred.resolve();
                     },
                     function fail() {
@@ -219,6 +222,9 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
     }
 
     function isEntityResolved(params) {
+        if (params.entityId.entityType === types.entityType.entityGroup && !params.entityGroupType) {
+            return false;
+        }
         if (!params.entityName || !params.entityName.length) {
             return false;
         }
