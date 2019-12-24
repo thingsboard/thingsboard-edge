@@ -59,8 +59,7 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
     function openState(id, params, openRightLayout) {
         if (vm.states && vm.states[id]) {
             resolveEntity(params).then(
-                function success(entityName) {
-                    params.entityName = entityName;
+                function success() {
                     var newState = {
                         id: id,
                         params: params
@@ -81,8 +80,7 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
         }
         if (vm.states && vm.states[id]) {
             resolveEntity(params).then(
-                function success(entityName) {
-                    params.entityName = entityName;
+                function success() {
                     var newState = {
                         id: id,
                         params: params
@@ -198,16 +196,16 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
             params = params[params.targetEntityParamName];
         }
         if (params && params.entityId && params.entityId.id && params.entityId.entityType) {
-            if (params.entityName && params.entityName.length) {
-                deferred.resolve(params.entityName);
+            if (isEntityResolved(params)) {
+                deferred.resolve();
             } else {
                 entityService.getEntity(params.entityId.entityType, params.entityId.id, {
                     ignoreLoading: true,
                     ignoreErrors: true
                 }).then(
                     function success(entity) {
-                        var entityName = entity.name;
-                        deferred.resolve(entityName);
+                        params.entityName = entity.name;
+                        deferred.resolve();
                     },
                     function fail() {
                         deferred.reject();
@@ -215,9 +213,16 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
                 );
             }
         } else {
-            deferred.resolve('');
+            deferred.resolve();
         }
         return deferred.promise;
+    }
+
+    function isEntityResolved(params) {
+        if (!params.entityName || !params.entityName.length) {
+            return false;
+        }
+        return true;
     }
 
     function parseState(stateBase64) {
