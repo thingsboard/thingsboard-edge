@@ -1073,7 +1073,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 case types.aliasFilterType.entitiesByGroupName.value:
                     return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
                 case types.aliasFilterType.stateEntity.value:
-                case types.aliasFilterType.stateOwner.value:
+                case types.aliasFilterType.stateEntityOwner.value:
                     return true;
                 case types.aliasFilterType.assetType.value:
                     return entityTypes.indexOf(types.entityType.asset)  > -1 ? true : false;
