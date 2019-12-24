@@ -351,6 +351,16 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 new DeviceViewFunction());
     }
 
+    @Override
+    public ListenableFuture<TimePageData<Device>> findDeviceEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findDeviceEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new DeviceId(entityId.getId()),
+                (entityIds) -> findDevicesByTenantIdAndIdsAsync(tenantId, entityIds));
+    }
+
     class DeviceViewFunction implements BiFunction<Device, List<EntityField>, ShortEntityView> {
 
         @Override

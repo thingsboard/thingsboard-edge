@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -84,6 +85,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -590,6 +592,35 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entities.forEach(entity -> views.add(toEntityView(tenantId, entity, columnsInfo, transformFunction)));
                 TimePageData<ShortEntityView> result = new TimePageData<>(ids, views, pageLink);
                 result.getData().removeIf(ShortEntityView::isSkipEntity);
+                return result;
+            });
+        });
+    }
+
+    @Override
+    public <E extends HasId<I>, I extends EntityId> ListenableFuture<TimePageData<E>>
+    findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
+                 Function<EntityId, I> toIdFunction,
+                 Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction) {
+        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
+        if (entityGroup == null) {
+            throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
+        }
+        ListenableFuture<List<EntityId>> entityIdsFuture = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
+        return Futures.transformAsync(entityIdsFuture, entityIds -> {
+            ListenableFuture<List<E>> entitiesFuture;
+            List<I> ids = new ArrayList<>();
+            if (entityIds != null) {
+                entityIds.forEach(entityId -> ids.add(toIdFunction.apply(entityId)));
+            }
+            entitiesFuture = !ids.isEmpty() ? toEntitiesFunction.apply(ids) : Futures.immediateFuture(Collections.emptyList());
+
+            return Futures.transform(entitiesFuture, entities -> {
+                entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
+                TimePageData<E> result = new TimePageData<>(ids, entities, pageLink);
                 return result;
             });
         });
