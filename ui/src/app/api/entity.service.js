@@ -715,13 +715,16 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
 
     function getStateEntityInfo(filter, stateParams) {
         var entityId = null;
+        var entityGroupType = null;
         if (stateParams) {
             if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
                 if (stateParams[filter.stateEntityParamName]) {
                     entityId = stateParams[filter.stateEntityParamName].entityId;
+                    entityGroupType = stateParams[filter.stateEntityParamName].entityGroupType;
                 }
             } else {
                 entityId = stateParams.entityId;
+                entityGroupType = stateParams.entityGroupType;
             }
         }
         if (!entityId) {
@@ -729,7 +732,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityId = {
                     entityType: types.entityType.entityGroup,
                     id: filter.defaultStateEntityGroup
-                }
+                };
+                entityGroupType = filter.defaultStateGroupType;
             } else {
                 entityId = filter.defaultStateEntity;
             }
@@ -738,7 +742,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             entityId = resolveAliasEntityId(entityId.entityType, entityId.id);
         }
         return {
-            entityId: entityId
+            entityId: entityId,
+            entityGroupType: entityGroupType
         };
     }
 
@@ -753,6 +758,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         }
         var stateEntityInfo = getStateEntityInfo(filter, stateParams);
         var stateEntityId = stateEntityInfo.entityId;
+        var stateEntityGroupType = stateEntityInfo.entityGroupType;
         switch (filter.type) {
             case types.aliasFilterType.singleEntity.value:
                 var aliasEntityId = resolveAliasEntityId(filter.singleEntity.entityType, filter.singleEntity.id);
