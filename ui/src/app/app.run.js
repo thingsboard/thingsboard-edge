@@ -286,13 +286,11 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         if (permissionDeniedDialog === null) {
             $translate(['access.permission-denied',
                 'access.permission-denied-text',
-                'access.permission-denied',
                 'action.close']).then(function (translations) {
                 if (permissionDeniedDialog === null) {
                     permissionDeniedDialog = $mdDialog.alert()
                         .title(translations['access.permission-denied'])
                         .htmlContent(translations['access.permission-denied-text'])
-                        .ariaLabel(translations['access.permission-denied'])
                         .ok(translations['action.close']);
                     $mdDialog.show(permissionDeniedDialog).then(function () {
                         permissionDeniedDialog = null;
