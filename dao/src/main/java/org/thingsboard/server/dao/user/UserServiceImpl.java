@@ -309,6 +309,16 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                 new UserViewFunction());
     }
 
+    @Override
+    public ListenableFuture<TimePageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findUserEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new UserId(entityId.getId()),
+                (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds));
+    }
+
     class UserViewFunction implements BiFunction<User, List<EntityField>, ShortEntityView> {
 
         @Override

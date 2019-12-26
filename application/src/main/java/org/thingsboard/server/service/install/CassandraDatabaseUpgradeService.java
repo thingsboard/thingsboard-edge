@@ -291,14 +291,27 @@ public class CassandraDatabaseUpgradeService implements DatabaseUpgradeService {
                 log.info("Updating schema ...");
                 String updateAssetTableStmt = "alter table asset add label text";
                 try {
+                    log.info("Updating assets ...");
                     cluster.getSession().execute(updateAssetTableStmt);
                     Thread.sleep(2500);
+                    log.info("Assets updated.");
                 } catch (InvalidQueryException e) {}
                 log.info("Schema updated.");
                 break;
             case "2.4.2":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.2pe", SCHEMA_UPDATE_CQL);
+                String updateAlarmTableStmt = "alter table alarm add propagate_relation_types text";
+                try {
+                    log.info("Updating alarms ...");
+                    cluster.getSession().execute(updateAlarmTableStmt);
+                    Thread.sleep(2500);
+                    log.info("Alarms updated.");
+                } catch (InvalidQueryException e) {}
+                log.info("Schema updated.");
+                break;
+            case "2.4.3":
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.3pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";

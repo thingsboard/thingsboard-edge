@@ -70,9 +70,30 @@
             </div>
         </md-input-container>
         <md-checkbox ng-disabled="$root.loading || !isEdit" aria-label="{{ 'integration.enable-ssl' | translate }}"
-                     ng-model="configuration.clientConfiguration.autoCreateTopics">
+                     ng-model="configuration.clientConfiguration.autoCreateTopics" style="margin-bottom: 32px;">
             {{ 'integration.auto-create-topics' | translate }}
+            <span translate>integration.auto-create-topics</span>
         </md-checkbox>
+        <md-expansion-panel-group class="tb-integration-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="otherPropertiesPanelGroup">
+            <md-expansion-panel md-component-id="{{otherPropertiesPanelId}}">
+                <md-expansion-panel-collapsed>
+                    <div class="tb-panel-title" translate>integration.other-properties</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-collapsed>
+                <md-expansion-panel-expanded>
+                    <md-expansion-panel-header ng-click="$mdExpansionPanel(otherPropertiesPanelId).collapse()">
+                        <div class="tb-panel-title" translate>integration.other-properties</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-header>
+                    <md-expansion-panel-content>
+                        <tb-key-val-map title-text="{{'integration.other-properties' | translate}}" ng-disabled="$root.loading || !isEdit"
+                                        key-val-map="configuration.clientConfiguration.otherProperties"></tb-key-val-map>
+                    </md-expansion-panel-content>
+                </md-expansion-panel-expanded>
+            </md-expansion-panel>
+        </md-expansion-panel-group>
     </fieldset>
     <div style="height: 30px;"></div>
 </section>

@@ -252,6 +252,16 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 new DashboardViewFunction());
     }
 
+    @Override
+    public ListenableFuture<TimePageData<DashboardInfo>> findDashboardEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findDashboardEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new DashboardId(entityId.getId()),
+                (entityIds) -> findDashboardInfoByIdsAsync(tenantId, entityIds));
+    }
+
     class DashboardViewFunction implements BiFunction<DashboardInfo, List<EntityField>, ShortEntityView> {
 
         @Override

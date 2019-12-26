@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
@@ -115,7 +116,7 @@ public class RemoteTransportService extends AbstractTransportService {
     private TBKafkaProducerTemplate<ToRuleEngineMsg> ruleEngineProducer;
     private TBKafkaConsumerTemplate<ToTransportMsg> mainConsumer;
 
-    private ExecutorService mainConsumerExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService mainConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-transport-consumer"));
 
     private volatile boolean stopped = false;
 

@@ -113,6 +113,9 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, configuration.getAutoCreateTopics());
+        if (configuration.getOtherProperties() != null) {
+            configuration.getOtherProperties().forEach(properties::put);
+        }
         kafkaConsumer = new KafkaConsumer<>(properties);
         kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
 

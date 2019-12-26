@@ -326,6 +326,16 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                 new CustomerViewFunction());
     }
 
+    @Override
+    public ListenableFuture<TimePageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findCustomerEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new CustomerId(entityId.getId()),
+                (entityIds) -> findCustomersByTenantIdAndIdsAsync(tenantId, entityIds));
+    }
+
     class CustomerViewFunction implements BiFunction<Customer, List<EntityField>, ShortEntityView> {
 
         @Override
