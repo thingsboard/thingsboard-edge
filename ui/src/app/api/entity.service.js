@@ -117,6 +117,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.role:
                 promise = roleService.getRole(entityId, true, config);
                 break;
+            case types.entityType.entityGroup:
+                promise = entityGroupService.getEntityGroup(entityId, true, config);
+                break;
         }
         return promise;
     }
@@ -520,15 +523,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred) {
-        var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config);
+    function getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred, entityGroupType) {
+        var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config, entityGroupType);
         if (promise) {
             promise.then(
                 function success(result) {
                     data = data.concat(result.data);
                     if (result.hasNext) {
                         pageLink = result.nextPageLink;
-                        getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred);
+                        getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred, entityGroupType);
                     } else {
                         if (data && data.length > 0) {
                             deferred.resolve(data);
@@ -546,15 +549,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         }
     }
 
-    function getEntityGroupEntities(entityGroupId, limit, config) {
+    function getEntityGroupEntities(entityGroupId, limit, config, entityGroupType) {
         var deferred = $q.defer();
         var pageLink = {limit: limit};
         if (limit == -1) { // all
             var data = [];
             pageLink.limit = 100;
-            getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred);
+            getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred, entityGroupType);
         } else {
-            var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config);
+            var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config, entityGroupType);
             if (promise) {
                 promise.then(
                     function success(result) {
@@ -607,7 +610,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         }, function fail() {
             deferred.resolve(null);
         }).then(function (groupId) {
-            getEntityGroupEntities(groupId, limit, config).then(
+            getEntityGroupEntities(groupId, limit, config, entityType).then(
                 function success(result) {
                     deferred.resolve(result);
                 }, function fail() {
@@ -774,13 +777,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.aliasFilterType.entityGroup.value:
                 result.stateEntity = filter.groupStateEntity;
-                var entityGroup;
+                var entityGroup, entityType;
                 if (result.stateEntity && stateEntityId) {
                     entityGroup = stateEntityId.id;
+                    entityType = stateEntityGroupType;
                 } else if (!result.stateEntity) {
                     entityGroup = filter.entityGroup;
+                    entityType = filter.groupType;
                 }
-                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true, ignoreErrors: true}).then(
+                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true, ignoreErrors: true}, entityType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
