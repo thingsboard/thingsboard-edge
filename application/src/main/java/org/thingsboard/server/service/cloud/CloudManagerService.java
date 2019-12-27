@@ -39,35 +39,49 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
@@ -81,6 +95,7 @@ import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleNodeProto;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
+import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.storage.EventStorage;
 
@@ -121,6 +136,9 @@ public class CloudManagerService {
     private RuleChainService ruleChainService;
 
     @Autowired
+    private DashboardService dashboardService;
+
+    @Autowired
     private TenantService tenantService;
 
     @Autowired
@@ -137,6 +155,15 @@ public class CloudManagerService {
 
     @Autowired
     private AlarmService alarmService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
+
+    @Autowired
+    private CustomerService customerService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private ActorService actorService;
@@ -234,26 +261,32 @@ public class CloudManagerService {
 
     private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
         if (entityUpdateMsg.hasDeviceUpdateMsg()) {
-            log.debug("Device update message received {}", entityUpdateMsg.getDeviceUpdateMsg());
+            log.debug("Device update message received [{}]", entityUpdateMsg.getDeviceUpdateMsg());
             onDeviceUpdate(entityUpdateMsg.getDeviceUpdateMsg());
         } else if (entityUpdateMsg.hasAssetUpdateMsg()) {
-            log.debug("Asset update message received {}", entityUpdateMsg.getAssetUpdateMsg());
+            log.debug("Asset update message received [{}]", entityUpdateMsg.getAssetUpdateMsg());
             onAssetUpdate(entityUpdateMsg.getAssetUpdateMsg());
         } else if (entityUpdateMsg.hasEntityViewUpdateMsg()) {
-            log.debug("EntityView update message received {}", entityUpdateMsg.getEntityViewUpdateMsg());
+            log.debug("EntityView update message received [{}]", entityUpdateMsg.getEntityViewUpdateMsg());
             onEntityViewUpdate(entityUpdateMsg.getEntityViewUpdateMsg());
         } else if (entityUpdateMsg.hasRuleChainUpdateMsg()) {
-            log.debug("Rule Chain udpate message received {}", entityUpdateMsg.getRuleChainUpdateMsg());
+            log.debug("Rule Chain udpate message received [{}]", entityUpdateMsg.getRuleChainUpdateMsg());
             onRuleChainUpdate(entityUpdateMsg.getRuleChainUpdateMsg());
         } else if (entityUpdateMsg.hasRuleChainMetadataUpdateMsg()) {
-            log.debug("Rule Chain Metadata udpate message received {}", entityUpdateMsg.getRuleChainMetadataUpdateMsg());
+            log.debug("Rule Chain Metadata udpate message received [{}]", entityUpdateMsg.getRuleChainMetadataUpdateMsg());
             onRuleChainMetadataUpdate(entityUpdateMsg.getRuleChainMetadataUpdateMsg());
         } else if (entityUpdateMsg.hasDashboardUpdateMsg()) {
-            log.debug("Dashboard message received {}", entityUpdateMsg.getDashboardUpdateMsg());
+            log.debug("Dashboard message received [{}]", entityUpdateMsg.getDashboardUpdateMsg());
             onDashboardUpdate(entityUpdateMsg.getDashboardUpdateMsg());
         } else if (entityUpdateMsg.hasAlarmUpdateMsg()) {
-            log.debug("Alarm message received {}", entityUpdateMsg.getAlarmUpdateMsg());
+            log.debug("Alarm message received [{}]", entityUpdateMsg.getAlarmUpdateMsg());
             onAlarmUpdate(entityUpdateMsg.getAlarmUpdateMsg());
+        } else if (entityUpdateMsg.hasCustomerUpdateMsg()) {
+            log.debug("Customer message received [{}]", entityUpdateMsg.getCustomerUpdateMsg());
+            onCustomerUpdate(entityUpdateMsg.getCustomerUpdateMsg());
+        } else if (entityUpdateMsg.hasUserUpdateMsg()) {
+            log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
+            onUserUpdate(entityUpdateMsg.getUserUpdateMsg());
         }
     }
 
@@ -362,6 +395,32 @@ public class CloudManagerService {
 
     private void onDashboardUpdate(DashboardUpdateMsg dashboardUpdateMsg) {
         log.info("DashboardUpdateMsg {}", dashboardUpdateMsg);
+        DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
+        switch (dashboardUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                boolean created = false;
+                Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+                if (dashboard == null) {
+                    created = true;
+                    dashboard = new Dashboard();
+                    dashboard.setId(dashboardId);
+                    dashboard.setTenantId(tenantId);
+
+                }
+                dashboard.setTitle(dashboardUpdateMsg.getTitle());
+                dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+                Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
+                if (created) {
+                    entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                dashboardService.deleteDashboard(tenantId, dashboardId);
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
     }
 
     private void onRuleChainUpdate(RuleChainUpdateMsg ruleChainUpdateMsg) {
@@ -497,6 +556,86 @@ public class CloudManagerService {
             } catch (Exception e) {
                 log.error("Error during on alarm update msg", e);
             }
+        }
+    }
+
+    private void onCustomerUpdate(CustomerUpdateMsg customerUpdateMsg) {
+        CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
+        switch (customerUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                boolean created = false;
+                Customer customer = customerService.findCustomerById(tenantId, customerId);
+                if (customer == null) {
+                    created = true;
+                    customer = new Customer();
+                    customer.setId(customerId);
+                    customer.setTenantId(tenantId);
+                }
+                customer.setTitle(customerUpdateMsg.getTitle());
+                customer.setCountry(customerUpdateMsg.getCountry());
+                customer.setState(customerUpdateMsg.getState());
+                customer.setCity(customerUpdateMsg.getCity());
+                customer.setAddress(customerUpdateMsg.getAddress());
+                customer.setAddress2(customerUpdateMsg.getAddress2());
+                customer.setZip(customerUpdateMsg.getZip());
+                customer.setPhone(customerUpdateMsg.getPhone());
+                customer.setEmail(customerUpdateMsg.getEmail());
+                customer.setAdditionalInfo(JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()));
+                Customer savedCustomer = customerService.saveCustomer(customer);
+
+                if (created) {
+                    entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                customerService.deleteCustomer(tenantId, customerId);
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
+    }
+
+    private void onUserUpdate(UserUpdateMsg userUpdateMsg) {
+        UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
+        switch (userUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                boolean created = false;
+                User user = userService.findUserById(tenantId, userId);
+                if (user == null) {
+                    created = true;
+                    user = new User();
+                    user.setId(userId);
+                    user.setTenantId(tenantId);
+                    CustomerId customerId = new CustomerId(new UUID(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB()));
+                    user.setCustomerId(customerId);
+                }
+                user.setEmail(userUpdateMsg.getEmail());
+                user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
+                user.setFirstName(userUpdateMsg.getFirstName());
+                user.setLastName(userUpdateMsg.getLastName());
+                user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
+                User savedUser = userService.saveUser(user);
+
+                if (created) {
+                    entityGroupService.addEntityToEntityGroupAll(savedUser.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
+                }
+
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
+                if (created) {
+                    userCredentials = new UserCredentials();
+                    userCredentials.setUserId(savedUser.getId());
+                }
+                userCredentials.setEnabled(userUpdateMsg.getEnabled());
+                userCredentials.setPassword(userUpdateMsg.getPassword());
+                userService.saveUserCredentials(tenantId, userCredentials);
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                userService.deleteUser(tenantId, userId);
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
         }
     }
 
