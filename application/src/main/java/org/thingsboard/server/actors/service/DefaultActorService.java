@@ -110,8 +110,6 @@ public class DefaultActorService implements ActorService {
 
     private ActorRef rpcManagerActor;
 
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
     @PostConstruct
     public void initActorSystem() {
         log.info("Initializing Actor system.");

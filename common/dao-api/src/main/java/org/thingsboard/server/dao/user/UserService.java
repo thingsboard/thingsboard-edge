@@ -91,6 +91,8 @@ public interface UserService {
 
 	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
+    ListenableFuture<TimePageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+
 	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
 	void onUserLoginSuccessful(TenantId tenantId, UserId userId);

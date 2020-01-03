@@ -347,7 +347,8 @@ export default class Subscription {
 
             for (var a = 0; a < datasource.dataKeys.length; a++) {
                 var dataKey = datasource.dataKeys[a];
-                dataKey.hidden = false;
+                dataKey.hidden = dataKey.settings.hideDataByDefault ? true : false;
+                dataKey.inLegend = dataKey.settings.removeFromLegend ? false : true;
                 dataKey.label = this.ctx.utils.customTranslation(dataKey.label,dataKey.label);
                 dataKey.pattern = angular.copy(dataKey.label);
 
@@ -365,6 +366,11 @@ export default class Subscription {
                     dataKey: dataKey,
                     data: []
                 };
+                if (dataKey.type === this.ctx.types.dataKeyType.entityField) {
+                    if(datasource.entity && datasource.entity[this.ctx.types.entityField[dataKey.name].value]){
+                        datasourceData.data.push([Date.now(), datasource.entity[this.ctx.types.entityField[dataKey.name].value]]);
+                    }
+                }
                 this.data.push(datasourceData);
                 this.hiddenData.push({data: []});
                 if (this.displayLegend) {
@@ -893,8 +899,14 @@ export default class Subscription {
                     };
                 }
 
+                var entityFieldKey = false;
+
                 for (var a = 0; a < datasource.dataKeys.length; a++) {
-                    this.data[index + a].data = [];
+                    if (datasource.dataKeys[a].type !== this.ctx.types.dataKeyType.entityField) {
+                        this.data[index + a].data = [];
+                    } else {
+                        entityFieldKey = true;
+                    }
                 }
 
                 index += datasource.dataKeys.length;
@@ -906,7 +918,7 @@ export default class Subscription {
                 }
 
                 var forceUpdate = false;
-                if (datasource.unresolvedStateEntity ||
+                if (datasource.unresolvedStateEntity || entityFieldKey ||
                     !datasource.dataKeys.length ||
                     (datasource.type === this.ctx.types.datasourceType.entity && !datasource.entityId)
                 ) {

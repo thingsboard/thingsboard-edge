@@ -28,35 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql;
+package org.thingsboard.js.api;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import com.google.common.util.concurrent.FutureCallback;
+import lombok.AllArgsConstructor;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
-public class ScheduledLogExecutorComponent {
+@AllArgsConstructor
+public class JsStatCallback<T> implements FutureCallback<T> {
 
-    private ScheduledExecutorService schedulerLogExecutor;
+    private final AtomicInteger jsSuccessMsgs;
+    private final AtomicInteger jsTimeoutMsgs;
+    private final AtomicInteger jsFailedMsgs;
 
-    @PostConstruct
-    public void init() {
-        schedulerLogExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("sql-log"));
+
+    @Override
+    public void onSuccess(T result) {
+        jsSuccessMsgs.incrementAndGet();
     }
 
-    @PreDestroy
-    public void stop() {
-        if (schedulerLogExecutor != null) {
-            schedulerLogExecutor.shutdownNow();
+    @Override
+    public void onFailure(Throwable t) {
+        if (t instanceof TimeoutException || (t.getCause() != null && t.getCause() instanceof TimeoutException)) {
+            jsTimeoutMsgs.incrementAndGet();
+        } else {
+            jsFailedMsgs.incrementAndGet();
         }
-    }
-
-    public void scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        schedulerLogExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
     }
 }

@@ -166,6 +166,40 @@
             </div>
         </md-input-container>
     </section>
+    <section flex layout="column" ng-if="filter.type == types.aliasFilterType.entitiesByGroupName.value" id="entityGroupByNameFilter">
+        <section class="tb-root-state-entity-switch" layout="row" layout-align="start center" style="padding-left: 0;">
+            <md-switch class="root-state-entity-switch" ng-model="filter.groupStateEntity"
+                       aria-label="{{ 'alias.group-state-entity' | translate }}">
+            </md-switch>
+            <label class="tb-small root-state-entity-label" translate>alias.group-state-entity</label>
+        </section>
+        <div flex layout="column" style="margin-top: 16px;">
+            <md-input-container ng-if="filter.groupStateEntity" class="md-block" style="margin-bottom: 0;">
+                <label translate>alias.state-entity-parameter-name</label>
+                <input name="stateEntityParamName"
+                       placeholder="{{ 'alias.default-entity-parameter-name' | translate }}"
+                       ng-model="filter.stateEntityParamName"
+                       aria-label="{{ 'alias.state-entity-parameter-name' | translate }}">
+            </md-input-container>
+            <div flex layout="row">
+                <tb-entity-type-select
+                        ng-model="filter.groupType"
+                        the-form="theForm"
+                        tb-required="true"
+                        allowed-entity-types="entityGroupTypes">
+                </tb-entity-type-select>
+                <md-input-container flex class="md-block">
+                    <label translate>entity-group.entity-group-name</label>
+                    <input required name="entityGroupNameFilter"
+                           ng-model="filter.entityGroupNameFilter"
+                           aria-label="{{ 'entity-group.entity-group-name' | translate }}">
+                    <div ng-messages="theForm.entityGroupNameFilter.$error">
+                        <div ng-message="required" translate>entity-group.entity-group-name-filter-required</div>
+                    </div>
+                </md-input-container>
+            </div>
+        </div>
+    </section>
     <section layout="column" ng-if="filter.type == types.aliasFilterType.stateEntity.value || filter.type == types.aliasFilterType.stateEntityOwner.value " id="stateEntityFilter">
         <md-input-container class="md-block">
             <label translate>alias.state-entity-parameter-name</label>

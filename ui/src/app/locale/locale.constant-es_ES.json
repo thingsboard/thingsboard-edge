@@ -1040,6 +1040,22 @@
         "name-starts-with": "El nombre de la entidad de grupo comienza con",
         "entity-group-name-filter-required": "Nombre de filtro para entidad de grupo es requerido."
     },
+    "entity-field": {
+        "created-time": "Tiempo de creación",
+        "name": "Nombre",
+        "type": "Tipo",
+        "first-name": "Nombre",
+        "last-name": "Apellido",
+        "email": "Correo electrónico",
+        "title": "Título",
+        "country": "País",
+        "state": "Estado",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "address2": "Dirección 2",
+        "zip": "Código postal",
+        "phone": "Teléfono"
+    },
     "entity-view": {
         "entity-view": "Vista de entidad",
         "entity-view-required": "Vista de entidad es requerido.",

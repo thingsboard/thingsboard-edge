@@ -296,6 +296,9 @@ function TimeService($translate, $http, $q, types) {
 
 
         var historyTimewindow = {
+            hideInterval: timewindow.hideInterval || false,
+            hideAggregation: timewindow.hideAggregation || false,
+            hideAggInterval: timewindow.hideAggInterval || false,
             history: {
                 fixedTimewindow: {
                     startTimeMs: startTimeMs,

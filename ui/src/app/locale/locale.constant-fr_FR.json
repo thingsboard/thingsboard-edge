@@ -1147,6 +1147,22 @@
         "user-group": "Groupe d'utilisateurs",
         "user-groups": "Groupes d'utilisateurs"
     },
+    "entity-field": {
+        "address": "Adresse",
+        "address2": "Adresse 2",
+        "city": "Ville",
+        "country": "Pays",
+        "created-time": "Heure de création",
+        "email": "Email",
+        "first-name": "Prénom",
+        "last-name": "Nom de famille",
+        "name": "Nom",
+        "phone": "Téléphone",
+        "state": "Prov",
+        "title": "Titre",
+        "type": "Type",
+        "zip": "Code postal"
+    },
     "entity-view": {
         "group": "Groupe de vues d'entités",
         "group-name-starts-with": "Groupes de vues d'entités dont le nom commence par '{{prefix}}'",
@@ -2380,7 +2396,7 @@
         "export-data": "Exporter les données du widget",
         "export-to-csv": "Exporter les données au format CSV...",
         "export-to-excel": "Exporter les données au format XLS...",
-        "export-to-excel-xlsx": "Exporter les données au format XLS..."
+        "export-to-excel-xlsx": "Exporter les données au format XLS...",
         "html": "HTML",
         "javascript": "Javascript",
         "latest-values": "Dernières valeurs",

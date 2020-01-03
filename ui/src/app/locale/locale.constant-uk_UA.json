@@ -203,6 +203,7 @@
         "filter-type-entity-name": "Назва сутності",
         "filter-type-entity-group-list": "Список груп сутностей",
         "filter-type-entity-group-name": "Назва групи сутностей",
+        "filter-type-entities-by-group-name": "Сутності за назвою групи",
         "filter-type-state-entity": "Сутність з стану панелі пристроїв",
         "filter-type-state-entity-description": "Сутність, взята з параметрів стану панелі пристроїв",
         "filter-type-state-entity-owner": "Власник сутності з стану панелі пристроїв",
@@ -741,6 +742,7 @@
         "configuration": "Конфігурація ключа даних",
         "timeseries": "Телеметрія",
         "attributes": "Атрибути",
+        "entity-field": "Поле сутності",
         "alarm": "Поля сигнала тривоги",
         "timeseries-required": "Необхідно вказати Телеметрія.",
         "timeseries-or-attributes-required": "Необхідно вказати телеметрію/атрибути.",
@@ -1003,6 +1005,23 @@
         "role-name-starts-with": "Ролі, назви яких починаються з '{{prefix}}'",
         "type-group-permission": "Групові дозволи"
     },
+    "entity-field": {
+        "created-time": "Час створення",
+        "name": "Ім'я",
+        "type": "Тип",
+        "first-name": "Ім'я",
+        "last-name": "Прізвище",
+        "email": "Електронна пошта",
+        "title": "Назва",
+        "country": "Країна",
+        "state": "Штат",
+        "city": "Місто",
+        "address": "Адреса",
+        "address2": "Адреса 2",
+        "zip": "Zip",
+        "phone": "Телефон",
+        "label": "Мітка"
+    },
     "entity-group": {
         "entity-group": "Група сутності",
         "details": "Деталі",
@@ -1136,7 +1155,8 @@
         "make-private-entity-group-title": "Ви впевнені, що бажаєте зробити групу сутностей '{{entityGroupName}}' приватною?",
         "make-private-entity-group-text": "Після підтвердження група сутностей і всі її сутності стануть приватними та не будуть доступні для інших користувачів.",
         "copyId": "Копіювати Id групи сутностей",
-        "idCopiedMessage": "Id групи сутностей було скопійовано в буфер обміну"
+        "idCopiedMessage": "Id групи сутностей було скопійовано в буфер обміну",
+        "entity-group-name": "Ім'я групи сутностей"
     },
     "entity-view": {
         "entity-view": "Представлення сутності",

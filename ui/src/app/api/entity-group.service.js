@@ -317,9 +317,38 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         return deferred.promise;
     }
 
-    function getEntityGroupEntities(entityGroupId, pageLink, ascOrder, config) {
+    function getEntityGroupEntities(entityGroupId, pageLink, ascOrder, config, entityType) {
         var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/entities?limit=' + pageLink.limit;
+        var url = "";
+
+        if(entityType){
+            switch (entityType) {
+                case types.entityType.asset:
+                    url = '/api/entityGroup/' + entityGroupId + '/assets';
+                    break;
+                case types.entityType.customer:
+                    url = '/api/entityGroup/' + entityGroupId + '/customers';
+                    break;
+                case types.entityType.device:
+                    url = '/api/entityGroup/' + entityGroupId + '/devices';
+                    break;
+                case types.entityType.user:
+                    url = '/api/entityGroup/' + entityGroupId + '/users';
+                    break;
+                case types.entityType.entityView:
+                    url = '/api/entityGroup/' + entityGroupId + '/entityViews';
+                    break;
+                case types.entityType.dashboard:
+                    url = '/api/entityGroup/' + entityGroupId + '/dashboards';
+                    break;
+                default:
+                    url = '/api/entityGroup/' + entityGroupId + '/entities';
+            }
+        } else {
+            url = '/api/entityGroup/' + entityGroupId + '/entities';
+        }
+
+        url = url + '?limit=' + pageLink.limit;
 
         if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
             url += '&startTime=' + pageLink.startTime;

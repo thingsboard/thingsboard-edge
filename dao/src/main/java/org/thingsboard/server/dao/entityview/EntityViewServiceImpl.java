@@ -311,6 +311,16 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                 new EntityViewViewFunction());
     }
 
+    @Override
+    public ListenableFuture<TimePageData<EntityView>> findEntityViewEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findEntityViewEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new EntityViewId(entityId.getId()),
+                (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds));
+    }
+
     class EntityViewViewFunction implements BiFunction<EntityView, List<EntityField>, ShortEntityView> {
 
         @Override
