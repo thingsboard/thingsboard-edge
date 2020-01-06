@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,13 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.id;
+package org.thingsboard.server.common.data.group;
 
-import java.util.UUID;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 
-public class UserCredentialsId extends UUIDBased {
+import java.io.IOException;
 
-    public UserCredentialsId(UUID id){
-        super(id);
+@Slf4j
+public class ConfigurationDeserializer extends JsonDeserializer {
+
+    @Override
+    public JsonNode deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+        try {
+            JsonNode node = jsonParser.readValueAsTree();
+            if (node.isNull()) {
+                return null;
+            }
+            return node;
+        } catch (IOException e) {
+             log.trace("Failed to deserialize JSON content into equivalent tree model during creating EntityGroup!", e);
+             throw new RuntimeException("Failed to deserialize JSON content into equivalent tree model during creating EntityGroup!", e);
+        }
     }
 }

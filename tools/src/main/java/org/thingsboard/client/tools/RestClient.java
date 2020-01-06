@@ -80,6 +80,8 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -103,6 +105,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
@@ -121,6 +124,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
@@ -194,11 +198,11 @@ public class RestClient implements ClientHttpRequestInterceptor {
     }
 
     public Optional<Device> findDevice(String name) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("deviceName", name);
         try {
             ResponseEntity<Device> deviceEntity = restTemplate.getForEntity(baseURL + "/api/tenant/devices?deviceName={deviceName}", Device.class, params);
-            return Optional.of(deviceEntity.getBody());
+            return Optional.ofNullable(deviceEntity.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -213,7 +217,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("customerTitle", title);
         try {
             ResponseEntity<Customer> customerEntity = restTemplate.getForEntity(baseURL + "/api/tenant/customers?customerTitle={customerTitle}", Customer.class, params);
-            return Optional.of(customerEntity.getBody());
+            return Optional.ofNullable(customerEntity.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -228,7 +232,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("assetName", name);
         try {
             ResponseEntity<Asset> assetEntity = restTemplate.getForEntity(baseURL + "/api/tenant/assets?assetName={assetName}", Asset.class, params);
-            return Optional.of(assetEntity.getBody());
+            return Optional.ofNullable(assetEntity.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -245,7 +249,24 @@ public class RestClient implements ClientHttpRequestInterceptor {
         params.put("sharedKeys", sharedKeys);
         try {
             ResponseEntity<JsonNode> telemetryEntity = restTemplate.getForEntity(baseURL + "/api/v1/{accessToken}/attributes?clientKeys={clientKeys}&sharedKeys={sharedKeys}", JsonNode.class, params);
-            return Optional.of(telemetryEntity.getBody());
+            return Optional.ofNullable(telemetryEntity.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<JsonNode> getEntityAttributesByIdAndType(String entityType, String entityId, String keys) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityType", entityType);
+        params.put("entityId", entityId);
+        params.put("keys", keys);
+        try {
+            ResponseEntity<JsonNode> telemetryEntity = restTemplate.getForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/values/attributes?keys={keys}", JsonNode.class, params);
+            return Optional.ofNullable(telemetryEntity.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -283,8 +304,23 @@ public class RestClient implements ClientHttpRequestInterceptor {
         return doCreateDevice(device, null);
     }
 
-    public Device createDevice(Device device, String accessToken) {
-        return doCreateDevice(device, accessToken);
+    public Device createDevice(Device device, String accessToken) { return doCreateDevice(device, accessToken); }
+
+    public Device createDevice(String name, String type, String label) {
+        Device device = new Device();
+        device.setName(name);
+        device.setType(type);
+        device.setLabel(label);
+        return doCreateDevice(device, null);
+    }
+
+    public Device createDevice(String name, String type, String label, CustomerId customerId) {
+        Device device = new Device();
+        device.setName(name);
+        device.setType(type);
+        device.setLabel(label);
+        device.setCustomerId(customerId);
+        return doCreateDevice(device, null);
     }
 
     private Device doCreateDevice(Device device, String accessToken) {
@@ -296,6 +332,7 @@ public class RestClient implements ClientHttpRequestInterceptor {
         }
         return restTemplate.postForEntity(baseURL + deviceCreationUrl, device, Device.class, params).getBody();
     }
+
     public Asset createAsset(Asset asset) {
         return restTemplate.postForEntity(baseURL + "/api/asset", asset, Asset.class).getBody();
     }
@@ -726,6 +763,10 @@ public class RestClient implements ClientHttpRequestInterceptor {
         ObjectNode resetPasswordByEmailRequest = objectMapper.createObjectNode();
         resetPasswordByEmailRequest.put("email", email);
         restTemplate.exchange(URI.create(baseURL + "/api/noauth/resetPasswordByEmail"), HttpMethod.POST, new HttpEntity<>(resetPasswordByEmailRequest), Object.class);
+    }
+
+    public JsonNode activateUser(JsonNode activateRequest) {
+        return restTemplate.postForEntity(baseURL + "/api/noauth/activate/", activateRequest, JsonNode.class).getBody();
     }
 
     public Optional<JsonNode> activateUser(String userId, String password) {
@@ -1344,6 +1385,21 @@ public class RestClient implements ClientHttpRequestInterceptor {
             ResponseEntity<EntityGroupInfo> entityGroupInfo =
                     restTemplate.getForEntity(baseURL + "/api/entityGroup/all/{ownerType}/{ownerId}/{groupType}", EntityGroupInfo.class, ownerType, ownerId, entityType.name());
             return Optional.ofNullable(entityGroupInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<EntityGroupInfo> getEntityGroupInfoByOwnerAndNameAndType(String ownerType, String ownerId, String groupType, String groupName) {
+        try {
+            EntityGroupInfo entity = restTemplate.getForEntity(baseURL + "/api/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}"
+                    , EntityGroupInfo.class, ownerType, ownerId, groupType, groupName
+            ).getBody();
+            return Optional.ofNullable(entity);
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -1981,6 +2037,25 @@ public class RestClient implements ClientHttpRequestInterceptor {
         ).getBody();
     }
 
+    public Optional<TextPageData<RuleChain>> getRuleChains(int limit, UUID idOffset, String textOffset, String textSearch) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", limit);
+        params.put("textSearch", textSearch);
+        params.put("idOffset", idOffset);
+        params.put("textOffset", textOffset);
+        try {
+            ResponseEntity<TextPageData<RuleChain>> responseEntity = restTemplate.exchange(baseURL + "/api/ruleChains?limit={limit}&idOffset={idOffset}&textOffset={textOffset}&textSearch={textSearch}", HttpMethod.GET, null, new ParameterizedTypeReference<TextPageData<RuleChain>>() {
+            }, params);
+            return Optional.ofNullable(responseEntity.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public void deleteRuleChain(String ruleChainId) {
         restTemplate.delete(baseURL + "/api/ruleChain/{ruleChainId}", ruleChainId);
     }
@@ -2261,6 +2336,22 @@ public class RestClient implements ClientHttpRequestInterceptor {
                 keys).getBody();
     }
 
+    public Optional<JsonNode> getLatestTimeseriesAsOptionalJson(String entityType, String entityId, String keys) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityType", entityType);
+        params.put("entityId", entityId);
+        params.put("keys", keys);
+        try {
+            ResponseEntity<JsonNode> currentUserResponceEntity = restTemplate.getForEntity(baseURL + "/api/plugins/telemetry/{entityType}/{entityId}/values/timeseries?keys={keys}", JsonNode.class, params);
+            return Optional.ofNullable(currentUserResponceEntity.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
 
     public DeferredResult<ResponseEntity> getTimeseries(String entityType, String entityId, String keys, Long startTs, Long endTs, Long interval, Integer limit, String agg) {
         Map<String, String> params = new HashMap<>();
