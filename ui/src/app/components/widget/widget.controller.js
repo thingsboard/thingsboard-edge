@@ -168,7 +168,8 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
             var entityInfo = getActiveEntityInfo();
             var entityId = entityInfo ? entityInfo.entityId : null;
             var entityName = entityInfo ? entityInfo.entityName : null;
-            handleWidgetAction($event, this.descriptor, entityId, entityName);
+            var entityLabel = entityInfo && entityInfo.label ? entityInfo.label : null;
+            handleWidgetAction($event, this.descriptor, entityId, entityName, null, entityLabel);
         }
         widgetContext.customHeaderActions.push(headerAction);
     }
@@ -474,14 +475,15 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
                         var entityInfo = getActiveEntityInfo();
                         var entityId = entityInfo ? entityInfo.entityId : null;
                         var entityName = entityInfo ? entityInfo.entityName : null;
-                        handleWidgetAction(event, descriptors[i], entityId, entityName);
+                        var entityLabel = entityInfo && entityInfo.entityLabel ? entityInfo.entityLabel : null;
+                        handleWidgetAction(event, descriptors[i], entityId, entityName, null, entityLabel);
                     }
                 }
             }
         }
     }
 
-    function updateEntityParams(params, targetEntityParamName, targetEntityId, entityName) {
+    function updateEntityParams(params, targetEntityParamName, targetEntityId, entityName, entityLabel) {
         if (targetEntityId) {
             var targetEntityParams;
             if (targetEntityParamName && targetEntityParamName.length) {
@@ -498,10 +500,13 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
             if (entityName) {
                 targetEntityParams.entityName = entityName;
             }
+            if (entityLabel) {
+                targetEntityParams.entityLabel = entityLabel;
+            }
         }
     }
 
-    function handleWidgetAction($event, descriptor, entityId, entityName, additionalParams) {
+    function handleWidgetAction($event, descriptor, entityId, entityName, additionalParams, entityLabel) {
         var type = descriptor.type;
         var targetEntityParamName = descriptor.stateEntityParamName;
         var targetEntityId;
@@ -516,7 +521,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
                 if (!params) {
                     params = {};
                 }
-                updateEntityParams(params, targetEntityParamName, targetEntityId, entityName);
+                updateEntityParams(params, targetEntityParamName, targetEntityId, entityName, entityLabel);
                 if (type == types.widgetActionTypes.openDashboardState.value) {
                     widgetContext.stateController.openState(targetDashboardStateId, params, descriptor.openRightLayout);
                 } else {
@@ -528,7 +533,7 @@ export default function WidgetController($scope, $state, $timeout, $window, $ocL
                 targetDashboardStateId = descriptor.targetDashboardStateId;
                 var stateObject = {};
                 stateObject.params = {};
-                updateEntityParams(stateObject.params, targetEntityParamName, targetEntityId, entityName);
+                updateEntityParams(stateObject.params, targetEntityParamName, targetEntityId, entityName, entityLabel);
                 if (targetDashboardStateId) {
                     stateObject.id = targetDashboardStateId;
                 }

@@ -174,21 +174,25 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
     }
 
     function getStateName(index) {
-        var result = '';
+        let result = '';
         if (vm.stateObject[index]) {
-            var stateName = vm.states[vm.stateObject[index].id].name;
+            let stateName = vm.states[vm.stateObject[index].id].name;
             stateName = utils.customTranslation(stateName, stateName);
             var params = vm.stateObject[index].params;
-            var entityName;
-            if (params && params.targetEntityParamName && params[params.targetEntityParamName].entityName) {
-                entityName = params[params.targetEntityParamName].entityName;
-            } else {
-                entityName = params && params.entityName ? params.entityName : '';
-            }
+            let targetParams = params && params.targetEntityParamName ? params[params.targetEntityParamName] : params;
+
+            let entityName, entityLabel;
+            entityName =targetParams.entityName ? targetParams.entityName : '';
+            entityLabel = targetParams.entityLabel ? targetParams.entityLabel : entityName;
+
             result = utils.insertVariable(stateName, 'entityName', entityName);
-            for (var prop in params) {
+            result = utils.insertVariable(result, 'entityLabel', entityLabel);
+            for (let prop in params) {
                 if (params[prop] && params[prop].entityName) {
                     result = utils.insertVariable(result, prop + ':entityName', params[prop].entityName);
+                }
+                if (params[prop] && params[prop].entityLabel) {
+                    result = utils.insertVariable(result, prop + ':entityLabel', params[prop].entityLabel);
                 }
             }
         }
@@ -210,6 +214,7 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
                 }).then(
                     function success(entity) {
                         params.entityName = entity.name;
+                        params.entityLabel = entity.label;
                         if (params.entityId.entityType === types.entityType.entityGroup) {
                             params.entityGroupType = entity.type;
                         }
