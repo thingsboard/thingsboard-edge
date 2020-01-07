@@ -2097,7 +2097,8 @@
                 "IMPERSONATE": "Вхід в якості користувача",
                 "CHANGE_OWNER": "Зміні власника",
                 "ADD_TO_GROUP": "Додання в групу",
-                "REMOVE_FROM_GROUP": "Видалення з групи"
+                "REMOVE_FROM_GROUP": "Видалення з групи",
+                "SHARE_GROUP": "Поділитися групою"
             }
         }
     },

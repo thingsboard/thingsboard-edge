@@ -537,6 +537,8 @@ public class EntityGroupController extends BaseController {
                 }
             }
             if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
+//                UserId userId = getCurrentUser().getId();
+//                ListenableFuture<List<EntityGroup>> entityGroupsByType = entityGroupService.findEntityGroupsByType(getTenantId(), getCurrentUser().getOwnerId(), EntityType.USER);
                 Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
                 if (!ownerIds.isEmpty()) {
                     List<CustomerId> customerIds = new ArrayList<>();
