@@ -169,6 +169,22 @@ public class BasicUdpIntegration extends AbstractIpIntegration {
                         }
                     }
                 };
+            case HEX_PAYLOAD:
+                return new ChannelInitializer<NioDatagramChannel>() {
+                    @Override
+                    protected void initChannel(final NioDatagramChannel channel) throws Exception {
+                        try {
+                            channel.pipeline()
+                                    .addLast("datagramToHexStringDecoder", new AbstractUdpMsgDecoder<DatagramPacket, ObjectNode>(msg -> getJsonHexReport(toByteArray(msg.content()))) {
+                                    })
+                                    .addLast("udpHexStringHandler", new AbstractChannelHandler<ObjectNode>(objectNode -> objectNode.toString().getBytes(), BasicUdpIntegration.this::isEmptyObjectNode) {
+                                    });
+                        } catch (Exception e) {
+                            log.error("Init Channel Exception: {}", e.getMessage(), e);
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
             default:
                 throw new RuntimeException("Unknown Channel Initializer");
         }

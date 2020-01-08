@@ -1460,7 +1460,8 @@
         "invalid-file-error": "Invalid extension file",
         "text": "TEXT",
         "json": "JSON",
-        "binary": "BINARY"
+        "binary": "BINARY",
+        "hex": "HEX"
     },
     "fullscreen": {
         "expand": "Expand to fullscreen",

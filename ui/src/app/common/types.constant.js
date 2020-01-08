@@ -1089,6 +1089,10 @@ export default angular.module('thingsboard.types', [])
                 json: {
                     value: "JSON",
                     name: "extension.json"
+                },
+                hex: {
+                    value: "HEX",
+                    name: "extension.hex"
                 }
             },
             tcpBinaryByteOrder: {

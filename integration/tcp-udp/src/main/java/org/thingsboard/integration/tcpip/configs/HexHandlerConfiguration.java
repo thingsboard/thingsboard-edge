@@ -28,25 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.tcpip;
+package org.thingsboard.integration.tcpip.configs;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
-import org.thingsboard.integration.tcpip.configs.HexHandlerConfiguration;
-import org.thingsboard.integration.tcpip.configs.JsonHandlerConfiguration;
-import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
+import lombok.Data;
+import org.thingsboard.integration.tcpip.AbstractIpIntegration;
+import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME, property = "handlerType")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = TextHandlerConfiguration.class, name = "TEXT"),
-        @JsonSubTypes.Type(value = BinaryHandlerConfiguration.class, name = "BINARY"),
-        @JsonSubTypes.Type(value = JsonHandlerConfiguration.class, name = "JSON"),
-        @JsonSubTypes.Type(value = HexHandlerConfiguration.class, name = "HEX")
-})
-public interface HandlerConfiguration {
+@Data
+public class HexHandlerConfiguration implements HandlerConfiguration {
 
-    String getHandlerType();
+    private int maxFrameLength;
 
+    @Override
+    public String getHandlerType() {
+        return AbstractIpIntegration.HEX_PAYLOAD;
+    }
 }

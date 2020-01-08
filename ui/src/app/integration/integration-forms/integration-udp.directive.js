@@ -78,6 +78,12 @@ export default function IntegrationUdpDirective($compile, $templateCache, $trans
             defaultHandlerConfigurations[types.handlerConfigurationTypes.json.value] = {
                 handlerType: types.handlerConfigurationTypes.json.value
             };
+
+            defaultHandlerConfigurations[types.handlerConfigurationTypes.hex.value] = {
+                handlerType: types.handlerConfigurationTypes.hex.value,
+                maxFrameLength: 128
+            };
+
         }
 
         scope.handlerConfigurationTypeChanged = () => {

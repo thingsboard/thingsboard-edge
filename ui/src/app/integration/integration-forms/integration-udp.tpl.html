@@ -106,6 +106,20 @@
                                     </md-input-container>
                                 </div>
                             </section>
+                            <section ng-if="configuration.clientConfiguration.handlerConfiguration.handlerType == types.handlerConfigurationTypes.hex.value">
+                                <div layout="column" layout-gt-sm="row">
+                                    <md-input-container flex="40" class="md-block">
+                                        <label translate>integration.max-frame-length</label>
+                                        <input type="number" step="1" min="1" max="65535" required
+                                               name="maxFrameLength" ng-model="configuration.clientConfiguration.handlerConfiguration.maxFrameLength">
+                                        <div ng-messages="tcpIntegrationForm.maxFrameLength.$error">
+                                            <div translate ng-message="required">integration.max-frame-length-required</div>
+                                            <div translate ng-message="min">integration.max-frame-length-range</div>
+                                            <div translate ng-message="max">integration.max-frame-length-range</div>
+                                        </div>
+                                    </md-input-container>
+                                </div>
+                            </section>
                         </div>
                     </md-expansion-panel-content>
                 </md-expansion-panel-expanded>

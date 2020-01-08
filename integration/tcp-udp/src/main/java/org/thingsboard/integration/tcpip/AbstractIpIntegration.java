@@ -31,6 +31,9 @@
 package org.thingsboard.integration.tcpip;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -38,6 +41,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -60,6 +64,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     public static final String TEXT_PAYLOAD = "TEXT";
     public static final String BINARY_PAYLOAD = "BINARY";
     public static final String JSON_PAYLOAD = "JSON";
+    public static final String HEX_PAYLOAD = "HEX";
 
     protected IntegrationContext ctx;
     protected Channel serverChannel;
@@ -160,10 +165,27 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         return byteArray == null || byteArray.length == 0;
     }
 
+    public boolean isEmptyObjectNode(ObjectNode objectNode) {
+        if (objectNode == null) {
+            return true;
+        }
+        JsonNode jsonNode = objectNode.get("reports");
+        return jsonNode == null || (jsonNode.isArray() && (jsonNode.size() == 0 || jsonNode.get(0).size() == 0));
+    }
+
     public byte[] toByteArray(ByteBuf buffer) {
         byte[] bytes = new byte[buffer.readableBytes()];
         buffer.readBytes(bytes);
         return bytes;
+    }
+
+    public ObjectNode getJsonHexReport(byte[] hexBytes) {
+        String hexString = Hex.encodeHexString(hexBytes);
+        ArrayNode reports = mapper.createArrayNode();
+        reports.add(mapper.createObjectNode().put("value", hexString));
+        ObjectNode payload = mapper.createObjectNode();
+        payload.set("reports", reports);
+        return payload;
     }
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
