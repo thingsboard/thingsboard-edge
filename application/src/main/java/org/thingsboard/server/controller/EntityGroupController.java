@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
@@ -68,6 +71,7 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
+import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -664,6 +668,47 @@ public class EntityGroupController extends BaseController {
             }
             throw handleException(e);
         }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/{userGroupId}/{roleId}/share", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void shareEntityGroupToChildOwnerUserGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+                                                    @PathVariable("userGroupId") String strUserGroupId,
+                                                    @PathVariable("roleId") String strRoleId) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        checkParameter("userGroupId", strUserGroupId);
+        checkParameter("roleId", strRoleId);
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            if (hasShareGroupPermissions(entityGroupId)) {
+                EntityGroupId userGroupId = new EntityGroupId(toUUID(strUserGroupId));
+                EntityGroup userGroup = entityGroupService.findEntityGroupById(getTenantId(), userGroupId);
+                Set<EntityId> childOwners = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
+                if (childOwners.contains(userGroup.getOwnerId())) {
+                    RoleId roleId = new RoleId(toUUID(strRoleId));
+                    Role role = roleService.findRoleById(getTenantId(), roleId);
+                    MergedGroupPermissionInfo mergedGroupPermissionInfo = getCurrentUser().getUserPermissions().getGroupPermissions().get(entityGroupId);
+                    CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
+                    List<Operation> roleOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
+                    if (mergedGroupPermissionInfo.getOperations().contains(Operation.ALL) || mergedGroupPermissionInfo.getOperations().containsAll(roleOperations)) {
+                        groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroupId, roleId, entityGroupId, entityGroupId.getEntityType(), false));
+                    } else {
+                        throw permissionDenied();
+                    }
+                } else {
+                    throw permissionDenied();
+                }
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private boolean hasShareGroupPermissions(EntityGroupId entityGroupId) throws ThingsboardException {
+        return getCurrentUser().getUserPermissions().hasGroupPermissions(entityGroupId, Operation.SHARE_GROUP);
     }
 
     private List<EntityGroup> filterEntityGroupsByReadPermission(List<EntityGroup> entityGroups) {

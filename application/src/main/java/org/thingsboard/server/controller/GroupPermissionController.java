@@ -88,7 +88,7 @@ public class GroupPermissionController extends BaseController {
                     groupPermission.getId(), groupPermission);
 
             if (groupPermission.isPublic()) {
-                permissionDenied();
+                throw permissionDenied();
             }
 
             Role role = checkRoleId(groupPermission.getRoleId(), Operation.READ);
