@@ -68,6 +68,9 @@ public class CustomMenuController extends BaseController {
             } else if (authority == Authority.CUSTOMER_USER) {
                 customMenu = customMenuService.getMergedCustomerCustomMenu(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
             }
+            if (customMenu == null) {
+                customMenu = new CustomMenu();
+            }
             return customMenu;
         } catch (Exception e) {
             throw handleException(e);
