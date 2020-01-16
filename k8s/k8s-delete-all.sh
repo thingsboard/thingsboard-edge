@@ -30,4 +30,4 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-kubectl -n thingsboard delete svc,sts,deploy,pv,pvc,cm,po,ing --all --include-uninitialized
+kubectl -n thingsboard delete svc,sts,deploy,pv,pvc,cm,po,ing --all
