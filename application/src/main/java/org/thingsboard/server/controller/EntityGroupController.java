@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -80,6 +80,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -117,9 +118,9 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroupInfo getEnitityGroupByOwnerAndNameAndType(@PathVariable("ownerType") String strOwnerType,
-                                                            @PathVariable("ownerId") String strOwnerId,
-                                                            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
-                                                            @PathVariable("groupName") String groupName) throws ThingsboardException {
+                                                                @PathVariable("ownerId") String strOwnerId,
+                                                                @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+                                                                @PathVariable("groupName") String groupName) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
         checkParameter("groupName", groupName);
@@ -236,7 +237,7 @@ public class EntityGroupController extends BaseController {
                 if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                     List<EntityGroupId> existingIds = groups.stream().map(EntityGroup::getId).collect(Collectors.toList());
                     List<EntityGroupId> groupIds = groupTypePermissionInfo.getEntityGroupIds().stream().filter(entityGroupId ->
-                        !existingIds.contains(entityGroupId)
+                            !existingIds.contains(entityGroupId)
                     ).collect(Collectors.toList());
                     if (!groupIds.isEmpty()) {
                         groups.addAll(entityGroupService.findEntityGroupByIdsAsync(getTenantId(), groupIds).get());
@@ -674,28 +675,22 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{userGroupId}/{roleId}/share", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void shareEntityGroupToChildOwnerUserGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                                    @PathVariable("userGroupId") String strUserGroupId,
-                                                    @PathVariable("roleId") String strRoleId) throws ThingsboardException {
+                                                      @PathVariable("userGroupId") String strUserGroupId,
+                                                      @PathVariable("roleId") String strRoleId) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         checkParameter("userGroupId", strUserGroupId);
         checkParameter("roleId", strRoleId);
         try {
-            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            if (hasShareGroupPermissions(entityGroupId)) {
-                EntityGroupId userGroupId = new EntityGroupId(toUUID(strUserGroupId));
-                EntityGroup userGroup = entityGroupService.findEntityGroupById(getTenantId(), userGroupId);
-                Set<EntityId> childOwners = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
-                if (childOwners.contains(userGroup.getOwnerId())) {
-                    RoleId roleId = new RoleId(toUUID(strRoleId));
-                    Role role = roleService.findRoleById(getTenantId(), roleId);
-                    MergedGroupPermissionInfo mergedGroupPermissionInfo = getCurrentUser().getUserPermissions().getGroupPermissions().get(entityGroupId);
-                    CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-                    List<Operation> roleOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
-                    if (mergedGroupPermissionInfo.getOperations().contains(Operation.ALL) || mergedGroupPermissionInfo.getOperations().containsAll(roleOperations)) {
-                        groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroupId, roleId, entityGroupId, entityGroupId.getEntityType(), false));
-                    } else {
-                        throw permissionDenied();
-                    }
+            EntityGroupId userGroupId = new EntityGroupId(toUUID(strUserGroupId));
+            EntityGroup userGroup = entityGroupService.findEntityGroupById(getTenantId(), userGroupId);
+            Set<EntityId> ownerIds = ownersCacheService.fetchOwners(getTenantId(), userGroup.getOwnerId());
+            if (ownerIds.contains(getCurrentUser().getOwnerId())) {
+                EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                RoleId roleId = new RoleId(toUUID(strRoleId));
+                if (hasGenenericPermissionToShareGroup()) {
+                    shareGroup(roleId, userGroupId, entityGroupId);
+                } else if (hasGroupPermissionsToShareGroup(entityGroupId)) {
+                    shareGroup(roleId, userGroupId, entityGroupId);
                 } else {
                     throw permissionDenied();
                 }
@@ -707,7 +702,23 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    private boolean hasShareGroupPermissions(EntityGroupId entityGroupId) throws ThingsboardException {
+    private void shareGroup(RoleId roleId, EntityGroupId userGroupId, EntityGroupId entityGroupId) throws ThingsboardException, IOException {
+        Role role = roleService.findRoleById(getTenantId(), roleId);
+        MergedGroupPermissionInfo mergedGroupPermissionInfo = getCurrentUser().getUserPermissions().getGroupPermissions().get(entityGroupId);
+        CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
+        List<Operation> roleOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
+        if (mergedGroupPermissionInfo != null && (mergedGroupPermissionInfo.getOperations().contains(Operation.ALL) || mergedGroupPermissionInfo.getOperations().containsAll(roleOperations))) {
+            groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroupId, roleId, entityGroupId, entityGroupId.getEntityType(), false));
+        } else {
+            throw permissionDenied();
+        }
+    }
+
+    private boolean hasGenenericPermissionToShareGroup() throws ThingsboardException {
+        return getCurrentUser().getUserPermissions().hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.SHARE_GROUP);
+    }
+
+    private boolean hasGroupPermissionsToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
         return getCurrentUser().getUserPermissions().hasGroupPermissions(entityGroupId, Operation.SHARE_GROUP);
     }
 
