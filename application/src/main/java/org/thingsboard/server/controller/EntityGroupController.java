@@ -713,8 +713,7 @@ public class EntityGroupController extends BaseController {
                 RoleId roleId = new RoleId(toUUID(strRoleId));
                 Role role = roleService.findRoleById(getTenantId(), roleId);
                 Set<EntityId> roleOwnerIds = ownersCacheService.fetchOwners(getTenantId(), role.getOwnerId());
-                Set<EntityId> currentUserOwnerIds = ownersCacheService.fetchOwners(getTenantId(), currentUserOwnerId);
-                if (roleOwnerIds.contains(currentUserOwnerId) || currentUserOwnerIds.containsAll(roleOwnerIds)) {
+                if (roleOwnerIds.contains(currentUserOwnerId) || userGroupOwnerIds.containsAll(roleOwnerIds)) {
                     shareGroup(role, userGroup, entityGroup, mergedOperations);
                 } else {
                     throw permissionDenied();
@@ -730,7 +729,7 @@ public class EntityGroupController extends BaseController {
     private void shareGroup(Role role, EntityGroup userGroup, EntityGroup entityGroup, Set<Operation> mergedOperations) throws ThingsboardException, IOException {
         CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
         List<Operation> roleOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
-        if (!CollectionUtils.isEmpty(mergedOperations) && (mergedOperations.contains(Operation.ALL) || mergedOperations.containsAll(roleOperations))) {
+        if (!mergedOperations.isEmpty() && (mergedOperations.contains(Operation.ALL) || mergedOperations.containsAll(roleOperations))) {
             groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroup.getId(), role.getId(), entityGroup.getId(), entityGroup.getId().getEntityType(), false));
         } else {
             throw permissionDenied();
