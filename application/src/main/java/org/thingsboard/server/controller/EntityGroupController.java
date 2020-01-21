@@ -41,6 +41,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,6 +74,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
@@ -83,7 +85,9 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -683,14 +687,35 @@ public class EntityGroupController extends BaseController {
         try {
             EntityGroupId userGroupId = new EntityGroupId(toUUID(strUserGroupId));
             EntityGroup userGroup = entityGroupService.findEntityGroupById(getTenantId(), userGroupId);
-            Set<EntityId> ownerIds = ownersCacheService.fetchOwners(getTenantId(), userGroup.getOwnerId());
-            if (ownerIds.contains(getCurrentUser().getOwnerId())) {
+            Set<EntityId> userGroupOwnerIds = ownersCacheService.fetchOwners(getTenantId(), userGroup.getOwnerId());
+            EntityId currentUserOwnerId = getCurrentUser().getOwnerId();
+            if (userGroupOwnerIds.contains(currentUserOwnerId)) {
                 EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(getTenantId(), entityGroupId);
+                Set<EntityId> groupToShareOwnerIds = ownersCacheService.fetchOwners(getTenantId(), entityGroup.getOwnerId());
+                Set<Operation> mergedOperations = new HashSet<>();
+                MergedUserPermissions userPermissions = getCurrentUser().getUserPermissions();
+                if (groupToShareOwnerIds.contains(currentUserOwnerId)) {
+                    if (hasGenenericPermissionToShareGroup()) {
+                        Map<Resource, Set<Operation>> genericPermissions = userPermissions.getGenericPermissions();
+                        genericPermissions.forEach((resource, operations) -> {
+                            if (resource.equals(Resource.ALL) || (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(EntityType.ENTITY_GROUP))) {
+                                mergedOperations.addAll(operations);
+                            }
+                        });
+                    }
+                }
+                if (hasGroupPermissionsToShareGroup(entityGroupId)) {
+                    Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = userPermissions.getGroupPermissions();
+                    MergedGroupPermissionInfo mergedGroupPermissionInfo = groupPermissions.get(entityGroupId);
+                    mergedOperations.addAll(mergedGroupPermissionInfo.getOperations());
+                }
                 RoleId roleId = new RoleId(toUUID(strRoleId));
-                if (hasGenenericPermissionToShareGroup()) {
-                    shareGroup(roleId, userGroupId, entityGroupId);
-                } else if (hasGroupPermissionsToShareGroup(entityGroupId)) {
-                    shareGroup(roleId, userGroupId, entityGroupId);
+                Role role = roleService.findRoleById(getTenantId(), roleId);
+                Set<EntityId> roleOwnerIds = ownersCacheService.fetchOwners(getTenantId(), role.getOwnerId());
+                Set<EntityId> currentUserOwnerIds = ownersCacheService.fetchOwners(getTenantId(), currentUserOwnerId);
+                if (roleOwnerIds.contains(currentUserOwnerId) || currentUserOwnerIds.containsAll(roleOwnerIds)) {
+                    shareGroup(role, userGroup, entityGroup, mergedOperations);
                 } else {
                     throw permissionDenied();
                 }
@@ -702,13 +727,11 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    private void shareGroup(RoleId roleId, EntityGroupId userGroupId, EntityGroupId entityGroupId) throws ThingsboardException, IOException {
-        Role role = roleService.findRoleById(getTenantId(), roleId);
-        MergedGroupPermissionInfo mergedGroupPermissionInfo = getCurrentUser().getUserPermissions().getGroupPermissions().get(entityGroupId);
+    private void shareGroup(Role role, EntityGroup userGroup, EntityGroup entityGroup, Set<Operation> mergedOperations) throws ThingsboardException, IOException {
         CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
         List<Operation> roleOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
-        if (mergedGroupPermissionInfo != null && (mergedGroupPermissionInfo.getOperations().contains(Operation.ALL) || mergedGroupPermissionInfo.getOperations().containsAll(roleOperations))) {
-            groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroupId, roleId, entityGroupId, entityGroupId.getEntityType(), false));
+        if (!CollectionUtils.isEmpty(mergedOperations) && (mergedOperations.contains(Operation.ALL) || mergedOperations.containsAll(roleOperations))) {
+            groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroup.getId(), role.getId(), entityGroup.getId(), entityGroup.getId().getEntityType(), false));
         } else {
             throw permissionDenied();
         }
