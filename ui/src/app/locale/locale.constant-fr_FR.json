@@ -253,7 +253,7 @@
         "assign-asset-to-customer-text": "Veuillez sélectionner les actifs à attribuer au client",
         "assign-assets": "Attribuer des actifs",
         "assign-assets-text": "Attribuer {count, plural, 1 {1 asset} other {# assets}} au client",
-        "assign-new-asset": "Attribuer un nouvel actif",
+        "assign-new-asset": "Attribuer un nouvel Asset",
         "assign-to-customer": "Attribuer au client",
         "assign-to-customer-text": "Veuillez sélectionner le client pour attribuer le ou les actifs",
         "assignedToCustomer": "attribué au client",
@@ -1734,7 +1734,8 @@
             "fa_IR": "Persane",
             "uk_UA": "Ukrainien",
             "cs_CZ": "Tchèque",
-            "el_GR": "Grec"
+            "el_GR": "Grec",
+            "lv_LV": "Letton"
         }
     },
     "layout": {

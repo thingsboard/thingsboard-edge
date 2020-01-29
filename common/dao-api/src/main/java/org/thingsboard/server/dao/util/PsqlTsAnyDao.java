@@ -28,23 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.dao.util;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.thingsboard.server.dao.util.SqlTsDao;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-@Configuration
-@EnableAutoConfiguration
-@ComponentScan("org.thingsboard.server.dao.sqlts.ts")
-@EnableJpaRepositories("org.thingsboard.server.dao.sqlts.ts")
-@EntityScan("org.thingsboard.server.dao.model.sqlts.ts")
-@EnableTransactionManagement
-@SqlTsDao
-public class SqlTsDaoConfig {
-
+@ConditionalOnExpression("('${database.ts.type}'=='sql' || '${database.entities.type}'=='timescale') " +
+        "&& '${spring.jpa.database-platform}'=='org.hibernate.dialect.PostgreSQLDialect'")
+public @interface PsqlTsAnyDao {
 }

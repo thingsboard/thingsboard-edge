@@ -28,47 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sqlts.ts;
+package org.thingsboard.server.dao.model.sqlts.dictionary;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.dao.model.ToData;
-import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
-
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
+import javax.persistence.Transient;
+import java.io.Serializable;
 
 @Data
-@Entity
-@Table(name = "ts_kv_latest")
-@IdClass(TsKvLatestCompositeKey.class)
-public final class TsKvLatestEntity extends AbstractTsKvEntity implements ToData<TsKvEntry> {
+@NoArgsConstructor
+@AllArgsConstructor
+public class TsKvDictionaryCompositeKey implements Serializable{
 
-    @Id
-    @Enumerated(EnumType.STRING)
-    @Column(name = ENTITY_TYPE_COLUMN)
-    private EntityType entityType;
+    @Transient
+    private static final long serialVersionUID = -4089175869616037523L;
 
-    @Column(name = TS_COLUMN)
-    private long ts;
-
-    @Override
-    public TsKvEntry toData() {
-        return new BasicTsKvEntry(ts, getKvEntry());
-    }
-
-    @Override
-    public boolean isNotEmpty() {
-        return strValue != null || longValue != null || doubleValue != null || booleanValue != null;
-    }
+    private String key;
 }

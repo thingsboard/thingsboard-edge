@@ -28,10 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.dao.model.sqlts.dictionary;
 
-public interface DatabaseUpgradeService {
+import lombok.Data;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
-    void upgradeDatabase(String fromVersion) throws Exception;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_ID_COLUMN;
+
+@Data
+@Entity
+@Table(name = "ts_kv_dictionary")
+@IdClass(TsKvDictionaryCompositeKey.class)
+public final class TsKvDictionary {
+
+    @Id
+    @Column(name = KEY_COLUMN)
+    private String key;
+
+    @Column(name = KEY_ID_COLUMN, unique = true, columnDefinition="serial")
+    @Generated(GenerationTime.INSERT)
+    private int keyId;
 
 }

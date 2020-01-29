@@ -28,26 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sqlts.ts;
+package org.thingsboard.server.service.install;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.EntityType;
+public interface DatabaseTsUpgradeService {
 
-import javax.persistence.Transient;
-import java.io.Serializable;
+    void upgradeDatabase(String fromVersion) throws Exception;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class TsKvCompositeKey implements Serializable {
-
-    @Transient
-    private static final long serialVersionUID = -4089175869616037523L;
-
-    private EntityType entityType;
-    private String entityId;
-    private String key;
-    private long ts;
 }

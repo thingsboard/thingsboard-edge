@@ -36,19 +36,18 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Optional;
 
-public enum TsPartitionDate {
+public enum SqlTsPartitionDate {
 
-    MINUTES("yyyy-MM-dd-HH-mm", ChronoUnit.MINUTES), HOURS("yyyy-MM-dd-HH", ChronoUnit.HOURS), DAYS("yyyy-MM-dd", ChronoUnit.DAYS), MONTHS("yyyy-MM", ChronoUnit.MONTHS), YEARS("yyyy", ChronoUnit.YEARS),INDEFINITE("",ChronoUnit.FOREVER);
+    MINUTES("yyyy_MM_dd_HH_mm", ChronoUnit.MINUTES), HOURS("yyyy_MM_dd_HH", ChronoUnit.HOURS), DAYS("yyyy_MM_dd", ChronoUnit.DAYS), MONTHS("yyyy_MM", ChronoUnit.MONTHS), YEARS("yyyy", ChronoUnit.YEARS), INDEFINITE("indefinite", ChronoUnit.FOREVER);
 
     private final String pattern;
     private final transient TemporalUnit truncateUnit;
-    public final static LocalDateTime EPOCH_START = LocalDateTime.ofEpochSecond(0,0, ZoneOffset.UTC);
+    public final static LocalDateTime EPOCH_START = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC);
 
-    TsPartitionDate(String pattern, TemporalUnit truncateUnit) {
+    SqlTsPartitionDate(String pattern, TemporalUnit truncateUnit) {
         this.pattern = pattern;
         this.truncateUnit = truncateUnit;
     }
-
 
     public String getPattern() {
         return pattern;
@@ -58,23 +57,46 @@ public enum TsPartitionDate {
         return truncateUnit;
     }
 
-    public LocalDateTime truncatedTo(LocalDateTime time) {
-        switch (this){
+    public LocalDateTime trancateTo(LocalDateTime time) {
+        switch (this) {
+            case MINUTES:
+                return time.truncatedTo(ChronoUnit.MINUTES);
+            case HOURS:
+                return time.truncatedTo(ChronoUnit.HOURS);
+            case DAYS:
+                return time.truncatedTo(ChronoUnit.DAYS);
             case MONTHS:
                 return time.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
             case YEARS:
                 return time.truncatedTo(ChronoUnit.DAYS).withDayOfYear(1);
             case INDEFINITE:
-                 return EPOCH_START;
+                return EPOCH_START;
             default:
-                return time.truncatedTo(truncateUnit);
+                throw new RuntimeException("Failed to parse partitioning property!");
         }
     }
 
-    public static Optional<TsPartitionDate> parse(String name) {
-        TsPartitionDate partition = null;
+    public LocalDateTime plusTo(LocalDateTime time) {
+        switch (this) {
+            case MINUTES:
+                return time.plusMinutes(1);
+            case HOURS:
+                return time.plusHours(1);
+            case DAYS:
+                return time.plusDays(1);
+            case MONTHS:
+                return time.plusMonths(1);
+            case YEARS:
+                return time.plusYears(1);
+            default:
+                throw new RuntimeException("Failed to parse partitioning property!");
+        }
+    }
+
+    public static Optional<SqlTsPartitionDate> parse(String name) {
+        SqlTsPartitionDate partition = null;
         if (name != null) {
-            for (TsPartitionDate partitionDate : TsPartitionDate.values()) {
+            for (SqlTsPartitionDate partitionDate : SqlTsPartitionDate.values()) {
                 if (partitionDate.name().equalsIgnoreCase(name)) {
                     partition = partitionDate;
                     break;

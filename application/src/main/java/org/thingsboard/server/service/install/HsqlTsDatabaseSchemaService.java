@@ -28,46 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts;
+package org.thingsboard.server.service.install;
 
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.stereotype.Repository;
-import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.HsqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
-import java.util.List;
-
-@Repository
-public abstract class AbstractTimeseriesInsertRepository<T extends AbstractTsKvEntity> extends AbstractInsertRepository {
-
-    public abstract void saveOrUpdate(T entity);
-
-    public abstract void saveOrUpdate(List<T> entities);
-
-    protected void processSaveOrUpdate(T entity, String requestBoolValue, String requestStrValue, String requestLongValue, String requestDblValue) {
-        if (entity.getBooleanValue() != null) {
-            saveOrUpdateBoolean(entity, requestBoolValue);
-        }
-        if (entity.getStrValue() != null) {
-            saveOrUpdateString(entity, requestStrValue);
-        }
-        if (entity.getLongValue() != null) {
-            saveOrUpdateLong(entity, requestLongValue);
-        }
-        if (entity.getDoubleValue() != null) {
-            saveOrUpdateDouble(entity, requestDblValue);
-        }
+@Service
+@SqlTsDao
+@HsqlDao
+@Profile("install")
+public class HsqlTsDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
+        implements TsDatabaseSchemaService {
+    public HsqlTsDatabaseSchemaService() {
+        super("schema-ts-hsql.sql", null);
     }
-
-    @Modifying
-    protected abstract void saveOrUpdateBoolean(T entity, String query);
-
-    @Modifying
-    protected abstract void saveOrUpdateString(T entity, String query);
-
-    @Modifying
-    protected abstract void saveOrUpdateLong(T entity, String query);
-
-    @Modifying
-    protected abstract void saveOrUpdateDouble(T entity, String query);
-
 }
