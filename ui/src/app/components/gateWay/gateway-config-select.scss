@@ -28,11 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+.tb-gateway-autocomplete {
+  .tb-not-found {
+    line-height: 1.5;
+    white-space: normal;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+    .tb-no-gateway {
+      line-height: 48px;
+    }
+  }
+}
 
-@ConditionalOnExpression("('${database.ts.type}'=='sql' || '${database.ts.type}'=='timescale') " +
-        "&& '${spring.jpa.database-platform}'=='org.hibernate.dialect.PostgreSQLDialect'")
-public @interface PsqlTsAnyDao {
+.tb-gateway-autocomplete-container.md-virtual-repeat-container.md-autocomplete-suggestions-container{
+  z-index: 70;
+}
+
+md-autocomplete{
+  md-input-container{
+    margin-bottom: 0;
+  }
 }

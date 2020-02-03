@@ -28,11 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+.gateway-form{
+  padding: 5px 5px 0;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+  .gateway-form-row{
+    md-input-container{
+      margin-bottom: 0;
+    }
 
-@ConditionalOnExpression("('${database.ts.type}'=='sql' || '${database.ts.type}'=='timescale') " +
-        "&& '${spring.jpa.database-platform}'=='org.hibernate.dialect.PostgreSQLDialect'")
-public @interface PsqlTsAnyDao {
+    &.gateway-config-row-vertical{
+      flex-direction: column;
+
+      .md-select-container{
+        margin-bottom: 14px;
+      }
+    }
+  }
+
+  .form-action-buttons{
+    padding-top: 8px;
+  }
+}
+
+.security-type {
+  margin-top: 38px;
 }

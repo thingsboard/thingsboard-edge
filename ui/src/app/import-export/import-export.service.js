@@ -33,7 +33,8 @@
 import importDialogTemplate from './import-dialog.tpl.html';
 import importDialogCSVTemplate from './import-dialog-csv.tpl.html';
 import entityAliasesTemplate from '../entity/alias/entity-aliases.tpl.html';
-import Excel from 'exceljs'
+import Excel from 'exceljs';
+import * as JSZip from 'jszip';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -73,6 +74,11 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         <![endif]--></head>
         <body>{table}</body></html>`;
 
+    const JSZIP_TYPE = {
+        mimeType: 'application/zip',
+        extension: 'zip'
+    };
+
     var service = {
         exportDashboard: exportDashboard,
         importDashboard: importDashboard,
@@ -89,6 +95,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         exportCsv: exportCsv,
         exportXls: exportXls,
         exportXlsx: exportXlsx,
+        exportJSZip: exportJSZip,
         exportExtension: exportExtension,
         importExtension: importExtension,
         importEntities: importEntities,
@@ -1149,28 +1156,6 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         });
     }
 
-    function downloadFile(data, filename, fileType) {
-        if (!filename) {
-            filename = 'download';
-        }
-        filename += '.' + fileType.extension;
-        var blob = new Blob([data], {type: fileType.mimeType});
-        // FOR IE:
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveOrOpenBlob(blob, filename);
-        } else {
-            var e = document.createEvent('MouseEvents'),
-                a = document.createElement('a');
-            a.download = filename;
-            a.href = window.URL.createObjectURL(blob);
-            a.dataset.downloadurl = [fileType.mimeType, a.download, a.href].join(':');
-            e.initEvent('click', true, false, window,
-                0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            a.dispatchEvent(e);
-        }
-    }
-
-
     function formatDataAccordingToLocale(data) {
         for (var i = 0; i < data.length; i++) {
             for (var key in data[i]) {
@@ -1210,6 +1195,47 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
     function fixedDialogSize(scope, element) {
         let dialogElement = element[0].getElementsByTagName('md-dialog');
         dialogElement[0].style.width = dialogElement[0].offsetWidth + 2 + "px";
+    }
+
+    /**
+     *
+     * @param data
+     * @param filename
+     * Warn data !!! Not object, if object, then object convert from object to format txt
+     * Example: data = {keyNameFile1: valueFile1,
+     *        keyNameFile2: valueFile2...}
+     * fileName - name file of the arhiv
+     */
+    function exportJSZip(data, filename) {
+        let jsZip = new JSZip();
+        for (let keyName in data) {
+            let valueData = data[keyName];
+            jsZip.file(keyName, valueData);
+        }
+        jsZip.generateAsync({type: "Blob"}).then(function (content) {
+            downloadFile(content, filename, JSZIP_TYPE);
+        });
+    }
+
+    function downloadFile(data, filename, fileType) {
+        if (!filename) {
+            filename = 'download';
+        }
+        filename += '.' + fileType.extension;
+        var blob = new Blob([data], {type: fileType.mimeType});
+        // FOR IE:
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            var e = document.createEvent('MouseEvents'),
+                a = document.createElement('a');
+            a.download = filename;
+            a.href = window.URL.createObjectURL(blob);
+            a.dataset.downloadurl = [fileType.mimeType, a.download, a.href].join(':');
+            e.initEvent('click', true, false, window,
+                0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            a.dispatchEvent(e);
+        }
     }
 }
 

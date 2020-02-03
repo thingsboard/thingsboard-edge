@@ -103,6 +103,6 @@ public enum SqlTsPartitionDate {
                 }
             }
         }
-        return Optional.of(partition);
+        return Optional.ofNullable(partition);
     }
 }

@@ -28,11 +28,73 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+.gateway-config {
+  span.no-data-found {
+    position: relative;
+    display: flex;
+    height: 40px;
+    text-transform: uppercase;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+    &.disabled {
+      color: rgba(0, 0, 0, .38);
+    }
+  }
 
-@ConditionalOnExpression("('${database.ts.type}'=='sql' || '${database.ts.type}'=='timescale') " +
-        "&& '${spring.jpa.database-platform}'=='org.hibernate.dialect.PostgreSQLDialect'")
-public @interface PsqlTsAnyDao {
+  .gateway-config-row{
+    md-input-container{
+      margin-bottom: 0;
+    }
+
+    &.gateway-config-row-vertical {
+      flex-direction: column;
+    }
+  }
+
+  .action-buttons.gateway-config-row-vertical {
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+}
+
+.gateway-config-dialog{
+  .md-button.tidy{
+    min-width: 32px;
+    min-height: 15px;
+    padding: 4px;
+    margin: 0 5px 0 0;
+    font-size: .8rem;
+    line-height: 15px;
+    color: #7b7b7b;
+    background: rgba(220, 220, 220, .35);
+  }
+
+  .tb-json-toolbar{
+    height: 40px;
+  }
+
+  .tb-json-panel {
+    height: calc(100% - 80px);
+    margin-left: 15px;
+    border: 1px solid #c0c0c0;
+
+    .tb-json-input {
+      width: 100%;
+      min-width: 400px;
+      height: 100%;
+
+      &:not(.fill-height) {
+        min-height: 200px;
+      }
+    }
+  }
+}
+
+@media (max-width: 425px){
+  .gateway-config-dialog{
+    .tb-json-panel {
+      .tb-json-input {
+        min-width: 200px;
+      }
+    }
+  }
 }

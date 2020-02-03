@@ -118,7 +118,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
 
     @PreDestroy
     protected void destroy() {
-        super.init();
+        super.destroy();
         if (queue != null) {
             queue.destroy();
         }
