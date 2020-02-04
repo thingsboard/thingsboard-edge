@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -69,7 +70,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -132,6 +132,8 @@ public class DeviceController extends BaseController {
 
             if (entityGroupId != null && operation == Operation.CREATE) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDevice.getId());
+                logEntityAction(savedDevice.getId(), savedDevice,
+                        savedDevice.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null);
             }
 
             actorService
