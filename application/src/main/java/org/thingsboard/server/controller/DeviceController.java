@@ -110,7 +110,8 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            device.setTenantId(getCurrentUser().getTenantId());
+            TenantId tenantId = getTenantId();
+            device.setTenantId(tenantId);
 
             Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
 
@@ -130,12 +131,6 @@ public class DeviceController extends BaseController {
 
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
 
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDevice.getId());
-                logEntityAction(savedDevice.getId(), savedDevice,
-                        savedDevice.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null);
-            }
-
             actorService
                     .onDeviceNameOrTypeUpdate(
                             savedDevice.getTenantId(),
@@ -146,6 +141,14 @@ public class DeviceController extends BaseController {
             logEntityAction(savedDevice.getId(), savedDevice,
                     savedDevice.getCustomerId(),
                     device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedDevice.getId());
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+                logEntityAction(savedDevice.getId(), savedDevice,
+                        savedDevice.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedDevice.getId().toString(), strEntityGroupId, entityGroup.getName());
+            }
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
