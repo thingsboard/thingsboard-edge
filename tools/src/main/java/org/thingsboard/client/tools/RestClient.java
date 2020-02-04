@@ -311,7 +311,9 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         return doCreateDevice(device, null);
     }
 
-    public Device createDevice(Device device, String accessToken) { return doCreateDevice(device, accessToken); }
+    public Device createDevice(Device device, String accessToken) {
+        return doCreateDevice(device, accessToken);
+    }
 
     public Device createDevice(String name, String type, String label) {
         Device device = new Device();
@@ -1410,8 +1412,9 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
-    public void addEntitiesToEntityGroup(String entityGroupId, String[] entityIds) {
-        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", entityIds, Object.class, entityGroupId);
+    public void addEntitiesToEntityGroup(EntityGroupId entityGroupId, List<EntityId> entityIds) {
+        Object[] entityIdsArray = entityIds.stream().map(entityId -> entityId.getId().toString()).toArray();
+        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/addEntities", entityIdsArray, Object.class, entityGroupId.getId().toString());
     }
 
     public void removeEntitiesFromEntityGroup(String entityGroupId, String[] entityIds) {
