@@ -502,7 +502,9 @@ public class ActorSystemContext {
                 Futures.addCallback(future, new FutureCallback<Event>() {
                     @Override
                     public void onSuccess(@Nullable Event event) {
-
+                        if (event != null) {
+                            log.trace("[{}] Event saved successfully", event.getUid());
+                        }
                     }
 
                     @Override

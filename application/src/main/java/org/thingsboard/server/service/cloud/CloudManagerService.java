@@ -32,15 +32,20 @@ package org.thingsboard.server.service.cloud;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
@@ -53,11 +58,14 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
@@ -67,6 +75,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -99,11 +108,13 @@ import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.storage.EventStorage;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -164,6 +175,9 @@ public class CloudManagerService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RuleEngineTelemetryService telemetryService;
 
     @Autowired
     private ActorService actorService;
@@ -442,6 +456,7 @@ public class CloudManagerService {
                 ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
                 ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                 ruleChainService.saveRuleChain(ruleChain);
+                actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
@@ -463,6 +478,7 @@ public class CloudManagerService {
                     ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
                     ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
                     ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
+                    actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
@@ -502,6 +518,8 @@ public class CloudManagerService {
         List<RuleNode> result = new ArrayList<>();
         for (RuleNodeProto proto : nodesList) {
             RuleNode ruleNode = new RuleNode();
+            RuleNodeId ruleNodeId = new RuleNodeId(new UUID(proto.getIdMSB(), proto.getIdLSB()));
+//            ruleNode.setId(ruleNodeId);
             ruleNode.setRuleChainId(ruleChainId);
             ruleNode.setType(proto.getType());
             ruleNode.setName(proto.getName());
@@ -684,7 +702,18 @@ public class CloudManagerService {
                         }
                         break;
                 }
+
                 if (tbMsg != null) {
+                    if (DataConstants.ATTRIBUTES_UPDATED.equals(tbMsg.getType())) {
+                        String scope = tbMsg.getMetaData().getValue("scope");
+                        Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(tbMsg.getData()));
+                        telemetryService.saveAndNotify(tenantId, tbMsg.getOriginator(), scope, new ArrayList<>(attributes), new FutureCallback<Void>() {
+                            @Override
+                            public void onSuccess(@Nullable Void result) {}
+                            @Override
+                            public void onFailure(Throwable t) {}
+                        });
+                    }
                     actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
                 }
             }

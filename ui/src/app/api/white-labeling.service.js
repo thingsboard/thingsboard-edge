@@ -54,7 +54,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         logoImageUrl: defaultImageUrl,
         logoImageChecksum: 'f4ef3e3d6f868a30946388f299bd8f4a36a89d45',
         logoImageHeight: 36,
-        appTitle: 'ThingsBoard PE',
+        appTitle: 'ThingsBoard Edge',
         favicon: {
             url: 'static/thingsboard.ico',
             type: 'image/x-icon'

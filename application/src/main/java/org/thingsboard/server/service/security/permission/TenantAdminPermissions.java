@@ -75,8 +75,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.USER, tenantGroupEntityPermissionChecker);
         put(Resource.WIDGETS_BUNDLE, widgetsPermissionChecker);
         put(Resource.WIDGET_TYPE, widgetsPermissionChecker);
-        put(Resource.CONVERTER, tenantStandaloneEntityPermissionChecker);
-        put(Resource.INTEGRATION, tenantStandaloneEntityPermissionChecker);
+//        put(Resource.CONVERTER, tenantStandaloneEntityPermissionChecker);
+//        put(Resource.INTEGRATION, tenantStandaloneEntityPermissionChecker);
         put(Resource.SCHEDULER_EVENT, tenantStandaloneEntityPermissionChecker);
         put(Resource.BLOB_ENTITY, tenantStandaloneEntityPermissionChecker);
         put(Resource.CUSTOMER_GROUP, tenantEntityGroupPermissionChecker);
