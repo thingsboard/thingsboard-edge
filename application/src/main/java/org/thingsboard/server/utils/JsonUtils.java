@@ -34,7 +34,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.thingsboard.server.gen.transport.KeyValueProto;
-
 import java.util.List;
 
 public class JsonUtils {
