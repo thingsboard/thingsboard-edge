@@ -28,71 +28,71 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.timescale;
+package org.thingsboard.server.dao.sqlts.hsql;
 
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.model.sqlts.timescale.TimescaleTsKvEntity;
+import org.thingsboard.server.dao.model.sqlts.hsql.TsKvEntity;
 import org.thingsboard.server.dao.sqlts.AbstractInsertRepository;
 import org.thingsboard.server.dao.sqlts.EntityContainer;
 import org.thingsboard.server.dao.sqlts.InsertTsRepository;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.TimescaleDBTsDao;
+import org.thingsboard.server.dao.util.HsqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
-@TimescaleDBTsDao
-@PsqlDao
+@SqlTsDao
+@HsqlDao
 @Repository
 @Transactional
-public class TimescaleInsertRepository extends AbstractInsertRepository implements InsertTsRepository<TimescaleTsKvEntity> {
+public class HsqlInsertTsRepository extends AbstractInsertRepository implements InsertTsRepository<TsKvEntity> {
 
     private static final String INSERT_OR_UPDATE =
-            "INSERT INTO tenant_ts_kv (tenant_id, entity_id, key, ts, bool_v, str_v, long_v, dbl_v) VALUES(?, ?, ?, ?, ?, ?, ?, ?) " +
-                    "ON CONFLICT (tenant_id, entity_id, key, ts) DO UPDATE SET bool_v = ?, str_v = ?, long_v = ?, dbl_v = ?;";
+            "MERGE INTO ts_kv USING(VALUES ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "T (entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v) " +
+                    "ON (ts_kv.entity_id=T.entity_id " +
+                    "AND ts_kv.key=T.key " +
+                    "AND ts_kv.ts=T.ts) " +
+                    "WHEN MATCHED THEN UPDATE SET ts_kv.bool_v = T.bool_v, ts_kv.str_v = T.str_v, ts_kv.long_v = T.long_v, ts_kv.dbl_v = T.dbl_v ,ts_kv.json_v = T.json_v " +
+                    "WHEN NOT MATCHED THEN INSERT (entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v) " +
+                    "VALUES (T.entity_id, T.key, T.ts, T.bool_v, T.str_v, T.long_v, T.dbl_v, T.json_v);";
 
     @Override
-    public void saveOrUpdate(List<EntityContainer<TimescaleTsKvEntity>> entities) {
+    public void saveOrUpdate(List<EntityContainer<TsKvEntity>> entities) {
         jdbcTemplate.batchUpdate(INSERT_OR_UPDATE, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                TimescaleTsKvEntity tsKvEntity = entities.get(i).getEntity();
-                ps.setObject(1, tsKvEntity.getTenantId());
-                ps.setObject(2, tsKvEntity.getEntityId());
-                ps.setInt(3, tsKvEntity.getKey());
-                ps.setLong(4, tsKvEntity.getTs());
+                EntityContainer<TsKvEntity> tsKvEntityEntityContainer = entities.get(i);
+                TsKvEntity tsKvEntity = tsKvEntityEntityContainer.getEntity();
+                ps.setObject(1, tsKvEntity.getEntityId());
+                ps.setInt(2, tsKvEntity.getKey());
+                ps.setLong(3, tsKvEntity.getTs());
 
                 if (tsKvEntity.getBooleanValue() != null) {
-                    ps.setBoolean(5, tsKvEntity.getBooleanValue());
-                    ps.setBoolean(9, tsKvEntity.getBooleanValue());
+                    ps.setBoolean(4, tsKvEntity.getBooleanValue());
                 } else {
-                    ps.setNull(5, Types.BOOLEAN);
-                    ps.setNull(9, Types.BOOLEAN);
+                    ps.setNull(4, Types.BOOLEAN);
                 }
 
-                ps.setString(6, replaceNullChars(tsKvEntity.getStrValue()));
-                ps.setString(10, replaceNullChars(tsKvEntity.getStrValue()));
-
+                ps.setString(5, tsKvEntity.getStrValue());
 
                 if (tsKvEntity.getLongValue() != null) {
-                    ps.setLong(7, tsKvEntity.getLongValue());
-                    ps.setLong(11, tsKvEntity.getLongValue());
+                    ps.setLong(6, tsKvEntity.getLongValue());
                 } else {
-                    ps.setNull(7, Types.BIGINT);
-                    ps.setNull(11, Types.BIGINT);
+                    ps.setNull(6, Types.BIGINT);
                 }
 
                 if (tsKvEntity.getDoubleValue() != null) {
-                    ps.setDouble(8, tsKvEntity.getDoubleValue());
-                    ps.setDouble(12, tsKvEntity.getDoubleValue());
+                    ps.setDouble(7, tsKvEntity.getDoubleValue());
                 } else {
-                    ps.setNull(8, Types.DOUBLE);
-                    ps.setNull(12, Types.DOUBLE);
+                    ps.setNull(7, Types.DOUBLE);
                 }
+
+                ps.setString(8, tsKvEntity.getJsonValue());
             }
 
             @Override

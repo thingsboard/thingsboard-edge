@@ -32,7 +32,7 @@
 
 CREATE TABLE IF NOT EXISTS admin_settings (
     id varchar(31) NOT NULL CONSTRAINT admin_settings_pkey PRIMARY KEY,
-    json_value varchar(10000000),
+    json_value varchar,
     key varchar(255)
 );
 
@@ -65,34 +65,6 @@ CREATE TABLE IF NOT EXISTS asset (
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name)
 );
 
-CREATE TABLE IF NOT EXISTS integration (
-    id varchar(31) NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
-    additional_info varchar,
-    configuration varchar(10000000),
-    debug_mode boolean,
-    enabled boolean,
-    is_remote boolean,
-    name varchar(255),
-    secret varchar(255),
-    converter_id varchar(31),
-    downlink_converter_id varchar(31),
-    routing_key varchar(255),
-    search_text varchar(255),
-    tenant_id varchar(31),
-    type varchar(255)
-);
-
-CREATE TABLE IF NOT EXISTS converter (
-    id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
-    additional_info varchar,
-    configuration varchar(10000000),
-    debug_mode boolean,
-    name varchar(255),
-    search_text varchar(255),
-    tenant_id varchar(31),
-    type varchar(255)
-);
-
 CREATE TABLE IF NOT EXISTS audit_log (
     id varchar(31) NOT NULL CONSTRAINT audit_log_pkey PRIMARY KEY,
     tenant_id varchar(31),
@@ -117,7 +89,7 @@ CREATE TABLE IF NOT EXISTS attribute_kv (
   str_v varchar(10000000),
   long_v bigint,
   dbl_v double precision,
-  json_v json,
+  json_v varchar(10000000),
   last_update_ts bigint,
   CONSTRAINT attribute_kv_pkey PRIMARY KEY (entity_type, entity_id, attribute_type, attribute_key)
 );
@@ -145,7 +117,6 @@ CREATE TABLE IF NOT EXISTS customer (
     search_text varchar(255),
     state varchar(255),
     tenant_id varchar(31),
-    parent_customer_id varchar(31),
     title varchar(255),
     zip varchar(255)
 );
@@ -156,7 +127,6 @@ CREATE TABLE IF NOT EXISTS dashboard (
     assigned_customers varchar(1000000),
     search_text varchar(255),
     tenant_id varchar(31),
-    customer_id varchar(31),
     title varchar(255)
 );
 
@@ -257,16 +227,6 @@ CREATE TABLE IF NOT EXISTS widgets_bundle (
     title varchar(255)
 );
 
-CREATE TABLE IF NOT EXISTS entity_group (
-    id varchar(31) NOT NULL CONSTRAINT entity_group_pkey PRIMARY KEY,
-    type varchar(255) NOT NULL,
-    name varchar(255),
-    owner_id varchar(31),
-    owner_type varchar(255),
-    additional_info varchar,
-    configuration varchar(10000000)
-);
-
 CREATE TABLE IF NOT EXISTS rule_chain (
     id varchar(31) NOT NULL CONSTRAINT rule_chain_pkey PRIMARY KEY,
     additional_info varchar,
@@ -290,30 +250,6 @@ CREATE TABLE IF NOT EXISTS rule_node (
     search_text varchar(255)
 );
 
-CREATE TABLE IF NOT EXISTS scheduler_event (
-    id varchar(31) NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
-    additional_info varchar,
-    customer_id varchar(31),
-    name varchar(255),
-    search_text varchar(255),
-    tenant_id varchar(31),
-    type varchar(255),
-    schedule varchar,
-    configuration varchar(10000000)
-);
-
-CREATE TABLE IF NOT EXISTS blob_entity (
-    id varchar(31) NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    customer_id varchar(31),
-    name varchar(255),
-    type varchar(255),
-    content_type varchar(255),
-    search_text varchar(255),
-    data varchar(10485760),
-        additional_info varchar
-);
-
 CREATE TABLE IF NOT EXISTS entity_view (
     id varchar(31) NOT NULL CONSTRAINT entity_view_pkey PRIMARY KEY,
     entity_id varchar(31),
@@ -327,25 +263,4 @@ CREATE TABLE IF NOT EXISTS entity_view (
     end_ts bigint,
     search_text varchar(255),
     additional_info varchar
-);
-
-CREATE TABLE IF NOT EXISTS role (
-    id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    customer_id varchar(31),
-    name varchar(255),
-    type varchar(255),
-    search_text varchar(255),
-    permissions varchar(10000000),
-    additional_info varchar
-);
-
-CREATE TABLE IF NOT EXISTS group_permission (
-    id varchar(31) NOT NULL CONSTRAINT group_permission_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    role_id varchar(31),
-    user_group_id varchar(31),
-    entity_group_id varchar(31),
-    entity_group_type varchar(255),
-    is_public boolean
 );

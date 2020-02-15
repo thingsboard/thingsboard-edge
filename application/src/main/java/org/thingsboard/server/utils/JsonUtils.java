@@ -30,12 +30,16 @@
  */
 package org.thingsboard.server.utils;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.thingsboard.server.gen.transport.KeyValueProto;
 
 import java.util.List;
 
 public class JsonUtils {
+
+    private static final JsonParser jsonParser = new JsonParser();
 
     public static JsonObject getJsonObject(List<KeyValueProto> tsKv) {
         JsonObject json = new JsonObject();
@@ -53,8 +57,15 @@ public class JsonUtils {
                 case STRING_V:
                     json.addProperty(kv.getKey(), kv.getStringV());
                     break;
+                case JSON_V:
+                    json.add(kv.getKey(), jsonParser.parse(kv.getJsonV()));
+                    break;
             }
         }
         return json;
+    }
+
+    public static JsonElement parse(String params) {
+        return jsonParser.parse(params);
     }
 }

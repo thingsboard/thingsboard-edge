@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.gson.JsonParseException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,7 +94,8 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
     }
 
     @Override
-    public void destroy() { }
+    public void destroy() {
+    }
 
     protected abstract ListenableFuture<T> findEntityIdAsync(TbContext ctx, TbMsg msg);
 
@@ -183,6 +186,12 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
             case DOUBLE:
                 value.put(VALUE, r.getDoubleValue().get());
                 break;
+            case JSON:
+                try {
+                    value.set(VALUE, mapper.readTree(r.getJsonValue().get()));
+                } catch (IOException e) {
+                    throw new JsonParseException("Can't parse jsonValue: " + r.getJsonValue().get(), e);
+                }
         }
         msg.getMetaData().putValue(r.getKey(), value.toString());
     }

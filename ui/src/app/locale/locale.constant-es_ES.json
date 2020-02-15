@@ -87,6 +87,8 @@
         "timeout-required": "Tiempo de espera es requerido.",
         "timeout-invalid": "Eso no parece un tiempo de espera válido.",
         "enable-tls": "Habilitar TLS",
+        "tls-version": "Versión TLS",
+        "enter-tls-version" : "Ingrese la versión de TLS",
         "send-test-mail": "Enviar correo de prueba",
         "use-system-mail-settings": "Usar La Configuración Del Servidor De Correo Del Sistema",
         "mail-templates": "Plantillas De Correo",

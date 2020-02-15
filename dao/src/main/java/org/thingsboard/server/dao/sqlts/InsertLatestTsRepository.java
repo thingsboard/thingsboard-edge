@@ -28,18 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.dictionary;
+package org.thingsboard.server.dao.sqlts;
 
-import org.springframework.data.repository.CrudRepository;
-import org.thingsboard.server.dao.model.sqlts.dictionary.TsKvDictionary;
-import org.thingsboard.server.dao.model.sqlts.dictionary.TsKvDictionaryCompositeKey;
-import org.thingsboard.server.dao.util.SqlTsAnyDao;
+import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
 
-import java.util.Optional;
+import java.util.List;
 
-@SqlTsAnyDao
-public interface TsKvDictionaryRepository extends CrudRepository<TsKvDictionary, TsKvDictionaryCompositeKey> {
+public interface InsertLatestTsRepository {
 
-    Optional<TsKvDictionary> findByKeyId(int keyId);
+    void saveOrUpdate(List<TsKvLatestEntity> entities);
 
 }

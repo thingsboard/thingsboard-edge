@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_cf (
     str_v text,
     long_v bigint,
     dbl_v double,
+    json_v text,
     PRIMARY KEY (( entity_type, entity_id, key, partition ), ts)
 );
 
@@ -66,5 +67,6 @@ CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_latest_cf (
     str_v text,
     long_v bigint,
     dbl_v double,
+    json_v text,
     PRIMARY KEY (( entity_type, entity_id ), key)
 ) WITH compaction = { 'class' :  'LeveledCompactionStrategy'  };

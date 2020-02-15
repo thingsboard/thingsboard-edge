@@ -68,7 +68,7 @@ public class ThingsboardInstallService {
     @Autowired
     private DatabaseEntitiesUpgradeService databaseEntitiesUpgradeService;
 
-    @Autowired
+    @Autowired(required = false)
     private DatabaseTsUpgradeService databaseTsUpgradeService;
 
     @Autowired

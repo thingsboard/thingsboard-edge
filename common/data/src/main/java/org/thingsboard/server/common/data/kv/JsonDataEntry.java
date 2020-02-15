@@ -28,18 +28,57 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.dictionary;
+package org.thingsboard.server.common.data.kv;
 
-import org.springframework.data.repository.CrudRepository;
-import org.thingsboard.server.dao.model.sqlts.dictionary.TsKvDictionary;
-import org.thingsboard.server.dao.model.sqlts.dictionary.TsKvDictionaryCompositeKey;
-import org.thingsboard.server.dao.util.SqlTsAnyDao;
-
+import java.util.Objects;
 import java.util.Optional;
 
-@SqlTsAnyDao
-public interface TsKvDictionaryRepository extends CrudRepository<TsKvDictionary, TsKvDictionaryCompositeKey> {
+public class JsonDataEntry extends BasicKvEntry {
+    private final String value;
 
-    Optional<TsKvDictionary> findByKeyId(int keyId);
+    public JsonDataEntry(String key, String value) {
+        super(key);
+        this.value = value;
+    }
 
+    @Override
+    public DataType getDataType() {
+        return DataType.JSON;
+    }
+
+    @Override
+    public Optional<String> getJsonValue() {
+        return Optional.ofNullable(value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof JsonDataEntry)) return false;
+        if (!super.equals(o)) return false;
+        JsonDataEntry that = (JsonDataEntry) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public Object getValue() {
+        return value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value);
+    }
+
+    @Override
+    public String toString() {
+        return "JsonDataEntry{" +
+                "value=" + value +
+                "} " + super.toString();
+    }
+
+    @Override
+    public String getValueAsString() {
+        return value;
+    }
 }

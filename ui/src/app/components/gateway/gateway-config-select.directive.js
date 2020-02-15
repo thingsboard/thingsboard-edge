@@ -32,7 +32,7 @@ import './gateway-config-select.scss';
 
 /* eslint-disable import/no-unresolved, import/default */
 
-import gatewayAliasSelectTemplate from './gateway-config-select.tpl.html';
+import gatewaySelectTemplate from './gateway-config-select.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -47,23 +47,26 @@ export default angular.module('thingsboard.directives.gatewayConfigSelect', [])
 function GatewayConfigSelect($compile, $templateCache, $mdConstant, $translate, $mdDialog) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
-        var template = $templateCache.get(gatewayAliasSelectTemplate);
+        const template = $templateCache.get(gatewaySelectTemplate);
         element.html(template);
 
         scope.tbRequired = angular.isDefined(scope.tbRequired) ? scope.tbRequired : false;
-
-        scope.ngModelCtrl = ngModelCtrl;
-        scope.singleSelect = null;
+        scope.gateway = null;
+        scope.gatewaySearchText = '';
 
         scope.updateValidity = function () {
             var value = ngModelCtrl.$viewValue;
             var valid = angular.isDefined(value) && value != null || !scope.tbRequired;
-            ngModelCtrl.$setValidity('singleSelect', valid);
+            ngModelCtrl.$setValidity('gateway', valid);
         };
 
-        scope.$watch('singleSelect', function () {
-            scope.updateView();
-        });
+        function startWatchers() {
+            scope.$watch('gateway', function (newVal, prevVal) {
+                if (!angular.equals(newVal, prevVal) && newVal !== null) {
+                    scope.updateView();
+                }
+            });
+        }
 
         scope.gatewayNameSearch = function (gatewaySearchText) {
             return gatewaySearchText ? scope.gatewayList.filter(
@@ -73,22 +76,20 @@ function GatewayConfigSelect($compile, $templateCache, $mdConstant, $translate, 
         scope.createFilterForGatewayName = function (query) {
             var lowercaseQuery = query.toLowerCase();
             return function filterFn(device) {
-                return (device.toLowerCase().indexOf(lowercaseQuery) === 0);
+                return (device.name.toLowerCase().indexOf(lowercaseQuery) === 0);
             };
         };
 
         scope.updateView = function () {
-            ngModelCtrl.$setViewValue(scope.singleSelect);
+            ngModelCtrl.$setViewValue(scope.gateway);
             scope.updateValidity();
-            let deviceObj = {"name": scope.singleSelect, "type": "Gateway", "additionalInfo": {
-                    "gateway": true
-                }};
-            scope.getAccessToken(deviceObj);
+            scope.getAccessToken(scope.gateway.id);
         };
 
         ngModelCtrl.$render = function () {
             if (ngModelCtrl.$viewValue) {
-                scope.singleSelect = ngModelCtrl.$viewValue;
+                scope.gateway = ngModelCtrl.$viewValue;
+                startWatchers();
             }
         };
 
@@ -100,9 +101,9 @@ function GatewayConfigSelect($compile, $templateCache, $mdConstant, $translate, 
             if ($event.keyCode === $mdConstant.KEY_CODE.ENTER) {
                 $event.preventDefault();
                 let indexRes = scope.gatewayList.findIndex((element) => element.key === scope.gatewaySearchText);
-                    if (indexRes === -1) {
-                        scope.createNewGatewayDialog($event, {name: scope.gatewaySearchText});
-                    }
+                if (indexRes === -1) {
+                    scope.createNewGatewayDialog($event, scope.gatewaySearchText);
+                }
             }
         };
 
@@ -111,7 +112,7 @@ function GatewayConfigSelect($compile, $templateCache, $mdConstant, $translate, 
                 $event.stopPropagation();
             }
             var title = $translate.instant('gateway.create-new-gateway');
-            var content = $translate.instant('gateway.create-new-gateway-text', {gatewayName: deviceName.name});
+            var content = $translate.instant('gateway.create-new-gateway-text', {gatewayName: deviceName});
             var confirm = $mdDialog.confirm()
                 .targetEvent($event)
                 .title(title)
@@ -121,9 +122,13 @@ function GatewayConfigSelect($compile, $templateCache, $mdConstant, $translate, 
                 .ok($translate.instant('action.yes'));
             $mdDialog.show(confirm).then(
                 () => {
-                    let deviceObj = {"name": deviceName.name, "type": "Gateway", "additionalInfo": {
-                            "gateway": true
-                        }};
+                    let deviceObj = {
+                        name: deviceName,
+                        type: "Gateway",
+                        additionalInfo: {
+                            gateway: true
+                        }
+                    };
                     scope.createDevice(deviceObj);
                 },
                 () => {
@@ -140,7 +145,6 @@ function GatewayConfigSelect($compile, $templateCache, $mdConstant, $translate, 
         link: linker,
         scope: {
             tbRequired: '=?',
-            allowedEntityTypes: '=?',
             gatewayList: '=?',
             getAccessToken: '=',
             createDevice: '=',

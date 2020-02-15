@@ -74,7 +74,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         <![endif]--></head>
         <body>{table}</body></html>`;
 
-    const JSZIP_TYPE = {
+    const ZIP_TYPE = {
         mimeType: 'application/zip',
         extension: 'zip'
     };
@@ -1197,23 +1197,14 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         dialogElement[0].style.width = dialogElement[0].offsetWidth + 2 + "px";
     }
 
-    /**
-     *
-     * @param data
-     * @param filename
-     * Warn data !!! Not object, if object, then object convert from object to format txt
-     * Example: data = {keyNameFile1: valueFile1,
-     *        keyNameFile2: valueFile2...}
-     * fileName - name file of the arhiv
-     */
     function exportJSZip(data, filename) {
         let jsZip = new JSZip();
         for (let keyName in data) {
             let valueData = data[keyName];
             jsZip.file(keyName, valueData);
         }
-        jsZip.generateAsync({type: "Blob"}).then(function (content) {
-            downloadFile(content, filename, JSZIP_TYPE);
+        jsZip.generateAsync({type: "blob"}).then(function (content) {
+            downloadFile(content, filename, ZIP_TYPE);
         });
     }
 

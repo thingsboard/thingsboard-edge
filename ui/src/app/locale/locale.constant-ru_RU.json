@@ -89,6 +89,8 @@
         "timeout-required": "Таймаут обязателен.",
         "timeout-invalid": "Недействительный таймаут.",
         "enable-tls": "Включить TLS",
+        "tls-version" : "Версия TLS",
+        "enter-tls-version" : "Введите версию TLS",
         "send-test-mail": "Отправить пробное письмо",
         "use-system-mail-settings": "Использовать параметры системного почтового сервера",
         "mail-templates": "Шаблоны писем",
