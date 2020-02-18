@@ -142,6 +142,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -648,8 +649,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
-                },
-                params);
+                }, params);
         return auditLog.getBody();
     }
 
@@ -664,8 +664,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
-                },
-                params);
+                }, params);
         return auditLog.getBody();
     }
 
@@ -696,8 +695,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<AuditLog>>() {
-                },
-                params);
+                }, params);
         return auditLog.getBody();
     }
 
@@ -802,8 +800,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<BlobEntityInfo>>() {
-                },
-                params).getBody();
+                }, params).getBody();
     }
 
     public List<BlobEntityInfo> getBlobEntitiesByIds(List<BlobEntityId> blobEntityIds) {
@@ -1426,8 +1423,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<ShortEntityView>>() {
-                },
-                params).getBody();
+                }, params).getBody();
     }
 
     public List<EntityGroupId> getEntityGroupsForEntity(EntityId entityId) {
@@ -1740,8 +1736,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<Event>>() {
-                },
-                params).getBody();
+                }, params).getBody();
     }
 
     public TimePageData<Event> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
@@ -1756,8 +1751,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TimePageData<Event>>() {
-                },
-                params).getBody();
+                }, params).getBody();
     }
 
     //GroupPermission
@@ -1844,7 +1838,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Integration>>() {
-                }).getBody();
+                }, params).getBody();
     }
 
     public void deleteIntegration(IntegrationId integrationId) {
@@ -1925,8 +1919,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<Role>>() {
-                },
-                params).getBody();
+                }, params).getBody();
     }
 
     public List<Role> getRolesByIds(List<RoleId> roleIds) {
@@ -2008,11 +2001,11 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/ruleChains" + getUrlParams(pageLink),
+                baseURL + "/api/ruleChains?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<RuleChain>>() {
-                }
+                }, params
         ).getBody();
     }
 
@@ -2337,8 +2330,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<Map<String, List<JsonNode>>>() {
-                },
-                params).getBody();
+                }, params).getBody();
 
         return RestJsonConverter.toTimeseries(timeseries);
     }
@@ -2757,7 +2749,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<TextPageData<WidgetsBundle>>() {
-                }).getBody();
+                }, params).getBody();
     }
 
     public List<WidgetsBundle> getWidgetsBundles() {
