@@ -303,7 +303,19 @@ public class CassandraDatabaseUpgradeService extends AbstractCassandraDatabaseUp
                 break;
             case "2.4.3":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.4.3pe", SCHEMA_UPDATE_CQL);
+                String updateAttributeKvTableStmt = "alter table attributes_kv_cf add json_v text";
+                try {
+                    log.info("Updating attributes ...");
+                    cluster.getSession().execute(updateAttributeKvTableStmt);
+                    Thread.sleep(2500);
+                    log.info("Attributes updated.");
+                } catch (InvalidQueryException e) {
+                }
+                log.info("Schema updated.");
+                break;
+            case "2.5.0":
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.0pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
@@ -353,15 +365,6 @@ public class CassandraDatabaseUpgradeService extends AbstractCassandraDatabaseUp
                     cluster.getSession().execute(updateRemoteIntegrationEnabledTableStmt);
                     Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
-
-                String updateAttributeKvTableStmt = "alter table attributes_kv_cf add json_v text";
-                try {
-                    log.info("Updating attributes ...");
-                    cluster.getSession().execute(updateAttributeKvTableStmt);
-                    Thread.sleep(2500);
-                    log.info("Attributes updated.");
-                } catch (InvalidQueryException e) {
-                }
 
                 log.info("Schema updated.");
 
