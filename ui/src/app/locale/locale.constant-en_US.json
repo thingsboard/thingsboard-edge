@@ -2298,6 +2298,8 @@
         "repeats": "Repeats",
         "daily": "Daily",
         "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
         "timer": "Timer-based",
         "repeats-required": "Repeats is required.",
         "repeat-on": "Repeat on",
