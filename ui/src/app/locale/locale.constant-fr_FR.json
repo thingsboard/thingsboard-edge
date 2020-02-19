@@ -60,6 +60,7 @@
         "base-url": "URL de base",
         "base-url-required": "L'URL de base est requise.",
         "enable-tls": "Activer TLS",
+        "tls-version": "Version TLS",
         "general": "Général",
         "general-settings": "Paramètres généraux",
         "mail-body": "Corps du message",
@@ -253,7 +254,7 @@
         "assign-asset-to-customer-text": "Veuillez sélectionner les actifs à attribuer au client",
         "assign-assets": "Attribuer des actifs",
         "assign-assets-text": "Attribuer {count, plural, 1 {1 asset} other {# assets}} au client",
-        "assign-new-asset": "Attribuer un nouvel actif",
+        "assign-new-asset": "Attribuer un nouvel Asset",
         "assign-to-customer": "Attribuer au client",
         "assign-to-customer-text": "Veuillez sélectionner le client pour attribuer le ou les actifs",
         "assignedToCustomer": "attribué au client",
@@ -1719,23 +1720,7 @@
         "value": "Valeur"
     },
     "language": {
-        "language": "Language",
-        "locales": {
-            "de_DE": "Allemand",
-            "en_US": "Anglais",
-            "fr_FR": "Français",
-            "es_ES": "Espagnol",
-            "it_IT": "Italien",
-            "ko_KR": "Coréen",
-            "ru_RU": "Russe",
-            "zh_CN": "Chinois",
-            "ja_JA": "Japonaise",
-            "tr_TR": "Turc",
-            "fa_IR": "Persane",
-            "uk_UA": "Ukrainien",
-            "cs_CZ": "Tchèque",
-            "el_GR": "Grec"
-        }
+        "language": "Language"
     },
     "layout": {
         "color": "Couleur",
@@ -2396,7 +2381,7 @@
         "export-data": "Exporter les données du widget",
         "export-to-csv": "Exporter les données au format CSV...",
         "export-to-excel": "Exporter les données au format XLS...",
-        "export-to-excel-xlsx": "Exporter les données au format XLS...",
+        "export-to-excel-xlsx": "Exporter les données au format XLSX...",
         "html": "HTML",
         "javascript": "Javascript",
         "latest-values": "Dernières valeurs",

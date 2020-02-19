@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS attribute_kv (
   str_v varchar(10000000),
   long_v bigint,
   dbl_v double precision,
+  json_v json,
   last_update_ts bigint,
   CONSTRAINT attribute_kv_pkey PRIMARY KEY (entity_type, entity_id, attribute_type, attribute_key)
 );
@@ -151,7 +152,7 @@ CREATE TABLE IF NOT EXISTS customer (
 
 CREATE TABLE IF NOT EXISTS dashboard (
     id varchar(31) NOT NULL CONSTRAINT dashboard_pkey PRIMARY KEY,
-    configuration varchar(10000000),
+    configuration varchar(100000000),
     assigned_customers varchar(1000000),
     search_text varchar(255),
     tenant_id varchar(31),

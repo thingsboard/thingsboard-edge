@@ -140,10 +140,13 @@ export default function ImportDialogCsvController($scope, $mdDialog, toast, impo
             ignoreErrors: true,
             resendRequest: true
         };
+
         for (var i = 0; i < importData.rows.length; i++) {
             var entityData = {
                 name: "",
                 type: "",
+                description: "",
+                gateway: null,
                 label: "",
                 accessToken: "",
                 attributes: {
@@ -183,6 +186,12 @@ export default function ImportDialogCsvController($scope, $mdDialog, toast, impo
                         break;
                     case types.importEntityColumnType.label.value:
                         entityData.label = importData.rows[i][j];
+                        break;
+                    case types.importEntityColumnType.isGateway.value:
+                        entityData.gateway = importData.rows[i][j];
+                        break;
+                    case types.importEntityColumnType.description.value:
+                        entityData.description = importData.rows[i][j];
                         break;
                 }
             }

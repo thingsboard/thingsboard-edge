@@ -123,7 +123,6 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
     private final Map<Integer, ToServerRpcRequestMetadata> toServerRpcPendingMap;
 
     private final Gson gson = new Gson();
-    private final JsonParser jsonParser = new JsonParser();
 
     private int rpcSeq = 0;
     private String deviceName;
@@ -368,7 +367,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         UUID sessionId = getSessionId(sessionInfo);
         JsonObject json = new JsonObject();
         json.addProperty("method", request.getMethodName());
-        json.add("params", jsonParser.parse(request.getParams()));
+        json.add("params", JsonUtils.parse(request.getParams()));
 
         TbMsgMetaData requestMetaData = defaultMetaData.copy();
         requestMetaData.putValue("requestId", Integer.toString(request.getRequestId()));
@@ -642,6 +641,10 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
             case STRING:
                 builder.setType(KeyValueType.STRING_V);
                 builder.setStringV(kvEntry.getStrValue().get());
+                break;
+            case JSON:
+                builder.setType(KeyValueType.JSON_V);
+                builder.setJsonV(kvEntry.getJsonValue().get());
                 break;
         }
         return builder.build();

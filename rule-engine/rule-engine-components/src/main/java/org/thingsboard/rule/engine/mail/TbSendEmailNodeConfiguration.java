@@ -44,6 +44,7 @@ public class TbSendEmailNodeConfiguration implements NodeConfiguration {
     private String smtpProtocol;
     private int timeout;
     private boolean enableTls;
+    private String tlsVersion;
 
     @Override
     public TbSendEmailNodeConfiguration defaultConfiguration() {
@@ -54,6 +55,7 @@ public class TbSendEmailNodeConfiguration implements NodeConfiguration {
         configuration.setSmtpPort(25);
         configuration.setTimeout(10000);
         configuration.setEnableTls(false);
+        configuration.setTlsVersion("TLSv1.2");
         return configuration;
     }
 }

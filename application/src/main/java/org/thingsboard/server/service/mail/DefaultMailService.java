@@ -286,11 +286,18 @@ public class DefaultMailService implements MailService {
         javaMailProperties.put(MAIL_PROP + protocol + ".port", getStringValue(jsonConfig, "smtpPort"));
         javaMailProperties.put(MAIL_PROP + protocol + ".timeout", getStringValue(jsonConfig, "timeout"));
         javaMailProperties.put(MAIL_PROP + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(getStringValue(jsonConfig, "username"))));
-        String enableTls = getStringValue(jsonConfig, "enableTls");
-        if (StringUtils.isEmpty(enableTls)) {
-            enableTls = "false";
+        boolean enableTls = false;
+        if (jsonConfig.has("enableTls")) {
+            if (jsonConfig.get("enableTls").isBoolean() && jsonConfig.get("enableTls").booleanValue()) {
+                enableTls = true;
+            } else if (jsonConfig.get("enableTls").isTextual()) {
+                enableTls = "true".equalsIgnoreCase(jsonConfig.get("enableTls").asText());
+            }
         }
         javaMailProperties.put(MAIL_PROP + protocol + ".starttls.enable", enableTls);
+        if (enableTls && jsonConfig.has("tlsVersion") && StringUtils.isNoneEmpty(jsonConfig.get("tlsVersion").asText())) {
+            javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", jsonConfig.get("tlsVersion").asText());
+        }
         return javaMailProperties;
     }
 

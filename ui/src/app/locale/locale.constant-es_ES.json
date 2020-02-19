@@ -87,6 +87,7 @@
         "timeout-required": "Tiempo de espera es requerido.",
         "timeout-invalid": "Eso no parece un tiempo de espera válido.",
         "enable-tls": "Habilitar TLS",
+        "tls-version": "Versión TLS",
         "send-test-mail": "Enviar correo de prueba",
         "use-system-mail-settings": "Usar La Configuración Del Servidor De Correo Del Sistema",
         "mail-templates": "Plantillas De Correo",
@@ -2348,22 +2349,6 @@
         }
     },
     "language": {
-        "language": "Lenguaje",
-        "locales": {
-            "de_DE": "Alemán",
-            "fr_FR": "Francés",
-            "zh_CN": "Chino",
-            "en_US": "Inglés",
-            "it_IT": "Italiano",
-            "ko_KR": "Coreano",
-            "ru_RU": "Ruso",
-            "es_ES": "Español",
-            "ja_JA": "Japonés",
-            "tr_TR": "Turco",
-            "fa_IR": "Persa",
-            "uk_UA": "Ucraniano",
-            "cs_CZ": "Checo",
-            "el_GR": "Griego"
-        }
+        "language": "Lenguaje"
     }
 }

@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -69,7 +70,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -110,7 +110,8 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            device.setTenantId(getCurrentUser().getTenantId());
+            TenantId tenantId = getTenantId();
+            device.setTenantId(tenantId);
 
             Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
 
@@ -130,10 +131,6 @@ public class DeviceController extends BaseController {
 
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
 
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDevice.getId());
-            }
-
             actorService
                     .onDeviceNameOrTypeUpdate(
                             savedDevice.getTenantId(),
@@ -144,6 +141,14 @@ public class DeviceController extends BaseController {
             logEntityAction(savedDevice.getId(), savedDevice,
                     savedDevice.getCustomerId(),
                     device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedDevice.getId());
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+                logEntityAction(savedDevice.getId(), savedDevice,
+                        savedDevice.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedDevice.getId().toString(), strEntityGroupId, entityGroup.getName());
+            }
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);

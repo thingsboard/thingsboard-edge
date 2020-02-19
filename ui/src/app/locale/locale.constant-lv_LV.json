@@ -2587,21 +2587,6 @@
     }
   },
   "language": {
-    "language": "Valodas",
-    "locales": {
-      "de_DE": "Vācu",
-      "fr_FR": "Franču",
-      "zh_CN": "Ķīniešu",
-      "en_US": "Angļu",
-      "it_IT": "Itāļu",
-      "ko_KR": "Korejiešu",
-      "ru_RU": "Krievu",
-      "es_ES": "Spāņu",
-      "ja_JA": "Japāņu",
-      "tr_TR": "Turku",
-      "fa_IR": "Persiešu",
-      "uk_UA": "Ukraiņu",
-      "cs_CZ": "Latviešu"
-    }
+    "language": "Valodas"
   }
 }

@@ -1,0 +1,96 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section name="gatewayConfig" layout="column" class="gateway-config">
+    <section layout="row" ng-form="gatewayConfig_{{$index}}" ng-repeat="connector in vm.gatewayConfig track by $index">
+        <div layout="column" layout-align="center start" class="gateway-config-row">
+            <md-switch ng-model="connector.enabled" ng-disabled="gatewayConfig_{{$index}}.$invalid || vm.validateJSON(connector.config)"
+                       aria-label="{{ 'gateway.connector-enabled' | translate }}">
+            </md-switch>
+        </div>
+        <div layout="row" flex class="gateway-config-row"
+             ng-class="{'gateway-config-row-vertical': vm.changeAlignment}">
+            <md-input-container class="md-block" flex>
+                <label>{{'gateway.connector-type' | translate }}</label>
+                <md-select name="connectorType"
+                           ng-change="vm.changeConnectorType(connector)"
+                           aria-label="{{ 'gateway.gateway.connector-type' | translate }}"
+                           ng-model="connector.configType"  required>
+                    <md-option ng-repeat="configType in vm.types.gatewayConfigType" ng-value="configType.value">
+                        {{configType.value}}
+                    </md-option>
+                </md-select>
+                <div ng-messages="vm.theForm.connectorType.$error">
+                    <div ng-message="required" translate>gateway.connector-type-required</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block" flex>
+                <input placeholder="{{'gateway.connector-name' | translate }}"
+                       ng-model-options="{ updateOn: 'blur' }"
+                       ng-change="vm.changeConnectorName(connector, $index)" name="connectorName" ng-model="connector.name" required/>
+                <div ng-messages="vm.theForm.connectorName.$error">
+                    <div ng-message="required" translate>gateway.connector-name-required</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div layout="row" layout-align="end center" class="action-buttons"
+             ng-class="{'gateway-config-row-vertical': vm.changeAlignment}">
+            <md-button class="md-icon-button md-mini" ng-click="vm.openConfigDialog($event, $index, connector.config, connector.name)"
+                       aria-label="{{ 'gateway.update-config' | translate }}"
+                       ng-class="{'md-warn': vm.validateJSON(connector.config)}">
+                <md-icon class="material-icons">more_horiz</md-icon>
+                <md-tooltip md-direction="top">
+                    {{ 'gateway.update-config' | translate }}
+                </md-tooltip>
+            </md-button>
+            <md-button class="md-icon-button md-mini" ng-click="vm.removeConnector($index)"
+                       aria-label="{{ 'gateway.delete' | translate }}">
+                <md-icon class="material-icons">close</md-icon>
+                <md-tooltip md-direction="top">
+                    {{ 'gateway.delete' | translate }}
+                </md-tooltip>
+            </md-button>
+        </div>
+    </section>
+    <span ng-show="!vm.gatewayConfig.length"
+          layout-align="center center" ng-class="{'disabled': vm.disabled}"
+          class="no-data-found" translate>{{'gateway.no-connectors'}}</span>
+    <div>
+        <md-button class="md-raised" ng-click="vm.addNewConnector()"
+                   aria-label="{{ 'gateway.connector-add' | translate }}">
+            <md-tooltip md-direction="top">
+                {{ 'gateway.connector-add' | translate }}
+            </md-tooltip>
+            <span translate>action.add</span>
+        </md-button>
+    </div>
+</section >

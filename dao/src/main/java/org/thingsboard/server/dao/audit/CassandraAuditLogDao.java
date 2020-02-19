@@ -56,7 +56,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.nosql.AuditLogEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTimeDao;
-import org.thingsboard.server.dao.timeseries.TsPartitionDate;
+import org.thingsboard.server.dao.timeseries.NoSqlTsPartitionDate;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
 import javax.annotation.Nullable;
@@ -107,7 +107,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
 
     @Value("${audit-log.by_tenant_partitioning}")
     private String partitioning;
-    private TsPartitionDate tsFormat;
+    private NoSqlTsPartitionDate tsFormat;
 
     @Value("${audit-log.default_query_period}")
     private Integer defaultQueryPeriodInDays;
@@ -125,7 +125,7 @@ public class CassandraAuditLogDao extends CassandraAbstractSearchTimeDao<AuditLo
     @PostConstruct
     public void init() {
         if (!isInstall()) {
-            Optional<TsPartitionDate> partition = TsPartitionDate.parse(partitioning);
+            Optional<NoSqlTsPartitionDate> partition = NoSqlTsPartitionDate.parse(partitioning);
             if (partition.isPresent()) {
                 tsFormat = partition.get();
             } else {

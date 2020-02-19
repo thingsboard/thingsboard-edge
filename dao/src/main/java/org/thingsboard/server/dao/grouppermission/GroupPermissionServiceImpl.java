@@ -176,7 +176,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public Optional<GroupPermission> findPublicGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findPublicGroupPermissionByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
-        List<GroupPermission> permissions = groupPermissions.stream().filter((groupPermission -> groupPermission.isPublic())).collect(Collectors.toList());
+        List<GroupPermission> permissions = groupPermissions.stream().filter((GroupPermission::isPublic)).collect(Collectors.toList());
         if (permissions.isEmpty()) {
             return Optional.empty();
         } else {
