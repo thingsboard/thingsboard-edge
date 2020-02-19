@@ -50,7 +50,7 @@ exports.genDashboardReport = function(req, res, browser) {
         var name = body.name;
         var timewindow = null;
         var type = 'pdf'; // 'jpeg', 'png';
-        var tzOffset = null;
+        var timezone = null;
 
         var reportParams = body.reportParams;
         if (reportParams) {
@@ -72,9 +72,8 @@ exports.genDashboardReport = function(req, res, browser) {
                 var timewindowStr = JSON.stringify(timewindow);
                 urlParams.push("reportTimewindow="+encodeURIComponent(timewindowStr));
             }
-            if (typeof reportParams.tzOffset === 'number') {
-                tzOffset = reportParams.tzOffset;
-                urlParams.push("tzOffset="+encodeURIComponent(tzOffset));
+            if (typeof reportParams.timezone === 'string') {
+                timezone = reportParams.timezone;
             }
 
             if (urlParams.length) {
@@ -98,7 +97,7 @@ exports.genDashboardReport = function(req, res, browser) {
             return;
         }
         logger.info('Generating dashboard report: %s', dashboardUrl);
-        generateDashboardReport(browser, url, type).then(
+        generateDashboardReport(browser, url, type, timezone).then(
             (reportBuffer) => {
                 res.attachment(name + ext);
                 res.contentType(contentType);
@@ -117,11 +116,14 @@ exports.genDashboardReport = function(req, res, browser) {
     }
 };
 
-async function generateDashboardReport(browser, url, type) {
+async function generateDashboardReport(browser, url, type, timezone) {
     var page = await browser.newPage();
     page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
     //page.on('console', msg => logger.info('PAGE LOG: %s', msg.text()));
     try {
+        if (timezone) {
+            await page.emulateTimezone(timezone);
+        }
         await page.setViewport({
             width: 1920,
             height: 1080,

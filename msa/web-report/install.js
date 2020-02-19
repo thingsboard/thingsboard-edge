@@ -64,7 +64,7 @@ async function downloadChromiumPlatform(platform) {
         }
         console.log(`Downloading Chromium ${chromium_platform} r${chromium_revision}`);
         var chromiumPath = path.join(projectRoot(), 'target', 'chromium');
-        const browserFetcher = new BrowserFetcher({
+        const browserFetcher = new BrowserFetcher(projectRoot(),{
             path: chromiumPath,
             platform: chromium_platform
         });
