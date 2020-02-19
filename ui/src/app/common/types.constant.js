@@ -1546,6 +1546,16 @@ export default angular.module('thingsboard.types', [])
                     value: 'WEEKLY',
                     name: 'scheduler.weekly'
                 },
+                monthly: {
+                    value: 'MONTHLY',
+                    type:'month',
+                    name: 'scheduler.monthly'
+                },
+                yearly: {
+                    value: 'YEARLY',
+                    type:'year',
+                    name: 'scheduler.yearly'
+                },
                 timer: {
                     value: 'TIMER',
                     name: 'scheduler.timer'

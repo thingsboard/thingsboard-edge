@@ -371,20 +371,28 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             vm.schedulerEvents.forEach((event) => {
                 var startOffset = userZone.utcOffset(event.schedule.startTime) * 60 * 1000;
                 var eventStart = moment(event.schedule.startTime - startOffset); //eslint-disable-line
-                var eventEnd = moment(event.schedule.startTime - startOffset); //eslint-disable-line
                 var calendarEvent;
                 if (rangeEnd.isSameOrAfter(eventStart)) {
                     if (event.schedule.repeat) {
-                        var eventDuration = moment.duration(eventEnd.diff(eventStart)); //eslint-disable-line
                         var endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
                         var repeatEndsOn = moment(event.schedule.repeat.endsOn - endOffset); //eslint-disable-line
                         var currentTime;
+                        var eventStartOffsetUnits = 0;
                         if (rangeStart.isSameOrBefore(eventStart)) {
                             currentTime = eventStart.clone();
                         } else {
-                            currentTime = rangeStart.clone().subtract(eventDuration);
-                            currentTime.hours(eventStart.hours());
-                            currentTime.minutes(eventStart.minutes());
+                            switch (event.schedule.repeat.type) {
+                                case types.schedulerRepeat.yearly.value:
+                                case types.schedulerRepeat.monthly.value:
+                                    eventStartOffsetUnits = moment.duration(rangeStart.diff(eventStart));//eslint-disable-line
+                                    eventStartOffsetUnits = Math.ceil(eventStartOffsetUnits.as(types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type));
+                                    currentTime = eventStart.clone().add(eventStartOffsetUnits, types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type);
+                                    break;
+                                default:
+                                    currentTime = rangeStart.clone();
+                                    currentTime.hours(eventStart.hours());
+                                    currentTime.minutes(eventStart.minutes());
+                            }
                         }
                         var endDate;
                         if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
@@ -394,20 +402,27 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                         }
                         while (currentTime.isBefore(endDate)) {
                             var day = currentTime.day();
-                            if (event.schedule.repeat.type == types.schedulerRepeat.timer.value || event.schedule.repeat.type == types.schedulerRepeat.daily.value || event.schedule.repeat.repeatOn.indexOf(day) != -1) {
+                            if (event.schedule.repeat.type !== types.schedulerRepeat.weekly.value ||
+                                event.schedule.repeat.repeatOn.indexOf(day) !== -1) {
                                 var currentEventStart = currentTime.clone();
-                                var currentEventEnd = currentTime.clone().add(eventDuration);
-                                calendarEvent = toCalendarEvent(event, currentEventStart, currentEventEnd);
+                                calendarEvent = toCalendarEvent(event, currentEventStart, currentEventStart);
                                 events.push(calendarEvent);
                             }
-                            if (event.schedule.repeat.type == types.schedulerRepeat.timer.value) {
-                                currentTime.add(event.schedule.repeat.repeatInterval, event.schedule.repeat.timeUnit.toLowerCase());
-                            } else {
-                                currentTime.add(1, 'days');
+                            switch (event.schedule.repeat.type) {
+                                case types.schedulerRepeat.timer.value:
+                                    currentTime.add(event.schedule.repeat.repeatInterval, event.schedule.repeat.timeUnit.toLowerCase());
+                                    break;
+                                case types.schedulerRepeat.yearly.value:
+                                case types.schedulerRepeat.monthly.value:
+                                    eventStartOffsetUnits++;
+                                    currentTime = eventStart.clone().add(eventStartOffsetUnits, types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type);
+                                    break;
+                                default:
+                                    currentTime.add(1, 'days');
                             }
                         }
-                    } else if (rangeStart.isSameOrBefore(eventEnd)) {
-                        calendarEvent = toCalendarEvent(event, eventStart, eventEnd);
+                    } else if (rangeStart.isSameOrBefore(eventStart)) {
+                        calendarEvent = toCalendarEvent(event, eventStart, eventStart);
                         events.push(calendarEvent);
                     }
                 }
@@ -443,6 +458,10 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             info += $translate.instant('scheduler.starting-from') + ' ' + moment.utc(startTime).local().format('MMM DD, YYYY') + ', '; //eslint-disable-line
             if (event.schedule.repeat.type == types.schedulerRepeat.daily.value) {
                 info += $translate.instant('scheduler.daily') + ', ';
+            } else if (event.schedule.repeat.type == types.schedulerRepeat.monthly.value) {
+                info += $translate.instant('scheduler.monthly') + ', ';
+            } else if (event.schedule.repeat.type == types.schedulerRepeat.yearly.value) {
+                info += $translate.instant('scheduler.yearly') + ', ';
             } else if (event.schedule.repeat.type == types.schedulerRepeat.timer.value) {
                 info += $translate.instant('scheduler.timer') + ', ';
             } else {

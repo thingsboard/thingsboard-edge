@@ -35,6 +35,6 @@ package org.thingsboard.server.service.scheduler;
  */
 public enum SchedulerRepeatType {
 
-    DAILY, WEEKLY, TIMER;
+    DAILY, WEEKLY, MONTHLY, YEARLY, TIMER;
 
 }
