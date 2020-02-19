@@ -39,8 +39,15 @@ export default function IntegrationTcpDirective($compile, $templateCache, $trans
 
         scope.types = types;
         scope.$mdExpansionPanel = $mdExpansionPanel;
+        scope.handlerTypes = {};
 
         var defaultHandlerConfigurations = {};
+
+        for (let handlerType in types.handlerConfigurationTypes) {
+            if (handlerType !== types.handlerConfigurationTypes.hex.value.toLowerCase()) {
+                scope.handlerTypes[handlerType] = types.handlerConfigurationTypes[handlerType];
+            }
+        }
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
