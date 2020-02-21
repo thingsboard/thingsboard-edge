@@ -132,6 +132,7 @@
         <module>tools</module>
         <module>application</module>
         <module>msa</module>
+        <module>rest-client</module>
     </modules>
 
     <profiles>
@@ -517,6 +518,12 @@
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>tools</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard</groupId>
+                <artifactId>rest-client</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
