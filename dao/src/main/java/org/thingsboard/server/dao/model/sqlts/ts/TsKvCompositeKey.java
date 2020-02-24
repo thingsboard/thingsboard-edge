@@ -28,29 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.psql;
+package org.thingsboard.server.dao.model.sqlts.ts;
 
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.timeseries.PsqlPartition;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.persistence.Transient;
+import java.io.Serializable;
+import java.util.UUID;
 
-@SqlTsDao
-@PsqlDao
-@Repository
-@Transactional
-public class PsqlPartitioningRepository {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class TsKvCompositeKey implements Serializable {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    @Transient
+    private static final long serialVersionUID = -4089175869616037523L;
 
-    public void save(PsqlPartition partition) {
-        entityManager.createNativeQuery(partition.getQuery())
-                .executeUpdate();
-    }
-
+    private UUID entityId;
+    private int key;
+    private long ts;
 }

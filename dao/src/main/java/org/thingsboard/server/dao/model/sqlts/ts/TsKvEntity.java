@@ -28,11 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sqlts.hsql;
+package org.thingsboard.server.dao.model.sqlts.ts;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.dao.model.ToData;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 
 import javax.persistence.Column;
@@ -47,7 +45,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
 @Entity
 @Table(name = "ts_kv")
 @IdClass(TsKvCompositeKey.class)
-public final class TsKvEntity extends AbstractTsKvEntity implements ToData<TsKvEntry> {
+public final class TsKvEntity extends AbstractTsKvEntity {
 
     @Id
     @Column(name = KEY_COLUMN)

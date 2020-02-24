@@ -28,14 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts;
+package org.thingsboard.server.dao.model.sqlts.timescale.ts;
 
-import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import javax.persistence.Transient;
+import java.io.Serializable;
+import java.util.UUID;
 
-public interface InsertTsRepository<T extends AbstractTsKvEntity> {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class TimescaleTsKvCompositeKey implements Serializable {
 
-    void saveOrUpdate(List<EntityContainer<T>> entities);
+    @Transient
+    private static final long serialVersionUID = -4089175869616037523L;
 
-}
+    private UUID tenantId;
+    private UUID entityId;
+    private int key;
+    private long ts;
+} 
