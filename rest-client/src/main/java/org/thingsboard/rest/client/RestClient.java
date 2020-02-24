@@ -32,6 +32,7 @@ package org.thingsboard.rest.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -109,6 +110,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.AllowedPermissionsInfo;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -163,7 +165,6 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     private String refreshToken;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ExecutorService service = Executors.newWorkStealingPool(10);
-
 
     protected static final String ACTIVATE_TOKEN_REGEX = "/api/noauth/activate?activateToken=";
 
@@ -2527,6 +2528,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 new ParameterizedTypeReference<List<Role>>() {
                 },
                 listIdsToString(roleIds)).getBody();
+    }
+
+    public Role createGroupRole(String roleName, List<Operation> operations) {
+        Role role = new Role();
+        role.setName(roleName);
+        role.setType(RoleType.GROUP);
+        ArrayNode permissions = objectMapper.createArrayNode();
+        operations.stream().map(Operation::name).forEach(permissions::add);
+        role.setPermissions(permissions);
+        return saveRole(role);
     }
 
     public JsonNode handleRuleEngineRequest(JsonNode requestBody) {
