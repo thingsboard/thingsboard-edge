@@ -50,7 +50,7 @@ export default function AdminController(adminService, userService, toast, $scope
     });
 
     vm.mailTemplate = types.mailTemplate.test.value;
-    vm.tlsVersions = ['TLSv1.0', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
+    vm.tlsVersions = ['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
 
     $translate('admin.test-mail-sent').then(function (translation) {
         vm.testMailSent = translation;
