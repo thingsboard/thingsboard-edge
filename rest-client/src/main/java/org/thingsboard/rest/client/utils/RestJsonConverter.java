@@ -59,7 +59,7 @@ public class RestJsonConverter {
 
     public static List<AttributeKvEntry> toAttributes(List<JsonNode> attributes) {
         if (!CollectionUtils.isEmpty(attributes)) {
-            return attributes.stream().map(attr -> {
+            return attributes.stream().filter(attr-> !attr.get(VALUE).isNull()).map(attr -> {
                         KvEntry entry = parseValue(attr.get(KEY).asText(), attr.get(VALUE));
                         return new BaseAttributeKvEntry(entry, attr.get(LAST_UPDATE_TS).asLong());
                     }
@@ -73,7 +73,7 @@ public class RestJsonConverter {
         if (!CollectionUtils.isEmpty(timeseries)) {
             List<TsKvEntry> result = new ArrayList<>();
             timeseries.forEach((key, values) ->
-                    result.addAll(values.stream().map(ts -> {
+                    result.addAll(values.stream().filter(ts-> !ts.get(VALUE).isNull()).map(ts -> {
                                 KvEntry entry = parseValue(key, ts.get(VALUE));
                                 return new BasicTsKvEntry(ts.get(TS).asLong(), entry);
                             }
