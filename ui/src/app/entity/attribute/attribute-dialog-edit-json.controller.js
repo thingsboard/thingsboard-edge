@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,56 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../scss/constants";
+/* eslint-enable import/no-unresolved, import/default */
 
-$md-light: rgba(255, 255, 255, 100%) !default;
-$md-edit-icon-fill: #757575 !default;
+import './attribute-dialog-edit-json.scss';
 
-md-toolbar.md-table-toolbar.alternate {
-  .md-toolbar-tools {
-    md-icon {
-      color: $md-light;
-    }
-  }
-}
+/*@ngInject*/
+export default function AttributeDialogEditJsonController($mdDialog, types, jsonValue, readOnly) {
 
-.md-table {
-  &.tb-attribute-table {
-    table-layout: fixed;
+    let vm = this;
+    vm.json = angular.toJson(jsonValue, 4);
+    vm.readOnly = readOnly;
+    vm.contentType = types.contentType.JSON.value;
 
-    td.md-cell {
-      &.tb-value-cell {
-        overflow: auto;
-      }
-    }
-  }
+    vm.save = () => {
+        $mdDialog.hide(angular.fromJson(vm.json));
+    };
 
-  .md-cell {
-    ng-md-icon {
-      float: right;
-      height: 24px;
-      fill: $md-edit-icon-fill;
-    }
-  }
-}
-
-.widgets-carousel {
-  position: relative;
-  height: calc(100% - 100px);
-  min-height: 150px !important;
-  margin: 0;
-
-  tb-dashboard {
-    #gridster-parent {
-      padding: 0 7px;
-    }
-  }
-}
-
-md-edit-dialog.tb-edit-dialog{
-  z-index: 78;
-}
-
-md-backdrop.md-edit-dialog-backdrop{
-  z-index: 77;
+    vm.cancel = () => {
+        $mdDialog.cancel();
+    };
 }

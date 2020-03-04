@@ -30,4 +30,6 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-su postgres -c '/usr/lib/postgresql/10/bin/pg_ctl stop'
+export PG_CTL=$(find /usr/lib/postgresql/ -name pg_ctl)
+
+su postgres -c '${PG_CTL} stop'

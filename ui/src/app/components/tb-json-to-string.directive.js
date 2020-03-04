@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,56 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../scss/constants";
+export default angular.module('tbJsonToString', [])
+    .directive('tbJsonToString', InputJson)
+    .name;
 
-$md-light: rgba(255, 255, 255, 100%) !default;
-$md-edit-icon-fill: #757575 !default;
-
-md-toolbar.md-table-toolbar.alternate {
-  .md-toolbar-tools {
-    md-icon {
-      color: $md-light;
-    }
-  }
-}
-
-.md-table {
-  &.tb-attribute-table {
-    table-layout: fixed;
-
-    td.md-cell {
-      &.tb-value-cell {
-        overflow: auto;
-      }
-    }
-  }
-
-  .md-cell {
-    ng-md-icon {
-      float: right;
-      height: 24px;
-      fill: $md-edit-icon-fill;
-    }
-  }
-}
-
-.widgets-carousel {
-  position: relative;
-  height: calc(100% - 100px);
-  min-height: 150px !important;
-  margin: 0;
-
-  tb-dashboard {
-    #gridster-parent {
-      padding: 0 7px;
-    }
-  }
-}
-
-md-edit-dialog.tb-edit-dialog{
-  z-index: 78;
-}
-
-md-backdrop.md-edit-dialog-backdrop{
-  z-index: 77;
+function InputJson() {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function(scope, element, attr, ngModelCtrl) {
+            function into(input) {
+                try {
+                    ngModelCtrl.$setValidity('invalidJSON', true);
+                    return angular.fromJson(input);
+                } catch (e) {
+                    ngModelCtrl.$setValidity('invalidJSON', false);
+                }
+            }
+            function out(data) {
+                try {
+                    ngModelCtrl.$setValidity('invalidJSON', true);
+                    return angular.toJson(data);
+                } catch (e) {
+                    ngModelCtrl.$setValidity('invalidJSON', false);
+                }
+            }
+            ngModelCtrl.$parsers.push(into);
+            ngModelCtrl.$formatters.push(out);
+        }
+    };
 }

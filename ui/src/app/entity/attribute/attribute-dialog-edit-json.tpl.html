@@ -30,24 +30,40 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="background: #fff;" ng-class="{'fill-height': fillHeight}" tb-expand-fullscreen fullscreen-zindex="100" expand-button-id="expand-button" on-fullscreen-changed="onFullscreenChanged()" layout="column">
-    <div layout="row" layout-align="start center" style="height: 40px;" class="tb-json-content-toolbar">
-        <label class="tb-title no-padding"
-               ng-class="{'tb-error': !contentValid}">{{ label }}</label>
-        <span flex></span>
-        <md-button ng-if="!readonly" class="tidy" aria-label="{{ 'js-func.tidy' | translate }}" ng-click="beautifyJSON()">{{
-            'js-func.tidy' | translate }}
-        </md-button>
-        <md-button ng-if="!readonly" class="tidy" aria-label="{{ 'js-func.mini' | translate }}" ng-click="minifyJSON()">{{
-            'js-func.mini' | translate }}
-        </md-button>
-        <md-button id="expand-button" aria-label="Fullscreen" class="md-icon-button tb-md-32 tb-fullscreen-button-style"></md-button>
-    </div>
-    <div flex id="tb-json-panel" class="tb-json-content-panel" layout="column">
-        <div flex id="tb-json-input" ng-class="{'fill-height': fillHeight}"
-             ng-readonly="readonly"
-             ui-ace="jsonEditorOptions"
-             ng-model="contentBody">
-        </div>
-    </div>
-</div>
+<md-dialog class="attribute-edit-json-dialog">
+    <form name="theForm" ng-submit="vm.save()">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>{{ 'details.edit-json' | translate }}</h2>
+                <span flex></span>
+                <md-button class="md-icon-button"
+                           ng-click="vm.cancel()"
+                           aria-label="{{'action.close'|translate}}">
+                    <ng-md-icon icon="close" aria-label="Close"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <tb-json-content
+                        ng-model="vm.json"
+                        label="{{ 'value.json-value' | translate }}"
+                        content-type="vm.contentType"
+                        validate-content="true"
+                        hide-error-toast="true"
+                        fill-height="false"
+                        ng-readonly="vm.readOnly">
+                </tb-json-content>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row" layout-align="end center" class="action-buttons">
+            <md-button ng-disabled="$root.loading || theForm.$invalid || !theForm.$dirty" type="submit"
+                       class="md-raised md-primary">
+                {{'action.save'|translate}}
+            </md-button>
+            <md-button id="cancel-btn" ng-disabled="$root.loading" ng-click="vm.cancel()">
+                {{'action.cancel'|translate }}
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

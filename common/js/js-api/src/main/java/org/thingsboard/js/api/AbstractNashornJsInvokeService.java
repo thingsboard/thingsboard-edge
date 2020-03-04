@@ -82,7 +82,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     @Value("${js.local.js_thread_pool_size:50}")
     private int jsExecutorThreadPoolSize;
 
-    @Scheduled(fixedDelayString = "${js.remote.stats.print_interval_ms:1000}")
+    @Scheduled(fixedDelayString = "${js.local.stats.print_interval_ms:10000}")
     public void printStats() {
         if (statsEnabled) {
             int pushedMsgs = jsPushedMsgs.getAndSet(0);

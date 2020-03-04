@@ -72,9 +72,12 @@ function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
             updateEditorSize();
         };
 
-        scope.beautifyJson = function () {
-            var res = js_beautify(scope.contentBody, {indent_size: 4, wrap_line_length: 60});
-            scope.contentBody = res;
+        scope.beautifyJSON = function () {
+            scope.contentBody = js_beautify(scope.contentBody, {indent_size: 4, wrap_line_length: 60});
+        };
+
+        scope.minifyJSON = function () {
+            scope.contentBody = angular.toJson(angular.fromJson(scope.contentBody));
         };
 
         function updateEditorSize() {
@@ -159,7 +162,7 @@ function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
         scope.$watch('contentBody', function (newContent, oldContent) {
             ngModelCtrl.$setViewValue(scope.contentBody);
             if (!angular.equals(newContent, oldContent)) {
-                scope.contentValid = true;
+                scope.contentValid = scope.validate();
             }
             scope.updateValidity();
         });
@@ -182,15 +185,17 @@ function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
                 }
                 return true;
             } catch (e) {
-                var details = utils.parseException(e);
-                var errorInfo = 'Error:';
-                if (details.name) {
-                    errorInfo += ' ' + details.name + ':';
+                if (!scope.hideErrorToast) {
+                    var details = utils.parseException(e);
+                    var errorInfo = 'Error:';
+                    if (details.name) {
+                        errorInfo += ' ' + details.name + ':';
+                    }
+                    if (details.message) {
+                        errorInfo += ' ' + details.message;
+                    }
+                    scope.showError(errorInfo);
                 }
-                if (details.message) {
-                    errorInfo += ' ' + details.message;
-                }
-                scope.showError(errorInfo);
                 return false;
             }
         };
@@ -212,7 +217,7 @@ function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
         });
 
         $compile(element.contents())(scope);
-    }
+    };
 
     return {
         restrict: "E",
@@ -220,6 +225,7 @@ function JsonContent($compile, $templateCache, $timeout, toast, types, utils) {
         scope: {
             contentType: '=',
             validateContent: '=?',
+            hideErrorToast: '=?',
             readonly:'=ngReadonly',
             fillHeight:'=?',
             tbPlaceholder:'=?'

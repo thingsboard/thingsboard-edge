@@ -32,14 +32,16 @@ package org.thingsboard.server.service.install;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.PsqlDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 @Service
 @SqlDao
+@PsqlDao
 @Profile("install")
-public class SqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
+public class PsqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
         implements EntityDatabaseSchemaService {
-    public SqlEntityDatabaseSchemaService() {
+    public PsqlEntityDatabaseSchemaService() {
         super("schema-entities.sql", "schema-entities-idx.sql");
     }
 }
