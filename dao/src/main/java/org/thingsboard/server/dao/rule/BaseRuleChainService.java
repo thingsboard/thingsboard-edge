@@ -86,7 +86,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         boolean setNewRuleChain = false;
         if (ruleChain.isRoot()) {
             RuleChain currentRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
-            if (!currentRuleChain.getId().equals(ruleChain.getId())) {
+            if (currentRuleChain != null && !currentRuleChain.getId().equals(ruleChain.getId())) {
                 ruleChain.setRoot(false);
                 setNewRuleChain = true;
             }
