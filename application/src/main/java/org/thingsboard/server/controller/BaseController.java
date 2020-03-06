@@ -90,8 +90,9 @@ import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
@@ -388,21 +389,27 @@ public abstract class BaseController {
         return UUID.fromString(id);
     }
 
-    TimePageLink createPageLink(int limit, Long startTime, Long endTime, boolean ascOrder, String idOffset) {
-        UUID idOffsetUuid = null;
-        if (StringUtils.isNotEmpty(idOffset)) {
-            idOffsetUuid = toUUID(idOffset);
+    PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
+        if (!StringUtils.isEmpty(sortProperty)) {
+            SortOrder.Direction direction = SortOrder.Direction.ASC;
+            if (!StringUtils.isEmpty(sortOrder)) {
+                try {
+                    direction = SortOrder.Direction.valueOf(sortOrder.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new ThingsboardException("Unsupported sort order '" + sortOrder + "'! Only 'ASC' or 'DESC' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                }
+            }
+            SortOrder sort = new SortOrder(sortProperty, direction);
+            return new PageLink(pageSize, page, textSearch, sort);
+        } else {
+            return new PageLink(pageSize, page, textSearch);
         }
-        return new TimePageLink(limit, startTime, endTime, ascOrder, idOffsetUuid);
     }
 
-
-    TextPageLink createPageLink(int limit, String textSearch, String idOffset, String textOffset) {
-        UUID idOffsetUuid = null;
-        if (StringUtils.isNotEmpty(idOffset)) {
-            idOffsetUuid = toUUID(idOffset);
-        }
-        return new TextPageLink(limit, textSearch, idOffsetUuid, textOffset);
+    TimePageLink createTimePageLink(int pageSize, int page, String textSearch,
+                                    String sortProperty, String sortOrder, Long startTime, Long endTime) throws ThingsboardException {
+        PageLink pageLink = this.createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return new TimePageLink(pageLink, startTime, endTime);
     }
 
     protected SecurityUser getCurrentUser() throws ThingsboardException {
@@ -968,28 +975,28 @@ public abstract class BaseController {
         }
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
     getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
                                Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                               TextPageLink pageLink) throws Exception {
+                               PageLink pageLink) throws Exception {
 
         return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 Collections.emptyList(), Collections.emptyList(), pageLink);
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
     getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
                                Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                               List<Predicate<E>> entityFilters, TextPageLink pageLink) throws Exception {
+                               List<Predicate<E>> entityFilters, PageLink pageLink) throws Exception {
 
         return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 entityFilters, Collections.emptyList(), pageLink);
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
         getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
                                    Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                                   List<Predicate<E>> entityFilters, List<I> additionalEntityIds, TextPageLink pageLink) throws Exception {
+                                   List<Predicate<E>> entityFilters, List<I> additionalEntityIds, PageLink pageLink) throws Exception {
 
         List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
         entityIds.addAll(additionalEntityIds);
@@ -997,13 +1004,13 @@ public abstract class BaseController {
         return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
+        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, PageLink pageLink) {
             return loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, List<Predicate<E>> entityFilters, TextPageLink pageLink) {
+    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
+        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, List<Predicate<E>> entityFilters, PageLink pageLink) {
         List<E> entities;
         if (entityIds.isEmpty()) {
             entities = Collections.emptyList();
@@ -1015,11 +1022,27 @@ public abstract class BaseController {
             entitiesStream = entitiesStream.filter(entityFilter);
         }
         entities = entitiesStream.filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-        if (pageLink.getLimit() > 0 && entities.size() > pageLink.getLimit()) {
-            int toRemove = entities.size() - pageLink.getLimit();
-            entities.subList(entities.size() - toRemove, entities.size()).clear();
+        return toPageData(entities, pageLink);
+    }
+
+    protected <E> PageData<E> toPageData(List<E> entities, PageLink pageLink) {
+        int totalElements = entities.size();
+        int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil(totalElements / pageLink.getPageSize()) : 1;
+        boolean hasNext = false;
+        if (pageLink.getPageSize() > 0) {
+            int startIndex = pageLink.getPageSize() * pageLink.getPage();
+            int endIndex = startIndex + pageLink.getPageSize();
+            if (entities.size() <= startIndex) {
+                entities = Collections.emptyList();
+            } else {
+                if (endIndex > entities.size()) {
+                    endIndex = entities.size();
+                }
+                entities = new ArrayList<>(entities.subList(startIndex, endIndex));
+            }
+            hasNext = totalElements > startIndex + entities.size();
         }
-        return new TextPageData<>(entities, pageLink);
+        return new PageData<>(entities, totalPages, totalElements, hasNext);
     }
 
     protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
@@ -1033,42 +1056,22 @@ public abstract class BaseController {
     protected class EntityPageLinkFilter implements Predicate<SearchTextBased<? extends UUIDBased>> {
 
         private final String textSearch;
-        private final String textOffset;
-        private final long createdTimeOffset;
 
-        EntityPageLinkFilter(TextPageLink pageLink) {
+        EntityPageLinkFilter(PageLink pageLink) {
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 this.textSearch = pageLink.getTextSearch().toLowerCase();
             } else {
                 this.textSearch = "";
             }
-            if (!StringUtils.isEmpty(pageLink.getTextOffset())) {
-                this.textOffset = pageLink.getTextOffset();
-            } else {
-                this.textOffset = "";
-            }
-            if (pageLink.getIdOffset() != null) {
-                createdTimeOffset = UUIDs.unixTimestamp(pageLink.getIdOffset());
-            } else {
-                createdTimeOffset = Long.MAX_VALUE;
-            }
         }
 
         @Override
         public boolean test(SearchTextBased<? extends UUIDBased> searchTextBased) {
-            if (textOffset.length() > 0) {
-                int result = searchTextBased.getSearchText().compareToIgnoreCase(textOffset);
-                if (result == 0 && searchTextBased.getCreatedTime() < createdTimeOffset) {
-                    return true;
-                } else if (result > 0 && searchTextBased.getSearchText().toLowerCase().startsWith(textSearch)) {
-                    return true;
-                }
-            } else if (textSearch.length() > 0) {
+            if (textSearch.length() > 0) {
                 return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
             } else {
                 return true;
             }
-            return false;
         }
     }
 

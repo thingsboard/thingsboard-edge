@@ -37,11 +37,11 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.converter.ConverterDao;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,17 +65,17 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         }
         assertEquals(60, converterDao.find(TenantId.SYS_TENANT_ID).size());
 
-        TextPageLink pageLink1 = new TextPageLink(20, "CONVERTER_");
-        List<Converter> converters1 = converterDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
-        assertEquals(20, converters1.size());
+        PageLink pageLink = new PageLink(20, 0,"CONVERTER_");
+        PageData<Converter> converters1 = converterDao.findByTenantId(tenantId1, pageLink);
+        assertEquals(20, converters1.getData().size());
 
-        TextPageLink pageLink2 = new TextPageLink(20, "CONVERTER_", converters1.get(19).getId().getId(), null);
-        List<Converter> converters2 = converterDao.findByTenantIdAndPageLink(tenantId1, pageLink2);
-        assertEquals(10, converters2.size());
+        pageLink = pageLink.nextPageLink();
+        PageData<Converter> converters2 = converterDao.findByTenantId(tenantId1, pageLink);
+        assertEquals(10, converters2.getData().size());
 
-        TextPageLink pageLink3 = new TextPageLink(20, "CONVERTER_", converters2.get(9).getId().getId(), null);
-        List<Converter> converters3 = converterDao.findByTenantIdAndPageLink(tenantId1, pageLink3);
-        assertEquals(0, converters3.size());
+        pageLink = pageLink.nextPageLink();
+        PageData<Converter> converters3 = converterDao.findByTenantId(tenantId1, pageLink);
+        assertEquals(0, converters3.getData().size());
     }
 
     @Test

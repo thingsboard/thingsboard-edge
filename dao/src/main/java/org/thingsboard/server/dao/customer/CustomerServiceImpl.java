@@ -47,12 +47,11 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -289,12 +288,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<Customer> findCustomersByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findCustomersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<Customer> customers = customerDao.findCustomersByTenantId(tenantId.getId(), pageLink);
-        return new TextPageData<>(customers, pageLink);
+        Validator.validatePageLink(pageLink);
+        return customerDao.findCustomersByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -316,10 +314,10 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<PageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        validatePageLink(pageLink);
         return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
                 (entityId) -> new CustomerId(entityId.getId()),
                 (entityIds) -> findCustomersByTenantIdAndIdsAsync(tenantId, entityIds),
@@ -327,10 +325,10 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public ListenableFuture<TimePageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<PageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findCustomerEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        validatePageLink(pageLink);
         return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
                 (entityId) -> new CustomerId(entityId.getId()),
                 (entityIds) -> findCustomersByTenantIdAndIdsAsync(tenantId, entityIds));
@@ -427,7 +425,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
             new PaginatedRemover<TenantId, Customer>() {
 
                 @Override
-                protected List<Customer> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+                protected PageData<Customer> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
                     return customerDao.findCustomersByTenantId(id.getId(), pageLink);
                 }
 

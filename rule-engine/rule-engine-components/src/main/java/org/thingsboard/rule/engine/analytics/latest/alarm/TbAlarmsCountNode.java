@@ -44,6 +44,8 @@ import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNode;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -124,12 +126,13 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             }
         }
         TimePageLink pageLink;
+        PageLink alarmSearchPageLink = new PageLink(100, 0, null, new SortOrder("createdTime", SortOrder.Direction.DESC));
         if (interval > 0) {
-            pageLink = new TimePageLink(100, System.currentTimeMillis() - interval);
+            pageLink = new TimePageLink(alarmSearchPageLink, System.currentTimeMillis() - interval, null);
         } else {
-            pageLink = new TimePageLink(100);
+            pageLink = new TimePageLink(alarmSearchPageLink, null, null);
         }
-        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false, null);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         JsonObject obj = new JsonObject();
         for (int i=0;i<mappings.size();i++) {

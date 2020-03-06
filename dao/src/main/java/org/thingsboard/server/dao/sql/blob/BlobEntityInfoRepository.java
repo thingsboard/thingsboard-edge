@@ -30,16 +30,79 @@
  */
 package org.thingsboard.server.dao.sql.blob;
 
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.BlobEntityInfoEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 
 @SqlDao
-public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoEntity, String>, JpaSpecificationExecutor<BlobEntityInfoEntity> {
+public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoEntity, String> {
 
     List<BlobEntityInfoEntity> findBlobEntitiesByTenantIdAndIdIn(String tenantId, List<String> blobEntityIds);
+
+    @Query("SELECT b FROM BlobEntityInfoEntity b WHERE " +
+            "b.tenantId = :tenantId " +
+            "AND (:startId IS NULL OR b.id >= :startId) " +
+            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
+    )
+    Page<BlobEntityInfoEntity> findByTenantId(
+            @Param("tenantId") String tenantId,
+            @Param("textSearch") String textSearch,
+            @Param("startId") String startId,
+            @Param("endId") String endId,
+            Pageable pageable);
+
+    @Query("SELECT b FROM BlobEntityInfoEntity b WHERE " +
+            "b.tenantId = :tenantId " +
+            "AND b.type = :type " +
+            "AND (:startId IS NULL OR b.id >= :startId) " +
+            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
+    )
+    Page<BlobEntityInfoEntity> findByTenantIdAndType(
+            @Param("tenantId") String tenantId,
+            @Param("type") String type,
+            @Param("textSearch") String textSearch,
+            @Param("startId") String startId,
+            @Param("endId") String endId,
+            Pageable pageable);
+
+    @Query("SELECT b FROM BlobEntityInfoEntity b WHERE " +
+            "b.tenantId = :tenantId " +
+            "AND b.customerId = :customerId " +
+            "AND (:startId IS NULL OR b.id >= :startId) " +
+            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
+    )
+    Page<BlobEntityInfoEntity> findByTenantIdAndCustomerId(
+            @Param("tenantId") String tenantId,
+            @Param("customerId") String customerId,
+            @Param("textSearch") String textSearch,
+            @Param("startId") String startId,
+            @Param("endId") String endId,
+            Pageable pageable);
+
+    @Query("SELECT b FROM BlobEntityInfoEntity b WHERE " +
+            "b.tenantId = :tenantId " +
+            "AND b.customerId = :customerId " +
+            "AND b.type = :type " +
+            "AND (:startId IS NULL OR b.id >= :startId) " +
+            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
+    )
+    Page<BlobEntityInfoEntity> findByTenantIdAndCustomerIdAndType(
+            @Param("tenantId") String tenantId,
+            @Param("customerId") String customerId,
+            @Param("type") String type,
+            @Param("textSearch") String textSearch,
+            @Param("startId") String startId,
+            @Param("endId") String endId,
+            Pageable pageable);
 
 }

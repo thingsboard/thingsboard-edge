@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -167,7 +167,7 @@ public class DefaultSchedulerService implements SchedulerService {
     private void initStateFromDB() {
         log.info("Initializing scheduler service...");
         long ts = System.currentTimeMillis();
-        List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
+        List<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE)).getData();
         for (Tenant tenant : tenants) {
             if (routingService.resolveById(tenant.getId()).isPresent()) {
                 continue;
@@ -335,7 +335,7 @@ public class DefaultSchedulerService implements SchedulerService {
 
     private void onClusterUpdateSync() {
         long ts = System.currentTimeMillis();
-        List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
+        List<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE)).getData();
         for (Tenant tenant : tenants) {
             if (routingService.resolveById(tenant.getId()).isPresent()) {
                 List<SchedulerEventId> eventsIds = tenantEvents.remove(tenant.getId());

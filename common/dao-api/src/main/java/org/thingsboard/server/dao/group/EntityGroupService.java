@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
@@ -111,12 +111,12 @@ public interface EntityGroupService {
                                                                              Function<I, E> toEntityFunction,
                                                                              BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
 
-    <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                                                                          Function<EntityId, I> toIdFunction,
-                                                                                                          Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
-                                                                                                          BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+    <E extends BaseData, I extends EntityId> ListenableFuture<PageData<ShortEntityView>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
+                                                                                                      Function<EntityId, I> toIdFunction,
+                                                                                                      Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
+                                                                                                      BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
 
-    <E extends HasId<I>, I extends EntityId> ListenableFuture<TimePageData<E>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
+    <E extends HasId<I>, I extends EntityId> ListenableFuture<PageData<E>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
                                                                                             Function<EntityId, I> toIdFunction,
                                                                                             Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction);
 

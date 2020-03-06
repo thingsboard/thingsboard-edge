@@ -1,0 +1,200 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+$edit-toolbar-height: 40px !default;
+
+tb-widget-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.tb-editor {
+  .tb-split {
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  mat-form-field.resource-field {
+    max-height: 40px;
+    margin: 10px 0px 0px 0px;
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+      .mat-form-field-flex {
+        max-height: 40px;
+        .mat-form-field-infix {
+          border: 0;
+        }
+      }
+      .mat-form-field-underline {
+        bottom: 0;
+      }
+    }
+  }
+
+  .ace_editor {
+    font-size: 14px !important;
+  }
+
+  .tb-content {
+    border: 1px solid #c0c0c0;
+  }
+
+  .gutter {
+    background-color: transparent;
+
+    background-repeat: no-repeat;
+    background-position: 50%;
+
+    &.gutter-horizontal {
+      cursor: col-resize;
+      background-image: url("../../../../../assets/split.js/grips/vertical.png");
+    }
+
+    &.gutter-vertical {
+      cursor: row-resize;
+      background-image: url("../../../../../assets/split.js/grips/horizontal.png");
+    }
+  }
+
+  .tb-split.tb-split-horizontal,
+  .gutter.gutter-horizontal {
+    float: left;
+    height: 100%;
+  }
+
+  .tb-split.tb-split-vertical {
+    display: flex;
+
+    .tb-split.tb-content {
+      height: 100%;
+    }
+  }
+}
+
+.tb-split-vertical {
+  mat-tab-group {
+    .mat-tab-body-wrapper {
+      height: calc(100% - 49px);
+
+      mat-tab-body {
+        height: 100%;
+
+        & > div {
+          height: 100%;
+        }
+      }
+    }
+  }
+}
+
+div.tb-editor-area-title-panel {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  z-index: 5;
+  font-size: .8rem;
+  font-weight: 500;
+
+  label {
+    padding: 4px;
+    color: #00acc1;
+    text-transform: uppercase;
+    background: rgba(220, 220, 220, .35);
+    border-radius: 5px;
+    &:not(:last-child) {
+      margin-right: 4px;
+    }
+  }
+
+  button.mat-button, button.mat-icon-button, button.mat-icon-button.tb-mat-32 {
+    align-items: center;
+    vertical-align: middle;
+    min-width: 32px;
+    min-height: 15px;
+    padding: 4px;
+    margin: 0;
+    font-size: .8rem;
+    line-height: 15px;
+    color: #7b7b7b;
+    background: rgba(220, 220, 220, .35);
+    &:not(:last-child) {
+      margin-right: 4px;
+    }
+  }
+}
+
+.tb-resize-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+
+  .ace_editor {
+    height: 100%;
+  }
+}
+
+mat-toolbar.tb-edit-toolbar {
+
+  min-height: $edit-toolbar-height !important;
+  max-height: $edit-toolbar-height !important;
+
+  button.mat-button {
+    min-width: 65px;
+    min-height: 30px;
+    font-size: 12px;
+    line-height: 30px;
+
+    mat-icon {
+      font-size: 20px;
+    }
+
+    span {
+      padding-right: 6px;
+    }
+  }
+
+  mat-form-field {
+    input {
+      font-size: 1.2rem;
+      font-weight: 400;
+      letter-spacing: .005em;
+    }
+    div.mat-form-field-infix {
+      padding-bottom: 5px;
+    }
+    &.tb-widget-title {
+      min-width: 250px;
+    }
+  }
+}

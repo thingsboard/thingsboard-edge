@@ -1,0 +1,138 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<form [formGroup]="alarmFormGroup" style="min-width: 600px;">
+  <mat-toolbar fxLayout="row" color="primary">
+    <h2>{{ 'alarm.alarm-details' | translate }}</h2>
+    <span fxFlex></span>
+    <button mat-button mat-icon-button
+            (click)="close()"
+            type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+  </mat-progress-bar>
+  <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+  <div mat-dialog-content>
+    <fieldset [disabled]="isLoading$ | async">
+      <div fxLayout="row" fxLayoutGap="6px">
+        <mat-form-field class="mat-block">
+          <mat-label translate>alarm.created-time</mat-label>
+          <input matInput formControlName="createdTime" readonly>
+        </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>alarm.originator</mat-label>
+          <input matInput formControlName="originatorName" readonly>
+        </mat-form-field>
+      </div>
+      <div fxLayout="row" fxLayoutGap="6px" *ngIf="alarmFormGroup.get('startTime').value ||
+                                 alarmFormGroup.get('endTime').value">
+        <mat-form-field *ngIf="alarmFormGroup.get('startTime').value" fxFlex class="mat-block">
+          <mat-label translate>alarm.start-time</mat-label>
+          <input matInput formControlName="startTime" readonly>
+        </mat-form-field>
+        <mat-form-field *ngIf="alarmFormGroup.get('endTime').value" fxFlex class="mat-block">
+          <mat-label translate>alarm.end-time</mat-label>
+          <input matInput formControlName="endTime" readonly>
+        </mat-form-field>
+        <span fxFlex *ngIf="!alarmFormGroup.get('startTime').value || !alarmFormGroup.get('endTime').value"></span>
+      </div>
+      <div fxLayout="row" fxLayoutGap="6px" *ngIf="alarmFormGroup.get('ackTime').value ||
+                                 alarmFormGroup.get('clearTime').value">
+        <mat-form-field *ngIf="alarmFormGroup.get('ackTime').value" fxFlex class="mat-block">
+          <mat-label translate>alarm.ack-time</mat-label>
+          <input matInput formControlName="ackTime" readonly>
+        </mat-form-field>
+        <mat-form-field *ngIf="alarmFormGroup.get('clearTime').value" fxFlex class="mat-block">
+          <mat-label translate>alarm.clear-time</mat-label>
+          <input matInput formControlName="clearTime" readonly>
+        </mat-form-field>
+        <span fxFlex *ngIf="!alarmFormGroup.get('ackTime').value || !alarmFormGroup.get('clearTime').value"></span>
+      </div>
+      <div fxLayout="row" fxLayoutGap="6px">
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>alarm.type</mat-label>
+          <input matInput formControlName="type" readonly>
+        </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>alarm.severity</mat-label>
+          <input matInput formControlName="alarmSeverity" readonly
+                 [ngStyle]="{fontWeight: 'bold', color: alarmSeverityColorsMap.get((alarm$ | async)?.severity)}">
+        </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>alarm.status</mat-label>
+          <input matInput formControlName="alarmStatus" readonly>
+        </mat-form-field>
+      </div>
+      <tb-json-object-edit
+          *ngIf="displayDetails"
+          formControlName="alarmDetails"
+          readonly
+          label="{{ 'alarm.details' | translate }}">
+      </tb-json-object-edit>
+    </fieldset>
+  </div>
+  <div mat-dialog-actions fxLayout="row">
+    <div fxLayout="row" *ngIf="alarm$ | async; let alarm;">
+      <button *ngIf="allowAcknowledgment && (alarm.status === alarmStatuses.ACTIVE_UNACK ||
+                                             alarm.status === alarmStatuses.CLEARED_UNACK)"
+              mat-button
+              mat-raised-button
+              color="primary"
+              type="button"
+              (click)="acknowledge()"
+              style="margin-right: 20px;"
+              [disabled]="(isLoading$ | async)">
+        {{ 'alarm.acknowledge' | translate }}
+      </button>
+      <button *ngIf="allowClear && (alarm.status === alarmStatuses.ACTIVE_ACK ||
+                                    alarm.status === alarmStatuses.ACTIVE_UNACK)"
+              mat-button
+              mat-raised-button
+              color="primary"
+              type="button"
+              (click)="clear()"
+              [disabled]="(isLoading$ | async)">
+        {{ 'alarm.clear' | translate }}
+      </button>
+    </div>
+    <span fxFlex></span>
+    <button mat-button color="primary"
+            style="margin-right: 20px;"
+            type="button"
+            [disabled]="(isLoading$ | async)"
+            (click)="close()" cdkFocusInitial>
+      {{ 'action.close' | translate }}
+    </button>
+  </div>
+</form>

@@ -46,8 +46,8 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -218,13 +218,13 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<Integration> loadedIntegrations = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Integration> pageData = null;
+        PageLink pageLink = new PageLink(23);
+        PageData<Integration> pageData = null;
         do {
             pageData = integrationService.findTenantIntegrations(tenantId, pageLink);
             loadedIntegrations.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -235,7 +235,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
         integrationService.deleteIntegrationsByTenantId(tenantId);
 
-        pageLink = new TextPageLink(33);
+        pageLink = new PageLink(33);
         pageData = integrationService.findTenantIntegrations(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());

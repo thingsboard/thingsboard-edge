@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0PE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard PE</name>
@@ -128,7 +128,7 @@
         <module>dao</module>
         <module>transport</module>
         <module>integration</module>
-        <module>ui</module>
+        <module>ui-ngx</module>
         <module>tools</module>
         <module>application</module>
         <module>msa</module>
@@ -351,6 +351,7 @@
                             <exclude>**/*.proto.js</exclude>
                             <exclude>docker/haproxy/**</exclude>
                             <exclude>docker/tb-node/**</exclude>
+                            <exclude>ui/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>

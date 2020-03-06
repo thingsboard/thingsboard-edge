@@ -38,11 +38,10 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,14 +66,14 @@ public interface CustomerService {
 
     Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId);
 
-    TextPageData<Customer> findCustomersByTenantId(TenantId tenantId, TextPageLink pageLink);
+    PageData<Customer> findCustomersByTenantId(TenantId tenantId, PageLink pageLink);
 
     void deleteCustomersByTenantId(TenantId tenantId);
 
     ShortEntityView findGroupCustomer(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<PageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
-    ListenableFuture<TimePageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<PageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

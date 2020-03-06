@@ -42,8 +42,8 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.ArrayList;
@@ -167,15 +167,15 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
         List<Converter> loadedConverters = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Converter> pageData;
+        PageLink pageLink = new PageLink(23);
+        PageData<Converter> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/converters?",
-                    new TypeReference<TextPageData<Converter>>() {
+                    new TypeReference<PageData<Converter>>() {
                     }, pageLink);
             loadedConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -213,15 +213,15 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         }
 
         List<Converter> loadedConverters = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
-        TextPageData<Converter> pageData;
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Converter> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/converters?",
-                    new TypeReference<TextPageData<Converter>>() {
+                    new TypeReference<PageData<Converter>>() {
                     }, pageLink);
             loadedConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -231,14 +231,14 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         Assert.assertEquals(converters, loadedConverters);
 
         List<Converter> loadedConverters1 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/converters?",
-                    new TypeReference<TextPageData<Converter>>() {
+                    new TypeReference<PageData<Converter>>() {
                     }, pageLink);
             loadedConverters1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -252,9 +252,9 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title1);
+        pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/converters?",
-                new TypeReference<TextPageData<Converter>>() {
+                new TypeReference<PageData<Converter>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -264,9 +264,9 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/converters?",
-                new TypeReference<TextPageData<Converter>>() {
+                new TypeReference<PageData<Converter>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

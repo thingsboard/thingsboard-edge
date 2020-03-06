@@ -1,0 +1,200 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../scss/constants";
+
+$toolbar-height: 50px !default;
+$fullscreen-toolbar-height: 64px !default;
+$mobile-toolbar-height: 80px !default;
+$half-mobile-toolbar-height: 40px !default;
+$mobile-toolbar-height-total: 84px !default;
+
+tb-dashboard-toolbar {
+  mat-fab-toolbar {
+    mat-fab-trigger {
+      .mat-button {
+        &.mat-fab {
+          width: 36px;
+          height: 36px;
+          margin: 4px 0 0 4px;
+          line-height: 36px;
+          .mat-button-wrapper {
+            width: 36px;
+            height: 36px;
+            padding: 0 6px;
+            box-sizing: border-box;
+          }
+          mat-icon {
+            display: block;
+            position: absolute;
+            top: 25%;
+            width: 18px;
+            min-width: 18px;
+            height: 18px;
+            min-height: 18px;
+            margin: 0;
+            line-height: 18px;
+          }
+        }
+      }
+    }
+
+    &.is-fullscreen {
+
+      .mat-fab-toolbar-wrapper {
+        height: $mobile-toolbar-height-total;
+
+        @media #{$mat-gt-sm} {
+          height: $fullscreen-toolbar-height;
+        }
+
+        mat-toolbar {
+          height: $mobile-toolbar-height;
+          min-height: $mobile-toolbar-height;
+          .mat-toolbar-tools {
+            height: $mobile-toolbar-height;
+            min-height: $mobile-toolbar-height;
+          }
+          @media #{$mat-gt-sm} {
+            height: $fullscreen-toolbar-height;
+            min-height: $fullscreen-toolbar-height;
+            .mat-toolbar-tools {
+              height: $fullscreen-toolbar-height;
+              min-height: $fullscreen-toolbar-height;
+            }
+          }
+        }
+      }
+    }
+
+    .mat-fab-toolbar-wrapper {
+      height: $mobile-toolbar-height-total;
+
+      @media #{$mat-gt-sm} {
+        height: $toolbar-height;
+      }
+
+      mat-toolbar {
+        height: $mobile-toolbar-height;
+        min-height: $mobile-toolbar-height;
+        .mat-toolbar-tools {
+          height: $mobile-toolbar-height;
+          min-height: $mobile-toolbar-height;
+        }
+
+        @media #{$mat-gt-sm} {
+          height: $toolbar-height;
+          min-height: $toolbar-height;
+          .mat-toolbar-tools {
+            height: $toolbar-height;
+            min-height: $toolbar-height;
+          }
+        }
+
+        mat-fab-actions {
+          margin-top: 0;
+          font-size: 16px;
+
+          @media #{$mat-lt-md} {
+            height: $mobile-toolbar-height;
+            max-height: $mobile-toolbar-height;
+          }
+
+          .close-action {
+            margin-right: -18px;
+          }
+
+          .mat-fab-action-item {
+            width: 100%;
+            height: $mobile-toolbar-height;
+
+            @media #{$mat-gt-sm} {
+              height: 46px;
+            }
+
+            .tb-dashboard-action-panels {
+              height: $mobile-toolbar-height;
+
+              @media #{$mat-gt-sm} {
+                height: 46px;
+              }
+
+              .tb-dashboard-action-panel {
+                min-width: 0;
+                height: $half-mobile-toolbar-height;
+
+                @media #{$mat-lt-md} {
+                  mat-menu{
+                    margin: 0;
+                  }
+                }
+
+                @media #{$mat-gt-sm} {
+                  height: 46px;
+                }
+
+                > div {
+                  height: $half-mobile-toolbar-height;
+
+                  @media #{$mat-gt-sm} {
+                    height: 46px;
+                  }
+                }
+
+                mat-select {
+                  margin: 0;
+                  pointer-events: all;
+                }
+
+                tb-states-component {
+                  pointer-events: all;
+                }
+
+                button.mat-icon-button:not(.tb-mat-32) {
+                  min-width: 40px;
+
+                  @media #{$mat-lt-md} {
+                    min-width: 28px;
+                    padding: 2px;
+                    margin: 0;
+                    .mat-button-wrapper {
+                      display: block;
+                      line-height: 24px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -56,11 +56,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
@@ -188,7 +189,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             new PaginatedUpdater<String, Tenant>() {
 
                 @Override
-                protected TextPageData<Tenant> findEntities(String region, TextPageLink pageLink) {
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
                     return tenantService.findTenants(pageLink);
                 }
 
@@ -209,7 +210,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             new PaginatedUpdater<String, Tenant>() {
 
                 @Override
-                protected TextPageData<Tenant> findEntities(String region, TextPageLink pageLink) {
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
                     return tenantService.findTenants(pageLink);
                 }
 
@@ -240,7 +241,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             new PaginatedUpdater<String, Tenant>() {
 
                 @Override
-                protected TextPageData<Tenant> findEntities(String region, TextPageLink pageLink) {
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
                     return tenantService.findTenants(pageLink);
                 }
 
@@ -301,7 +302,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected TextPageData<User> findEntities(TenantId id, TextPageLink pageLink) {
+        protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             return userService.findTenantAdmins(id, pageLink);
         }
 
@@ -321,7 +322,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected TextPageData<User> findEntities(TenantId id, TextPageLink pageLink) {
+        protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             try {
                 List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
                 List<UserId> userIds = entityIds.stream().map(entityId -> new UserId(entityId.getId())).collect(Collectors.toList());
@@ -331,7 +332,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     users = Collections.emptyList();
                 }
-                return new TextPageData<>(users, new TextPageLink(Integer.MAX_VALUE));
+                return new PageData<>(users, 1, users.size(), false);
             } catch (Exception e) {
                 log.error("Failed to get users from group all!", e);
                 throw new RuntimeException("Failed to get users from group all!", e);
@@ -358,7 +359,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected TextPageData<User> findEntities(CustomerId id, TextPageLink pageLink) {
+        protected PageData<User> findEntities(CustomerId id, PageLink pageLink) {
             return userService.findCustomerUsers(this.tenantId, id, pageLink);
         }
 
@@ -376,7 +377,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected TextPageData<Customer> findEntities(TenantId id, TextPageLink pageLink) {
+        protected PageData<Customer> findEntities(TenantId id, PageLink pageLink) {
             return customerService.findCustomersByTenantId(id, pageLink);
         }
 
@@ -440,7 +441,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
-        protected TextPageData<DashboardInfo> findEntities(TenantId id, TextPageLink pageLink) {
+        protected PageData<DashboardInfo> findEntities(TenantId id, PageLink pageLink) {
             if (fetchAllTenantEntities) {
                 return dashboardService.findDashboardsByTenantId(id, pageLink);
             } else {
@@ -453,7 +454,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     } else {
                         dashboards = Collections.emptyList();
                     }
-                    return new TextPageData<>(dashboards, new TextPageLink(Integer.MAX_VALUE));
+                    return new PageData<>(dashboards, 1, dashboards.size(), false);
                 } catch (Exception e) {
                     log.error("Failed to get dashboards from group all!", e);
                     throw new RuntimeException("Failed to get dashboards from group all!", e);
@@ -492,7 +493,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new PaginatedUpdater<String, Tenant>() {
         @Override
-        protected TextPageData<Tenant> findEntities(String id, TextPageLink pageLink) {
+        protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
             return tenantService.findTenants(pageLink);
         }
 
@@ -505,7 +506,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new PaginatedUpdater<TenantId, Customer>() {
         @Override
-        protected TextPageData<Customer> findEntities(TenantId id, TextPageLink pageLink) {
+        protected PageData<Customer> findEntities(TenantId id, PageLink pageLink) {
             return customerService.findCustomersByTenantId(id, pageLink);
         }
 
@@ -517,7 +518,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {
         @Override
-        protected TextPageData<Tenant> findEntities(String id, TextPageLink pageLink) {
+        protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
             return tenantService.findTenants(pageLink);
         }
 
@@ -566,7 +567,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
     }
 
     private void updateTenantIntegrations(TenantId tenantId) {
-        TextPageData<Integration> pageData = integrationService.findTenantIntegrations(tenantId, new TextPageLink(DEFAULT_LIMIT));
+        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageData<Integration> pageData = integrationService.findTenantIntegrations(tenantId, pageLink);
         boolean hasNext = true;
         while (hasNext) {
             for (Integration integration : pageData.getData()) {
@@ -583,7 +585,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
             if (pageData.hasNext()) {
-                pageData = integrationService.findTenantIntegrations(tenantId, pageData.getNextPageLink());
+                pageLink = pageLink.nextPageLink();
+                pageData = integrationService.findTenantIntegrations(tenantId, pageLink);
             } else {
                 hasNext = false;
             }

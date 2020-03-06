@@ -42,8 +42,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -65,7 +65,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
     private final CustomerService customerService;
     private final EntityGroupService entityGroupService;
     private final boolean fetchAllTenantEntities;
-    private final BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction;
+    private final BiFunction<TenantId, PageLink, PageData<D>> findAllTenantEntitiesFunction;
     private final BiFunction<TenantId, List<I>, ListenableFuture<List<D>>> idsToEntitiesAsyncFunction;
     private final Function<EntityId, I> toIdFunction;
     private final Function<D, EntityId> getEntityIdFunction;
@@ -76,7 +76,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
                                           EntityGroupService entityGroupService,
                                           EntityGroup groupAll,
                                           boolean fetchAllTenantEntities,
-                                          BiFunction<TenantId, TextPageLink, TextPageData<D>> findAllTenantEntitiesFunction,
+                                          BiFunction<TenantId, PageLink, PageData<D>> findAllTenantEntitiesFunction,
                                           BiFunction<TenantId, List<I>, ListenableFuture<List<D>>> idsToEntitiesAsyncFunction,
                                           Function<EntityId, I> toIdFunction,
                                           Function<D, EntityId> getEntityIdFunction) {
@@ -90,7 +90,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
         this.getEntityIdFunction = getEntityIdFunction;
     }
 
-    protected TextPageData<D> findEntities(TenantId id, TextPageLink pageLink) {
+    protected PageData<D> findEntities(TenantId id, PageLink pageLink) {
         if (fetchAllTenantEntities) {
             return this.findAllTenantEntitiesFunction.apply(id, pageLink);
         } else {
@@ -103,7 +103,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
                 } else {
                     entities = Collections.emptyList();
                 }
-                return new TextPageData<>(entities, new TextPageLink(Integer.MAX_VALUE));
+                return new PageData<>(entities, 1, entities.size(), false);
             } catch (Exception e) {
                 log.error("Failed to get entities from group all!", e);
                 throw new RuntimeException("Failed to get entities from group all!", e);

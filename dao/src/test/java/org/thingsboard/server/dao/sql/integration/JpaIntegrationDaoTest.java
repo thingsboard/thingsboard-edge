@@ -39,11 +39,11 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,17 +63,17 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         saveTernary(tenantId1, converterId1);
         assertEquals(60, integrationDao.find(TenantId.SYS_TENANT_ID).size());
 
-        TextPageLink pageLink1 = new TextPageLink(20, "INTEGRATION_");
-        List<Integration> integrations1 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
-        assertEquals(20, integrations1.size());
+        PageLink pageLink = new PageLink(20, 0, "INTEGRATION_");
+        PageData<Integration> integrations1 = integrationDao.findByTenantId(tenantId1, pageLink);
+        assertEquals(20, integrations1.getData().size());
 
-        TextPageLink pageLink2 = new TextPageLink(20, "INTEGRATION_", integrations1.get(19).getId().getId(), null);
-        List<Integration> integrations2 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink2);
-        assertEquals(10, integrations2.size());
+        pageLink = pageLink.nextPageLink();
+        PageData<Integration> integrations2 = integrationDao.findByTenantId(tenantId1, pageLink);
+        assertEquals(10, integrations2.getData().size());
 
-        TextPageLink pageLink3 = new TextPageLink(20, "INTEGRATION_", integrations2.get(9).getId().getId(), null);
-        List<Integration> integrations3 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink3);
-        assertEquals(0, integrations3.size());
+        pageLink = pageLink.nextPageLink();
+        PageData<Integration> integrations3 = integrationDao.findByTenantId(tenantId1, pageLink);
+        assertEquals(0, integrations3.getData().size());
     }
 
     @Test

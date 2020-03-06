@@ -1,0 +1,76 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="mat-padding" fxLayout="column">
+  <form #ruleNodeForm="ngForm" [formGroup]="ruleNodeFormGroup">
+    <fieldset [disabled]="(isLoading$ | async) || !isEdit || isReadOnly">
+      <section *ngIf="ruleNode.component.type !== ruleNodeType.RULE_CHAIN">
+        <section fxLayout="column" fxLayout.gt-sm="row">
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>rulenode.name</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-error *ngIf="ruleNodeFormGroup.get('name').hasError('required')">
+              {{ 'rulenode.name-required' | translate }}
+            </mat-error>
+          </mat-form-field>
+          <mat-checkbox formControlName="debugMode">
+            {{ 'rulenode.debug-mode' | translate }}
+          </mat-checkbox>
+        </section>
+        <tb-rule-node-config #ruleNodeConfigComponent
+          formControlName="configuration"
+          [ruleNodeId]="ruleNode.ruleNodeId?.id"
+          [nodeDefinition]="ruleNode.component.configurationDescriptor.nodeDefinition">
+        </tb-rule-node-config>
+        <div formGroupName="additionalInfo" fxLayout="column">
+          <mat-form-field class="mat-block">
+            <mat-label translate>rulenode.description</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
+      <section *ngIf="ruleNode.component.type === ruleNodeType.RULE_CHAIN">
+        <tb-entity-autocomplete required
+                                [excludeEntityIds]="[ruleChainId]"
+                                [entityType]="entityType.RULE_CHAIN"
+                                formControlName="targetRuleChainId">
+        </tb-entity-autocomplete>
+        <div formGroupName="additionalInfo" fxLayout="column">
+          <mat-form-field class="mat-block">
+            <mat-label translate>rulenode.description</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
+    </fieldset>
+  </form>
+</div>

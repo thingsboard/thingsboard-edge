@@ -1,0 +1,71 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="date-range-navigator"
+     [ngClass]="{'short-mode':ctx.width < 400, 'labels-hidden': settings.hideLabels, 'long-mode': ctx.width >= 400}">
+  <mat-form-field class="mat-block" [fxHide]="settings.hidePicker" (click)="openNavigatorPanel($event)">
+    <mat-label *ngIf="!settings.hideLabels" translate>widgets.date-range-navigator.localizationMap.Date picker</mat-label>
+    <mat-select #datePicker [ngModel]="advancedModel.chosenLabel" matInput>
+      <mat-option [value]="advancedModel.chosenLabel">
+        {{advancedModel.chosenLabel}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="mat-block" [fxHide]="settings.hideInterval">
+    <mat-label translate *ngIf="!settings.hideLabels">widgets.date-range-navigator.localizationMap.Interval</mat-label>
+    <mat-select matInput [(ngModel)]="selectedDateInterval" (ngModelChange)="changeInterval()">
+      <mat-option *ngIf="customInterval" [value]="customInterval.ts">
+        {{'widgets.date-range-navigator.localizationMap.' + customInterval.label | translate}}
+      </mat-option>
+      <mat-option *ngFor="let date of datesMap | keyvalue: originalOrder" [value]="date.value.ts">
+        {{'widgets.date-range-navigator.localizationMap.' + date.value.label | translate}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="drn__element step" [fxHide]="settings.hideStepSize">
+    <button mat-button mat-icon-button (click)="goBack()">
+      <mat-icon>keyboard_arrow_left</mat-icon>
+    </button>
+    <mat-form-field class="mat-block" fxFlex.gt-sm>
+      <mat-label translate *ngIf="!settings.hideLabels">widgets.date-range-navigator.localizationMap.Step size</mat-label>
+      <mat-select matInput [(ngModel)]="selectedStepSize">
+        <mat-option *ngFor="let date of datesMap | keyvalue: originalOrder" [value]="date.value.ts">
+          {{'widgets.date-range-navigator.localizationMap.' + date.value.label | translate}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-button mat-icon-button (click)="goForth()">
+      <mat-icon>keyboard_arrow_right</mat-icon>
+    </button>
+  </div>
+</div>

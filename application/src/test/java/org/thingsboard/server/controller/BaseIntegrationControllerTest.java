@@ -45,8 +45,8 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.ArrayList;
@@ -209,15 +209,15 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integrationList.add(doPost("/api/integration", integration, Integration.class));
         }
         List<Integration> loadedIntegrations = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Integration> pageData = null;
+        PageLink pageLink = new PageLink(23);
+        PageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/integrations?",
-                    new TypeReference<TextPageData<Integration>>() {
+                    new TypeReference<PageData<Integration>>() {
                     }, pageLink);
             loadedIntegrations.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -259,15 +259,15 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         }
 
         List<Integration> loadedIntegrations1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
-        TextPageData<Integration> pageData = null;
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Integration> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/integrations?",
-                    new TypeReference<TextPageData<Integration>>() {
+                    new TypeReference<PageData<Integration>>() {
                     }, pageLink);
             loadedIntegrations1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -277,14 +277,14 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertEquals(integrations1, loadedIntegrations1);
 
         List<Integration> loadedIntegrations2 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/integrations?",
-                    new TypeReference<TextPageData<Integration>>() {
+                    new TypeReference<PageData<Integration>>() {
                     }, pageLink);
             loadedIntegrations2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -298,9 +298,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title1);
+        pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/integrations?",
-                new TypeReference<TextPageData<Integration>>() {
+                new TypeReference<PageData<Integration>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -310,9 +310,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/integrations?",
-                new TypeReference<TextPageData<Integration>>() {
+                new TypeReference<PageData<Integration>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

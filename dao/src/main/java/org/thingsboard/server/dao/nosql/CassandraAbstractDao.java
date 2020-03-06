@@ -30,29 +30,15 @@
  */
 package org.thingsboard.server.dao.nosql;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.CodecRegistry;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.TypeCodec;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.CodecNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
-import org.thingsboard.server.dao.model.type.AuthorityCodec;
 import org.thingsboard.server.dao.model.type.ComponentLifecycleStateCodec;
-import org.thingsboard.server.dao.model.type.ComponentScopeCodec;
-import org.thingsboard.server.dao.model.type.ComponentTypeCodec;
-import org.thingsboard.server.dao.model.type.ConverterTypeCodec;
-import org.thingsboard.server.dao.model.type.DeviceCredentialsTypeCodec;
 import org.thingsboard.server.dao.model.type.EntityTypeCodec;
-import org.thingsboard.server.dao.model.type.IntegrationTypeCodec;
 import org.thingsboard.server.dao.model.type.JsonCodec;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,13 +68,7 @@ public abstract class CassandraAbstractDao {
             defaultWriteLevel = cluster.getDefaultWriteConsistencyLevel();
             CodecRegistry registry = session.getCluster().getConfiguration().getCodecRegistry();
             registerCodecIfNotFound(registry, new JsonCodec());
-            registerCodecIfNotFound(registry, new DeviceCredentialsTypeCodec());
-            registerCodecIfNotFound(registry, new AuthorityCodec());
             registerCodecIfNotFound(registry, new ComponentLifecycleStateCodec());
-            registerCodecIfNotFound(registry, new ComponentTypeCodec());
-            registerCodecIfNotFound(registry, new ConverterTypeCodec());
-            registerCodecIfNotFound(registry, new IntegrationTypeCodec());
-            registerCodecIfNotFound(registry, new ComponentScopeCodec());
             registerCodecIfNotFound(registry, new EntityTypeCodec());
         }
         return session;

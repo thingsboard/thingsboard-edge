@@ -1,0 +1,120 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+tb-widgets-bundle-select {
+  mat-select {
+    margin: 0;
+  }
+
+  .tb-bundle-item {
+    height: 26px;
+    line-height: 26px;
+  }
+}
+
+.tb-widgets-bundle-select {
+  .tb-bundle-item {
+    height: 48px;
+    line-height: 48px;
+  }
+}
+
+tb-widgets-bundle-select,
+.tb-widgets-bundle-select {
+  .mat-select-value-text {
+    display: block;
+    width: 100%;
+  }
+
+  .tb-bundle-item {
+    display: inline-block;
+    width: 100%;
+
+    span {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .tb-bundle-system {
+      float: right;
+      font-size: .8rem;
+      opacity: .8;
+    }
+  }
+
+  mat-option {
+    height: auto !important;
+    white-space: normal !important;
+  }
+}
+
+mat-toolbar {
+  tb-widgets-bundle-select {
+    .mat-form-field-wrapper {
+      padding-bottom: 0 !important;
+      .mat-form-field-infix {
+        background: rgba(255, 255, 255, .2);
+        padding: 5px 20px !important;
+        border: none;
+
+        mat-select {
+          .mat-select-value-text {
+            font-size: 1.2rem;
+            color: #fff;
+
+            span:first-child::after {
+              color: #fff;
+            }
+          }
+
+          .mat-select-value {
+            vertical-align: middle;
+            min-height: 30px;
+            height: 30px;
+            padding: 2px 2px 1px;
+            .mat-select-placeholder {
+              color: #fff;
+              opacity: .8;
+            }
+          }
+        }
+
+        .mat-select.mat-select-invalid {
+          .mat-select-arrow {
+            color: #fff !important;
+          }
+        }
+      }
+      .mat-form-field-underline {
+        display: none;
+      }
+    }
+  }
+}

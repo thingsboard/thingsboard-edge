@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.blob;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 
@@ -51,7 +52,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantId(UUID tenantId, TimePageLink pageLink);
+    PageData<BlobEntityInfo> findBlobEntitiesByTenantId(UUID tenantId, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId and type.
@@ -61,7 +62,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantIdAndType(UUID tenantId, String type, TimePageLink pageLink);
+    PageData<BlobEntityInfo> findBlobEntitiesByTenantIdAndType(UUID tenantId, String type, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId and customerId.
@@ -71,7 +72,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink);
+    PageData<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId, customerId and type.
@@ -82,7 +83,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink);
+    PageData<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId and blob entity Ids.

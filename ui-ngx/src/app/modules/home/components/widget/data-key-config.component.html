@@ -1,0 +1,120 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-tab-group class="tb-datakey-config" [ngClass]="{'tb-headless': !displayAdvanced}"
+               class="tb-datakey-config">
+  <mat-tab [formGroup]="dataKeyFormGroup" label="{{ 'datakey.settings' | translate }}">
+    <div class="mat-content mat-padding" fxLayout="column">
+      <mat-form-field class="mat-block" *ngIf="modelValue.type !== dataKeyTypes.function">
+        <mat-label>{{ 'entity.key' | translate }}</mat-label>
+        <input matInput type="text" placeholder="{{ 'entity.key-name' | translate }}"
+               #keyInput
+               formControlName="name"
+               required
+               [matAutocomplete]="keyAutocomplete">
+        <button *ngIf="dataKeyFormGroup.get('name').value"
+                type="button"
+                matSuffix mat-button mat-icon-button aria-label="Clear"
+                (click)="clearKey()">
+          <mat-icon class="material-icons">close</mat-icon>
+        </button>
+        <mat-autocomplete
+          class="tb-autocomplete"
+          #keyAutocomplete="matAutocomplete">
+          <mat-option *ngFor="let key of filteredKeys | async" [value]="key">
+            <span [innerHTML]="key | highlight:keySearchText"></span>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>datakey.label</mat-label>
+          <input matInput formControlName="label" required>
+        </mat-form-field>
+        <tb-color-input fxFlex
+          required
+          label="{{'datakey.color' | translate}}"
+          icon="format_color_fill"
+          openOnInput
+          formControlName="color">
+        </tb-color-input>
+      </div>
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" *ngIf="modelValue.type !== dataKeyTypes.alarm">
+        <mat-form-field fxFlex>
+          <mat-label translate>datakey.units</mat-label>
+          <input matInput formControlName="units">
+        </mat-form-field>
+        <mat-form-field fxFlex>
+          <mat-label translate>datakey.decimals</mat-label>
+          <input matInput formControlName="decimals" type="number" min="0" max="15" step="1">
+        </mat-form-field>
+      </div>
+      <section fxLayout="column" *ngIf="modelValue.type === dataKeyTypes.function">
+        <span translate>datakey.data-generation-func</span>
+        <br/>
+        <tb-js-func #funcBodyEdit
+          [functionArgs]="['time', 'prevValue']"
+          [validationArgs]="[[1, 1],[1, '1']]"
+          resultType="any"
+          formControlName="funcBody">
+        </tb-js-func>
+      </section>
+      <section fxLayout="column" *ngIf="modelValue.type === dataKeyTypes.timeseries || modelValue.type === dataKeyTypes.attribute">
+        <mat-checkbox formControlName="usePostProcessing">
+          {{ 'datakey.use-data-post-processing-func' | translate }}
+        </mat-checkbox>
+        <tb-js-func *ngIf="dataKeyFormGroup.get('usePostProcessing').value" #postFuncBodyEdit
+                    [functionArgs]="['time', 'value', 'prevValue', 'timePrev', 'prevOrigValue']"
+                    [validationArgs]="[[1, 1, 1, 1, 1],[1, '1', '1', 1, '1']]"
+                    resultType="any"
+                    formControlName="postFuncBody">
+        </tb-js-func>
+        <label *ngIf="dataKeyFormGroup.get('usePostProcessing').value" class="tb-title" style="margin-left: 15px;">
+          time - {{ 'datakey.time-description' | translate }}<br/>
+          value - {{ 'datakey.value-description' | translate }}<br/>
+          prevValue - {{ 'datakey.prev-value-description' | translate }}<br/>
+          timePrev - {{ 'datakey.time-prev-description' | translate }}<br/>
+          prevOrigValue - {{ 'datakey.prev-orig-value-description' | translate }}
+        </label>
+      </section>
+    </div>
+  </mat-tab>
+  <mat-tab [formGroup]="dataKeySettingsFormGroup" label="{{ 'datakey.advanced' | translate }}" *ngIf="displayAdvanced">
+    <div class="mat-content mat-padding" fxLayout="column">
+      <div style="overflow: auto;">
+        <tb-json-form
+          formControlName="settings">
+        </tb-json-form>
+      </div>
+    </div>
+  </mat-tab>
+</mat-tab-group>

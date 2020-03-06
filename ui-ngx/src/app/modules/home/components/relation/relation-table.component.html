@@ -1,0 +1,183 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="mat-padding tb-entity-table tb-absolute-fill">
+  <div fxFlex fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+        <span class="tb-entity-table-title">{{(direction == directions.FROM ?
+            'relation.from-relations' : 'relation.to-relations') | translate}}</span>
+        <mat-form-field class="mat-block tb-relation-direction" style="width: 200px;">
+          <mat-label translate>relation.direction</mat-label>
+          <mat-select matInput [ngModel]="direction"
+                      (ngModelChange)="directionChanged($event)">
+            <mat-option *ngFor="let type of directionTypes" [value]="type">
+              {{ directionTypeTranslations.get(directions[type]) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <span fxFlex></span>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                (click)="addRelation($event)"
+                matTooltip="{{ 'action.add' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="reloadRelations()"
+                matTooltip="{{ 'action.refresh' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="enterFilterMode()"
+                matTooltip="{{ 'action.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+        <button mat-button mat-icon-button
+                matTooltip="{{ 'action.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+        <mat-form-field fxFlex>
+          <mat-label>&nbsp;</mat-label>
+          <input #searchInput matInput
+                 [(ngModel)]="pageLink.textSearch"
+                 placeholder="{{ 'common.enter-search' | translate }}"/>
+        </mat-form-field>
+        <button mat-button mat-icon-button (click)="exitFilterMode()"
+                matTooltip="{{ 'action.close' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+                <span>
+                  {{ translate.get('relation.selected-relations', {count: dataSource.selection.selected.length}) | async }}
+                </span>
+        <span fxFlex></span>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                matTooltip="{{ 'action.delete' | translate }}"
+                matTooltipPosition="above"
+                (click)="deleteRelations($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <div fxFlex class="table-container">
+      <mat-table [dataSource]="dataSource"
+                 matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
+        <ng-container matColumnDef="select" sticky>
+          <mat-header-cell *matHeaderCellDef style="width: 30px;">
+            <mat-checkbox (change)="$event ? dataSource.masterToggle() : null"
+                          [checked]="dataSource.selection.hasValue() && (dataSource.isAllSelected() | async)"
+                          [indeterminate]="dataSource.selection.hasValue() && !(dataSource.isAllSelected() | async)">
+            </mat-checkbox>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? dataSource.selection.toggle(relation) : null"
+                          [checked]="dataSource.selection.isSelected(relation)">
+            </mat-checkbox>
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="type">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'relation.type' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            {{ relation.type }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="direction === directions.FROM" matColumnDef="toEntityTypeName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'relation.to-entity-type' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            {{ relation.toEntityTypeName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="direction === directions.FROM" matColumnDef="toName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'relation.to-entity-name' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            {{ relation.toName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="direction === directions.TO" matColumnDef="fromEntityTypeName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'relation.from-entity-type' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            {{ relation.fromEntityTypeName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="direction === directions.TO" matColumnDef="fromName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'relation.from-entity-name' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            {{ relation.fromName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="actions" stickyEnd>
+          <mat-header-cell *matHeaderCellDef style="min-width: 80px; max-width: 80px; width: 80px">
+          </mat-header-cell>
+          <mat-cell *matCellDef="let relation">
+            <div fxFlex fxLayout="row" fxLayoutAlign="end">
+              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                      matTooltip="{{ 'relation.edit' | translate }}"
+                      matTooltipPosition="above"
+                      (click)="editRelation($event, relation)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                      matTooltip="{{ 'relation.delete' | translate }}"
+                      matTooltipPosition="above"
+                      (click)="deleteRelation($event, relation)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+        <mat-row [ngClass]="{'mat-row-select': true,
+                             'mat-selected': dataSource.selection.isSelected(relation)}"
+                 *matRowDef="let relation; columns: displayedColumns;" (click)="dataSource.selection.toggle(relation)"></mat-row>
+      </mat-table>
+      <span [fxShow]="dataSource.isEmpty() | async"
+            fxLayoutAlign="center center"
+            class="no-data-found" translate>{{ 'relation.no-relations-text' }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-paginator [length]="dataSource.total() | async"
+                   [pageIndex]="pageLink.page"
+                   [pageSize]="pageLink.pageSize"
+                   [pageSizeOptions]="[10, 20, 30]"></mat-paginator>
+  </div>
+</div>

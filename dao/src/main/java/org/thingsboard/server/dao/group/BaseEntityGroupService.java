@@ -58,7 +58,8 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -430,7 +431,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private GroupPermission findOrCreateUserGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId) {
         List<GroupPermission> userGroupPermissions =
                 groupPermissionService.findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(tenantId,
-                        userGroupId, roleId, new TimePageLink(Integer.MAX_VALUE)).getData();
+                        userGroupId, roleId, new PageLink(Integer.MAX_VALUE)).getData();
         if (userGroupPermissions.isEmpty()) {
             GroupPermission userGroupPermission = new GroupPermission();
             userGroupPermission.setTenantId(tenantId);
@@ -447,7 +448,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                                                               EntityGroupId userGroupId, RoleId roleId, boolean isPublic) {
         List<GroupPermission> entityGroupPermissions =
                 groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId,
-                        entityGroupId, userGroupId, roleId, new TimePageLink(Integer.MAX_VALUE)).getData();
+                        entityGroupId, userGroupId, roleId, new PageLink(Integer.MAX_VALUE)).getData();
         if (entityGroupPermissions.isEmpty()) {
             GroupPermission entityGroupPermission = new GroupPermission();
             entityGroupPermission.setTenantId(tenantId);
@@ -618,7 +619,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>>
+    public <E extends BaseData, I extends EntityId> ListenableFuture<PageData<ShortEntityView>>
     findEntities(TenantId tenantId, EntityGroupId entityGroupId,
                  TimePageLink pageLink,
                  java.util.function.Function<EntityId, I> toIdFunction,
@@ -626,7 +627,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                  BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        validatePageLink(pageLink);
         if (transformFunction == null) {
             throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
         }
@@ -648,7 +649,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
                 List<ShortEntityView> views = new ArrayList<>();
                 entities.forEach(entity -> views.add(toEntityView(tenantId, entity, columnsInfo, transformFunction)));
-                TimePageData<ShortEntityView> result = new TimePageData<>(ids, views, pageLink);
+
+                int totalElements = ids.size();
+                int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil(totalElements / pageLink.getPageSize()) : 1;
+                int startIndex = pageLink.getPageSize() * pageLink.getPage();
+                boolean hasNext = totalElements > startIndex + entities.size();
+                PageData<ShortEntityView> result = new PageData<>(views, totalPages, totalElements, hasNext);
                 result.getData().removeIf(ShortEntityView::isSkipEntity);
                 return result;
             });
@@ -656,13 +662,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public <E extends HasId<I>, I extends EntityId> ListenableFuture<TimePageData<E>>
+    public <E extends HasId<I>, I extends EntityId> ListenableFuture<PageData<E>>
     findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
                  Function<EntityId, I> toIdFunction,
                  Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        validatePageLink(pageLink);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
@@ -678,7 +684,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
             return Futures.transform(entitiesFuture, entities -> {
                 entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
-                TimePageData<E> result = new TimePageData<>(ids, entities, pageLink);
+                int totalElements = ids.size();
+                int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil(totalElements / pageLink.getPageSize()) : 1;
+                int startIndex = pageLink.getPageSize() * pageLink.getPage();
+                boolean hasNext = totalElements > startIndex + entities.size();
+                PageData<E> result = new PageData<>(entities, totalPages, totalElements, hasNext);
                 return result;
             });
         });
@@ -709,11 +719,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
+        ListenableFuture<PageData<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
         return Futures.transform(relations, input -> {
-            List<EntityId> entityIds = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
+            List<EntityId> entityIds = new ArrayList<>(input.getData().size());
+            for (EntityRelation relation : input.getData()) {
                 entityIds.add(relation.getTo());
             }
             return entityIds;

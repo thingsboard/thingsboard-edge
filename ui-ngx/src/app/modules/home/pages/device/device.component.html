@@ -1,0 +1,122 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-details-buttons">
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'makePublic')"
+          [fxShow]="!isEdit && deviceScope === 'tenant' && !isAssignedToCustomer(entity) && !entity?.customerIsPublic">
+    {{'device.make-public' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'assignToCustomer')"
+          [fxShow]="!isEdit && deviceScope === 'tenant' && !isAssignedToCustomer(entity)">
+    {{'device.assign-to-customer' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'unassignFromCustomer')"
+          [fxShow]="!isEdit && (deviceScope === 'customer' || deviceScope === 'tenant') && isAssignedToCustomer(entity)">
+    {{ (entity?.customerIsPublic ? 'device.make-private' : 'device.unassign-from-customer') | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageCredentials')"
+          [fxShow]="!isEdit">
+    {{ (deviceScope === 'customer_user' ? 'device.view-credentials' : 'device.manage-credentials') | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'delete')"
+          [fxShow]="!hideDelete() && !isEdit">
+    {{'device.delete' | translate }}
+  </button>
+  <div fxLayout="row">
+    <button mat-raised-button
+            ngxClipboard
+            (cbOnSuccess)="onDeviceIdCopied($event)"
+            [cbContent]="entity?.id?.id"
+            [fxShow]="!isEdit">
+      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      <span translate>device.copyId</span>
+    </button>
+    <button mat-raised-button
+            (click)="copyAccessToken($event)"
+            [fxShow]="!isEdit">
+      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      <span translate>device.copyAccessToken</span>
+    </button>
+  </div>
+</div>
+<div class="mat-padding" fxLayout="column">
+  <mat-form-field class="mat-block"
+                  [fxShow]="!isEdit && isAssignedToCustomer(entity)
+                              && !entity?.customerIsPublic && deviceScope === 'tenant'">
+    <mat-label translate>device.assignedToCustomer</mat-label>
+    <input matInput disabled [ngModel]="entity?.customerTitle">
+  </mat-form-field>
+  <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
+       [fxShow]="!isEdit && entity?.customerIsPublic && (deviceScope === 'customer' || deviceScope === 'tenant')">
+    {{ 'device.device-public' | translate }}
+  </div>
+  <form #entityNgForm="ngForm" [formGroup]="entityForm">
+    <fieldset [disabled]="(isLoading$ | async) || !isEdit">
+      <mat-form-field class="mat-block">
+        <mat-label translate>device.name</mat-label>
+        <input matInput formControlName="name" required>
+        <mat-error *ngIf="entityForm.get('name').hasError('required')">
+          {{ 'device.name-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <tb-entity-subtype-autocomplete
+        formControlName="type"
+        [required]="true"
+        [entityType]="entityType.DEVICE"
+      >
+      </tb-entity-subtype-autocomplete>
+      <mat-form-field class="mat-block">
+        <mat-label translate>device.label</mat-label>
+        <input matInput formControlName="label">
+      </mat-form-field>
+      <div formGroupName="additionalInfo" fxLayout="column">
+        <mat-checkbox fxFlex formControlName="gateway" style="padding-bottom: 16px;">
+          {{ 'device.is-gateway' | translate }}
+        </mat-checkbox>
+        <mat-form-field class="mat-block">
+          <mat-label translate>device.description</mat-label>
+          <textarea matInput formControlName="description" rows="2"></textarea>
+        </mat-form-field>
+      </div>
+    </fieldset>
+  </form>
+</div>

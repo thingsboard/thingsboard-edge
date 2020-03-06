@@ -41,14 +41,10 @@ import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -67,9 +63,6 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Autowired
     private IntegrationRpcService rpcService;
-
-    @Autowired
-    private IntegrationService integrationService;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 

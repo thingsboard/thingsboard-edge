@@ -1,0 +1,77 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxLayout="column" class="tb-progress-cover" fxLayoutAlign="center center"
+  *ngIf="layoutCtx.widgets.isLoading()">
+  <mat-spinner color="warn" mode="indeterminate" diameter="100">
+  </mat-spinner>
+</div>
+<div class="mat-content"
+          style="position: relative; width: 100%; height: 100%;" tb-hotkeys [hotkeys]="hotKeys"
+          [cheatSheet]="dashboardCheatSheet"
+          [style.backgroundImage]="backgroundImage"
+          [ngStyle]="dashboardStyle">
+  <section *ngIf="layoutCtx.widgets.isEmpty()" fxLayoutAlign="center center"
+           [ngStyle]="{'color': layoutCtx.gridSettings.color}"
+           style="text-transform: uppercase; display: flex; z-index: 1; pointer-events: none;"
+           class="mat-headline tb-absolute-fill">
+    <span *ngIf="!isEdit">
+      {{'dashboard.no-widgets' | translate}}
+    </span>
+    <button mat-button *ngIf="isEdit && !widgetEditMode" class="tb-add-new-widget"
+            (click)="addWidget($event)">
+      <mat-icon class="tb-mat-96">add</mat-icon>
+      {{ 'dashboard.add-widget' | translate }}
+    </button>
+  </section>
+  <tb-dashboard #dashboard [dashboardStyle]="dashboardStyle"
+                [backgroundImage]="backgroundImage"
+                [widgets]="layoutCtx.widgets"
+                [widgetLayouts]="layoutCtx.widgetLayouts"
+                [columns]="layoutCtx.gridSettings.columns"
+                [margin]="layoutCtx.gridSettings.margin"
+                [aliasController]="dashboardCtx.aliasController"
+                [stateController]="dashboardCtx.stateController"
+                [dashboardTimewindow]="dashboardCtx.dashboardTimewindow"
+                [isEdit]="isEdit"
+                [autofillHeight]="layoutCtx.gridSettings.autoFillHeight && !isEdit"
+                [mobileAutofillHeight]="layoutCtx.gridSettings.mobileAutoFillHeight && !isEdit"
+                [mobileRowHeight]="layoutCtx.gridSettings.mobileRowHeight"
+                [isMobile]="isMobile"
+                [isMobileDisabled]="widgetEditMode"
+                [isEditActionEnabled]="isEdit"
+                [isExportActionEnabled]="isEdit && !widgetEditMode"
+                [isRemoveActionEnabled]="isEdit && !widgetEditMode"
+                [callbacks]="this"
+                [ignoreLoading]="layoutCtx.ignoreLoading">
+  </tb-dashboard>
+</div>

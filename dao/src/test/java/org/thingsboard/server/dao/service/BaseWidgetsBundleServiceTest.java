@@ -37,8 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -186,13 +186,13 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         widgetsBundles.addAll(systemWidgetsBundles);
 
         List<WidgetsBundle> loadedWidgetsBundles = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(19);
-        TextPageData<WidgetsBundle> pageData = null;
+        PageLink pageLink = new PageLink(19);
+        PageData<WidgetsBundle> pageData = null;
         do {
             pageData = widgetsBundleService.findSystemWidgetsBundlesByPageLink(tenantId, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -266,13 +266,13 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         }
 
         List<WidgetsBundle> loadedWidgetsBundles = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(11);
-        TextPageData<WidgetsBundle> pageData = null;
+        PageLink pageLink = new PageLink(11);
+        PageData<WidgetsBundle> pageData = null;
         do {
             pageData = widgetsBundleService.findTenantWidgetsBundlesByTenantId(tenantId, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -283,7 +283,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
 
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
 
-        pageLink = new TextPageLink(15);
+        pageLink = new PageLink(15);
         pageData = widgetsBundleService.findTenantWidgetsBundlesByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
@@ -320,13 +320,13 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         widgetsBundles.addAll(systemWidgetsBundles);
 
         List<WidgetsBundle> loadedWidgetsBundles = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(17);
-        TextPageData<WidgetsBundle> pageData = null;
+        PageLink pageLink = new PageLink(17);
+        PageData<WidgetsBundle> pageData = null;
         do {
             pageData = widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -338,12 +338,12 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
 
         loadedWidgetsBundles.clear();
-        pageLink = new TextPageLink(14);
+        pageLink = new PageLink(14);
         do {
             pageData = widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -360,12 +360,12 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         }
 
         loadedWidgetsBundles.clear();
-        pageLink = new TextPageLink(18);
+        pageLink = new PageLink(18);
         do {
             pageData = widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 

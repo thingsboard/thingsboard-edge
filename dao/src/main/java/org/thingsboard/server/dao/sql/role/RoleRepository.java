@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.role;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -47,24 +48,20 @@ public interface RoleRepository extends CrudRepository<RoleEntity, String> {
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId " +
-            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND r.id > :idOffset ORDER BY r.id")
-    List<RoleEntity> findByTenantIdAndCustomerId(@Param("tenantId") String tenantId,
-                                                  @Param("customerId") String customerId,
-                                                  @Param("textSearch") String textSearch,
-                                                  @Param("idOffset") String idOffset,
-                                                  Pageable pageable);
+            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<RoleEntity> findByTenantIdAndCustomerId(@Param("tenantId") String tenantId,
+                                                 @Param("customerId") String customerId,
+                                                 @Param("searchText") String searchText,
+                                                 Pageable pageable);
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId AND r.type = :type " +
-            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND r.id > :idOffset ORDER BY r.id")
-    List<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
-                                                         @Param("customerId") String customerId,
-                                                         @Param("type") RoleType type,
-                                                         @Param("textSearch") String textSearch,
-                                                         @Param("idOffset") String idOffset,
-                                                         Pageable pageable);
+            "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
+                                                        @Param("customerId") String customerId,
+                                                        @Param("type") RoleType type,
+                                                        @Param("searchText") String searchText,
+                                                        Pageable pageable);
 
     List<RoleEntity> findRolesByTenantIdAndIdIn(String tenantId, List<String> roleIds);
 

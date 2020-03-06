@@ -41,8 +41,8 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -166,13 +166,13 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         }
 
         List<Converter> loadedConverters = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Converter> pageData;
+        PageLink pageLink = new PageLink(23);
+        PageData<Converter> pageData;
         do {
             pageData = converterService.findTenantConverters(tenantId, pageLink);
             loadedConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -184,7 +184,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
 
         converterService.deleteConvertersByTenantId(tenantId);
 
-        pageLink = new TextPageLink(33);
+        pageLink = new PageLink(33);
         pageData = converterService.findTenantConverters(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());

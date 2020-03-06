@@ -1,0 +1,169 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import './rule-node-colors';
+
+:host {
+
+  .fc-node-overlay {
+    position: absolute;
+    pointer-events: none;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #000;
+    border-radius: 5px;
+    opacity: 0;
+  }
+
+  :host-context(.fc-hover) .fc-node-overlay {
+    opacity: 0.25;
+    transition: opacity .2s;
+  }
+
+  :host-context(.fc-selected) .fc-node-overlay {
+    opacity: 0.25;
+  }
+
+  :host-context(.fc-edit) {
+    .fc-nodeedit,
+    .fc-nodedelete {
+      box-sizing: content-box;
+      border: solid 2px #fff;
+      background: #f83e05;
+      outline: none;
+    }
+  }
+
+  .tb-rule-node {
+    box-sizing: content-box;
+    display: flex;
+    flex-direction: row;
+    min-width: 150px;
+    max-width: 150px;
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 16px;
+    color: #333;
+    pointer-events: none;
+    background-color: #f15b26;
+    border: solid 1px #777;
+    border-radius: 5px;
+
+    @include rule-node-colors();
+
+    &.tb-rule-node-highlighted:not(.tb-rule-node-invalid) {
+      box-shadow: 0 0 10px 6px #51cbee;
+
+      .tb-node-title {
+        font-weight: 700;
+        text-decoration: underline;
+      }
+    }
+
+    &.tb-rule-node-invalid {
+      box-shadow: 0 0 10px 6px #ff5c50;
+    }
+
+    &.tb-input-type {
+      user-select: none;
+      background-color: #a3eaa9;
+    }
+
+    mat-icon, img {
+      margin: auto;
+      width: 20px;
+      min-width: 20px;
+      height: 20px;
+      min-height: 20px;
+      padding-right: 4px;
+      font-size: 20px;
+    }
+
+    .tb-node-title {
+      font-weight: 500;
+    }
+
+    .tb-node-type,
+    .tb-node-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .fc-leftConnectors,
+    .fc-rightConnectors {
+      position: absolute;
+      top: 0;
+
+      z-index: 0;
+
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+
+      .fc-magnet {
+        align-items: center;
+      }
+    }
+
+    .fc-leftConnectors {
+      left: -20px;
+    }
+
+    .fc-rightConnectors {
+      right: -20px;
+    }
+
+    .fc-magnet {
+      display: flex;
+      flex-grow: 1;
+      justify-content: center;
+      height: 60px;
+    }
+
+    .fc-connector {
+      width: 14px;
+      height: 14px;
+      margin: 10px;
+      pointer-events: all;
+      background-color: #ccc;
+      border: 1px solid #333;
+      border-radius: 5px;
+    }
+
+    .fc-connector.fc-hover {
+      background-color: #000;
+    }
+  }
+}

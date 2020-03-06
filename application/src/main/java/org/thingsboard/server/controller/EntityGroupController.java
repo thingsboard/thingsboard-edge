@@ -66,9 +66,8 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
@@ -449,15 +448,17 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<ShortEntityView> getEntities(
+    public PageData<ShortEntityView> getEntities(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset
+            @RequestParam(required = false) Long endTime
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -465,8 +466,8 @@ public class EntityGroupController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            ListenableFuture<TimePageData<ShortEntityView>> asyncResult = null;
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            ListenableFuture<PageData<ShortEntityView>> asyncResult = null;
             if (entityType == EntityType.CUSTOMER) {
                 asyncResult = customerService.findCustomersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.ASSET) {
@@ -530,15 +531,16 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/owners", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/owners", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<ContactBased<?>> getOwners(
-            @RequestParam int limit,
+    public PageData<ContactBased<?>> getOwners(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             List<ContactBased<?>> owners = new ArrayList<>();
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
                 if (accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ)) {
@@ -555,13 +557,9 @@ public class EntityGroupController extends BaseController {
                     owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
                             .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
                 }
-                owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-                if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {
-                    int toRemove = owners.size() - pageLink.getLimit();
-                    owners.subList(owners.size() - toRemove, owners.size()).clear();
-                }
             }
-            return new TextPageData<>(owners, pageLink);
+            owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
+            return toPageData(owners, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

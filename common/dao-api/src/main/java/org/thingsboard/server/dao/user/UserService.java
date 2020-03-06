@@ -39,10 +39,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 
 import java.util.List;
@@ -77,21 +76,21 @@ public interface UserService {
 
 	void deleteUser(TenantId tenantId, UserId userId);
 	
-	TextPageData<User> findTenantAdmins(TenantId tenantId, TextPageLink pageLink);
+	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 	
 	void deleteTenantAdmins(TenantId tenantId);
-	
-	TextPageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 
-	TextPageData<User> findAllCustomerUsers(TenantId tenantId, TextPageLink pageLink);
+    PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 
+    PageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+	    
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
 	ShortEntityView findGroupUser(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-	ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+	ListenableFuture<PageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
-    ListenableFuture<TimePageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<PageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 

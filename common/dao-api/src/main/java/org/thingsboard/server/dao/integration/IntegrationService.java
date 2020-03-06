@@ -35,8 +35,8 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +57,7 @@ public interface IntegrationService {
 
     List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId);
 
-    TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink);
+    PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 

@@ -1,0 +1,77 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div
+   (dblclick)="userNodeCallbacks.doubleClick($event, node)"
+   (mousedown)="userNodeCallbacks.mouseDown($event, node)"
+   (mouseenter)="userNodeCallbacks.mouseEnter($event, node)"
+   (mouseleave)="userNodeCallbacks.mouseLeave($event, node)">
+  <div class="fc-node-overlay"></div>
+  <div class="tb-rule-node {{node.nodeClass}}"
+       [ngClass]="{'tb-rule-node-highlighted' : node.highlighted,
+                   'tb-rule-node-invalid': node.error }">
+    <mat-icon *ngIf="!iconUrl" fxFlex="15">{{node.icon}}</mat-icon>
+    <img *ngIf="iconUrl" fxFlex="15" [src]="iconUrl"/>
+    <div fxLayout="column" fxFlex="85" fxLayoutAlign="center">
+      <span class="tb-node-type">{{ node.component.name }}</span>
+      <span class="tb-node-title" *ngIf="node.name">{{ node.name }}</span>
+    </div>
+    <div class="{{flowchartConstants.leftConnectorClass}}">
+      <div fc-magnet [connector]="connector" [callbacks]="callbacks"
+           *ngFor="let connector of modelservice.nodes.getConnectorsByType(node, flowchartConstants.leftConnectorType)">
+        <div fc-connector [connector]="connector"
+             [nodeRectInfo]="nodeRectInfo"
+             [mouseOverConnector]="mouseOverConnector"
+             [callbacks]="callbacks"
+             [modelservice]="modelservice"></div>
+      </div>
+    </div>
+    <div class="{{flowchartConstants.rightConnectorClass}}">
+      <div fc-magnet [connector]="connector" [callbacks]="callbacks"
+           *ngFor="let connector of modelservice.nodes.getConnectorsByType(node, flowchartConstants.rightConnectorType)">
+        <div fc-connector [connector]="connector"
+             [nodeRectInfo]="nodeRectInfo"
+             [mouseOverConnector]="mouseOverConnector"
+             [callbacks]="callbacks"
+             [modelservice]="modelservice"></div>
+      </div>
+    </div>
+  </div>
+  <section *ngIf="modelservice.isEditable() && !node.readonly">
+    <div class="fc-nodeedit" (click)="userNodeCallbacks.nodeEdit($event, node)">
+      <i class="fa fa-pencil" aria-hidden="true"></i>
+    </div>
+    <div class="fc-nodedelete" (click)="modelservice.nodes.delete(node)">
+      &times;
+    </div>
+  </section>
+</div>
