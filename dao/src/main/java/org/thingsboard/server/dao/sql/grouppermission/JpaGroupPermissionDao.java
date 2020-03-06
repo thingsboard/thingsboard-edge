@@ -80,7 +80,6 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
         return DaoUtil.toPageData(
                 groupPermissionRepository.findByTenantId(
                         fromTimeUUID(tenantId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -90,7 +89,6 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
                 groupPermissionRepository.findByTenantIdAndUserGroupId(
                         fromTimeUUID(tenantId),
                         fromTimeUUID(userGroupId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -101,7 +99,6 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
                         fromTimeUUID(tenantId),
                         fromTimeUUID(userGroupId),
                         fromTimeUUID(roleId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -113,7 +110,6 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
                         fromTimeUUID(entityGroupId),
                         fromTimeUUID(userGroupId),
                         fromTimeUUID(roleId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -123,7 +119,6 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
                 groupPermissionRepository.findByTenantIdAndEntityGroupId(
                         fromTimeUUID(tenantId),
                         fromTimeUUID(entityGroupId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -133,7 +128,6 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
                 groupPermissionRepository.findByTenantIdAndRoleId(
                         fromTimeUUID(tenantId),
                         fromTimeUUID(roleId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
 }

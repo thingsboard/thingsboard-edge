@@ -44,7 +44,7 @@ import java.util.List;
 public interface IntegrationRepository extends CrudRepository<IntegrationEntity, String> {
 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
     Page<IntegrationEntity> findByTenantId(@Param("tenantId") String tenantId,
                                                       @Param("searchText") String searchText,
                                                       Pageable pageable);

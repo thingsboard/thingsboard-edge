@@ -43,72 +43,60 @@ import org.thingsboard.server.dao.util.SqlDao;
 public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, String>, JpaSpecificationExecutor<GroupPermissionEntity> {
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId " +
-            "AND LOWER(g.entityGroupType) LIKE LOWER(CONCAT(:searchText, '%'))"
+            "g.tenantId = :tenantId"
     )
     Page<GroupPermissionEntity> findByTenantId(
             @Param("tenantId") String tenantId,
-            @Param("searchText") String searchText,
             Pageable pageable);
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
             "g.tenantId = :tenantId " +
-            "AND g.userGroupId = :userGroupId " +
-            "AND LOWER(g.entityGroupType) LIKE LOWER(CONCAT(:searchText, '%'))"
+            "AND g.userGroupId = :userGroupId"
     )
     Page<GroupPermissionEntity> findByTenantIdAndUserGroupId(
             @Param("tenantId") String tenantId,
             @Param("userGroupId") String userGroupId,
-            @Param("searchText") String searchText,
             Pageable pageable);
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
             "g.tenantId = :tenantId " +
             "AND g.userGroupId = :userGroupId " +
-            "AND g.roleId = :roleId " +
-            "AND LOWER(g.entityGroupType) LIKE LOWER(CONCAT(:searchText, '%'))"
+            "AND g.roleId = :roleId"
     )
     Page<GroupPermissionEntity> findByTenantIdAndUserGroupIdAndRoleId(
             @Param("tenantId") String tenantId,
             @Param("userGroupId") String userGroupId,
             @Param("roleId") String roleId,
-            @Param("searchText") String searchText,
             Pageable pageable);
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
             "g.tenantId = :tenantId " +
             "AND g.entityGroupId = :entityGroupId " +
             "AND g.userGroupId = :userGroupId " +
-            "AND g.roleId = :roleId " +
-            "AND LOWER(g.entityGroupType) LIKE LOWER(CONCAT(:searchText, '%'))"
+            "AND g.roleId = :roleId"
     )
     Page<GroupPermissionEntity> findByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(
             @Param("tenantId") String tenantId,
             @Param("entityGroupId") String entityGroupId,
             @Param("userGroupId") String userGroupId,
             @Param("roleId") String roleId,
-            @Param("searchText") String searchText,
             Pageable pageable);
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
             "g.tenantId = :tenantId " +
-            "AND g.entityGroupId = :entityGroupId " +
-            "AND LOWER(g.entityGroupType) LIKE LOWER(CONCAT(:searchText, '%'))"
+            "AND g.entityGroupId = :entityGroupId"
     )
     Page<GroupPermissionEntity> findByTenantIdAndEntityGroupId(
             @Param("tenantId") String tenantId,
             @Param("entityGroupId") String entityGroupId,
-            @Param("searchText") String searchText,
             Pageable pageable);
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
             "g.tenantId = :tenantId " +
-            "AND g.roleId = :roleId " +
-            "AND LOWER(g.entityGroupType) LIKE LOWER(CONCAT(:searchText, '%'))"
+            "AND g.roleId = :roleId"
     )
     Page<GroupPermissionEntity> findByTenantIdAndRoleId(
             @Param("tenantId") String tenantId,
             @Param("roleId") String roleId,
-            @Param("searchText") String searchText,
             Pageable pageable);
 }

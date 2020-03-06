@@ -324,7 +324,7 @@ public class DashboardController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", method = RequestMethod.GET)
     @ResponseBody
     public PageData<DashboardInfo> getDashboardsByEntityGroupId(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
