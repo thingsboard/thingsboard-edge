@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -58,32 +59,11 @@ public class AlarmsCountMapping {
     private List<AlarmStatus> statusList;
     private long latestInterval;
 
-    public Predicate<AlarmInfo> createAlarmFilter() {
-        long maxTime = System.currentTimeMillis() - latestInterval;
-        return alarmInfo -> {
-            if (!matches(typesList, alarmInfo.getType())) {
-                return false;
-            }
-            if (!matches(severityList, alarmInfo.getSeverity())) {
-                return false;
-            }
-            if (!matches(statusList, alarmInfo.getStatus())) {
-                return false;
-            }
-            if (latestInterval > 0) {
-                if (alarmInfo.getCreatedTime() < maxTime) {
-                    return false;
-                }
-            }
-            return true;
-        };
-    }
-
-    private <T> boolean matches(List<T> filterList, T value) {
-        if (filterList != null && !filterList.isEmpty()) {
-            return filterList.contains(value);
-        } else {
-            return true;
+    public AlarmFilter createAlarmFilter() {
+        Long startTime = null;
+        if (latestInterval > 0) {
+            startTime = System.currentTimeMillis() - latestInterval;
         }
+        return new AlarmFilter(this.typesList, this.severityList, this.statusList, startTime);
     }
 }

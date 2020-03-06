@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
@@ -114,6 +115,45 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     public PageData<AlarmInfo> findAlarms(TenantId tenantId, AlarmQuery query) {
         log.trace("Try to find alarms by entity [{}], status [{}] and pageLink [{}]", query.getAffectedEntityId(), query.getStatus(), query.getPageLink());
         EntityId affectedEntity = query.getAffectedEntityId();
+        return DaoUtil.toPageData(
+            alarmRepository.findAlarms(
+                    fromTimeUUID(tenantId.getId()),
+                    fromTimeUUID(affectedEntity.getId()),
+                    affectedEntity.getEntityType().name(),
+                    getRelationType(query),
+                    startTimeToId(query.getPageLink().getStartTime()),
+                    endTimeToId(query.getPageLink().getEndTime()),
+                    query.getIdOffset() != null ? UUIDConverter.fromTimeUUID(query.getIdOffset()) : null,
+                    Objects.toString(query.getPageLink().getTextSearch(), ""),
+                    DaoUtil.toPageable(query.getPageLink())
+            )
+        );
+    }
+
+    @Override
+    public long findAlarmCount(TenantId tenantId, AlarmQuery query, AlarmFilter filter) {
+        log.trace("Try to find alarm count by entity [{}], status [{}], pageLink [{}] and filter", query.getAffectedEntityId(), query.getStatus(), query.getPageLink(), filter);
+        EntityId affectedEntity = query.getAffectedEntityId();
+        Long startTime;
+        if (query.getPageLink().getStartTime() != null && filter.getStartTime() != null) {
+            startTime = Math.max(query.getPageLink().getStartTime(), filter.getStartTime());
+        } else {
+            startTime = query.getPageLink().getStartTime() != null ? query.getPageLink().getStartTime() : filter.getStartTime();
+        }
+        return alarmRepository.findAlarmCount(
+                fromTimeUUID(tenantId.getId()),
+                fromTimeUUID(affectedEntity.getId()),
+                affectedEntity.getEntityType().name(),
+                getRelationType(query),
+                startTimeToId(startTime),
+                endTimeToId(query.getPageLink().getEndTime()),
+                filter.getTypesList(),
+                filter.getSeverityList(),
+                filter.getStatusList()
+        );
+    }
+
+    private String getRelationType(AlarmQuery query) {
         String searchStatusName;
         if (query.getSearchStatus() == null && query.getStatus() == null) {
             searchStatusName = AlarmSearchStatus.ANY.name();
@@ -122,20 +162,6 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
         } else {
             searchStatusName = query.getStatus().name();
         }
-        String relationType = BaseAlarmService.ALARM_RELATION_PREFIX + searchStatusName;
-
-        return DaoUtil.toPageData(
-            alarmRepository.findAlarms(
-                    fromTimeUUID(tenantId.getId()),
-                    fromTimeUUID(affectedEntity.getId()),
-                    affectedEntity.getEntityType().name(),
-                    relationType,
-                    startTimeToId(query.getPageLink().getStartTime()),
-                    endTimeToId(query.getPageLink().getEndTime()),
-                    query.getIdOffset() != null ? UUIDConverter.fromTimeUUID(query.getIdOffset()) : null,
-                    Objects.toString(query.getPageLink().getTextSearch(), ""),
-                    DaoUtil.toPageable(query.getPageLink())
-            )
-        );
+        return BaseAlarmService.ALARM_RELATION_PREFIX + searchStatusName;
     }
 }

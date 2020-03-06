@@ -36,6 +36,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.AlarmInfoEntity;
 import org.thingsboard.server.dao.util.SqlDao;
@@ -76,4 +78,27 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, String> {
                                      @Param("idOffset") String idOffset,
                                      @Param("searchText") String searchText,
                                      Pageable pageable);
+
+    @Query("SELECT COUNT(a) FROM AlarmEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.tenantId = :tenantId " +
+            "AND a.id = re.toId AND re.toType = 'ALARM' " +
+            "AND re.relationTypeGroup = 'ALARM' " +
+            "AND re.relationType = :relationType " +
+            "AND re.fromId = :affectedEntityId " +
+            "AND re.fromType = :affectedEntityType " +
+            "AND (:startId IS NULL OR a.id >= :startId) " +
+            "AND (:endId IS NULL OR a.id <= :endId) " +
+            "AND (:typesList IS NULL OR a.type in :typesList) " +
+            "AND (:severityList IS NULL OR a.severity in :severityList) " +
+            "AND (:statusList IS NULL OR a.status in :statusList)")
+    long findAlarmCount(@Param("tenantId") String tenantId,
+                         @Param("affectedEntityId") String affectedEntityId,
+                         @Param("affectedEntityType") String affectedEntityType,
+                         @Param("relationType") String relationType,
+                         @Param("startId") String startId,
+                         @Param("endId") String endId,
+                         @Param("typesList") List<String> typesList,
+                         @Param("severityList") List<AlarmSeverity> severityList,
+                         @Param("statusList") List<AlarmStatus> statusList);
 }

@@ -167,7 +167,7 @@ public class TbAlarmsCountNodeTest {
 
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
-            List<Predicate<AlarmInfo>> filters = (List<Predicate<AlarmInfo>>) (invocationOnMock.getArguments())[2];
+            List<AlarmFilter> filters = (List<AlarmFilter>) (invocationOnMock.getArguments())[2];
             return findAlarmCounts(alarmService, query, filters);
         }).when(alarmService).findAlarmCounts(Matchers.any(), Matchers.any(AlarmQuery.class), Matchers.any(List.class));
 
@@ -421,9 +421,9 @@ public class TbAlarmsCountNodeTest {
         return query;
     }
 
-    private static List<Long> findAlarmCounts(AlarmService service, AlarmQuery query, List<Predicate<AlarmInfo>> filters) {
+    private static List<Long> findAlarmCounts(AlarmService service, AlarmQuery query, List<AlarmFilter> filters) {
         List<Long> alarmCounts = new ArrayList<>();
-        for (Predicate filter : filters) {
+        for (AlarmFilter filter : filters) {
             alarmCounts.add(0l);
         }
         PageData<AlarmInfo> alarms;
@@ -431,7 +431,7 @@ public class TbAlarmsCountNodeTest {
             try {
                 alarms = service.findAlarms(TenantId.SYS_TENANT_ID, query).get();
                 for (int i = 0; i < filters.size(); i++) {
-                    Predicate<AlarmInfo> filter = filters.get(i);
+                    Predicate<AlarmInfo> filter = matchAlarmFilter(filters.get(i));
                     long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
                     alarmCounts.set(i, count);
                 }
@@ -449,5 +449,32 @@ public class TbAlarmsCountNodeTest {
         return alarmCounts;
     }
 
+    private static Predicate<AlarmInfo> matchAlarmFilter(AlarmFilter filter) {
+        return alarmInfo -> {
+            if (!matches(filter.getTypesList(), alarmInfo.getType())) {
+                return false;
+            }
+            if (!matches(filter.getSeverityList(), alarmInfo.getSeverity())) {
+                return false;
+            }
+            if (!matches(filter.getStatusList(), alarmInfo.getStatus())) {
+                return false;
+            }
+            if (filter.getStartTime() != null) {
+                if (alarmInfo.getCreatedTime() <= filter.getStartTime()) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+
+    private static <T> boolean matches(List<T> filterList, T value) {
+        if (filterList != null && !filterList.isEmpty()) {
+            return filterList.contains(value);
+        } else {
+            return true;
+        }
+    }
 
 }

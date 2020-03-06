@@ -28,36 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.alarm;
+package org.thingsboard.server.common.data.alarm;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmFilter;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.alarm.AlarmQuery;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.dao.Dao;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 import java.util.List;
-import java.util.UUID;
 
-/**
- * Created by ashvayka on 11.05.17.
- */
-public interface AlarmDao extends Dao<Alarm> {
+@Data
+@Builder
+@AllArgsConstructor
+public class AlarmFilter {
 
-    Boolean deleteAlarm(TenantId tenantId, Alarm alarm);
-
-    ListenableFuture<Alarm> findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type);
-
-    ListenableFuture<Alarm> findAlarmByIdAsync(TenantId tenantId, UUID key);
-
-    Alarm save(TenantId tenantId, Alarm alarm);
-
-    PageData<AlarmInfo> findAlarms(TenantId tenantId, AlarmQuery query);
-
-    long findAlarmCount(TenantId tenantId, AlarmQuery query, AlarmFilter filter);
+    private List<String> typesList;
+    private List<AlarmSeverity> severityList;
+    private List<AlarmStatus> statusList;
+    private Long startTime;
 
 }

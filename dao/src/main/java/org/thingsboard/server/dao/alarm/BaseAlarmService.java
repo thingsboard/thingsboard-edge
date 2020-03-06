@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
@@ -315,31 +316,12 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
-    public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<Predicate<AlarmInfo>> filters) {
+    public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters) {
         List<Long> alarmCounts = new ArrayList<>();
-        for (Predicate filter : filters) {
-            alarmCounts.add(0l);
+        for (AlarmFilter filter : filters) {
+            long count = alarmDao.findAlarmCount(tenantId, query, filter);
+            alarmCounts.add(count);
         }
-        PageData<AlarmInfo> alarms;
-        do {
-            try {
-                alarms = findAlarms(tenantId, query).get();
-                for (int i = 0; i < filters.size(); i++) {
-                    Predicate<AlarmInfo> filter = filters.get(i);
-                    long count = alarms.getData().stream().filter(filter).map(AlarmInfo::getId).distinct().count() + alarmCounts.get(i);
-                    alarmCounts.set(i, count);
-                }
-                if (alarms.hasNext()) {
-                    UUID idOffset = alarms.getData().get(alarms.getData().size()-1).getId().getId();
-                    query = new AlarmQuery(query.getAffectedEntityId(),
-                            query.getPageLink(),
-                            query.getSearchStatus(), query.getStatus(), false, idOffset);
-                }
-            } catch (ExecutionException | InterruptedException e) {
-                log.warn("Failed to find alarms by query. Query: [{}]", query);
-                throw new RuntimeException(e);
-            }
-        } while (alarms.hasNext());
         return alarmCounts;
     }
 
