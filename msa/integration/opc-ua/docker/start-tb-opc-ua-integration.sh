@@ -38,6 +38,8 @@ source "${CONF_FOLDER}/${configfile}"
 
 echo "Starting '${project.name}' ..."
 
+cd ${pkg.installFolder}/bin
+
 exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.integration.ThingsboardOpcUaIntegrationApplication \
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dlogging.config=${CONF_FOLDER}/logback.xml \

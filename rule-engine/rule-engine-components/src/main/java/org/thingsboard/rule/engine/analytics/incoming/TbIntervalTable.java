@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.analytics.incoming;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -203,7 +204,7 @@ class TbIntervalTable {
             } else {
                 return readTbIntervalState(value);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private TbIntervalState readTbIntervalState(String value) {

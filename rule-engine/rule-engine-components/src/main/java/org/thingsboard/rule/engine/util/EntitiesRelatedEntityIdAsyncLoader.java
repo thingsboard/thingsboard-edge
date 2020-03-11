@@ -89,7 +89,7 @@ public class EntitiesRelatedEntityIdAsyncLoader {
 
         return Futures.transformAsync(asyncRelation, r -> CollectionUtils.isNotEmpty(r)
                 ? Futures.immediateFuture(r.stream().map(mapFunction).filter(entityFilter).collect(Collectors.toList()))
-                : Futures.immediateFuture(Collections.emptyList()));
+                : Futures.immediateFuture(Collections.emptyList()), MoreExecutors.directExecutor());
     }
 
     private static EntityRelationsQuery buildQuery(EntityId originator, RelationsQuery relationsQuery) {

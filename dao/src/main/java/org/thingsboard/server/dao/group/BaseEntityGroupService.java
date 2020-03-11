@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -613,7 +614,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityGroupIds.add(new EntityGroupId(relation.getFrom().getId()));
             }
             return entityGroupIds;
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
@@ -625,7 +626,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityIds.add(relation.getTo());
             }
             return entityIds;
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {

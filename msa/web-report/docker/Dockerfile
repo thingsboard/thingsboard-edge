@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM debian:stretch
+FROM thingsboard/base
 
 RUN apt-get update \
     && apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
@@ -64,5 +64,7 @@ RUN chmod a+x /tmp/*.sh \
 RUN dpkg -i /tmp/${pkg.name}.deb
 
 RUN update-rc.d ${pkg.name} disable
+
+USER ${pkg.user}
 
 CMD ["start-web-report.sh"]

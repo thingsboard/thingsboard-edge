@@ -206,7 +206,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
 
     @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
-        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TimescaleTsKvCompositeKey(tenantId.getId(), entityId.getId(), getOrSaveKeyId(key), ts))));
+        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TimescaleTsKvCompositeKey(entityId.getId(), getOrSaveKeyId(key), ts))));
     }
 
     @Override

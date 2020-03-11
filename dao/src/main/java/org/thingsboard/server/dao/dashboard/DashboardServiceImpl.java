@@ -269,14 +269,15 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     private PaginatedRemover<TenantId, DashboardInfo> tenantDashboardsRemover =
             new PaginatedRemover<TenantId, DashboardInfo>() {
 
-        @Override
-        protected PageData<DashboardInfo> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
-            return dashboardInfoDao.findDashboardsByTenantId(id.getId(), pageLink);
-        }
+                @Override
+                protected PageData<DashboardInfo> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+                    return dashboardInfoDao.findDashboardsByTenantId(id.getId(), pageLink);
+                }
 
-        @Override
-        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
-            deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
-        }
+                @Override
+                protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
+                    deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
+                }
     };
+
 }

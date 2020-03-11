@@ -53,7 +53,6 @@
         <main.dir>${basedir}/../../..</main.dir>
         <pkg.name>tb-azure-integration</pkg.name>
         <docker.name>tb-pe-azure-integration</docker.name>
-        <pkg.user>thingsboard</pkg.user>
         <pkg.logFolder>/var/log/${pkg.name}</pkg.logFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
     </properties>

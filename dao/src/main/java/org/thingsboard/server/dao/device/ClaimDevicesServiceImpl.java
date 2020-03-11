@@ -172,9 +172,9 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                         return null;
                     }, MoreExecutors.directExecutor());
                     return Futures.transformAsync(future, input ->
-                                    Futures.transform(removeClaimingSavedData(cache, claimData, device),
-                                            result -> new ClaimResult(device, ClaimResponse.SUCCESS),
-                                            MoreExecutors.directExecutor()),
+                            Futures.transform(removeClaimingSavedData(cache, claimData, device),
+                                    result -> new ClaimResult(device, ClaimResponse.SUCCESS),
+                                    MoreExecutors.directExecutor()),
                             MoreExecutors.directExecutor());
                 }
                 return Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED), MoreExecutors.directExecutor());
