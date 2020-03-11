@@ -33,3 +33,5 @@ pom.xml.versionsBackup
 **/.env
 .instance_id
 rebuild-docker.sh
+state_file.txt
+data_*.txt

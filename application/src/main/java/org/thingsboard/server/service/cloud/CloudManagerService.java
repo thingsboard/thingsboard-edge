@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -105,7 +106,9 @@ import org.thingsboard.server.gen.edge.RuleNodeProto;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.user.UserLoaderService;
 import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.Nullable;
@@ -142,6 +145,9 @@ public class CloudManagerService {
     @Autowired
     @Qualifier("edgeFileEventStorage")
     private EventStorage<UplinkMsg> eventStorage;
+
+    @Autowired
+    private UserLoaderService userLoaderService;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -210,10 +216,23 @@ public class CloudManagerService {
     }
 
     private void setTenantId() {
+        // TODO: voba - refactor for a single tenant approach
         TextPageData<Tenant> tenants = tenantService.findTenants(new TextPageLink(1));
         if (tenants.getData() != null && !tenants.getData().isEmpty()) {
             tenantId = tenants.getData().get(0).getId();
         }
+        if (tenantId == null) {
+            Tenant savedTenant = createTenant();
+            tenantId = savedTenant.getTenantId();
+        }
+    }
+
+    private Tenant createTenant() {
+        Tenant tenant = new Tenant();
+        tenant.setTitle("Tenant");
+        Tenant savedTenant = tenantService.saveTenant(tenant);
+        userLoaderService.createUser(Authority.TENANT_ADMIN, savedTenant.getId(), null, "tenant@thingsboard.org", "tenant");
+        return savedTenant;
     }
 
     @PreDestroy

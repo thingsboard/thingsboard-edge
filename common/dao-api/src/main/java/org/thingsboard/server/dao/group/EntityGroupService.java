@@ -71,11 +71,7 @@ public interface EntityGroupService {
 
     EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
 
-    EntityGroup findOrCreateTenantAdminsGroup(TenantId tenantId);
-
     EntityGroup findOrCreateCustomerUsersGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId);
-
-    EntityGroup findOrCreateCustomerAdminsGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId);
 
     EntityGroup findOrCreatePublicUsersGroup(TenantId tenantId, CustomerId customerId);
 

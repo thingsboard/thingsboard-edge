@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.tenant;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +56,6 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -75,8 +73,6 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private TenantDao tenantDao;
@@ -162,7 +158,6 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
             entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-            entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
         }
 
         return savedTenant;
@@ -186,7 +181,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         schedulerEventService.deleteSchedulerEventsByTenantId(tenantId);
         blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
         deleteEntityGroups(tenantId, tenantId);
-        deleteEntityRelations(tenantId,tenantId);
+        deleteEntityRelations(tenantId, tenantId);
         groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
         roleService.deleteRolesByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
@@ -200,12 +195,6 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         return new TextPageData<>(tenants, pageLink);
     }
 
-    @Override
-    public void deleteTenants() {
-        log.trace("Executing deleteTenants");
-        tenantsRemover.removeEntities(new TenantId(EntityId.NULL_UUID), DEFAULT_TENANT_REGION);
-    }
-
     private DataValidator<Tenant> tenantValidator =
             new DataValidator<Tenant>() {
                 @Override
@@ -216,20 +205,6 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
                     if (!StringUtils.isEmpty(tenant.getEmail())) {
                         validateEmail(tenant.getEmail());
                     }
-                }
-            };
-
-    private PaginatedRemover<String, Tenant> tenantsRemover =
-            new PaginatedRemover<String, Tenant>() {
-
-                @Override
-                protected List<Tenant> findEntities(TenantId tenantId, String region, TextPageLink pageLink) {
-                    return tenantDao.findTenantsByRegion(tenantId, region, pageLink);
-                }
-
-                @Override
-                protected void removeEntity(TenantId tenantId, Tenant entity) {
-                    deleteTenant(new TenantId(entity.getUuidId()));
                 }
             };
 }

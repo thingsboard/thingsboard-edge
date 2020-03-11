@@ -28,10 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install.update;
+package org.thingsboard.server.service.user;
 
-public interface DataUpdateService {
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
 
-    void updateData(String fromVersion) throws Exception;
+public interface UserLoaderService {
 
+    void createUser(Authority authority,
+                    TenantId tenantId,
+                    CustomerId customerId,
+                    String email,
+                    String password);
 }

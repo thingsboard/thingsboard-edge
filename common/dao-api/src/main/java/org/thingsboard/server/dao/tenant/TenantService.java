@@ -47,10 +47,8 @@ public interface TenantService {
     ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds);
 
     Tenant saveTenant(Tenant tenant);
-    
+
     void deleteTenant(TenantId tenantId);
-    
+
     TextPageData<Tenant> findTenants(TextPageLink pageLink);
-    
-    void deleteTenants();
 }

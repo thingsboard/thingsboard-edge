@@ -38,11 +38,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
-import org.thingsboard.server.service.install.DatabaseUpgradeService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
-import org.thingsboard.server.service.install.update.DataUpdateService;
 
 @Service
 @Profile("install")
@@ -55,17 +53,11 @@ public class ThingsboardInstallService {
     @Value("${install.upgrade.from_version:1.3.0}")
     private String upgradeFromVersion;
 
-    @Value("${install.load_demo:false}")
-    private Boolean loadDemo;
-
     @Autowired
     private EntityDatabaseSchemaService entityDatabaseSchemaService;
 
     @Autowired
     private TsDatabaseSchemaService tsDatabaseSchemaService;
-
-    @Autowired
-    private DatabaseUpgradeService databaseUpgradeService;
 
     @Autowired
     private ComponentDiscoveryService componentDiscoveryService;
@@ -76,75 +68,13 @@ public class ThingsboardInstallService {
     @Autowired
     private SystemDataLoaderService systemDataLoaderService;
 
-    @Autowired
-    private DataUpdateService dataUpdateService;
-
     public void performInstall() {
         try {
             if (isUpgrade) {
                 log.info("Starting ThingsBoard Upgrade from version {} ...", upgradeFromVersion);
 
                 switch (upgradeFromVersion) {
-                    case "1.2.3": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
-                        log.info("Upgrading ThingsBoard from version 1.2.3 to 1.3.0 ...");
-
-                        databaseUpgradeService.upgradeDatabase("1.2.3");
-
-                    case "1.3.0": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
-                        log.info("Upgrading ThingsBoard from version 1.3.0 to 1.3.1 ...");
-
-                        databaseUpgradeService.upgradeDatabase("1.3.0");
-
-                    case "1.3.1": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
-                        log.info("Upgrading ThingsBoard from version 1.3.1 to 1.4.0 ...");
-
-                        databaseUpgradeService.upgradeDatabase("1.3.1");
-
-                    case "1.4.0": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
-                        log.info("Upgrading ThingsBoard from version 1.4.0 to 2.0.0 ...");
-
-                        databaseUpgradeService.upgradeDatabase("1.4.0");
-
-                        dataUpdateService.updateData("1.4.0");
-
-                    case "2.0.0":
-                        log.info("Upgrading ThingsBoard from version 2.0.0 to 2.1.1 ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.0.0");
-
-                    case "2.1.1":
-                        log.info("Upgrading ThingsBoard from version 2.1.1 to 2.1.2 ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.1.1");
-                    case "2.1.3":
-                        log.info("Upgrading ThingsBoard from version 2.1.3 to 2.2.0 ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.1.3");
-
-                    case "2.3.0":
-                        log.info("Upgrading ThingsBoard from version 2.3.0 to 2.3.1 ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.3.0");
-
-                    case "2.3.1":
-                        log.info("Upgrading ThingsBoard from version 2.3.1 to 2.4.0 ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.3.1");
-
-                    case "2.4.0":
-
-                    case "2.4.1": // to 2.4.1PE
-                        log.info("Upgrading ThingsBoard from version 2.4.1 to 2.4.2 ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.4.1");
-
-                    case "2.4.2": // to 2.4.2PE
-                        log.info("Upgrading ThingsBoard from version 2.4.2 to 2.4.2PE ...");
-
-                        databaseUpgradeService.upgradeDatabase("2.4.2");
-
-                        dataUpdateService.updateData("2.4.2");
-
+                    case "2.5.0":
                         log.info("Updating system data...");
 
                         systemDataLoaderService.deleteSystemWidgetBundle("charts");
@@ -190,16 +120,9 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.loadSystemWidgets();
-//                systemDataLoaderService.loadSystemPlugins();
-//                systemDataLoaderService.loadSystemRules();
 
-                if (loadDemo) {
-                    log.info("Loading demo data...");
-                    systemDataLoaderService.loadDemoData();
-                }
                 log.info("Installation finished successfully!");
             }
-
 
         } catch (Exception e) {
             log.error("Unexpected error during ThingsBoard installation!", e);

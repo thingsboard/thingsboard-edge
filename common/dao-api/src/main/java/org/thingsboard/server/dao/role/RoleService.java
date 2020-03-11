@@ -31,14 +31,12 @@
 package org.thingsboard.server.dao.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 
 import java.util.List;
@@ -71,13 +69,9 @@ public interface RoleService {
     Role findOrCreateRole(TenantId tenantId, CustomerId customerId, RoleType type,
                           String name, Object permissions, String description);
 
-    Role findOrCreateTenantUserRole();
+    Role findOrCreateEdgeTenantUserRole();
 
-    Role findOrCreateTenantAdminRole();
-
-    Role findOrCreateCustomerUserRole(TenantId tenantId, CustomerId customerId);
-
-    Role findOrCreateCustomerAdminRole(TenantId tenantId, CustomerId customerId);
+    Role findOrCreateEdgeCustomerUserRole(TenantId tenantId, CustomerId customerId);
 
     Role findOrCreatePublicUsersEntityGroupRole(TenantId tenantId, CustomerId customerId);
 

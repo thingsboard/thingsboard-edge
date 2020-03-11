@@ -187,9 +187,9 @@ public class UserController extends BaseController {
             boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
 
-            // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
+            // Add Tenant Admins to 'Tenant Users' user group if created by Sys Admin
             if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
+                EntityGroup admins = entityGroupService.findOrCreateTenantUsersGroup(savedUser.getTenantId());
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
             } else if (entityGroupId != null && operation == Operation.CREATE) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedUser.getId());
