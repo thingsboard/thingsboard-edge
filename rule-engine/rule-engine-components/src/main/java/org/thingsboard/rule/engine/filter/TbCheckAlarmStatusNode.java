@@ -28,8 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.rule.engine.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -40,64 +42,74 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.rule.engine.util.EntitiesFieldsAsyncLoader;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
+import javax.annotation.Nullable;
+import java.io.IOException;
 
-/**
- * Created by ashvayka on 19.01.18.
- */
 @Slf4j
-@RuleNode(type = ComponentType.ENRICHMENT,
-        name = "originator fields",
-        configClazz = TbGetOriginatorFieldsConfiguration.class,
-        nodeDescription = "Add Message Originator fields values into Message Metadata",
-        nodeDetails = "Will fetch fields values specified in mapping. If specified field is not part of originator fields it will be ignored.",
+@RuleNode(
+        type = ComponentType.FILTER,
+        name = "checks alarm status",
+        configClazz = TbCheckAlarmStatusNodeConfig.class,
+        relationTypes = {"True", "False"},
+        nodeDescription = "Checks alarm status.",
+        nodeDetails = "If the alarm status matches the specified one - msg is success if does not match - msg is failure.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbEnrichmentNodeOriginatorFieldsConfig")
-public class TbGetOriginatorFieldsNode implements TbNode {
-
-    private TbGetOriginatorFieldsConfiguration config;
+        configDirective = "tbFilterNodeCheckAlarmStatusConfig")
+public class TbCheckAlarmStatusNode implements TbNode {
+    private TbCheckAlarmStatusNodeConfig config;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        config = TbNodeUtils.convert(configuration, TbGetOriginatorFieldsConfiguration.class);
+    public void init(TbContext tbContext, TbNodeConfiguration configuration) throws TbNodeException {
+        this.config = TbNodeUtils.convert(configuration, TbCheckAlarmStatusNodeConfig.class);
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
         try {
-            withCallback(putEntityFields(ctx, msg.getOriginator(), msg),
-                    i -> ctx.tellNext(msg, SUCCESS), t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
-        } catch (Throwable th) {
-            ctx.tellFailure(msg, th);
-        }
-    }
+            Alarm alarm = mapper.readValue(msg.getData(), Alarm.class);
 
-    private ListenableFuture<Void> putEntityFields(TbContext ctx, EntityId entityId, TbMsg msg) {
-        if (config.getFieldsMapping().isEmpty()) {
-            return Futures.immediateFuture(null);
-        } else {
-            return Futures.transform(EntitiesFieldsAsyncLoader.findAsync(ctx, entityId),
-                    data -> {
-                        config.getFieldsMapping().forEach((field, metaKey) -> {
-                            String val = data.getFieldValue(field);
-                            if (val != null) {
-                                msg.getMetaData().putValue(metaKey, val);
+            ListenableFuture<Alarm> latest = ctx.getAlarmService().findAlarmByIdAsync(ctx.getTenantId(), alarm.getId());
+
+            Futures.addCallback(latest, new FutureCallback<Alarm>() {
+                @Override
+                public void onSuccess(@Nullable Alarm result) {
+                    if (result != null) {
+                        boolean isPresent = false;
+                        for (AlarmStatus alarmStatus : config.getAlarmStatusList()) {
+                            if (alarm.getStatus() == alarmStatus) {
+                                isPresent = true;
+                                break;
                             }
-                        });
-                        return null;
-                    }, MoreExecutors.directExecutor()
-            );
+                        }
+
+                        if (isPresent) {
+                            ctx.tellNext(msg, "True");
+                        } else {
+                            ctx.tellNext(msg, "False");
+                        }
+                    } else {
+                        ctx.tellFailure(msg, new TbNodeException("No such Alarm found."));
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    ctx.tellFailure(msg, t);
+                }
+            }, MoreExecutors.directExecutor());
+        } catch (IOException e) {
+            log.error("Failed to parse alarm: [{}]", msg.getData());
+            throw new TbNodeException(e);
         }
     }
 
     @Override
     public void destroy() {
-
     }
 }

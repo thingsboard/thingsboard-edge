@@ -37,6 +37,7 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,10 +61,12 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_BY_ID_VIEW_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_BY_TYPE_AND_ID_VIEW_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 @Component
 @Slf4j
@@ -111,7 +114,7 @@ public class CassandraBaseEventDao extends CassandraAbstractSearchTimeDao<EventE
             event.setUid(event.getId().toString());
         }
         ListenableFuture<Optional<Event>> optionalSave = saveAsync(event.getTenantId(), new EventEntity(event), false, eventsTtl);
-        return Futures.transform(optionalSave, opt -> opt.orElse(null));
+        return Futures.transform(optionalSave, opt -> opt.orElse(null), MoreExecutors.directExecutor());
     }
 
     @Override
@@ -225,6 +228,6 @@ public class CassandraBaseEventDao extends CassandraAbstractSearchTimeDao<EventE
             } else {
                 return Optional.empty();
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 }

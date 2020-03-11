@@ -158,7 +158,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
         if (maxRequestsTimeout > 0) {
             result = Futures.withTimeout(result, maxRequestsTimeout, TimeUnit.MILLISECONDS, timeoutExecutorService);
         }
-        Futures.addCallback(result, evalCallback);
+        Futures.addCallback(result, evalCallback, MoreExecutors.directExecutor());
         return result;
     }
 
@@ -181,7 +181,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
         if (maxRequestsTimeout > 0) {
             result = Futures.withTimeout(result, maxRequestsTimeout, TimeUnit.MILLISECONDS, timeoutExecutorService);
         }
-        Futures.addCallback(result, invokeCallback);
+        Futures.addCallback(result, invokeCallback, MoreExecutors.directExecutor());
         return result;
     }
 

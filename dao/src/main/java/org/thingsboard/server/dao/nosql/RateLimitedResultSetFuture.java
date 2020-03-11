@@ -37,6 +37,7 @@ import com.datastax.driver.core.Statement;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.thingsboard.server.dao.exception.BufferLimitException;
 import org.thingsboard.server.dao.util.AsyncRateLimiter;
@@ -59,9 +60,9 @@ public class RateLimitedResultSetFuture implements ResultSetFuture {
                 rateLimiter.release();
             }
             return Futures.immediateFailedFuture(t);
-        });
+        }, MoreExecutors.directExecutor());
         this.originalFuture = Futures.transform(rateLimitFuture,
-                i -> executeAsyncWithRelease(rateLimiter, session, statement));
+                i -> executeAsyncWithRelease(rateLimiter, session, statement), MoreExecutors.directExecutor());
 
     }
 
@@ -160,7 +161,7 @@ public class RateLimitedResultSetFuture implements ResultSetFuture {
                 public void onFailure(Throwable t) {
                     rateLimiter.release();
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return resultSetFuture;
         } catch (RuntimeException re) {
             rateLimiter.release();

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.security.permission;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,7 +137,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                     } else {
                         return Collections.emptyList();
                     }
-                });
+                }, MoreExecutors.directExecutor());
             } else {
                 groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
             }

@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.device;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -118,9 +119,9 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                     }
                     log.warn("Failed to find claimingAllowed attribute for device or it is already claimed![{}]", device.getName());
                     throw new IllegalArgumentException();
-                });
+                }, MoreExecutors.directExecutor());
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ClaimDataInfo getClaimData(Cache cache, Device device) throws ExecutionException, InterruptedException {
@@ -169,10 +170,14 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
 
                         ownersCacheEviction(device.getId());
                         return null;
-                    });
-                    return Futures.transformAsync(future, input -> Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(device, ClaimResponse.SUCCESS)));
+                    }, MoreExecutors.directExecutor());
+                    return Futures.transformAsync(future, input ->
+                            Futures.transform(removeClaimingSavedData(cache, claimData, device),
+                                    result -> new ClaimResult(device, ClaimResponse.SUCCESS),
+                                    MoreExecutors.directExecutor()),
+                            MoreExecutors.directExecutor());
                 }
-                return Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED));
+                return Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED), MoreExecutors.directExecutor());
             }
         } else {
             log.warn("Failed to find the device's claiming message![{}]", device.getName());
@@ -211,7 +216,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 return attributesService.save(tenantId, device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
                         new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true),
                                 System.currentTimeMillis())));
-            });
+            }, MoreExecutors.directExecutor());
         }
         cacheEviction(device.getId());
         return Futures.immediateFuture(Collections.emptyList());

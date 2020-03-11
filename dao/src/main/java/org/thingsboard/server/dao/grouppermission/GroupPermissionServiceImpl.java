@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -293,12 +294,12 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                     return Futures.transform(ownerName, ownerName1 -> {
                         groupPermissionInfo.setEntityGroupOwnerName(ownerName1);
                         return groupPermissionInfo;
-                    });
-                });
+                    }, MoreExecutors.directExecutor());
+                }, MoreExecutors.directExecutor());
             } else {
                 return Futures.immediateFuture(groupPermissionInfo);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<GroupPermissionInfo> fetchEntityGroupPermissionInfoAsync(TenantId tenantId, GroupPermission groupPermission) {
@@ -315,9 +316,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                 return Futures.transform(ownerName, ownerName1 -> {
                     groupPermissionInfo.setUserGroupOwnerName(ownerName1);
                     return groupPermissionInfo;
-                });
-            });
-        });
+                }, MoreExecutors.directExecutor());
+            }, MoreExecutors.directExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     private DataValidator<GroupPermission> groupPermissionValidator =

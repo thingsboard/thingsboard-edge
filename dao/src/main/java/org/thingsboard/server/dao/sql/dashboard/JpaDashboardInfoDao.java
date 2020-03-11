@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.dashboard;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -107,7 +108,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                 dashboardFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
             }
             return Futures.successfulAsList(dashboardFutures);
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     @Override

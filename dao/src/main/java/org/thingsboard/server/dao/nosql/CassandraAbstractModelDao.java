@@ -41,6 +41,7 @@ import com.datastax.driver.mapping.Result;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.Dao;
@@ -101,7 +102,7 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
                         return Collections.emptyList();
                     }
                 }
-            });
+            }, MoreExecutors.directExecutor());
         }
         return Futures.immediateFuture(Collections.emptyList());
     }
@@ -135,7 +136,7 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
                         return null;
                     }
                 }
-            });
+            }, MoreExecutors.directExecutor());
         }
         return Futures.immediateFuture(null);
     }
@@ -206,5 +207,5 @@ public abstract class CassandraAbstractModelDao<E extends BaseEntity<D>, D> exte
         List<E> entities = findListByStatement(tenantId, QueryBuilder.select().all().from(getColumnFamilyName()).setConsistencyLevel(cluster.getDefaultReadConsistencyLevel()));
         return DaoUtil.convertDataList(entities);
     }
-    
+
 }

@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -512,8 +513,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityGroupFutures.add(entityGroupDao.findByIdAsync(tenantId, relation.getTo().getId()));
             }
             return Futures.transform(Futures.successfulAsList(entityGroupFutures), entityGroups ->
-                    entityGroups.stream().filter(entityGroup -> entityGroup != null).collect(Collectors.toList()));
-        });
+                    entityGroups.stream().filter(entityGroup -> entityGroup != null).collect(Collectors.toList()), MoreExecutors.directExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -532,7 +533,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 }
             }
             return Optional.empty();
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -651,8 +652,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 TimePageData<ShortEntityView> result = new TimePageData<>(ids, views, pageLink);
                 result.getData().removeIf(ShortEntityView::isSkipEntity);
                 return result;
-            });
-        });
+            }, MoreExecutors.directExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -680,8 +681,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
                 TimePageData<E> result = new TimePageData<>(ids, entities, pageLink);
                 return result;
-            });
-        });
+            }, MoreExecutors.directExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -705,7 +706,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityGroupIds.add(new EntityGroupId(relation.getFrom().getId()));
             }
             return entityGroupIds;
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
@@ -717,7 +718,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityIds.add(relation.getTo());
             }
             return entityIds;
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private EntityGroupColumnsInfo getEntityGroupColumnsInfo(EntityGroup entityGroup) {

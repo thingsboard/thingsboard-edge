@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.metadata;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -52,15 +53,16 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEntityDetailsNodeConfiguration> implements TbNode {
 
     private static final Gson gson = new Gson();
     private static final JsonParser jsonParser = new JsonParser();
-    private static final Type TYPE = new TypeToken<Map<String, String>>() {}.getType();
+    private static final Type TYPE = new TypeToken<Map<String, String>>() {
+    }.getType();
 
     protected C config;
 
@@ -119,7 +121,7 @@ public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEnti
             } else {
                 return Futures.immediateFuture(null);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<JsonElement> addContactProperties(JsonElement data, ListenableFuture<ContactBased> entityFuture, EntityDetails entityDetails, String prefix) {
@@ -129,7 +131,7 @@ public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEnti
             } else {
                 return Futures.immediateFuture(null);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private JsonElement setProperties(ContactBased entity, JsonElement data, EntityDetails entityDetails, String prefix) {

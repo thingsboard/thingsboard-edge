@@ -28,44 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.common.util;
+package org.thingsboard.rule.engine.filter;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
 
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
+import java.util.Arrays;
+import java.util.List;
 
-public class DonAsynchron {
+@Data
+public class TbCheckAlarmStatusNodeConfig implements NodeConfiguration<TbCheckAlarmStatusNodeConfig> {
+    private List<AlarmStatus> alarmStatusList;
 
-    public static <T> void withCallback(ListenableFuture<T> future, Consumer<T> onSuccess,
-                                        Consumer<Throwable> onFailure) {
-        withCallback(future, onSuccess, onFailure, null);
-    }
-
-    public static <T> void withCallback(ListenableFuture<T> future, Consumer<T> onSuccess,
-                                        Consumer<Throwable> onFailure, Executor executor) {
-        FutureCallback<T> callback = new FutureCallback<T>() {
-            @Override
-            public void onSuccess(T result) {
-                try {
-                    onSuccess.accept(result);
-                } catch (Throwable th) {
-                    onFailure(th);
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                onFailure.accept(t);
-            }
-        };
-        if (executor != null) {
-            Futures.addCallback(future, callback, executor);
-        } else {
-            Futures.addCallback(future, callback, MoreExecutors.directExecutor());
-        }
+    @Override
+    public TbCheckAlarmStatusNodeConfig defaultConfiguration() {
+        TbCheckAlarmStatusNodeConfig config = new TbCheckAlarmStatusNodeConfig();
+        config.setAlarmStatusList(Arrays.asList(AlarmStatus.ACTIVE_ACK, AlarmStatus.ACTIVE_UNACK));
+        return config;
     }
 }

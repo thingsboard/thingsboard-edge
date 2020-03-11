@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -463,7 +464,7 @@ public class DeviceController extends BaseController {
                 public void onFailure(Throwable t) {
                     deferredResult.setErrorResult(t);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return deferredResult;
         } catch (Exception e) {
             throw handleException(e);
@@ -500,7 +501,7 @@ public class DeviceController extends BaseController {
                 public void onFailure(Throwable t) {
                     deferredResult.setErrorResult(t);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return deferredResult;
         } catch (Exception e) {
             throw handleException(e);
