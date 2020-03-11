@@ -36,6 +36,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -661,7 +662,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 }
 
                 ListenableFuture<List<AttributeKvEntry>> future = mergeAllAttributesFutures(futures);
-                Futures.addCallback(future, callback);
+                Futures.addCallback(future, callback, MoreExecutors.directExecutor());
             }
 
             @Override
@@ -675,7 +676,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         return new FutureCallback<ValidationResult>() {
             @Override
             public void onSuccess(@Nullable ValidationResult result) {
-                Futures.addCallback(attributesService.find(tenantId, entityId, scope, keys), callback);
+                Futures.addCallback(attributesService.find(tenantId, entityId, scope, keys), callback, MoreExecutors.directExecutor());
             }
 
             @Override
@@ -695,7 +696,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 }
 
                 ListenableFuture<List<AttributeKvEntry>> future = mergeAllAttributesFutures(futures);
-                Futures.addCallback(future, callback);
+                Futures.addCallback(future, callback, MoreExecutors.directExecutor());
             }
 
             @Override
@@ -709,7 +710,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         return new FutureCallback<ValidationResult>() {
             @Override
             public void onSuccess(@Nullable ValidationResult result) {
-                Futures.addCallback(attributesService.findAll(tenantId, entityId, scope), callback);
+                Futures.addCallback(attributesService.findAll(tenantId, entityId, scope), callback, MoreExecutors.directExecutor());
             }
 
             @Override

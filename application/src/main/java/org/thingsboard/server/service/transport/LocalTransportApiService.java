@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -149,7 +150,7 @@ public class LocalTransportApiService implements TransportApiService {
             try {
                 ValidateDeviceCredentialsResponseMsg.Builder builder = ValidateDeviceCredentialsResponseMsg.newBuilder();
                 builder.setDeviceInfo(getDeviceInfoProto(device));
-                if(!StringUtils.isEmpty(credentials.getCredentialsValue())){
+                if (!StringUtils.isEmpty(credentials.getCredentialsValue())) {
                     builder.setCredentialsBody(credentials.getCredentialsValue());
                 }
                 return TransportApiResponseMsg.newBuilder()
@@ -158,7 +159,7 @@ public class LocalTransportApiService implements TransportApiService {
                 log.warn("[{}] Failed to lookup device by id", deviceId, e);
                 return getEmptyTransportApiResponse();
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private DeviceInfoProto getDeviceInfoProto(Device device) throws JsonProcessingException {

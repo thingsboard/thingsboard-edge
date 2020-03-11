@@ -51,7 +51,6 @@
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>thingsboard</pkg.name>
         <tb.docker.name>tb-pe</tb.docker.name>
-        <pkg.user>thingsboard</pkg.user>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.upgradeVersion>2.4.2</pkg.upgradeVersion>
     </properties>

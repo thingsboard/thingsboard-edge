@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.action;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -81,17 +82,18 @@ public class TbDeleteRelationNode extends TbAbstractRelationActionNode<TbDeleteR
 
     @Override
     protected ListenableFuture<RelationContainer> doProcessEntityRelationAction(TbContext ctx, TbMsg msg, EntityContainer entityContainer) {
-        return Futures.transform(processSingle(ctx, msg, entityContainer), result -> new RelationContainer(msg, result));
+        return Futures.transform(processSingle(ctx, msg, entityContainer), result -> new RelationContainer(msg, result), MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<RelationContainer> getRelationContainerListenableFuture(TbContext ctx, TbMsg msg) {
         relationType = processPattern(msg, config.getRelationType());
         if (config.isDeleteForSingleEntity()) {
-            return Futures.transformAsync(getEntity(ctx, msg), entityContainer -> doProcessEntityRelationAction(ctx, msg, entityContainer));
+            return Futures.transformAsync(getEntity(ctx, msg), entityContainer -> doProcessEntityRelationAction(ctx, msg, entityContainer), MoreExecutors.directExecutor());
         } else {
-            return Futures.transform(processList(ctx, msg), result -> new RelationContainer(msg, result));
+            return Futures.transform(processList(ctx, msg), result -> new RelationContainer(msg, result), MoreExecutors.directExecutor());
         }
     }
+
     private ListenableFuture<Boolean> processList(TbContext ctx, TbMsg msg) {
         return Futures.transformAsync(processListSearchDirection(ctx, msg), entityRelations -> {
             if (entityRelations.isEmpty()) {
@@ -108,9 +110,9 @@ public class TbDeleteRelationNode extends TbAbstractRelationActionNode<TbDeleteR
                         }
                     }
                     return Futures.immediateFuture(true);
-                });
+                }, MoreExecutors.directExecutor());
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<Boolean> processSingle(TbContext ctx, TbMsg msg, EntityContainer entityContainer) {
@@ -121,7 +123,7 @@ public class TbDeleteRelationNode extends TbAbstractRelationActionNode<TbDeleteR
                         return processSingleDeleteRelation(ctx, sdId);
                     }
                     return Futures.immediateFuture(true);
-                });
+                }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<Boolean> processSingleDeleteRelation(TbContext ctx, SearchDirectionIds sdId) {

@@ -47,10 +47,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
 @IdClass(TsKvCompositeKey.class)
 public final class TsKvEntity extends AbstractTsKvEntity {
 
-    @Id
-    @Column(name = KEY_COLUMN)
-    private int key;
-
     public TsKvEntity() {
     }
 
