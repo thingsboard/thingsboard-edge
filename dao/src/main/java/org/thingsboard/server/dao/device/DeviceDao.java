@@ -84,6 +84,12 @@ public interface DeviceDao extends Dao<Device> {
      */
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> deviceIds);
 
+    PageData<Device> findDevicesByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<Device> findDevicesByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<Device> findDevicesByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
+
     /**
      * Find devices by tenantId, customerId and page link.
      *

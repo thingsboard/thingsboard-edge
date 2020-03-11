@@ -120,6 +120,12 @@ public interface EntityViewDao extends Dao<EntityView> {
      */
     ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> entityViewIds);
 
+    PageData<EntityView> findEntityViewsByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<EntityView> findEntityViewsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
+
     /**
      * Find tenants entity view types.
      *

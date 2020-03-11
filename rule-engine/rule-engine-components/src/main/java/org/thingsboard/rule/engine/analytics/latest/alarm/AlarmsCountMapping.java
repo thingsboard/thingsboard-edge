@@ -64,6 +64,13 @@ public class AlarmsCountMapping {
         if (latestInterval > 0) {
             startTime = System.currentTimeMillis() - latestInterval;
         }
-        return new AlarmFilter(this.typesList, this.severityList, this.statusList, startTime);
+        return new AlarmFilter(nullIfEmpty(this.typesList), nullIfEmpty(this.severityList), nullIfEmpty(this.statusList), startTime);
+    }
+
+    private <T> List<T> nullIfEmpty(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        return list;
     }
 }

@@ -36,12 +36,10 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,7 +66,6 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
@@ -427,20 +424,7 @@ public class EntityGroupController extends BaseController {
             checkEntityGroupType(entityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
             checkEntityId(entityId, Operation.READ);
-            ShortEntityView result = null;
-            if (entityType == EntityType.CUSTOMER) {
-                result = customerService.findGroupCustomer(getTenantId(), entityGroupId, entityId);
-            } else if (entityType == EntityType.ASSET) {
-                result = assetService.findGroupAsset(getTenantId(), entityGroupId, entityId);
-            } else if (entityType == EntityType.DEVICE) {
-                result = deviceService.findGroupDevice(getTenantId(), entityGroupId, entityId);
-            } else if (entityType == EntityType.USER) {
-                result = userService.findGroupUser(getTenantId(), entityGroupId, entityId);
-            } else if (entityType == EntityType.ENTITY_VIEW) {
-                result = entityViewService.findGroupEntityView(getTenantId(), entityGroupId, entityId);
-            } else if (entityType == EntityType.DASHBOARD) {
-                result = dashboardService.findGroupDashboard(getTenantId(), entityGroupId, entityId);
-            }
+            ShortEntityView result = entityGroupService.findGroupEntity(getTenantId(), entityGroupId, entityId);
             return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
@@ -456,9 +440,7 @@ public class EntityGroupController extends BaseController {
             @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
             @RequestParam(required = false) String textSearch,
             @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime
+            @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -466,27 +448,8 @@ public class EntityGroupController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-            ListenableFuture<PageData<ShortEntityView>> asyncResult = null;
-            if (entityType == EntityType.CUSTOMER) {
-                asyncResult = customerService.findCustomersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            } else if (entityType == EntityType.ASSET) {
-                asyncResult = assetService.findAssetsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            } else if (entityType == EntityType.DEVICE) {
-                asyncResult = deviceService.findDevicesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            } else if (entityType == EntityType.USER) {
-                asyncResult = userService.findUsersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            } else if (entityType == EntityType.ENTITY_VIEW) {
-                asyncResult = entityViewService.findEntityViewsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            } else if (entityType == EntityType.DASHBOARD) {
-                asyncResult = dashboardService.findDashboardsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            }
-            checkNotNull(asyncResult);
-            if (asyncResult != null) {
-                return checkNotNull(asyncResult.get());
-            } else {
-                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
-            }
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(entityGroupService.findGroupEntities(getTenantId(), entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

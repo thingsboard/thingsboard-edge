@@ -39,9 +39,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 
 import java.util.List;
@@ -86,11 +86,9 @@ public interface UserService {
 	    
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
-	ShortEntityView findGroupUser(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
+    PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
 
-	ListenableFuture<PageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
-
-    ListenableFuture<PageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    PageData<User> findUsersByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
 
 	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 

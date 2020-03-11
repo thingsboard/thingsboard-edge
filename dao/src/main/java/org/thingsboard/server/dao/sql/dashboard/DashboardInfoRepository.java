@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.dashboard;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
@@ -52,6 +51,28 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
     Page<DashboardInfoEntity> findByTenantId(@Param("tenantId") String tenantId,
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
+
+    @Query("SELECT di FROM DashboardInfoEntity di, " +
+            "RelationEntity re " +
+            "WHERE di.id = re.toId AND re.toType = 'DASHBOARD' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DashboardInfoEntity> findByEntityGroupId(@Param("groupId") String groupId,
+                                                  @Param("textSearch") String textSearch,
+                                                  Pageable pageable);
+
+    @Query("SELECT di FROM DashboardInfoEntity di, " +
+            "RelationEntity re " +
+            "WHERE di.id = re.toId AND re.toType = 'DASHBOARD' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DashboardInfoEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
 
     List<DashboardInfoEntity> findByIdIn(List<String> dashboardIds);
 

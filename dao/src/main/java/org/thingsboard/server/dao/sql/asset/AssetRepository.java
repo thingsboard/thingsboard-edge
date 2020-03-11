@@ -62,6 +62,41 @@ public interface AssetRepository extends PagingAndSortingRepository<AssetEntity,
                                                   @Param("textSearch") String textSearch,
                                                   Pageable pageable);
 
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupId(@Param("groupId") String groupId,
+                                          @Param("textSearch") String textSearch,
+                                          Pageable pageable);
+
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+                                           @Param("textSearch") String textSearch,
+                                           Pageable pageable);
+
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND a.type = :type " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<String> groupIds,
+                                                  @Param("type") String type,
+                                                  @Param("textSearch") String textSearch,
+                                                  Pageable pageable);
+
     List<AssetEntity> findByTenantIdAndIdIn(String tenantId, List<String> assetIds);
 
     List<AssetEntity> findByTenantIdAndCustomerIdAndIdIn(String tenantId, String customerId, List<String> assetIds);

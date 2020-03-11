@@ -39,19 +39,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -71,13 +68,15 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
@@ -239,13 +238,20 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
             Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
                     EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
             if (entityGroup.isPresent()) {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new TimePageLink(Integer.MAX_VALUE)).get();
-                List<CustomerId> customerIds = new ArrayList<>();
-                entityIds.forEach(entityId -> customerIds.add(new CustomerId(entityId.getId())));
-                List<Customer> customers = findCustomersByTenantIdAndIdsAsync(tenantId, customerIds).get();
-                List<Customer> result = customers.stream().filter(customer -> customer.isPublic()).collect(Collectors.toList());
-                if (result.isEmpty()) {
-                    Customer publicCustomer = new Customer();
+                Customer publicCustomer = null;
+                PageLink pageLink = new PageLink(100);
+                PageData<Customer> customers;
+                do {
+                    customers = findCustomersByEntityGroupId(entityGroup.get().getId(), pageLink);
+                    List<Customer> result = customers.getData().stream().filter(customer -> customer.isPublic()).collect(Collectors.toList());
+                    if (!result.isEmpty()) {
+                        publicCustomer = result.get(0);
+                    } else if (customers.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                } while (customers.hasNext() && publicCustomer == null);
+                if (publicCustomer == null) {
+                    publicCustomer = new Customer();
                     publicCustomer.setTenantId(tenantId);
                     publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
                     if (ownerId.getEntityType() == EntityType.CUSTOMER) {
@@ -256,10 +262,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     } catch (IOException e) {
                         throw new IncorrectParameterException("Unable to create public customer.", e);
                     }
-                    return saveCustomerInternal(publicCustomer);
-                } else {
-                    return result.get(0);
+                    publicCustomer = saveCustomerInternal(publicCustomer);
                 }
+                return publicCustomer;
             } else {
                 throw new RuntimeException("Fatal: entity group All is not present.");
             }
@@ -303,77 +308,19 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public ShortEntityView findGroupCustomer(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing findGroupCustomer, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
-                (customerEntityId) -> new CustomerId(customerEntityId.getId()),
-                (customerId) -> findCustomerById(tenantId, customerId),
-                new CustomerViewFunction());
+    public PageData<Customer> findCustomersByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findCustomersByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return customerDao.findCustomersByEntityGroupId(groupId.getId(), pageLink);
     }
 
     @Override
-    public ListenableFuture<PageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findCustomersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+    public PageData<Customer> findCustomersByEntityGroupIds(List<EntityGroupId> groupIds, List<CustomerId> additionalCustomerIds, PageLink pageLink) {
+        log.trace("Executing findCustomersByEntityGroupId, groupIds [{}], additionalCustomerIds [{}], pageLink [{}]", groupIds, additionalCustomerIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
         validatePageLink(pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new CustomerId(entityId.getId()),
-                (entityIds) -> findCustomersByTenantIdAndIdsAsync(tenantId, entityIds),
-                new CustomerViewFunction());
-    }
-
-    @Override
-    public ListenableFuture<PageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findCustomerEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new CustomerId(entityId.getId()),
-                (entityIds) -> findCustomersByTenantIdAndIdsAsync(tenantId, entityIds));
-    }
-
-    class CustomerViewFunction implements BiFunction<Customer, List<EntityField>, ShortEntityView> {
-
-        @Override
-        public ShortEntityView apply(Customer customer, List<EntityField> entityFields) {
-            ShortEntityView entityView = new ShortEntityView(customer.getId());
-            entityView.put(EntityField.NAME.name().toLowerCase(), customer.getName());
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case TITLE:
-                        entityView.put(key, customer.getTitle());
-                        break;
-                    case EMAIL:
-                        entityView.put(key, customer.getEmail());
-                        break;
-                    case COUNTRY:
-                        entityView.put(key, customer.getCountry());
-                        break;
-                    case STATE:
-                        entityView.put(key, customer.getState());
-                        break;
-                    case CITY:
-                        entityView.put(key, customer.getCity());
-                        break;
-                    case ADDRESS:
-                        entityView.put(key, customer.getAddress());
-                        break;
-                    case ADDRESS2:
-                        entityView.put(key, customer.getAddress2());
-                        break;
-                    case ZIP:
-                        entityView.put(key, customer.getZip());
-                        break;
-                    case PHONE:
-                        entityView.put(key, customer.getPhone());
-                        break;
-                }
-            }
-            return entityView;
-        }
+        return customerDao.findCustomersByEntityGroupIds(toUUIDs(groupIds), toUUIDs(additionalCustomerIds), pageLink);
     }
 
     private DataValidator<Customer> customerValidator =

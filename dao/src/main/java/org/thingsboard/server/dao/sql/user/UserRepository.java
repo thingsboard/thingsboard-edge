@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.user;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.security.Authority;
@@ -66,6 +65,28 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, S
                                                    @Param("searchText") String searchText,
                                                    @Param("authority") Authority authority,
                                                    Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u, " +
+            "RelationEntity re " +
+            "WHERE u.id = re.toId AND re.toType = 'USER' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<UserEntity> findByEntityGroupId(@Param("groupId") String groupId,
+                                         @Param("textSearch") String textSearch,
+                                         Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u, " +
+            "RelationEntity re " +
+            "WHERE u.id = re.toId AND re.toType = 'USER' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<UserEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+                                          @Param("textSearch") String textSearch,
+                                          Pageable pageable);
 
     List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
 

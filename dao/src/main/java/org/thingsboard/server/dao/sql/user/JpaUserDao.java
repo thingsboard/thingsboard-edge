@@ -119,4 +119,22 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> userIds) {
         return service.submit(() -> DaoUtil.convertDataList(userRepository.findUsersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(userIds))));
     }
+
+    @Override
+    public PageData<User> findUsersByEntityGroupId(UUID groupId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository
+                .findByEntityGroupId(
+                        fromTimeUUID(groupId),
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findUsersByEntityGroupIds(List<UUID> groupIds, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository
+                .findByEntityGroupIds(
+                        fromTimeUUIDs(groupIds),
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
 }

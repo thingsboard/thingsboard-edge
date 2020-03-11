@@ -28,43 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.dashboard;
+package org.thingsboard.server.dao.service.sql;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.service.BaseEntityGroupServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.List;
-import java.util.UUID;
-
-/**
- * The Interface DashboardInfoDao.
- */
-public interface DashboardInfoDao extends Dao<DashboardInfo> {
-
-    /**
-     * Find dashboards by tenantId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param pageLink the page link
-     * @return the list of dashboard objects
-     */
-    PageData<DashboardInfo> findDashboardsByTenantId(UUID tenantId, PageLink pageLink);
-
-    /**
-     * Find dashboards by dashboard Ids.
-     *
-     * @param tenantId the tenantId
-     * @param dashboardIds the dashboard Ids
-     * @return the list of dashboard objects
-     */
-    ListenableFuture<List<DashboardInfo>> findDashboardsByIdsAsync(UUID tenantId, List<UUID> dashboardIds);
-
-    PageData<DashboardInfo> findDashboardsByEntityGroupId(UUID groupId, PageLink pageLink);
-
-    PageData<DashboardInfo> findDashboardsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
-
-
+@DaoSqlTest
+public class EntityGroupServiceSqlTest extends BaseEntityGroupServiceTest {
 }

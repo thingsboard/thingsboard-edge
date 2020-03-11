@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.asset;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -83,6 +84,12 @@ public interface AssetDao extends Dao<Asset> {
      * @return the list of asset objects
      */
     ListenableFuture<List<Asset>> findAssetsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> assetIds);
+
+    PageData<Asset> findAssetsByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<Asset> findAssetsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<Asset> findAssetsByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
 
     /**
      * Find assets by tenantId, customerId and page link.

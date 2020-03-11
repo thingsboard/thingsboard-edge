@@ -28,61 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.customer;
+package org.thingsboard.server.dao.sql.group;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.group.ColumnConfiguration;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-/**
- * The Interface CustomerDao.
- */
-public interface CustomerDao extends Dao<Customer> {
+public interface GroupEntitiesRepository {
 
-    /**
-     * Save or update customer object
-     *
-     * @param customer the customer object
-     * @return saved customer object
-     */
-    Customer save(TenantId tenantId, Customer customer);
-    
-    /**
-     * Find customers by tenant id and page link.
-     *
-     * @param tenantId the tenant id
-     * @param pageLink the page link
-     * @return the list of customer objects
-     */
-    PageData<Customer> findCustomersByTenantId(UUID tenantId, PageLink pageLink);
+    PageData<ShortEntityView> findGroupEntities(EntityType entityType, UUID groupId, List<ColumnConfiguration> columns, PageLink pageLink);
 
-    /**
-     * Find customers by tenantId and customer title.
-     *
-     * @param tenantId the tenantId
-     * @param title the customer title
-     * @return the optional customer object
-     */
-    Optional<Customer> findCustomersByTenantIdAndTitle(UUID tenantId, String title);
-
-    /**
-     * Find customers by tenantId and customer Ids.
-     *
-     * @param tenantId the tenantId
-     * @param customerIds the customer Ids
-     * @return the list of customer objects
-     */
-    ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> customerIds);
-
-    PageData<Customer> findCustomersByEntityGroupId(UUID groupId, PageLink pageLink);
-
-    PageData<Customer> findCustomersByEntityGroupIds(List<UUID> groupIds, List<UUID> additionalCustomerIds, PageLink pageLink);
+    ShortEntityView findGroupEntity(EntityId entityId, UUID groupId, List<ColumnConfiguration> columns);
 
 }

@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.customer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
@@ -54,6 +53,30 @@ public interface CustomerRepository extends PagingAndSortingRepository<CustomerE
                                         Pageable pageable);
 
     CustomerEntity findByTenantIdAndTitle(String tenantId, String title);
+
+    @Query("SELECT c FROM CustomerEntity c, " +
+            "RelationEntity re " +
+            "WHERE c.id = re.toId AND re.toType = 'CUSTOMER' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(c.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<CustomerEntity> findByEntityGroupId(@Param("groupId") String groupId,
+                                             @Param("textSearch") String textSearch,
+                                             Pageable pageable);
+
+    @Query("SELECT c FROM CustomerEntity c, " +
+            "RelationEntity re " +
+            "WHERE ((c.id = re.toId AND re.toType = 'CUSTOMER' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP') " +
+            "OR (:additionalCustomerIds IS NOT NULL AND c.id in :additionalCustomerIds)) " +
+            "AND LOWER(c.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<CustomerEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+                                              @Param("additionalCustomerIds") List<String> additionalCustomerIds,
+                                              @Param("textSearch") String textSearch,
+                                              Pageable pageable);
 
     List<CustomerEntity> findCustomersByTenantIdAndIdIn(String tenantId, List<String> customerIds);
 

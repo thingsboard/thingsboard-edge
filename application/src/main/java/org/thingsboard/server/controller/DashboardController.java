@@ -256,15 +256,9 @@ public class DashboardController extends BaseController {
                 }
             }
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntitiesByPageLink(securityUser, EntityType.DASHBOARD, operationType, entityId -> new DashboardId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return dashboardService.findDashboardInfoByIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    pageLink);
+            return getGroupEntities(securityUser, EntityType.DASHBOARD, operationType,
+                    (groupIds) -> dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink)
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -288,16 +282,7 @@ public class DashboardController extends BaseController {
                 throw new ThingsboardException("Invalid entity group type '" + entityGroup.getType() + "'! Should be 'DASHBOARD'.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            List<EntityId> ids = entityGroupService.findAllEntityIds(getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
-            List<DashboardId> dashboardIdsList = new ArrayList<>();
-            ids.forEach((dashboardId) -> dashboardIdsList.add(new DashboardId(dashboardId.getId())));
-            return loadAndFilterEntities(dashboardIdsList, (entityIds) -> {
-                try {
-                    return dashboardService.findDashboardInfoByIdsAsync(getTenantId(), entityIds).get();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }, pageLink);
+            return checkNotNull(dashboardService.findDashboardsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -332,9 +317,7 @@ public class DashboardController extends BaseController {
             @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
             @RequestParam(required = false) String textSearch,
             @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime
+            @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -342,14 +325,8 @@ public class DashboardController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-            ListenableFuture<PageData<DashboardInfo>> asyncResult = dashboardService.findDashboardEntitiesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            checkNotNull(asyncResult);
-            if (asyncResult != null) {
-                return checkNotNull(asyncResult.get());
-            } else {
-                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
-            }
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(dashboardService.findDashboardsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

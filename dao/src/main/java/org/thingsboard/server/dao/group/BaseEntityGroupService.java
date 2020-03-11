@@ -53,7 +53,6 @@ import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -79,7 +78,6 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +85,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -477,8 +474,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
         log.trace("Executing findAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFrom(tenantId, parentEntityId, RelationTypeGroup.TO_ENTITY_GROUP);
-        return relationsToEntityGroups(tenantId, relations);
+        return this.entityGroupDao.findAllEntityGroups(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType());
     }
 
     @Override
@@ -502,19 +498,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(tenantId, parentEntityId, relationType, RelationTypeGroup.TO_ENTITY_GROUP);
-        return relationsToEntityGroups(tenantId, relations);
-    }
-
-    private ListenableFuture<List<EntityGroup>> relationsToEntityGroups(TenantId tenantId, ListenableFuture<List<EntityRelation>> relations) {
-        return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<EntityGroup>> entityGroupFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                entityGroupFutures.add(entityGroupDao.findByIdAsync(tenantId, relation.getTo().getId()));
-            }
-            return Futures.transform(Futures.successfulAsList(entityGroupFutures), entityGroups ->
-                    entityGroups.stream().filter(entityGroup -> entityGroup != null).collect(Collectors.toList()));
-        });
+        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), relationType);
     }
 
     @Override
@@ -525,15 +509,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validateString(name, "Incorrect name " + name);
-        ListenableFuture<List<EntityGroup>> entityGroups = findEntityGroupsByType(tenantId, parentEntityId, groupType);
-        return Futures.transform(entityGroups, input -> {
-            for (EntityGroup entityGroup : input) {
-                if (entityGroup.getName().equals(name)) {
-                    return Optional.of(entityGroup);
-                }
-            }
-            return Optional.empty();
-        });
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), relationType, name);
     }
 
     @Override
@@ -589,109 +567,29 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                                                    java.util.function.Function<EntityId, I> toIdFunction,
-                                                                                    java.util.function.Function<I, E> toEntityFunction,
-                                                                                    BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
+    public ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
-
-        try {
-            if (!relationService.checkRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP).get()) {
-                return null;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-        }
-
-        if (transformFunction == null) {
-            throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
-        }
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
-        EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-
-        E entity = toEntityFunction.apply(toIdFunction.apply(entityId));
-
-        return toEntityView(tenantId, entity, columnsInfo, transformFunction);
+        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
+        return this.entityGroupDao.findGroupEntity(entityId, entityGroupId.getId(), columns);
     }
 
     @Override
-    public <E extends BaseData, I extends EntityId> ListenableFuture<PageData<ShortEntityView>>
-    findEntities(TenantId tenantId, EntityGroupId entityGroupId,
-                 TimePageLink pageLink,
-                 java.util.function.Function<EntityId, I> toIdFunction,
-                 java.util.function.Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
-                 BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
-        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validatePageLink(pageLink);
-        if (transformFunction == null) {
-            throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
-        }
-        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
-        if (entityGroup == null) {
-            throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
-        }
-        EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        ListenableFuture<List<EntityId>> entityIdsFuture = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transformAsync(entityIdsFuture, entityIds -> {
-            ListenableFuture<List<E>> entitiesFuture;
-            List<I> ids = new ArrayList<>();
-            if (entityIds != null) {
-                entityIds.forEach(entityId -> ids.add(toIdFunction.apply(entityId)));
-            }
-            entitiesFuture = !ids.isEmpty() ? toEntitiesFunction.apply(ids) : Futures.immediateFuture(Collections.emptyList());
-
-            return Futures.transform(entitiesFuture, entities -> {
-                entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
-                List<ShortEntityView> views = new ArrayList<>();
-                entities.forEach(entity -> views.add(toEntityView(tenantId, entity, columnsInfo, transformFunction)));
-
-                int totalElements = ids.size();
-                int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil(totalElements / pageLink.getPageSize()) : 1;
-                int startIndex = pageLink.getPageSize() * pageLink.getPage();
-                boolean hasNext = totalElements > startIndex + entities.size();
-                PageData<ShortEntityView> result = new PageData<>(views, totalPages, totalElements, hasNext);
-                result.getData().removeIf(ShortEntityView::isSkipEntity);
-                return result;
-            });
-        });
-    }
-
-    @Override
-    public <E extends HasId<I>, I extends EntityId> ListenableFuture<PageData<E>>
-    findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                 Function<EntityId, I> toIdFunction,
-                 Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction) {
-        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+    public PageData<ShortEntityView> findGroupEntities(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
+        log.trace("Executing findGroupEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validatePageLink(pageLink);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
-        ListenableFuture<List<EntityId>> entityIdsFuture = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transformAsync(entityIdsFuture, entityIds -> {
-            ListenableFuture<List<E>> entitiesFuture;
-            List<I> ids = new ArrayList<>();
-            if (entityIds != null) {
-                entityIds.forEach(entityId -> ids.add(toIdFunction.apply(entityId)));
-            }
-            entitiesFuture = !ids.isEmpty() ? toEntitiesFunction.apply(ids) : Futures.immediateFuture(Collections.emptyList());
-
-            return Futures.transform(entitiesFuture, entities -> {
-                entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
-                int totalElements = ids.size();
-                int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil(totalElements / pageLink.getPageSize()) : 1;
-                int startIndex = pageLink.getPageSize() * pageLink.getPage();
-                boolean hasNext = totalElements > startIndex + entities.size();
-                PageData<E> result = new PageData<>(entities, totalPages, totalElements, hasNext);
-                return result;
-            });
-        });
+        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
+        return this.entityGroupDao.findGroupEntities(entityGroup.getType(), entityGroupId.getId(), columns, pageLink);
     }
 
     @Override
@@ -730,7 +628,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         });
     }
 
-    private EntityGroupColumnsInfo getEntityGroupColumnsInfo(EntityGroup entityGroup) {
+    private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {
         JsonNode jsonConfiguration = entityGroup.getConfiguration();
         List<ColumnConfiguration> columns = null;
         if (jsonConfiguration != null) {
@@ -746,6 +644,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (columns == null) {
             columns = Collections.emptyList();
         }
+        return columns;
+    }
+
+    private EntityGroupColumnsInfo getEntityGroupColumnsInfo(EntityGroup entityGroup) {
+        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
         EntityGroupColumnsInfo columnsInfo = new EntityGroupColumnsInfo();
         columns.forEach(column -> {
             if (column.getType() == ColumnType.ENTITY_FIELD) {

@@ -794,17 +794,6 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }, params).getBody();
     }
 
-    public PageData<DashboardInfo> getCustomerDashboards(CustomerId customerId, TimePageLink pageLink) {
-        Map<String, String> params = new HashMap<>();
-        params.put("customerId", customerId.getId().toString());
-        addPageLinkToParam(params, pageLink);
-        return restTemplate.exchange(
-                baseURL + "/api/customer/{customerId}/dashboards?" + getUrlParams(pageLink),
-                HttpMethod.GET, HttpEntity.EMPTY,
-                new ParameterizedTypeReference<PageData<DashboardInfo>>() {
-                }, params).getBody();
-    }
-
     @Deprecated
     public Dashboard createDashboard(Dashboard dashboard) {
         return restTemplate.postForEntity(baseURL + "/api/dashboard", dashboard, Dashboard.class).getBody();
@@ -2268,13 +2257,13 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
-    public PageData<ShortEntityView> getEntities(EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public PageData<ShortEntityView> getEntities(EntityGroupId entityGroupId, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("entityGroupId", entityGroupId.getId().toString());
-        addTimePageLinkToParam(params, pageLink);
+        addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/entityGroup/{entityGroupId}/entities?" + getTimeUrlParams(pageLink),
+                baseURL + "/api/entityGroup/{entityGroupId}/entities?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<ShortEntityView>>() {

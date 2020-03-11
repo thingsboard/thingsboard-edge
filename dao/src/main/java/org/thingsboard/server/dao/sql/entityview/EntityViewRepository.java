@@ -85,5 +85,40 @@ public interface EntityViewRepository extends PagingAndSortingRepository<EntityV
     @Query("SELECT DISTINCT ev.type FROM EntityViewEntity ev WHERE ev.tenantId = :tenantId")
     List<String> findTenantEntityViewTypes(@Param("tenantId") String tenantId);
 
+    @Query("SELECT e FROM EntityViewEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_VIEW' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(e.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<EntityViewEntity> findByEntityGroupId(@Param("groupId") String groupId,
+                                           @Param("textSearch") String textSearch,
+                                           Pageable pageable);
+
+    @Query("SELECT e FROM EntityViewEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_VIEW' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(e.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<EntityViewEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+                                            @Param("textSearch") String textSearch,
+                                            Pageable pageable);
+
+    @Query("SELECT e FROM EntityViewEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_VIEW' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND e.type = :type " +
+            "AND LOWER(e.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<EntityViewEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<String> groupIds,
+                                                   @Param("type") String type,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
+
     List<EntityViewEntity> findEntityViewsByTenantIdAndIdIn(String tenantId, List<String> entityViewIds);
 }

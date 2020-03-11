@@ -76,4 +76,7 @@ public class PageData<T> {
         return hasNext;
     }
 
+    public static <T> PageData<T> emptyPageData() {
+        return new PageData<>();
+    }
 }

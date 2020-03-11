@@ -975,59 +975,9 @@ public abstract class BaseController {
         }
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
-    getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                               Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                               PageLink pageLink) throws Exception {
-
-        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
-                Collections.emptyList(), Collections.emptyList(), pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
-    getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                               Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                               List<Predicate<E>> entityFilters, PageLink pageLink) throws Exception {
-
-        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
-                entityFilters, Collections.emptyList(), pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
-        getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                                   Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                                   List<Predicate<E>> entityFilters, List<I> additionalEntityIds, PageLink pageLink) throws Exception {
-
-        List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
-        entityIds.addAll(additionalEntityIds);
-
-        return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, PageLink pageLink) {
-            return loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> PageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, List<Predicate<E>> entityFilters, PageLink pageLink) {
-        List<E> entities;
-        if (entityIds.isEmpty()) {
-            entities = Collections.emptyList();
-        } else {
-            entities = toEntitiesFunction.apply(entityIds);
-        }
-        Stream<E> entitiesStream = entities.stream().sorted(entityComparator);
-        for (Predicate<E> entityFilter : entityFilters) {
-            entitiesStream = entitiesStream.filter(entityFilter);
-        }
-        entities = entitiesStream.filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-        return toPageData(entities, pageLink);
-    }
-
     protected <E> PageData<E> toPageData(List<E> entities, PageLink pageLink) {
         int totalElements = entities.size();
-        int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil(totalElements / pageLink.getPageSize()) : 1;
+        int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil((float)totalElements / pageLink.getPageSize()) : 1;
         boolean hasNext = false;
         if (pageLink.getPageSize() > 0) {
             int startIndex = pageLink.getPageSize() * pageLink.getPage();
@@ -1075,10 +1025,21 @@ public abstract class BaseController {
         }
     }
 
-    protected <I extends EntityId> List<I> getEntityIdsFromAllowedGroups(SecurityUser securityUser,
-                                                                         EntityType entityType,
-                                                                         Operation operation,
-                                                                         Function<EntityId, I> toIdFunction) throws Exception {
+    protected <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
+    getGroupEntities(SecurityUser securityUser, EntityType entityType, Operation operation,
+                     Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
+
+        List<EntityGroupId> groupIds = this.getAllowedEntityGroupIds(securityUser, entityType, operation);
+        if (!groupIds.isEmpty()) {
+            return getEntitiesFunction.apply(groupIds);
+        } else {
+            return PageData.emptyPageData();
+        }
+    }
+
+    protected List<EntityGroupId> getAllowedEntityGroupIds(SecurityUser securityUser,
+                                                           EntityType entityType,
+                                                           Operation operation) throws Exception {
         MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
         if (operation == Operation.READ) {
             groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
@@ -1087,7 +1048,6 @@ public abstract class BaseController {
         if (securityUser.getUserPermissions().hasGenericPermission(resource, operation) ||
                 (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
 
-            Set<EntityId> entityIds = new HashSet<>();
             Set<EntityGroupId> groupIds = new HashSet<>();
             if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
                 Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), securityUser.getOwnerId());
@@ -1102,16 +1062,7 @@ public abstract class BaseController {
             if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
             }
-            for (EntityGroupId groupId : groupIds) {
-                entityIds.addAll(entityGroupService.findAllEntityIds(getTenantId(), groupId, new TimePageLink(Integer.MAX_VALUE)).get());
-            }
-            if (!entityIds.isEmpty()) {
-                List<I> entityIdsList = new ArrayList<>();
-                entityIds.forEach((entityId) -> entityIdsList.add(toIdFunction.apply(entityId)));
-                return entityIdsList;
-            } else {
-                return Collections.emptyList();
-            }
+            return new ArrayList<>(groupIds);
         } else {
             return Collections.emptyList();
         }

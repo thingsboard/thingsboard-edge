@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
@@ -106,19 +107,9 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                                             Function<EntityId, I> toIdFunction,
-                                                                             Function<I, E> toEntityFunction,
-                                                                             BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+    ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    <E extends BaseData, I extends EntityId> ListenableFuture<PageData<ShortEntityView>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                                                                      Function<EntityId, I> toIdFunction,
-                                                                                                      Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
-                                                                                                      BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
-
-    <E extends HasId<I>, I extends EntityId> ListenableFuture<PageData<E>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                                                            Function<EntityId, I> toIdFunction,
-                                                                                            Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction);
+    PageData<ShortEntityView> findGroupEntities(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
     ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 

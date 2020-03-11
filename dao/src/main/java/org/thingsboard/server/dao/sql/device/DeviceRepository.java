@@ -85,6 +85,41 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
     @Query("SELECT DISTINCT d.type FROM DeviceEntity d WHERE d.tenantId = :tenantId")
     List<String> findTenantDeviceTypes(@Param("tenantId") String tenantId);
 
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupId(@Param("groupId") String groupId,
+                                           @Param("textSearch") String textSearch,
+                                           Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+                                            @Param("textSearch") String textSearch,
+                                            Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.type = :type " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<String> groupIds,
+                                                   @Param("type") String type,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
+
     DeviceEntity findByTenantIdAndName(String tenantId, String name);
 
     List<DeviceEntity> findDevicesByTenantIdAndCustomerIdAndIdIn(String tenantId, String customerId, List<String> deviceIds);
