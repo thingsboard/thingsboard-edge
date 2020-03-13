@@ -76,6 +76,9 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
+        if ("cloud".equalsIgnoreCase(msg.getMetaData().getValue("source"))) {
+            return;
+        }
         if (!msg.getType().equals(SessionMsgType.POST_TELEMETRY_REQUEST.name()) &&
                 !msg.getType().equals(SessionMsgType.POST_ATTRIBUTES_REQUEST.name()) &&
                 !msg.getType().equals(DataConstants.ATTRIBUTES_UPDATED) &&
@@ -104,6 +107,7 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
 
         if (entityName != null && entityType != null) {
+            msg.getMetaData().putValue("source", "edge");
             ctx.getEdgeEventStorage().write(constructUplinkMsg(entityName, entityType, msg), new PushToCloudNodeCallback(ctx, msg));
         }
     }
