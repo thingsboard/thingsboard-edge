@@ -38,9 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
@@ -65,7 +65,6 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -76,7 +75,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -100,13 +98,13 @@ import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityType;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleNodeProto;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
-import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.user.UserLoaderService;
 import org.thingsboard.storage.EventStorage;
@@ -116,6 +114,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -125,7 +124,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -293,33 +291,37 @@ public class CloudManagerService {
     }
 
     private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
-        if (entityUpdateMsg.hasDeviceUpdateMsg()) {
-            log.debug("Device update message received [{}]", entityUpdateMsg.getDeviceUpdateMsg());
-            onDeviceUpdate(entityUpdateMsg.getDeviceUpdateMsg());
-        } else if (entityUpdateMsg.hasAssetUpdateMsg()) {
-            log.debug("Asset update message received [{}]", entityUpdateMsg.getAssetUpdateMsg());
-            onAssetUpdate(entityUpdateMsg.getAssetUpdateMsg());
-        } else if (entityUpdateMsg.hasEntityViewUpdateMsg()) {
-            log.debug("EntityView update message received [{}]", entityUpdateMsg.getEntityViewUpdateMsg());
-            onEntityViewUpdate(entityUpdateMsg.getEntityViewUpdateMsg());
-        } else if (entityUpdateMsg.hasRuleChainUpdateMsg()) {
-            log.debug("Rule Chain udpate message received [{}]", entityUpdateMsg.getRuleChainUpdateMsg());
-            onRuleChainUpdate(entityUpdateMsg.getRuleChainUpdateMsg());
-        } else if (entityUpdateMsg.hasRuleChainMetadataUpdateMsg()) {
-            log.debug("Rule Chain Metadata udpate message received [{}]", entityUpdateMsg.getRuleChainMetadataUpdateMsg());
-            onRuleChainMetadataUpdate(entityUpdateMsg.getRuleChainMetadataUpdateMsg());
-        } else if (entityUpdateMsg.hasDashboardUpdateMsg()) {
-            log.debug("Dashboard message received [{}]", entityUpdateMsg.getDashboardUpdateMsg());
-            onDashboardUpdate(entityUpdateMsg.getDashboardUpdateMsg());
-        } else if (entityUpdateMsg.hasAlarmUpdateMsg()) {
-            log.debug("Alarm message received [{}]", entityUpdateMsg.getAlarmUpdateMsg());
-            onAlarmUpdate(entityUpdateMsg.getAlarmUpdateMsg());
-        } else if (entityUpdateMsg.hasCustomerUpdateMsg()) {
-            log.debug("Customer message received [{}]", entityUpdateMsg.getCustomerUpdateMsg());
-            onCustomerUpdate(entityUpdateMsg.getCustomerUpdateMsg());
-        } else if (entityUpdateMsg.hasUserUpdateMsg()) {
-            log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
-            onUserUpdate(entityUpdateMsg.getUserUpdateMsg());
+        try {
+            if (entityUpdateMsg.hasDeviceUpdateMsg()) {
+                log.debug("Device update message received [{}]", entityUpdateMsg.getDeviceUpdateMsg());
+                onDeviceUpdate(entityUpdateMsg.getDeviceUpdateMsg());
+            } else if (entityUpdateMsg.hasAssetUpdateMsg()) {
+                log.debug("Asset update message received [{}]", entityUpdateMsg.getAssetUpdateMsg());
+                onAssetUpdate(entityUpdateMsg.getAssetUpdateMsg());
+            } else if (entityUpdateMsg.hasEntityViewUpdateMsg()) {
+                log.debug("EntityView update message received [{}]", entityUpdateMsg.getEntityViewUpdateMsg());
+                onEntityViewUpdate(entityUpdateMsg.getEntityViewUpdateMsg());
+            } else if (entityUpdateMsg.hasRuleChainUpdateMsg()) {
+                log.debug("Rule Chain udpate message received [{}]", entityUpdateMsg.getRuleChainUpdateMsg());
+                onRuleChainUpdate(entityUpdateMsg.getRuleChainUpdateMsg());
+            } else if (entityUpdateMsg.hasRuleChainMetadataUpdateMsg()) {
+                log.debug("Rule Chain Metadata udpate message received [{}]", entityUpdateMsg.getRuleChainMetadataUpdateMsg());
+                onRuleChainMetadataUpdate(entityUpdateMsg.getRuleChainMetadataUpdateMsg());
+            } else if (entityUpdateMsg.hasDashboardUpdateMsg()) {
+                log.debug("Dashboard message received [{}]", entityUpdateMsg.getDashboardUpdateMsg());
+                onDashboardUpdate(entityUpdateMsg.getDashboardUpdateMsg());
+            } else if (entityUpdateMsg.hasAlarmUpdateMsg()) {
+                log.debug("Alarm message received [{}]", entityUpdateMsg.getAlarmUpdateMsg());
+                onAlarmUpdate(entityUpdateMsg.getAlarmUpdateMsg());
+            } else if (entityUpdateMsg.hasCustomerUpdateMsg()) {
+                log.debug("Customer message received [{}]", entityUpdateMsg.getCustomerUpdateMsg());
+                onCustomerUpdate(entityUpdateMsg.getCustomerUpdateMsg());
+            } else if (entityUpdateMsg.hasUserUpdateMsg()) {
+                log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
+                onUserUpdate(entityUpdateMsg.getUserUpdateMsg());
+            }
+        } catch (Exception e) {
+            log.error("Can't process entity updated msg", e);
         }
     }
 
@@ -468,14 +470,17 @@ public class CloudManagerService {
                     ruleChain.setTenantId(tenantId);
                 }
                 ruleChain.setName(ruleChainUpdateMsg.getName());
-//                if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
-//                    originalRuleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
-//                }
+                if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
+                    ruleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+                }
                 ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
                 ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
                 ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                 ruleChainService.saveRuleChain(ruleChain);
                 actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+
+                eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
+
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
@@ -485,9 +490,32 @@ public class CloudManagerService {
         }
     }
 
+    private UplinkMsg constructRuleChainMetadataRequestMsg(RuleChain ruleChain) {
+        RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
+                .setRuleChainIdMSB(ruleChain.getId().getId().getMostSignificantBits())
+                .setRuleChainIdLSB(ruleChain.getId().getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllRuleChainMetadataRequestMsg(Collections.singletonList(ruleChainMetadataRequestMsg));
+        return builder.build();
+    }
+
+    private RpcCallback<Void> edgeEventSaveCallback = new RpcCallback<Void>() {
+        @Override
+        public void onSuccess(@Nullable Void aVoid) {
+            log.debug("Event saved successfully!");
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            log.warn("Failure during event save", t);
+        }
+    };
+
     private void onRuleChainMetadataUpdate(RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
         try {
             switch (ruleChainMetadataUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     RuleChainMetaData ruleChainMetadata = new RuleChainMetaData();
                     RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB()));
@@ -502,7 +530,7 @@ public class CloudManagerService {
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
         }
 
@@ -538,7 +566,7 @@ public class CloudManagerService {
         for (RuleNodeProto proto : nodesList) {
             RuleNode ruleNode = new RuleNode();
             RuleNodeId ruleNodeId = new RuleNodeId(new UUID(proto.getIdMSB(), proto.getIdLSB()));
-//            ruleNode.setId(ruleNodeId);
+            ruleNode.setId(ruleNodeId);
             ruleNode.setRuleChainId(ruleChainId);
             ruleNode.setType(proto.getType());
             ruleNode.setName(proto.getName());
@@ -728,9 +756,12 @@ public class CloudManagerService {
                         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(tbMsg.getData()));
                         telemetryService.saveAndNotify(tenantId, tbMsg.getOriginator(), scope, new ArrayList<>(attributes), new FutureCallback<Void>() {
                             @Override
-                            public void onSuccess(@Nullable Void result) {}
+                            public void onSuccess(@Nullable Void result) {
+                            }
+
                             @Override
-                            public void onFailure(Throwable t) {}
+                            public void onFailure(Throwable t) {
+                            }
                         });
                     }
                     actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));

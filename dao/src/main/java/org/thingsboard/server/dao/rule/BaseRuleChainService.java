@@ -151,11 +151,8 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         Map<RuleNodeId, Integer> ruleNodeIndexMap = new HashMap<>();
         if (nodes != null) {
             for (RuleNode node : nodes) {
-                if (node.getId() != null) {
-                    ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
-                } else {
-                    toAddOrUpdate.add(node);
-                }
+                ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
+                toAddOrUpdate.add(node);
             }
         }
 
@@ -163,9 +160,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         for (RuleNode existingNode : existingRuleNodes) {
             deleteEntityRelations(tenantId, existingNode.getId());
             Integer index = ruleNodeIndexMap.get(existingNode.getId());
-            if (index != null) {
-                toAddOrUpdate.add(ruleChainMetaData.getNodes().get(index));
-            } else {
+            if (index == null) {
                 toDelete.add(existingNode);
             }
         }
@@ -182,7 +177,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             }
             int index = nodes.indexOf(node);
             nodes.set(index, savedNode);
-            ruleNodeIndexMap.put(savedNode.getId(), index);
         }
         for (RuleNode node : toDelete) {
             deleteRuleNode(tenantId, node.getId());

@@ -67,6 +67,10 @@ import java.util.Collections;
 )
 public class TbMsgPushToCloudNode implements TbNode {
 
+    private static final String CLOUD_MSG_SOURCE = "cloud";
+    private static final String EDGE_MSG_SOURCE = "edge";
+    private static final String MSG_SOURCE_KEY = "source";
+
     private EmptyNodeConfiguration config;
 
     @Override
@@ -76,7 +80,7 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        if ("cloud".equalsIgnoreCase(msg.getMetaData().getValue("source"))) {
+        if (CLOUD_MSG_SOURCE.equalsIgnoreCase(msg.getMetaData().getValue(MSG_SOURCE_KEY))) {
             return;
         }
         if (!msg.getType().equals(SessionMsgType.POST_TELEMETRY_REQUEST.name()) &&
@@ -107,7 +111,7 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
 
         if (entityName != null && entityType != null) {
-            msg.getMetaData().putValue("source", "edge");
+            msg.getMetaData().putValue(MSG_SOURCE_KEY, EDGE_MSG_SOURCE);
             ctx.getEdgeEventStorage().write(constructUplinkMsg(entityName, entityType, msg), new PushToCloudNodeCallback(ctx, msg));
         }
     }

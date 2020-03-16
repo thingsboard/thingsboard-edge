@@ -433,7 +433,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     private UplinkMsg constructAlarmUpdateMsg(Alarm alarm, UpdateMsgType updateMsgType) {
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllAlarmUpdatemsg(Collections.singletonList(constructAlarmUpdatedMsg(alarm, updateMsgType)));
+                .addAllAlarmUpdateMsg(Collections.singletonList(constructAlarmUpdatedMsg(alarm, updateMsgType)));
         return builder.build();
     }
 
